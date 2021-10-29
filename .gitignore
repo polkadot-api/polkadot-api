@@ -1,0 +1,14 @@
+*.log
+.DS_Store
+node_modules
+coverage
+.cache
+packages/client/dist/**
+!packages/client/dist/index.cjs
+!packages/client/dist/index.js
+packages/ws-provider/dist/**
+!packages/ws-provider/dist/index.cjs
+!packages/ws-provider/dist/index.js
+packages/provider/dist/**
+!packages/provider/dist/index.cjs
+!packages/provider/dist/index.js
