@@ -15,3 +15,6 @@ packages/provider/dist/**
 packages/utils/dist/**
 !packages/utils/dist/index.cjs
 !packages/utils/dist/index.js
+packages/scale-codec/dist/**
+!packages/scale-codec/dist/index.cjs
+!packages/scale-codec/dist/index.js

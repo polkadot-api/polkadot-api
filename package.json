@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@unstoppablejs/provider --workspace=@unstoppablejs/utils && npm run build --workspace=@unstoppablejs/ws-provider --workspace=@unstoppablejs/client",
+    "build": "npm run build --workspace=@unstoppablejs/provider --workspace=@unstoppablejs/utils && npm run build --workspace=@unstoppablejs/scale-codec --workspace=@unstoppablejs/ws-provider && npm run build  --workspace=@unstoppablejs/client",
     "lint": "npm run lint --workspaces",
     "format": "npm run format --workspaces",
     "test": "npm run test --workspaces",
