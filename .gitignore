@@ -12,3 +12,6 @@ packages/ws-provider/dist/**
 packages/provider/dist/**
 !packages/provider/dist/index.cjs
 !packages/provider/dist/index.js
+packages/utils/dist/**
+!packages/utils/dist/index.cjs
+!packages/utils/dist/index.js
