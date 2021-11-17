@@ -88,17 +88,15 @@ very easy to create new custom definitions. For instance, the implementation of
 the `Str` Codec looks like this:
 
 ```ts
-import { enhanceCodec, Vector, U8 } from "@/."
-
-const fromStringToBytes = (value: string) =>
-  value.split("").map((_, idx) => value.charCodeAt(idx))
-
-const fromBytesToString = (bytes: number[]) => String.fromCharCode(...bytes)
+import { utf16StrToUtf8Bytes, utf8BytesToUtf16Str } from "@unstoppablejs/utils"
+import { enhanceCodec } from "../"
+import { U8 } from "./U8"
+import { Vector } from "./Vector"
 
 export const Str = enhanceCodec(
   Vector(U8),
-  fromStringToBytes,
-  fromBytesToString,
+  (input: string) => Array.from(utf16StrToUtf8Bytes(input)),
+  (input: number[]) => utf8BytesToUtf16Str(new Uint8Array(input)),
 )
 ```
 

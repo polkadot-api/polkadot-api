@@ -1,5 +1,5 @@
 {
-  "version": "0.3.1",
+  "version": "0.3.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unstoppablejs/unstoppablejs.git"
@@ -43,6 +43,6 @@
   "name": "@unstoppablejs/scale-codec",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "dependencies": {
-    "@unstoppablejs/utils": "^1.0.0"
+    "@unstoppablejs/utils": "^1.1.0"
   }
 }
