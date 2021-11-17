@@ -1,4 +1,5 @@
 import type { Codec, CodecType } from "@unstoppablejs/scale-codec"
+import { mergeUint8, toHex, utf16StrToUtf8Bytes } from "@unstoppablejs/utils"
 import type { Client } from "./client"
 import { twoX128 } from "./hashes/twoX128"
 
@@ -82,7 +83,7 @@ type ReturnType<A extends Array<any>, C extends Codec<any>> = A extends [any]
   : CodecType<C>
 
 export const Storage = (pallet: string, client: Client) => {
-  const palledEncoded = `0x${twoX128(pallet)}`
+  const palledEncoded = twoX128(utf16StrToUtf8Bytes(pallet))
   return <
     A extends ((x: any) => string)[],
     OT extends {
@@ -94,7 +95,9 @@ export const Storage = (pallet: string, client: Client) => {
     result: C,
     ...valueKeys: [...A]
   ) => {
-    const palletItemEncoded = `${palledEncoded}${twoX128(item)}`
+    const palletItemEncoded = toHex(
+      mergeUint8(palledEncoded, twoX128(utf16StrToUtf8Bytes(item))),
+    )
 
     const send = (...args: OT): string => {
       return (
