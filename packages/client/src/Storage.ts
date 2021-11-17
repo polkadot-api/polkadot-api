@@ -104,7 +104,7 @@ export const Storage = (pallet: string, client: Client) => {
     const onReceive = (
       input: string | null,
     ): C extends Codec<infer CC> ? CC : unknown =>
-      input && (result[1](input).value as any)
+      input && (result[1](input) as any)
 
     const observable = (...args: OT) =>
       getInteropObservable<ReturnType<A, C>>(
