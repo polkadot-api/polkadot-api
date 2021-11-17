@@ -78,14 +78,14 @@ const getInteropObservable = <T>(
   }
 }
 
-type ReturnType<A extends Array<any>, C extends Codec<any>> = A extends [any]
-  ? CodecType<C> | null
-  : CodecType<C>
+type ReturnType<A extends Array<any>, C extends Codec<any>> = A extends []
+  ? CodecType<C>
+  : CodecType<C> | null
 
 export const Storage = (pallet: string, client: Client) => {
   const palledEncoded = twoX128(utf16StrToUtf8Bytes(pallet))
   return <
-    A extends ((x: any) => string)[],
+    A extends ((x: any) => Uint8Array)[],
     OT extends {
       [K in keyof A]: A[K] extends (x: infer V) => any ? V : unknown
     },
@@ -95,15 +95,19 @@ export const Storage = (pallet: string, client: Client) => {
     result: C,
     ...valueKeys: [...A]
   ) => {
-    const palletItemEncoded = toHex(
-      mergeUint8(palledEncoded, twoX128(utf16StrToUtf8Bytes(item))),
+    const palletItemEncoded = mergeUint8(
+      palledEncoded,
+      twoX128(utf16StrToUtf8Bytes(item)),
     )
 
-    const send = (...args: OT): string => {
-      return (
-        palletItemEncoded + args.map((val, idx) => valueKeys[idx](val)).join("")
+    const send = (...args: OT): string =>
+      toHex(
+        mergeUint8(
+          palletItemEncoded,
+          ...args.map((val, idx) => valueKeys[idx](val)),
+        ),
       )
-    }
+
     const onReceive = (
       input: string | null,
     ): C extends Codec<infer CC> ? CC : unknown =>
