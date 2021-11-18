@@ -15,13 +15,12 @@ export const CompatDec: Decoder<number | bigint> = toBuffer<number | bigint>(
     const nBytes = (init >>> 2) + 4
     const bytes = buffer.slice(buffer.usedBytes() + 1)
     buffer.useBytes(nBytes + 1)
-    let hexStr = ""
 
-    for (let i = 0; i < nBytes; i++) {
-      hexStr = bytes[i].toString(16).padStart(2, "0") + hexStr
-    }
+    let result = 0n
+    for (let i = nBytes - 1; i >= 0; i--)
+      result = (result << 8n) | BigInt(bytes[i])
 
-    return BigInt(`0x${hexStr}`)
+    return result
   },
 )
 
@@ -37,29 +36,26 @@ export const CompatEnc: Encoder<number | bigint> = (input) => {
   if (input < 16384) {
     const temp = new Uint8Array(2)
     let pInput = (Number(input) << 2) + 1
-    temp[0] = pInput & 255
-    temp[1] = (pInput & 65280) >>> 8
+    const dv = new DataView(temp.buffer)
+    dv.setUint16(0, pInput, true)
     return temp
   }
   if (input < 11073741824) {
     const temp = new Uint8Array(4)
     let pInput = (Number(input) << 2) + 2
-    temp[0] = pInput & 255
-    temp[1] = (pInput & 65280) >>> 8
-    temp[2] = (pInput & 16711680) >>> 16
-    temp[3] = (pInput & 4278190080) >>> 24
+    const dv = new DataView(temp.buffer)
+    dv.setUint32(0, pInput, true)
     return temp
   }
 
-  const hex = input.toString(16)
-  const nBytes = hex.length / 2
-  const temp = new Uint8Array(nBytes + 1)
-  temp[0] = ((nBytes - 4) << 2) + 3
-
-  for (let i = 1; i < nBytes + 1; i++) {
-    temp[i] = parseInt(hex.substr(hex.length - i * 2, 2), 16)
+  const result: number[] = []
+  let tmp = BigInt(input)
+  while (tmp > 0) {
+    result.push(Number(tmp))
+    tmp >>= 8n
   }
-  return temp
+  result.unshift(((result.length - 4) << 2) + 3)
+  return new Uint8Array(result)
 }
 
 export const Compat: Codec<number | bigint> = createCodec(CompatEnc, CompatDec)
