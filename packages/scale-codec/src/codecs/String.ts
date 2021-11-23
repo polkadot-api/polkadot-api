@@ -4,9 +4,9 @@ import { U8 } from "./U8"
 import { Vector } from "./Vector"
 
 export const Str = enhanceCodec(
-  Vector(U8),
-  (input: string) => Array.from(utf16StrToUtf8Bytes(input)),
-  (input: number[]) => utf8BytesToUtf16Str(new Uint8Array(input)),
+  Vector(U8, true),
+  utf16StrToUtf8Bytes,
+  utf8BytesToUtf16Str,
 )
 
 export const StrEnc = Str[0]
