@@ -11,14 +11,20 @@ export const testCodec = <T>(codec: Codec<T>) => {
     e: codec,
   })
   return (decoded: T, encoded: string) => {
-    const reEncoded = "0x" + encoded.substr(2).repeat(5)
-    const [encoder, decoder] = Test
+    const reEncoded = "0x" + encoded.slice(2).repeat(5)
     expect(
       toHex(
-        encoder({ a: decoded, b: decoded, c: decoded, d: decoded, e: decoded }),
+        Test.enc({
+          a: decoded,
+          b: decoded,
+          c: decoded,
+          d: decoded,
+          e: decoded,
+        }),
       ),
     ).toEqual(reEncoded)
-    expect(decoder(reEncoded.substr(2))).toEqual({
+
+    expect(Test.dec(reEncoded)).toEqual({
       a: decoded,
       b: decoded,
       c: decoded,

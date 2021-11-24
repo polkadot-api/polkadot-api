@@ -48,7 +48,7 @@
     "noble-hashes": "^0.3.1"
   },
   "devDependencies": {
-    "@unstoppablejs/scale-codec": "^0.3.3",
+    "@unstoppablejs/scale-codec": "^0.4.0",
     "rxjs": "^7.4.0"
   }
 }

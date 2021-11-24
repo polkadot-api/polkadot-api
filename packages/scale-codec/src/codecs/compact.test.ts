@@ -1,9 +1,9 @@
-import { Compat } from "../"
+import { compact } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(Compat)
+const tester = testCodec(compact)
 
-describe("Compat", () => {
+describe("compact", () => {
   it("unsigned interger 0", () => {
     tester(0, "0x00")
   })
@@ -29,7 +29,7 @@ describe("Compat", () => {
   })
 
   it("throws when trying to encode a negative number", () => {
-    const [encoder] = Compat
+    const [encoder] = compact
     expect(() => encoder(-1)).toThrow()
   })
 })

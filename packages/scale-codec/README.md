@@ -10,23 +10,29 @@ A modular, composable, strongly typed and lightweight implementation of the [SCA
 
 ```ts
 import {
-  Struct,
-  U32,
-  Vector,
-  Str,
+  boolean,
+  string,
+  u32,
   Enum,
-  Bool,
+  Struct,
+  Vector,
 } from "@unstoppablejs/scale-codec"
-import { bufferToHex } from "./utils"
+import { toHex } from "@unstoppablejs/utils"
 
-const [encoder, decoder] = Struct({
-  id: U32,
-  name: Str,
-  friendIds: Vector(U32),
+enum Events {
+  One,
+  Many,
+  AllOrNothing,
+}
+
+const myCodec = Struct({
+  id: u32,
+  name: string,
+  friendIds: Vector(u32),
   event: Enum({
-    one: Str,
-    many: Vector(Str),
-    allOrNothing: Bool,
+    [Events.One]: string,
+    [Events.Many]: Vector(string),
+    [Events.AllOrNothing]: boolean,
   }),
 })
 
@@ -40,28 +46,28 @@ interface SomeData {
   name: string;
   friendIds: number[];
   event:
-    | { tag: "one"; value: string; }
-    | { tag: "many"; value: string[]; }
-    | { tag: "allOrNothing"; value: boolean; };
+    | { tag: Events.One; value: string; }
+    | { tag: Events.Many; value: string[]; }
+    | { tag: Events.AllOrNothing; value: boolean; };
 }
 
 Which, as you might expect, it's the same interface that's returned by the
 decoder.
 */
 
-const encodedData: ArrayBuffer = encoder({
-  id: 100,
+const encodedData: ArrayBuffer = myCodec.enc({
+  event: { tag: Events.AllOrNothing, value: true },
   name: "Some name",
+  id: 100,
   friendIds: [1, 2, 3],
-  event: { tag: "allOrNothing" as const, value: true },
 })
 
 console.log(bufferToHex(encodedData))
 // => 0x6400000024536f6d65206e616d650c0100000002000000030000000201
 
-const decodedData = decoder(encodedData)
+const decodedData = myCodec.dec(encodedData)
 // also possible:
-// const decodedData = decoder("0x6400000024536f6d65206e616d650c0100000002000000030000000201")
+// const decodedData = myCodec.dec("0x6400000024536f6d65206e616d650c0100000002000000030000000201")
 
 console.log(JSON.stringify(decodedData, null, 2))
 // =>
@@ -90,7 +96,7 @@ the `Str` Codec looks like this:
 ```ts
 import { utf16StrToUtf8Bytes, utf8BytesToUtf16Str } from "@unstoppablejs/utils"
 import { enhanceCodec } from "../"
-import { U8 } from "./U8"
+import { u8 } from "./u8"
 import { Vector } from "./Vector"
 
 export const Str = enhanceCodec(

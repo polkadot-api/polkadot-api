@@ -1,36 +1,30 @@
-import { createCodec, toBuffer } from "../utils"
+import { createCodec, toInternalBytes } from "../utils"
 import { Codec, Decoder, Encoder } from "../types"
-import { CompatDec, CompatEnc } from "./Compat"
+import { compact } from "./compact"
 import { mergeUint8 } from "@unstoppablejs/utils"
 
 const encodeBytes = (value: Uint8Array) =>
-  mergeUint8(CompatEnc(value.length), value)
+  mergeUint8(compact.enc(value.length), value)
 
-export function VectorEnc<T>(inner: Encoder<T>): Encoder<Array<T>>
-export function VectorEnc(
-  inner: Encoder<number>,
-  asBytes: true,
-): Encoder<Uint8Array>
-export function VectorEnc(inner: Encoder<any>, asBytes: boolean = false) {
+function VectorEnc<T>(inner: Encoder<T>): Encoder<Array<T>>
+function VectorEnc(inner: Encoder<number>, asBytes: true): Encoder<Uint8Array>
+function VectorEnc(inner: Encoder<any>, asBytes: boolean = false) {
   return asBytes
     ? encodeBytes
     : (value: Array<any>) =>
-        mergeUint8(CompatEnc(value.length), ...value.map(inner))
+        mergeUint8(compact.enc(value.length), ...value.map(inner))
 }
 
-export function VectorDec<T>(getter: Decoder<T>): Decoder<Array<T>>
-export function VectorDec(
-  getter: Decoder<number>,
-  asBytes: true,
-): Decoder<Uint8Array>
-export function VectorDec(getter: Decoder<any>, asBytes: boolean = false) {
+function VectorDec<T>(getter: Decoder<T>): Decoder<Array<T>>
+function VectorDec(getter: Decoder<number>, asBytes: true): Decoder<Uint8Array>
+function VectorDec(getter: Decoder<any>, asBytes: boolean = false) {
   const constructor = asBytes ? Uint8Array : Array
-  return toBuffer((buffer) => {
-    let nElements = CompatDec(buffer)
+  return toInternalBytes((bytes) => {
+    let nElements = compact.dec(bytes)
     const result = new constructor(nElements as number)
 
     for (let i = 0; i < nElements; i++) {
-      const current = getter(buffer)
+      const current = getter(bytes)
       result[i] = current
     }
 
@@ -49,3 +43,6 @@ export function Vector(
     VectorDec(inner[1], asBytes as any),
   )
 }
+
+Vector.enc = VectorEnc
+Vector.dec = VectorDec

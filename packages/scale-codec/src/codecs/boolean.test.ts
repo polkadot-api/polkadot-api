@@ -1,9 +1,9 @@
-import { Bool } from "../"
+import { boolean } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(Bool)
+const tester = testCodec(boolean)
 
-describe("Bool", () => {
+describe("boolean", () => {
   it("false", () => {
     tester(false, "0x00")
   })

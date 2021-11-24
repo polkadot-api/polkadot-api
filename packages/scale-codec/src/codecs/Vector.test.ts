@@ -1,7 +1,7 @@
-import { Vector, U16 } from "../"
+import { Vector, u16 } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(Vector(U16))
+const tester = testCodec(Vector(u16))
 
 describe("Vector", () => {
   it("works", () => {

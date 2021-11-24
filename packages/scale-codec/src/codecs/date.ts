@@ -1,7 +1,7 @@
 import { Codec, Decoder, Encoder } from "../types"
-import { createCodec, toBuffer } from "../utils"
+import { createCodec, toInternalBytes } from "../utils"
 
-export const SDateEnc = (nBits: 32 | 64): Encoder<Date> => {
+const DateEnc = (nBits: 32 | 64): Encoder<Date> => {
   const method =
     nBits === 32 ? ("setUint32" as const) : ("setBigUint64" as const)
   const len = nBits / 8
@@ -15,19 +15,22 @@ export const SDateEnc = (nBits: 32 | 64): Encoder<Date> => {
   }
 }
 
-export const SDateDec = (nBits: 32 | 64): Decoder<Date> => {
+const DateDec = (nBits: 32 | 64): Decoder<Date> => {
   const method =
     nBits === 32 ? ("getUint32" as const) : ("getBigUint64" as const)
   const len = nBits / 8
 
-  return toBuffer((buffer) => {
+  return toInternalBytes((bytes) => {
     const result = new Date(
-      Number(new DataView(buffer.buffer)[method](buffer.usedBytes(), true)),
+      Number(new DataView(bytes.buffer)[method](bytes.usedBytes, true)),
     )
-    buffer.useBytes(len)
+    bytes.useBytes(len)
     return result
   })
 }
 
-export const SDate = (nBits: 32 | 64): Codec<Date> =>
-  createCodec(SDateEnc(nBits), SDateDec(nBits))
+const SDate = (nBits: 32 | 64): Codec<Date> =>
+  createCodec(DateEnc(nBits), DateDec(nBits))
+
+export const date32 = SDate(32)
+export const date64 = SDate(64)

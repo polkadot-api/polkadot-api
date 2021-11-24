@@ -1,9 +1,9 @@
 import { mapObject, mergeUint8 } from "@unstoppablejs/utils"
 import { Codec, Decoder, Encoder } from "../types"
-import { toBuffer, createCodec } from "../utils"
-import { U8Enc, U8Dec } from "./U8"
+import { toInternalBytes, createCodec } from "../utils"
+import { u8 } from "./u8"
 
-export const EnumEnc = <
+const enumEnc = <
   O extends { [P in keyof any]: Encoder<any> },
   OT extends {
     [K in keyof O]: O[K] extends Encoder<infer D>
@@ -16,11 +16,11 @@ export const EnumEnc = <
   const keys = Object.keys(inner)
   return ({ tag, value }: any) => {
     const idx = keys.indexOf(tag)
-    return mergeUint8(U8Enc(idx), inner[tag](value))
+    return mergeUint8(u8.enc(idx), inner[tag](value))
   }
 }
 
-export const EnumDec = <
+const enumDec = <
   O extends { [P in keyof any]: Decoder<any> },
   OT extends {
     [K in keyof O]: O[K] extends Decoder<infer D>
@@ -32,10 +32,10 @@ export const EnumDec = <
 ): Decoder<OT[keyof O]> => {
   const entries = Object.entries(inner)
 
-  return toBuffer((buffer) => {
-    const idx = U8Dec(buffer)
+  return toInternalBytes((bytes) => {
+    const idx = u8.dec(bytes)
     const [tag, innerDecoder] = entries[idx]
-    const innerResult = innerDecoder(buffer)
+    const innerResult = innerDecoder(bytes)
 
     return {
       tag,
@@ -53,6 +53,9 @@ export const Enum = <
   inner: O,
 ): Codec<OT[keyof O]> =>
   createCodec<OT[keyof O]>(
-    EnumEnc(mapObject(inner, ([encoder]) => encoder) as any) as any,
-    EnumDec(mapObject(inner, ([, decoder]) => decoder) as any),
+    enumEnc(mapObject(inner, ([encoder]) => encoder) as any) as any,
+    enumDec(mapObject(inner, ([, decoder]) => decoder) as any),
   )
+
+Enum.enc = enumEnc
+Enum.dec = enumDec

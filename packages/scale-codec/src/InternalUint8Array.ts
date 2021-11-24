@@ -5,7 +5,7 @@ export class InternalUint8Array extends Uint8Array {
     this.#usedBytes += nBytes
   }
 
-  usedBytes() {
+  get usedBytes() {
     return this.#usedBytes
   }
 }

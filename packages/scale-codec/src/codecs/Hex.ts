@@ -1,9 +1,12 @@
 import { fromHex, toHex } from "@unstoppablejs/utils"
-import { Bytes, Codec, enhanceCodec, Encoder, Decoder } from "../"
+import { createCodec, enhanceDecoder, enhanceEncoder } from "../utils"
+import { Bytes, Codec } from "../"
+
+const HexEnc = (nBytes: number) => enhanceEncoder(Bytes.enc(nBytes), fromHex)
+const HexDec = (nBytes: number) => enhanceDecoder(Bytes.dec(nBytes), toHex)
 
 export const Hex = (nBytes: number): Codec<string> =>
-  enhanceCodec(Bytes(nBytes), fromHex, toHex)
+  createCodec(HexEnc(nBytes), HexDec(nBytes))
 
-export const HexEnc = (nBytes: number): Encoder<string> => Hex(nBytes).enc
-
-export const HexDec = (nBytes: number): Decoder<string> => Hex(nBytes).dec
+Hex.enc = HexEnc
+Hex.dec = HexDec

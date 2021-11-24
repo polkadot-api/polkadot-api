@@ -1,7 +1,6 @@
 import { U8Enum } from "../"
 import { testCodec } from "../test-utils"
 import { createCodec } from "../utils"
-import { U8EnumDec, U8EnumEnc } from "./U8Enum"
 
 describe("U8Enum", () => {
   it("works with default Enums", () => {
@@ -11,7 +10,7 @@ describe("U8Enum", () => {
       Baz,
     }
 
-    const tester = testCodec(createCodec(U8EnumEnc(Basic), U8EnumDec(Basic)))
+    const tester = testCodec(createCodec(U8Enum.enc(Basic), U8Enum.dec(Basic)))
 
     tester(Basic.Foo, "0x00")
     tester(Basic.Bar, "0x01")

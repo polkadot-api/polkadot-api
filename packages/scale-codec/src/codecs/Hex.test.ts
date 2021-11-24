@@ -1,5 +1,4 @@
-import { HexEnc, HexDec, Hex } from "../"
-import { createCodec } from "../utils"
+import { Hex } from "../"
 import { testCodec } from "../test-utils"
 
 describe("Hex", () => {
@@ -15,7 +14,7 @@ describe("Hex", () => {
   })
 
   it("greedy", () => {
-    const codec = createCodec(HexEnc(Infinity), HexDec(Infinity))
+    const codec = Hex(Infinity)
     expect(codec[0]("0x12341234")).toEqual(new Uint8Array([18, 52, 18, 52]))
     expect(codec[0]("0x112341234")).toEqual(new Uint8Array([1, 18, 52, 18, 52]))
 

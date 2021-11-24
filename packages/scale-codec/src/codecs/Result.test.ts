@@ -1,7 +1,7 @@
-import { Result, U8, Bool } from "../"
+import { Result, u8, boolean } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(Result(U8, Bool))
+const tester = testCodec(Result(u8, boolean))
 
 describe("Result", () => {
   it("OK", () => {

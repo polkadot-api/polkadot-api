@@ -1,45 +1,20 @@
-import {
-  Struct,
-  StructEnc,
-  StructDec,
-  Enum,
-  Bool,
-  Str,
-  U32,
-  Vector,
-  VectorEnc,
-  VectorDec,
-  EnumDec,
-  EnumEnc,
-  createCodec,
-} from "../"
+import { Struct, boolean, string, u32, Vector, Enum } from "../"
 import { testCodec } from "../test-utils"
 
 describe("Struct", () => {
   it("encodes and decodes complex Objects", () => {
-    const encoder = StructEnc({
-      id: U32.enc,
-      name: Str.enc,
-      friendIds: VectorEnc(U32.enc),
-      event: EnumEnc({
-        one: Str.enc,
-        many: VectorEnc(Str.enc),
-        allOrNothing: Bool.enc,
+    const tester = testCodec(
+      Struct({
+        id: u32,
+        name: string,
+        friendIds: Vector(u32),
+        event: Enum({
+          one: string,
+          many: Vector(string),
+          allOrNothing: boolean,
+        }),
       }),
-    })
-
-    const decoder = StructDec({
-      id: U32.dec,
-      name: Str.dec,
-      friendIds: VectorDec(U32.dec),
-      event: EnumDec({
-        one: Str.dec,
-        many: VectorDec(Str.dec),
-        allOrNothing: Bool.dec,
-      }),
-    })
-
-    const tester = testCodec(createCodec(encoder, decoder))
+    )
 
     tester(
       {
@@ -54,13 +29,13 @@ describe("Struct", () => {
 
   it("encodes Objects correctly, even when the key order is different", () => {
     const decoder = Struct({
-      id: U32,
-      name: Str,
-      friendIds: Vector(U32),
+      id: u32,
+      name: string,
+      friendIds: Vector(u32),
       event: Enum({
-        one: Str,
-        many: Vector(Str),
-        allOrNothing: Bool,
+        one: string,
+        many: Vector(string),
+        allOrNothing: boolean,
       }),
     })
 

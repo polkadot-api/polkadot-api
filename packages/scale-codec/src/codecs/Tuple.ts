@@ -1,24 +1,18 @@
 import { mergeUint8 } from "@unstoppablejs/utils"
 import { Codec, Decoder, Encoder } from "../types"
-import { createCodec, toBuffer } from "../utils"
+import { createCodec, toInternalBytes } from "../utils"
 
-export const TupleEnc = <
+const TupleDec = <
   A extends Array<Decoder<any>>,
   OT extends { [K in keyof A]: A[K] extends Decoder<infer D> ? D : unknown },
 >(
   ...decoders: A
 ): Decoder<[...OT]> =>
-  toBuffer((buffer) => {
-    const data: [...OT] = new Array(decoders.length) as any
+  toInternalBytes(
+    (bytes) => decoders.map((decoder) => decoder(bytes)) as [...OT],
+  )
 
-    decoders.forEach((decoder, idx) => {
-      data[idx] = decoder(buffer)
-    })
-
-    return data
-  })
-
-export const TupleDec =
+const TupleEnc =
   <
     A extends Array<Encoder<any>>,
     OT extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown },
@@ -35,6 +29,9 @@ export const Tuple = <
   ...codecs: A
 ): Codec<[...OT]> =>
   createCodec(
-    TupleDec(...codecs.map(([encoder]) => encoder)),
-    TupleEnc(...codecs.map(([, decoder]) => decoder)),
+    TupleEnc(...codecs.map(([encoder]) => encoder)),
+    TupleDec(...codecs.map(([, decoder]) => decoder)),
   )
+
+Tuple.enc = TupleEnc
+Tuple.dec = TupleDec

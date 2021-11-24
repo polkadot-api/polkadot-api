@@ -2,7 +2,7 @@ import { fromHex } from "@unstoppablejs/utils"
 import { InternalUint8Array } from "./InternalUint8Array"
 import type { Codec, Decoder, Encoder } from "./types"
 
-export const toBuffer =
+export const toInternalBytes =
   <T>(fn: (input: InternalUint8Array) => T): Decoder<T> =>
   (buffer: string | ArrayBuffer | Uint8Array | InternalUint8Array) =>
     fn(
@@ -17,36 +17,30 @@ export const toBuffer =
           ),
     )
 
-export const mapEncoder =
-  <I, O>(encoder: Encoder<I>, mapper: (value: O) => I): Encoder<O> =>
-  (value) =>
-    encoder(mapper(value))
+const getterMap = {
+  1: "getUint8" as const,
+  2: "getUint16" as const,
+  4: "getUint32" as const,
+  8: "getBigUint64" as const,
+}
 
-export const mapDecoder =
-  <I, O>(decoder: Decoder<I>, mapper: (value: I) => O): Decoder<O> =>
-  (value) =>
-    mapper(decoder(value))
+export function decodeUInt(nBytes: 1 | 2 | 4): Decoder<number>
+export function decodeUInt(nBytes: 8): Decoder<bigint>
+export function decodeUInt(
+  nBytes: 1 | 2 | 4 | 8,
+): Decoder<number> | Decoder<bigint> {
+  return toInternalBytes((bytes) => {
+    const getter = getterMap[nBytes]
 
-const viewMapper: Record<
-  number,
-  Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor
-> = { 1: Uint8Array, 2: Uint16Array, 4: Uint32Array }
-
-export const decodeUInt = (nBytes: number) =>
-  toBuffer((buffer): number => {
-    const mapper = viewMapper[nBytes]
-
-    /* istanbul ignore next */
-    if (!mapper) throw new Error("Not supported")
-
-    const result = new viewMapper[nBytes](
-      buffer.slice(buffer.usedBytes()).buffer,
+    const result = new DataView(bytes.slice(bytes.usedBytes).buffer)[getter](
       0,
-      1,
-    )[0]
-    buffer.useBytes(nBytes)
+      true,
+    ) as number
+
+    bytes.useBytes(nBytes)
     return result
   })
+}
 
 export const createCodec = <T>(
   encoder: Encoder<T>,
@@ -58,9 +52,19 @@ export const createCodec = <T>(
   return result
 }
 
+export const enhanceEncoder =
+  <I, O>(encoder: Encoder<I>, mapper: (value: O) => I): Encoder<O> =>
+  (value) =>
+    encoder(mapper(value))
+
+export const enhanceDecoder =
+  <I, O>(decoder: Decoder<I>, mapper: (value: I) => O): Decoder<O> =>
+  (value) =>
+    mapper(decoder(value))
+
 export const enhanceCodec = <I, O>(
   [encoder, decoder]: Codec<I>,
   toFrom: (value: O) => I,
   fromTo: (value: I) => O,
 ): Codec<O> =>
-  createCodec(mapEncoder(encoder, toFrom), mapDecoder(decoder, fromTo))
+  createCodec(enhanceEncoder(encoder, toFrom), enhanceDecoder(decoder, fromTo))
