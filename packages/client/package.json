@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unstoppablejs/unstoppablejs.git"
@@ -43,12 +43,10 @@
   "name": "@unstoppablejs/client",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "dependencies": {
-    "@unstoppablejs/provider": "^0.0.1",
-    "@unstoppablejs/utils": "^1.1.0",
-    "noble-hashes": "^0.3.1"
+    "@unstoppablejs/provider": "^0.0.1"
   },
   "devDependencies": {
-    "@unstoppablejs/scale-codec": "^0.4.0",
-    "rxjs": "^7.4.0"
+    "rxjs": "^7.4.0",
+    "ws": "^8.3.0"
   }
 }

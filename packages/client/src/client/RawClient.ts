@@ -1,16 +1,28 @@
-import { Client, GetProvider, Provider, ProviderStatus } from "./types"
+import type { BaseClient } from "../BaseClientInterface"
+import { GetProvider, Provider, ProviderStatus, RpcError } from "../types"
+import { ErrorRpc } from "./ErrorRpc"
+import { OrfanMessages } from "../utils/OrfanMessages"
 
-export const CreateClient = (gProvider: GetProvider): Client => {
+export interface RawClient extends BaseClient {
+  request: <T>(
+    method: string,
+    params: string,
+    cb: (result: T) => void,
+    unsubscribeMethod?: string,
+  ) => () => void
+}
+
+export const createRawClient = (gProvider: GetProvider): RawClient => {
   let nextId = 1
   const callbacks = new Map<number, (cb: any) => void>()
 
   const subscriptionToId = new Map<string, number>()
   const idToSubscription = new Map<number, string>()
 
-  const orfanMessages = new Map<string, { date: number; message: any }>()
+  const orfanMessages = new OrfanMessages()
   const batchedRequests = new Map<
     number,
-    [string, Array<any>, (m: any) => void, boolean]
+    [string, string, (m: any) => void, boolean]
   >()
 
   let provider: Provider | null = null
@@ -18,26 +30,32 @@ export const CreateClient = (gProvider: GetProvider): Client => {
 
   function onMessage(message: string): void {
     try {
-      let id, result, params: { subscription: any; result: any }, subscription
-      ;({ id, result, params } = JSON.parse(message))
+      let id,
+        result,
+        error: RpcError | undefined,
+        params: { subscription: any; result: any; error?: RpcError },
+        subscription
+      ;({ id, result, error, params } = JSON.parse(message))
+
+      // TODO: if the id is `null` it means that its a server notification,
+      // perhaps we should handle them... somehow?
+      /* istanbul ignore next */
+      if (id === null) return
 
       if (id)
-        return callbacks.get(id)?.(result)
+        return callbacks.get(id)?.(result ?? new ErrorRpc(error!))
 
-        // If the ID wasn't present, it must be a subscription
-      ;({ subscription, result } = params)
-      if (!subscription || !result) throw new Error("Wrong message format")
+        // at this point, it means that it should be a subscription
+      ;({ subscription, result, error } = params)
+      if (!subscription || (!result && !error)) throw 0
+      const data = result ?? new ErrorRpc(error!)
 
       id = subscriptionToId.get(subscription)
-      if (id) return callbacks.get(id)?.(result)
+      if (id) return callbacks.get(id)!(data)
 
-      orfanMessages.set(subscription, {
-        date: Date.now(),
-        message: result,
-      })
+      orfanMessages.set(subscription, data)
     } catch (e) {
-      console.error("Error parsing an incomming message", message)
-      console.error(e)
+      throw new Error("Error parsing incomming message: " + message)
     }
   }
 
@@ -69,7 +87,7 @@ export const CreateClient = (gProvider: GetProvider): Client => {
   const process = (
     id: number,
     method: string,
-    params: Array<any>,
+    params: string,
     cb: any,
     isSub: boolean,
   ) => {
@@ -80,13 +98,12 @@ export const CreateClient = (gProvider: GetProvider): Client => {
             subscriptionToId.set(result, id)
             idToSubscription.set(id, result)
 
-            const nextCb = (d: any) => cb(d.changes[0][1])
-
-            const orfan = orfanMessages.get(result)
-            if (orfan) {
-              orfanMessages.delete(result)
-              nextCb(orfan.message)
+            const nextCb = (d: any) => {
+              cb(d)
             }
+
+            const orfan = orfanMessages.upsert(result)
+            if (orfan) nextCb(orfan)
             callbacks.set(id, nextCb)
           }
         : (message: any) => {
@@ -95,25 +112,20 @@ export const CreateClient = (gProvider: GetProvider): Client => {
           },
     )
 
-    provider!.send(
-      JSON.stringify({
-        id,
-        jsonrpc: "2.0",
-        method,
-        params,
-      }),
-    )
+    const msg = `{"id":${id},"jsonrpc":"2.0","method":"${method}","params":${params}}`
+    provider!.send(msg)
   }
 
   const request = <T>(
     method: string,
-    params: Array<any>,
+    params: string,
     cb: (result: T) => void,
+    unsubscribeMethod?: string,
   ): (() => void) => {
     if (!provider) throw new Error("Not connected")
     const id = nextId++
 
-    const isSub = method.indexOf("subscribe") > -1
+    const isSub = !!unsubscribeMethod
     const cleanup = (): void => {
       if (batchedRequests.has(id)) {
         batchedRequests.delete(id)
@@ -127,13 +139,11 @@ export const CreateClient = (gProvider: GetProvider): Client => {
       subscriptionToId.delete(subId)
       idToSubscription.delete(id)
 
-      const [first, second] = method.split("_")
-
       provider!.send(
         JSON.stringify({
           id: nextId++,
           jsonrpc: "2.0",
-          method: `${first}_un${second}`,
+          method: unsubscribeMethod,
           params: [subId],
         }),
       )
