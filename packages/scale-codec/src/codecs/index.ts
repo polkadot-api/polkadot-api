@@ -1,8 +1,8 @@
 // Codecs
-export { boolean } from "./boolean"
+export { bool } from "./bool"
 export { compact } from "./compact"
 export { date32, date64 } from "./date"
-export { string } from "./string"
+export { str } from "./str"
 export { u8 } from "./u8"
 export { u16 } from "./u16"
 export { u32 } from "./u32"

@@ -1,7 +1,7 @@
-import { Tuple, compact, boolean } from "../"
+import { Tuple, compact, bool } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(Tuple(compact, boolean))
+const tester = testCodec(Tuple(compact, bool))
 
 describe("Tuple", () => {
   it("works", () => {

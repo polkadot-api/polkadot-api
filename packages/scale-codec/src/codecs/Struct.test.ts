@@ -1,4 +1,4 @@
-import { Struct, boolean, string, u32, Vector, Enum } from "../"
+import { Struct, bool, str, u32, Vector, Enum } from "../"
 import { testCodec } from "../test-utils"
 
 describe("Struct", () => {
@@ -6,12 +6,12 @@ describe("Struct", () => {
     const tester = testCodec(
       Struct({
         id: u32,
-        name: string,
+        name: str,
         friendIds: Vector(u32),
         event: Enum({
-          one: string,
-          many: Vector(string),
-          allOrNothing: boolean,
+          one: str,
+          many: Vector(str),
+          allOrNothing: bool,
         }),
       }),
     )
@@ -30,12 +30,12 @@ describe("Struct", () => {
   it("encodes Objects correctly, even when the key order is different", () => {
     const decoder = Struct({
       id: u32,
-      name: string,
+      name: str,
       friendIds: Vector(u32),
       event: Enum({
-        one: string,
-        many: Vector(string),
-        allOrNothing: boolean,
+        one: str,
+        many: Vector(str),
+        allOrNothing: bool,
       }),
     })
 

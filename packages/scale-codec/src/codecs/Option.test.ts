@@ -1,5 +1,5 @@
 import { testCodec } from "../test-utils"
-import { boolean, compact, Option } from "../"
+import { bool, compact, Option } from "../"
 
 describe("Option", () => {
   it("None", () => {
@@ -13,7 +13,7 @@ describe("Option", () => {
   })
 
   it("Booleans", () => {
-    const tester = testCodec(Option(boolean))
+    const tester = testCodec(Option(bool))
     tester(undefined, "0x00")
     tester(true, "0x01")
     tester(false, "0x02")

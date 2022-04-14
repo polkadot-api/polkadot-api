@@ -1,7 +1,7 @@
-import { MapCodec, string, Vector } from "../"
+import { MapCodec, str, Vector } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(MapCodec(string, Vector(string)))
+const tester = testCodec(MapCodec(str, Vector(str)))
 
 describe("MapCodec", () => {
   it("works", () => {

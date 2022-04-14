@@ -1,7 +1,7 @@
-import { string, SetCodec } from "../"
+import { str, SetCodec } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(SetCodec(string))
+const tester = testCodec(SetCodec(str))
 
 describe("SetCodec", () => {
   it("works", () => {

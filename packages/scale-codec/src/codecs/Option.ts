@@ -1,7 +1,7 @@
 import { Decoder, Encoder, Codec } from "../types"
 import { createCodec, toInternalBytes } from "../utils"
 import { u8 } from "./u8"
-import { boolean } from "./boolean"
+import { bool } from "./bool"
 import { mergeUint8 } from "@unstoppablejs/utils"
 
 const OptionDec = <T>(inner: Decoder<T>): Decoder<T | undefined> =>
@@ -9,7 +9,7 @@ const OptionDec = <T>(inner: Decoder<T>): Decoder<T | undefined> =>
     const val = u8.dec(bytes)
     if (val === 0) return undefined
 
-    return inner === (boolean[1] as any)
+    return inner === (bool[1] as any)
       ? ((val === 1) as unknown as T)
       : inner(bytes)
   })
@@ -24,7 +24,7 @@ const OptionEnc =
     }
 
     result[0] = 1
-    if (inner === (boolean[0] as any)) {
+    if (inner === (bool[0] as any)) {
       result[0] = value ? 1 : 2
       return result
     }

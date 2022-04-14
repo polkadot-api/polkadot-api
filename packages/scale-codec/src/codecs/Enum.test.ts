@@ -1,4 +1,4 @@
-import { Enum, u8, boolean } from "../"
+import { Enum, u8, bool } from "../"
 import { testCodec } from "../test-utils"
 
 enum Options {
@@ -6,7 +6,7 @@ enum Options {
   Bool = "Bool",
 }
 
-const tester = testCodec(Enum({ [Options.Int]: u8, [Options.Bool]: boolean }))
+const tester = testCodec(Enum({ [Options.Int]: u8, [Options.Bool]: bool }))
 
 describe("Enum", () => {
   it("Int(42)", () => {

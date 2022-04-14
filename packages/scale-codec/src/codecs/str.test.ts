@@ -1,7 +1,7 @@
-import { string } from "../"
+import { str } from "../"
 import { testCodec } from "../test-utils"
 
-const tester = testCodec(string)
+const tester = testCodec(str)
 
 describe("string", () => {
   it("works", () => {
