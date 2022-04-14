@@ -1,10 +1,10 @@
 import { mapObject } from "@unstoppablejs/utils"
-import { Codec, Decoder, Encoder } from "../types"
+import { Codec, Decoder, Encoder, StringRecord } from "../types"
 import { createCodec, enhanceDecoder, enhanceEncoder } from "../utils"
 import { Tuple } from "./Tuple"
 
 const StructEnc = <
-  A extends Record<string, Encoder<any>>,
+  A extends StringRecord<Encoder<any>>,
   OT extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown },
 >(
   encoders: A,
@@ -16,7 +16,7 @@ const StructEnc = <
 }
 
 const StructDec = <
-  A extends Record<string, Decoder<any>>,
+  A extends StringRecord<Decoder<any>>,
   OT extends { [K in keyof A]: A[K] extends Decoder<infer D> ? D : unknown },
 >(
   decoders: A,
@@ -30,14 +30,14 @@ const StructDec = <
 }
 
 export const Struct = <
-  A extends Record<string, Codec<any>>,
+  A extends StringRecord<Codec<any>>,
   OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown },
 >(
   codecs: A,
 ): Codec<OT> =>
   createCodec(
-    StructEnc(mapObject(codecs, (x) => x[0])),
-    StructDec(mapObject(codecs, (x) => x[1])),
+    StructEnc(mapObject(codecs, (x) => x[0]) as any),
+    StructDec(mapObject(codecs, (x) => x[1]) as any),
   )
 
 Struct.enc = StructEnc

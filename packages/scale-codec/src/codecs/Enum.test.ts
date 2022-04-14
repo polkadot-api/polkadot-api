@@ -2,8 +2,8 @@ import { Enum, u8, boolean } from "../"
 import { testCodec } from "../test-utils"
 
 enum Options {
-  Int,
-  Bool,
+  Int = "Int",
+  Bool = "Bool",
 }
 
 const tester = testCodec(Enum({ [Options.Int]: u8, [Options.Bool]: boolean }))

@@ -8,3 +8,9 @@ export type Codec<T> = [Encoder<T>, Decoder<T>] & {
 export type CodecType<T extends Codec<any>> = T extends Codec<infer V>
   ? V
   : unknown
+
+export type StringRecord<T> = {
+  [Sym: symbol]: never
+  [Num: number]: never
+  [Str: string]: T
+}
