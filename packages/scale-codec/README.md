@@ -11,18 +11,19 @@ A modular, composable, strongly typed and lightweight implementation of the [SCA
 ```ts
 import {
   boolean,
+  empty,
   string,
   u32,
   Enum,
   Struct,
   Vector,
 } from "@unstoppablejs/scale-codec"
-import { toHex } from "@unstoppablejs/utils"
 
 enum Events {
-  One,
-  Many,
-  AllOrNothing,
+  One = "One",
+  Many = "Many",
+  AllOrNothing = "AllOrNothing",
+  Void = "Void",
 }
 
 const myCodec = Struct({
@@ -32,7 +33,7 @@ const myCodec = Struct({
   event: Enum({
     [Events.One]: string,
     [Events.Many]: Vector(string),
-    [Events.AllOrNothing]: boolean,
+    [Events.Void]: empty,
   }),
 })
 
@@ -49,6 +50,7 @@ interface SomeData {
     | { tag: Events.One; value: string; }
     | { tag: Events.Many; value: string[]; }
     | { tag: Events.AllOrNothing; value: boolean; };
+    | { tag: Events.Void; };
 }
 
 Which, as you might expect, it's the same interface that's returned by the

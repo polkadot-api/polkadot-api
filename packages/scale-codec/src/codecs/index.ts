@@ -2,6 +2,7 @@
 export { bool } from "./bool"
 export { compact } from "./compact"
 export { date32, date64 } from "./date"
+export { empty, EMPTY } from "./empty"
 export { str } from "./str"
 export { u8 } from "./u8"
 export { u16 } from "./u16"
