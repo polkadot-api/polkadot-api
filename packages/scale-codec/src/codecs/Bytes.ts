@@ -11,9 +11,9 @@ const BytesDec = (nBytes: number): Decoder<Uint8Array> =>
   toInternalBytes((bytes) => {
     const nUsedBytes = bytes.usedBytes
     const len = nBytes !== Infinity ? nBytes : bytes.byteLength - nUsedBytes
-    const result = bytes.slice(nUsedBytes, nUsedBytes + len)
+    const result = new Uint8Array(bytes.buffer, nUsedBytes, len)
     bytes.useBytes(len)
-    return new Uint8Array(result.buffer)
+    return result
   })
 
 export const Bytes = (nBytes: number): Codec<Uint8Array> =>
