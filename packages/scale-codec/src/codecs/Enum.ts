@@ -9,7 +9,7 @@ const enumEnc = <
   OT extends {
     [K in keyof O]: O[K] extends Encoder<infer D>
       ? D extends typeof EMPTY
-        ? { tag: K }
+        ? { tag: K; value?: undefined }
         : { tag: K; value: D }
       : unknown
   },
@@ -28,7 +28,7 @@ const enumDec = <
   OT extends {
     [K in keyof O]: O[K] extends Decoder<infer D>
       ? D extends typeof EMPTY
-        ? { tag: K }
+        ? { tag: K; value?: undefined }
         : { tag: K; value: D }
       : unknown
   },
@@ -56,7 +56,7 @@ export const Enum = <
   OT extends {
     [K in keyof O]: O[K] extends Codec<infer D>
       ? D extends typeof EMPTY
-        ? { tag: K }
+        ? { tag: K; value?: undefined }
         : { tag: K; value: D }
       : unknown
   },
