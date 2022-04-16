@@ -8,10 +8,12 @@ export { u8 } from "./u8"
 export { u16 } from "./u16"
 export { u32 } from "./u32"
 export { u64 } from "./u64"
+export { u128 } from "./u128"
 export { i8 } from "./i8"
 export { i16 } from "./i16"
 export { i32 } from "./i32"
 export { i64 } from "./i64"
+export { i128 } from "./i128"
 
 // Higher Order Codecs
 export { Bytes } from "./Bytes"
