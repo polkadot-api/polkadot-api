@@ -1,12 +1,7 @@
-import { Codec, Decoder, Encoder } from "../types"
-import { createCodec, decodeUInt } from "../utils"
+import { Codec } from "../types"
+import { createCodec, decodeInt, encodeInt, IntType } from "../utils"
 
-export const u64Enc: Encoder<bigint> = (input) => {
-  const result = new Uint8Array(8)
-  const dv = new DataView(result.buffer)
-  dv.setBigUint64(0, input, true)
-  return result
-}
+const u64Enc = encodeInt(IntType.u64)
+const u64Dec = decodeInt(IntType.u64)
 
-export const u64Dec: Decoder<bigint> = decodeUInt(8)
 export const u64: Codec<bigint> = createCodec(u64Enc, u64Dec)

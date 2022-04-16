@@ -1,6 +1,12 @@
 import { createCodec } from "../"
-import { decodeUInt, toInternalBytes } from "../utils"
+import { decodeInt, IntType, toInternalBytes } from "../utils"
 import { Decoder, Encoder, Codec } from "../types"
+
+const bytesToIntType = {
+  [1]: IntType.u8,
+  [2]: IntType.u16,
+  [4]: IntType.u32,
+} as const
 
 const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
   (bytes) => {
@@ -11,7 +17,7 @@ const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
 
     if (kind !== 3) {
       const nBytes = kind === 2 ? 4 : kind + 1
-      return decodeUInt(nBytes as 1 | 2 | 4)(bytes) >>> 2
+      return decodeInt(bytesToIntType[nBytes as 1 | 2 | 4])(bytes) >>> 2
     }
 
     const nBytes = (init >>> 2) + 4

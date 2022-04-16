@@ -1,12 +1,7 @@
-import { Codec, Encoder } from "../types"
-import { createCodec, decodeUInt } from "../utils"
+import { Codec } from "../types"
+import { createCodec, decodeInt, encodeInt, IntType } from "../utils"
 
-const u8Enc: Encoder<number> = (value) => {
-  const tmp = new Uint8Array(1)
-  tmp[0] = value
-  return tmp
-}
-
-const u8Dec = decodeUInt(1)
+const u8Enc = encodeInt(IntType.u8)
+const u8Dec = decodeInt(IntType.u8)
 
 export const u8: Codec<number> = createCodec(u8Enc, u8Dec)
