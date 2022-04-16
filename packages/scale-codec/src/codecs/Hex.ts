@@ -1,5 +1,5 @@
 import { fromHex, toHex } from "@unstoppablejs/utils"
-import { createCodec, enhanceDecoder, enhanceEncoder } from "../utils"
+import { createCodec, enhanceDecoder, enhanceEncoder } from "../"
 import { Bytes, Codec } from "../"
 
 const HexEnc = (nBytes: number) => enhanceEncoder(Bytes.enc(nBytes), fromHex)

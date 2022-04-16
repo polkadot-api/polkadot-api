@@ -1,5 +1,6 @@
 import { Codec } from "../types"
-import { createCodec, decodeInt, encodeInt, IntType } from "../utils"
+import { createCodec } from "../"
+import { decodeInt, encodeInt, IntType } from "../internal"
 
 const i8Enc = encodeInt(IntType.i8)
 const i8Dec = decodeInt(IntType.i8)

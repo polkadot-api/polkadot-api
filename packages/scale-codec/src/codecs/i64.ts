@@ -1,5 +1,6 @@
 import { Codec } from "../types"
-import { createCodec, decodeInt, encodeInt, IntType } from "../utils"
+import { decodeInt, encodeInt, IntType } from "../internal"
+import { createCodec } from "../utils"
 
 export const i64: Codec<bigint> = createCodec(
   encodeInt(IntType.i64),

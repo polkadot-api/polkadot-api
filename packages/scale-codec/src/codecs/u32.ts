@@ -1,5 +1,6 @@
 import { Codec } from "../types"
-import { createCodec, decodeInt, encodeInt, IntType } from "../utils"
+import { decodeInt, encodeInt, IntType } from "../internal"
+import { createCodec } from "../utils"
 
 const u32Enc = encodeInt(IntType.u32)
 const u32Dec = decodeInt(IntType.u32)

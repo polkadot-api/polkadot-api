@@ -1,5 +1,5 @@
 import { createCodec } from "../"
-import { decodeInt, IntType, toInternalBytes } from "../utils"
+import { decodeInt, IntType, toInternalBytes } from "../internal"
 import { Decoder, Encoder, Codec } from "../types"
 
 const bytesToIntType = {

@@ -1,5 +1,6 @@
 import { Encoder, Decoder, Codec } from "../types"
-import { createCodec, toInternalBytes } from "../utils"
+import { createCodec } from "../"
+import { toInternalBytes } from "../internal"
 
 const BytesEnc =
   (nBytes: number): Encoder<Uint8Array> =>

@@ -1,5 +1,6 @@
 import { Codec, Encoder, Decoder } from "../types"
-import { createCodec, toInternalBytes } from "../utils"
+import { toInternalBytes } from "../internal"
+import { createCodec } from "../"
 
 export const EMPTY = Symbol("empty")
 

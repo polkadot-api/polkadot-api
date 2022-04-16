@@ -1,6 +1,7 @@
 import { mapObject, mergeUint8 } from "@unstoppablejs/utils"
 import { Codec, Decoder, Encoder, StringRecord } from "../types"
-import { toInternalBytes, createCodec } from "../utils"
+import { toInternalBytes } from "../internal"
+import { createCodec } from "../"
 import { EMPTY } from "./empty"
 import { u8 } from "./u8"
 

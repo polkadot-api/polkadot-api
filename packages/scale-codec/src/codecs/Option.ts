@@ -1,5 +1,6 @@
 import { Decoder, Encoder, Codec } from "../types"
-import { createCodec, toInternalBytes } from "../utils"
+import { toInternalBytes } from "../internal"
+import { createCodec } from "../utils"
 import { u8 } from "./u8"
 import { bool } from "./bool"
 import { mergeUint8 } from "@unstoppablejs/utils"

@@ -1,6 +1,6 @@
 import { Codec } from "../types"
 import { u8 } from "./u8"
-import { enhanceCodec } from "../utils"
+import { enhanceCodec } from "../"
 
 const booleanToNumber = (value: boolean) => (value ? 1 : 0)
 

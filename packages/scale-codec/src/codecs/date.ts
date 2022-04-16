@@ -1,5 +1,6 @@
 import { Codec, Decoder, Encoder } from "../types"
-import { createCodec, toInternalBytes } from "../utils"
+import { toInternalBytes } from "../internal"
+import { createCodec } from "../"
 
 const DateEnc = (nBits: 32 | 64): Encoder<Date> => {
   const method =
