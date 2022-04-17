@@ -10,30 +10,24 @@ A modular, composable, strongly typed and lightweight implementation of the [SCA
 
 ```ts
 import {
-  boolean,
-  empty,
-  string,
+  bool,
+  _void,
+  str,
   u32,
   Enum,
   Struct,
   Vector,
 } from "@unstoppablejs/scale-codec"
 
-enum Events {
-  One = "One",
-  Many = "Many",
-  AllOrNothing = "AllOrNothing",
-  Void = "Void",
-}
-
 const myCodec = Struct({
   id: u32,
-  name: string,
+  name: str,
   friendIds: Vector(u32),
   event: Enum({
-    [Events.One]: string,
-    [Events.Many]: Vector(string),
-    [Events.Void]: empty,
+    _void,
+    one: str,
+    many: Vector(str),
+    allOrNothing: bool,
   }),
 })
 
@@ -47,10 +41,10 @@ interface SomeData {
   name: string;
   friendIds: number[];
   event:
-    | { tag: Events.One; value: string; }
-    | { tag: Events.Many; value: string[]; }
-    | { tag: Events.AllOrNothing; value: boolean; };
-    | { tag: Events.Void; };
+    | { tag: void; value?: undefined };
+    | { tag: one; value: string; }
+    | { tag: many; value: string[]; }
+    | { tag: allOrNothing; value: boolean; };
 }
 
 Which, as you might expect, it's the same interface that's returned by the
@@ -93,19 +87,14 @@ console.log(JSON.stringify(decodedData, null, 2))
 In this library you won't find common definitions like `AccountId`. However,
 since the definitions of this library are enhanceable and composable, it's
 very easy to create new custom definitions. For instance, the implementation of
-the `Str` Codec looks like this:
+the `bool` Codec looks like this:
 
 ```ts
-import { utf16StrToUtf8Bytes, utf8BytesToUtf16Str } from "@unstoppablejs/utils"
-import { enhanceCodec } from "../"
-import { u8 } from "./u8"
-import { Vector } from "./Vector"
+import { enhanceCodec, u8, Codec } from "../"
 
-export const Str = enhanceCodec(
-  Vector(U8, true),
-  utf16StrToUtf8Bytes,
-  utf8BytesToUtf16Str,
-)
+const booleanToNumber = (value: boolean) => (value ? 1 : 0)
+
+export const bool: Codec<boolean> = enhanceCodec(u8, booleanToNumber, Boolean)
 ```
 
 Similarly, you could implement any other definitions are that based on other
