@@ -1,5 +1,5 @@
 {
-  "version": "0.7.1",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unstoppablejs/unstoppablejs.git"
@@ -9,15 +9,15 @@
   "exports": {
     ".": {
       "node": {
-        "module": "./dist/scale-codec.es2017.js",
-        "import": "./dist/scale-codec.es2019.mjs",
+        "module": "./dist/scale-ts.es2017.js",
+        "import": "./dist/scale-ts.es2019.mjs",
         "require": "./dist/index.cjs"
       },
-      "default": "./dist/scale-codec.es2017.js"
+      "default": "./dist/scale-ts.es2017.js"
     },
     "./package.json": "./package.json"
   },
-  "module": "./dist/scale-codec.es2017.js",
+  "module": "./dist/scale-ts.es2017.js",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "files": [
@@ -25,10 +25,10 @@
   ],
   "scripts": {
     "build": "npm run build:ts && npm run build:esm2017 && npm run build:esm2019 && npm run build:cjs:dev && npm run build:cjs:prod",
-    "build:esm2019": "esbuild src/index.ts --bundle --outfile=./dist/scale-codec.es2019.mjs --external:@unstoppablejs/utils --target=es2020 --format=esm --sourcemap",
-    "build:esm2017": "esbuild src/index.ts --bundle --outfile=./dist/scale-codec.es2017.js --external:@unstoppablejs/utils --target=es2020 --format=esm --sourcemap",
-    "build:cjs:dev": "esbuild src/index.ts --bundle --outfile=./dist/scale-codec.cjs.development.js --external:@unstoppablejs/utils --target=es2020 --format=cjs --sourcemap",
-    "build:cjs:prod": "esbuild src/index.ts --bundle --outfile=./dist/scale-codec.cjs.production.min.js --external:@unstoppablejs/utils --target=es2020 --format=cjs --minify --sourcemap",
+    "build:esm2019": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.es2019.mjs --external:@unstoppablejs/utils --target=es2020 --format=esm --sourcemap",
+    "build:esm2017": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.es2017.js --external:@unstoppablejs/utils --target=es2020 --format=esm --sourcemap",
+    "build:cjs:dev": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.development.js --external:@unstoppablejs/utils --target=es2020 --format=cjs --sourcemap",
+    "build:cjs:prod": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.production.min.js --external:@unstoppablejs/utils --target=es2020 --format=cjs --minify --sourcemap",
     "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly",
     "test": "jest --coverage",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -40,7 +40,7 @@
     "semi": false,
     "trailingComma": "all"
   },
-  "name": "@unstoppablejs/scale-codec",
+  "name": "scale-ts",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "dependencies": {
     "@unstoppablejs/utils": "^1.1.0"

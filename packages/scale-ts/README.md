@@ -1,23 +1,15 @@
-# scale-codec
+# scale-ts
 
-A modular, composable, strongly typed and lightweight implementation of the [SCALE Codec](https://docs.substrate.io/v3/advanced/scale-codec/)
+A modular, composable, strongly typed and lightweight implementation of the [SCALE Codec](https://docs.substrate.io/v3/advanced/scale-ts/)
 
 ## Installation
 
-    npm install --save @unstoppablejs/scale-codec
+    npm install --save scale-ts
 
 ## Usage Example
 
 ```ts
-import {
-  bool,
-  _void,
-  str,
-  u32,
-  Enum,
-  Struct,
-  Vector,
-} from "@unstoppablejs/scale-codec"
+import { bool, _void, str, u32, Enum, Struct, Vector } from "scale-ts"
 
 const myCodec = Struct({
   id: u32,
@@ -102,7 +94,7 @@ definitions. For instance, a possible implementation of an `AccountId`
 definition could be:
 
 ```ts
-import { enhanceCodec, Bytes } from "@unstoppablejs/scale-codec"
+import { enhanceCodec, Bytes } from "scale-ts"
 import { decodeAddress, encodeAddress } from "@polkadot/util-crypto"
 
 export const AccountId = enhanceCodec(Bytes(32), decodeAddress, encodeAddress)
