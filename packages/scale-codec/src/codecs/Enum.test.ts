@@ -1,31 +1,24 @@
-import { Enum, u8, bool } from "../"
+import { Enum, u8, bool, _void } from "../"
 import { testCodec } from "../test-utils"
-import { empty } from "./empty"
-
-enum Options {
-  Int = "Int",
-  Bool = "Bool",
-  Void = "Void",
-}
 
 const tester = testCodec(
   Enum({
-    [Options.Int]: u8,
-    [Options.Bool]: bool,
-    [Options.Void]: empty,
+    Int: u8,
+    Bool: bool,
+    Void: _void,
   }),
 )
 
 describe("Enum", () => {
   it("Int(42)", () => {
-    tester({ tag: Options.Int, value: 42 }, "0x002a")
+    tester({ tag: "Int", value: 42 }, "0x002a")
   })
 
   it("Bool(true)", () => {
-    tester({ tag: Options.Bool, value: true }, "0x0101")
+    tester({ tag: "Bool", value: true }, "0x0101")
   })
 
   it("Void()", () => {
-    tester({ tag: Options.Void }, "0x02")
+    tester({ tag: "Void" }, "0x02")
   })
 })

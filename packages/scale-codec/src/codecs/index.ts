@@ -2,7 +2,6 @@
 export { bool } from "./bool"
 export { compact } from "./compact"
 export { date32, date64 } from "./date"
-export { empty, EMPTY } from "./empty"
 export { str } from "./str"
 export { u8 } from "./u8"
 export { u16 } from "./u16"
@@ -14,6 +13,7 @@ export { i16 } from "./i16"
 export { i32 } from "./i32"
 export { i64 } from "./i64"
 export { i128 } from "./i128"
+export { _void, VOID } from "./void"
 
 // Higher Order Codecs
 export { Bytes } from "./Bytes"
