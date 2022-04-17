@@ -41,7 +41,7 @@ interface SomeData {
   name: string;
   friendIds: number[];
   event:
-    | { tag: void; value?: undefined };
+    | { tag: _void; value?: undefined };
     | { tag: one; value: string; }
     | { tag: many; value: string[]; }
     | { tag: allOrNothing; value: boolean; };
