@@ -1,6 +1,5 @@
-import { mapObject, mergeUint8 } from "@unstoppablejs/utils"
 import { Codec, Decoder, Encoder, StringRecord } from "../types"
-import { toInternalBytes } from "../internal"
+import { toInternalBytes, mapObject, mergeUint8 } from "../internal"
 import { createCodec, u8 } from "../"
 
 const enumEnc = <

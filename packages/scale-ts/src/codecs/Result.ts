@@ -1,8 +1,7 @@
 import { createCodec } from "../utils"
-import { toInternalBytes } from "../internal"
+import { mergeUint8, toInternalBytes } from "../internal"
 import { Decoder, Encoder, Codec } from "../types"
 import { u8 } from "./u8"
-import { mergeUint8 } from "@unstoppablejs/utils"
 
 type ResultPayload<OK, KO> =
   | { success: true; value: OK }

@@ -1,9 +1,8 @@
 import { Decoder, Encoder, Codec } from "../types"
-import { toInternalBytes } from "../internal"
+import { toInternalBytes, mergeUint8 } from "../internal"
 import { createCodec } from "../utils"
 import { u8 } from "./u8"
 import { bool } from "./bool"
-import { mergeUint8 } from "@unstoppablejs/utils"
 
 const OptionDec = <T>(inner: Decoder<T>): Decoder<T | undefined> =>
   toInternalBytes<T | undefined>((bytes) => {

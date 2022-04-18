@@ -1,4 +1,4 @@
-import { mapObject } from "@unstoppablejs/utils"
+import { mapObject } from "../internal"
 import { Codec, Decoder, Encoder, StringRecord } from "../types"
 import { createCodec, enhanceDecoder, enhanceEncoder } from "../utils"
 import { Tuple } from "./Tuple"

@@ -1,6 +1,5 @@
-import { mergeUint8 } from "@unstoppablejs/utils"
 import { createCodec, Decoder, Encoder } from "../"
-import { toInternalBytes } from "../internal"
+import { toInternalBytes, mergeUint8 } from "../internal"
 import { compact } from "./compact"
 
 const textEncoder = new TextEncoder()

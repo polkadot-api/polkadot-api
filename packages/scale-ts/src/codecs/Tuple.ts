@@ -1,6 +1,5 @@
-import { mergeUint8 } from "@unstoppablejs/utils"
 import { Codec, Decoder, Encoder } from "../types"
-import { toInternalBytes } from "../internal"
+import { mergeUint8, toInternalBytes } from "../internal"
 import { createCodec } from "../utils"
 
 const TupleDec = <
