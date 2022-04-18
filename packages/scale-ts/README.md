@@ -24,11 +24,13 @@ const myCodec = Struct({
 })
 
 /*
-Something very important is the types that are being inferred from this definition,
-which both the encoder and the decoder will use. For instance, the input of the
-encoder must be compatible with the following interface:
+Something really cool about this library is that by having composable codecs
+which have very good typings, then the inferred types of the resulting codecs
+also have really good typings. For instance, the inferred types of codec
+defined above are:
+*/
 
-interface SomeData {
+type MyCodec = Codec<{
   id: number;
   name: string;
   friendIds: number[];
@@ -37,14 +39,14 @@ interface SomeData {
     | { tag: one; value: string; }
     | { tag: many; value: string[]; }
     | { tag: allOrNothing; value: boolean; };
-}
-
-Which, as you might expect, it's the same interface that's returned by the
-decoder.
+}>
 */
 
+Therefore, we won't get typing errors as long as we pass a valide interface
+to the encoder:
+
 const encodedData: ArrayBuffer = myCodec.enc({
-  event: { tag: Events.AllOrNothing, value: true },
+  event: { tag: 'allOrNothing', value: true },
   name: "Some name",
   id: 100,
   friendIds: [1, 2, 3],
