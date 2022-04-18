@@ -1,22 +1,20 @@
-import {
-  mergeUint8,
-  utf16StrToUtf8Bytes,
-  utf8BytesToUtf16Str,
-} from "@unstoppablejs/utils"
+import { mergeUint8 } from "@unstoppablejs/utils"
 import { createCodec, Decoder, Encoder } from "../"
 import { toInternalBytes } from "../internal"
 import { compact } from "./compact"
 
+const textEncoder = new TextEncoder()
 const strEnc: Encoder<string> = (str) => {
-  const val = utf16StrToUtf8Bytes(str)
+  const val = textEncoder.encode(str)
   return mergeUint8(compact.enc(val.length), val)
 }
 
+const textDecoder = new TextDecoder()
 const strDec: Decoder<string> = toInternalBytes((bytes) => {
   let nElements = compact.dec(bytes) as number
   const arr = new Uint8Array(bytes.buffer, bytes.usedBytes, nElements)
   bytes.useBytes(nElements)
-  return utf8BytesToUtf16Str(arr)
+  return textDecoder.decode(arr)
 })
 
 export const str = createCodec(strEnc, strDec)
