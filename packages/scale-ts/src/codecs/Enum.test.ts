@@ -3,41 +3,41 @@ import { testCodec } from "../test-utils"
 
 const tester = testCodec(
   Enum({
-    Int: u8,
-    Bool: bool,
-    Void: _void,
-    Opt: Option(bool),
-    OptVoid: Option(_void),
+    nothingHere: _void,
+    someNumber: u8,
+    trueOrFalse: bool,
+    optionalBool: Option(bool),
+    optVoid: Option(_void),
   }),
 )
 
 describe("Enum", () => {
+  it("Void()", () => {
+    tester({ tag: "nothingHere" }, "0x00")
+  })
+
   it("Int(42)", () => {
-    tester({ tag: "Int", value: 42 }, "0x002a")
+    tester({ tag: "someNumber", value: 42 }, "0x012a")
   })
 
   it("Bool(true)", () => {
-    tester({ tag: "Bool", value: true }, "0x0101")
-  })
-
-  it("Void()", () => {
-    tester({ tag: "Void" }, "0x02")
-  })
-
-  it("Option()", () => {
-    tester({ tag: "Opt" }, "0x0300")
+    tester({ tag: "trueOrFalse", value: true }, "0x0201")
   })
 
   it("Option(true)", () => {
-    tester({ tag: "Opt", value: true }, "0x0301")
+    tester({ tag: "optionalBool", value: true }, "0x0301")
   })
 
   it("Option(false)", () => {
-    tester({ tag: "Opt", value: false }, "0x0302")
+    tester({ tag: "optionalBool", value: false }, "0x0302")
+  })
+
+  it("Option()", () => {
+    tester({ tag: "optionalBool" }, "0x0300")
   })
 
   it("Option(_void)", () => {
-    tester({ tag: "OptVoid" }, "0x0400")
-    tester({ tag: "OptVoid", value: undefined }, "0x0400")
+    tester({ tag: "optVoid" }, "0x0400")
+    tester({ tag: "optVoid", value: undefined }, "0x0400")
   })
 })

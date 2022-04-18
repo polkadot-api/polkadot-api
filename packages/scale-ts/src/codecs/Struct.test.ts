@@ -1,4 +1,4 @@
-import { Struct, bool, str, u32, Vector, Enum } from "../"
+import { Struct, bool, str, u32, Vector, Enum, _void } from "../"
 import { testCodec } from "../test-utils"
 
 describe("Struct", () => {
@@ -9,6 +9,7 @@ describe("Struct", () => {
         name: str,
         friendIds: Vector(u32),
         event: Enum({
+          _void,
           one: str,
           many: Vector(str),
           allOrNothing: bool,
@@ -23,7 +24,7 @@ describe("Struct", () => {
         friendIds: [1, 2, 3],
         event: { tag: "allOrNothing" as const, value: true },
       },
-      "0x6400000024536f6d65206e616d650c0100000002000000030000000201",
+      "0x6400000024536f6d65206e616d650c0100000002000000030000000301",
     )
   })
 
