@@ -24,10 +24,10 @@ const myCodec = Struct({
 })
 
 /*
-Something really cool about this library is that by having composable codecs
-and higher order codecs with really good typings, then the inferred types of
-the custom codecs are also really good. For instance, the inferred types of
-the `myCodec` defined above are:
+Something really cool about this library is that by having composable
+codecs and higher order codecs with really good typings, then the
+inferred types of the custom codecs are also really good. For instance,
+the inferred types of the `myCodec` defined above are:
 */
 
 type MyCodec = Codec<{
@@ -42,9 +42,10 @@ type MyCodec = Codec<{
 }>
 
 /*
-That's very useful, because on the one hand we will get a TS error if we try
-to pass an invalid input to the encoder, for instance TS will complain that
-the `value` of the property `event` is not valid, in the following example:
+That's very useful, because on the one hand we will get a TS error if
+we try to pass an invalid input to the encoder, for instance TS will
+complain that the `value` of the property `event` is not valid, in the
+following example:
 */
 
 myCodec.enc({
@@ -55,8 +56,8 @@ myCodec.enc({
 })
 
 /*
-On the other hand, the result of the decoded value, also has that same interface,
-which is extremely useful.
+On the other hand, the result of the decoded value, also has that
+same interface, which is extremely useful.
 
 An example on how to encoded/decode a valid value:
 */
@@ -69,9 +70,9 @@ myCodec.enc({
 })
 // => 0x6400000024536f6d65206e616d650c0100000002000000030000000301
 
-const decodedData = myCodec.dec(0x6400000024536f6d65206e616d650c0100000002000000030000000301)
-// also possible:
-// const decodedData = myCodec.dec("0x6400000024536f6d65206e616d650c0100000002000000030000000201")
+const decodedData = myCodec.dec(
+  '0x6400000024536f6d65206e616d650c0100000002000000030000000301'
+)
 
 console.log(JSON.stringify(decodedData, null, 2))
 // =>
@@ -92,10 +93,10 @@ console.log(JSON.stringify(decodedData, null, 2))
 
 ## Custom definitions
 
-In this library you won't find common definitions like `AccountId`. However,
-since the definitions of this library are enhanceable and composable, it is
-very easy to create new custom definitions. For instance, the implementation of
-the `bool` Codec looks like this:
+In this library you won't find common definitions like `AccountId`.
+However, since the definitions of this library are enhanceable and
+composable, it is very easy to create new custom definitions. For
+instance, the implementation of the `bool` Codec looks like this:
 
 ```ts
 import { enhanceCodec, u8, Codec } from "../"
@@ -105,9 +106,9 @@ const booleanToNumber = (value: boolean) => (value ? 1 : 0)
 export const bool: Codec<boolean> = enhanceCodec(u8, booleanToNumber, Boolean)
 ```
 
-Similarly, you could implement any other definitions are that based on other
-definitions. For instance, a possible implementation of an `AccountId`
-definition could be:
+Similarly, you could implement any other definitions are that based
+on other definitions. For instance, a possible implementation of an
+`AccountId` definition could be:
 
 ```ts
 import { enhanceCodec, Bytes } from "scale-ts"
@@ -269,9 +270,9 @@ myCodec.dec("0x012a")
 
 ### Bytes
 
-Sometimes, mainly when creating your custom codecs, it's usefull to have a
-codec that simply reads/writes a certain amount of bytes. For example, see the
-example above for creating a custom `AccountId` codec.
+Sometimes, mainly when creating your custom codecs, it's usefull
+to have a codec that simply reads/writes a certain amount of bytes.
+For example, see the example above for creating `AccountId`.
 
 ```ts
 const threeBytes = Bytes(3)
@@ -285,9 +286,10 @@ bool.dec("0x000fff00")
 
 ### `_void`
 
-This is a special codec that it's mostly useful in combination with `Enum`,
-its type is `Codec<void>`, and as you can imagine calling `_void.enc()` produces
-an empty `Uint8Array` and calling `_void.dec()` returns `undefined`.
+This is a special codec that it's mostly useful in combination with
+`Enum`, its type is `Codec<void>`, and as you can imagine calling
+`_void.enc()` returns an empty `Uint8Array`, while calling
+`_void.dec()` returns `undefined`.
 
 ## API - Utils
 
