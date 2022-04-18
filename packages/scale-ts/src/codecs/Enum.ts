@@ -1,13 +1,13 @@
 import { mapObject, mergeUint8 } from "@unstoppablejs/utils"
 import { Codec, Decoder, Encoder, StringRecord } from "../types"
 import { toInternalBytes } from "../internal"
-import { createCodec, u8, VOID } from "../"
+import { createCodec, u8 } from "../"
 
 const enumEnc = <
   O extends StringRecord<Encoder<any>>,
   OT extends {
     [K in keyof O]: O[K] extends Encoder<infer D>
-      ? D extends VOID
+      ? D extends undefined
         ? { tag: K; value?: undefined }
         : { tag: K; value: D }
       : unknown
@@ -26,7 +26,7 @@ const enumDec = <
   O extends StringRecord<Decoder<any>>,
   OT extends {
     [K in keyof O]: O[K] extends Decoder<infer D>
-      ? D extends VOID
+      ? D extends undefined
         ? { tag: K; value?: undefined }
         : { tag: K; value: D }
       : unknown
@@ -41,12 +41,10 @@ const enumDec = <
     const [tag, innerDecoder] = entries[idx]
     const innerResult = innerDecoder(bytes)
 
-    return innerResult === VOID
-      ? ({ tag } as any)
-      : ({
-          tag,
-          value: innerResult,
-        } as OT[keyof O])
+    return {
+      tag,
+      value: innerResult,
+    } as OT[keyof O]
   })
 }
 
@@ -54,7 +52,7 @@ export const Enum = <
   O extends StringRecord<Codec<any>>,
   OT extends {
     [K in keyof O]: O[K] extends Codec<infer D>
-      ? D extends VOID
+      ? D extends undefined
         ? { tag: K; value?: undefined }
         : { tag: K; value: D }
       : unknown

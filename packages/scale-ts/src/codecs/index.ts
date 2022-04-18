@@ -13,7 +13,7 @@ export { i16 } from "./i16"
 export { i32 } from "./i32"
 export { i64 } from "./i64"
 export { i128 } from "./i128"
-export { _void, VOID } from "./void"
+export { _void } from "./void"
 
 // Higher Order Codecs
 export { Bytes } from "./Bytes"
