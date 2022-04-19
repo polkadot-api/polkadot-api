@@ -11,9 +11,9 @@ const strEnc: Encoder<string> = (str) => {
 const textDecoder = new TextDecoder()
 const strDec: Decoder<string> = toInternalBytes((bytes) => {
   let nElements = compact.dec(bytes) as number
-  const arr = new Uint8Array(bytes.buffer, bytes.i, nElements)
+  const dv = new DataView(bytes.buffer, bytes.i, nElements)
   bytes.i += nElements
-  return textDecoder.decode(arr)
+  return textDecoder.decode(dv)
 })
 
 export const str = createCodec(strEnc, strDec)

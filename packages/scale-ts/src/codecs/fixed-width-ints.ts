@@ -57,7 +57,7 @@ export const i32 = intCodec(4, "getInt32", "setInt32")
 export const i64 = intCodec(8, "getBigInt64", "setBigInt64")
 
 const create128Enc =
-  (isSigned?: boolean): Encoder<bigint> =>
+  (isSigned?: number): Encoder<bigint> =>
   (value) => {
     const result = new Uint8Array(16)
     const dv = new DataView(result.buffer)
@@ -66,14 +66,14 @@ const create128Enc =
     return result
   }
 
-const create128Dec = (isSigned?: boolean): Decoder<bigint> =>
+const create128Dec = (isSigned?: number): Decoder<bigint> =>
   toInternalBytes((input) => {
     const { v, i } = input
     const right = v.getBigUint64(i, true)
     const left = v[isSigned ? "getBigInt64" : "getBigUint64"](i + 8, true)
     input.i += 16
-    return (left << 64n) + right
+    return (left << 64n) | right
   })
 
 export const u128 = createCodec(create128Enc(), create128Dec())
-export const i128 = createCodec(create128Enc(true), create128Dec(true))
+export const i128 = createCodec(create128Enc(1), create128Dec(1))
