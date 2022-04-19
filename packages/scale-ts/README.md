@@ -154,6 +154,7 @@ bool.dec("0x01")
 
 ### [Option](https://docs.substrate.io/v3/advanced/scale-codec/#options)
 
+Normal cases:
 ```ts
 cosnt optionalCompact = Option(compact)
 
@@ -165,7 +166,10 @@ optionalCompact.enc(undefined)
 
 optionalCompact.enc(1)
 // => 0x0104
+```
 
+Exceptionally, if the input is `bool`, then it always returns one byte:
+```ts
 cosnt optionalBool = Option(bool)
 
 optionalBool.enc()
@@ -229,7 +233,7 @@ compactAndBool.enc([3, false])
 ### [Struct](https://docs.substrate.io/v3/advanced/scale-codec/#data-structures)
 
 ```ts
-const myCodec = {
+const myCodec = Struct({
   id: u32,
   name: str,
   friendIds: Vector(u32),
@@ -239,7 +243,7 @@ const myCodec = {
     many: Vector(str),
     allOrNothing: bool,
   }),
-}
+})
 
 myCodec.enc({
   id: 100,
@@ -323,7 +327,7 @@ const myMap: Codec<Map<number, string>> = MapCodec(u8, str)
 ```
 
 How could we create that `MapCodec` with this `scale-ts`? Basically, what we
-want to do is to transform the result of a `Vector(Tuple(keyCoded, valueCodec))`
+want to do is to transform the result of a `Vector(Tuple(keyCodec, valueCodec))`
 to a Map, and viceversa.
 
 So, let's first create the encoder function, using `enahnceEncoder`:
@@ -345,14 +349,17 @@ const MapDecoder = <K, V>(key: Decoder<K>, value: Decoder<V>) =>
   )
 ```
 
-Finally, lets crate the `MapCodec` function:
+Finally, lets create the `MapCodec` function:
 
 ```ts
 export const MapCodec = <K, V>(
   key: Codec<K>,
   value: Codec<V>,
 ): Codec<Map<K, V>> =>
-  createCodec(MapEncoder(key.enc, value.enc), MapDecoder(key.dec, value.dec))
+  createCodec(
+    MapEncoder(key.enc, value.enc),
+    MapDecoder(key.dec, value.dec),
+  )
 
 MapCodec.enc = MapEncoder
 MapCodec.dec = MapDecoder
@@ -464,5 +471,5 @@ have all been removed because since all these codecs can be implemented in
 userland, if we start adding sugar, then this library could easily become a
 chaotic directory with all sorts of Codecs.
 
-That's why it's very important that the building blocks are as minimalist
-as they can be.
+That's why it's very important that its building blocks are as minimalist and
+ergonomic as possible.
