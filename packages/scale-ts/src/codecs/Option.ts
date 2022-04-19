@@ -1,7 +1,7 @@
 import { Decoder, Encoder, Codec } from "../types"
 import { toInternalBytes, mergeUint8 } from "../internal"
 import { createCodec } from "../utils"
-import { u8 } from "./u8"
+import { u8 } from "./fixed-width-ints"
 import { bool } from "./bool"
 
 const OptionDec = <T>(inner: Decoder<T>): Decoder<T | undefined | void> =>

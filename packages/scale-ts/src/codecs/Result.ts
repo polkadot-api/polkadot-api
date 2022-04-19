@@ -1,7 +1,7 @@
 import { createCodec } from "../utils"
 import { mergeUint8, toInternalBytes } from "../internal"
 import { Decoder, Encoder, Codec } from "../types"
-import { u8 } from "./u8"
+import { u8 } from "./fixed-width-ints"
 
 type ResultPayload<OK, KO> =
   | { success: true; value: OK }
