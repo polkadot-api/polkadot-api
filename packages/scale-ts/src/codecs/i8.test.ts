@@ -15,10 +15,10 @@ describe("i8", () => {
   })
 
   it("max", () => {
-    tester(15, "0x0f")
+    tester(127, "0x7f")
   })
 
   it("min", () => {
-    tester(-16, "0xf0")
+    tester(-128, "0x80")
   })
 })

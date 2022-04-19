@@ -15,10 +15,10 @@ describe("i16", () => {
   })
 
   it("max", () => {
-    tester(4095, "0xff0f")
+    tester(32767, "0xff7f")
   })
 
   it("min", () => {
-    tester(-4096, "0x00f0")
+    tester(-32768, "0x0080")
   })
 })

@@ -21,10 +21,10 @@ describe("i64", () => {
   })
 
   it("almost max", () => {
-    tester(1152921504606846975n, "0xffffffffffffff0f")
+    tester(9223372036854775807n, "0xffffffffffffff7f")
   })
 
   it("almost min", () => {
-    tester(-1152921504606846976n, "0x00000000000000f0")
+    tester(-9223372036854775808n, "0x0000000000000080")
   })
 })

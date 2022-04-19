@@ -15,10 +15,10 @@ describe("i32", () => {
   })
 
   it("max", () => {
-    tester(268435455, "0xffffff0f")
+    tester(2147483647, "0xffffff7f")
   })
 
   it("min", () => {
-    tester(-268435456, "0x000000f0")
+    tester(-2147483648, "0x00000080")
   })
 })
