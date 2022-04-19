@@ -44,14 +44,12 @@ export function fromHex(hexString: string): Uint8Array {
 }
 
 class InternalUint8Array extends Uint8Array {
-  #usedBytes: number = 0
+  i: number = 0
+  v: DataView
 
-  useBytes(nBytes: number) {
-    this.#usedBytes += nBytes
-  }
-
-  get usedBytes() {
-    return this.#usedBytes
+  constructor(buffer: ArrayBuffer) {
+    super(buffer)
+    this.v = new DataView(buffer)
   }
 }
 

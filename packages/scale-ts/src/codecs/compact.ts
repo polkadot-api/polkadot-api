@@ -10,7 +10,7 @@ const bytesToIntType = {
 
 const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
   (bytes) => {
-    let usedBytes = bytes.usedBytes
+    let usedBytes = bytes.i
     const init = bytes[usedBytes]
 
     const kind = init & 3
@@ -22,7 +22,7 @@ const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
 
     const nBytes = (init >>> 2) + 4
     const start = usedBytes + 1
-    bytes.useBytes(nBytes + 1)
+    bytes.i += nBytes + 1
 
     let result = 0n
     for (let i = nBytes - 1; i >= 0; i--)

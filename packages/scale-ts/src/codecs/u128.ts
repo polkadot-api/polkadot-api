@@ -11,10 +11,10 @@ const u128Enc: Encoder<bigint> = (value) => {
 }
 
 const u128Dec: Decoder<bigint> = toInternalBytes((input) => {
-  const dv = new DataView(input.buffer)
-  const right = dv.getBigUint64(input.usedBytes, true)
-  const left = dv.getBigUint64(input.usedBytes + 8, true)
-  input.useBytes(16)
+  const { v, i } = input
+  const right = v.getBigUint64(i, true)
+  const left = v.getBigUint64(i + 8, true)
+  input.i += 16
   return (left << 64n) + right
 })
 

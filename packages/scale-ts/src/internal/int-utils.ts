@@ -29,12 +29,9 @@ export function decodeInt(intType: IntType): Decoder<number>
 export function decodeInt(intType: IntType): Decoder<number> | Decoder<bigint> {
   const [nBytes, getter] = getterMap[intType]
   return toInternalBytes((bytes) => {
-    const result = new DataView(bytes.buffer)[getter](
-      bytes.usedBytes,
-      true,
-    ) as number
+    const result = bytes.v[getter](bytes.i, true) as number
 
-    bytes.useBytes(nBytes)
+    bytes.i += nBytes
     return result
   })
 }
