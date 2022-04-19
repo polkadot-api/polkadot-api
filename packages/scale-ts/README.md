@@ -326,7 +326,7 @@ How could we create that `MapCodec` with this `scale-ts`? Basically, what we
 want to do is to transform the result of a `Vector(Tuple(keyCoded, valueCodec))`
 to a Map, and viceversa.
 
-So, let'ss first create the encoder function, using `enahnceEncoder`:
+So, let's first create the encoder function, using `enahnceEncoder`:
 
 ```ts
 const MapEncoder = <K, V>(key: Encoder<K>, value: Encoder<V>) =>
@@ -364,7 +364,7 @@ And that's it 🎉!
 
 Now, let's see how we can create a more complex function, like something
 for encoding and decoding the instances of our classes, even if those instances
-are more than mere setters/getters. Let's saythat we want to create a
+are more than mere setters/getters. Let's say that we want to create a
 `ClassCodec` function that can be used like this:
 
 ```ts
@@ -374,8 +374,10 @@ class RepeatedString {
   }
 }
 
-const myClassCodec: Codec<MyClass> = ClassCodec(
-  MyClass,
+// It's not necessary to add the `: Codec<RepeatedString> notation
+// because it's going to be inferred.
+const repeatedStrCodec: Codec<RepeatedString> = ClassCodec(
+  RepeatedString,
   [str, compact],
   (value: RepeatedString) => [value.repetition[0], value.length],
 )
@@ -386,8 +388,9 @@ How can we implement this `ClassCodec` with this `scale-ts`?
 Basically, what we want to do is to instantiate our class using the result of a
 `Tuple` and then, using a function that takes the instance of our class and
 returns the values that must be encoded, return the Codec for the class.
-It goes without saying that this function could have other or more overloads, of
-course, but this is just an example.
+
+It goes without saying that this function could have more overloads, of course,
+but this is just an example.
 
 What's very difficult about creating a function like this is to get the types
 right, but let's not shy away from it.
@@ -408,8 +411,8 @@ const ClassEncoder =
   }
 ```
 
-Again, leaving aside the complex types for inferring the arguments, the code
-is fairly straight-forward.
+Again, leaving aside the complex types for inferring the arguments, the actual
+JS code is fairly straight-forward.
 
 Then, let's create the function for creating the Decoder:
 
@@ -429,7 +432,7 @@ const ClassDecoder = <
 ```
 
 Same deal, complex types b/c we care about our users, but aside from that, the
-actual code is pretty straight-forward.
+actual JS code is pretty straight-forward.
 
 And now we are ready to put everything together:
 
@@ -461,5 +464,5 @@ have all been removed because since all these codecs can be implemented in
 userland, if we start adding sugar, then this library could easily become a
 chaotic directory with all sorts of Codecs.
 
-That's why it's very important that our building blocks are as minimalist
+That's why it's very important that the building blocks are as minimalist
 as they can be.
