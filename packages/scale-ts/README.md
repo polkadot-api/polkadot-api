@@ -386,7 +386,7 @@ class RepeatedString {
 const repeatedStrCodec: Codec<RepeatedString> = ClassCodec(
   RepeatedString,
   [str, compact],
-  (value: RepeatedString) => [value.repetition[0], value.length],
+  (value: RepeatedString) => [value.repetition[0], value.repetition.length],
 )
 ```
 
