@@ -280,7 +280,7 @@ const threeBytes = Bytes(3)
 threeBytes.enc(new Uint8Array([0, 15, 255]))
 // => 0x000fff
 
-bool.dec("0x000fff00")
+threeBytes.dec("0x000fff00")
 // => 0x000fff
 ```
 
