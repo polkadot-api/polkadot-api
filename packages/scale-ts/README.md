@@ -302,3 +302,164 @@ TODO: document them
 ### enhanceDecoder
 
 ### enhanceCodec
+
+## FAQ
+
+### How can I encode/decode my custom class?
+
+A very impotant remark is that in this library you will only find the basic
+primitives that can be used for building more complex codecs. That being said,
+this library provides a set of utils to facilitate that.
+
+Probably the easiest way to explain this is by solving a couple of examples,
+so let's get to it.
+
+#### creating a custom `MapCodec`:
+
+Let's say that you want to have a `MapCodec` function that works like this:
+
+```ts
+const myMap: Codec<Map<number, string>> = MapCodec(u8, str)
+```
+
+How could we create that `MapCodec` with this `scale-ts`? Basically, what we
+want to do is to transform the result of a `Vector(Tuple(keyCoded, valueCodec))`
+to a Map, and viceversa.
+
+So, let'ss first create the encoder function, using `enahnceEncoder`:
+
+```ts
+const MapEncoder = <K, V>(key: Encoder<K>, value: Encoder<V>) =>
+  enhanceEncoder(Vector.enc(Tuple.enc(key, value)), (input: Map<K, V>) =>
+    Array.from(input.entries()),
+  )
+```
+
+Now, let's create its decoder counterpart, using `enhanceDecoder`:
+
+```ts
+const MapDecoder = <K, V>(key: Decoder<K>, value: Decoder<V>) =>
+  enhanceDecoder(
+    Vector.dec(Tuple.dec(key, value)),
+    (entries) => new Map(entries),
+  )
+```
+
+Finally, lets crate the `MapCodec` function:
+
+```ts
+export const MapCodec = <K, V>(
+  key: Codec<K>,
+  value: Codec<V>,
+): Codec<Map<K, V>> =>
+  createCodec(MapEncoder(key.enc, value.enc), MapDecoder(key.dec, value.dec))
+
+MapCodec.enc = MapEncoder
+MapCodec.dec = MapDecoder
+```
+
+And that's it 🎉!
+
+#### creating a custom `ClassCodec`:
+
+Now, let's see how we can create a more complex function, like something
+for encoding and decoding the instances of our classes, even if those instances
+are more than mere setters/getters. Let's saythat we want to create a
+`ClassCodec` function that can be used like this:
+
+```ts
+class RepeatedString {
+  constructor(item: string, nTimes: number) {
+    this.repetition = Array(nTimes).fill(item)
+  }
+}
+
+const myClassCodec: Codec<MyClass> = ClassCodec(
+  MyClass,
+  [str, compact],
+  (value: RepeatedString) => [value.repetition[0], value.length],
+)
+```
+
+How can we implement this `ClassCodec` with this `scale-ts`?
+
+Basically, what we want to do is to instantiate our class using the result of a
+`Tuple` and then, using a function that takes the instance of our class and
+returns the values that must be encoded, return the Codec for the class.
+It goes without saying that this function could have other or more overloads, of
+course, but this is just an example.
+
+What's very difficult about creating a function like this is to get the types
+right, but let's not shy away from it.
+
+First, let's write the function for encoding:
+
+```ts
+const ClassEncoder =
+  <
+    A extends Array<Encoder<any>>,
+    OT extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown },
+    Constructor extends new (...args: OT) => any,
+  >(
+    mapper: (instance: InstanceType<Constructor>) => OT,
+  ): Encoder<InstanceType<Constructor>> =>
+  (instance) => {
+    return Tuple.enc(...mapper(instance)) as any
+  }
+```
+
+Again, leaving aside the complex types for inferring the arguments, the code
+is fairly straight-forward.
+
+Then, let's create the function for creating the Decoder:
+
+```ts
+const ClassDecoder = <
+  A extends Array<Decoder<any>>,
+  OT extends { [K in keyof A]: A[K] extends Decoder<infer D> ? D : unknown },
+  Constructor extends new (...args: OT) => any,
+>(
+  classType: Constructor,
+  ...decoders: A
+): Decoder<InstanceType<Constructor>> =>
+  enhanceDecoder(
+    Tuple.dec(...decoders),
+    (args) => new classType(...(args as any)),
+  )
+```
+
+Same deal, complex types b/c we care about our users, but aside from that, the
+actual code is pretty straight-forward.
+
+And now we are ready to put everything together:
+
+```ts
+const ClassCodec = <
+  A extends Array<Codec<any>>,
+  OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown },
+  Constructor extends new (...args: OT) => any,
+>(
+  classType: Constructor,
+  codecs: A,
+  mapper: (instance: InstanceType<Constructor>) => OT,
+) =>
+  createCodec(
+    ClassEncoder(mapper),
+    ClassDecoder(classType, ...codecs.map((c) => c.dec)),
+  )
+
+ClassCodec.enc = ClassEncoder
+ClassCodec.dec = ClassDecoder
+```
+
+Hopefully, this 2 examples showcase the main goal of the library: to provide
+good and lean building blocks, so that we can build complex things with them.
+
+Also, it's worth pointing out that in the past this library used to have some
+"sugar" codecs (`Hex`, `MapCodec`, `SetCodec`, `date32`, etc). However, they
+have all been removed because since all these codecs can be implemented in
+userland, if we start adding sugar, then this library could easily become a
+chaotic directory with all sorts of Codecs.
+
+That's why it's very important that our building blocks are as minimalist
+as they can be.
