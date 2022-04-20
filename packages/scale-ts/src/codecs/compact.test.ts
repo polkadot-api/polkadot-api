@@ -28,6 +28,20 @@ describe("compact", () => {
     tester(BigInt(100000000000000), "0x0b00407a10f35a")
   })
 
+  it("BigInt 0xffffffffffffffffffffffffffffff", () => {
+    tester(
+      BigInt("0xffffffffffffffffffffffffffffff"),
+      "0x2fffffffffffffffffffffffffffffff",
+    )
+  })
+
+  it("BigInt 0xf00000000000000000000000000000", () => {
+    tester(
+      BigInt("0xf00000000000000000000000000000"),
+      "0x2f0000000000000000000000000000f0",
+    )
+  })
+
   it("throws when trying to encode a negative number", () => {
     const [encoder] = compact
     expect(() => encoder(-1)).toThrow()

@@ -1,5 +1,5 @@
 import { createCodec } from "../"
-import { toInternalBytes } from "../internal"
+import { mergeUint8, toInternalBytes } from "../internal"
 import { u8, u16, u32, u64 } from "./fixed-width-ints"
 import { Decoder, Encoder, Codec } from "../types"
 
@@ -36,6 +36,11 @@ const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
   },
 )
 
+const MIN_U64 = 1n << 56n
+const MIN_U32 = 1 << 24
+const MIN_U16 = 256
+const U32_MASK = 4294967295n
+
 const SINGLE_BYTE_MODE_LIMIT = 1 << 6
 const TWO_BYTE_MODE_LIMIT = 1 << 14
 const FOUR_BYTE_MODE_LIMIT = 1 << 30
@@ -47,14 +52,28 @@ const compactEnc: Encoder<number | bigint> = (input) => {
   if (input < TWO_BYTE_MODE_LIMIT) return u16[0](nInput | 1)
   if (input < FOUR_BYTE_MODE_LIMIT) return u32[0](nInput | 2)
 
-  const result: number[] = [0]
-  let tmp = BigInt(input)
-  while (tmp > 0) {
-    result.push(Number(tmp))
-    tmp >>= 8n
+  let buffers: Array<Uint8Array> = [new Uint8Array(1)]
+  let bigValue = BigInt(input)
+  while (bigValue >= MIN_U64) {
+    buffers.push(u64[0](bigValue))
+    bigValue >>= 64n
   }
+
+  while (bigValue >= MIN_U32) {
+    buffers.push(u32[0](Number(bigValue & U32_MASK)))
+    bigValue >>= 32n
+  }
+
+  let smValue = Number(bigValue)
+  while (smValue >= MIN_U16) {
+    buffers.push(u16[0](smValue))
+    smValue >>= 16
+  }
+  smValue && buffers.push(u8[0](smValue))
+
+  const result = mergeUint8(...buffers)
   result[0] = ((result.length - 5) << 2) | 3
-  return new Uint8Array(result)
+  return result
 }
 
 export const compact: Codec<number | bigint> = createCodec(
