@@ -3,7 +3,7 @@ import { toInternalBytes } from "../internal"
 import { u8, u16, u32, u64 } from "./fixed-width-ints"
 import { Decoder, Encoder, Codec } from "../types"
 
-const decoders = [u8[1], u16[1], u32[1]]
+const decoders = [u8[1], u16[1], u32[1], u64[1]] as const
 
 const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
   (bytes) => {
@@ -11,7 +11,7 @@ const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
     const init = bytes[usedBytes]
 
     const kind = init & 3
-    if (kind !== 3) return decoders[kind](bytes) >>> 2
+    if (kind !== 3) return (decoders[kind](bytes) as number) >>> 2
 
     const nBytes = (init >>> 2) + 4
     bytes.i++
@@ -21,16 +21,14 @@ const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
     const nU32 = (nReminders / 4) | 0
     nReminders %= 4
 
+    const lengths = [nReminders % 2, (nReminders / 2) | 0, nU32, nU64]
+
     let result = 0n
     let nBits = 0n
-    ;(
-      [
-        [nReminders % 2, u8[1], 8n],
-        [(nReminders / 2) | 0, u16[1], 16n],
-        [nU32, u32[1], 32n],
-        [nU64, u64[1], 64n],
-      ] as const
-    ).forEach(([len, dec, inc]) => {
+    let inc = 4n
+    decoders.forEach((dec, idx) => {
+      inc *= 2n
+      const len = lengths[idx]
       for (let i = 0; i < len; i++) {
         result = (BigInt(dec(bytes)) << nBits) | result
         nBits += inc
