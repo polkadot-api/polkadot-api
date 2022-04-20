@@ -4,7 +4,6 @@ import { u8, u16, u32, u64 } from "./fixed-width-ints"
 import { Decoder, Encoder, Codec } from "../types"
 
 const decoders = [u8[1], u16[1], u32[1], u64[1]] as const
-
 const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
   (bytes) => {
     const usedBytes = bytes.i
@@ -41,11 +40,12 @@ const SINGLE_BYTE_MODE_LIMIT = 1 << 6
 const TWO_BYTE_MODE_LIMIT = 1 << 14
 const FOUR_BYTE_MODE_LIMIT = 1 << 30
 const compactEnc: Encoder<number | bigint> = (input) => {
-  if (input < 0) throw new Error(`Wrong Compat input (${input})`)
+  if (input < 0) throw new Error(`Wrong compact input (${input})`)
 
-  if (input < SINGLE_BYTE_MODE_LIMIT) return u8[0](Number(input) << 2)
-  if (input < TWO_BYTE_MODE_LIMIT) return u16[0]((Number(input) << 2) | 1)
-  if (input < FOUR_BYTE_MODE_LIMIT) return u32[0]((Number(input) << 2) | 2)
+  const nInput = Number(input) << 2
+  if (input < SINGLE_BYTE_MODE_LIMIT) return u8[0](nInput)
+  if (input < TWO_BYTE_MODE_LIMIT) return u16[0](nInput | 1)
+  if (input < FOUR_BYTE_MODE_LIMIT) return u32[0](nInput | 2)
 
   const result: number[] = [0]
   let tmp = BigInt(input)
