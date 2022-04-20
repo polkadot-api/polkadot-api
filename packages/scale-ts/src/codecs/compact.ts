@@ -1,69 +1,62 @@
 import { createCodec } from "../"
 import { toInternalBytes } from "../internal"
-import { u8, u16, u32 } from "./fixed-width-ints"
+import { u8, u16, u32, u64 } from "./fixed-width-ints"
 import { Decoder, Encoder, Codec } from "../types"
 
-const bytesToIntType = {
-  [1]: u8[1],
-  [2]: u16[1],
-  [4]: u32[1],
-} as const
+const decoders = [u8[1], u16[1], u32[1]]
 
 const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
   (bytes) => {
-    let usedBytes = bytes.i
+    const usedBytes = bytes.i
     const init = bytes[usedBytes]
 
     const kind = init & 3
-
-    if (kind !== 3) {
-      const nBytes = kind === 2 ? 4 : kind + 1
-      return bytesToIntType[nBytes as 1 | 2 | 4](bytes) >>> 2
-    }
+    if (kind !== 3) return decoders[kind](bytes) >>> 2
 
     const nBytes = (init >>> 2) + 4
-    const start = usedBytes + 1
-    bytes.i += nBytes + 1
+    bytes.i++
+
+    const nU64 = (nBytes / 8) | 0
+    let nReminders = nBytes % 8
+    const nU32 = (nReminders / 4) | 0
+    nReminders %= 4
 
     let result = 0n
-    for (let i = nBytes - 1; i >= 0; i--)
-      result = (result << 8n) | BigInt(bytes[start + i])
-
+    let nBits = 0n
+    ;(
+      [
+        [nReminders % 2, u8[1], 8n],
+        [(nReminders / 2) | 0, u16[1], 16n],
+        [nU32, u32[1], 32n],
+        [nU64, u64[1], 64n],
+      ] as const
+    ).forEach(([len, dec, inc]) => {
+      for (let i = 0; i < len; i++) {
+        result = (BigInt(dec(bytes)) << nBits) | result
+        nBits += inc
+      }
+    })
     return result
   },
 )
 
+const SINGLE_BYTE_MODE_LIMIT = 1 << 6
+const TWO_BYTE_MODE_LIMIT = 1 << 14
+const FOUR_BYTE_MODE_LIMIT = 1 << 30
 const compactEnc: Encoder<number | bigint> = (input) => {
-  if (input < 0) {
-    throw new Error(`Wrong Compat input (${input})`)
-  }
-  if (input < 1 << 6) {
-    const temp = new Uint8Array(1)
-    temp[0] = Number(input) << 2
-    return temp
-  }
-  if (input < 1 << 14) {
-    const temp = new Uint8Array(2)
-    let pInput = (Number(input) << 2) + 1
-    const dv = new DataView(temp.buffer)
-    dv.setUint16(0, pInput, true)
-    return temp
-  }
-  if (input < 1 << 30) {
-    const temp = new Uint8Array(4)
-    let pInput = (Number(input) << 2) + 2
-    const dv = new DataView(temp.buffer)
-    dv.setUint32(0, pInput, true)
-    return temp
-  }
+  if (input < 0) throw new Error(`Wrong Compat input (${input})`)
 
-  const result: number[] = []
+  if (input < SINGLE_BYTE_MODE_LIMIT) return u8[0](Number(input) << 2)
+  if (input < TWO_BYTE_MODE_LIMIT) return u16[0]((Number(input) << 2) | 1)
+  if (input < FOUR_BYTE_MODE_LIMIT) return u32[0]((Number(input) << 2) | 2)
+
+  const result: number[] = [0]
   let tmp = BigInt(input)
   while (tmp > 0) {
     result.push(Number(tmp))
     tmp >>= 8n
   }
-  result.unshift(((result.length - 4) << 2) + 3)
+  result[0] = ((result.length - 5) << 2) | 3
   return new Uint8Array(result)
 }
 
