@@ -38,11 +38,9 @@ const enumDec = <
   return toInternalBytes((bytes) => {
     const idx = u8.dec(bytes)
     const [tag, innerDecoder] = entries[idx]
-    const innerResult = innerDecoder(bytes)
-
     return {
       tag,
-      value: innerResult,
+      value: innerDecoder(bytes),
     } as OT[keyof O]
   })
 }

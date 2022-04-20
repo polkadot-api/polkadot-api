@@ -12,8 +12,7 @@ const ResultDec = <OK, KO>(
   koDecoder: Decoder<KO>,
 ): Decoder<ResultPayload<OK, KO>> =>
   toInternalBytes((bytes) => {
-    const val = u8[1](bytes)
-    const success = val === 0
+    const success = u8[1](bytes) === 0
     const decoder = success ? okDecoder : koDecoder
     const value = decoder(bytes)
     return { success, value } as ResultPayload<OK, KO>
