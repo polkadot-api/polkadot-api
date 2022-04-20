@@ -20,20 +20,19 @@ const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
     let nReminders = nBytes % 8
     const nU32 = (nReminders / 4) | 0
     nReminders %= 4
-
     const lengths = [nReminders % 2, (nReminders / 2) | 0, nU32, nU64]
 
     let result = 0n
     let nBits = 0n
     let inc = 4n
-    decoders.forEach((dec, idx) => {
+    for (let d = 0; d < 4; d++) {
       inc *= 2n
-      const len = lengths[idx]
+      const len = lengths[d]
       for (let i = 0; i < len; i++) {
-        result = (BigInt(dec(bytes)) << nBits) | result
+        result = (BigInt(decoders[d](bytes)) << nBits) | result
         nBits += inc
       }
-    })
+    }
     return result
   },
 )
