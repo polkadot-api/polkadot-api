@@ -10,7 +10,7 @@ const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
     const init = bytes[usedBytes]
 
     const kind = init & 3
-    if (kind !== 3) return (decoders[kind](bytes) as number) >>> 2
+    if (kind < 3) return (decoders[kind](bytes) as number) >>> 2
 
     const nBytes = (init >>> 2) + 4
     bytes.i++
@@ -59,16 +59,17 @@ const compactEnc: Encoder<number | bigint> = (input) => {
     bigValue >>= 64n
   }
 
-  while (bigValue >= MIN_U32) {
+  if (bigValue >= MIN_U32) {
     buffers.push(u32[0](Number(bigValue & U32_MASK)))
     bigValue >>= 32n
   }
 
   let smValue = Number(bigValue)
-  while (smValue >= MIN_U16) {
+  if (smValue >= MIN_U16) {
     buffers.push(u16[0](smValue))
     smValue >>= 16
   }
+
   smValue && buffers.push(u8[0](smValue))
 
   const result = mergeUint8(...buffers)
