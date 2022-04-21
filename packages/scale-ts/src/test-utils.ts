@@ -37,12 +37,19 @@ export const testCodec = <T>(codec: Codec<T>) => {
       ),
     ).toEqual(reEncoded)
 
-    expect(Test.dec(reEncoded)).toEqual({
-      a: decoded,
-      b: decoded,
-      c: decoded,
-      d: decoded,
-      e: decoded,
-    })
+    try {
+      expect(Test.dec(reEncoded)).toEqual({
+        a: decoded,
+        b: decoded,
+        c: decoded,
+        d: decoded,
+        e: decoded,
+      })
+    } catch (_) {
+      expect((codec.dec(encoded) as any).toString()).toEqual(
+        (decoded as any).toString(),
+      )
+      expect("something crashed on a toEqual expect").toBe("")
+    }
   }
 }
