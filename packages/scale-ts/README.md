@@ -102,8 +102,13 @@ instance, the implementation of the `bool` Codec looks like this:
 import { enhanceCodec, u8, Codec } from "../"
 
 const booleanToNumber = (value: boolean) => (value ? 1 : 0)
+const numberToBoolean = Boolean
 
-export const bool: Codec<boolean> = enhanceCodec(u8, booleanToNumber, Boolean)
+export const bool: Codec<boolean> = enhanceCodec(
+  u8,
+  booleanToNumber,
+  numberToBoolean,
+)
 ```
 
 Similarly, you could implement any other definitions are that based
@@ -155,6 +160,7 @@ bool.dec("0x01")
 ### [Option](https://docs.substrate.io/v3/advanced/scale-codec/#options)
 
 Normal cases:
+
 ```ts
 cosnt optionalCompact = Option(compact)
 
@@ -169,6 +175,7 @@ optionalCompact.enc(1)
 ```
 
 Exceptionally, if the input is `bool`, then it always returns one byte:
+
 ```ts
 cosnt optionalBool = Option(bool)
 
@@ -257,7 +264,7 @@ myCodec.enc({
 ### [Enum](https://docs.substrate.io/v3/advanced/scale-codec/#enumerations-tagged-unions)
 
 ```ts
-const myCodec = Enum({
+const { enc, dec } = Enum({
   nothingHere: _void,
   someNumber: u8,
   trueOrFalse: bool,
@@ -265,10 +272,10 @@ const myCodec = Enum({
   optVoid: Option(_void),
 })
 
-myCodec.enc({ tag: "nothingHere" })
+enc({ tag: "nothingHere" })
 // => 0x00
 
-myCodec.dec("0x012a")
+dec("0x012a")
 // => { tag: "someNumber", value: 42 }
 ```
 
@@ -279,12 +286,12 @@ to have a codec that simply reads/writes a certain amount of bytes.
 For example, see the example above for creating `AccountId`.
 
 ```ts
-const threeBytes = Bytes(3)
+const [encode, decode] = Bytes(3)
 
-threeBytes.enc(new Uint8Array([0, 15, 255]))
+encode(new Uint8Array([0, 15, 255]))
 // => 0x000fff
 
-threeBytes.dec("0x000fff00")
+decode("0x000fff00")
 // => 0x000fff
 ```
 
@@ -356,10 +363,7 @@ export const MapCodec = <K, V>(
   key: Codec<K>,
   value: Codec<V>,
 ): Codec<Map<K, V>> =>
-  createCodec(
-    MapEncoder(key.enc, value.enc),
-    MapDecoder(key.dec, value.dec),
-  )
+  createCodec(MapEncoder(key.enc, value.enc), MapDecoder(key.dec, value.dec))
 
 MapCodec.enc = MapEncoder
 MapCodec.dec = MapDecoder
