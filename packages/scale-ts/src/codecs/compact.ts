@@ -3,35 +3,41 @@ import { mergeUint8, toInternalBytes } from "../internal"
 import { u8, u16, u32, u64 } from "./fixed-width-ints"
 import { Decoder, Encoder, Codec } from "../types"
 
-const decoders = [u8[1], u16[1], u32[1], u64[1]] as const
+const decoders = [u8[1], u16[1], u32[1]] as const
 const compactDec: Decoder<number | bigint> = toInternalBytes<number | bigint>(
   (bytes) => {
-    const usedBytes = bytes.i
-    const init = bytes[usedBytes]
+    const init = bytes[bytes.i]
 
     const kind = init & 3
-    if (kind < 3) return (decoders[kind](bytes) as number) >>> 2
+    if (kind < 3) return decoders[kind](bytes) >>> 2
 
     const nBytes = (init >>> 2) + 4
     bytes.i++
 
-    const nU64 = (nBytes / 8) | 0
-    let nReminders = nBytes % 8
-    const nU32 = (nReminders / 4) | 0
-    nReminders %= 4
-    const lengths = [nReminders % 2, (nReminders / 2) | 0, nU32, nU64]
-
     let result = 0n
-    let nBits = 0n
-    let inc = 4n
-    for (let d = 0; d < 4; d++) {
-      inc *= 2n
-      const len = lengths[d]
-      for (let i = 0; i < len; i++) {
-        result = (BigInt(decoders[d](bytes)) << nBits) | result
-        nBits += inc
-      }
+
+    const nU64 = (nBytes / 8) | 0
+    let shift = 0n
+    for (let i = 0; i < nU64; i++) {
+      result = (u64[1](bytes) << shift) | result
+      shift += 64n
     }
+
+    let nReminders = nBytes % 8
+    if (nReminders > 3) {
+      result = (BigInt(u32[1](bytes)) << shift) | result
+      shift += 32n
+      nReminders -= 4
+    }
+
+    if (nReminders > 1) {
+      result = (BigInt(u16[1](bytes)) << shift) | result
+      shift += 16n
+      nReminders -= 2
+    }
+
+    if (nReminders) result = (BigInt(u8[1](bytes)) << shift) | result
+
     return result
   },
 )
