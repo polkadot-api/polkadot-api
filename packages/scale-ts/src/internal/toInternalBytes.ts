@@ -61,10 +61,10 @@ export const toInternalBytes =
       buffer instanceof InternalUint8Array
         ? buffer
         : new InternalUint8Array(
-            typeof buffer === "string"
-              ? fromHex(buffer).buffer
-              : buffer instanceof Uint8Array
+            buffer instanceof Uint8Array
               ? buffer.buffer
+              : typeof buffer === "string"
+              ? fromHex(buffer).buffer
               : buffer,
           ),
     )
