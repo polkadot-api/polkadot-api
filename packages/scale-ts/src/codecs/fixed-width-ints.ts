@@ -64,14 +64,16 @@ const x128Enc: Encoder<bigint> = (value) => {
   return result
 }
 
-const create128Dec = (isSigned?: number): Decoder<bigint> =>
+const create128Dec = (
+  method: "getBigInt64" | "getBigUint64",
+): Decoder<bigint> =>
   toInternalBytes((input) => {
     const { v, i } = input
     const right = v.getBigUint64(i, true)
-    const left = v[isSigned ? "getBigInt64" : "getBigUint64"](i + 8, true)
+    const left = v[method](i + 8, true)
     input.i += 16
     return (left << 64n) | right
   })
 
-export const u128 = createCodec(x128Enc, create128Dec())
-export const i128 = createCodec(x128Enc, create128Dec(1))
+export const u128 = createCodec(x128Enc, create128Dec("getBigUint64"))
+export const i128 = createCodec(x128Enc, create128Dec("getBigInt64"))

@@ -8,8 +8,8 @@ const VectorEnc = <T>(inner: Encoder<T>, size?: number): Encoder<Array<T>> =>
     ? (value) => mergeUint8(...value.map(inner))
     : (value) => mergeUint8(compact.enc(value.length), ...value.map(inner))
 
-function VectorDec<T>(getter: Decoder<T>, size?: number): Decoder<Array<T>> {
-  return toInternalBytes((bytes) => {
+const VectorDec = <T>(getter: Decoder<T>, size?: number): Decoder<Array<T>> =>
+  toInternalBytes((bytes) => {
     const nElements = size! >= 0 ? size! : compact.dec(bytes)
     const result = new Array(nElements as number)
 
@@ -19,11 +19,9 @@ function VectorDec<T>(getter: Decoder<T>, size?: number): Decoder<Array<T>> {
 
     return result
   })
-}
 
-export function Vector<T>(inner: Codec<T>, size?: number): Codec<Array<T>> {
-  return createCodec(VectorEnc(inner[0], size), VectorDec(inner[1], size))
-}
+export const Vector = <T>(inner: Codec<T>, size?: number): Codec<Array<T>> =>
+  createCodec(VectorEnc(inner[0], size), VectorDec(inner[1], size))
 
 Vector.enc = VectorEnc
 Vector.dec = VectorDec

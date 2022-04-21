@@ -5,7 +5,7 @@ export { str } from "./str"
 export * from "./fixed-width-ints"
 export { _void } from "./void"
 
-// Higher Order Codecs
+// Codec-Creators
 export { Bytes } from "./Bytes"
 export { Enum } from "./Enum"
 export { Option } from "./Option"
