@@ -1,5 +1,5 @@
 import { i16 } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 const tester = testCodec(i16)
 

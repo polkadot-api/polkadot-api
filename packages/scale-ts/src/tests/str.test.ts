@@ -1,5 +1,5 @@
 import { str } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 const tester = testCodec(str)
 

@@ -1,5 +1,5 @@
 import { i64 } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 const tester = testCodec(i64)
 
@@ -20,11 +20,11 @@ describe("i64", () => {
     tester(-1n, "0xffffffffffffffff")
   })
 
-  it("almost max", () => {
+  it("max", () => {
     tester(9223372036854775807n, "0xffffffffffffff7f")
   })
 
-  it("almost min", () => {
+  it("min", () => {
     tester(-9223372036854775808n, "0x0000000000000080")
   })
 })

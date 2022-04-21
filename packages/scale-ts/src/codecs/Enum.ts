@@ -15,10 +15,8 @@ const enumEnc = <
   inner: O,
 ): Encoder<OT[keyof O]> => {
   const keys = Object.keys(inner)
-  return ({ tag, value }: any) => {
-    const idx = keys.indexOf(tag)
-    return mergeUint8(u8.enc(idx), (inner as any)[tag](value))
-  }
+  return ({ tag, value }: any) =>
+    mergeUint8(u8.enc(keys.indexOf(tag)), (inner as any)[tag](value))
 }
 
 const enumDec = <

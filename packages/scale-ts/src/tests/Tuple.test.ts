@@ -1,5 +1,5 @@
 import { Tuple, compact, bool } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 const tester = testCodec(Tuple(compact, bool))
 

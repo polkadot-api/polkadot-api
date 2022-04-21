@@ -9,9 +9,8 @@ const BytesEnc =
 
 const BytesDec = (nBytes: number): Decoder<Uint8Array> =>
   toInternalBytes((bytes) => {
-    const nUsedBytes = bytes.i
-    const len = nBytes !== Infinity ? nBytes : bytes.byteLength - nUsedBytes
-    const result = new Uint8Array(bytes.buffer, nUsedBytes, len)
+    const len = nBytes !== Infinity ? nBytes : bytes.byteLength - bytes.i
+    const result = new Uint8Array(bytes.buffer, bytes.i, len)
     bytes.i += len
     return result
   })

@@ -1,5 +1,5 @@
 import { u128 } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 const tester = testCodec(u128)
 

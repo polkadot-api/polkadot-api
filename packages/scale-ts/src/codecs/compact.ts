@@ -50,6 +50,7 @@ const U32_MASK = 4294967295n
 const SINGLE_BYTE_MODE_LIMIT = 1 << 6
 const TWO_BYTE_MODE_LIMIT = 1 << 14
 const FOUR_BYTE_MODE_LIMIT = 1 << 30
+
 const compactEnc: Encoder<number | bigint> = (input) => {
   if (input < 0) throw new Error(`Wrong compact input (${input})`)
 
@@ -80,6 +81,7 @@ const compactEnc: Encoder<number | bigint> = (input) => {
 
   const result = mergeUint8(...buffers)
   result[0] = ((result.length - 5) << 2) | 3
+
   return result
 }
 

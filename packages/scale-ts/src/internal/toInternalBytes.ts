@@ -27,6 +27,7 @@ const HEX_MAP: Record<string, number> = {
 }
 export function fromHex(hexString: string): Uint8Array {
   const isOdd = hexString.length % 2
+  /* istanbul ignore next */
   const base = (hexString[1] === "x" ? 2 : 0) + isOdd
   const nBytes = (hexString.length - base) / 2 + isOdd
   const bytes = new Uint8Array(nBytes)

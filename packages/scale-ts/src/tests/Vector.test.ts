@@ -1,5 +1,5 @@
 import { Vector, u16 } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 describe("Vector", () => {
   it("Sequence", () => {

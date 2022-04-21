@@ -1,5 +1,5 @@
 import { Bytes } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 describe("Bytes", () => {
   it("works", () => {

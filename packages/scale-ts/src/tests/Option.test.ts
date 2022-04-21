@@ -1,4 +1,4 @@
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 import { bool, compact, Option } from "../"
 
 describe("Option", () => {

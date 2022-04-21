@@ -1,5 +1,5 @@
 import { bool } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 const tester = testCodec(bool)
 

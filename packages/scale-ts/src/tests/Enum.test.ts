@@ -1,5 +1,5 @@
 import { Enum, u8, bool, _void, Option } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 const tester = testCodec(
   Enum({

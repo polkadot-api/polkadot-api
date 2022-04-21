@@ -14,8 +14,7 @@ function VectorDec<T>(getter: Decoder<T>, size?: number): Decoder<Array<T>> {
     const result = new Array(nElements as number)
 
     for (let i = 0; i < nElements; i++) {
-      const current = getter(bytes)
-      result[i] = current
+      result[i] = getter(bytes)
     }
 
     return result

@@ -1,5 +1,5 @@
 import { Struct, bool, str, u32, Vector, Enum, _void } from "../"
-import { testCodec } from "../test-utils"
+import { testCodec } from "./test-utils"
 
 describe("Struct", () => {
   it("encodes and decodes complex Objects", () => {

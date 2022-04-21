@@ -1,4 +1,6 @@
-import { Codec, Struct } from "./"
+/* istanbul ignore file */
+
+import { Codec, Struct } from "../"
 
 // https://jsben.ch/uWZw3
 const HEX_STR = "0123456789abcdef"
