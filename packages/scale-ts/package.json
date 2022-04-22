@@ -9,27 +9,26 @@
   "exports": {
     ".": {
       "node": {
-        "module": "./dist/scale-ts.es2017.js",
-        "import": "./dist/scale-ts.es2019.mjs",
+        "module": "./dist/scale-ts.js",
+        "import": "./dist/scale-ts.mjs",
         "require": "./dist/index.cjs"
       },
-      "default": "./dist/scale-ts.es2017.js"
+      "default": "./dist/scale-ts.js"
     },
     "./package.json": "./package.json"
   },
-  "module": "./dist/scale-ts.es2017.js",
+  "module": "./dist/scale-ts.js",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npm run build:ts && npm run build:esm2017 && npm run build:esm2019 && npm run build:cjs:dev && npm run build:cjs:prod",
-    "build:esm2019": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.es2019.mjs --external:@unstoppablejs/utils --target=es2020 --format=esm --sourcemap",
-    "build:esm2017": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.es2017.js --external:@unstoppablejs/utils --target=es2020 --format=esm --sourcemap",
-    "build:cjs:dev": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.development.js --external:@unstoppablejs/utils --target=es2020 --format=cjs --sourcemap",
-    "build:cjs:prod": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.production.min.js --external:@unstoppablejs/utils --target=es2020 --format=cjs --minify --sourcemap",
-    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly",
+    "build": "npm run build:ts && npm run build:esm && npm run build:cjs:dev && npm run build:cjs:prod && cp ./README.md ./src/README.md",
+    "build:esm": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.js --target=es2020 --format=esm --sourcemap && cp ./dist/scale-ts.js ./dist/scale-ts.mjs && cp ./dist/scale-ts.js.map ./dist/scale-ts.mjs.map",
+    "build:cjs:dev": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.development.js --target=es2020 --format=cjs --sourcemap",
+    "build:cjs:prod": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
+    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
     "test": "jest --coverage",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
