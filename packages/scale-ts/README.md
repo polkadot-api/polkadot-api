@@ -8,10 +8,6 @@ Using npm:
 
     npm install --save scale-ts
 
-Using Deno, it can be imported from:
-
-    https://deno.land/x/scale_ts/mod.ts
-
 ## Usage Example
 
 ```ts
