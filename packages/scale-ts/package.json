@@ -29,6 +29,7 @@
     "build:cjs:dev": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.development.js --target=es2020 --format=cjs --sourcemap",
     "build:cjs:prod": "esbuild src/index.ts --bundle --outfile=./dist/scale-ts.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
     "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
+    "deno": "node ./to-deno.mjs",
     "test": "jest --coverage",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -40,5 +41,9 @@
     "trailingComma": "all"
   },
   "name": "scale-ts",
-  "author": "Josep M Sobrepere (https://github.com/josepot)"
+  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "devDependencies": {
+    "babylon": "^7.0.0-beta.47",
+    "recast": "^0.20.5"
+  }
 }
