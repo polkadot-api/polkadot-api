@@ -41,7 +41,7 @@ const fixImportExport = (fileName, availableFiles, value) => {
       option.startsWith("/") ? join(base, option) : base + option,
     ),
   )
-  return extension.startsWith("/") ? join(value, extension) : value + extension
+  return (value.endsWith("/") ? value.slice(0, -1) : value) + extension
 }
 
 const declarationTypes = new Set([
