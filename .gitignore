@@ -18,3 +18,6 @@ packages/utils/dist/**
 packages/scale-ts/dist/**
 !packages/scale-ts/dist/index.cjs
 !packages/scale-ts/dist/index.js
+packages/solidity-codecs/dist/**
+!packages/solidity-codecs/dist/index.cjs
+!packages/solidity-codecs/dist/index.js
