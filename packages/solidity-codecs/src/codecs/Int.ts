@@ -45,6 +45,10 @@ const getCodec = (nBytes: number): Codec<bigint> => {
     const result = new Uint8Array(32)
     const dv = new DataView(result.buffer)
 
+    if (input < 0n) {
+      for (let i = 0; i < 32 - nBytes; i += 8) dv.setBigInt64(i, -1n)
+    }
+
     let idx = 32
     for (let i = sequence.length - 1; i > 0; i--) {
       const [bytes, shift, fn] = sequence[i] as [1, 8n, (x: bigint) => any]

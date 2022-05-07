@@ -21,7 +21,7 @@ describe("int", () => {
     it("-1", () => {
       tester(
         -1n,
-        "0x00000000000000000000000000000000000000000000000000ffffffffffffff",
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       )
     })
 
@@ -35,7 +35,7 @@ describe("int", () => {
     it("min", () => {
       tester(
         -36028797018963968n,
-        "0x0000000000000000000000000000000000000000000000000080000000000000",
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffff80000000000000",
       )
     })
   })
