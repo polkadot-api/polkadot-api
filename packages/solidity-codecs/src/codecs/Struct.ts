@@ -1,7 +1,7 @@
 import { mapObject } from "../internal"
 import { Codec, Decoder, Encoder, StringRecord } from "../types"
 import { createCodec, enhanceDecoder, enhanceEncoder } from "../utils"
-import { tuple } from "./tuple"
+import { Tuple } from "./Tuple"
 
 const structEnc = <
   A extends StringRecord<Encoder<any>>,
@@ -10,7 +10,7 @@ const structEnc = <
   encoders: A,
 ): Encoder<OT> => {
   const keys = Object.keys(encoders)
-  return enhanceEncoder(tuple.enc(...Object.values(encoders)), (input: OT) =>
+  return enhanceEncoder(Tuple.enc(...Object.values(encoders)), (input: OT) =>
     keys.map((k) => input[k]),
   )
 }
@@ -23,13 +23,13 @@ const structDec = <
 ): Decoder<OT> => {
   const keys = Object.keys(decoders)
   return enhanceDecoder(
-    tuple.dec(...Object.values(decoders)),
+    Tuple.dec(...Object.values(decoders)),
     (tuple: Array<any>) =>
       Object.fromEntries(tuple.map((value, idx) => [keys[idx], value])) as OT,
   )
 }
 
-export const struct = <
+export const Struct = <
   A extends StringRecord<Codec<any>>,
   OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown },
 >(
@@ -40,5 +40,5 @@ export const struct = <
     structDec(mapObject(codecs, (x) => x[1]) as any),
   )
 
-struct.enc = structEnc
-struct.dec = structDec
+Struct.enc = structEnc
+Struct.dec = structDec

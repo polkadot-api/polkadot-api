@@ -49,7 +49,7 @@ const decode = (nBytes: number): Decoder<bigint> => {
 }
 
 const cache: Map<number, Codec<bigint>> = new Map()
-export const uint = (nBits: number): Codec<bigint> => {
+export const Uint = (nBits: number): Codec<bigint> => {
   let cached = cache.get(nBits)
   if (cached) return cached
 

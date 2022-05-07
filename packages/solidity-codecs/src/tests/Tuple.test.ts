@@ -1,7 +1,7 @@
-import { tuple, uint, bool } from "../"
+import { Tuple, Uint, bool } from "../"
 import { testCodec } from "./test-utils"
 
-const tester = testCodec(tuple(uint(8), bool, tuple(bool, uint(8))))
+const tester = testCodec(Tuple(Uint(8), bool, Tuple(bool, Uint(8))))
 
 describe("Tuple", () => {
   it("works", () => {

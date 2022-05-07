@@ -19,7 +19,7 @@ export type StringRecord<T> = {
   [Str: string]: T
 }
 
-export interface Fixed {
+export interface Decimal {
   value: bigint
   decimals: number
 }

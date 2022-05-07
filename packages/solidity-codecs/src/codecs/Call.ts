@@ -1,9 +1,9 @@
 import { Codec, Decoder, Encoder } from "../types"
-import { uint } from "./uint"
+import { Uint } from "./Uint"
 import { mergeUint8, toInternalBytes } from "../internal"
 import { createCodec } from "../utils"
 
-const uint256 = uint(256)
+const uint256 = Uint(256)
 const callEnc =
   <
     A extends Array<Encoder<any>>,
@@ -59,7 +59,7 @@ const callDec = <
     return result
   })
 
-export const call = <
+export const Call = <
   A extends Array<Codec<any>>,
   OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown },
 >(
@@ -70,5 +70,5 @@ export const call = <
     callDec(...codecs.map(([, decoder]) => decoder)),
   )
 
-call.enc = callEnc
-call.dec = callDec
+Call.enc = callEnc
+Call.dec = callDec

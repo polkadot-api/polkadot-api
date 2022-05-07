@@ -80,7 +80,7 @@ const getCodec = (nBytes: number): Codec<bigint> => {
 }
 
 const cache: Map<number, Codec<bigint>> = new Map()
-export const int = (nBits: number): Codec<bigint> => {
+export const Int = (nBits: number): Codec<bigint> => {
   let cached = cache.get(nBits)
   if (cached) return cached
 
@@ -90,5 +90,5 @@ export const int = (nBits: number): Codec<bigint> => {
   return cached
 }
 
-int.enc = (nBits: number) => int(nBits).enc
-int.dec = (nBits: number) => int(nBits).dec
+Int.enc = (nBits: number) => Int(nBits).enc
+Int.dec = (nBits: number) => Int(nBits).dec

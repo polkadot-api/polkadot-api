@@ -1,7 +1,7 @@
-import { call, str, uint, bool, vector } from "../"
+import { Call, str, Uint, bool, Vector } from "../"
 import { testCodec } from "./test-utils"
 
-const tester = testCodec(call(str, bool, vector(uint(8))))
+const tester = testCodec(Call(str, bool, Vector(Uint(8))))
 
 describe("call", () => {
   it("works", () => {

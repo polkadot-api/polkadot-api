@@ -18,8 +18,8 @@ const bytesDec = (nBytes: number): Decoder<Uint8Array> =>
     return result
   })
 
-export const bytes = (nBytes: number): Codec<Uint8Array> =>
+export const Bytes = (nBytes: number): Codec<Uint8Array> =>
   createCodec(bytesEnc(nBytes), bytesDec(nBytes))
 
-bytes.enc = bytesEnc
-bytes.dec = bytesDec
+Bytes.enc = bytesEnc
+Bytes.dec = bytesDec

@@ -1,7 +1,7 @@
-import { uint } from "../codecs/uint"
+import { Uint } from "../"
 import { testCodec } from "./test-utils"
 
-const tester = testCodec(uint(248))
+const tester = testCodec(Uint(248))
 
 describe("uint", () => {
   it("zero", () => {

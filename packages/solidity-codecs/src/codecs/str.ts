@@ -1,8 +1,8 @@
 import { createCodec, Decoder, Encoder } from "../"
 import { toInternalBytes, mergeUint8 } from "../internal"
-import { uint } from "./uint"
+import { Uint } from "./Uint"
 
-const uint256 = uint(256)
+const uint256 = Uint(256)
 const textEncoder = new TextEncoder()
 const strEnc: Encoder<string> = (str) => {
   const val = textEncoder.encode(str)

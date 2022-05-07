@@ -22,7 +22,7 @@ const tupleEnc =
   (values) =>
     mergeUint8(...values.map((value, idx) => encoders[idx](value)))
 
-export const tuple = <
+export const Tuple = <
   A extends Array<Codec<any>>,
   OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown },
 >(
@@ -33,5 +33,5 @@ export const tuple = <
     tupleDec(...codecs.map(([, decoder]) => decoder)),
   )
 
-tuple.enc = tupleEnc
-tuple.dec = tupleDec
+Tuple.enc = tupleEnc
+Tuple.dec = tupleDec
