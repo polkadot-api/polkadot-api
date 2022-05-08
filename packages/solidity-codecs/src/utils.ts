@@ -10,19 +10,33 @@ export const createCodec = <T>(
   return result
 }
 
-export const enhanceEncoder =
-  <I, O>(encoder: Encoder<I>, mapper: (value: O) => I): Encoder<O> =>
-  (value) =>
-    encoder(mapper(value))
+export const dyn = <T extends { dyn?: boolean }>(
+  input: { dyn?: boolean },
+  output: T,
+): T => {
+  if (input.dyn) output.dyn = true
+  return output
+}
 
-export const enhanceDecoder =
-  <I, O>(decoder: Decoder<I>, mapper: (value: I) => O): Decoder<O> =>
-  (value) =>
-    mapper(decoder(value))
+export const enhanceEncoder = <I, O>(
+  encoder: Encoder<I>,
+  mapper: (value: O) => I,
+): Encoder<O> => dyn(encoder, ((value) => encoder(mapper(value))) as Encoder<O>)
+
+export const enhanceDecoder = <I, O>(
+  decoder: Decoder<I>,
+  mapper: (value: I) => O,
+): Decoder<O> => dyn(decoder, ((value) => mapper(decoder(value))) as Decoder<O>)
 
 export const enhanceCodec = <I, O>(
-  [encoder, decoder]: Codec<I>,
+  codec: Codec<I>,
   toFrom: (value: O) => I,
   fromTo: (value: I) => O,
 ): Codec<O> =>
-  createCodec(enhanceEncoder(encoder, toFrom), enhanceDecoder(decoder, fromTo))
+  dyn(
+    codec,
+    createCodec(
+      enhanceEncoder(codec[0], toFrom),
+      enhanceDecoder(codec[1], fromTo),
+    ),
+  )

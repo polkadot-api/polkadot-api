@@ -13,7 +13,7 @@ const strEnc: Encoder<string> = (str) => {
   }
   return mergeUint8(...args)
 }
-strEnc.din = true
+strEnc.dyn = true
 
 const textDecoder = new TextDecoder()
 const strDec: Decoder<string> = toInternalBytes((bytes) => {
@@ -24,7 +24,7 @@ const strDec: Decoder<string> = toInternalBytes((bytes) => {
   bytes.i += nElements + padding
   return textDecoder.decode(dv)
 })
-strDec.din = true
+strDec.dyn = true
 
 export const str = createCodec(strEnc, strDec)
-str.din = true
+str.dyn = true
