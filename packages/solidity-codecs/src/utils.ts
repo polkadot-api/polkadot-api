@@ -10,7 +10,7 @@ export const createCodec = <T>(
   return result
 }
 
-export const dyn = <T extends { dyn?: boolean }>(
+const dyn = <T extends { dyn?: boolean }>(
   input: { dyn?: boolean },
   output: T,
 ): T => {

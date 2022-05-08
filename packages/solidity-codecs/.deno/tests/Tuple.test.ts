@@ -1,5 +1,5 @@
-import { Struct, Tuple, bool, str, Vector, uint8, uint, int } from "../"
-import { testCodec } from "./test-utils"
+import { Struct, Tuple, bool, str, Vector, uint8, uint, int } from "../index.ts"
+import { testCodec } from "./test-utils.ts"
 
 describe("Tuple", () => {
   it("static", () => {

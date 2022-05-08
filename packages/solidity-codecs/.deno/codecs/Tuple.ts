@@ -1,7 +1,7 @@
-import { Codec, Decoder, Encoder } from "../types"
-import { uint } from "./Uint"
-import { mergeUint8, toInternalBytes } from "../internal"
-import { createCodec } from "../utils"
+import { Codec, Decoder, Encoder } from "../types.ts"
+import { uint } from "./Uint.ts"
+import { mergeUint8, toInternalBytes } from "../internal/index.ts"
+import { createCodec } from "../utils.ts"
 
 const dynamicEnc = <
   A extends Array<Encoder<any>>,

@@ -1,4 +1,4 @@
-import { Struct, Uint, bool } from "../"
+import { Struct, uint8, bool } from "../"
 import { testCodec } from "./test-utils"
 
 const three = "0000000000000000000000000000000000000000000000000000000000000003"
@@ -7,11 +7,11 @@ describe("Struct", () => {
   it("encodes and decodes complex Objects", () => {
     const tester = testCodec(
       Struct({
-        num: Uint(8),
+        num: uint8,
         bool,
         nested: Struct({
           bool,
-          num: Uint(8),
+          num: uint8,
         }),
       }),
     )
@@ -56,11 +56,11 @@ describe("Struct", () => {
   it("encodes Objects correctly, even when the key order is different", () => {
     const tester = testCodec(
       Struct({
-        num: Uint(8),
+        num: uint8,
         bool,
         nested: Struct({
           bool,
-          num: Uint(8),
+          num: uint8,
         }),
       }),
     )

@@ -1,6 +1,6 @@
-import { createCodec, Decoder, Encoder } from "../index.ts"
-import { toInternalBytes, mergeUint8 } from "../internal/index.ts"
-import { uint } from "./Uint.ts"
+import { createCodec, Decoder, Encoder } from "../"
+import { toInternalBytes, mergeUint8 } from "../internal"
+import { uint } from "./Uint"
 
 const bytesEnc: Encoder<Uint8Array> = (val) => {
   const args = [uint[0](BigInt(val.length)), val] as const

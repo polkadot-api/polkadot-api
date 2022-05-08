@@ -1,10 +1,10 @@
-import { bytes } from "../index.ts"
-import { testEncoder, testDecoder } from "./test-utils.ts"
+import { bytes3, bytes32 } from "../"
+import { testEncoder, testDecoder } from "./test-utils"
 
 describe("bytes", () => {
   it("works", () => {
-    const encoder = testEncoder(bytes(3).enc)
-    const decoder = testDecoder(bytes(3).dec)
+    const encoder = testEncoder(bytes3.enc)
+    const decoder = testDecoder(bytes3.dec)
     encoder(
       new Uint8Array([0, 15, 255, 16, 74]),
       "0x000fff0000000000000000000000000000000000000000000000000000000000",
@@ -21,6 +21,6 @@ describe("bytes", () => {
     )
 
     const input = new Uint8Array(32)
-    expect(bytes(32).enc(input)).toBe(input)
+    expect(bytes32.enc(input)).toBe(input)
   })
 })

@@ -1,5 +1,5 @@
-import { Codec } from "../types"
-import { enhanceCodec } from "../utils"
+import { Codec } from "../types.ts"
+import { enhanceCodec } from "../utils.ts"
 
 export interface Decimal<T extends number = number> {
   value: bigint

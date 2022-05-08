@@ -1,5 +1,5 @@
 import { Encoder, Codec } from "../types"
-import { toInternalBytes } from "../internal"
+import { range32, toInternalBytes } from "../internal"
 import { createCodec } from "../utils"
 
 const signGetters: Record<1 | 2 | 8, "getBigInt64" | "getInt16" | "getInt8"> = {
@@ -83,16 +83,38 @@ const getCodec = (nBytes: number): Codec<bigint> => {
   return createCodec(enc, dec)
 }
 
-const cache: Map<number, Codec<bigint>> = new Map()
-export const Int = (nBits: number): Codec<bigint> => {
-  let cached = cache.get(nBits)
-  if (cached) return cached
-
-  const nBytes = nBits / 8
-  cached = getCodec(nBytes)
-  cache.set(nBits, cached)
-  return cached
-}
-
-Int.enc = (nBits: number) => Int(nBits).enc
-Int.dec = (nBits: number) => Int(nBits).dec
+export const [
+  int8,
+  int16,
+  int24,
+  int32,
+  int40,
+  int48,
+  int56,
+  int64,
+  int72,
+  int80,
+  int88,
+  int96,
+  int104,
+  int112,
+  int120,
+  int128,
+  int136,
+  int144,
+  int152,
+  int160,
+  int168,
+  int176,
+  int184,
+  int192,
+  int200,
+  int208,
+  int226,
+  int224,
+  int232,
+  int240,
+  int248,
+  int256,
+] = range32.map(getCodec)
+export const int = int256

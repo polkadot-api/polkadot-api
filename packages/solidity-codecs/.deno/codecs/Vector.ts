@@ -1,7 +1,7 @@
-import { toInternalBytes, mergeUint8 } from "../internal"
-import { createCodec } from "../utils"
-import { Codec, Decoder, Encoder } from "../types"
-import { uint } from "./Uint"
+import { toInternalBytes, mergeUint8 } from "../internal/index.ts"
+import { createCodec } from "../utils.ts"
+import { Codec, Decoder, Encoder } from "../types.ts"
+import { uint } from "./Uint.ts"
 
 const vectorEnc = <T>(inner: Encoder<T>, size?: number): Encoder<Array<T>> => {
   if (size! >= 0) {

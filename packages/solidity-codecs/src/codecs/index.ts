@@ -1,12 +1,13 @@
 // Codecs
 export { bool } from "./bool"
+export { bytes } from "./bytes"
 export { str } from "./str"
+export * from "./BytesX"
+export * from "./Int"
+export * from "./Uint"
 
 // Codec-Creators
-export { Bytes } from "./Bytes"
-export { Fixed, Ufixed } from "./Fixed"
-export { Int } from "./Int"
+export * from "./Fixed"
 export { Struct } from "./Struct"
 export { Tuple } from "./Tuple"
-export { Uint } from "./Uint"
 export { Vector } from "./Vector"

@@ -18,8 +18,3 @@ export type StringRecord<T> = {
   [Num: number]: never
   [Str: string]: T
 }
-
-export interface Decimal {
-  value: bigint
-  decimals: number
-}

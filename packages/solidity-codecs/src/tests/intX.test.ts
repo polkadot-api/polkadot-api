@@ -1,9 +1,9 @@
-import { int } from "../index.ts"
-import { testCodec } from "./test-utils.ts"
+import { int56, int } from "../"
+import { testCodec } from "./test-utils"
 
 describe("int", () => {
   describe("int56", () => {
-    const tester = testCodec(int(56))
+    const tester = testCodec(int56)
     it("0", () => {
       tester(
         0n,
@@ -21,7 +21,7 @@ describe("int", () => {
     it("-1", () => {
       tester(
         -1n,
-        "0x00000000000000000000000000000000000000000000000000ffffffffffffff",
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       )
     })
 
@@ -35,12 +35,12 @@ describe("int", () => {
     it("min", () => {
       tester(
         -36028797018963968n,
-        "0x0000000000000000000000000000000000000000000000000080000000000000",
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffff80000000000000",
       )
     })
   })
   describe("int256", () => {
-    const tester = testCodec(int(256))
+    const tester = testCodec(int)
     it("max", () => {
       tester(
         57896044618658097711785492504343953926634992332820282019728792003956564819967n,
