@@ -65,4 +65,3 @@ export const [
   uint256,
 ] = range32.map(getCodec)
 export const uint = uint256
-export const address = uint160
