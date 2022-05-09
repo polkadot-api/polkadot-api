@@ -1,5 +1,6 @@
+import { mergeUint8 } from "@unstoppablejs/utils"
 import { createCodec, Decoder, Encoder } from "../"
-import { toInternalBytes, mergeUint8 } from "../internal"
+import { toInternalBytes } from "../internal"
 import { uint } from "./Uint"
 
 const bytesEnc: Encoder<Uint8Array> = (val) => {

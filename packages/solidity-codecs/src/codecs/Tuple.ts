@@ -1,6 +1,7 @@
+import { mergeUint8 } from "@unstoppablejs/utils"
 import { Codec, Decoder, Encoder } from "../types"
 import { uint } from "./Uint"
-import { mergeUint8, toInternalBytes } from "../internal"
+import { toInternalBytes } from "../internal"
 import { createCodec } from "../utils"
 
 const dynamicEnc = <

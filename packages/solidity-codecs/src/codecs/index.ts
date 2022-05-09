@@ -1,4 +1,5 @@
 // Codecs
+export { address } from "./address"
 export { bool } from "./bool"
 export { bytes } from "./bytes"
 export { str } from "./str"
