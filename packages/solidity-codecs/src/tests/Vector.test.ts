@@ -1,7 +1,13 @@
-import { Vector, uint } from "../"
+import { Vector, uint, str, Tuple } from "../"
 import { testCodec } from "./test-utils"
 
 describe("Vector", () => {
+  it("works with dynamic codecs", () => {
+    const codec = Tuple(Vector(str))
+    const bytes = codec.enc([["abcd", "efg", "hijk"]])
+    expect(codec.dec(bytes)).toEqual([["abcd", "efg", "hijk"]])
+  })
+
   it("Sequence", () => {
     const testerSeq = testCodec(Vector(uint))
     const value = [1n, 2n, 3n]

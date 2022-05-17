@@ -16,7 +16,9 @@ bytesEnc.dyn = true
 const bytesDec: Decoder<Uint8Array> = toInternalBytes((bytes) => {
   let nElements = Number(uint[1](bytes))
   const result = new Uint8Array(bytes.buffer, bytes.i, nElements)
-  bytes.i += nElements + (nElements % 32)
+  bytes.i += nElements
+  const extra = nElements % 32
+  if (extra > 0) bytes.i += 32 - extra
   return result
 })
 bytesDec.dyn = true
