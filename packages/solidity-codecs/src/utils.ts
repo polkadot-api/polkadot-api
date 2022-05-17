@@ -1,4 +1,7 @@
 import type { Codec, Decoder, Encoder } from "./types"
+import { keccak_256 } from "@noble/hashes/sha3"
+
+export const keccak = keccak_256
 
 export const createCodec = <T>(
   encoder: Encoder<T>,

@@ -1,7 +1,6 @@
 import { fromHex, toHex } from "@unstoppablejs/utils"
-import { keccak_256 } from "@noble/hashes/sha3"
 import { toInternalBytes } from "../internal"
-import { createCodec } from "../utils"
+import { createCodec, keccak } from "../utils"
 
 export const address = createCodec(
   (input: string) => {
@@ -13,7 +12,7 @@ export const address = createCodec(
     const binaryAddress = new Uint8Array(bytes.buffer, bytes.i + 12, 20)
     bytes.i += 32
     const nonChecksum = toHex(binaryAddress)
-    const hashedAddres = toHex(keccak_256(nonChecksum.slice(2)))
+    const hashedAddres = toHex(keccak(nonChecksum.slice(2)))
 
     const result = new Array(41)
     result[0] = "0x"
