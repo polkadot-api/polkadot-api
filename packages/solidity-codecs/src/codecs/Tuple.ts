@@ -1,8 +1,7 @@
 import { mergeUint8 } from "@unstoppablejs/utils"
-import { Codec, Decoder, Encoder } from "../types"
+import type { Codec, Decoder, Encoder } from "../types"
+import { toInternalBytes, createCodec } from "../internal"
 import { uint } from "./Uint"
-import { toInternalBytes } from "../internal"
-import { createCodec } from "../utils"
 
 const dynamicEnc = <
   A extends Array<Encoder<any>>,
@@ -10,13 +9,13 @@ const dynamicEnc = <
 >(
   ...encoders: A
 ): Encoder<[...OT]> => {
-  const res: Encoder<[...OT]> = (values) => {
+  const res = ((values) => {
     const mapped = values.map((value, idx) => encoders[idx](value))
     const resultArray = new Array<Uint8Array>(encoders.length)
     const dinamics = []
     let len = 0n
     for (let i = 0; i < encoders.length; i++) {
-      if (encoders[i].dyn) {
+      if (encoders[i].d) {
         dinamics.push(i)
         len += 32n
       } else {
@@ -33,21 +32,22 @@ const dynamicEnc = <
     })
 
     return mergeUint8(...resultArray)
-  }
+  }) as Encoder<[...OT]>
 
-  res.dyn = true
+  res.d = true
   return res
 }
 
-const staticEnc =
-  <
-    A extends Array<Encoder<any>>,
-    OT extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown },
-  >(
-    ...encoders: A
-  ): Encoder<[...OT]> =>
-  (values) =>
-    mergeUint8(...values.map((value, idx) => encoders[idx](value)))
+const staticEnc = <
+  A extends Array<Encoder<any>>,
+  OT extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown },
+>(
+  ...encoders: A
+) =>
+  ((values) =>
+    mergeUint8(...values.map((value, idx) => encoders[idx](value)))) as Encoder<
+    [...OT]
+  >
 
 const staticDec = <
   A extends Array<Decoder<any>>,
@@ -68,7 +68,7 @@ const dynamicDec = <
     const result = new Array(decoders.length) as [...OT]
     let start = bytes.i
     for (let i = 0; i < decoders.length; i++) {
-      if (decoders[i].dyn) {
+      if (decoders[i].d) {
         const offset = Number(uint[1](bytes))
         const current = bytes.i
         bytes.i = start + offset
@@ -80,7 +80,7 @@ const dynamicDec = <
     }
     return result
   })
-  res.dyn = true
+  res.d = true
   return res
 }
 
@@ -90,7 +90,7 @@ export const Tuple = <
 >(
   ...codecs: A
 ): Codec<[...OT]> => {
-  const isDyn = codecs.some((c) => c.dyn)
+  const isDyn = codecs.some((c) => c.d)
   const [enc, dec] = isDyn
     ? ([dynamicEnc, dynamicDec] as const)
     : ([staticEnc, staticDec] as const)
@@ -98,7 +98,8 @@ export const Tuple = <
   const res: Codec<[...OT]> = createCodec(
     enc(...codecs.map(([encoder]) => encoder)),
     dec(...codecs.map(([, decoder]) => decoder)),
+    `(${codecs.map((c) => c.s).join(",")})`,
   )
-  res.dyn = isDyn
+  res.d = isDyn
   return res
 }

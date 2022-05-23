@@ -1,8 +1,8 @@
 import { fromHex, toHex } from "@unstoppablejs/utils"
-import { toInternalBytes } from "../internal"
-import { createCodec, keccak } from "../utils"
+import { createCodec, toInternalBytes } from "../internal"
+import { keccak } from "../utils"
 
-export const address = createCodec(
+export const address = createCodec<string>(
   (input: string) => {
     const result = new Uint8Array(32)
     result.set(fromHex(input), 12)
@@ -23,4 +23,5 @@ export const address = createCodec(
 
     return result.join("")
   }),
+  "address",
 )

@@ -1,17 +1,17 @@
 import { mergeUint8 } from "@unstoppablejs/utils"
-import { createCodec, Decoder, Encoder } from "../"
-import { toInternalBytes } from "../internal"
+import type { Decoder, Encoder } from "../types"
+import { toInternalBytes, createCodec } from "../internal"
 import { uint } from "./Uint"
 
-const bytesEnc: Encoder<Uint8Array> = (val) => {
+const bytesEnc = ((val) => {
   const args = [uint[0](BigInt(val.length)), val] as const
   const extra = val.length % 32
   if (extra > 0) {
     ;(args as any).push(new Uint8Array(32 - extra))
   }
   return mergeUint8(...args)
-}
-bytesEnc.dyn = true
+}) as Encoder<Uint8Array>
+bytesEnc.d = true
 
 const bytesDec: Decoder<Uint8Array> = toInternalBytes((bytes) => {
   let nElements = Number(uint[1](bytes))
@@ -21,7 +21,7 @@ const bytesDec: Decoder<Uint8Array> = toInternalBytes((bytes) => {
   if (extra > 0) bytes.i += 32 - extra
   return result
 })
-bytesDec.dyn = true
+bytesDec.d = true
 
-export const bytes = createCodec(bytesEnc, bytesDec)
-bytes.dyn = true
+export const bytes = createCodec(bytesEnc, bytesDec, "bytes")
+bytes.d = true

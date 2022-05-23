@@ -1,12 +1,17 @@
-export type Encoder<T> = ((value: T) => Uint8Array) & { dyn?: boolean }
+export type Encoder<T> = ((value: T) => Uint8Array) & {
+  s: string
+  d?: boolean
+}
 export type Decoder<T> = ((value: Uint8Array | ArrayBuffer | string) => T) & {
-  dyn?: boolean
+  s: string
+  d?: boolean
 }
 
 export type Codec<T> = [Encoder<T>, Decoder<T>] & {
   enc: Encoder<T>
   dec: Decoder<T>
-  dyn?: boolean
+  s: string
+  d?: boolean
 }
 
 export type CodecType<T extends Codec<any>> = T extends Codec<infer V>

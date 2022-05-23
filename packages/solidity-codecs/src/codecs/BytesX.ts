@@ -1,15 +1,13 @@
-import { Encoder, Decoder, Codec } from "../types"
-import { createCodec } from "../"
-import { range32, toInternalBytes } from "../internal"
+import type { Encoder, Decoder, Codec } from "../types"
+import { range32, toInternalBytes, createCodec } from "../internal"
 
-const bytesEnc =
-  (nBytes: number): Encoder<Uint8Array> =>
-  (bytes) => {
+const bytesEnc = (nBytes: number): Encoder<Uint8Array> =>
+  ((bytes) => {
     if (bytes.length === nBytes && nBytes === 32) return bytes
     const result = new Uint8Array(32)
     result.set(bytes.length === nBytes ? bytes : bytes.slice(0, nBytes))
     return result
-  }
+  }) as Encoder<Uint8Array>
 
 const bytesDec = (nBytes: number): Decoder<Uint8Array> =>
   toInternalBytes((bytes) => {
@@ -53,5 +51,5 @@ export const [
   bytes32,
 ] = range32.map(
   (nBytes: number): Codec<Uint8Array> =>
-    createCodec(bytesEnc(nBytes), bytesDec(nBytes)),
+    createCodec(bytesEnc(nBytes), bytesDec(nBytes), "bytes" + nBytes),
 )

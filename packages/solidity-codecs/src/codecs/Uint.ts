@@ -1,6 +1,5 @@
 import { Codec } from "../types"
-import { range32, toInternalBytes } from "../internal"
-import { createCodec } from "../utils"
+import { range32, toInternalBytes, createCodec } from "../internal"
 
 const getCodec = (nBytes: number): Codec<bigint> => {
   const n64 = Math.ceil(nBytes / 8)
@@ -27,6 +26,7 @@ const getCodec = (nBytes: number): Codec<bigint> => {
       bytes.i = nextBlock
       return result
     }),
+    "uint" + nBytes,
   )
 }
 

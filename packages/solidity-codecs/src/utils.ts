@@ -1,23 +1,15 @@
 import type { Codec, Decoder, Encoder } from "./types"
+import { createCodec } from "./internal"
 import { keccak_256 } from "@noble/hashes/sha3"
 
 export const keccak = keccak_256
 
-export const createCodec = <T>(
-  encoder: Encoder<T>,
-  decoder: Decoder<T>,
-): Codec<T> => {
-  const result = [encoder, decoder] as any
-  result.enc = encoder
-  result.dec = decoder
-  return result
-}
-
-const dyn = <T extends { dyn?: boolean }>(
-  input: { dyn?: boolean },
+const dyn = <T extends { d?: boolean; s: string }>(
+  input: { d?: boolean; s: string },
   output: T,
 ): T => {
-  if (input.dyn) output.dyn = true
+  if (input.d) output.d = true
+  output.s = input.s
   return output
 }
 
@@ -41,5 +33,6 @@ export const enhanceCodec = <I, O>(
     createCodec(
       enhanceEncoder(codec[0], toFrom),
       enhanceDecoder(codec[1], fromTo),
+      codec.s,
     ),
   )

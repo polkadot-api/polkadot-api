@@ -57,7 +57,11 @@ describe("Tuple", () => {
   })
 
   it("dynamic3", () => {
-    const tester = testCodec(Tuple(Vector(Vector(uint)), Vector(str)))
+    const codec = Tuple(Vector(Vector(uint)), Vector(str))
+
+    expect(codec.s).toBe("(uint32[][],string[])")
+
+    const tester = testCodec(codec)
 
     const hexa = [
       "0000000000000000000000000000000000000000000000000000000000000040",

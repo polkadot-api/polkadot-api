@@ -1,6 +1,5 @@
 import { Encoder, Codec } from "../types"
-import { range32, toInternalBytes } from "../internal"
-import { createCodec } from "../utils"
+import { range32, toInternalBytes, createCodec } from "../internal"
 
 const signGetters: Record<1 | 2 | 8, "getBigInt64" | "getInt16" | "getInt8"> = {
   "1": "getInt8",
@@ -41,7 +40,7 @@ const getCodec = (nBytes: number): Codec<bigint> => {
   ]
   if (nBytes % 2) sequence.push([1, 8n, (x: bigint) => Number(x & 255n)])
 
-  const enc: Encoder<bigint> = (input) => {
+  const enc = ((input) => {
     const result = new Uint8Array(32)
     const dv = new DataView(result.buffer)
 
@@ -61,7 +60,7 @@ const getCodec = (nBytes: number): Codec<bigint> => {
     dv[signSetters[bytes]](idx, fn(input) as never)
 
     return result
-  }
+  }) as Encoder<bigint>
 
   const dec = toInternalBytes((bytes) => {
     let idx = bytes.i + 32 - nBytes
@@ -80,7 +79,7 @@ const getCodec = (nBytes: number): Codec<bigint> => {
     return result
   })
 
-  return createCodec(enc, dec)
+  return createCodec(enc, dec, "int" + nBytes)
 }
 
 export const [

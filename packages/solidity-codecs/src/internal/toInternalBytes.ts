@@ -11,9 +11,10 @@ class InternalUint8Array extends Uint8Array {
   }
 }
 
-export const toInternalBytes =
-  <T>(fn: (input: InternalUint8Array) => T): Decoder<T> =>
-  (buffer: string | ArrayBuffer | Uint8Array | InternalUint8Array) =>
+export const toInternalBytes = <T>(
+  fn: (input: InternalUint8Array) => T,
+): Decoder<T> =>
+  ((buffer: string | ArrayBuffer | Uint8Array | InternalUint8Array) =>
     fn(
       buffer instanceof InternalUint8Array
         ? buffer
@@ -24,4 +25,4 @@ export const toInternalBytes =
               ? fromHex(buffer).buffer
               : buffer,
           ),
-    )
+    )) as Decoder<T>
