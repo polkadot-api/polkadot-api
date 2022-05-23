@@ -26,7 +26,7 @@ const getCodec = (nBytes: number): Codec<bigint> => {
       bytes.i = nextBlock
       return result
     }),
-    "uint" + nBytes,
+    "uint" + nBytes * 8,
   )
 }
 

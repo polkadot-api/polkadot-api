@@ -79,7 +79,7 @@ const getCodec = (nBytes: number): Codec<bigint> => {
     return result
   })
 
-  return createCodec(enc, dec, "int" + nBytes)
+  return createCodec(enc, dec, "int" + nBytes * 8)
 }
 
 export const [
