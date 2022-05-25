@@ -5,11 +5,11 @@ type InnerCodecs<A extends Array<Codec<any>>> = {
   [K in keyof A]: A[K] extends Codec<infer V> ? V : unknown
 }
 
-export const solidityFn = <O, A extends Codec<any>[]>(
+export const solidityFn = <M extends 0 | 1 | 2 | 3, O, A extends Codec<any>[]>(
   name: string,
   inputs: A,
   decoder: Decoder<O>,
-  mutability: 0 | 1 | 2 | 3,
+  mutability: M,
 ) => {
   const { enc, s } = Tuple(...inputs)
   const fnHash = keccak(name + s).slice(0, 4)
