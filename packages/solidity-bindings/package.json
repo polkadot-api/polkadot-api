@@ -43,9 +43,11 @@
   "name": "@unstoppablejs/solidity-bindings",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "peerDependencies": {
-    "solidity-codecs": ">=0.2.1"
+    "solidity-codecs": ">=0.2.1",
+    "rxjs": ">=7.0.0"
   },
   "devDependencies": {
+    "rxjs": "^7.5.5",
     "solidity-codecs": "^0.2.1",
     "@json-rpc-tools/provider": "^1.7.6"
   }
