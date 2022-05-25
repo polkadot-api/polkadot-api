@@ -102,25 +102,19 @@ const getFunctionArgs = ({ inputs }: FunctionAbi) => {
 
 const getDecoder = ({ outputs }: FunctionAbi) => {
   if (outputs.length === 0) {
-    usedCodecs.add("Decoder")
-    return toCache("(() => {}) as unknown as Decoder<void>")
+    return toCache("Tuple()")
   }
 
-  if (outputs.length === 1)
-    return toCache(`Tuple(${getCodec(outputs[0])})`) + "[1]"
+  if (outputs.length === 1) return toCache(`Tuple(${getCodec(outputs[0])})`)
 
   if (outputs.every((o) => o.name)) {
     usedCodecs.add("Struct")
-    return (
-      toCache(
-        `Struct({${outputs
-          .map((o) => `${o.name}: ${getCodec(o)}`)
-          .join(",")}})`,
-      ) + `[1]`
+    return toCache(
+      `Struct({${outputs.map((o) => `${o.name}: ${getCodec(o)}`).join(",")}})`,
     )
   }
 
-  return toCache(`Tuple(${outputs.map(getCodec).join(",")})`) + `[1]`
+  return toCache(`Tuple(${outputs.map(getCodec).join(",")})`)
 }
 
 const mutabilities: Record<FunctionAbi["stateMutability"], 0 | 1 | 2 | 3> = {
