@@ -19,6 +19,13 @@ interface FunctionAbi {
   type: "function"
 }
 
+interface EventAbi {
+  anonymous: boolean
+  name: string
+  inputs: Array<Type & { indexed: boolean }>
+  type: "event"
+}
+
 type CustomCodec = {
   base: string
   applyToVariableNames: string[]
@@ -27,8 +34,9 @@ type CustomCodec = {
 }
 
 export interface Config {
-  abi: FunctionAbi[]
+  abi: Array<FunctionAbi | EventAbi>
   functions?: Array<string>
+  events?: Array<string>
   customCodecs?: Record<string, CustomCodec>
 }
 
@@ -100,7 +108,7 @@ const getFunctionArgs = ({ inputs }: FunctionAbi) => {
   return toCache(`[${codecs.join(", ")}] as [${names.join(", ")}]`)
 }
 
-const getDecoder = ({ outputs }: FunctionAbi) => {
+const getOutput = (outputs: Type[]) => {
   if (outputs.length === 0) {
     return toCache("Tuple()")
   }
@@ -126,9 +134,24 @@ const mutabilities: Record<FunctionAbi["stateMutability"], 0 | 1 | 2 | 3> = {
 
 function processFunctionAbi(fn: FunctionAbi) {
   const inputs = getFunctionArgs(fn)
-  const decoder = getDecoder(fn)
+  const decoder = getOutput(fn.outputs)
   const mutability = mutabilities[fn.stateMutability]
   return `export const ${fn.name} = solidityFn("${fn.name}", ${inputs}, ${decoder}, ${mutability});`
+}
+
+function processEventAbi(ev: EventAbi) {
+  const filters = toCache(
+    `{${ev.inputs
+      .filter((i) => i.indexed)
+      .map((x) => `${x.name} : ${getCodec(x)}`)
+      .join(",")}}`,
+  )
+
+  const data = getOutput(ev.inputs.filter((i) => !i.indexed))
+
+  return `export const ${ev.name} = solidityEvent("${filters}, ${data}${
+    ev.anonymous ? "" : `, ${ev.name}`
+  });`
 }
 
 const applyCustomCodecs = ({ abi, customCodecs = {} }: Config): void => {
@@ -165,21 +188,35 @@ const applyCustomCodecs = ({ abi, customCodecs = {} }: Config): void => {
 
   abi.forEach((fn) => {
     fn.inputs.forEach(overrideType)
-    fn.outputs.forEach(overrideType)
+    if (fn.type === "function") fn.outputs.forEach(overrideType)
   })
 }
 
-export function processAbi({ abi, functions = [], customCodecs = {} }: Config) {
+export function processAbi({
+  abi,
+  functions = [],
+  events = [],
+  customCodecs = {},
+}: Config) {
   const relevantFns = new Set(functions)
+  const relevantEvents = new Set(events)
   const relevantAbi = abi.filter(
     (f) =>
-      f.type === "function" &&
-      (relevantFns.size === 0 || relevantFns.has(f.name)),
+      (f.type === "function" &&
+        (relevantFns.size === 0 || relevantFns.has(f.name))) ||
+      (f.type === "event" &&
+        (relevantEvents.size === 0 || relevantEvents.has(f.name))),
   )
 
-  applyCustomCodecs({ abi: relevantAbi, functions, customCodecs })
+  applyCustomCodecs({ abi: relevantAbi, customCodecs })
 
-  const relevant = relevantAbi.map(processFunctionAbi)
+  const exportedFunctions = relevantAbi
+    .filter((x): x is FunctionAbi => x.type === "function")
+    .map(processFunctionAbi)
+
+  const exportedEvents = relevantAbi
+    .filter((x): x is EventAbi => x.type === "event")
+    .map(processEventAbi)
 
   const usedCustom: string[] = []
   const mainImports: string[] = []
@@ -207,7 +244,9 @@ export function processAbi({ abi, functions = [], customCodecs = {} }: Config) {
 
 ${[...cache].map(([key, value]) => `const ${value.name} = ${key};`).join("\n")}
 
-${relevant.join("\n")}
+${exportedFunctions.join("\n")}
+
+${exportedEvents.join("\n")}
 `
 
   return result
