@@ -143,14 +143,14 @@ function processEventAbi(ev: EventAbi) {
   const filters = toCache(
     `{${ev.inputs
       .filter((i) => i.indexed)
-      .map((x) => `${x.name} : ${getCodec(x)}`)
-      .join(",")}}`,
+      .map((x) => `${x.name}: ${getCodec(x)}`)
+      .join(", ")}}`,
   )
 
   const data = getOutput(ev.inputs.filter((i) => !i.indexed))
 
-  return `export const ${ev.name} = solidityEvent("${filters}, ${data}${
-    ev.anonymous ? "" : `, ${ev.name}`
+  return `export const ${ev.name} = solidityEvent(${filters}, ${data}${
+    ev.anonymous ? "" : `, "${ev.name}"`
   });`
 }
 
@@ -228,8 +228,14 @@ export function processAbi({
     }
   })
 
+  const bindingsImports = ["solidityFn", "solidityEvent"]
+    .filter((_, idx) =>
+      idx === 0 ? exportedFunctions.length : exportedEvents.length,
+    )
+    .join(", ")
+
   let result = `${[
-    'import { solidityFn } from "@unstoppablejs/solidity-bindings";',
+    `import { ${bindingsImports} } from "@unstoppablejs/solidity-bindings";`,
     `import { ${mainImports.join(",")} } from "solidity-codecs";`,
   ]
     .concat(

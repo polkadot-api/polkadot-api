@@ -19,7 +19,7 @@ const isSingle = (signature: string): boolean | null => {
   return level === 0
 }
 
-export const Untuple = <T>(base: Decoder<T>): Untuple<T> => {
+export const Untuple = <T>(base: Decoder<T>): Decoder<Untuple<T>> => {
   const single = isSingle(base.s)
   return enhanceDecoder(base, (x) => {
     if (single === null) return void 0
