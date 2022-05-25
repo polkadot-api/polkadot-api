@@ -11,10 +11,10 @@ export const contractContext = (
   ): Promise<T> =>
     getProvider().request({
       method,
-      params: [{ to: getContractAddress(), ...(par1 || {}) }, other],
+      params: [{ to: getContractAddress(), ...(par1 || {}) }, ...other],
     })
 
-  const call = <A extends Array<any>, O>(
+  const _call = <A extends Array<any>, O>(
     fn: {
       encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
       decoder: Decoder<O>
@@ -28,7 +28,24 @@ export const contractContext = (
       "latest",
     ]).then(fn.decoder)
 
-  const transaction = <A extends Array<any>>(
+  function call<A extends Array<any>, O>(fn: {
+    encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+    decoder: Decoder<O>
+  }): (...args: A) => Promise<O>
+  function call<A extends Array<any>, O>(
+    fn: {
+      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+      decoder: Decoder<O>
+    },
+    ...args: A
+  ): Promise<O>
+  function call(...args: any[]) {
+    return args.length === 1
+      ? (...others: any[]) => _call(args[0], ...others)
+      : (_call as any)(...args)
+  }
+
+  const _transaction = <A extends Array<any>>(
     fn: {
       encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
       mutability: 2 | 3
@@ -39,6 +56,24 @@ export const contractContext = (
     request("eth_sendTransaction", [
       { from: fromAddress, data: fn.encoder.asHex(...args) },
     ])
+
+  function transaction<A extends Array<any>>(fn: {
+    encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+    mutability: 2 | 3
+  }): (fromAddress: string, ...args: A) => Promise<string>
+  function transaction<A extends Array<any>>(
+    fn: {
+      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+      mutability: 2 | 3
+    },
+    fromAddress: string,
+    ...args: A
+  ): Promise<string>
+  function transaction(...args: any[]) {
+    return args.length === 1
+      ? (...others: any[]) => (_transaction as any)(args[0], ...others)
+      : (_transaction as any)(...args)
+  }
 
   return { call, transaction }
 }
