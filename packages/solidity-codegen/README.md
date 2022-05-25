@@ -1,0 +1,1 @@
+# @unstoppablejs/solidity-codegen

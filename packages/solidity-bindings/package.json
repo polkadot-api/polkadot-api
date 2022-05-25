@@ -1,0 +1,52 @@
+{
+  "version": "0.0.1-alpha",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unstoppablejs/unstoppablejs.git"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "node": {
+        "module": "./dist/solidity-bindings.js",
+        "import": "./dist/solidity-bindings.mjs",
+        "require": "./dist/index.cjs"
+      },
+      "browser": "./dist/solidity-bindings.js",
+      "default": "./dist/solidity-bindings.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "module": "./dist/solidity-bindings.js",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run build:ts && npm run build:esm && npm run build:cjs:dev && npm run build:cjs:prod",
+    "build:esm": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --outfile=./dist/solidity-bindings.js --target=es2020 --format=esm --sourcemap && cp ./dist/solidity-bindings.js ./dist/solidity-bindings.mjs && cp ./dist/solidity-bindings.js.map ./dist/solidity-bindings.mjs.map",
+    "build:cjs:dev": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --outfile=./dist/solidity-bindings.cjs.development.js --target=es2020 --format=cjs --sourcemap",
+    "build:cjs:prod": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --outfile=./dist/solidity-bindings.cjs.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
+    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
+    "test": "jest --coverage",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "npm run build"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "name": "@unstoppablejs/solidity-bindings",
+  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "peerDependencies": {
+    "solidity-codecs": ">=0.2.1"
+  },
+  "devDependencies": {
+    "solidity-codecs": "^0.2.1",
+    "@json-rpc-tools/provider": "^1.7.6"
+  }
+}
