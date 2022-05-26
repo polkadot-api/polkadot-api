@@ -12,16 +12,7 @@ export const contractCtx = (
       decoder: Decoder<O>
     },
     ...args: A
-  ): Promise<O> =>
-    providerContext
-      .request("eth_call", [
-        {
-          to: getContractAddress(),
-          data: fn.encoder.asHex(...args),
-        },
-        "latest",
-      ])
-      .then(fn.decoder)
+  ): Promise<O> => providerContext.call(fn, getContractAddress(), ...args)
 
   function call<A extends Array<any>, O>(fn: {
     encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
@@ -48,13 +39,7 @@ export const contractCtx = (
     fromAddress: string,
     ...args: A
   ): Promise<string> =>
-    providerContext.request("eth_sendTransaction", [
-      {
-        to: getContractAddress(),
-        from: fromAddress,
-        data: fn.encoder.asHex(...args),
-      },
-    ])
+    providerContext.transaction(fn, getContractAddress(), fromAddress, ...args)
 
   function transaction<A extends Array<any>>(fn: {
     encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
@@ -76,26 +61,26 @@ export const contractCtx = (
 
   const _event = <F extends StringRecord<any>, O>(
     e: {
-      encodeTopics: (filter: F) => Array<string | null>
+      encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
       name?: string
     },
-    eventFilter: F,
+    eventFilter: Partial<F>,
   ): Observable<O> =>
     providerContext.event(e, eventFilter, getContractAddress())
 
   function event<F extends StringRecord<any>, O>(e: {
-    encodeTopics: (filter: F) => Array<string | null>
+    encodeTopics: (filter: Partial<F>) => Array<string | null>
     decodeData: Decoder<O>
     name?: string
-  }): (eventFilter: F) => Observable<O>
+  }): (eventFilter: Partial<F>) => Observable<O>
   function event<F extends StringRecord<any>, O>(
     e: {
-      encodeTopics: (filter: F) => Array<string | null>
+      encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
       name?: string
     },
-    eventFilter: F,
+    eventFilter: Partial<F>,
   ): Observable<O>
   function event(...args: any[]) {
     return args.length === 1

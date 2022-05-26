@@ -86,11 +86,11 @@ export const providerCtx = (getProvider: () => JsonRpcProvider) => {
 
   const _event = <F extends StringRecord<any>, O>(
     e: {
-      encodeTopics: (filter: F) => Array<string | null>
+      encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
       name?: string
     },
-    eventFilter: F,
+    eventFilter: Partial<F>,
     contractAddress?: string,
   ): Observable<O> => {
     const options: { topics: (string | null)[]; address?: string } = {
@@ -104,17 +104,17 @@ export const providerCtx = (getProvider: () => JsonRpcProvider) => {
   }
 
   function event<F extends StringRecord<any>, O>(e: {
-    encodeTopics: (filter: F) => Array<string | null>
+    encodeTopics: (filter: Partial<F>) => Array<string | null>
     decodeData: Decoder<O>
     name?: string
-  }): (eventFilter: F, contractAddress?: string) => Observable<O>
+  }): (eventFilter: Partial<F>, contractAddress?: string) => Observable<O>
   function event<F extends StringRecord<any>, O>(
     e: {
-      encodeTopics: (filter: F) => Array<string | null>
+      encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
       name?: string
     },
-    eventFilter: F,
+    eventFilter: Partial<F>,
     contractAddress?: string,
   ): Observable<O>
   function event(...args: any[]) {
@@ -123,7 +123,81 @@ export const providerCtx = (getProvider: () => JsonRpcProvider) => {
       : (_event as any)(...args)
   }
 
-  return { request, subscribe, event }
+  const _call = <A extends Array<any>, O>(
+    fn: {
+      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+      decoder: Decoder<O>
+    },
+    contractAddress: string,
+    ...args: A
+  ): Promise<O> =>
+    request("eth_call", [
+      {
+        to: contractAddress,
+        data: fn.encoder.asHex(...args),
+      },
+      "latest",
+    ]).then(fn.decoder)
+
+  function call<A extends Array<any>, O>(fn: {
+    encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+    decoder: Decoder<O>
+  }): (contractAddress: string, ...args: A) => Promise<O>
+  function call<A extends Array<any>, O>(
+    fn: {
+      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+      decoder: Decoder<O>
+    },
+    contractAddress: string,
+    ...args: A
+  ): Promise<O>
+  function call(...args: any[]) {
+    return args.length === 1
+      ? (...others: any[]) => (_call as any)(args[0], ...others)
+      : (_call as any)(...args)
+  }
+
+  const _transaction = <A extends Array<any>>(
+    fn: {
+      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+      mutability: 2 | 3
+    },
+    contractAddress: string,
+    fromAddress: string,
+    ...args: A
+  ): Promise<string> =>
+    request("eth_sendTransaction", [
+      {
+        to: contractAddress,
+        from: fromAddress,
+        data: fn.encoder.asHex(...args),
+      },
+    ])
+
+  function transaction<A extends Array<any>>(fn: {
+    encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+    mutability: 2 | 3
+  }): (
+    contractAddress: string,
+    fromAddress: string,
+    ...args: A
+  ) => Promise<string>
+  function transaction<A extends Array<any>>(
+    fn: {
+      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+      mutability: 2 | 3
+    },
+    contractAddress: string,
+    fromAddress: string,
+    ...args: A
+  ): Promise<string>
+  function transaction(...args: any[]) {
+    return args.length === 1
+      ? (...others: any[]) => (_transaction as any)(args[0], ...others)
+      : (_transaction as any)(...args)
+  }
+
+  return { request, subscribe, event, call, transaction }
 }
 
 export type ProviderContext = ReturnType<typeof providerCtx>

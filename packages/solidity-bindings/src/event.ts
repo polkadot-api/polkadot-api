@@ -17,9 +17,11 @@ export const solidityEvent = <F extends StringRecord<Codec<any>>, D>(
     signature = toHex(keccak(raw))
   }
 
-  const encodeTopics = (filter: {
-    [K in keyof F]: F[K] extends Codec<infer V> ? V : unknown
-  }) => {
+  const encodeTopics = (
+    filter: Partial<{
+      [K in keyof F]: F[K] extends Codec<infer V> ? V : unknown
+    }>,
+  ) => {
     const topics = Object.entries(filters).map(([key, codec]) =>
       filter.hasOwnProperty(key) ? toHex(codec.enc(filter[key])) : null,
     )
