@@ -194,18 +194,16 @@ const applyCustomCodecs = ({ abi, customCodecs = {} }: Config): void => {
 
 export function processAbi({
   abi,
-  functions = [],
-  events = [],
+  functions,
+  events,
   customCodecs = {},
 }: Config) {
-  const relevantFns = new Set(functions)
-  const relevantEvents = new Set(events)
+  const relevantFns = functions && new Set(functions)
+  const relevantEvents = events && new Set(events)
   const relevantAbi = abi.filter(
     (f) =>
-      (f.type === "function" &&
-        (relevantFns.size === 0 || relevantFns.has(f.name))) ||
-      (f.type === "event" &&
-        (relevantEvents.size === 0 || relevantEvents.has(f.name))),
+      (f.type === "function" && (!relevantFns || relevantFns.has(f.name))) ||
+      (f.type === "event" && (!relevantEvents || relevantEvents.has(f.name))),
   )
 
   applyCustomCodecs({ abi: relevantAbi, customCodecs })
