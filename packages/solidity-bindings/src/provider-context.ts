@@ -88,35 +88,45 @@ export const providerCtx = (getProvider: () => JsonRpcProvider) => {
     e: {
       encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
+      decodeFilters: (topics: Array<string>) => F
       name?: string
     },
     eventFilter: Partial<F>,
     contractAddress?: string,
-  ): Observable<O> => {
+  ): Observable<{ data: O; filters: F; message: any }> => {
     const options: { topics: (string | null)[]; address?: string } = {
       topics: e.encodeTopics(eventFilter),
     }
     if (contractAddress) options.address = contractAddress
     return subscribe(["logs", options]).pipe(
       filter((x) => !x?.result?.removed),
-      map((x) => e.decodeData(x.result.data)),
+      map((message) => ({
+        data: e.decodeData(message.result.data),
+        filters: e.decodeFilters(message.result.topics),
+        message,
+      })),
     )
   }
 
   function event<F extends StringRecord<any>, O>(e: {
     encodeTopics: (filter: Partial<F>) => Array<string | null>
     decodeData: Decoder<O>
+    decodeFilters: (topics: Array<string>) => F
     name?: string
-  }): (eventFilter: Partial<F>, contractAddress?: string) => Observable<O>
+  }): (
+    eventFilter: Partial<F>,
+    contractAddress?: string,
+  ) => Observable<{ data: O; filters: F; message: any }>
   function event<F extends StringRecord<any>, O>(
     e: {
       encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
+      decodeFilters: (topics: Array<string>) => F
       name?: string
     },
     eventFilter: Partial<F>,
     contractAddress?: string,
-  ): Observable<O>
+  ): Observable<{ data: O; filters: F; message: any }>
   function event(...args: any[]) {
     return args.length === 1
       ? (...others: any[]) => (_event as any)(args[0], ...others)

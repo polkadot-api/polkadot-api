@@ -63,25 +63,30 @@ export const contractCtx = (
     e: {
       encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
+      decodeFilters: (topics: Array<string>) => F
       name?: string
     },
     eventFilter: Partial<F>,
-  ): Observable<O> =>
+  ): Observable<{ data: O; filters: F; message: any }> =>
     providerContext.event(e, eventFilter, getContractAddress())
 
   function event<F extends StringRecord<any>, O>(e: {
     encodeTopics: (filter: Partial<F>) => Array<string | null>
     decodeData: Decoder<O>
+    decodeFilters: (topics: Array<string>) => F
     name?: string
-  }): (eventFilter: Partial<F>) => Observable<O>
+  }): (
+    eventFilter: Partial<F>,
+  ) => Observable<{ data: O; filters: F; message: any }>
   function event<F extends StringRecord<any>, O>(
     e: {
       encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
+      decodeFilters: (topics: Array<string>) => F
       name?: string
     },
     eventFilter: Partial<F>,
-  ): Observable<O>
+  ): Observable<{ data: O; filters: F; message: any }>
   function event(...args: any[]) {
     return args.length === 1
       ? (...others: any[]) => (_event as any)(args[0], ...others)

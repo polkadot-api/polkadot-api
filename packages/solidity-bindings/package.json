@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1-alpha.5",
+  "version": "0.0.1-alpha.6",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unstoppablejs/unstoppablejs.git"
@@ -26,9 +26,9 @@
   ],
   "scripts": {
     "build": "npm run build:ts && npm run build:esm && npm run build:cjs:dev && npm run build:cjs:prod",
-    "build:esm": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --outfile=./dist/solidity-bindings.js --target=es2020 --format=esm --sourcemap && cp ./dist/solidity-bindings.js ./dist/solidity-bindings.mjs && cp ./dist/solidity-bindings.js.map ./dist/solidity-bindings.mjs.map",
-    "build:cjs:dev": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --outfile=./dist/solidity-bindings.cjs.development.js --target=es2020 --format=cjs --sourcemap",
-    "build:cjs:prod": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --outfile=./dist/solidity-bindings.cjs.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
+    "build:esm": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --external:rxjs --outfile=./dist/solidity-bindings.js --target=es2020 --format=esm --sourcemap && cp ./dist/solidity-bindings.js ./dist/solidity-bindings.mjs && cp ./dist/solidity-bindings.js.map ./dist/solidity-bindings.mjs.map",
+    "build:cjs:dev": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --external:rxjs --outfile=./dist/solidity-bindings.cjs.development.js --target=es2020 --format=cjs --sourcemap",
+    "build:cjs:prod": "esbuild src/index.ts --bundle --external:solidity-codecs --external:@unstoppablejs/utils --external:rxjs --outfile=./dist/solidity-bindings.cjs.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
     "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
     "test": "jest --coverage",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
