@@ -49,6 +49,10 @@ const idxToVarName = (idx: number): string => {
   return String.fromCharCode(...result)
 }
 
+const normalize = (input: string): string => {
+  return input === "string" ? "str" : input
+}
+
 export function processAbi({
   abi,
   functions,
@@ -74,7 +78,7 @@ export function processAbi({
   const getVectorCodec = (type: string): string => {
     usedCodecs.add("Vector")
     let firstOpen = type.indexOf("[")
-    let result = type.slice(0, type.indexOf("["))
+    let result = normalize(type.slice(0, type.indexOf("[")))
     usedCodecs.add(result)
     while (firstOpen > -1) {
       const closed = type.indexOf("]", firstOpen)
@@ -104,7 +108,7 @@ export function processAbi({
 
   const getCodec = (input: Type): string => {
     if (input.type === "tuple") return toCache(getTupleCodec(input))
-    const type = input.type as string
+    const type = normalize(input.type as string)
     if (type.endsWith("]")) {
       return toCache(getVectorCodec(type))
     }
