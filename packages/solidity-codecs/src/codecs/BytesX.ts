@@ -11,7 +11,7 @@ const bytesEnc = (nBytes: number): Encoder<Uint8Array> =>
 
 const bytesDec = (nBytes: number): Decoder<Uint8Array> =>
   toInternalBytes((bytes) => {
-    const result = new Uint8Array(bytes.buffer, bytes.i, nBytes)
+    const result = new Uint8Array(bytes.buffer.slice(bytes.i, bytes.i + nBytes))
     bytes.i += 32
     return result
   })

@@ -59,7 +59,7 @@ describe("Tuple", () => {
   it("dynamic3", () => {
     const codec = Tuple(Vector(Vector(uint)), Vector(str))
 
-    expect(codec.s).toBe("(uint32[][],string[])")
+    expect(codec.s).toBe("(uint256[][],string[])")
 
     const tester = testCodec(codec)
 
