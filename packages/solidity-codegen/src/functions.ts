@@ -49,9 +49,13 @@ const idxToVarName = (idx: number): string => {
   return String.fromCharCode(...result)
 }
 
-const normalize = (input: string): string => {
-  return input === "string" ? "str" : input
+const normalizations: Record<string, string> = {
+  string: "str",
+  uint256: "uint",
+  int256: "int",
 }
+
+const normalize = (input: string): string => normalizations[input] || input
 
 export function processAbi({
   abi,
@@ -154,7 +158,8 @@ export function processAbi({
     const inputs = getFunctionArgs(fn)
     const decoder = getOutput(fn.outputs)
     const mutability = mutabilities[fn.stateMutability]
-    return `export const ${fn.name} = solidityFn("${fn.name}", ${inputs}, ${decoder}, ${mutability});`
+    return { name: fn.name, inputs, decoder, mutability }
+    // return `export const ${fn.name} = solidityFn("${fn.name}", ${inputs}, ${decoder}, ${mutability});`
   }
 
   function processEventAbi(ev: EventAbi) {
@@ -211,9 +216,39 @@ export function processAbi({
   }
   applyCustomCodecs({ abi: relevantAbi, customCodecs })
 
-  const exportedFunctions = relevantAbi
+  const preExportedFunctions = relevantAbi
     .filter((x): x is FunctionAbi => x.type === "function")
     .map(processFunctionAbi)
+
+  const fnGroups = new Map<string, ReturnType<typeof processFunctionAbi>[]>()
+  preExportedFunctions.forEach((x) => {
+    const { name } = x
+    const g = fnGroups.get(name) ?? []
+    g.push(x)
+    fnGroups.set(name, g)
+  })
+
+  let overloaded = false
+
+  const exportedFunctions = [...fnGroups].map(([name, fns]) => {
+    if (fns.length === 1) {
+      const { inputs, decoder, mutability } = fns[0]
+      return `export const ${name} = solidityFn("${name}", ${inputs}, ${decoder}, ${mutability});`
+    }
+
+    overloaded = true
+    return `const ${name}Name = "${name}";
+${fns
+  .map(
+    ({ inputs, decoder, mutability }, idx) =>
+      `const ${name}${idx} = solidityFn(${name}Name, ${inputs}, ${decoder}, ${mutability});`,
+  )
+  .join("\n")}
+export const ${name} = overloadedFn(${fns
+      .map((_, idx) => `${name}${idx}`)
+      .join(", ")});
+`
+  })
 
   const exportedEvents = relevantAbi
     .filter((x): x is EventAbi => x.type === "event")
@@ -229,14 +264,15 @@ export function processAbi({
     }
   })
 
-  const bindingsImports = ["solidityFn", "solidityEvent"]
-    .filter((_, idx) =>
-      idx === 0 ? exportedFunctions.length : exportedEvents.length,
-    )
-    .join(", ")
+  const bindingsImports = ["solidityFn", "solidityEvent"].filter((_, idx) =>
+    idx === 0 ? exportedFunctions.length : exportedEvents.length,
+  )
+  if (overloaded) bindingsImports.push("overloadedFn")
 
   let result = `${[
-    `import { ${bindingsImports} } from "@unstoppablejs/solidity-bindings";`,
+    `import { ${bindingsImports.join(
+      ", ",
+    )} } from "@unstoppablejs/solidity-bindings";`,
     `import { ${mainImports.join(",")} } from "solidity-codecs";`,
   ]
     .concat(
