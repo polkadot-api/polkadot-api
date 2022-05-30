@@ -211,8 +211,8 @@ export const providerCtx = (getProvider: () => JsonRpcProvider) => {
   ) => Promise<string>) &
     (<F extends Array<SolidityFn<any, any, any, any>>>(
       overloaded: F,
-    ) => SolidityTxFunctions<F>) = ((fn: any) =>
-    Array.isArray(fn) ? overTx : singleTx) as any
+    ) => SolidityTxFunctions<F>) = (fn: any) =>
+    ((Array.isArray(fn) ? overTx : singleTx) as any)(fn)
 
   return { request, subscribe, event, call, transaction }
 }

@@ -46,6 +46,7 @@ export const contractCtx = (
   batchFn?: SolidityFn<any, [Codec<Uint8Array[]>], Uint8Array[], 2 | 3>,
 ) => {
   const batchedCall = batchFn ? providerContext.call(batchFn) : null
+  const batchedTx = batchFn ? providerContext.transaction(batchFn) : null
   let batchedCalls: Array<{
     call: CallFn<any, any>
     res: (a: any) => void
@@ -161,24 +162,18 @@ export const contractCtx = (
                 return
               }
               const data = reBatched.map(({ tx }) => tx.fn.encoder(...tx.args))
-              providerContext
-                .transaction(batchFn)(
-                  getContractAddress(),
-                  reBatched[0].from,
-                  data,
-                )
-                .then(
-                  (response) => {
-                    reBatched.forEach(({ res }) => {
-                      res(response)
-                    })
-                  },
-                  (e) => {
-                    reBatched.forEach(({ rej }) => {
-                      rej(e)
-                    })
-                  },
-                )
+              batchedTx!(getContractAddress(), reBatched[0].from, data).then(
+                (response) => {
+                  reBatched.forEach(({ res }) => {
+                    res(response)
+                  })
+                },
+                (e) => {
+                  reBatched.forEach(({ rej }) => {
+                    rej(e)
+                  })
+                },
+              )
             })
           }
 
