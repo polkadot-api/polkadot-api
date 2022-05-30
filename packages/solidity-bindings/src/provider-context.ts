@@ -1,6 +1,40 @@
 import type { JsonRpcProvider } from "@json-rpc-tools/provider"
-import type { Decoder, StringRecord } from "solidity-codecs"
+import { Codec, Decoder, StringRecord } from "solidity-codecs"
 import { concatMap, defer, filter, map, Observable, Subscriber } from "rxjs"
+import type { UnionToIntersection, Untuple, InnerCodecs } from "./utils"
+import { fromOverloadedToSolidityFn, SolidityFn } from "./fn"
+
+type SolidityCallFunctions<A extends Array<SolidityFn<any, any, any, any>>> =
+  UnionToIntersection<
+    {
+      [K in keyof A]: A[K] extends SolidityFn<any, infer V, infer O, any>
+        ? (
+            contractAddress: string,
+            ...args: InnerCodecs<V>
+          ) => Promise<Untuple<O>>
+        : never
+    }[keyof A & number]
+  >
+
+type SolidityTxFunctions<A extends Array<SolidityFn<any, any, any, any>>> =
+  UnionToIntersection<
+    {
+      [K in keyof A]: A[K] extends SolidityFn<
+        any,
+        infer V,
+        any,
+        infer Mutability
+      >
+        ? Mutability extends 2 | 3
+          ? (
+              contractAddress: string,
+              fromAddress: string,
+              ...args: InnerCodecs<V>
+            ) => Promise<string>
+          : never
+        : never
+    }[keyof A & number]
+  >
 
 export const providerCtx = (getProvider: () => JsonRpcProvider) => {
   const subscriptions = new Map<string, Set<Subscriber<any>>>()
@@ -84,128 +118,101 @@ export const providerCtx = (getProvider: () => JsonRpcProvider) => {
     )
   }
 
-  const _event = <F extends StringRecord<any>, O>(
-    e: {
+  const event =
+    <F extends StringRecord<any>, O>(e: {
       encodeTopics: (filter: Partial<F>) => Array<string | null>
       decodeData: Decoder<O>
       decodeFilters: (topics: Array<string>) => F
       name?: string
-    },
-    eventFilter: Partial<F>,
-    contractAddress?: string,
-  ): Observable<{ data: O; filters: F; message: any }> => {
-    const options: { topics: (string | null)[]; address?: string } = {
-      topics: e.encodeTopics(eventFilter),
+    }) =>
+    (
+      eventFilter: Partial<F>,
+      contractAddress?: string,
+    ): Observable<{ data: O; filters: F; message: any }> => {
+      const options: { topics: (string | null)[]; address?: string } = {
+        topics: e.encodeTopics(eventFilter),
+      }
+      if (contractAddress) options.address = contractAddress
+      return subscribe(["logs", options]).pipe(
+        filter((x) => !x?.result?.removed),
+        map((message) => ({
+          data: e.decodeData(message.result.data),
+          filters: e.decodeFilters(message.result.topics),
+          message,
+        })),
+      )
     }
-    if (contractAddress) options.address = contractAddress
-    return subscribe(["logs", options]).pipe(
-      filter((x) => !x?.result?.removed),
-      map((message) => ({
-        data: e.decodeData(message.result.data),
-        filters: e.decodeFilters(message.result.topics),
-        message,
-      })),
-    )
+
+  const singleCall =
+    <I extends Array<Codec<any>>, O>(fn: SolidityFn<any, I, O, any>) =>
+    (contractAddress: string, ...args: InnerCodecs<I>): Promise<Untuple<O>> =>
+      request("eth_call", [
+        { to: contractAddress, data: fn.encoder.asHex(...args) },
+        "latest",
+      ]).then(fn.decoder)
+
+  const overCall = <F extends Array<SolidityFn<any, any, any, any>>>(
+    overloaded: F,
+  ): SolidityCallFunctions<F> => {
+    const fns = fromOverloadedToSolidityFn(overloaded)
+    return ((contractAddress: string, ...args: any[]) =>
+      singleCall((fns as any)(...args))(contractAddress, ...args)) as any
   }
 
-  function event<F extends StringRecord<any>, O>(e: {
-    encodeTopics: (filter: Partial<F>) => Array<string | null>
-    decodeData: Decoder<O>
-    decodeFilters: (topics: Array<string>) => F
-    name?: string
-  }): (
-    eventFilter: Partial<F>,
-    contractAddress?: string,
-  ) => Observable<{ data: O; filters: F; message: any }>
-  function event<F extends StringRecord<any>, O>(
-    e: {
-      encodeTopics: (filter: Partial<F>) => Array<string | null>
-      decodeData: Decoder<O>
-      decodeFilters: (topics: Array<string>) => F
-      name?: string
-    },
-    eventFilter: Partial<F>,
-    contractAddress?: string,
-  ): Observable<{ data: O; filters: F; message: any }>
-  function event(...args: any[]) {
-    return args.length === 1
-      ? (...others: any[]) => (_event as any)(args[0], ...others)
-      : (_event as any)(...args)
-  }
-
-  const _call = <A extends Array<any>, O>(
-    fn: {
-      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
-      decoder: Decoder<O>
-    },
+  const call: (<I extends Array<Codec<any>>, O>(
+    fn: SolidityFn<any, I, O, any>,
+  ) => (
     contractAddress: string,
-    ...args: A
-  ): Promise<O> =>
-    request("eth_call", [
-      {
-        to: contractAddress,
-        data: fn.encoder.asHex(...args),
-      },
-      "latest",
-    ]).then(fn.decoder)
+    ...args: InnerCodecs<I>
+  ) => Promise<Untuple<O>>) &
+    (<F extends Array<SolidityFn<any, any, any, any>>>(
+      overloaded: F,
+    ) => SolidityCallFunctions<F>) = (fn: any) =>
+    ((Array.isArray(fn) ? overCall : singleCall) as any)(fn)
 
-  function call<A extends Array<any>, O>(fn: {
-    encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
-    decoder: Decoder<O>
-  }): (contractAddress: string, ...args: A) => Promise<O>
-  function call<A extends Array<any>, O>(
-    fn: {
-      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
-      decoder: Decoder<O>
-    },
-    contractAddress: string,
-    ...args: A
-  ): Promise<O>
-  function call(...args: any[]) {
-    return args.length === 1
-      ? (...others: any[]) => (_call as any)(args[0], ...others)
-      : (_call as any)(...args)
-  }
-
-  const _transaction = <A extends Array<any>>(
-    fn: {
-      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
+  const singleTx =
+    <A extends Array<any>>(fn: {
+      encoder: ((...args: A) => Uint8Array) & {
+        asHex: (...args: A) => string
+      }
       mutability: 2 | 3
-    },
-    contractAddress: string,
-    fromAddress: string,
-    ...args: A
-  ): Promise<string> =>
-    request("eth_sendTransaction", [
-      {
-        to: contractAddress,
-        from: fromAddress,
-        data: fn.encoder.asHex(...args),
-      },
-    ])
+    }) =>
+    (
+      contractAddress: string,
+      fromAddress: string,
+      ...args: A
+    ): Promise<string> =>
+      request("eth_sendTransaction", [
+        {
+          to: contractAddress,
+          from: fromAddress,
+          data: fn.encoder.asHex(...args),
+        },
+      ])
 
-  function transaction<A extends Array<any>>(fn: {
-    encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
-    mutability: 2 | 3
-  }): (
-    contractAddress: string,
-    fromAddress: string,
-    ...args: A
-  ) => Promise<string>
-  function transaction<A extends Array<any>>(
-    fn: {
-      encoder: ((...args: A) => Uint8Array) & { asHex: (...args: A) => string }
-      mutability: 2 | 3
-    },
-    contractAddress: string,
-    fromAddress: string,
-    ...args: A
-  ): Promise<string>
-  function transaction(...args: any[]) {
-    return args.length === 1
-      ? (...others: any[]) => (_transaction as any)(args[0], ...others)
-      : (_transaction as any)(...args)
+  const overTx = <F extends Array<SolidityFn<any, any, any, any>>>(
+    overloaded: F,
+  ): SolidityTxFunctions<F> => {
+    const fns = fromOverloadedToSolidityFn(overloaded, 2)
+    return ((contractAddress: string, fromAddress: string, ...args: any[]) =>
+      singleTx((fns as any)(...args))(
+        contractAddress,
+        fromAddress,
+        ...args,
+      )) as any
   }
+
+  const transaction: (<I extends Array<Codec<any>>>(
+    fn: SolidityFn<any, I, any, 2 | 3>,
+  ) => (
+    contractAddress: string,
+    fromAddress: string,
+    ...args: InnerCodecs<I>
+  ) => Promise<string>) &
+    (<F extends Array<SolidityFn<any, any, any, any>>>(
+      overloaded: F,
+    ) => SolidityTxFunctions<F>) = ((fn: any) =>
+    Array.isArray(fn) ? overTx : singleTx) as any
 
   return { request, subscribe, event, call, transaction }
 }
