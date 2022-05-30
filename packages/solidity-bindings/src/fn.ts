@@ -39,8 +39,6 @@ export const solidityFn = <
   encoder._d = (input: Uint8Array) => dec(input.slice(4))
   encoder.size = inputs.length
 
-  console.log("here", name)
-
   return {
     encoder,
     decoder: UntupleFn(decoder[1]),
