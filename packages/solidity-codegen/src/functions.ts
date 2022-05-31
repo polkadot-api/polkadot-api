@@ -76,6 +76,7 @@ export function processAbi({
       usedCodecs.add("Struct")
       return `Struct({${inner.join(",")}})`
     }
+    usedCodecs.add("Tuple")
     return `Tuple(${tuple.components.map(getCodec).join(",")})`
   }
 
@@ -97,7 +98,7 @@ export function processAbi({
     return result
   }
   const cache = new Map<string, { name: string; count: number }>()
-  const usedCodecs = new Set<string>(["Tuple"])
+  const usedCodecs = new Set<string>()
 
   const toCache = (val: string): string => {
     const cached = cache.get(val)
@@ -130,10 +131,14 @@ export function processAbi({
 
   const getOutput = (outputs: Type[]) => {
     if (outputs.length === 0) {
+      usedCodecs.add("Tuple")
       return toCache("Tuple()")
     }
 
-    if (outputs.length === 1) return toCache(`Tuple(${getCodec(outputs[0])})`)
+    if (outputs.length === 1) {
+      usedCodecs.add("Tuple")
+      return toCache(`Tuple(${getCodec(outputs[0])})`)
+    }
 
     if (outputs.every((o) => o.name)) {
       usedCodecs.add("Struct")
@@ -144,6 +149,7 @@ export function processAbi({
       )
     }
 
+    usedCodecs.add("Tuple")
     return toCache(`Tuple(${outputs.map(getCodec).join(",")})`)
   }
 
