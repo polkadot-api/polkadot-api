@@ -55,8 +55,6 @@ const normalizations: Record<string, string> = {
   int256: "int",
 }
 
-const normalize = (input: string): string => normalizations[input] || input
-
 export function processAbi({
   abi,
   functions,
@@ -70,6 +68,24 @@ export function processAbi({
       (f.type === "function" && (!relevantFns || relevantFns.has(f.name))) ||
       (f.type === "event" && (!relevantEvents || relevantEvents.has(f.name))),
   )
+
+  const normalize = (input: string): string => {
+    const result = normalizations[input]
+    if (result) {
+      usedCodecs.add(result)
+      return result
+    }
+    const parts = input.match(/^(u?fixed)(\d*)x(\d*)$/)
+    if (!parts) {
+      usedCodecs.add(input)
+      return input
+    }
+    usedCodecs.add("Fixed")
+    const [, type, bits, decimals] = parts
+    const base = normalize((type === "fixed" ? "int" : "uint") + bits)
+    return toCache(`Fixed(${base}, ${decimals})`)
+  }
+
   const getTupleCodec = (tuple: DeepType): string => {
     if (tuple.components.every((c) => c.name)) {
       const inner = tuple.components.map((x) => `${x.name}:${getCodec(x)}`)
@@ -84,7 +100,6 @@ export function processAbi({
     usedCodecs.add("Vector")
     let firstOpen = type.indexOf("[")
     let result = normalize(type.slice(0, type.indexOf("[")))
-    usedCodecs.add(result)
     while (firstOpen > -1) {
       const closed = type.indexOf("]", firstOpen)
       if (closed === firstOpen + 1) {
@@ -113,12 +128,10 @@ export function processAbi({
 
   const getCodec = (input: Type): string => {
     if (input.type === "tuple") return toCache(getTupleCodec(input))
-    const type = normalize(input.type as string)
-    if (type.endsWith("]")) {
-      return toCache(getVectorCodec(type))
+    if (input.type.endsWith("]")) {
+      return toCache(getVectorCodec(input.type))
     }
-    usedCodecs.add(type)
-    return type
+    return normalize(input.type as string)
   }
 
   const getFunctionArgs = ({ inputs }: FunctionAbi) => {
