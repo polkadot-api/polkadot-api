@@ -1,7 +1,7 @@
 import { mergeUint8, toHex } from "@unstoppablejs/utils"
 import { Tuple, Codec, keccak, Decoder } from "solidity-codecs"
-import type { UnionToIntersection, Untuple, InnerCodecs } from "./utils"
-import { UntupleFn } from "./utils"
+import type { Untuple, InnerCodecs } from "../utils"
+import { UntupleFn } from "../utils"
 
 export interface SolidityFn<
   N extends string,
@@ -59,46 +59,4 @@ export const overloadedFn = <
   ...args: F
 ): [First, ...F] => {
   return [first, ...args]
-}
-
-type SolidityFunctions<A extends Array<SolidityFn<any, any, any, any>>> =
-  UnionToIntersection<
-    {
-      [K in keyof A]: A[K] extends SolidityFn<any, infer V, any, any>
-        ? (...args: InnerCodecs<V>) => A[K]
-        : never
-    }[keyof A & number]
-  >
-
-export const fromOverloadedToSolidityFn = <
-  F extends Array<SolidityFn<any, any, any, any>>,
->(
-  overloaded: F,
-  minMutability = 0,
-): SolidityFunctions<F> => {
-  const fnsByLen = new Map<number, SolidityFn<any, any, any, any>[]>()
-  overloaded.forEach((fn) => {
-    if (fn.mutability < minMutability) return
-    const { size } = fn.encoder
-    const arr = fnsByLen.get(size) ?? []
-    arr.push(fn)
-    fnsByLen.set(size, arr)
-  })
-
-  return ((...args: any[]) => {
-    const candidates = fnsByLen.get(args.length)!
-    if (candidates.length < 2) return candidates[0]
-    return candidates.find((c) => {
-      try {
-        const bytes = c.encoder(...args)
-        const bytes2 = c.encoder(...c.encoder._d(bytes))
-        return (
-          bytes.length === bytes2.length &&
-          bytes.every((b, idx) => b === bytes2[idx])
-        )
-      } catch {
-        return false
-      }
-    })
-  }) as any
 }

@@ -9,3 +9,10 @@ export type UnionToIntersection<U> = (
 export type InnerCodecs<A extends Array<Codec<any>>> = {
   [K in keyof A]: A[K] extends Codec<infer V> ? V : unknown
 }
+
+export type InnerCodecsOrBlock<A extends Array<Codec<any>>> =
+  | InnerCodecs<A>
+  | [
+      ...args: InnerCodecs<A>,
+      blockNumber: number | "latest" | "earliest" | "pending",
+    ]

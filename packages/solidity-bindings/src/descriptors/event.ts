@@ -1,6 +1,6 @@
 import { toHex } from "@unstoppablejs/utils"
 import { Codec, keccak, StringRecord } from "solidity-codecs"
-import { UntupleFn } from "./utils"
+import { UntupleFn } from "../utils"
 
 export const solidityEvent = <F extends StringRecord<Codec<any>>, D>(
   filters: F,
