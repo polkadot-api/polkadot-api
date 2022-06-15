@@ -1,4 +1,4 @@
-import { SolidityFn } from "../../descriptors/fn"
+import { SolidityFn } from "../descriptors/fn"
 
 interface BatchedCall {
   fn: SolidityFn<any, any, any, any>
@@ -8,6 +8,7 @@ interface BatchedCall {
 }
 
 export const batcher = (
+  base: (fn: SolidityFn<any, any, any, any>) => (...args: any) => Promise<any>,
   getGroupKey: (args: any[], fn: SolidityFn<any, any, any, any>) => string,
   handler: (calls: Array<BatchedCall>, key: string) => void,
 ) => {
@@ -33,7 +34,14 @@ export const batcher = (
           const reBatched = batched
           batched = new Map()
           worker = null
-          reBatched.forEach(handler)
+          reBatched.forEach((calls, key) => {
+            if (calls.length > 1) {
+              handler(calls, key)
+            } else {
+              const [{ fn, args, res, rej }] = calls
+              base(fn)(...args).then(res, rej)
+            }
+          })
         })
       }
 

@@ -1,18 +1,19 @@
-import { Decoder, StringRecord } from "solidity-codecs"
 import { Observable } from "rxjs"
+import type { Codec, StringRecord } from "solidity-codecs"
+import type { EventFilter, SolidityEvent } from "../descriptors"
+import type { Untuple } from "../utils"
 
 export const getEvent =
   (subscribe: <T = any>(args: Array<any>) => Observable<T>) =>
-  <F extends StringRecord<any>, O>(e: {
-    encodeTopics: (filter: Partial<F>) => Array<string | null>
-    decodeData: Decoder<O>
-    decodeFilters: (topics: Array<string>) => F
-    name?: string
-  }) =>
+  <F extends StringRecord<Codec<any>>, O>(e: SolidityEvent<F, O, any>) =>
   (
-    eventFilter: Partial<F>,
+    eventFilter: Partial<EventFilter<F>>,
     contractAddress?: string,
-  ): Observable<{ data: O; filters: F; message: any }> => {
+  ): Observable<{
+    data: Untuple<O>
+    filters: EventFilter<F>
+    message: any
+  }> => {
     const options: { topics: (string | null)[]; address?: string } = {
       topics: e.encodeTopics(eventFilter),
     }

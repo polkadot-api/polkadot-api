@@ -4,7 +4,7 @@ import { getEvent } from "./event"
 import { getCall } from "./call"
 import { getTx } from "./tx"
 
-export const providerCtx = (getProvider: () => JsonRpcProvider) => {
+export const createClient = (getProvider: () => JsonRpcProvider) => {
   const subscribe = getSubscribe(getProvider)
   const request = <T = any>(method: string, params: Array<any>): Promise<T> =>
     getProvider().request({ method, params })
@@ -18,4 +18,4 @@ export const providerCtx = (getProvider: () => JsonRpcProvider) => {
   }
 }
 
-export type ProviderContext = ReturnType<typeof providerCtx>
+export type SolidityClient = ReturnType<typeof createClient>

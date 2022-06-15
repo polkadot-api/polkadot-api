@@ -1,12 +1,31 @@
 import { toHex } from "@unstoppablejs/utils"
-import { Codec, keccak, StringRecord } from "solidity-codecs"
-import { UntupleFn } from "../utils"
+import { Codec, Decoder, keccak, StringRecord } from "solidity-codecs"
+import { Untuple, UntupleFn } from "../utils"
 
-export const solidityEvent = <F extends StringRecord<Codec<any>>, D>(
+export type EventFilter<T extends StringRecord<Codec<any>>> = {
+  [K in keyof T]: T[K] extends Codec<infer V> ? V : unknown
+}
+
+export interface SolidityEvent<
+  F extends StringRecord<Codec<any>>,
+  O,
+  N extends string,
+> {
+  encodeTopics: (filter: Partial<EventFilter<F>>) => Array<string | null>
+  decodeData: Decoder<Untuple<O>>
+  decodeFilters: (topics: Array<string>) => EventFilter<F>
+  name?: N
+}
+
+export const solidityEvent = <
+  F extends StringRecord<Codec<any>>,
+  O,
+  N extends string,
+>(
   filters: F,
-  data: Codec<D>,
-  name?: string,
-) => {
+  data: Codec<O>,
+  name?: N,
+): SolidityEvent<F, O, N> => {
   let signature: string | undefined
   if (name !== undefined) {
     const args = Object.values(filters).map((x) => x.s)
