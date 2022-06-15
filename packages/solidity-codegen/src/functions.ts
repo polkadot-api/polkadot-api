@@ -35,6 +35,7 @@ type CustomCodec = {
 
 export interface Config {
   abi: Array<FunctionAbi | EventAbi>
+  interfaceName?: string
   functions?: Array<string>
   events?: Array<string>
   customCodecs?: Record<string, CustomCodec>
@@ -60,6 +61,7 @@ export function processAbi({
   functions,
   events,
   customCodecs = {},
+  interfaceName,
 }: Config) {
   const relevantFns = functions && new Set(functions)
   const relevantEvents = events && new Set(events)
@@ -96,10 +98,15 @@ export function processAbi({
     return `Tuple(${tuple.components.map(getCodec).join(",")})`
   }
 
-  const getVectorCodec = (type: string): string => {
+  const getVectorCodec = (input: Type): string => {
+    const { type } = input
     usedCodecs.add("Vector")
     let firstOpen = type.indexOf("[")
-    let result = normalize(type.slice(0, type.indexOf("[")))
+    const raw = type.slice(0, type.indexOf("["))
+    let result =
+      raw === "tuple"
+        ? toCache(getTupleCodec(input as DeepType))
+        : normalize(raw)
     while (firstOpen > -1) {
       const closed = type.indexOf("]", firstOpen)
       if (closed === firstOpen + 1) {
@@ -127,10 +134,10 @@ export function processAbi({
   }
 
   const getCodec = (input: Type): string => {
-    if (input.type === "tuple") return toCache(getTupleCodec(input))
     if (input.type.endsWith("]")) {
-      return toCache(getVectorCodec(input.type))
+      return toCache(getVectorCodec(input))
     }
+    if (input.type === "tuple") return toCache(getTupleCodec(input))
     return normalize(input.type as string)
   }
 
@@ -178,7 +185,6 @@ export function processAbi({
     const decoder = getOutput(fn.outputs)
     const mutability = mutabilities[fn.stateMutability]
     return { name: fn.name, inputs, decoder, mutability }
-    // return `export const ${fn.name} = solidityFn("${fn.name}", ${inputs}, ${decoder}, ${mutability});`
   }
 
   function processEventAbi(ev: EventAbi) {
@@ -269,9 +275,11 @@ export const ${name} = overloadedFn(${fns
 `
   })
 
-  const exportedEvents = relevantAbi
-    .filter((x): x is EventAbi => x.type === "event")
-    .map(processEventAbi)
+  const eventsFromAbi = relevantAbi.filter(
+    (x): x is EventAbi => x.type === "event",
+  )
+
+  const exportedEvents = eventsFromAbi.map(processEventAbi)
 
   const usedCustom: string[] = []
   const mainImports: string[] = []
@@ -310,6 +318,25 @@ ${exportedFunctions.join("\n")}
 
 ${exportedEvents.join("\n")}
 `
+
+  if (interfaceName) {
+    const interfaceType = `
+
+export interface ${interfaceName} {
+  functions: ${
+    fnGroups.size
+      ? [...fnGroups].map(([name]) => `typeof ${name}`).join(" | ")
+      : "never"
+  },
+  events: ${
+    eventsFromAbi.length
+      ? eventsFromAbi.map((x) => `typeof ${x.name}`).join(" | ")
+      : "never"
+  }
+}`
+
+    return result + interfaceType
+  }
 
   return result
 }
