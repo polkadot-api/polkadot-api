@@ -40,10 +40,15 @@ export const getCall = (
     1,
     (fn: SolidityFn<any, any, any, any>) =>
       (contractAddress: string, ...args: any[]) => {
-        const [actualArgs, toBlock] =
+        let [actualArgs, toBlock] =
           args.length > fn.encoder.size
             ? [args.slice(0, -1), args.slice(-1)[0]]
             : [args, "latest"]
+
+        if (typeof toBlock !== "string") {
+          toBlock = toBlock.toString(16)
+          toBlock = (toBlock.length % 2 > 0 ? "0x0" : "0x") + toBlock
+        }
 
         return request("eth_call", [
           {
