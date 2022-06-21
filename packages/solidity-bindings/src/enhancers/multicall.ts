@@ -16,7 +16,6 @@ export const withMulticall = (
   client: SolidityClient,
 ): SolidityClient => {
   const batchedCall = client.call(aggregate)
-  const batchedTx = client.tx(aggregate)
 
   const call = withOverload(
     1,
@@ -54,36 +53,5 @@ export const withMulticall = (
     ),
   ) as SolidityClient["call"]
 
-  const tx = withOverload(
-    2,
-    batcher(
-      client.tx,
-      (args) => args[1],
-      (calls, from) => {
-        const data = calls.map(({ args, fn }) => {
-          const [target, , ...otherArgs] = args
-          const actualArgs =
-            otherArgs.length > fn.encoder.size
-              ? otherArgs.slice(0, -1)
-              : otherArgs
-          return { target, callData: fn.encoder(...actualArgs) }
-        })
-
-        batchedTx(multicallAddress(), from, data).then(
-          (response) => {
-            calls.forEach(({ res }) => {
-              res(response)
-            })
-          },
-          (e) => {
-            calls.forEach(({ rej }) => {
-              rej(e)
-            })
-          },
-        )
-      },
-    ),
-  ) as SolidityClient["tx"]
-
-  return { ...client, call, tx }
+  return { ...client, call }
 }
