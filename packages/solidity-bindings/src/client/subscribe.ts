@@ -6,9 +6,22 @@ export const getSubscribe = (getProvider: () => JsonRpcProvider) => {
   let latestMessage: any = null
 
   const onMessage = (message: any) => {
-    latestMessage = message
+    // What is this condition doing? Isn't this something that should never happen?
+    // The answer is: yeah, this shouldn't happen... However, there is an
+    // obscure bug with some Providers (*cough* Metamask) where they sometimes
+    // have this faulty behavior after they have recoreved from a disconnection.
+    if (
+      latestMessage?.data?.result?.blockNumber &&
+      message?.data.subscription === latestMessage?.data.subscription &&
+      latestMessage?.data?.result?.blockNumber ===
+        message?.data?.result?.blockNumber
+    ) {
+      return
+    }
+
     const sub: string = message?.data.subscription
     ;(subscriptions.get(sub) ?? []).forEach((x) => x.next(message.data))
+    latestMessage = message
   }
 
   let currentProvider: JsonRpcProvider | null = null
