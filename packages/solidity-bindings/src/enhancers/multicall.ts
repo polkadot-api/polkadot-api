@@ -1,5 +1,5 @@
 import type { SolidityClient } from "../client"
-import { Vector, address, bytes, Struct, bool } from "solidity-codecs"
+import { Vector, address, bytes, Struct, bool, Tuple } from "solidity-codecs"
 import { solidityFn } from "../descriptors"
 import { batcher, withOverload } from "../internal"
 
@@ -7,7 +7,7 @@ const calls = Vector(Struct({ target: address, callData: bytes }))
 const aggregate = solidityFn(
   "tryAggregate",
   [bool, calls] as [requireSuccess: typeof bool, calls: typeof calls],
-  Vector(Struct({ success: bool, returnData: Vector(bytes) })),
+  Tuple(Vector(Tuple(bool, bytes))),
   2,
 )
 
@@ -40,8 +40,8 @@ export const withMulticall = (
         batchedCall(multicallAddress(), false, data, actualBlock).then(
           (result) => {
             calls.forEach(({ res, rej, fn }, idx) => {
-              const { success, returnData } = result[idx]
-              if (success) res(fn.decoder(returnData[idx]))
+              const [success, returnData] = result[idx]
+              if (success) res(fn.decoder(returnData))
               else rej(returnData)
             })
           },
