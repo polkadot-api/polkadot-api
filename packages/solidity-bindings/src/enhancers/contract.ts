@@ -103,7 +103,7 @@ export const withContract = <
   },
 >(
   getContractAddress: () => string,
-  client: SolidityClient,
+  client: Pick<SolidityClient, "call" | "event" | "tx">,
 ): SolidityContractClient<CTX> => {
   const event = <E extends CTX["events"]>(e: E): SolidityEventFn<E> => {
     const ctx = client.event(e)

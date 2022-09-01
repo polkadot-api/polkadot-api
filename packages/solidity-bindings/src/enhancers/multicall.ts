@@ -11,10 +11,10 @@ const aggregate = solidityFn(
   2,
 )
 
-export const withMulticall = (
+export const withMulticall = <T extends Pick<SolidityClient, "call">>(
   multicallAddress: () => string,
-  client: SolidityClient,
-): SolidityClient => {
+  client: T,
+): T => {
   const batchedCall = client.call(aggregate)
 
   const call = withOverload(
