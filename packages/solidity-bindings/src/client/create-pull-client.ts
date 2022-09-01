@@ -6,19 +6,31 @@ import { getPullingEvent } from "./getPullingEvent"
 
 export const createPullClient = (
   getProvider: () => JsonRpcProvider,
+  logger?: (meta: any) => void,
   minPullFrequency?: number,
 ) => {
-  const request = <T = any>(method: string, params: Array<any>): Promise<T> =>
-    getProvider().request({ method, params })
-
-  const currentBlockNumber$ = getCurrentBlockNumber$(request, minPullFrequency)
+  const request = <T = any>(
+    method: string,
+    params: Array<any>,
+    meta?: any,
+  ): Promise<T> => {
+    const rawRequest = { method, params }
+    logger?.({ ...(meta || {}), rawRequest })
+    return getProvider().request(rawRequest)
+  }
+  const currentBlockNumber$ = getCurrentBlockNumber$(
+    request,
+    minPullFrequency,
+    logger,
+  )
 
   return {
     request,
-    call: getCall(request),
-    tx: getTx(request),
+    call: getCall(request, logger),
+    tx: getTx(request, logger),
     currentBlockNumber$,
-    event: getPullingEvent(currentBlockNumber$, request),
+    event: getPullingEvent(currentBlockNumber$, request, logger),
+    logger,
   }
 }
 

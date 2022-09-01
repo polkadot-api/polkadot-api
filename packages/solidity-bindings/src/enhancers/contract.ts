@@ -87,6 +87,7 @@ export type SolidityContractClient<
     (<F extends Overloaded<CTX["functions"]>>(
       overloaded: F,
     ) => SolidityTxFunctions<F>)
+  logger?: (meta: any) => void
 }
 
 export const withContract = <
@@ -103,7 +104,9 @@ export const withContract = <
   },
 >(
   getContractAddress: () => string,
-  client: Pick<SolidityClient, "call" | "event" | "tx">,
+  client: Pick<SolidityClient, "call" | "event" | "tx"> & {
+    logger?: (meta: any) => void
+  },
 ): SolidityContractClient<CTX> => {
   const event = <E extends CTX["events"]>(e: E): SolidityEventFn<E> => {
     const ctx = client.event(e)
@@ -131,5 +134,5 @@ export const withContract = <
       providerTx(getContractAddress(), fromAddress, ...args)
   })
 
-  return { event, call, tx }
+  return { event, call, tx, logger: client.logger }
 }

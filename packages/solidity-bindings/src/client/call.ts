@@ -1,6 +1,6 @@
 import type { UnionToIntersection, Untuple, InnerCodecsOrBlock } from "../utils"
 import type { SolidityFn } from "../descriptors/fn"
-import { withOverload } from "../internal"
+import { withOverload, getTrackingId, logResponse } from "../internal"
 
 export type SolidityCallFunctions<
   A extends Array<SolidityFn<any, any, any, any>>,
@@ -34,7 +34,12 @@ export type SolidityCallSingle = <F extends SolidityFn<any, any, any, any>>(
 ) => SolidityCallFunction<F>
 
 export const getCall = (
-  request: <T = any>(method: string, args: Array<any>) => Promise<T>,
+  request: <T = any>(
+    method: string,
+    args: Array<any>,
+    meta?: any,
+  ) => Promise<T>,
+  logger?: (msg: any) => void,
 ): SolidityCallSingle & SolidityCallOverload =>
   withOverload(
     1,
@@ -50,12 +55,26 @@ export const getCall = (
           toBlock = (toBlock.length % 2 > 0 ? "0x0" : "0x") + toBlock
         }
 
-        return request("eth_call", [
-          {
-            to: contractAddress,
-            data: fn.encoder.asHex(...(actualArgs as any)),
-          },
-          toBlock,
-        ]).then(fn.decoder)
+        const trackingId = getTrackingId()
+        const type = "eth_call"
+        let meta: any = logger && {
+          type: "eth_call",
+          fn: fn.name,
+          args: actualArgs,
+          trackingId,
+        }
+        return request(
+          type,
+          [
+            {
+              to: contractAddress,
+              data: fn.encoder.asHex(...(actualArgs as any)),
+            },
+            toBlock,
+          ],
+          meta,
+        )
+          .then(fn.decoder)
+          .then(...logResponse(meta, logger))
       },
   )

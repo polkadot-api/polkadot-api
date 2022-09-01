@@ -1,3 +1,4 @@
+import { getTrackingId, logResponse } from "../internal"
 import { Observable } from "rxjs"
 import type { Codec, StringRecord } from "solidity-codecs"
 import type { EventFilter, SolidityEvent } from "../descriptors"
@@ -8,7 +9,12 @@ const toHex = (block: number): string => "0x" + block.toString(16)
 export const getPullingEvent =
   (
     currentBlockNumber$: Observable<number>,
-    request: <T = any>(method: string, args: Array<any>) => Promise<T>,
+    request: <T = any>(
+      method: string,
+      args: Array<any>,
+      meta?: any,
+    ) => Promise<T>,
+    logger?: (msg: any) => void,
   ) =>
   <F extends StringRecord<Codec<any>>, O>(e: SolidityEvent<F, O, any>) =>
   (
@@ -23,10 +29,22 @@ export const getPullingEvent =
       topics: e.encodeTopics(eventFilter),
     }
     if (contractAddress) options.address = contractAddress
-    const requestEvent = (fromBlock: number, toBlock: number) =>
-      request<Array<any>>("eth_getLogs", [
-        { ...options, fromBlock: toHex(fromBlock), toBlock: toHex(toBlock) },
-      ])
+    const type = `event_${e.name}`
+    const subscriptionId = getTrackingId()
+    const requestEvent = (fromBlock: number, toBlock: number) => {
+      const trackingId = getTrackingId()
+      const meta: any = logger && {
+        type,
+        subscriptionId,
+        trackingId,
+        filters: eventFilter,
+      }
+      return request<Array<any>>(
+        "eth_getLogs",
+        [{ ...options, fromBlock: toHex(fromBlock), toBlock: toHex(toBlock) }],
+        meta,
+      ).then(...logResponse(meta, logger))
+    }
 
     return new Observable((observer) => {
       let nextBlockToRequest = 0

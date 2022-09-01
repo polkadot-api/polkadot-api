@@ -1,7 +1,7 @@
 import type { SolidityClient } from "../client"
 import { Vector, address, bytes, Struct, bool, Tuple } from "solidity-codecs"
 import { solidityFn } from "../descriptors"
-import { batcher, withOverload } from "../internal"
+import { batcher, getTrackingId, withOverload } from "../internal"
 
 const calls = Vector(Struct({ target: address, callData: bytes }))
 const aggregate = solidityFn(
@@ -11,11 +11,15 @@ const aggregate = solidityFn(
   2,
 )
 
-export const withMulticall = <T extends Pick<SolidityClient, "call">>(
+export const withMulticall = <
+  T extends Pick<SolidityClient, "call"> & { logger?: (meta: any) => void },
+>(
   multicallAddress: () => string,
+  scheduler: (onFlush: () => void) => () => void,
   client: T,
 ): T => {
   const batchedCall = client.call(aggregate)
+  const { logger } = client
 
   const call = withOverload(
     1,
@@ -24,12 +28,27 @@ export const withMulticall = <T extends Pick<SolidityClient, "call">>(
       (args, fn) =>
         args.length - 1 > fn.encoder.size ? args[args.length - 1] : "latest",
       (calls, blockNumber) => {
+        const trackingId = getTrackingId()
+        const type = "multicall_tryAggregate"
+        const meta: any = {
+          type,
+          trackingId,
+          calls: [],
+        }
+
         const data = calls.map(({ args, fn }) => {
           const [target, ...otherArgs] = args
           const actualArgs =
             otherArgs.length > fn.encoder.size
               ? otherArgs.slice(0, -1)
               : otherArgs
+          if (logger) {
+            meta.calls.push({
+              fn: fn.name,
+              args: actualArgs,
+              target,
+            })
+          }
           return { target, callData: fn.encoder(...actualArgs) }
         })
 
@@ -37,21 +56,40 @@ export const withMulticall = <T extends Pick<SolidityClient, "call">>(
           ? blockNumber
           : parseInt(blockNumber)
 
+        logger?.(meta)
         batchedCall(multicallAddress(), false, data, actualBlock).then(
           (result) => {
+            const metaReponse = logger
+              ? {
+                  ...meta,
+                  calls: meta.calls.map((x: any) => ({ ...x })),
+                  type: meta.type + "_responses",
+                }
+              : {}
+
             calls.forEach(({ res, rej, fn }, idx) => {
               const [success, returnData] = result[idx]
-              if (success) res(fn.decoder(returnData))
-              else rej(returnData)
+              const response = success ? fn.decoder(returnData) : returnData
+              if (success) res(response)
+              else rej(response)
+              if (logger)
+                Object.assign(metaReponse.calls[idx], { success, response })
             })
+            logger?.(metaReponse)
           },
-          (e) => {
+          (error) => {
             calls.forEach(({ rej }) => {
-              rej(e)
+              rej(error)
+            })
+            logger?.({
+              type: meta.type + "_error",
+              trackingId: meta.trackingId,
+              error,
             })
           },
         )
       },
+      scheduler,
     ),
   ) as SolidityClient["call"]
 

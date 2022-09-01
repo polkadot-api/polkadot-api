@@ -1,6 +1,6 @@
 import type { UnionToIntersection, InnerCodecs } from "../utils"
 import type { SolidityFn } from "../descriptors"
-import { withOverload } from "../internal"
+import { getTrackingId, logResponse, withOverload } from "../internal"
 
 export type SolidityTxFunctions<
   A extends Array<SolidityFn<any, any, any, any>>,
@@ -38,7 +38,8 @@ export type SolidityTxSingle = <F extends SolidityFn<any, any, any, 2 | 3>>(
 ) => SolidityTxFunction<F>
 
 export const getTx = (
-  request: <T = any>(method: string, args: Array<any>) => Promise<T>,
+  request: <T = any>(method: string, args: Array<any>, meta: any) => Promise<T>,
+  logger?: (msg: any) => void,
 ): SolidityTxSingle & SolidityTxOverload =>
   withOverload(
     2,
@@ -47,12 +48,25 @@ export const getTx = (
         contractAddress: string,
         fromAddress: string,
         ...args: any[]
-      ): Promise<string> =>
-        request("eth_sendTransaction", [
-          {
-            to: contractAddress,
-            from: fromAddress,
-            data: fn.encoder.asHex(...args),
-          },
-        ]),
+      ): Promise<string> => {
+        const type = "eth_sendTransaction"
+        const trackingId = getTrackingId()
+        const meta: any = logger && {
+          type,
+          fn: fn.name,
+          args,
+          trackingId,
+        }
+        return request(
+          type,
+          [
+            {
+              to: contractAddress,
+              from: fromAddress,
+              data: fn.encoder.asHex(...args),
+            },
+          ],
+          meta,
+        ).then(...logResponse(meta, logger))
+      },
   )
