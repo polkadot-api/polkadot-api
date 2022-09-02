@@ -51,8 +51,7 @@ export const getCall = (
             : [args, "latest"]
 
         if (typeof toBlock !== "string") {
-          toBlock = toBlock.toString(16)
-          toBlock = (toBlock.length % 2 > 0 ? "0x0" : "0x") + toBlock
+          toBlock = "0x" + toBlock.toString(16)
         }
 
         const trackingId = getTrackingId()

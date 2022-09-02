@@ -29,7 +29,7 @@ export const createPullClient = (
     call: getCall(request, logger),
     tx: getTx(request, logger),
     currentBlockNumber$,
-    event: getPullingEvent(currentBlockNumber$, request, logger),
+    ...getPullingEvent(currentBlockNumber$, request, logger),
     logger,
   }
 }
