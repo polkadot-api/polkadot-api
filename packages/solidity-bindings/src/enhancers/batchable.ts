@@ -105,8 +105,14 @@ export const batchable = <
           trackingId,
           calls: [],
         }
+        let value = 0n
         const data = calls.map(({ args, fn }) => {
-          const actualArgs = args.slice(1)
+          const slicedArgs = args.slice(1)
+          const [actualArgs, val] =
+            slicedArgs.length > fn.encoder.size
+              ? [slicedArgs.slice(0, -1), slicedArgs.slice(-1)[0]]
+              : [slicedArgs]
+          value += val ?? 0n
           if (logger)
             meta.calls.push({
               fn: fn.name,
@@ -116,7 +122,7 @@ export const batchable = <
         })
 
         logger?.(meta)
-        batchedTx(from, data)
+        batchedTx(from, data, value)
           .then(...logResponse(meta, logger))
           .then(
             (response) => {

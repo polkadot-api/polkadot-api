@@ -6,6 +6,7 @@ import type {
   Untuple,
   InnerCodecsOrBlock,
   InnerCodecs,
+  InnerCodecsOrPayableAmount,
 } from "../utils"
 import { withOverload } from "../internal"
 
@@ -32,11 +33,17 @@ type SolidityTxFunctions<A extends Array<SolidityFn<any, any, any, any>>> =
         any,
         infer Mutability
       >
-        ? Mutability extends 2 | 3
+        ? Mutability extends 2
           ? (
               fromAddress: string,
               overload: K,
               ...args: InnerCodecs<V>
+            ) => Promise<string>
+          : Mutability extends 3
+          ? (
+              fromAddress: string,
+              overload: K,
+              ...args: InnerCodecsOrPayableAmount<V>
             ) => Promise<string>
           : never
         : never
@@ -44,8 +51,15 @@ type SolidityTxFunctions<A extends Array<SolidityFn<any, any, any, any>>> =
   >
 
 type SolidityTxFunction<F extends SolidityFn<any, any, any, 2 | 3>> =
-  F extends SolidityFn<any, infer V, any, 2 | 3>
-    ? (fromAddress: string, ...args: InnerCodecs<V>) => Promise<string>
+  F extends SolidityFn<any, infer V, any, infer M>
+    ? M extends 2
+      ? (fromAddress: string, ...args: InnerCodecs<V>) => Promise<string>
+      : M extends 3
+      ? (
+          fromAddress: string,
+          ...args: InnerCodecsOrPayableAmount<V>
+        ) => Promise<string>
+      : never
     : never
 
 type SolidityEventFn<E extends SolidityEvent<any, any, any>> =

@@ -16,3 +16,7 @@ export type InnerCodecsOrBlock<A extends Array<Codec<any>>> =
       ...args: InnerCodecs<A>,
       blockNumber: number | "latest" | "earliest" | "pending",
     ]
+
+export type InnerCodecsOrPayableAmount<A extends Array<Codec<any>>> =
+  | InnerCodecs<A>
+  | [...args: InnerCodecs<A>, payableAmount: bigint]
