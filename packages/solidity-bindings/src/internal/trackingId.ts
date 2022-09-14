@@ -11,7 +11,7 @@ export const logResponse = (
       return response
     },
     (error: any) => {
-      logger?.({ ...meta, type: meta.type + "_response", error })
+      logger?.({ ...meta, type: meta.type + "_error", error })
       throw error
     },
   ] as const

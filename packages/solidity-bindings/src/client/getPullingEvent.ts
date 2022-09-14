@@ -7,7 +7,7 @@ import type { Untuple } from "../utils"
 const toHex = (block: number): string => "0x" + block.toString(16)
 
 export const getPullingEvent = (
-  currentBlockNumber$: Observable<number>,
+  currentBlockNumber$: Observable<{ chainId: string; blockNumber: number }>,
   request: <T = any>(
     method: string,
     args: Array<any>,
@@ -15,21 +15,28 @@ export const getPullingEvent = (
   ) => Promise<T>,
   logger?: (msg: any) => void,
 ) => {
-  const eventsProcessed$ = new Subject<number>()
+  const eventsProcessor$ = new Subject<{
+    chainId: string
+    blockNumber: number
+    type: "pre" | "post"
+  }>()
   const listeners = new Map<
     number,
     {
       getLogs: (blockNumer: number) => Promise<any>
       onNext: (value: any, blockNumer: number) => void
       onError: (e: any, blockNumer: number) => void
+      onComplete: () => void
     }
   >()
 
   let subscription: Subscription | null = null
   let isWaiting = false
   let latestBlock = 0
-  const pull = (currentBlock: number) => {
+  let currentChainId = ""
+  const pull = (currentBlock: number, chainId: string) => {
     isWaiting = true
+    eventsProcessor$.next({ chainId, blockNumber: currentBlock, type: "pre" })
     Promise.all(
       [...listeners].map(([key, { getLogs }]) => {
         return getLogs(currentBlock).then(
@@ -38,22 +45,50 @@ export const getPullingEvent = (
         )
       }),
     ).then((results) => {
+      if (chainId !== currentChainId) return
+
       results.forEach(({ ok, key, payload }) => {
         if (!listeners.has(key)) return
         const { onNext, onError } = listeners.get(key)!
         ;(ok ? onNext : onError)(payload, currentBlock)
       })
-      eventsProcessed$.next(currentBlock)
+      eventsProcessor$.next({
+        chainId,
+        blockNumber: currentBlock,
+        type: "post",
+      })
       isWaiting = false
-      if (latestBlock !== currentBlock) pull(latestBlock)
+      if (latestBlock !== currentBlock) pull(latestBlock, chainId)
     })
+  }
+
+  const resetStates = () => {
+    subscription = null
+    isWaiting = false
+    latestBlock = 0
+    currentChainId = ""
   }
 
   const start = () => {
     if (subscription) return
-    subscription = currentBlockNumber$.subscribe((currentBlock) => {
-      latestBlock = currentBlock
-      if (!isWaiting) pull(currentBlock)
+    subscription = currentBlockNumber$.subscribe({
+      next({ blockNumber: currentBlock, chainId }) {
+        latestBlock = currentBlock
+        currentChainId = chainId
+        if (!isWaiting) pull(currentBlock, chainId)
+      },
+      complete() {
+        resetStates()
+        ;[...listeners.values()].forEach(({ onComplete }) => {
+          onComplete()
+        })
+      },
+      error(e) {
+        resetStates()
+        ;[...listeners.values()].forEach(({ onError }) => {
+          onError(e, latestBlock)
+        })
+      },
     })
   }
 
@@ -62,8 +97,9 @@ export const getPullingEvent = (
     getLogs: (blockNumer: number) => Promise<any>,
     onNext: (value: any, blockNumer: number) => void,
     onError: (e: any, blockNumer: number) => void,
+    onComplete: () => void,
   ) => {
-    listeners.set(id, { getLogs, onNext, onError })
+    listeners.set(id, { getLogs, onNext, onError, onComplete })
     start()
     return () => {
       listeners.delete(id)
@@ -73,6 +109,41 @@ export const getPullingEvent = (
       }
     }
   }
+
+  const queryEvent =
+    <F extends StringRecord<Codec<any>>, O>(e: SolidityEvent<F, O, any>) =>
+    async (
+      eventFilter: Partial<EventFilter<F>>,
+      from: number | "latest" | "pending" | "earliest",
+      to: number | "latest" | "pending" | "earliest",
+      contractAddress?: string,
+    ) => {
+      const options: { topics: (string | null)[]; address?: string } = {
+        topics: e.encodeTopics(eventFilter),
+      }
+      if (contractAddress) options.address = contractAddress
+      const results = await request<Array<any>>("eth_getLogs", [
+        {
+          ...options,
+          fromBlock: typeof from === "string" ? from : toHex(from),
+          toBlock: typeof to === "string" ? to : toHex(to),
+        },
+      ])
+
+      return results.map((message: any) => {
+        let msg
+        try {
+          msg = {
+            data: e.decodeData(message.data),
+            filters: e.decodeFilters(message.topics),
+            message,
+          }
+          return msg
+        } catch (e) {
+          return { message }
+        }
+      })
+    }
 
   const event =
     <F extends StringRecord<Codec<any>>, O>(e: SolidityEvent<F, O, any>) =>
@@ -140,9 +211,12 @@ export const getPullingEvent = (
           (e) => {
             observer.error(e)
           },
+          () => {
+            observer.complete()
+          },
         )
       })
     }
 
-  return { event, eventsProcessed$ }
+  return { event, eventsProcessor$, queryEvent }
 }

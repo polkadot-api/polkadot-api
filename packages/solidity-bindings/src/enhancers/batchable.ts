@@ -65,12 +65,18 @@ export const batchable = <
                   type: meta.type + "_responses",
                 }
               : {}
-            calls.forEach(({ res, fn }, idx) => {
-              const response = fn.decoder(responses[idx])
-              res(response)
+            calls.forEach(({ res, rej, fn }, idx) => {
+              let response: any
+              let success = true
+              try {
+                res((response = fn.decoder(responses[idx])))
+              } catch (e: any) {
+                success = false
+                rej((response = e))
+              }
               if (logger)
                 Object.assign(metaReponse.calls[idx], {
-                  success: true,
+                  success,
                   response,
                 })
             })

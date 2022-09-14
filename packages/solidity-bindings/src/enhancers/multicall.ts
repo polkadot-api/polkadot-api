@@ -68,10 +68,18 @@ export const withMulticall = <
               : {}
 
             calls.forEach(({ res, rej, fn }, idx) => {
-              const [success, returnData] = result[idx]
-              const response = success ? fn.decoder(returnData) : returnData
-              if (success) res(response)
-              else rej(response)
+              let [success, returnData] = result[idx]
+              let response = returnData
+              if (success) {
+                try {
+                  res((response = fn.decoder(returnData)))
+                } catch (e: any) {
+                  success = false
+                  rej((response = e))
+                }
+              } else {
+                rej(response)
+              }
               if (logger)
                 Object.assign(metaReponse.calls[idx], { success, response })
             })
