@@ -1,4 +1,10 @@
-import type { EventFilter, SolidityEvent, SolidityFn } from "../descriptors"
+import type {
+  EventFilter,
+  SolidityEvent,
+  SolidityFn,
+  SolidityError,
+  ErrorResult,
+} from "../descriptors"
 import type { Observable } from "rxjs"
 import type { SolidityClient } from "../client"
 import type {
@@ -24,43 +30,45 @@ type SolidityCallFunctions<A extends Array<SolidityFn<any, any, any, any>>> =
     }[keyof A & number]
   >
 
-type SolidityTxFunctions<A extends Array<SolidityFn<any, any, any, any>>> =
-  UnionToIntersection<
-    {
-      [K in keyof A]: A[K] extends SolidityFn<
-        any,
-        infer V,
-        any,
-        infer Mutability
-      >
-        ? Mutability extends 2
-          ? (
-              fromAddress: string,
-              overload: K,
-              ...args: InnerCodecs<V>
-            ) => Promise<string>
-          : Mutability extends 3
-          ? (
-              fromAddress: string,
-              overload: K,
-              ...args: InnerCodecsOrPayableAmount<V>
-            ) => Promise<string>
-          : never
+type SolidityTxFunctions<
+  A extends Array<SolidityFn<any, any, any, any>>,
+  E extends Array<SolidityError<any, any>>,
+> = UnionToIntersection<
+  {
+    [K in keyof A]: A[K] extends SolidityFn<any, infer V, any, infer Mutability>
+      ? Mutability extends 2
+        ? (
+            fromAddress: string,
+            overload: K,
+            ...args: InnerCodecs<V>
+          ) => Promise<ErrorResult<E, string>>
+        : Mutability extends 3
+        ? (
+            fromAddress: string,
+            overload: K,
+            ...args: InnerCodecsOrPayableAmount<V>
+          ) => Promise<ErrorResult<E, string>>
         : never
-    }[keyof A & number]
-  >
-
-type SolidityTxFunction<F extends SolidityFn<any, any, any, 2 | 3>> =
-  F extends SolidityFn<any, infer V, any, infer M>
-    ? M extends 2
-      ? (fromAddress: string, ...args: InnerCodecs<V>) => Promise<string>
-      : M extends 3
-      ? (
-          fromAddress: string,
-          ...args: InnerCodecsOrPayableAmount<V>
-        ) => Promise<string>
       : never
+  }[keyof A & number]
+>
+
+type SolidityTxFunction<
+  F extends SolidityFn<any, any, any, 2 | 3>,
+  E extends Array<SolidityError<any, any>>,
+> = F extends SolidityFn<any, infer V, any, infer M>
+  ? M extends 2
+    ? (
+        fromAddress: string,
+        ...args: InnerCodecs<V>
+      ) => Promise<ErrorResult<E, string>>
+    : M extends 3
+    ? (
+        fromAddress: string,
+        ...args: InnerCodecsOrPayableAmount<V>
+      ) => Promise<ErrorResult<E, string>>
     : never
+  : never
 
 type SolidityEventFn<E extends SolidityEvent<any, any, any>> =
   E extends SolidityEvent<infer F, infer O, any>
@@ -71,8 +79,11 @@ type SolidityEventFn<E extends SolidityEvent<any, any, any>> =
       }>
     : never
 
-type SolidityCallFunction<F> = F extends SolidityFn<any, infer I, infer O, any>
-  ? (...args: InnerCodecsOrBlock<I>) => Promise<Untuple<O>>
+type SolidityCallFunction<
+  F,
+  E extends Array<SolidityError<any, any>>,
+> = F extends SolidityFn<any, infer I, infer O, any>
+  ? (...args: InnerCodecsOrBlock<I>) => Promise<ErrorResult<E, Untuple<O>>>
   : never
 
 export type SolidityContractClient<
@@ -89,18 +100,34 @@ export type SolidityContractClient<
   },
 > = {
   event: <E extends CTX["events"]>(e: E) => SolidityEventFn<E>
-  call: (<F extends NonOverloaded<CTX["functions"]>>(
+  call: (<
+    F extends NonOverloaded<CTX["functions"]>,
+    E extends Array<SolidityError<any, any>>,
+  >(
     fn: F,
-  ) => SolidityCallFunction<F>) &
-    (<F extends Overloaded<CTX["functions"]>>(
+    ...errors: E
+  ) => SolidityCallFunction<F, E>) &
+    (<
+      F extends Overloaded<CTX["functions"]>,
+      E extends Array<SolidityError<any, any>>,
+    >(
       overloaded: F,
+      ...errors: E
     ) => SolidityCallFunctions<F>)
-  tx: (<F extends MutableNonOverloaded<CTX["functions"]>>(
+  tx: (<
+    F extends MutableNonOverloaded<CTX["functions"]>,
+    E extends Array<SolidityError<any, any>>,
+  >(
     fn: F,
-  ) => SolidityTxFunction<F>) &
-    (<F extends Overloaded<CTX["functions"]>>(
+    ...errors: E
+  ) => SolidityTxFunction<F, E>) &
+    (<
+      F extends Overloaded<CTX["functions"]>,
+      E extends Array<SolidityError<any, any>>,
+    >(
       overloaded: F,
-    ) => SolidityTxFunctions<F>)
+      ...errors: E
+    ) => SolidityTxFunctions<F, E>)
   logger?: (meta: any) => void
 }
 
@@ -127,22 +154,38 @@ export const withContract = <
     return ((eventFilter: any) => ctx(eventFilter, getContractAddress())) as any
   }
 
-  const call: (<F extends NonOverloaded<CTX["functions"]>>(
+  const call: (<
+    F extends NonOverloaded<CTX["functions"]>,
+    E extends Array<SolidityError<any, any>>,
+  >(
     fn: F,
-  ) => SolidityCallFunction<F>) &
-    (<F extends Overloaded<CTX["functions"]>>(
+    ...errors: E
+  ) => SolidityCallFunction<F, E>) &
+    (<
+      F extends Overloaded<CTX["functions"]>,
+      E extends Array<SolidityError<any, any>>,
+    >(
       overloaded: F,
+      ...errors: E
     ) => SolidityCallFunctions<F>) = withOverload(0, (fn: any) => {
     const providerCall = client.call(fn)
     return (...args: any) => providerCall(getContractAddress(), ...args)
   })
 
-  const tx: (<F extends MutableNonOverloaded<CTX["functions"]>>(
+  const tx: (<
+    F extends MutableNonOverloaded<CTX["functions"]>,
+    E extends Array<SolidityError<any, any>>,
+  >(
     fn: F,
-  ) => SolidityTxFunction<F>) &
-    (<F extends Overloaded<CTX["functions"]>>(
+    ...errors: E
+  ) => SolidityTxFunction<F, E>) &
+    (<
+      F extends Overloaded<CTX["functions"]>,
+      E extends Array<SolidityError<any, any>>,
+    >(
       overloaded: F,
-    ) => SolidityTxFunctions<F>) = withOverload(1, (fn: any) => {
+      ...errors: E
+    ) => SolidityTxFunctions<F, E>) = withOverload(1, (fn: any) => {
     const providerTx = client.tx(fn)
     return (fromAddress: string, ...args: any) =>
       providerTx(getContractAddress(), fromAddress, ...args)

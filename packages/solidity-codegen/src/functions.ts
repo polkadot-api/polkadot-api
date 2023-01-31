@@ -26,6 +26,12 @@ interface EventAbi {
   type: "event"
 }
 
+interface ErrorAbi {
+  name: string
+  inputs: Array<Type>
+  type: "error"
+}
+
 type CustomCodec = {
   base: string
   applyToVariableNames: string[]
@@ -34,10 +40,11 @@ type CustomCodec = {
 }
 
 export interface Config {
-  abi: Array<FunctionAbi | EventAbi>
+  abi: Array<FunctionAbi | EventAbi | ErrorAbi>
   interfaceName?: string
   functions?: Array<string>
   events?: Array<string>
+  errors?: Array<string>
   customCodecs?: Record<string, CustomCodec>
 }
 
@@ -60,14 +67,18 @@ export function processAbi({
   abi,
   functions,
   events,
+  errors,
   customCodecs = {},
   interfaceName,
 }: Config) {
   const relevantFns = functions && new Set(functions)
   const relevantEvents = events && new Set(events)
+  const relevantErrors = events && new Set(errors)
+
   const relevantAbi = abi.filter(
     (f) =>
       (f.type === "function" && (!relevantFns || relevantFns.has(f.name))) ||
+      (f.type === "error" && (!relevantErrors || relevantErrors.has(f.name))) ||
       (f.type === "event" && (!relevantEvents || relevantEvents.has(f.name))),
   )
 
@@ -141,7 +152,7 @@ export function processAbi({
     return normalize(input.type as string)
   }
 
-  const getFunctionArgs = ({ inputs }: FunctionAbi) => {
+  const getFunctionArgs = (inputs: Array<Type>) => {
     const codecs = inputs.map(getCodec)
     const names = codecs.map(
       (codec, idx) => `${inputs[idx].name || `arg${idx}`}: typeof ${codec}`,
@@ -180,8 +191,16 @@ export function processAbi({
     payable: 3,
   }
 
+  function processErrorAbi(err: ErrorAbi) {
+    const inputs = toCache(
+      `{${err.inputs.map((x) => `${x.name}: ${getCodec(x)}`).join(", ")}}`,
+    )
+
+    return `export const ${err.name} = solidityError("${err.name}", ${inputs});`
+  }
+
   function processFunctionAbi(fn: FunctionAbi) {
-    const inputs = getFunctionArgs(fn)
+    const inputs = getFunctionArgs(fn.inputs)
     const decoder = getOutput(fn.outputs)
     const mutability = mutabilities[fn.stateMutability]
     return { name: fn.name, inputs, decoder, mutability }
@@ -278,8 +297,12 @@ export const ${name} = overloadedFn(${fns
   const eventsFromAbi = relevantAbi.filter(
     (x): x is EventAbi => x.type === "event",
   )
-
   const exportedEvents = eventsFromAbi.map(processEventAbi)
+
+  const errorsFromAbi = relevantAbi.filter(
+    (x): x is ErrorAbi => x.type === "error",
+  )
+  const exportedErrors = errorsFromAbi.map(processErrorAbi)
 
   const usedCustom: string[] = []
   const mainImports: string[] = []
@@ -291,8 +314,16 @@ export const ${name} = overloadedFn(${fns
     }
   })
 
-  const bindingsImports = ["solidityFn", "solidityEvent"].filter((_, idx) =>
-    idx === 0 ? exportedFunctions.length : exportedEvents.length,
+  const bindingsImports = [
+    "solidityFn",
+    "solidityEvent",
+    "solidityError",
+  ].filter((_, idx) =>
+    idx === 0
+      ? exportedFunctions.length
+      : idx === 1
+      ? exportedEvents.length
+      : exportedErrors.length,
   )
   if (overloaded) bindingsImports.push("overloadedFn")
 
@@ -317,6 +348,8 @@ ${[...cache].map(([key, value]) => `const ${value.name} = ${key};`).join("\n")}
 ${exportedFunctions.join("\n")}
 
 ${exportedEvents.join("\n")}
+
+${exportedErrors.join("\n")}
 `
 
   if (interfaceName) {
@@ -331,6 +364,11 @@ export interface ${interfaceName} {
   events: ${
     eventsFromAbi.length
       ? eventsFromAbi.map((x) => `typeof ${x.name}`).join(" | ")
+      : "never"
+  },
+  errors: ${
+    errorsFromAbi.length
+      ? errorsFromAbi.map((x) => `typeof ${x.name}`).join(" | ")
       : "never"
   }
 }`
