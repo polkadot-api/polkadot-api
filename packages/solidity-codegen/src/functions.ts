@@ -72,8 +72,8 @@ export function processAbi({
   interfaceName,
 }: Config) {
   const relevantFns = functions && new Set(functions)
+  const relevantErrors = errors && new Set(errors)
   const relevantEvents = events && new Set(events)
-  const relevantErrors = events && new Set(errors)
 
   const relevantAbi = abi.filter(
     (f) =>
