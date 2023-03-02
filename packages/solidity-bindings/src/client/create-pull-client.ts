@@ -13,6 +13,7 @@ import {
   ReplaySubject,
   share,
 } from "rxjs"
+import { SolidityError, createErrorReader } from "../descriptors"
 
 const fromEvent = <T = unknown>(provider: JsonRpcProvider, event: string) =>
   new Observable<T>((observer) => {
@@ -26,6 +27,7 @@ const fromEvent = <T = unknown>(provider: JsonRpcProvider, event: string) =>
 
 export const createPullClient = (
   getProvider: () => Promise<JsonRpcProvider | undefined>,
+  unhandledErrors: Array<SolidityError<any, any>>,
   logger?: (meta: any) => void,
   minPullFrequency = 5_000,
   maxPullFrequency = 2_500,
@@ -34,6 +36,8 @@ export const createPullClient = (
     if (!p) throw new Error("No Provider")
     return p
   })
+
+  const getError = createErrorReader(unhandledErrors)
 
   const chainId$: Observable<string | null> = from(providerPromise).pipe(
     concatMap((provider) => {
@@ -88,8 +92,9 @@ export const createPullClient = (
     chainId$,
     request,
     currentBlockNumber$,
-    call: getCall(request, logger),
-    tx: getTx(request, logger),
+    getError,
+    call: getCall(request, getError, logger),
+    tx: getTx(request, getError, logger),
     ...getPullingEvent(currentBlockNumber$, request, logger),
     logger,
   }

@@ -1,7 +1,8 @@
-import type { SolidityClient } from "../client"
+import type { SolidityClient, SolidityPullClient } from "../client"
 import { Vector, address, bytes, Struct, bool, Tuple } from "solidity-codecs"
 import { solidityFn } from "../descriptors"
 import { batcher, getTrackingId, withOverload } from "../internal"
+import { toHex } from "@unstoppablejs/utils"
 
 const calls = Vector(Struct({ target: address, callData: bytes }))
 const aggregate = solidityFn(
@@ -12,7 +13,9 @@ const aggregate = solidityFn(
 )
 
 export const withMulticall = <
-  T extends Pick<SolidityClient, "call"> & { logger?: (meta: any) => void },
+  T extends Pick<SolidityPullClient, "call" | "getError"> & {
+    logger?: (meta: any) => void
+  },
 >(
   multicallAddress: () => string,
   scheduler: (onFlush: () => void) => () => void,
@@ -67,8 +70,9 @@ export const withMulticall = <
                 }
               : {}
 
-            calls.forEach(({ res, rej, fn }, idx) => {
+            calls.forEach(({ res, rej, fn, errorReader }, idx) => {
               let [success, returnData] = result[idx]
+              const rawResponse = toHex(returnData)
               let response = returnData
               if (success) {
                 try {
@@ -78,10 +82,31 @@ export const withMulticall = <
                   rej((response = e))
                 }
               } else {
+                const error = errorReader(rawResponse)
+                if (error) {
+                  response = {
+                    ok: false,
+                    error,
+                  } as any
+                  res(response)
+                } else {
+                  const unhandledError = client.getError(rawResponse)
+                  response =
+                    unhandledError ??
+                    ({
+                      type: "unrecognizedError",
+                      error: rawResponse,
+                    } as any)
+                  rej(response)
+                }
                 rej(response)
               }
               if (logger)
-                Object.assign(metaReponse.calls[idx], { success, response })
+                Object.assign(metaReponse.calls[idx], {
+                  success,
+                  response,
+                  rawResponse,
+                })
             })
             logger?.(metaReponse)
           },

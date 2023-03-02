@@ -6,7 +6,7 @@ import type {
   ErrorResult,
 } from "../descriptors"
 import type { Observable } from "rxjs"
-import type { SolidityClient } from "../client"
+import type { SolidityPullClient } from "../client"
 import type {
   UnionToIntersection,
   Untuple,
@@ -79,6 +79,22 @@ type SolidityEventFn<E extends SolidityEvent<any, any, any>> =
       }>
     : never
 
+type SolidityQueryEventFn<E extends SolidityEvent<any, any, any>> =
+  E extends SolidityEvent<infer F, infer O, any>
+    ? (
+        eventFilter: Partial<EventFilter<F>>,
+        from: number | "latest" | "pending" | "earliest",
+        to: number | "latest" | "pending" | "earliest",
+      ) => Array<
+        | {
+            data: Untuple<O>
+            filters: EventFilter<F>
+            message: any
+          }
+        | { message: any }
+      >
+    : never
+
 type SolidityCallFunction<
   F,
   E extends Array<SolidityError<any, any>>,
@@ -99,6 +115,7 @@ export type SolidityContractClient<
     events: SolidityEvent<any, any, any>
   },
 > = {
+  queryEvent: <E extends CTX["events"]>(e: E) => SolidityQueryEventFn<E>
   event: <E extends CTX["events"]>(e: E) => SolidityEventFn<E>
   call: (<
     F extends NonOverloaded<CTX["functions"]>,
@@ -128,6 +145,7 @@ export type SolidityContractClient<
       overloaded: F,
       ...errors: E
     ) => SolidityTxFunctions<F, E>)
+  getError: SolidityPullClient["getError"]
   logger?: (meta: any) => void
 }
 
@@ -145,13 +163,24 @@ export const withContract = <
   },
 >(
   getContractAddress: () => string,
-  client: Pick<SolidityClient, "call" | "event" | "tx"> & {
+  client: Pick<
+    SolidityPullClient,
+    "call" | "event" | "tx" | "queryEvent" | "getError"
+  > & {
     logger?: (meta: any) => void
   },
 ): SolidityContractClient<CTX> => {
   const event = <E extends CTX["events"]>(e: E): SolidityEventFn<E> => {
     const ctx = client.event(e)
     return ((eventFilter: any) => ctx(eventFilter, getContractAddress())) as any
+  }
+
+  const queryEvent = <E extends CTX["events"]>(
+    e: E,
+  ): SolidityQueryEventFn<E> => {
+    const ctx = client.queryEvent(e)
+    return ((eventFilter: any, from: any, to: any) =>
+      ctx(eventFilter, from, to, getContractAddress())) as any
   }
 
   const call: (<
@@ -167,10 +196,13 @@ export const withContract = <
     >(
       overloaded: F,
       ...errors: E
-    ) => SolidityCallFunctions<F>) = withOverload(0, (fn: any) => {
-    const providerCall = client.call(fn)
-    return (...args: any) => providerCall(getContractAddress(), ...args)
-  })
+    ) => SolidityCallFunctions<F>) = withOverload(
+    0,
+    (fn: any, ...errors: any[]) => {
+      const providerCall = client.call(fn, ...errors)
+      return (...args: any) => providerCall(getContractAddress(), ...args)
+    },
+  )
 
   const tx: (<
     F extends MutableNonOverloaded<CTX["functions"]>,
@@ -185,11 +217,21 @@ export const withContract = <
     >(
       overloaded: F,
       ...errors: E
-    ) => SolidityTxFunctions<F, E>) = withOverload(1, (fn: any) => {
-    const providerTx = client.tx(fn)
-    return (fromAddress: string, ...args: any) =>
-      providerTx(getContractAddress(), fromAddress, ...args)
-  })
+    ) => SolidityTxFunctions<F, E>) = withOverload(
+    1,
+    (fn: any, ...errors: any[]) => {
+      const providerTx = client.tx(fn, ...errors)
+      return (fromAddress: string, ...args: any) =>
+        providerTx(getContractAddress(), fromAddress, ...args)
+    },
+  )
 
-  return { event, call, tx, logger: client.logger }
+  return {
+    event,
+    queryEvent,
+    call,
+    tx,
+    logger: client.logger,
+    getError: client.getError,
+  }
 }

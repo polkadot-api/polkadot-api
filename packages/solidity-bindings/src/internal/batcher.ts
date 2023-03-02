@@ -1,22 +1,32 @@
-import { SolidityFn } from "../descriptors/fn"
+import { SolidityFn, SolidityError, createErrorReader } from "../descriptors"
 
 interface BatchedCall {
   fn: SolidityFn<any, any, any, any>
+  errorReader: (possibleError: string) => null | { name: string; data: any }
   args: any[]
   res: (a: any) => void
   rej: (a: any) => void
 }
 
 export const batcher = (
-  base: (fn: SolidityFn<any, any, any, any>) => (...args: any) => Promise<any>,
+  base: (
+    fn: SolidityFn<any, any, any, any>,
+    ...errors: Array<SolidityError<any, any>>
+  ) => (...args: any) => Promise<any>,
   getGroupKey: (args: any[], fn: SolidityFn<any, any, any, any>) => string,
   handler: (calls: Array<BatchedCall>, key: string) => void,
   scheduler: (onFlush: () => void) => () => void,
 ) => {
   let batched = new Map<string, [() => void, Array<BatchedCall>]>()
 
-  return (fn: SolidityFn<any, any, any, any>) =>
-    (...args: any[]): Promise<any> => {
+  return (
+    fn: SolidityFn<any, any, any, any>,
+    ...errors: Array<SolidityError<any, any>>
+  ) => {
+    const errorReader = createErrorReader(errors)
+    const baseFn = base(fn, ...errors)
+
+    return (...args: any[]): Promise<any> => {
       const key = getGroupKey(args, fn)
       if (!batched.has(key)) {
         batched.set(key, [
@@ -26,8 +36,8 @@ export const batcher = (
             if (calls.length > 1) {
               handler(calls, key)
             } else {
-              const [{ fn, args, res, rej }] = calls
-              base(fn)(...args).then(res, rej)
+              const [{ args, res, rej }] = calls
+              baseFn(...args).then(res, rej)
             }
           }),
           [],
@@ -35,15 +45,19 @@ export const batcher = (
       }
 
       const [onData, calls] = batched.get(key)!
+
       const result = new Promise((res, rej) => {
         calls.push({
           fn,
+          errorReader,
           args,
           res,
           rej,
         })
       })
+
       onData()
       return result
     }
+  }
 }

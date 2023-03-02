@@ -1,7 +1,12 @@
 import type { UnionToIntersection, Untuple, InnerCodecsOrBlock } from "../utils"
 import type { SolidityFn } from "../descriptors/fn"
 import { withOverload, getTrackingId, logResponse } from "../internal"
-import { SolidityError, ErrorResult, errorsEnhancer } from "../descriptors"
+import {
+  SolidityError,
+  ErrorResult,
+  errorsEnhancer,
+  ErrorReader,
+} from "../descriptors"
 
 export type SolidityCallFunctions<
   A extends Array<SolidityFn<any, any, any, any>>,
@@ -50,6 +55,7 @@ export const getCall = (
     args: Array<any>,
     meta?: any,
   ) => Promise<T>,
+  errorReader: ErrorReader,
   logger?: (msg: any) => void,
 ): SolidityCallSingle & SolidityCallOverload =>
   withOverload(
@@ -58,7 +64,7 @@ export const getCall = (
       fn: SolidityFn<any, any, any, any>,
       ...errors: Array<SolidityError<any, any>>
     ) => {
-      const enhancer = errorsEnhancer(errors)
+      const eEnhancer = errorsEnhancer(errors, errorReader)
       return (contractAddress: string, ...args: any[]) => {
         let [actualArgs, toBlock] =
           args.length > fn.encoder.size
@@ -78,7 +84,7 @@ export const getCall = (
           trackingId,
         }
 
-        return enhancer(
+        return eEnhancer(
           request(
             type,
             [

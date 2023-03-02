@@ -3,7 +3,12 @@ import type {
   InnerCodecs,
   InnerCodecsOrPayableAmount,
 } from "../utils"
-import type { SolidityFn, SolidityError, ErrorResult } from "../descriptors"
+import type {
+  SolidityFn,
+  SolidityError,
+  ErrorResult,
+  ErrorReader,
+} from "../descriptors"
 import { errorsEnhancer } from "../descriptors"
 import { getTrackingId, logResponse, withOverload } from "../internal"
 
@@ -69,6 +74,7 @@ export type SolidityTxSingle = <
 
 export const getTx = (
   request: <T = any>(method: string, args: Array<any>, meta: any) => Promise<T>,
+  errorReader: ErrorReader,
   logger?: (msg: any) => void,
 ): SolidityTxSingle & SolidityTxOverload =>
   withOverload(
@@ -77,7 +83,7 @@ export const getTx = (
       fn: SolidityFn<any, any, any, 2 | 3>,
       ...errors: Array<SolidityError<any, any>>
     ) => {
-      const enhancer = errorsEnhancer(errors)
+      const enhancer = errorsEnhancer(errors, errorReader)
 
       return (
         contractAddress: string,

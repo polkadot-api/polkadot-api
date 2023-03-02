@@ -3,9 +3,11 @@ import { getSubscribe } from "./subscribe"
 import { getEvent } from "./event"
 import { getCall } from "./call"
 import { getTx } from "./tx"
+import { createErrorReader, SolidityError } from "../descriptors"
 
 export const createClient = (
   getProvider: () => JsonRpcProvider,
+  unhandledErrors: Array<SolidityError<any, any>>,
   logger?: (meta: any) => void,
 ) => {
   const subscribe = getSubscribe(getProvider)
@@ -19,10 +21,13 @@ export const createClient = (
     return getProvider().request(rawRequest)
   }
 
+  const getError = createErrorReader(unhandledErrors)
+
   return {
+    getError,
     request,
-    call: getCall(request, logger),
-    tx: getTx(request, logger),
+    call: getCall(request, getError, logger),
+    tx: getTx(request, getError, logger),
     subscribe,
     event: getEvent(subscribe),
   }

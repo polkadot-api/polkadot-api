@@ -42,6 +42,8 @@ export interface SolidityError<
   signature: string
 }
 
+export type ErrorReader = (data: string) => { name: string; data: any } | null
+
 export const solidityError = <
   F extends StringRecord<Codec<any>>,
   N extends string,
@@ -57,9 +59,46 @@ export const solidityError = <
   }
 }
 
-export const errorsEnhancer =
-  (errors: Array<SolidityError<any, any>>) =>
-  async <T>(p: Promise<T>) => {
+export const findErrorHex = (e: any) => {
+  let ee = e
+  const visited = new Set<any>([ee])
+  while (ee.data && !visited.has(ee.data)) {
+    ee = ee.data
+    visited.add(ee)
+  }
+  if (typeof ee !== "string") return null
+  return ee
+}
+
+export const createErrorReader = (errors: Array<SolidityError<any, any>>) => {
+  const errorsMap = new Map<string, SolidityError<any, any>>(
+    errors.map((e) => [e.signature, e]),
+  )
+
+  return (data: string) => {
+    try {
+      const key = data.slice(0, 10)
+      const err = errorsMap.get(key)
+
+      return !err
+        ? null
+        : {
+            name: err.name,
+            data: err.decodeArgs(fromHex(data).slice(4)),
+          }
+    } catch (_) {
+      return null
+    }
+  }
+}
+
+export const errorsEnhancer = (
+  errors: Array<SolidityError<any, any>>,
+  unhandledErrorReader: ErrorReader,
+) => {
+  const readError = createErrorReader(errors)
+
+  return async <T>(p: Promise<T>) => {
     if (errors.length === 0) return p
 
     try {
@@ -69,22 +108,18 @@ export const errorsEnhancer =
         result,
       }
     } catch (e: any) {
-      let ee = e
-      const visited = new Set<any>([ee])
-      while (ee.data && !visited.has(ee.data)) {
-        ee = ee.data
-        visited.add(ee)
-      }
-      if (typeof ee !== "string") throw e
-      const err = errors.find((x) => ee.startsWith(x.signature))
-      if (!err) throw e
+      const errorHex = findErrorHex(e)
+      if (!errorHex) throw e
 
-      return {
-        ok: false,
-        error: {
-          name: err.name,
-          data: err.decodeArgs(fromHex(ee).slice(4)),
-        },
-      }
+      let error = readError(errorHex)
+
+      if (error)
+        return {
+          ok: false,
+          error,
+        }
+      error = unhandledErrorReader(errorHex)
+      throw error ? error : e
     }
   }
+}
