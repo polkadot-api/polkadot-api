@@ -131,16 +131,10 @@ export const getPullingEvent = (
       ])
 
       return results.map((message: any) => {
-        let msg
-        try {
-          msg = {
-            data: e.decodeData(message.data),
-            filters: e.decodeFilters(message.topics),
-            message,
-          }
-          return msg
-        } catch (e) {
-          return { message }
+        return {
+          data: e.decodeData(message.data),
+          filters: e.decodeFilters(message.topics),
+          message,
         }
       })
     }
@@ -150,6 +144,7 @@ export const getPullingEvent = (
     (
       eventFilter: Partial<EventFilter<F>>,
       contractAddress?: string,
+      startAtBlock?: number,
     ): Observable<{
       data: Untuple<O>
       filters: EventFilter<F>
@@ -183,16 +178,18 @@ export const getPullingEvent = (
       }
 
       return new Observable((observer) => {
-        let nextBlockToRequest = 0
+        let fromBlock = startAtBlock ?? 0
         return addListener(
           subscriptionId,
           (currentBlockNumber) =>
             requestEvent(
-              nextBlockToRequest || currentBlockNumber,
+              fromBlock > 0 && fromBlock < currentBlockNumber
+                ? fromBlock
+                : currentBlockNumber,
               currentBlockNumber,
             ),
           (x, processedBlockNumber) => {
-            nextBlockToRequest = processedBlockNumber + 1
+            fromBlock = processedBlockNumber + 1
             if (observer.closed) return
             x.forEach((message: any) => {
               let msg

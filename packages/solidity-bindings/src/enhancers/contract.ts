@@ -72,7 +72,10 @@ type SolidityTxFunction<
 
 type SolidityEventFn<E extends SolidityEvent<any, any, any>> =
   E extends SolidityEvent<infer F, infer O, any>
-    ? (eventFilter: Partial<EventFilter<F>>) => Observable<{
+    ? (
+        eventFilter: Partial<EventFilter<F>>,
+        startAtBlock?: number,
+      ) => Observable<{
         data: Untuple<O>
         filters: EventFilter<F>
         message: any
@@ -85,14 +88,11 @@ type SolidityQueryEventFn<E extends SolidityEvent<any, any, any>> =
         eventFilter: Partial<EventFilter<F>>,
         from: number | "latest" | "pending" | "earliest",
         to: number | "latest" | "pending" | "earliest",
-      ) => Array<
-        | {
-            data: Untuple<O>
-            filters: EventFilter<F>
-            message: any
-          }
-        | { message: any }
-      >
+      ) => Array<{
+        data: Untuple<O>
+        filters: EventFilter<F>
+        message: any
+      }>
     : never
 
 type SolidityCallFunction<
@@ -172,7 +172,8 @@ export const withContract = <
 ): SolidityContractClient<CTX> => {
   const event = <E extends CTX["events"]>(e: E): SolidityEventFn<E> => {
     const ctx = client.event(e)
-    return ((eventFilter: any) => ctx(eventFilter, getContractAddress())) as any
+    return ((eventFilter: any, ...other: Array<any>) =>
+      ctx(eventFilter, getContractAddress(), ...other)) as any
   }
 
   const queryEvent = <E extends CTX["events"]>(
