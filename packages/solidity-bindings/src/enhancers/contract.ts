@@ -88,11 +88,13 @@ type SolidityQueryEventFn<E extends SolidityEvent<any, any, any>> =
         eventFilter: Partial<EventFilter<F>>,
         from: number | "latest" | "pending" | "earliest",
         to: number | "latest" | "pending" | "earliest",
-      ) => Array<{
-        data: Untuple<O>
-        filters: EventFilter<F>
-        message: any
-      }>
+      ) => Promise<
+        Array<{
+          data: Untuple<O>
+          filters: EventFilter<F>
+          message: any
+        }>
+      >
     : never
 
 type SolidityCallFunction<

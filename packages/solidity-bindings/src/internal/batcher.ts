@@ -2,7 +2,7 @@ import { SolidityFn, SolidityError, createErrorReader } from "../descriptors"
 
 interface BatchedCall {
   fn: SolidityFn<any, any, any, any>
-  errorReader: (possibleError: string) => null | { name: string; data: any }
+  errorReader?: (possibleError: string) => null | { name: string; data: any }
   args: any[]
   res: (a: any) => void
   rej: (a: any) => void
@@ -23,7 +23,8 @@ export const batcher = (
     fn: SolidityFn<any, any, any, any>,
     ...errors: Array<SolidityError<any, any>>
   ) => {
-    const errorReader = createErrorReader(errors)
+    const errorReader =
+      errors.length > 0 ? createErrorReader(errors) : undefined
     const baseFn = base(fn, ...errors)
 
     return (...args: any[]): Promise<any> => {

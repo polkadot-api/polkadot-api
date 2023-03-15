@@ -76,13 +76,17 @@ export const withMulticall = <
               let response = returnData
               if (success) {
                 try {
-                  res((response = fn.decoder(returnData)))
+                  response = fn.decoder(returnData)
+                  response = errorReader
+                    ? ({ ok: true, result: response } as any)
+                    : response
+                  res(response)
                 } catch (e: any) {
                   success = false
                   rej((response = e))
                 }
               } else {
-                const error = errorReader(rawResponse)
+                const error = errorReader?.(rawResponse)
                 if (error) {
                   response = {
                     ok: false,
