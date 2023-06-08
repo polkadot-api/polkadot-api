@@ -88,6 +88,31 @@ describe("RPC Client", () => {
       expect(response).toEqual(result)
     })
 
+    it("does't confuse null results with errors", async () => {
+      expect(sent.length).toBe(0)
+
+      const method = "getData"
+      const params = ["foo", "bar"]
+      const request = client.requestReply<{ foo: string }>(method, params)
+
+      expect(sent.length).toBe(1)
+      testLastMessage({
+        id: 1,
+        method,
+        params,
+      })
+
+      const result = null
+
+      incommingMessage({
+        id: 1,
+        result,
+      })
+
+      const response = await request
+      expect(response).toEqual(result)
+    })
+
     it("multiplexes ongoing requests", async () => {
       expect(sent.length).toBe(0)
 

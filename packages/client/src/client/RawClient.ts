@@ -43,7 +43,9 @@ export const createRawClient = (gProvider: GetProvider): RawClient => {
       if (id === null) return
 
       if (id)
-        return callbacks.get(id)?.(result ?? new ErrorRpc(error!))
+        return callbacks.get(id)?.(
+          result === undefined ? new ErrorRpc(error!) : result,
+        )
 
         // at this point, it means that it should be a subscription
       ;({ subscription, result, error } = params)
