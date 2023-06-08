@@ -30,3 +30,6 @@ packages/solidity-codegen/dist/**
 packages/sc-provider/dist/**
 !packages/sc-provider/dist/index.cjs
 !packages/sc-provider/dist/index.js
+packages/substrate-bindings/dist/**
+!packages/substrate-bindings/dist/index.cjs
+!packages/substrate-bindings/dist/index.js
