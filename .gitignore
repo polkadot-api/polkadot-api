@@ -27,3 +27,6 @@ packages/solidity-bindings/dist/**
 packages/solidity-codegen/dist/**
 !packages/solidity-codegen/dist/index.cjs
 !packages/solidity-codegen/dist/index.js
+packages/sc-provider/dist/**
+!packages/sc-provider/dist/index.cjs
+!packages/sc-provider/dist/index.js
