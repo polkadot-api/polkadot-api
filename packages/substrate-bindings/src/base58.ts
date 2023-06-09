@@ -68,7 +68,7 @@ export function encodeBase58(source: Uint8Array) {
   return str
 }
 
-export function decodeBase58(source: string): Buffer {
+export function decodeBase58(source: string): Uint8Array {
   let psz = 0
   // Skip and count leading '1's.
   let zeroes = 0
@@ -109,7 +109,8 @@ export function decodeBase58(source: string): Buffer {
   while (it4 !== size && b256[it4] === 0) {
     it4++
   }
-  const vch = Buffer.allocUnsafe(zeroes + (size - it4))
+  // const vch = Buffer.allocUnsafe(zeroes + (size - it4))
+  const vch = new Uint8Array(zeroes + (size - it4))
   vch.fill(0x00, 0, zeroes)
   let j = zeroes
   while (it4 !== size) {

@@ -32,7 +32,7 @@ const fromBufferToBase58 = (ss58Format: number = 42) => {
 }
 
 function fromBase58ToBuffer(address: string) {
-  const decoded = new Uint8Array(decodeBase58(address))
+  const decoded = decodeBase58(address)
   const ss58Length = decoded[0] & 0b0100_0000 ? 2 : 1
   const isPublicKey = [34 + ss58Length, 35 + ss58Length].includes(
     decoded.length,
