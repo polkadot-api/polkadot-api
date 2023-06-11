@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/unstoppablejs/unstoppablejs.git"
@@ -42,8 +42,13 @@
   },
   "name": "@unstoppablejs/sc-provider",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "peerDependencies": {
+    "@substrate/connect": ">=0.7.28"
+  },
   "dependencies": {
-    "@unstoppablejs/provider": "^0.0.1",
-    "@substrate/connect": "^0.7.26"
+    "@unstoppablejs/provider": "^0.0.1"
+  },
+  "devDependencies": {
+    "@substrate/connect": "^0.7.28"
   }
 }
