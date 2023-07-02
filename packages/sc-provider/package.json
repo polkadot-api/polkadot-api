@@ -43,12 +43,12 @@
   "name": "@unstoppablejs/sc-provider",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "peerDependencies": {
-    "@substrate/connect": ">=0.7.28"
+    "@substrate/connect": ">=0.7.29"
   },
   "dependencies": {
     "@unstoppablejs/provider": "^0.0.1"
   },
   "devDependencies": {
-    "@substrate/connect": "^0.7.28"
+    "@substrate/connect": "^0.7.29"
   }
 }
