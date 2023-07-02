@@ -1,10 +1,18 @@
-import { Chain, WellKnownChain, createScClient } from "@substrate/connect"
+import {
+  Chain,
+  WellKnownChain,
+  createScClient,
+  Config,
+} from "@substrate/connect"
 import { Provider, ProviderStatus, GetProvider } from "@unstoppablejs/provider"
 
 const wellKnownChains = new Set(Object.values(WellKnownChain))
 
-export const ScProvider = (input: WellKnownChain | string): GetProvider => {
-  const client = createScClient()
+export const ScProvider = (
+  input: WellKnownChain | string,
+  config?: Config,
+): GetProvider => {
+  const client = createScClient(config)
 
   return (onMessage, onStatus): Provider => {
     let chain: Chain
