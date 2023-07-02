@@ -77,3 +77,34 @@ const create128Dec = (
 
 export const u128 = createCodec(x128Enc, create128Dec("getBigUint64"))
 export const i128 = createCodec(x128Enc, create128Dec("getBigInt64"))
+
+const x256Enc: Encoder<bigint> = (value) => {
+  const result = new Uint8Array(32)
+  const dv = new DataView(result.buffer)
+  dv.setBigInt64(0, value, true)
+  dv.setBigInt64(8, value >> 64n, true)
+  dv.setBigInt64(16, value >> 128n, true)
+  dv.setBigInt64(24, value >> 192n, true)
+  return result
+}
+
+const create256Dec = (
+  method: "getBigInt64" | "getBigUint64",
+): Decoder<bigint> =>
+  toInternalBytes((input) => {
+    let result = input.v.getBigUint64(input.i, true)
+    input.i += 8
+
+    result |= input.v.getBigUint64(input.i, true) << 64n
+    input.i += 8
+
+    result |= input.v.getBigUint64(input.i, true) << 128n
+    input.i += 8
+
+    result |= input.v[method](input.i, true) << 192n
+    input.i += 8
+
+    return result
+  })
+export const u256 = createCodec(x256Enc, create256Dec("getBigUint64"))
+export const i256 = createCodec(x256Enc, create256Dec("getBigInt64"))

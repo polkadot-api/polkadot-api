@@ -205,8 +205,7 @@ or "codec-creator functions", which is a much more descriptive name.
 
 ### [Fixed-width integers](https://docs.substrate.io/v3/advanced/scale-codec/#fixed-width-integers)
 
-Supported codecs are: `u8`, `u16`, `u32`, `u64`, `u128`,
-`i8`, `i16`, `i32`, `i64`, `i128`
+Supported codecs are: `u8`, `u16`, `u32`, `u64`, `u128`, `u256`, `i8`, `i16`, `i32`, `i64`, `i128`, `i256`
 
 ```ts
 i128.enc(-18676936063680574795862633153229949450n)
