@@ -49,11 +49,11 @@
   "peerDependencies": {
     "@unstoppablejs/client": ">0.2.0",
     "rxjs": ">=7.0.0",
-    "scale-ts": ">=1.0.0"
+    "scale-ts": ">=1.1.0"
   },
   "devDependencies": {
     "@unstoppablejs/client": "^0.2.1",
     "rxjs": "^7.5.5",
-    "scale-ts": "^1.0.0"
+    "scale-ts": "^1.1.0"
   }
 }
