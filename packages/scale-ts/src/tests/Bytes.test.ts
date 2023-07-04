@@ -14,4 +14,9 @@ describe("Bytes", () => {
     expect(codec[1]("0x000fff01")).toEqual(value)
     expect(codec[1]("0x00fff01")).toEqual(value)
   })
+
+  it("Bytes()", () => {
+    const tester = testCodec(Bytes())
+    tester(new Uint8Array([0, 15, 255]), "0x0c000fff")
+  })
 })
