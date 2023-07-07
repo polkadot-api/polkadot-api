@@ -11,7 +11,7 @@ describe("createClient", () => {
   describe("request", () => {
     it("calls request on the provider with the correct arguments", () => {
       const provider = mockedProvider()
-      const client = createClient(() => provider as any)
+      const client = createClient(() => provider as any, [])
       client.request("foo", ["bar", "baz"])
 
       expect(provider.request).toHaveBeenCalledWith({
@@ -27,7 +27,7 @@ describe("createClient", () => {
 
       const provider = mockedProvider()
       provider.request = jest.fn(() => Promise.resolve(""))
-      const client = createClient(() => provider as any)
+      const client = createClient(() => provider as any, [])
       const getSam = client.call(sam)
 
       const textEncoder = new TextEncoder()
@@ -102,7 +102,7 @@ describe("createClient", () => {
         Promise.resolve(responseCodec.enc(["dave", true, [1n, 2n, 3n]])),
       )
 
-      const client = createClient(() => provider as any)
+      const client = createClient(() => provider as any, [])
       const getSam = client.call(sam)
 
       const textEncoder = new TextEncoder()
@@ -123,7 +123,7 @@ describe("createClient", () => {
 
       const provider = mockedProvider()
       provider.request = jest.fn(() => Promise.resolve("txnumber"))
-      const client = createClient(() => provider as any)
+      const client = createClient(() => provider as any, [])
       const getSam = client.tx(sam)
 
       const textEncoder = new TextEncoder()
