@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@unstoppablejs/provider --workspace=@unstoppablejs/utils --workspace=@unstoppablejs/solidity-codegen && npm run build --workspace=scale-ts --workspace=solidity-codecs --workspace=@unstoppablejs/ws-provider --workspace=@unstoppablejs/sc-provider && npm run build --workspace=@unstoppablejs/solidity-bindings --workspace=@unstoppablejs/client && npm run build --workspace=@unstoppablejs/substrate-bindings ",
+    "build": "npm run build --workspace=@unstoppablejs/substrate-codecs --workspace=@unstoppablejs/substrate-client && npm run build --workspace=@unstoppablejs/substrate-codegen --workspace=@unstoppablejs/substrate-bindings",
     "lint": "npm run lint --workspaces",
     "format": "npm run format --workspaces",
     "test": "npm run test --workspaces",
@@ -17,13 +17,8 @@
     "trailingComma": "all"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.17.10",
-    "@babel/preset-typescript": "^7.16.7",
-    "@testing-library/jest-dom": "^5.16.4",
-    "@types/jest": "^27.5.0",
     "esbuild": "^0.14.38",
     "husky": ">=6",
-    "jest": "^27.5.1",
     "lint-staged": "^12.4.1",
     "prettier": "^2.6.2",
     "ts-jest": "^27.1.4",
