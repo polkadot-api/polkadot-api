@@ -1,7 +1,7 @@
 import type { Codec, Decoder, Encoder } from "./types"
 import { toInternalBytes } from "./internal"
 
-export const createEncoder: <T>(fn: (input: Uint8Array) => T) => Decoder<T> =
+export const createDecoder: <T>(fn: (input: Uint8Array) => T) => Decoder<T> =
   toInternalBytes as any
 
 export const createCodec = <T>(
