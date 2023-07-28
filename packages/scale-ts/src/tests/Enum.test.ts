@@ -41,3 +41,47 @@ describe("Enum", () => {
     tester({ tag: "optVoid", value: undefined }, "0x0400")
   })
 })
+
+const testerWithIdxs = testCodec(
+  Enum(
+    {
+      nothingHere: _void,
+      someNumber: u8,
+      trueOrFalse: bool,
+      optionalBool: Option(bool),
+      optVoid: Option(_void),
+    },
+    [255, 0, 15, 1, 254],
+  ),
+)
+
+describe("Enum", () => {
+  it("Void()", () => {
+    testerWithIdxs({ tag: "nothingHere" }, "0xff")
+  })
+
+  it("Int(42)", () => {
+    testerWithIdxs({ tag: "someNumber", value: 42 }, "0x002a")
+  })
+
+  it("Bool(true)", () => {
+    testerWithIdxs({ tag: "trueOrFalse", value: true }, "0x0f01")
+  })
+
+  it("Option(true)", () => {
+    testerWithIdxs({ tag: "optionalBool", value: true }, "0x0101")
+  })
+
+  it("Option(false)", () => {
+    testerWithIdxs({ tag: "optionalBool", value: false }, "0x0102")
+  })
+
+  it("Option()", () => {
+    testerWithIdxs({ tag: "optionalBool" }, "0x0100")
+  })
+
+  it("Option(_void)", () => {
+    testerWithIdxs({ tag: "optVoid" }, "0xfe00")
+    testerWithIdxs({ tag: "optVoid", value: undefined }, "0xfe00")
+  })
+})
