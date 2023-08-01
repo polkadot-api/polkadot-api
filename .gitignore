@@ -15,3 +15,4 @@ packages/substrate-codecs/dist/**
 packages/substrate-codegen/dist/**
 !packages/substrate-codegen/dist/index.cjs
 !packages/substrate-codegen/dist/index.js
+.vscode
