@@ -2,44 +2,60 @@ import { Bytes, enhanceCodec } from "scale-ts"
 import { blake2b } from "@noble/hashes/blake2b"
 import { decodeBase58, encodeBase58 } from "./base58"
 
-const SS58_PREFIX = new Uint8Array(
-  "SS58PRE".split("").map((x) => x.charCodeAt(0)),
-)
+const SS58_PREFIX = new TextEncoder().encode("SS58PRE")
 
-const fromBufferToBase58 = (ss58Format: number = 42) => {
-  const prefixedBytes =
+const CHECKSUM_LENGTH = 2
+
+const fromBufferToBase58 = (ss58Format: number) => {
+  const prefixBytes =
     ss58Format < 64
-      ? [ss58Format]
-      : [
+      ? Uint8Array.of(ss58Format)
+      : Uint8Array.of(
           ((ss58Format & 0b0000_0000_1111_1100) >> 2) | 0b0100_0000,
           (ss58Format >> 8) | ((ss58Format & 0b0000_0000_0000_0011) << 6),
-        ]
-
+        )
   return (publicKey: Uint8Array) => {
-    const prefixed = new Uint8Array(publicKey.byteLength + prefixedBytes.length)
-    prefixed.set(new Uint8Array(prefixedBytes), 0)
-    prefixed.set(publicKey, prefixedBytes.length)
-
-    const hash = blake2b(new Uint8Array([...SS58_PREFIX, ...prefixed]), {
-      dkLen: 64,
-    }).subarray(
-      0,
-      publicKey.byteLength === 32 || publicKey.byteLength === 33 ? 2 : 1,
+    const checksum = blake2b(
+      Uint8Array.of(...SS58_PREFIX, ...prefixBytes, ...publicKey),
+      {
+        dkLen: 64,
+      },
+    ).subarray(0, CHECKSUM_LENGTH)
+    return encodeBase58(
+      Uint8Array.of(...prefixBytes, ...publicKey, ...checksum),
     )
-
-    return encodeBase58(new Uint8Array([...prefixed, ...hash]))
   }
 }
 
-function fromBase58ToBuffer(address: string) {
-  const decoded = decodeBase58(address)
-  const ss58Length = decoded[0] & 0b0100_0000 ? 2 : 1
-  const isPublicKey = [34 + ss58Length, 35 + ss58Length].includes(
-    decoded.length,
-  )
-  const length = decoded.length - (isPublicKey ? 2 : 1)
-  return decoded.slice(ss58Length, length)
+function fromBase58ToBuffer(nBytes: number) {
+  return (address: string) => {
+    const decoded = decodeBase58(address)
+    const prefixBytes = decoded.subarray(0, decoded[0] & 0b0100_0000 ? 2 : 1)
+    const publicKey = decoded.subarray(
+      prefixBytes.length,
+      decoded.length - CHECKSUM_LENGTH,
+    )
+    if (publicKey.length !== nBytes)
+      throw new Error("Invalid public key length")
+    const checksum = decoded.subarray(prefixBytes.length + publicKey.length)
+    const expectedChecksum = blake2b(
+      Uint8Array.of(...SS58_PREFIX, ...prefixBytes, ...publicKey),
+      {
+        dkLen: 64,
+      },
+    ).subarray(0, CHECKSUM_LENGTH)
+    if (
+      checksum[0] !== expectedChecksum[0] ||
+      checksum[1] !== expectedChecksum[1]
+    )
+      throw new Error("Invalid checksum")
+    return publicKey.slice()
+  }
 }
 
-export const AccountId = (ss58Format: number) =>
-  enhanceCodec(Bytes(32), fromBase58ToBuffer, fromBufferToBase58(ss58Format))
+export const AccountId = (ss58Format: number = 42, nBytes: 32 | 33 = 32) =>
+  enhanceCodec(
+    Bytes(nBytes),
+    fromBase58ToBuffer(nBytes),
+    fromBufferToBase58(ss58Format),
+  )
