@@ -1,7 +1,6 @@
 import { expect, test } from "vitest"
 import { bytesToHex } from "@noble/hashes/utils"
 
-import { decodeBase58, encodeBase58 } from "../src/base58"
 import { AccountId } from "../src/AccountId"
 
 test.each([
@@ -44,9 +43,7 @@ test("AccountId encode should throw with an invalid payload length", () => {
 
 test("AccountId encode should throw with an invalid checksum", () => {
   const codec = AccountId(42, 33)
-  const ss58Address = "KVqMLDzVyHChtJ8imRTkP22Tuz8Yd7X9MABUhz1rHNpHny12V"
-  const ss58AddressBytes = decodeBase58(ss58Address)
-  // update last checksum byte
-  ss58AddressBytes[ss58AddressBytes.length - 1]--
-  expect(() => codec.enc(encodeBase58(ss58AddressBytes))).toThrowError()
+  // ss58 with invalid checksum
+  const ss58Address = "KVqMLDzVyHChtJ8imRTkP22Tuz8Yd7X9MABUhz1rHNpHnxw8j"
+  expect(() => codec.enc(ss58Address)).toThrowError()
 })
