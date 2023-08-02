@@ -1,1 +1,4 @@
-export const Identity = (encoded: Uint8Array): Uint8Array => encoded
+import { Endomorphism } from "fp-ts/lib/Endomorphism"
+import { identity } from "fp-ts/lib/function"
+
+export const Identity: Endomorphism<Uint8Array> = identity

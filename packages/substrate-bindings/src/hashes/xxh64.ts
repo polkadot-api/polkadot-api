@@ -28,7 +28,7 @@ const PRIME64_3 = 1609587929392839161n
 const PRIME64_4 = 9650029242287828579n
 const PRIME64_5 = 2870177450012600261n
 
-export function h64(input: Uint8Array, seed: bigint = 0n) {
+export function xxh64(input: Uint8Array, seed: bigint = 0n) {
   let v1 = add(add(seed, PRIME64_1), PRIME64_2)
   let v2 = add(seed, PRIME64_2)
   let v3 = seed
@@ -36,7 +36,6 @@ export function h64(input: Uint8Array, seed: bigint = 0n) {
   let totalLen = input.length
   let memsize = 0
   let memory: Uint8Array | null = null
-
   ;(function update() {
     let p = 0
     let bEnd = p + totalLen
