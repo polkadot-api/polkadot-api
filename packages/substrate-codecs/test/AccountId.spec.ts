@@ -27,7 +27,7 @@ test.each([
 )
 
 test("AccountId should decode/encode 33 byte payload", () => {
-  const codec = AccountId(42)
+  const codec = AccountId(42, 33)
   const ss58Address = "KVqMLDzVyHChtJ8imRTkP22Tuz8Yd7X9MABUhz1rHNpHny12V"
   const publicKey = codec.enc(ss58Address)
   expect(publicKey).toHaveLength(33)

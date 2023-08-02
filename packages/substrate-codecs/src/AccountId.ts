@@ -41,5 +41,9 @@ function fromBase58ToBuffer(address: string) {
   return decoded.slice(ss58Length, length)
 }
 
-export const AccountId = (ss58Format: number) =>
-  enhanceCodec(Bytes(32), fromBase58ToBuffer, fromBufferToBase58(ss58Format))
+export const AccountId = (ss58Format: number, nBytes: 32 | 33 = 32) =>
+  enhanceCodec(
+    Bytes(nBytes),
+    fromBase58ToBuffer,
+    fromBufferToBase58(ss58Format),
+  )
