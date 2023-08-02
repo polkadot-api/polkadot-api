@@ -66,13 +66,14 @@ const _buildSyntax = (
     const nonCircular = getVarName(input.id)
     const variable: Variable = {
       id: getVarName(input.id, true),
-      types: `Codec<() => typeof ${nonCircular} extends Codec<infer V> ? V : unknown>`,
-      value: `lazy(() => ${nonCircular})`,
+      types: `Codec<{ self: CodecType<typeof ${nonCircular}> }>`,
+      value: `Self(() => ${nonCircular})`,
       directDependencies: new Set([nonCircular]),
     }
 
-    declarations.imports.add("lazy")
     declarations.imports.add("Codec")
+    declarations.imports.add("CodecType")
+    declarations.imports.add("Self")
     declarations.variables.set(variable.id, variable)
     return variable.id
   }
