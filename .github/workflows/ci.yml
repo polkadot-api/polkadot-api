@@ -12,24 +12,22 @@ jobs:
   build:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    name: "Build&Test: node-18, ubuntu-latest"
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.5.3
 
-      - name: Set node v18
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
           cache: npm
-
       - name: Install deps
         run: npm ci
-
-      - name: Lint
+      - name: Run lint
         run: npm run lint
-
-      - name: Test
+      - name: Run tests
         run: npm run test
-
       - name: Build
         run: npm run build
