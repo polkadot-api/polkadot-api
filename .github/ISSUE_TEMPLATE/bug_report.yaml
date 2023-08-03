@@ -65,7 +65,6 @@ body:
       label: What node_version are you using?
       multiple: true
       options:
-        - v 16.x
         - v 18.x
         - v 20.x
         - Other (fill in next field)
