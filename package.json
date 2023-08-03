@@ -17,6 +17,7 @@
     "trailingComma": "all"
   },
   "devDependencies": {
+    "@fast-check/vitest": "^0.0.6",
     "esbuild": "^0.18.17",
     "husky": ">=6",
     "lint-staged": "^12.4.1",

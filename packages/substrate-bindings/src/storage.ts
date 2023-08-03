@@ -2,7 +2,7 @@ import { mergeUint8, toHex, utf16StrToUtf8Bytes } from "@unstoppablejs/utils"
 import { Decoder, Encoder } from "@unstoppablejs/substrate-codecs"
 import { Twox128 } from "./hashes"
 
-type EncoderWithHash<T> = [Encoder<T>, (input: Uint8Array) => Uint8Array]
+export type EncoderWithHash<T> = [Encoder<T>, (input: Uint8Array) => Uint8Array]
 
 export const Storage = (pallet: string) => {
   const palledEncoded = Twox128(utf16StrToUtf8Bytes(pallet))
