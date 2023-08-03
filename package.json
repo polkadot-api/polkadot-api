@@ -17,6 +17,7 @@
     "trailingComma": "all"
   },
   "devDependencies": {
+    "@fast-check/vitest": "^0.0.6",
     "esbuild": "^0.18.17",
     "husky": ">=6",
     "lint-staged": "^12.4.1",
@@ -28,9 +29,5 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": "prettier --write"
-  },
-  "dependencies": {
-    "@fast-check/vitest": "^0.0.6",
-    "vitest": "^0.34.1"
   }
 }
