@@ -28,9 +28,9 @@
   ],
   "scripts": {
     "build": "npm run build:ts && npm run build:esm && npm run build:cjs:dev && npm run build:cjs:prod",
-    "build:esm": "esbuild src/index.ts --bundle --external:@noble/hashes --external:scale-ts --outfile=./dist/substrate-codecs.js --target=es2020 --format=esm --sourcemap && cp ./dist/substrate-codecs.js ./dist/substrate-codecs.mjs && cp ./dist/substrate-codecs.js.map ./dist/substrate-codecs.mjs.map",
-    "build:cjs:dev": "esbuild src/index.ts --bundle --external:@noble/hashes --external:scale-ts --outfile=./dist/substrate-codecs.cjs.development.js --target=es2020 --format=cjs --sourcemap",
-    "build:cjs:prod": "esbuild src/index.ts --bundle --external:@noble/hashes --external:scale-ts --outfile=./dist/substrate-codecs.cjs.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
+    "build:esm": "esbuild src/index.ts --bundle --external:@scure/base --external:@noble/hashes --external:scale-ts --outfile=./dist/substrate-codecs.js --target=es2020 --format=esm --sourcemap && cp ./dist/substrate-codecs.js ./dist/substrate-codecs.mjs && cp ./dist/substrate-codecs.js.map ./dist/substrate-codecs.mjs.map",
+    "build:cjs:dev": "esbuild src/index.ts --bundle --external:@scure/base --external:@noble/hashes --external:scale-ts --outfile=./dist/substrate-codecs.cjs.development.js --target=es2020 --format=cjs --sourcemap",
+    "build:cjs:prod": "esbuild src/index.ts --bundle --external:@scure/base --external:@noble/hashes --external:scale-ts --outfile=./dist/substrate-codecs.cjs.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
     "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly",
     "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.3.1",
+    "@scure/base": "^1.1.1",
     "scale-ts": "^1.4.0"
   }
 }
