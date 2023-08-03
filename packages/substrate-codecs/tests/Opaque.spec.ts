@@ -1,4 +1,4 @@
-import { OpaqueCodec } from "@/Opaque"
+import { OpaqueCodec } from "@/."
 import { randomBytes } from "@noble/hashes/utils"
 import { bool, Bytes, enhanceCodec, str, Struct, u32 } from "scale-ts"
 import { describe, expect, test } from "vitest"
