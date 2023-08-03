@@ -1,6 +1,6 @@
 import { Bytes, enhanceCodec } from "scale-ts"
 import { blake2b } from "@noble/hashes/blake2b"
-import { decodeBase58, encodeBase58 } from "./base58"
+import { base58 } from "@scure/base"
 
 const SS58_PREFIX = new TextEncoder().encode("SS58PRE")
 
@@ -21,7 +21,7 @@ const fromBufferToBase58 = (ss58Format: number) => {
         dkLen: 64,
       },
     ).subarray(0, CHECKSUM_LENGTH)
-    return encodeBase58(
+    return base58.encode(
       Uint8Array.of(...prefixBytes, ...publicKey, ...checksum),
     )
   }
@@ -29,7 +29,7 @@ const fromBufferToBase58 = (ss58Format: number) => {
 
 function fromBase58ToBuffer(nBytes: number) {
   return (address: string) => {
-    const decoded = decodeBase58(address)
+    const decoded = base58.decode(address)
     const prefixBytes = decoded.subarray(0, decoded[0] & 0b0100_0000 ? 2 : 1)
     const publicKey = decoded.subarray(
       prefixBytes.length,
