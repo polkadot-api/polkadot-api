@@ -15,12 +15,12 @@ const _buildCodec = (
   if (input.type === "primitive")
     return scale[input.value as "_void"] as Codec<any>
   if (input.type === "compact") return scale.compact
+  if (input.type === "bitSequence") return scale.bitSequence
 
   if (
-    input.type === "bitSequence" ||
-    (input.type === "sequence" &&
-      input.value.type === "primitive" &&
-      input.value.value === "u8")
+    input.type === "sequence" &&
+    input.value.type === "primitive" &&
+    input.value.value === "u8"
   ) {
     return _bytes
   }
