@@ -8,9 +8,10 @@ import {
   compact,
   _void,
   Codec,
-} from "@unstoppablejs/substrate-codecs"
+  CodecType,
+} from "scale-ts"
 
-export const hashType = Enum({
+const hashType = Enum({
   Blake2128: _void,
   Blake2256: _void,
   Blake2128Concat: _void,
@@ -39,7 +40,7 @@ const storageItem = Struct({
   docs: Vector(str),
 })
 
-export const storage = Option(
+const storage = Option(
   Struct({
     prefix: str,
     items: Vector(storageItem),
@@ -64,3 +65,5 @@ export const pallets = Vector(
     index: u8,
   }),
 )
+
+export type V14Pallets = CodecType<typeof pallets>

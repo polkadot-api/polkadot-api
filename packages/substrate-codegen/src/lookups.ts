@@ -1,5 +1,4 @@
-import type { Codec, StringRecord } from "@unstoppablejs/substrate-codecs"
-import { lookup } from "./metadata/lookup"
+import type { StringRecord, V14Lookup } from "@unstoppablejs/substrate-codecs"
 
 export type PrimitiveVar = { type: "primitive"; value: string }
 export type CompactVar = { type: "compact"; isBig: boolean }
@@ -35,8 +34,6 @@ export type LookupEntry = {
   id: number
 } & Var
 
-type LookupData = typeof lookup extends Codec<infer V> ? V : unknown
-
 const toCamelCase = (...parts: string[]): string =>
   parts[0] +
   parts
@@ -44,7 +41,7 @@ const toCamelCase = (...parts: string[]): string =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join("")
 
-export const getLookupFns = (lookupData: LookupData) => {
+export const getLookupFns = (lookupData: V14Lookup) => {
   const codecs = new Map<number, LookupEntry>()
   const from = new Set<number>()
 
