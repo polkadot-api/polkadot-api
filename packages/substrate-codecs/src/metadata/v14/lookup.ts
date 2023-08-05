@@ -51,16 +51,18 @@ const bitSequence = Struct({
   bitOrderType: compact,
 })
 
+const variant = Vector(
+  Struct({
+    name: str,
+    fields,
+    index: u8,
+    docs: strs,
+  }),
+)
+
 const def = Enum({
   composite: fields,
-  variant: Vector(
-    Struct({
-      name: str,
-      fields,
-      index: u8,
-      docs: strs,
-    }),
-  ),
+  variant,
   sequence: compact,
   array: arr,
   tuple: Vector(compact),
@@ -70,21 +72,18 @@ const def = Enum({
   historicMetaCompat: str,
 })
 
-const entryType = Struct({
-  path: strs,
-  params: Vector(
-    Struct({
-      name: str,
-      type: Option(compact),
-    }),
-  ),
-  def,
-  docs: strs,
+const param = Struct({
+  name: str,
+  type: Option(compact),
 })
+const params = Vector(param)
 
 const entry = Struct({
   id: compact,
-  type: entryType,
+  path: strs,
+  params,
+  def,
+  docs: strs,
 })
 
 export const lookup = Vector(entry)
