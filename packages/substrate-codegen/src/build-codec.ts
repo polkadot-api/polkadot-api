@@ -12,8 +12,7 @@ const _buildCodec = (
   stack: Set<LookupEntry>,
   circularCodecs: Map<LookupEntry, Codec<any>>,
 ): Codec<any> => {
-  if (input.type === "primitive")
-    return scale[input.value as "_void"] as Codec<any>
+  if (input.type === "primitive") return scale[input.value]
   if (input.type === "compact") return scale.compact
   if (input.type === "bitSequence") return scale.bitSequence
 

@@ -1,6 +1,25 @@
 import type { StringRecord, V14Lookup } from "@unstoppablejs/substrate-bindings"
 
-export type PrimitiveVar = { type: "primitive"; value: string }
+export type MetadataPrimitives =
+  | "bool"
+  | "char"
+  | "str"
+  | "u8"
+  | "u16"
+  | "u32"
+  | "u64"
+  | "u128"
+  | "u256"
+  | "i8"
+  | "i16"
+  | "i32"
+  | "i64"
+  | "i128"
+  | "i256"
+export type PrimitiveVar = {
+  type: "primitive"
+  value: MetadataPrimitives | "_void"
+}
 export type CompactVar = { type: "compact"; isBig: boolean }
 export type BitSequenceVar = { type: "bitSequence" }
 export type TerminalVar = PrimitiveVar | CompactVar | BitSequenceVar
@@ -213,8 +232,9 @@ export const getLookupFns = (lookupData: V14Lookup) => {
     if (def.tag === "bitSequence") {
       return { type: "bitSequence" }
     }
+
     // historicMetaCompat
-    return { type: "primitive", value: def.value }
+    return { type: "primitive", value: def.value as any }
   })
 
   return { getLookupEntry, getVarName }
