@@ -23,4 +23,20 @@ describe("bitSequence", () => {
     const encoded = bitSequence.enc(decoded)
     expect(encoded).toEqual(input.slice(0, nine.length + expectedBytes.length))
   })
+
+  test("it throws when trying to encode it with more bits than avaiable", () => {
+    expect(() =>
+      bitSequence.enc({
+        bitsLen: 8,
+        bytes: new Uint8Array(1),
+      }),
+    ).not.toThrowError()
+
+    expect(() =>
+      bitSequence.enc({
+        bitsLen: 9,
+        bytes: new Uint8Array(1),
+      }),
+    ).toThrowError()
+  })
 })

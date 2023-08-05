@@ -14,6 +14,11 @@ const bitSequenceDecoder: Decoder<BitSequence> = createDecoder((data) => {
 })
 
 const bitSequenceEncoder: Encoder<BitSequence> = (input) => {
+  if (input.bitsLen > input.bytes.length * 8)
+    throw new Error(
+      `Not enough bits. (bitsLen:${input.bitsLen}, bytesLen:${input.bytes.length})`,
+    )
+
   const lenEncoded = compactNumber.enc(input.bitsLen)
   const result = new Uint8Array(input.bytes.length + lenEncoded.length)
   result.set(lenEncoded, 0)
