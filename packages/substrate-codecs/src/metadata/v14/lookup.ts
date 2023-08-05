@@ -1,4 +1,5 @@
 import {
+  CodecType,
   Enum,
   Option,
   Struct,
@@ -8,7 +9,7 @@ import {
   str,
   u32,
   u8,
-} from "@unstoppablejs/substrate-codecs"
+} from "scale-ts"
 
 const oStr = Option(str)
 const strs = Vector(str)
@@ -67,7 +68,7 @@ const def = Enum({
   historicMetaCompat: str,
 })
 
-const innerType = Struct({
+const entryType = Struct({
   path: strs,
   params: Vector(
     Struct({
@@ -81,7 +82,8 @@ const innerType = Struct({
 
 const entry = Struct({
   id: compact,
-  type: innerType,
+  type: entryType,
 })
 
 export const lookup = Vector(entry)
+export type V14Lookup = CodecType<typeof lookup>
