@@ -30,11 +30,15 @@ const _buildSyntax = (
     return importVal
   }
 
+  if (input.type === "bitSequence") {
+    declarations.imports.add(input.type)
+    return input.type
+  }
+
   if (
-    input.type === "bitSequence" ||
-    (input.type === "sequence" &&
-      input.value.type === "primitive" &&
-      input.value.value === "u8")
+    input.type === "sequence" &&
+    input.value.type === "primitive" &&
+    input.value.value === "u8"
   ) {
     declarations.imports.add("Bytes")
     const variable = {

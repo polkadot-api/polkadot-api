@@ -46,6 +46,11 @@ const arr = Struct({
   type: compact,
 })
 
+const bitSequence = Struct({
+  bitStoreType: compact,
+  bitOrderType: compact,
+})
+
 const def = Enum({
   composite: fields,
   variant: Vector(
@@ -61,10 +66,7 @@ const def = Enum({
   tuple: Vector(compact),
   primitive,
   compact,
-  bitSequence: Struct({
-    bitStoreType: compact,
-    bitOrderType: compact,
-  }),
+  bitSequence,
   historicMetaCompat: str,
 })
 
