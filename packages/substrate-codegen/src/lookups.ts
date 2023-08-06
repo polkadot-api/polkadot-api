@@ -46,9 +46,7 @@ export const getLookupFns = (lookupData: V14Lookup) => {
   const from = new Set<number>()
 
   const getVarName = (idx: number, isCircular = false): string => {
-    const {
-      type: { path },
-    } = lookupData[idx]
+    const { path } = lookupData[idx]
     const parts: string[] = path.length === 0 ? ["cdc" + idx] : ["c", ...path]
 
     if (isCircular) parts.unshift("circular")
@@ -92,9 +90,7 @@ export const getLookupFns = (lookupData: V14Lookup) => {
   }
 
   const getLookupEntry = withCache((id): Var => {
-    const {
-      type: { def },
-    } = lookupData[id]
+    const { def } = lookupData[id]
 
     if (def.tag === "composite") {
       if (def.value.length === 0) return { type: "primitive", value: "_void" }
