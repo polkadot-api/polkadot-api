@@ -1,0 +1,29 @@
+{
+  "name": "cli",
+  "version": "0.0.0",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/cli.mjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run build:ts && npm run build:esm",
+    "build:esm": "esbuild src/cli.ts --platform=node --outfile=./dist/cli.js --target=esnext --format=esm --sourcemap && cp ./dist/cli.js ./dist/cli.mjs && cp ./dist/cli.js.map ./dist/cli.mjs.map",
+    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
+    "test": "vitest",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "npm run build"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^3.0.2",
+    "@unstoppablejs/substrate-codecs": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
+    "@unstoppablejs/substrate-codegen": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50"
+  }
+}
