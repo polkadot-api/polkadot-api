@@ -1,7 +1,10 @@
 import { input, select } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
 import { LookupEntry, getLookupFns } from "@unstoppablejs/substrate-codegen"
-import { metadata as $metadata } from "@unstoppablejs/substrate-bindings"
+import {
+  metadata as $metadata,
+  V14Lookup,
+} from "@unstoppablejs/substrate-bindings"
 import { CheckboxData } from "./CheckboxData"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
@@ -14,8 +17,6 @@ const rawMetadata = await fs.readFile(metadataPath)
 const { metadata } = $metadata.dec(rawMetadata)
 
 assertIsv14(metadata)
-
-const pallets = metadata.value.pallets
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
@@ -36,9 +37,9 @@ const data: Record<
     extrinsics: CheckboxData
   }
 > = {}
+const { lookup, pallets } = metadata.value
 
-let exit = false
-while (!exit) {
+while (true) {
   const choice = await select({
     message: "What do you want to do?",
     choices: [
@@ -55,23 +56,9 @@ while (!exit) {
         choices: pallets.map((p) => ({ name: p.name, value: p })),
       })
 
-      const eventLookupFns = getLookupFns(metadata.value.lookup).getLookupEntry(
-        Number(pallet.events),
-      )
-      assertIsEnum(eventLookupFns)
-      const events = Object.keys(eventLookupFns.value)
-
-      const errorLookupFns = getLookupFns(metadata.value.lookup).getLookupEntry(
-        Number(pallet.errors),
-      )
-      assertIsEnum(errorLookupFns)
-      const errors = Object.keys(errorLookupFns.value)
-
-      const extrinsicLookupFns = getLookupFns(
-        metadata.value.lookup,
-      ).getLookupEntry(Number(pallet.calls))
-      assertIsEnum(extrinsicLookupFns)
-      const extrinsics = Object.keys(extrinsicLookupFns.value)
+      const events = getLookupEntry(lookup, Number(pallet.events))
+      const errors = getLookupEntry(lookup, Number(pallet.errors))
+      const extrinsics = getLookupEntry(lookup, Number(pallet.calls))
 
       if (!data[pallet.name]) {
         data[pallet.name] = {
@@ -133,14 +120,19 @@ while (!exit) {
       console.log(data)
       break
     case EXIT:
-      exit = true
-      break
+      console.log(JSON.stringify(data))
+      process.exit(0)
     default:
       break
   }
 }
 
-console.log(JSON.stringify(data))
+function getLookupEntry(lookup: V14Lookup, idx: number) {
+  const lookupFns = getLookupFns(lookup).getLookupEntry(idx)
+  assertIsEnum(lookupFns)
+
+  return Object.keys(lookupFns.value)
+}
 
 function assertIsv14(
   metadata: Metadata,
@@ -154,6 +146,6 @@ function assertIsEnum(
   metadata: LookupEntry,
 ): asserts metadata is LookupEntry & { type: "enum" } {
   if (metadata.type !== "enum") {
-    throw new Error("unreachable")
+    throw new Error("not an enum")
   }
 }
