@@ -2,6 +2,7 @@ import { input, select, checkbox } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
 import { LookupEntry, getLookupFns } from "@unstoppablejs/substrate-codegen"
 import { metadata as $metadata } from "@unstoppablejs/substrate-bindings"
+import util from "util"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
@@ -17,6 +18,7 @@ assertIsv14(metadata)
 const pallets = metadata.value.pallets
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
+const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
 const EXIT = "EXIT"
 const CONSTANTS = "CONSTANTS"
 const STORAGE = "STORAGE"
@@ -48,6 +50,10 @@ class CheckboxData {
     this.#data = new Set(selected)
   }
 
+  [util.inspect.custom]() {
+    return this.toJSON()
+  }
+
   toJSON() {
     return Array.from(this.#data)
   }
@@ -70,6 +76,7 @@ while (!exit) {
     message: "What do you want to do?",
     choices: [
       { name: "Select descriptors", value: SELECT_DESCRIPTORS },
+      { name: "Show descriptors", value: SHOW_DESCRIPTORS },
       { name: "Exit", value: EXIT },
     ],
   })
@@ -154,6 +161,9 @@ while (!exit) {
             break
         }
       }
+      break
+    case SHOW_DESCRIPTORS:
+      console.log(data)
       break
     case EXIT:
       exit = true
