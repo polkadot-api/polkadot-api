@@ -1,8 +1,7 @@
 import { fc, it } from "@fast-check/vitest"
 import { expect, describe, vi } from "vitest"
 import { mergeUint8, toHex } from "@unstoppablejs/utils"
-import { _void, str, u32 } from "@unstoppablejs/substrate-codecs"
-import { EncoderWithHash } from "@/storage"
+import { EncoderWithHash, _void, str, u32 } from "@/."
 
 describe("storage", () => {
   it.prop([fc.uint8Array(), fc.string(), fc.string()])(

@@ -1,6 +1,6 @@
-import type { Codec, StringRecord } from "@unstoppablejs/substrate-codecs"
+import type { Codec, StringRecord } from "@unstoppablejs/substrate-bindings"
 import type { LookupEntry } from "./lookups"
-import * as scale from "@unstoppablejs/substrate-codecs"
+import * as scale from "@unstoppablejs/substrate-bindings"
 import { fromHex, toHex } from "@unstoppablejs/utils"
 
 const hexEnhacer = (input: Codec<Uint8Array>): Codec<string> =>

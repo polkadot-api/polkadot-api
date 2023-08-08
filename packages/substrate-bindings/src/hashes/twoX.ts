@@ -1,5 +1,5 @@
 import { mergeUint8 } from "@unstoppablejs/utils"
-import { u64 } from "@unstoppablejs/substrate-codecs"
+import { u64 } from "scale-ts"
 import { h64 } from "./h64"
 
 export const Twox128 = (input: Uint8Array): Uint8Array => {

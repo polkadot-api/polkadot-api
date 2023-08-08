@@ -1,7 +1,7 @@
 import { expect, test } from "vitest"
 import { bytesToHex } from "@noble/hashes/utils"
 
-import { AccountId } from "@/AccountId"
+import { AccountId } from "@/."
 
 test.each([
   [

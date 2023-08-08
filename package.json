@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@unstoppablejs/substrate-codecs --workspace=@unstoppablejs/substrate-client && npm run build --workspace=@unstoppablejs/substrate-codegen --workspace=@unstoppablejs/substrate-bindings",
+    "build": "npm run build --workspace=@unstoppablejs/substrate-client --workspace=@unstoppablejs/substrate-bindings && npm run build --workspace=@unstoppablejs/substrate-codegen",
     "lint": "npm run lint --workspaces",
     "format": "npm run format --workspaces",
     "test": "npm run test --workspaces",

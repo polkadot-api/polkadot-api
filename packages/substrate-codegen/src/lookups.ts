@@ -1,4 +1,4 @@
-import type { StringRecord, V14Lookup } from "@unstoppablejs/substrate-codecs"
+import type { StringRecord, V14Lookup } from "@unstoppablejs/substrate-bindings"
 
 export type PrimitiveVar = { type: "primitive"; value: string }
 export type CompactVar = { type: "compact"; isBig: boolean }
