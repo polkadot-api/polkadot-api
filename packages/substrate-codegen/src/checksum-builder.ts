@@ -1,6 +1,6 @@
 import type { V14 } from "@unstoppablejs/substrate-bindings"
 import { h64 } from "@unstoppablejs/substrate-bindings"
-import { getLookupFn } from "./lookups"
+import { EnumVar, getLookupFn } from "./lookups"
 
 const textEncoder = new TextEncoder()
 const checksumEnhancer =
@@ -40,17 +40,39 @@ export const getChecksumBuilder = (metadata: V14) => {
     },
   )
 
+  const buildEnumEntry = (
+    entry: EnumVar["value"][keyof EnumVar["value"]],
+  ): string => {
+    if (entry.type === "primitive") return ""
+
+    const values = Object.values(entry.value).map((l) => buildDefinition(l.id))
+
+    return JSON.stringify(
+      entry.type === "tuple"
+        ? values
+        : Object.fromEntries(
+            Object.keys(entry.value).map((key, idx) => [key, values[idx]]),
+          ),
+    )
+  }
+
   const buildCall = checksumEnhancer(
     (pallet: string, callName: string): string => {
       const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
       const callsLookup = getLookupEntryDef(palletEntry.calls! as number)
 
       if (callsLookup.type !== "enum") throw null
-      const callEntry = callsLookup.value[callName]
-      if (callEntry.type === "primitive") return ""
-      return Object.values(callEntry.value)
-        .map((l) => buildDefinition(l.id))
-        .join(",")
+      return buildEnumEntry(callsLookup.value[callName])
+    },
+  )
+
+  const buildEvent = checksumEnhancer(
+    (pallet: string, eventName: string): string => {
+      const eventsLookup = getLookupEntryDef(
+        metadata.pallets.find((x) => x.name === pallet)!.events! as number,
+      )
+      if (eventsLookup.type !== "enum") throw null
+      return buildEnumEntry(eventsLookup.value[eventName])
     },
   )
 
@@ -68,6 +90,7 @@ export const getChecksumBuilder = (metadata: V14) => {
     buildDefinition: checksumEnhancer(buildDefinition),
     buildStorage,
     buildCall,
+    buildEvent,
     buildConstant,
   }
 }
