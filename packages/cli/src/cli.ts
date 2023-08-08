@@ -1,6 +1,6 @@
 import { input, select } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
-import { LookupEntry, getLookupFns } from "@unstoppablejs/substrate-codegen"
+import { LookupEntry, getLookupFn } from "@unstoppablejs/substrate-codegen"
 import {
   metadata as $metadata,
   V14Lookup,
@@ -128,7 +128,7 @@ while (true) {
 }
 
 function getLookupEntry(lookup: V14Lookup, idx: number) {
-  const lookupFns = getLookupFns(lookup).getLookupEntry(idx)
+  const lookupFns = getLookupFn(lookup)(idx)
   assertIsEnum(lookupFns)
 
   return Object.keys(lookupFns.value)
