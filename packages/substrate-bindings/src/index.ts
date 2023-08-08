@@ -1,3 +1,3 @@
-export * from "@unstoppablejs/substrate-codecs"
+export * from "./codecs"
 export * from "./hashes"
 export * from "./storage"

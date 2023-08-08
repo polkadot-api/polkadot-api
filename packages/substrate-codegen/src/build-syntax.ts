@@ -1,4 +1,4 @@
-import { StringRecord } from "@unstoppablejs/substrate-codecs"
+import { StringRecord } from "@unstoppablejs/substrate-bindings"
 import { LookupEntry } from "./lookups"
 
 export interface Variable {

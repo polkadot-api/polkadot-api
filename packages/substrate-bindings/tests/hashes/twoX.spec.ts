@@ -1,5 +1,5 @@
 import { fc, test } from "@fast-check/vitest"
-import { u64 } from "@unstoppablejs/substrate-codecs"
+import { u64 } from "@/."
 import { mergeUint8 } from "@unstoppablejs/utils"
 import { expect, vi } from "vitest"
 
