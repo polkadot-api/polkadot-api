@@ -47,6 +47,10 @@ class CheckboxData {
 
     this.#data = new Set(selected)
   }
+
+  toJSON() {
+    return Array.from(this.#data)
+  }
 }
 
 const data: Record<
@@ -159,18 +163,7 @@ while (!exit) {
   }
 }
 
-const serializableData = Object.entries(data).map(([k, v]) => [
-  k,
-  {
-    constants: Array.from(v.constants.data),
-    storage: Array.from(v.storage.data),
-    events: Array.from(v.events.data),
-    errors: Array.from(v.errors.data),
-    extrinsics: Array.from(v.extrinsics.data),
-  },
-])
-
-console.log(JSON.stringify(serializableData))
+console.log(JSON.stringify(data))
 
 function assertIsv14(
   metadata: Metadata,
