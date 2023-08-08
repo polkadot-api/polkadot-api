@@ -24,14 +24,39 @@ const EVENTS = "EVENTS"
 const ERRORS = "ERRORS"
 const EXTRINSICS = "EXTRINSICS"
 
+class CheckboxData {
+  #data
+
+  constructor() {
+    this.#data = new Set<string>()
+  }
+
+  get data(): ReadonlySet<string> {
+    return this.#data
+  }
+
+  async prompt(message: string, items: string[]) {
+    const selected = await checkbox({
+      message,
+      choices: items.map((s) => ({
+        name: s,
+        value: s,
+        checked: this.#data.has(s),
+      })),
+    })
+
+    this.#data = new Set(selected)
+  }
+}
+
 const data: Record<
   string,
   {
-    constants: Set<string>
-    storage: Set<string>
-    events: Set<string>
-    errors: Set<string>
-    extrinsics: Set<string>
+    constants: CheckboxData
+    storage: CheckboxData
+    events: CheckboxData
+    errors: CheckboxData
+    extrinsics: CheckboxData
   }
 > = {}
 
@@ -72,11 +97,11 @@ while (!exit) {
 
       if (!data[pallet.name]) {
         data[pallet.name] = {
-          constants: new Set(),
-          storage: new Set<string>(),
-          events: new Set<string>(),
-          errors: new Set<string>(),
-          extrinsics: new Set<string>(),
+          constants: new CheckboxData(),
+          storage: new CheckboxData(),
+          events: new CheckboxData(),
+          errors: new CheckboxData(),
+          extrinsics: new CheckboxData(),
         }
       }
 
@@ -94,74 +119,30 @@ while (!exit) {
           ],
         })
         switch (descriptorType) {
-          case CONSTANTS: {
-            const selectedConstants = await checkbox({
-              message: "Select constants",
-              choices: pallet.constants.map((c) => ({
-                name: c.name,
-                value: c,
-                checked: data[pallet.name]?.constants.has(c.name),
-              })),
-            })
-            data[pallet.name].constants = new Set(
-              selectedConstants.map((c) => c.name),
+          case CONSTANTS:
+            await data[pallet.name].constants.prompt(
+              "Select Constants",
+              pallet.constants.map((c) => c.name),
             )
             break
-          }
-          case STORAGE: {
-            const selectedStorage = await checkbox({
-              message: "Select Storage",
-              choices:
-                pallet.storage?.items.map((c) => ({
-                  name: c.name,
-                  value: c,
-                  checked: data[pallet.name]?.storage.has(c.name),
-                })) ?? [],
-            })
-            data[pallet.name].storage = new Set(
-              selectedStorage.map((c) => c.name),
+          case STORAGE:
+            await data[pallet.name].storage.prompt(
+              "Select Storage",
+              pallet.storage?.items.map((s) => s.name) ?? [],
             )
             break
-          }
-          case EVENTS: {
-            const selectedEvents = await checkbox({
-              message: "Select Events",
-              choices:
-                events?.map((e) => ({
-                  name: e,
-                  value: e,
-                  checked: data[pallet.name]?.events.has(e),
-                })) ?? [],
-            })
-            data[pallet.name].events = new Set(selectedEvents)
+          case EVENTS:
+            await data[pallet.name].events.prompt("Select Events", events)
             break
-          }
-          case ERRORS: {
-            const selectedErrors = await checkbox({
-              message: "Select Errors",
-              choices:
-                errors?.map((e) => ({
-                  name: e,
-                  value: e,
-                  checked: data[pallet.name]?.errors.has(e),
-                })) ?? [],
-            })
-            data[pallet.name].errors = new Set(selectedErrors)
+          case ERRORS:
+            await data[pallet.name].errors.prompt("Select Errors", errors)
             break
-          }
-          case EXTRINSICS: {
-            const selectedExtrinsics = await checkbox({
-              message: "Select Extrinsics",
-              choices:
-                extrinsics?.map((e) => ({
-                  name: e,
-                  value: e,
-                  checked: data[pallet.name]?.extrinsics.has(e),
-                })) ?? [],
-            })
-            data[pallet.name].extrinsics = new Set(selectedExtrinsics)
+          case EXTRINSICS:
+            await data[pallet.name].extrinsics.prompt(
+              "Select Extrinsics",
+              extrinsics,
+            )
             break
-          }
           case EXIT:
             exitDescriptorSelection = true
             break
@@ -181,11 +162,11 @@ while (!exit) {
 const serializableData = Object.entries(data).map(([k, v]) => [
   k,
   {
-    constants: Array.from(v.constants),
-    storage: Array.from(v.storage),
-    events: Array.from(v.events),
-    errors: Array.from(v.errors),
-    extrinsics: Array.from(v.extrinsics),
+    constants: Array.from(v.constants.data),
+    storage: Array.from(v.storage.data),
+    events: Array.from(v.events.data),
+    errors: Array.from(v.errors.data),
+    extrinsics: Array.from(v.extrinsics.data),
   },
 ])
 
