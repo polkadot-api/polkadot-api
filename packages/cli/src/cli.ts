@@ -1,7 +1,7 @@
 import { input, select, checkbox } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
-import { metadata as $metadata } from "@unstoppablejs/substrate-codecs"
 import { LookupEntry, getLookupFns } from "@unstoppablejs/substrate-codegen"
+import { metadata as $metadata } from "@unstoppablejs/substrate-bindings"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 

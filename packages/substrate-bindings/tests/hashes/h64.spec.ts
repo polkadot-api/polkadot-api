@@ -1,6 +1,6 @@
 import { fc, test } from "@fast-check/vitest"
 import { expect } from "vitest"
-import { h64 } from "./h64"
+import { h64 } from "@/hashes/h64"
 import { xxhash64 } from "hash-wasm"
 import { hexToBigint } from "bigint-conversion"
 

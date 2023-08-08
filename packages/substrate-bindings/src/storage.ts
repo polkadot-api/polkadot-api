@@ -1,5 +1,5 @@
 import { mergeUint8, toHex, utf16StrToUtf8Bytes } from "@unstoppablejs/utils"
-import { Decoder, Encoder } from "@unstoppablejs/substrate-codecs"
+import { Decoder, Encoder } from "scale-ts"
 import { Twox128 } from "./hashes"
 
 export type EncoderWithHash<T> = [Encoder<T>, (input: Uint8Array) => Uint8Array]
