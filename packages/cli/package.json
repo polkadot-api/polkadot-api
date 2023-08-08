@@ -3,18 +3,14 @@
   "version": "0.0.0",
   "license": "MIT",
   "sideEffects": false,
-  "main": "./dist/cli.mjs",
-  "files": [
-    "dist"
-  ],
+  "type": "module",
+  "cli": "cli.js",
   "scripts": {
-    "build": "npm run build:ts && npm run build:esm",
-    "build:esm": "esbuild src/cli.ts --platform=node --outfile=./dist/cli.js --target=esnext --format=esm --sourcemap && cp ./dist/cli.js ./dist/cli.mjs && cp ./dist/cli.js.map ./dist/cli.mjs.map",
-    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
+    "build": "esbuild --bundle src/cli.ts --outdir=build --sourcemap --format=esm --platform=node --packages=external",
+    "start": "npm run build && node --enable-source-maps ./build/cli.js",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "npm run build"
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "prettier": {
     "printWidth": 80,
