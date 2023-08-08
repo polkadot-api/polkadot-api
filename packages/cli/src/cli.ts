@@ -1,6 +1,10 @@
 import { input, select } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
-import { LookupEntry, getLookupFns } from "@unstoppablejs/substrate-codegen"
+import {
+  LookupEntry,
+  getLookupFn,
+  getStaticBuilder,
+} from "@unstoppablejs/substrate-codegen"
 import {
   metadata as $metadata,
   V14Lookup,
@@ -38,8 +42,10 @@ const data: Record<
   }
 > = {}
 const { lookup, pallets } = metadata.value
+await fs.writeFile("metadata.json", JSON.stringify(metadata.value))
 
-while (true) {
+let exit = false
+while (!exit) {
   const choice = await select({
     message: "What do you want to do?",
     choices: [
@@ -120,15 +126,37 @@ while (true) {
       console.log(data)
       break
     case EXIT:
-      console.log(JSON.stringify(data))
-      process.exit(0)
+      exit = true
+      break
     default:
       break
   }
 }
 
+const declarations = { imports: new Set<string>(), variables: new Map() }
+
+const { buildStorage, buildEvent, buildCall, buildConstant } = getStaticBuilder(
+  metadata.value,
+  declarations,
+)
+
+const storageDefinitions: Record<string, string> = {}
+
+for (const [
+  pallet,
+  { constants, storage, events, extrinsics },
+] of Object.entries(data)) {
+  for (const entry of storage.data) {
+    console.log("pallet", pallet, "entry", entry)
+    const definition = buildStorage(pallet, entry)
+    storageDefinitions[definition.key] = definition.val
+  }
+}
+
+console.log(storageDefinitions)
+
 function getLookupEntry(lookup: V14Lookup, idx: number) {
-  const lookupFns = getLookupFns(lookup).getLookupEntry(idx)
+  const lookupFns = getLookupFn(lookup)(idx)
   assertIsEnum(lookupFns)
 
   return Object.keys(lookupFns.value)
