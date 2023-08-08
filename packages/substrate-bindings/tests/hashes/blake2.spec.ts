@@ -1,7 +1,7 @@
 import { fc, test } from "@fast-check/vitest"
 import { expect } from "vitest"
 import { mergeUint8 } from "@unstoppablejs/utils"
-import { Blake2128, Blake2256, Blake2128Concat } from "./blake2"
+import { Blake2128, Blake2256, Blake2128Concat } from "@/hashes/blake2"
 import { blake2b } from "@noble/hashes/blake2b"
 
 test.prop([fc.uint8Array()])("Blake2256", (input) => {
