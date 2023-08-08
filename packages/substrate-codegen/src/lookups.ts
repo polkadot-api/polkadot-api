@@ -1,7 +1,7 @@
 import type { StringRecord, V14Lookup } from "@unstoppablejs/substrate-bindings"
 
-export type VoidVar = { type: "primitive"; value: "_void"; shape: "_void" }
-const voidVar: VoidVar = { type: "primitive", value: "_void", shape: "_void" }
+export type VoidVar = { type: "primitive"; value: "_void" }
+const voidVar: VoidVar = { type: "primitive", value: "_void" }
 
 export type MetadataPrimitives =
   | "bool"
@@ -24,35 +24,30 @@ export type PrimitiveVar =
   | {
       type: "primitive"
       value: MetadataPrimitives
-      shape: MetadataPrimitives
     }
   | VoidVar
 
-export type CompactVar = { type: "compact"; isBig: boolean; shape: string }
-export type BitSequenceVar = { type: "bitSequence"; shape: string }
+export type CompactVar = { type: "compact"; isBig: boolean }
+export type BitSequenceVar = { type: "bitSequence" }
 export type TerminalVar = PrimitiveVar | CompactVar | BitSequenceVar
 
-export type TupleVar = { type: "tuple"; value: LookupEntry[]; shape: string }
+export type TupleVar = { type: "tuple"; value: LookupEntry[] }
 export type StructVar = {
   type: "struct"
   value: StringRecord<LookupEntry>
-  shape: string
 }
 export type EnumVar = {
   type: "enum"
   value: StringRecord<(TupleVar | StructVar | VoidVar) & { idx: number }>
-  shape: string
 }
 export type SequenceVar = {
   type: "sequence"
   value: LookupEntry
-  shape: string
 }
 export type ArrayVar = {
   type: "array"
   value: LookupEntry
   len: number
-  shape: string
 }
 
 export type ComposedVar =
@@ -125,7 +120,6 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       })
 
       const innerValues = innerComp.map((x) => x.value)
-      const innerShapes = innerComp.map((x) => x.value.shape)
 
       return allKey
         ? {
@@ -133,16 +127,10 @@ export const getLookupFn = (lookupData: V14Lookup) => {
             value: Object.fromEntries(
               innerValues.map((value, idx) => [innerComp[idx].key, value]),
             ),
-            shape: JSON.stringify(
-              Object.fromEntries(
-                innerShapes.map((shape, idx) => [innerComp[idx].key, shape]),
-              ),
-            ),
           }
         : {
             type: "tuple",
             value: innerValues,
-            shape: JSON.stringify(innerShapes),
           }
     }
 
@@ -170,9 +158,6 @@ export const getLookupFn = (lookupData: V14Lookup) => {
                 type: "struct",
                 value: Object.fromEntries(inner.map((x) => [x.key, x.value])),
                 idx: x.index,
-                shape: JSON.stringify(
-                  Object.fromEntries(inner.map((x) => [x.key, x.value.shape])),
-                ),
               },
             ]
           }
@@ -183,7 +168,6 @@ export const getLookupFn = (lookupData: V14Lookup) => {
               type: "tuple",
               value: inner.map((x) => x.value),
               idx: x.index,
-              shape: JSON.stringify(inner.map((x) => x.value.shape)),
             },
           ]
         },
@@ -194,9 +178,6 @@ export const getLookupFn = (lookupData: V14Lookup) => {
         value: Object.fromEntries(parts) as StringRecord<
           EnumVar["value"][keyof EnumVar["value"]]
         >,
-        shape: JSON.stringify(
-          Object.fromEntries(parts.map(([key, val]) => [key, val.shape])),
-        ),
       }
     }
 
@@ -205,7 +186,6 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       return {
         type: "sequence",
         value,
-        shape: `Vector(${value.shape})`,
       }
     }
 
@@ -215,7 +195,6 @@ export const getLookupFn = (lookupData: V14Lookup) => {
         type: "array",
         value,
         len: def.value.len,
-        shape: `Vector(${(value.shape, def.value.len)})`,
       }
     }
 
@@ -230,28 +209,36 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       return {
         type: "tuple",
         value,
-        shape: JSON.stringify(value.map((v) => v.shape)),
       }
     }
 
     if (def.tag === "primitive") {
-      return { type: "primitive", value: def.value.tag, shape: def.value.tag }
+      return {
+        type: "primitive",
+        value: def.value.tag,
+      }
     }
 
     if (def.tag === "compact") {
       const translated = getLookupEntryDef(def.value as number) as PrimitiveVar
       const isBig = Number(translated.value.slice(1)) > 32
 
-      return { type: "compact", isBig, shape: `compact(${translated.shape})` }
+      return {
+        type: "compact",
+        isBig,
+      }
     }
 
     if (def.tag === "bitSequence") {
-      return { type: "bitSequence", shape: "bitSequence" }
+      return { type: "bitSequence" }
     }
 
     // historicMetaCompat
     const value = def.value as any
-    return { type: "primitive", value, shape: value }
+    return {
+      type: "primitive",
+      value,
+    }
   })
 
   return getLookupEntryDef
