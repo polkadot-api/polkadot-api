@@ -10,19 +10,14 @@ import {
 const textEncoder = new TextEncoder()
 const encodeText = textEncoder.encode.bind(textEncoder)
 
-const emptyArray: string[] = []
-
-export const getChecksum = (
-  values: Array<bigint>,
-  keys: Array<string> = emptyArray,
-) => {
-  const hasKeys = keys.length > 0
-  const res = new Uint8Array((values.length + (hasKeys ? 1 : 0)) * 8)
+export const getChecksum = (values: Array<bigint>, shape?: string) => {
+  const hasShape = typeof shape === "string"
+  const res = new Uint8Array((values.length + (hasShape ? 1 : 0)) * 8)
   const dv = new DataView(res.buffer)
 
   let offset = 0
-  if (hasKeys) {
-    dv.setBigUint64(offset, h64(encodeText(keys.join(","))))
+  if (hasShape) {
+    dv.setBigUint64(offset, h64(encodeText(shape)))
     offset += 8
   }
 
@@ -112,8 +107,8 @@ const _buildChecksum = (
   const buildVector = (inner: LookupEntry, len?: number) => {
     const innerChecksum = buildNextChecksum(inner)
     return len
-      ? getChecksum([innerChecksum, BigInt(len)], ["Vector()"])
-      : getChecksum([innerChecksum], ["Vector()"])
+      ? getChecksum([innerChecksum, BigInt(len)], "Vector(,)")
+      : getChecksum([innerChecksum], "Vector()")
   }
 
   const buildTuple = (value: LookupEntry[]) =>
@@ -122,7 +117,7 @@ const _buildChecksum = (
   const buildStruct = (value: StringRecord<LookupEntry>) => {
     return getChecksum(
       Object.values(value).map(buildNextChecksum),
-      Object.keys(value),
+      JSON.stringify(Object.keys(value)),
     )
   }
 
@@ -138,7 +133,7 @@ const _buildChecksum = (
   })
   const keys = Object.keys(input.value)
   keys.push("Enum")
-  return cached(getChecksum(dependencies, keys))
+  return cached(getChecksum(dependencies, JSON.stringify({ Enum: keys })))
 }
 
 export const getChecksumBuilder = (metadata: V14) => {
@@ -157,13 +152,13 @@ export const getChecksumBuilder = (metadata: V14) => {
         .storage!.items.find((s) => s.name === entry)!
 
       if (storageEntry.type.tag === "plain")
-        return getChecksum([buildDefinition(storageEntry.type.value)], ["[]"])
+        return getChecksum([buildDefinition(storageEntry.type.value)])
 
       const { key, value } = storageEntry.type.value
       const val = buildDefinition(value)
       const returnKey =
         storageEntry.type.value.hashers.length === 1
-          ? getChecksum([buildDefinition(key)], ["[]"])
+          ? getChecksum([buildDefinition(key)])
           : buildDefinition(key)
       return getChecksum([val, returnKey])
     } catch (_) {
@@ -180,7 +175,7 @@ export const getChecksumBuilder = (metadata: V14) => {
 
     return entry.type === "tuple"
       ? getChecksum(values)
-      : getChecksum(values, Object.keys(entry.value))
+      : getChecksum(values, JSON.stringify(Object.keys(entry.value)))
   }
 
   const buildCall = (pallet: string, callName: string): bigint | null => {
