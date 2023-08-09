@@ -24,7 +24,9 @@ assertIsv14(metadata)
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
+const OUTPUT_CODEGEN = "OUTPUT_CODEGEN"
 const EXIT = "EXIT"
+
 const CONSTANTS = "CONSTANTS"
 const STORAGE = "STORAGE"
 const EVENTS = "EVENTS"
@@ -51,6 +53,7 @@ while (!exit) {
     choices: [
       { name: "Select descriptors", value: SELECT_DESCRIPTORS },
       { name: "Show descriptors", value: SHOW_DESCRIPTORS },
+      { name: "Output Codegen", value: OUTPUT_CODEGEN },
       { name: "Exit", value: EXIT },
     ],
   })
@@ -125,6 +128,54 @@ while (!exit) {
     case SHOW_DESCRIPTORS:
       console.log(data)
       break
+    case OUTPUT_CODEGEN:
+      {
+        const outFile = await input({
+          message: "Enter output fileName",
+          default: "codegen.ts",
+        })
+
+        const declarations = {
+          imports: new Set<string>(),
+          variables: new Map(),
+        }
+
+        const { buildStorage, buildEvent, buildCall, buildConstant } =
+          getStaticBuilder(metadata.value, declarations)
+
+        for (const [
+          pallet,
+          { constants, storage, events, extrinsics },
+        ] of Object.entries(data)) {
+          for (const constantName of constants.data) {
+            buildConstant(pallet, constantName)
+          }
+          for (const entry of storage.data) {
+            buildStorage(pallet, entry)
+          }
+          for (const eventName of events.data) {
+            buildEvent(pallet, eventName)
+          }
+          for (const callName of extrinsics.data) {
+            buildCall(pallet, callName)
+          }
+        }
+
+        const constDeclarations = [...declarations.variables.values()].map(
+          (variable) =>
+            `export const ${variable.id}${
+              variable.types ? ": " + variable.types : ""
+            } = ${variable.value};`,
+        )
+        constDeclarations.unshift(
+          `import {${[...declarations.imports].join(
+            ", ",
+          )}} from "@unstoppablejs/substrate-bindings";`,
+        )
+
+        await fs.writeFile(`${outFile}`, constDeclarations.join("\n\n"))
+      }
+      break
     case EXIT:
       exit = true
       break
@@ -132,28 +183,6 @@ while (!exit) {
       break
   }
 }
-
-const declarations = { imports: new Set<string>(), variables: new Map() }
-
-const { buildStorage, buildEvent, buildCall, buildConstant } = getStaticBuilder(
-  metadata.value,
-  declarations,
-)
-
-const storageDefinitions: Record<string, string> = {}
-
-for (const [
-  pallet,
-  { constants, storage, events, extrinsics },
-] of Object.entries(data)) {
-  for (const entry of storage.data) {
-    console.log("pallet", pallet, "entry", entry)
-    const definition = buildStorage(pallet, entry)
-    storageDefinitions[definition.key] = definition.val
-  }
-}
-
-console.log(storageDefinitions)
 
 function getLookupEntry(lookup: V14Lookup, idx: number) {
   const lookupFns = getLookupFn(lookup)(idx)
