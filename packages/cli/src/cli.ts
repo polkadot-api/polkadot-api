@@ -10,6 +10,7 @@ import {
   V14Lookup,
 } from "@unstoppablejs/substrate-bindings"
 import { CheckboxData } from "./CheckboxData"
+import ts from "typescript"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
@@ -163,14 +164,16 @@ while (!exit) {
 
         const constDeclarations = [...declarations.variables.values()].map(
           (variable) =>
-            `export const ${variable.id}${
+            `const ${variable.id}${
               variable.types ? ": " + variable.types : ""
-            } = ${variable.value};`,
+            } = ${variable.value}\nexport type ${
+              variable.id
+            } = CodecType<typeof ${variable.id}>`,
         )
         constDeclarations.unshift(
           `import {${[...declarations.imports].join(
             ", ",
-          )}} from "@unstoppablejs/substrate-bindings";`,
+          )}} from "@unstoppablejs/substrate-bindings"`,
         )
 
         await fs.writeFile(`${outFile}`, constDeclarations.join("\n\n"))
