@@ -154,8 +154,8 @@ const _buildSyntax = (
   declarations.imports.add("Enum")
   const dependencies = Object.entries(input.value).map(([key, value]) => {
     if (value.type === "primitive") {
-      declarations.imports.add(value.type)
-      return value.type
+      declarations.imports.add(value.value)
+      return value.value
     }
 
     const varName = toCamelCase(varId, key)
@@ -211,11 +211,12 @@ export const getStaticBuilder = (
     const names = params.map((p) => p.name)
     declarations.imports.add("Tuple")
     declarations.imports.add("Codec")
+    declarations.imports.add("CodecType")
 
     const variable: Variable = {
       id: varName,
       types: `Codec<[${names
-        .map((name, pIdx) => `${name}: typeof ${args[pIdx]}`)
+        .map((name, pIdx) => `${name}: CodecType<typeof ${args[pIdx]}>`)
         .join(", ")}]>`,
       value: `Tuple(${args.join(", ")})`,
       directDependencies: new Set(args),
