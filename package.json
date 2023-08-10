@@ -2,7 +2,8 @@
   "private": true,
   "license": "MIT",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "experiments"
   ],
   "scripts": {
     "build": "npm run build --workspace=@unstoppablejs/substrate-client --workspace=@unstoppablejs/substrate-bindings && npm run build --workspace=@unstoppablejs/substrate-codegen",
