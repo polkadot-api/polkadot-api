@@ -1,5 +1,5 @@
-import { StringRecord } from "@unstoppablejs/substrate-bindings"
-import { LookupEntry } from "./lookups"
+import { StringRecord, V14 } from "@unstoppablejs/substrate-bindings"
+import { LookupEntry, getLookupFn } from "./lookups"
 
 export interface Variable {
   id: string
@@ -13,11 +13,18 @@ export interface CodeDeclarations {
   variables: Map<string, Variable>
 }
 
+const toCamelCase = (...parts: string[]): string =>
+  parts[0] +
+  parts
+    .slice(1)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join("")
+
 const _buildSyntax = (
   input: LookupEntry,
   declarations: CodeDeclarations,
   stack: Set<LookupEntry>,
-  getVarName: (id: number, isCircular?: boolean) => string,
+  getVarName: (id: number, ...post: string[]) => string,
 ): string => {
   if (input.type === "primitive") {
     declarations.imports.add(input.value)
@@ -54,8 +61,8 @@ const _buildSyntax = (
     return variable.id
   }
 
-  if (declarations.variables.has(getVarName(input.id, true)))
-    return getVarName(input.id, true)
+  if (declarations.variables.has(getVarName(input.id, "circular")))
+    return getVarName(input.id, "circular")
 
   if (declarations.variables.has(getVarName(input.id)))
     return getVarName(input.id)
@@ -69,7 +76,7 @@ const _buildSyntax = (
 
     const nonCircular = getVarName(input.id)
     const variable: Variable = {
-      id: getVarName(input.id, true),
+      id: getVarName(input.id, "circular"),
       types: `Codec<{ self: CodecType<typeof ${nonCircular}> }>`,
       value: `Self(() => ${nonCircular})`,
       directDependencies: new Set([nonCircular]),
@@ -146,14 +153,12 @@ const _buildSyntax = (
   // it has to be an enum by now
   declarations.imports.add("Enum")
   const dependencies = Object.entries(input.value).map(([key, value]) => {
-    if (value.type === "_void") {
-      declarations.imports.add(value.type)
-      return value.type
+    if (value.type === "primitive") {
+      declarations.imports.add(value.value)
+      return value.value
     }
 
-    if (value.type === "codecEntry") return buildNextSyntax(value.value)
-
-    const varName = varId + key
+    const varName = toCamelCase(varId, key)
     if (value.type === "tuple") {
       buildTuple(varName, value.value)
     } else {
@@ -177,17 +182,136 @@ const _buildSyntax = (
   return varId
 }
 
-export const buildSyntax = (
-  input: LookupEntry,
-  getVarName: (id: number, isCircular?: boolean) => string,
-): { declarations: CodeDeclarations; varName: string } => {
-  const declarations: CodeDeclarations = {
-    variables: new Map(),
-    imports: new Set(),
+export const getStaticBuilder = (
+  metadata: V14,
+  declarations: CodeDeclarations,
+) => {
+  const lookupData = metadata.lookup
+  const getLookupEntryDef = getLookupFn(lookupData)
+
+  const getVarName = (idx: number, ...post: string[]): string => {
+    const { path } = lookupData[idx]
+    const parts: string[] = path.length === 0 ? ["cdc" + idx] : ["c", ...path]
+
+    parts.push(...post)
+
+    return toCamelCase(...parts)
+  }
+
+  const buildDefinition = (id: number) =>
+    _buildSyntax(getLookupEntryDef(id), declarations, new Set(), getVarName)
+
+  const buildNamedTuple = (
+    params: Array<{ name: string; type: number }>,
+    varName: string,
+  ) => {
+    if (declarations.variables.has(varName)) return varName
+
+    const args = params.map((p) => p.type).map(buildDefinition)
+    const names = params.map((p) => p.name)
+    declarations.imports.add("Tuple")
+    declarations.imports.add("Codec")
+    declarations.imports.add("CodecType")
+
+    const variable: Variable = {
+      id: varName,
+      types: `Codec<[${names
+        .map((name, pIdx) => `${name}: CodecType<typeof ${args[pIdx]}>`)
+        .join(", ")}]>`,
+      value: `Tuple(${args.join(", ")})`,
+      directDependencies: new Set(args),
+    }
+    declarations.variables.set(varName, variable)
+
+    return varName
+  }
+
+  const EMPTY_TUPLE_VAR_NAME = "_emptyTuple"
+  const getEmptyTuple = () => {
+    if (!declarations.variables.has(EMPTY_TUPLE_VAR_NAME)) {
+      declarations.imports.add("Tuple")
+      declarations.imports.add("Codec")
+
+      declarations.variables.set(EMPTY_TUPLE_VAR_NAME, {
+        id: EMPTY_TUPLE_VAR_NAME,
+        types: `Codec<[]>`,
+        value: `Tuple()`,
+        directDependencies: new Set(),
+      })
+    }
+    return EMPTY_TUPLE_VAR_NAME
+  }
+
+  const buildStorage = (pallet: string, entry: string) => {
+    const storageEntry = metadata.pallets
+      .find((x) => x.name === pallet)!
+      .storage!.items.find((s) => s.name === entry)!
+
+    if (storageEntry.type.tag === "plain")
+      return {
+        key: getEmptyTuple(),
+        val: buildDefinition(storageEntry.type.value),
+      }
+
+    const { key, value } = storageEntry.type.value
+    const val = buildDefinition(value)
+
+    const returnKey =
+      storageEntry.type.value.hashers.length === 1
+        ? buildNamedTuple(
+            [{ name: "key", type: key }],
+            getVarName(key, "Tupled"),
+          )
+        : buildDefinition(key)
+
+    return { key: returnKey, val }
+  }
+
+  const buildEvent = (pallet: string, eventName: string) => {
+    const eventsLookup = getLookupEntryDef(
+      metadata.pallets.find((x) => x.name === pallet)!.events! as number,
+    )
+    if (eventsLookup.type !== "enum") throw null
+
+    return toCamelCase(buildDefinition(eventsLookup.id), eventName)
+  }
+
+  const buildCall = (pallet: string, callName: string) => {
+    const callsLookup = getLookupEntryDef(
+      metadata.pallets.find((x) => x.name === pallet)!.calls! as number,
+    )
+
+    if (callsLookup.type !== "enum") throw null
+
+    const callEntry = callsLookup.value[callName]
+    if (callEntry.type === "primitive") return getEmptyTuple()
+    if (callEntry.type === "tuple")
+      return toCamelCase(buildDefinition(callsLookup.id), callName)
+
+    const params = Object.entries(callEntry.value).map(([name, val]) => ({
+      name,
+      type: val.id,
+    }))
+
+    return buildNamedTuple(
+      params,
+      getVarName(callsLookup.id, callName, "Tupled"),
+    )
+  }
+
+  const buildConstant = (pallet: string, constantName: string) => {
+    const storageEntry = metadata.pallets
+      .find((x) => x.name === pallet)!
+      .constants!.find((s) => s.name === constantName)!
+
+    return buildDefinition(storageEntry.type as number)
   }
 
   return {
-    declarations,
-    varName: _buildSyntax(input, declarations, new Set(), getVarName),
+    buildDefinition,
+    buildStorage,
+    buildEvent,
+    buildCall,
+    buildConstant,
   }
 }
