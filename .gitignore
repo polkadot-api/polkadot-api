@@ -12,4 +12,5 @@ packages/substrate-client/dist/**
 packages/substrate-codegen/dist/**
 !packages/substrate-codegen/dist/index.cjs
 !packages/substrate-codegen/dist/index.js
+experiments/build
 .vscode
