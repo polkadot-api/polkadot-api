@@ -270,39 +270,49 @@ while (!exit) {
           .map((v) => v.id)
           .join(", ")}} from "./codegen"\n\n`
 
-        descriptorCodegen += constantDescriptors
-          .map(
-            ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}_${name}_constant: ConstantDescriptor<${
-                declarations.imports.has(payload)
-                  ? `CodecType<typeof ${payload}>`
-                  : payload
-              }> = { type: "const", pallet: \"${pallet}\", name: \"${name}\", checksum: ${checksum}n}`,
-          )
-          .join("\n")
+        for (const pallet of Object.keys(data)) {
+          descriptorCodegen += `const ${pallet}Const = { type: \"const\", pallet: \"${pallet}\"} as const\n\n`
+          descriptorCodegen += `const ${pallet}Storage = { type: \"storage\", pallet: \"${pallet}\"} as const\n\n`
+          descriptorCodegen += `const ${pallet}Event = { type: \"event\", pallet: \"${pallet}\"} as const\n\n`
+        }
 
-        descriptorCodegen += storageDescriptors
-          .map(
-            ([pallet, name, checksum, key, value]) =>
-              `export const ${pallet}_${name}_storage: StorageDescriptor<${
-                declarations.imports.has(key) ? `CodecType<typeof ${key}>` : key
-              }, ${
-                declarations.imports.has(value)
-                  ? `CodecType<typeof ${value}>`
-                  : value
-              }> = { type: "storage", pallet: \"${pallet}\", name: \"${name}\", checksum: ${checksum}n}`,
-          )
-          .join("\n")
-        descriptorCodegen += eventDescriptors
-          .map(
-            ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}_${name}_event: EventDescriptor<\"${name}\", ${
-                declarations.imports.has(payload)
-                  ? `CodecType<typeof ${payload}>`
-                  : payload
-              }> = { type: "event", pallet: \"${pallet}\", name: \"${name}\", checksum: ${checksum}n}`,
-          )
-          .join("\n")
+        descriptorCodegen +=
+          constantDescriptors
+            .map(
+              ([pallet, name, checksum, payload]) =>
+                `export const ${pallet}${name}Constant: ConstantDescriptor<${
+                  declarations.imports.has(payload)
+                    ? `CodecType<typeof ${payload}>`
+                    : payload
+                }> = { ...${pallet}Const, name: \"${name}\", checksum: ${checksum}n}`,
+            )
+            .join("\n\n") + "\n"
+        descriptorCodegen +=
+          storageDescriptors
+            .map(
+              ([pallet, name, checksum, key, value]) =>
+                `export const ${pallet}${name}Storage: StorageDescriptor<${
+                  declarations.imports.has(key)
+                    ? `CodecType<typeof ${key}>`
+                    : key
+                }, ${
+                  declarations.imports.has(value)
+                    ? `CodecType<typeof ${value}>`
+                    : value
+                }> = { ...${pallet}Storage, name: \"${name}\", checksum: ${checksum}n}`,
+            )
+            .join("\n\n") + "\n"
+        descriptorCodegen +=
+          eventDescriptors
+            .map(
+              ([pallet, name, checksum, payload]) =>
+                `export const ${pallet}${name}Event: EventDescriptor<\"${name}\", ${
+                  declarations.imports.has(payload)
+                    ? `CodecType<typeof ${payload}>`
+                    : payload
+                }> = { ...${pallet}Event, name: \"${name}\", checksum: ${checksum}n}`,
+            )
+            .join("\n\n") + "\n"
 
         await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
       }
