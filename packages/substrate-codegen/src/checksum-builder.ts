@@ -193,7 +193,7 @@ export const getChecksumBuilder = (metadata: V14) => {
   const buildEvent = (pallet: string, eventName: string): bigint | null => {
     try {
       const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-      const callsLookup = getLookupEntryDef(palletEntry.calls! as number)
+      const callsLookup = getLookupEntryDef(palletEntry.events! as number)
 
       if (callsLookup.type !== "enum") throw null
       return buildEnumEntry(callsLookup.value[eventName])
