@@ -10,7 +10,8 @@ import {
   V14Lookup,
 } from "@unstoppablejs/substrate-bindings"
 import { CheckboxData } from "./CheckboxData"
-import ts from "typescript"
+import * as childProcess from "node:child_process"
+import { deferred } from "./deferred"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
@@ -45,7 +46,6 @@ const data: Record<
   }
 > = {}
 const { lookup, pallets } = metadata.value
-await fs.writeFile("metadata.json", JSON.stringify(metadata.value))
 
 let exit = false
 while (!exit) {
@@ -170,13 +170,42 @@ while (!exit) {
               variable.id
             } = CodecType<typeof ${variable.id}>`,
         )
+        declarations.imports.add("CodecType")
+        declarations.imports.add("Codec")
         constDeclarations.unshift(
           `import {${[...declarations.imports].join(
             ", ",
           )}} from "@unstoppablejs/substrate-bindings"`,
         )
 
-        await fs.writeFile(`${outFile}`, constDeclarations.join("\n\n"))
+        await fs.mkdir("codegen", { recursive: true })
+        await fs.writeFile(`codegen/${outFile}`, constDeclarations.join("\n\n"))
+        const tsc = deferred()
+        const process = childProcess.spawn("tsc", [
+          `codegen/${outFile}`,
+          "--outDir",
+          "./codegen",
+          "--skipLibCheck",
+          "--emitDeclarationOnly",
+          "--declaration",
+        ])
+
+        process.stdout.on("data", (data) => {
+          console.log(`stdout: ${data}`)
+        })
+
+        process.stderr.on("data", (data) => {
+          console.error(`stderr: ${data}`)
+        })
+
+        process.on("close", (code) => {
+          console.log("code", code)
+          tsc.resolve(code)
+        })
+
+        await tsc
+
+        await fs.rm(`codegen/${outFile}`)
       }
       break
     case EXIT:
