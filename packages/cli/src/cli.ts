@@ -155,6 +155,21 @@ while (!exit) {
           payload: string,
         ][] = []
 
+        const storageDescriptors: [
+          pallet: string,
+          name: string,
+          checksum: bigint,
+          key: string,
+          val: string,
+        ][] = []
+
+        const eventDescriptors: [
+          pallet: string,
+          name: string,
+          checksum: bigint,
+          payload: string,
+        ][] = []
+
         for (const [
           pallet,
           { constants, storage, events, extrinsics },
@@ -168,10 +183,14 @@ while (!exit) {
             constantDescriptors.push([pallet, constantName, checksum, payload])
           }
           for (const entry of storage.data) {
-            buildStorage(pallet, entry)
+            const { key, val } = buildStorage(pallet, entry)
+            const checksum = checksumBuilder.buildStorage(pallet, entry)!
+            storageDescriptors.push([pallet, entry, checksum, key, val])
           }
           for (const eventName of events.data) {
-            buildEvent(pallet, eventName)
+            const payload = buildEvent(pallet, eventName)
+            const checksum = checksumBuilder.buildEvent(pallet, eventName)!
+            eventDescriptors.push([pallet, eventName, checksum, payload])
           }
           for (const callName of extrinsics.data) {
             buildCall(pallet, callName)
@@ -259,6 +278,29 @@ while (!exit) {
                   ? `CodecType<typeof ${payload}>`
                   : payload
               }> = { type: "const", pallet: \"${pallet}\", name: \"${name}\", checksum: ${checksum}n}`,
+          )
+          .join("\n")
+
+        descriptorCodegen += storageDescriptors
+          .map(
+            ([pallet, name, checksum, key, value]) =>
+              `export const ${pallet}_${name}_storage: StorageDescriptor<${
+                declarations.imports.has(key) ? `CodecType<typeof ${key}>` : key
+              }, ${
+                declarations.imports.has(value)
+                  ? `CodecType<typeof ${value}>`
+                  : value
+              }> = { type: "storage", pallet: \"${pallet}\", name: \"${name}\", checksum: ${checksum}n}`,
+          )
+          .join("\n")
+        descriptorCodegen += eventDescriptors
+          .map(
+            ([pallet, name, checksum, payload]) =>
+              `export const ${pallet}_${name}_event: EventDescriptor<\"${name}\", ${
+                declarations.imports.has(payload)
+                  ? `CodecType<typeof ${payload}>`
+                  : payload
+              }> = { type: "event", pallet: \"${pallet}\", name: \"${name}\", checksum: ${checksum}n}`,
           )
           .join("\n")
 
