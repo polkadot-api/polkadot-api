@@ -2,6 +2,7 @@ import { input, select } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
 import {
   LookupEntry,
+  getChecksumBuilder,
   getLookupFn,
   getStaticBuilder,
 } from "@unstoppablejs/substrate-codegen"
@@ -12,6 +13,7 @@ import {
 import { CheckboxData } from "./CheckboxData"
 import * as childProcess from "node:child_process"
 import { deferred } from "./deferred"
+import { DESCRIPTOR_SPEC } from "./descriptors"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
@@ -144,12 +146,26 @@ while (!exit) {
         const { buildStorage, buildEvent, buildCall, buildConstant } =
           getStaticBuilder(metadata.value, declarations)
 
+        const checksumBuilder = getChecksumBuilder(metadata.value)
+
+        const constantDescriptors: [
+          pallet: string,
+          name: string,
+          checksum: bigint,
+          payload: string,
+        ][] = []
+
         for (const [
           pallet,
           { constants, storage, events, extrinsics },
         ] of Object.entries(data)) {
           for (const constantName of constants.data) {
-            buildConstant(pallet, constantName)
+            const payload = buildConstant(pallet, constantName)
+            const checksum = checksumBuilder.buildConstant(
+              pallet,
+              constantName,
+            )!
+            constantDescriptors.push([pallet, constantName, checksum, payload])
           }
           for (const entry of storage.data) {
             buildStorage(pallet, entry)
@@ -180,6 +196,7 @@ while (!exit) {
 
         await fs.mkdir("codegen", { recursive: true })
         await fs.writeFile(`codegen/${outFile}`, constDeclarations.join("\n\n"))
+        await fs.writeFile(`codegen/descriptors.d.ts`, DESCRIPTOR_SPEC)
         const tsc = deferred()
         const process = childProcess.spawn("tsc", [
           `codegen/${outFile}`,
@@ -206,7 +223,48 @@ while (!exit) {
         await tsc
 
         await fs.rm(`codegen/${outFile}`)
+
+        let descriptorCodegen = ""
+        const descriptorImports = [
+          "StorageDescriptor",
+          "ConstantDescriptor",
+          "EventDescriptor",
+          "CallDescriptor",
+          "Descriptor",
+          "EventToObject",
+          "UnionizeTupleEvents",
+          "CallDescriptorArgs",
+          "CallDescriptorEvents",
+          "CallDescriptorErrors",
+          "CallFunction",
+        ]
+
+        descriptorCodegen += `import {${[...declarations.imports].join(
+          ", ",
+        )}} from "@unstoppablejs/substrate-bindings"\n`
+        descriptorCodegen += `import type {${[...descriptorImports].join(
+          ", ",
+        )}} from "./descriptors"\n`
+        descriptorCodegen += `import type {${[
+          ...declarations.variables.values(),
+        ]
+          .map((v) => v.id)
+          .join(", ")}} from "./codegen"\n\n`
+
+        descriptorCodegen += constantDescriptors
+          .map(
+            ([pallet, name, checksum, payload]) =>
+              `export const ${pallet}_${name}_constant: ConstantDescriptor<${
+                declarations.imports.has(payload)
+                  ? `CodecType<typeof ${payload}>`
+                  : payload
+              }> = { type: "const", pallet: \"${pallet}\", name: \"${name}\", checksum: ${checksum}n}`,
+          )
+          .join("\n")
+
+        await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
       }
+
       break
     case EXIT:
       exit = true
