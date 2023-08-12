@@ -62,7 +62,7 @@ while (!exit) {
   })
 
   switch (choice) {
-    case SELECT_DESCRIPTORS:
+    case SELECT_DESCRIPTORS: {
       const pallet = await select({
         message: "Select a pallet",
         choices: pallets.map((p) => ({ name: p.name, value: p })),
@@ -128,196 +128,234 @@ while (!exit) {
         }
       }
       break
-    case SHOW_DESCRIPTORS:
+    }
+    case SHOW_DESCRIPTORS: {
       console.log(data)
       break
-    case OUTPUT_CODEGEN:
-      {
-        const outFile = await input({
-          message: "Enter output fileName",
-          default: "codegen.ts",
-        })
+    }
+    case OUTPUT_CODEGEN: {
+      const outFile = await input({
+        message: "Enter output fileName",
+        default: "codegen.ts",
+      })
 
-        const declarations = {
-          imports: new Set<string>(),
-          variables: new Map(),
-        }
-
-        const { buildStorage, buildEvent, buildCall, buildConstant } =
-          getStaticBuilder(metadata.value, declarations)
-
-        const checksumBuilder = getChecksumBuilder(metadata.value)
-
-        const constantDescriptors: [
-          pallet: string,
-          name: string,
-          checksum: bigint,
-          payload: string,
-        ][] = []
-
-        const storageDescriptors: [
-          pallet: string,
-          name: string,
-          checksum: bigint,
-          key: string,
-          val: string,
-        ][] = []
-
-        const eventDescriptors: [
-          pallet: string,
-          name: string,
-          checksum: bigint,
-          payload: string,
-        ][] = []
-
-        for (const [
-          pallet,
-          { constants, storage, events, extrinsics },
-        ] of Object.entries(data)) {
-          for (const constantName of constants.data) {
-            const payload = buildConstant(pallet, constantName)
-            const checksum = checksumBuilder.buildConstant(
-              pallet,
-              constantName,
-            )!
-            constantDescriptors.push([pallet, constantName, checksum, payload])
-          }
-          for (const entry of storage.data) {
-            const { key, val } = buildStorage(pallet, entry)
-            const checksum = checksumBuilder.buildStorage(pallet, entry)!
-            storageDescriptors.push([pallet, entry, checksum, key, val])
-          }
-          for (const eventName of events.data) {
-            const payload = buildEvent(pallet, eventName)
-            const checksum = checksumBuilder.buildEvent(pallet, eventName)!
-            eventDescriptors.push([pallet, eventName, checksum, payload])
-          }
-          for (const callName of extrinsics.data) {
-            buildCall(pallet, callName)
-          }
-        }
-
-        const constDeclarations = [...declarations.variables.values()].map(
-          (variable) =>
-            `const ${variable.id}${
-              variable.types ? ": " + variable.types : ""
-            } = ${variable.value}\nexport type ${
-              variable.id
-            } = CodecType<typeof ${variable.id}>`,
-        )
-        declarations.imports.add("CodecType")
-        declarations.imports.add("Codec")
-        constDeclarations.unshift(
-          `import {${[...declarations.imports].join(
-            ", ",
-          )}} from "@unstoppablejs/substrate-bindings"`,
-        )
-
-        await fs.mkdir("codegen", { recursive: true })
-        await fs.writeFile(`codegen/${outFile}`, constDeclarations.join("\n\n"))
-        await fs.writeFile(`codegen/descriptors.d.ts`, DESCRIPTOR_SPEC)
-        const tsc = deferred()
-        const process = childProcess.spawn("tsc", [
-          `codegen/${outFile}`,
-          "--outDir",
-          "./codegen",
-          "--skipLibCheck",
-          "--emitDeclarationOnly",
-          "--declaration",
-        ])
-
-        process.stdout.on("data", (data) => {
-          console.log(`stdout: ${data}`)
-        })
-
-        process.stderr.on("data", (data) => {
-          console.error(`stderr: ${data}`)
-        })
-
-        process.on("close", (code) => {
-          console.log("code", code)
-          tsc.resolve(code)
-        })
-
-        await tsc
-
-        await fs.rm(`codegen/${outFile}`)
-
-        let descriptorCodegen = ""
-        const descriptorImports = [
-          "StorageDescriptor",
-          "ConstantDescriptor",
-          "EventDescriptor",
-          "CallDescriptor",
-          "Descriptor",
-          "EventToObject",
-          "UnionizeTupleEvents",
-          "CallDescriptorArgs",
-          "CallDescriptorEvents",
-          "CallDescriptorErrors",
-          "CallFunction",
-        ]
-
-        descriptorCodegen += `import {${[...declarations.imports].join(
-          ", ",
-        )}} from "@unstoppablejs/substrate-bindings"\n`
-        descriptorCodegen += `import type {${[...descriptorImports].join(
-          ", ",
-        )}} from "./descriptors"\n`
-        descriptorCodegen += `import type {${[
-          ...declarations.variables.values(),
-        ]
-          .map((v) => v.id)
-          .join(", ")}} from "./codegen"\n\n`
-
-        for (const pallet of Object.keys(data)) {
-          descriptorCodegen += `const ${pallet}Const = { type: \"const\", pallet: \"${pallet}\"} as const\n\n`
-          descriptorCodegen += `const ${pallet}Storage = { type: \"storage\", pallet: \"${pallet}\"} as const\n\n`
-          descriptorCodegen += `const ${pallet}Event = { type: \"event\", pallet: \"${pallet}\"} as const\n\n`
-        }
-
-        descriptorCodegen +=
-          constantDescriptors
-            .map(
-              ([pallet, name, checksum, payload]) =>
-                `export const ${pallet}${name}Constant: ConstantDescriptor<${
-                  declarations.imports.has(payload)
-                    ? `CodecType<typeof ${payload}>`
-                    : payload
-                }> = { ...${pallet}Const, name: \"${name}\", checksum: ${checksum}n}`,
-            )
-            .join("\n\n") + "\n"
-        descriptorCodegen +=
-          storageDescriptors
-            .map(
-              ([pallet, name, checksum, key, value]) =>
-                `export const ${pallet}${name}Storage: StorageDescriptor<${
-                  declarations.imports.has(key)
-                    ? `CodecType<typeof ${key}>`
-                    : key
-                }, ${
-                  declarations.imports.has(value)
-                    ? `CodecType<typeof ${value}>`
-                    : value
-                }> = { ...${pallet}Storage, name: \"${name}\", checksum: ${checksum}n}`,
-            )
-            .join("\n\n") + "\n"
-        descriptorCodegen +=
-          eventDescriptors
-            .map(
-              ([pallet, name, checksum, payload]) =>
-                `export const ${pallet}${name}Event: EventDescriptor<\"${name}\", ${
-                  declarations.imports.has(payload)
-                    ? `CodecType<typeof ${payload}>`
-                    : payload
-                }> = { ...${pallet}Event, name: \"${name}\", checksum: ${checksum}n}`,
-            )
-            .join("\n\n") + "\n"
-
-        await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
+      const declarations = {
+        imports: new Set<string>(),
+        variables: new Map(),
       }
 
+      const { buildStorage, buildEvent, buildCall, buildConstant } =
+        getStaticBuilder(metadata.value, declarations)
+
+      const checksumBuilder = getChecksumBuilder(metadata.value)
+
+      const constantDescriptors: [
+        pallet: string,
+        name: string,
+        checksum: bigint,
+        payload: string,
+      ][] = []
+
+      const storageDescriptors: [
+        pallet: string,
+        name: string,
+        checksum: bigint,
+        key: string,
+        val: string,
+      ][] = []
+
+      const eventDescriptors: [
+        pallet: string,
+        name: string,
+        checksum: bigint,
+        payload: string,
+      ][] = []
+
+      const callDescriptors: [
+        pallet: string,
+        callName: string,
+        checksum: bigint,
+        payload: string,
+      ][] = []
+
+      for (const [
+        pallet,
+        { constants, storage, events, extrinsics },
+      ] of Object.entries(data)) {
+        for (const constantName of constants.data) {
+          const payload = buildConstant(pallet, constantName)
+          const checksum = checksumBuilder.buildConstant(pallet, constantName)!
+          constantDescriptors.push([pallet, constantName, checksum, payload])
+        }
+        for (const entry of storage.data) {
+          const { key, val } = buildStorage(pallet, entry)
+          const checksum = checksumBuilder.buildStorage(pallet, entry)!
+          storageDescriptors.push([pallet, entry, checksum, key, val])
+        }
+        for (const eventName of events.data) {
+          const payload = buildEvent(pallet, eventName)
+          const checksum = checksumBuilder.buildEvent(pallet, eventName)!
+          eventDescriptors.push([pallet, eventName, checksum, payload])
+        }
+        for (const callName of extrinsics.data) {
+          const payload = buildCall(pallet, callName)
+          const checksum = checksumBuilder.buildCall(pallet, callName)!
+          callDescriptors.push([pallet, callName, checksum, payload])
+        }
+      }
+
+      const constDeclarations = [...declarations.variables.values()].map(
+        (variable) =>
+          `const ${variable.id}${
+            variable.types ? ": " + variable.types : ""
+          } = ${variable.value}\nexport type ${
+            variable.id
+          } = CodecType<typeof ${variable.id}>`,
+      )
+      declarations.imports.add("CodecType")
+      declarations.imports.add("Codec")
+      constDeclarations.unshift(
+        `import {${[...declarations.imports].join(
+          ", ",
+        )}} from "@unstoppablejs/substrate-bindings"`,
+      )
+
+      await fs.mkdir("codegen", { recursive: true })
+      await fs.writeFile(`codegen/${outFile}`, constDeclarations.join("\n\n"))
+      await fs.writeFile(`codegen/descriptors.d.ts`, DESCRIPTOR_SPEC)
+      const tsc = deferred()
+      const process = childProcess.spawn("tsc", [
+        `codegen/${outFile}`,
+        "--outDir",
+        "./codegen",
+        "--skipLibCheck",
+        "--emitDeclarationOnly",
+        "--declaration",
+      ])
+
+      process.stdout.on("data", (data) => {
+        console.log(`stdout: ${data}`)
+      })
+
+      process.stderr.on("data", (data) => {
+        console.error(`stderr: ${data}`)
+      })
+
+      process.on("close", (code) => {
+        console.log("code", code)
+        tsc.resolve(code)
+      })
+
+      await tsc
+
+      await fs.rm(`codegen/${outFile}`)
+
+      let descriptorCodegen = ""
+      const descriptorImports = [
+        "StorageDescriptor",
+        "ConstantDescriptor",
+        "EventDescriptor",
+        "CallDescriptor",
+        "Descriptor",
+        "EventToObject",
+        "UnionizeTupleEvents",
+        "CallDescriptorArgs",
+        "CallDescriptorEvents",
+        "CallDescriptorErrors",
+        "CallFunction",
+      ]
+
+      descriptorCodegen += `import {${[...declarations.imports].join(
+        ", ",
+      )}} from "@unstoppablejs/substrate-bindings"\n`
+      descriptorCodegen += `import type {${[...descriptorImports].join(
+        ", ",
+      )}} from "./descriptors"\n`
+      descriptorCodegen += `import type {${[...declarations.variables.values()]
+        .map((v) => v.id)
+        .join(", ")}} from "./codegen"\n\n`
+
+      for (const pallet of Object.keys(data)) {
+        descriptorCodegen += `const ${pallet}Const = { type: \"const\", pallet: \"${pallet}\"} as const\n\n`
+        descriptorCodegen += `const ${pallet}Storage = { type: \"storage\", pallet: \"${pallet}\"} as const\n\n`
+        descriptorCodegen += `const ${pallet}Event = { type: \"event\", pallet: \"${pallet}\"} as const\n\n`
+        descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
+      }
+
+      descriptorCodegen +=
+        constantDescriptors
+          .map(
+            ([pallet, name, checksum, payload]) =>
+              `export const ${pallet}${name}Constant: ConstantDescriptor<${
+                declarations.imports.has(payload)
+                  ? `CodecType<typeof ${payload}>`
+                  : payload
+              }> = { ...${pallet}Const, name: \"${name}\", checksum: ${checksum}n}`,
+          )
+          .join("\n\n") + "\n"
+      descriptorCodegen +=
+        storageDescriptors
+          .map(
+            ([pallet, name, checksum, key, value]) =>
+              `export const ${pallet}${name}Storage: StorageDescriptor<${
+                declarations.imports.has(key) ? `CodecType<typeof ${key}>` : key
+              }, ${
+                declarations.imports.has(value)
+                  ? `CodecType<typeof ${value}>`
+                  : value
+              }> = { ...${pallet}Storage, name: \"${name}\", checksum: ${checksum}n}`,
+          )
+          .join("\n\n") + "\n"
+      descriptorCodegen +=
+        eventDescriptors
+          .map(
+            ([pallet, name, checksum, payload]) =>
+              `export const ${pallet}${name}Event: EventDescriptor<\"${name}\", ${
+                declarations.imports.has(payload)
+                  ? `CodecType<typeof ${payload}>`
+                  : payload
+              }> = { ...${pallet}Event, name: \"${name}\", checksum: ${checksum}n}`,
+          )
+          .join("\n\n") + "\n"
+      for (const pallet of Object.keys(data)) {
+        descriptorCodegen +=
+          `export type ${pallet}Events = [${[...data[pallet].events.data]
+            .map((name) => `typeof ${pallet}${name}Event`)
+            .join(",")}]` + "\n\n"
+        descriptorCodegen +=
+          `const ${pallet}Events: ${pallet}Events = [${[
+            ...data[pallet].events.data,
+          ]
+            .map((name) => `${pallet}${name}Event`)
+            .join(",")}]` + "\n\n"
+
+        const errors = data[pallet].errors.data
+
+        descriptorCodegen +=
+          `export type ${pallet}Errors = [${[...errors]
+            .map((e) => `\"${e}\"`)
+            .join(",")}]` + "\n\n"
+        descriptorCodegen +=
+          `const ${pallet}Errors: ${pallet}Errors = [${[...errors]
+            .map((e) => `\"${e}\"`)
+            .join(",")}]` + "\n\n"
+      }
+
+      descriptorCodegen +=
+        callDescriptors
+          .map(
+            ([pallet, name, checksum, payload]) =>
+              `export const ${pallet}${name}Call: CallDescriptor<${
+                declarations.imports.has(payload)
+                  ? `CodecType<typeof ${payload}>`
+                  : payload
+              }, ${pallet}Events, ${pallet}Errors> = { ...${pallet}Call, name: \"${name}\", checksum: ${checksum}n, events: ${pallet}Events, errors: ${pallet}Errors}`,
+          )
+          .join("\n\n") + "\n"
+
+      await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
       break
+    }
     case EXIT:
       exit = true
       break
