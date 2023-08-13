@@ -273,7 +273,20 @@ export const getStaticBuilder = (
     )
     if (eventsLookup.type !== "enum") throw null
 
-    return toCamelCase(buildDefinition(eventsLookup.id), eventName)
+    const returnVar = toCamelCase(buildDefinition(eventsLookup.id), eventName)
+
+    if (
+      !declarations.variables.has(returnVar) &&
+      eventsLookup.value[eventName].type === "primitive"
+    ) {
+      declarations.variables.set(returnVar, {
+        id: returnVar,
+        value: "_void",
+        directDependencies: new Set(),
+      })
+    }
+
+    return returnVar
   }
 
   const buildCall = (pallet: string, callName: string) => {
