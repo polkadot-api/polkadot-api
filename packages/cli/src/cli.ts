@@ -290,10 +290,22 @@ while (!exit) {
         .join(", ")}} from "./codegen"\n\n`
 
       for (const pallet of Object.keys(data)) {
-        descriptorCodegen += `const ${pallet}Const = { type: \"const\", pallet: \"${pallet}\"} as const\n\n`
-        descriptorCodegen += `const ${pallet}Storage = { type: \"storage\", pallet: \"${pallet}\"} as const\n\n`
-        descriptorCodegen += `const ${pallet}Event = { type: \"event\", pallet: \"${pallet}\"} as const\n\n`
-        descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
+        if (data[pallet].constants.data.size > 0) {
+          descriptorCodegen += `const ${pallet}Const = { type: \"const\", pallet: \"${pallet}\"} as const\n\n`
+        }
+        if (data[pallet].storage.data.size > 0) {
+          descriptorCodegen += `const ${pallet}Storage = { type: \"storage\", pallet: \"${pallet}\"} as const\n\n`
+        }
+        if (Object.keys(data[pallet].extrinsics.data).length > 0) {
+          descriptorCodegen += `const ${pallet}Event = { type: \"event\", pallet: \"${pallet}\"} as const\n\n`
+        }
+        if (
+          Object.values(data[pallet].extrinsics.data).find(
+            ([events, errors]) => events.size > 0 || errors.size > 0,
+          )
+        ) {
+          descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
+        }
       }
 
       descriptorCodegen +=
