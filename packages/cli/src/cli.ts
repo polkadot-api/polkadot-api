@@ -15,6 +15,7 @@ import * as childProcess from "node:child_process"
 import { deferred } from "./deferred"
 import { DESCRIPTOR_SPEC } from "./descriptors"
 import { ExtrinsicData } from "./ExtrinsicData"
+import { confirm } from "@inquirer/prompts"
 import util from "util"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
@@ -103,11 +104,18 @@ while (!exit) {
             )
             break
           case EXTRINSICS: {
-            await data[pallet.name].extrinsics.prompt(
-              extrinsics,
-              events,
-              errors,
-            )
+            let selectExtrinsics = true
+            while (selectExtrinsics) {
+              await data[pallet.name].extrinsics.prompt(
+                extrinsics,
+                events,
+                errors,
+              )
+              selectExtrinsics = await confirm({
+                message: "Continue?",
+                default: true,
+              })
+            }
             break
           }
           case EXIT:
