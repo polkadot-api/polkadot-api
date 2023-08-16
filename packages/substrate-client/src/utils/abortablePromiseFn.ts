@@ -10,7 +10,7 @@ class AbortError extends Error {
 export const abortablePromiseFn =
   <T, A extends Array<any>>(
     fn: (
-      ...args: [...A, ...[res: (x: T) => void, rej: (e: any) => void]]
+      ...args: [...[res: (x: T) => void, rej: (e: any) => void], ...A]
     ) => () => void,
   ): AbortablePromiseFn<A, T> =>
   (...args): Promise<T> =>
@@ -38,6 +38,6 @@ export const abortablePromiseFn =
         }
 
       const cancel = fn(
-        ...[...actualArgs, removeAbortListener(res), removeAbortListener(rej)],
+        ...[removeAbortListener(res), removeAbortListener(rej), ...actualArgs],
       )
     })

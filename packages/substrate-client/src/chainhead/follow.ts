@@ -9,6 +9,10 @@ import { createCallFn } from "./call"
 import { createHeaderFn } from "./header"
 import { createStorageFn } from "./storage"
 import { createUnpinFn } from "./unpin"
+import {
+  Subscriber,
+  getSubscriptionsManager,
+} from "@/utils/subscriptions-manager"
 
 export function follow(
   request: ClientRequest<
@@ -40,36 +44,51 @@ export function follow(
       | ((event: FollowEventWithoutRuntime) => void)
       | ((event: FollowEventWithRuntime) => void),
   ): FollowResponse => {
+    const subscriptions = getSubscriptionsManager()
     const _genesisHash = new Promise<string>((res) => {
       request("chainHead_unstable_genesisHash", [], res)
     })
-
     let unfollow: () => void = () => {}
     let followSubscription: Promise<string> | string = new Promise((res) => {
       unfollow = request(
         "chainHead_unstable_follow",
         [withRuntime],
-        (result: string, follow) => {
-          follow(
-            (event, done) => {
-              if (event.event === "stop") done()
-              cb(event as any)
+        (subscriptionId, follow) => {
+          const done = follow(subscriptionId, {
+            next: (event) => {
+              if ((event as any).operationId) {
+                subscriptions.next((event as any).operationId, event)
+              } else {
+                if (event.event === "stop") {
+                  done()
+                  subscriptions.errorAll(new Error("disjoint"))
+                }
+                cb(event as any)
+              }
             },
-            result,
-            "chainHead_unstable_unfollow",
-          )
-          followSubscription = result
-          res(result)
+            error: (e) => {
+              subscriptions.errorAll(e)
+            },
+          })
+
+          unfollow = () => {
+            done()
+            subscriptions.errorAll(new Error("disjoint"))
+            request("chainHead_unstable_unfollow", [subscriptionId])
+          }
+
+          followSubscription = subscriptionId
+          res(subscriptionId)
         },
       )
     })
 
-    const fRequest = <T, TT>(
+    const fRequest: ClientRequest<any, any> = (
       method: string,
       params: Array<any>,
-      cb: ClientRequestCb<T, TT>,
+      cb?: ClientRequestCb<any, any>,
     ) => {
-      const req = request as unknown as ClientRequest<T, TT>
+      const req = request as unknown as ClientRequest<any, any>
       if (typeof followSubscription === "string")
         return req(method, [followSubscription, ...params], cb)
 
@@ -80,7 +99,20 @@ export function follow(
 
       followSubscription.then((sub) => {
         if (isAborted) return
-        onCancel = req(method, [sub, ...params], cb)
+        onCancel = req(
+          method,
+          [sub, ...params],
+          cb
+            ? (response) => {
+                cb(response, (id: string, subscriber: Subscriber<any>) => {
+                  subscriptions.subscribe(id, subscriber)
+                  return () => {
+                    subscriptions.unsubscribe(id)
+                  }
+                })
+              }
+            : undefined,
+        )
       })
 
       return () => {
@@ -90,11 +122,13 @@ export function follow(
 
     return {
       genesisHash: () => _genesisHash,
-      unfollow,
+      unfollow() {
+        unfollow()
+      },
       body: createBodyFn(fRequest),
       call: createCallFn(fRequest),
       header: createHeaderFn(fRequest),
-      storage: createStorageFn(fRequest, request),
+      storage: createStorageFn(fRequest),
       unpin: createUnpinFn(fRequest),
     }
   }
