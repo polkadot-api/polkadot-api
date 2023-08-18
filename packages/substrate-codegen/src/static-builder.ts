@@ -267,27 +267,28 @@ export const getStaticBuilder = (
     return { key: returnKey, val }
   }
 
-  const buildEvent = (pallet: string, eventName: string) => {
-    const eventsLookup = getLookupEntryDef(
-      metadata.pallets.find((x) => x.name === pallet)!.events! as number,
-    )
-    if (eventsLookup.type !== "enum") throw null
+  const buildVariant =
+    (type: "errors" | "events") => (pallet: string, name: string) => {
+      const eventsLookup = getLookupEntryDef(
+        metadata.pallets.find((x) => x.name === pallet)![type]! as number,
+      )
+      if (eventsLookup.type !== "enum") throw null
 
-    const returnVar = toCamelCase(buildDefinition(eventsLookup.id), eventName)
+      const returnVar = toCamelCase(buildDefinition(eventsLookup.id), name)
 
-    if (
-      !declarations.variables.has(returnVar) &&
-      eventsLookup.value[eventName].type === "primitive"
-    ) {
-      declarations.variables.set(returnVar, {
-        id: returnVar,
-        value: "_void",
-        directDependencies: new Set(),
-      })
+      if (
+        !declarations.variables.has(returnVar) &&
+        eventsLookup.value[name].type === "primitive"
+      ) {
+        declarations.variables.set(returnVar, {
+          id: returnVar,
+          value: "_void",
+          directDependencies: new Set(),
+        })
+      }
+
+      return returnVar
     }
-
-    return returnVar
-  }
 
   const buildCall = (pallet: string, callName: string) => {
     const callsLookup = getLookupEntryDef(
@@ -323,7 +324,8 @@ export const getStaticBuilder = (
   return {
     buildDefinition,
     buildStorage,
-    buildEvent,
+    buildEvent: buildVariant("events"),
+    buildError: buildVariant("errors"),
     buildCall,
     buildConstant,
   }
