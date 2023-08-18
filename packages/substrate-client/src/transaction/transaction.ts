@@ -5,18 +5,27 @@ const finalEvents = new Set(["dropped", "invalid", "finalized"])
 
 export const transaction =
   (request: ClientRequest<string, TxEvent>) =>
-  (tx: string, cb: (event: TxEvent) => void) =>
-    request(
+  (tx: string, next: (event: TxEvent) => void, error: (e: Error) => void) => {
+    let cancel = request(
       "transaction_unstable_submitAndWatch",
       [tx],
-      (result: string, follow) => {
-        follow(
-          (event, done) => {
+      (subscriptionId, follow) => {
+        const done = follow(subscriptionId, {
+          next: (event) => {
             if (finalEvents.has(event.event)) done()
-            cb(event)
+            next(event)
           },
-          result,
-          "transaction_unstable_unwatch",
-        )
+          error,
+        })
+
+        cancel = () => {
+          done()
+          request("transaction_unstable_unwatch", [subscriptionId])
+        }
       },
     )
+
+    return () => {
+      cancel()
+    }
+  }

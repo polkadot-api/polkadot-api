@@ -1,22 +1,10 @@
-import type { ClientRequestCb } from "../client"
-import type { UnsubscribeFn } from "../common-types"
+import type { ClientRequest } from "../client"
 
 export const createHeaderFn =
-  (
-    request: <T, TT>(
-      method: string,
-      params: Array<any>,
-      cb: ClientRequestCb<T, TT>,
-    ) => UnsubscribeFn,
-  ) =>
-  (hash: string) =>
+  (request: ClientRequest<string | null, unknown>) => (hash: string) =>
     new Promise<string>((res, rej) => {
-      request<string | null, unknown>(
-        "chainHead_unstable_header",
-        [hash],
-        (response: string | null) => {
-          if (typeof response == "string") return res(response)
-          rej(new Error("followSubscription is Invalid"))
-        },
-      )
+      request("chainHead_unstable_header", [hash], (response) => {
+        if (typeof response == "string") return res(response)
+        rej(new Error("followSubscription is Invalid"))
+      })
     })

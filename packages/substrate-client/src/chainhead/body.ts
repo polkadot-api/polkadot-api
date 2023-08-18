@@ -1,33 +1,12 @@
-import { abortablePromiseFn } from "../utils/abortablePromiseFn"
-import type { BodyEvent } from "./types"
-import type { ClientRequestCb } from "../client"
-import type { UnsubscribeFn } from "../common-types"
+import type { OperationBodyDone } from "./types"
+import { createOperationPromise } from "./operation-promise"
 
-export const createBodyFn = (
-  request: <T, TT>(
-    method: string,
-    params: Array<any>,
-    cb: ClientRequestCb<T, TT>,
-  ) => UnsubscribeFn,
-) =>
-  abortablePromiseFn(
-    (hash: string, res: (x: Array<string>) => void, rej: (e: any) => void) =>
-      request<string, BodyEvent>(
-        "chainHead_unstable_body",
-        [hash],
-        (id, followSubscription) => {
-          followSubscription(
-            (e, done) => {
-              done()
-              if (e.event === "done") {
-                res(e.value)
-              } else {
-                rej(new Error(e.event))
-              }
-            },
-            id,
-            "chainHead_unstable_stopBody",
-          )
-        },
-      ),
-  )
+export const createBodyFn = createOperationPromise(
+  "chainHead_unstable_body",
+  (hash: string) => [
+    [hash],
+    (e: OperationBodyDone, res: (x: Array<string>) => void) => {
+      res(e.value)
+    },
+  ],
+)

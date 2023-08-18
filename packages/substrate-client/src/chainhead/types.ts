@@ -1,7 +1,6 @@
 import { AbortablePromiseFn, UnsubscribeFn } from "../common-types"
 
 // Common
-
 export interface Inaccessible {
   event: "inaccessible"
 }
@@ -20,7 +19,6 @@ export interface Done {
 }
 
 // Follow
-
 export interface Runtime {
   specName: string
   implName: string
@@ -64,37 +62,22 @@ export interface Stop {
   event: "stop"
 }
 
-export type FollowEventWithRuntime =
-  | InitializedWithRuntime
-  | NewBlockWithRuntime
-  | BestBlockChanged
-  | Finalized
-  | Stop
+type CommonFollowEvents = BestBlockChanged | Finalized | Stop
 
-export type FollowEventWithoutRuntime =
-  | Initialized
-  | NewBlock
-  | BestBlockChanged
-  | Finalized
-  | Stop
+// operation events
+interface OperationEvent {
+  operationId: string
+}
 
-// Body
-
-export type BodyDone = Done & {
+export type OperationBodyDone = OperationEvent & {
+  event: "operationBodyDone"
   value: Array<string>
 }
 
-export type BodyEvent = BodyDone | Inaccessible | Disjoint
-
-// Call
-
-export type CallDone = Done & {
+export type OperationCallDone = OperationEvent & {
+  event: "operationCallDone"
   output: string
 }
-
-export type CallEvent = CallDone | Inaccessible | FError | Disjoint
-
-// Storage
 
 export interface StorageItemResponse {
   key: string
@@ -103,22 +86,49 @@ export interface StorageItemResponse {
   "closest-descendant-merkle-value"?: string
 }
 
-export interface StorageItems {
-  event: "items"
+export type OperationStorageItems = OperationEvent & {
+  event: "operationStorageItems"
   items: Array<StorageItemResponse>
 }
 
-export interface StorageWaitingForContinue {
-  event: "waiting-for-continue"
+export type OperationWaitingForContinue = OperationEvent & {
+  event: "operationWaitingForContinue"
 }
 
-export type StorageEvent =
-  | StorageItems
-  | StorageWaitingForContinue
-  | Done
-  | Inaccessible
-  | FError
-  | Disjoint
+export type OperationStorageDone = OperationEvent & {
+  event: "operationStorageDone"
+}
+
+export type OperationInaccessible = OperationEvent & {
+  event: "operationInaccessible"
+}
+
+export type OperationError = OperationEvent & {
+  event: "operationError"
+  error: string
+}
+
+export type CommonOperationEvents = OperationInaccessible | OperationError
+
+export type OperationEvents =
+  | OperationBodyDone
+  | OperationCallDone
+  | OperationStorageItems
+  | OperationWaitingForContinue
+  | OperationStorageDone
+  | CommonOperationEvents
+
+export type FollowEventWithRuntime =
+  | InitializedWithRuntime
+  | NewBlockWithRuntime
+  | CommonFollowEvents
+  | OperationEvents
+
+export type FollowEventWithoutRuntime =
+  | Initialized
+  | NewBlock
+  | CommonFollowEvents
+  | OperationEvents
 
 export interface StorageItemInput {
   key: string
@@ -139,7 +149,6 @@ export interface StorageResponse {
 }
 
 // Follow
-
 export interface FollowResponse {
   unfollow: UnsubscribeFn
   body: AbortablePromiseFn<[hash: string], Array<string>>
@@ -165,3 +174,12 @@ export interface FollowResponse {
   header: (hash: string) => Promise<string>
   unpin: (...hashes: Array<string>) => Promise<void>
 }
+
+// Operation Responses
+export type OperationStarted = OperationEvent & {
+  result: "started"
+}
+export interface LimitReached {
+  result: "limitReached"
+}
+export type OperationResponse = OperationStarted | LimitReached

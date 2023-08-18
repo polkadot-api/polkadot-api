@@ -28,6 +28,9 @@
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.34.1"
   },
+  "overrides": {
+    "smoldot": "1.0.16"
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": "prettier --write"
   }
