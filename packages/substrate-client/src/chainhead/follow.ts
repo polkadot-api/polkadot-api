@@ -3,6 +3,7 @@ import type {
   FollowEventWithoutRuntime,
   FollowEventWithRuntime,
   FollowResponse,
+  OperationEvents,
 } from "./types"
 import { createBodyFn } from "./body"
 import { createCallFn } from "./call"
@@ -13,6 +14,12 @@ import {
   Subscriber,
   getSubscriptionsManager,
 } from "@/utils/subscriptions-manager"
+
+function isOpeartionEvent(
+  event: FollowEventWithRuntime | FollowEventWithoutRuntime,
+): event is OperationEvents {
+  return (event as OperationEvents).operationId !== undefined
+}
 
 export function follow(
   request: ClientRequest<
@@ -56,8 +63,8 @@ export function follow(
         (subscriptionId, follow) => {
           const done = follow(subscriptionId, {
             next: (event) => {
-              if ((event as any).operationId) {
-                subscriptions.next((event as any).operationId, event)
+              if (isOpeartionEvent(event)) {
+                subscriptions.next(event.operationId, event)
               } else {
                 if (event.event === "stop") {
                   done()
