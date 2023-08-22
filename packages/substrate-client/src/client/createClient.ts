@@ -1,46 +1,38 @@
 import { GetProvider, Provider, ProviderStatus } from "@unstoppablejs/provider"
 import type { UnsubscribeFn } from "../common-types"
 import { ErrorRpc, RpcError } from "./ErrorRpc"
+import {
+  getSubscriptionsManager,
+  Subscriber,
+} from "@/utils/subscriptions-manager"
 
-export type SubscriptionCb<T = unknown> = (data: T, done: () => void) => void
 export type FollowSubscriptionCb<T> = (
-  cb: SubscriptionCb<T>,
   subscriptionId: string,
-  unfollowMethod?: string,
-) => void
+  cb: Subscriber<T>,
+) => UnsubscribeFn
 
-export type ClientRequestCb<T = unknown, TT = unknown> = (
+export type ClientRequestCb<T, TT> = (
   result: T,
   followSubscription: FollowSubscriptionCb<TT>,
 ) => void
-export type ClientRequest<T = unknown, TT = unknown> = (
+
+export type ClientRequest<T, TT> = (
   method: string,
   params: Array<any>,
-  cb: ClientRequestCb<T, TT>,
+  cb?: ClientRequestCb<T, TT>,
 ) => UnsubscribeFn
 
 export interface Client {
   connect: () => void
   disconnect: () => void
-  request: ClientRequest<any>
+  request: ClientRequest<any, any>
 }
 
 export const createClient = (gProvider: GetProvider): Client => {
-  const responses = new Map<number, ClientRequestCb>()
-  const subscriptions = new Map<string, [SubscriptionCb, string | undefined]>()
-  const subscriptionToId = new Map<string, number>()
-  const idToSubscription = new Map<number, string>()
+  const responses = new Map<number, ClientRequestCb<any, any>>()
+  const subscriptions = getSubscriptionsManager()
 
-  const clearSubscription = (subscriptionId: string): string | undefined => {
-    const id = subscriptionToId.get(subscriptionId)!
-    idToSubscription.delete(id)
-    subscriptionToId.delete(subscriptionId)
-    const [, result] = subscriptions.get(subscriptionId)!
-    subscriptions.delete(subscriptionId)
-    return result
-  }
-
-  const queuedRequests = new Map<number, Parameters<ClientRequest>>()
+  const queuedRequests = new Map<number, Parameters<ClientRequest<any, any>>>()
   let provider: Provider | null = null
   let state: ProviderStatus = ProviderStatus.disconnected
 
@@ -75,10 +67,11 @@ export const createClient = (gProvider: GetProvider): Client => {
         responses.delete(id)
         return cb(
           result === undefined ? new ErrorRpc(error!) : result,
-          (cb, subscriptionId, unfollowMethod) => {
-            subscriptionToId.set(subscriptionId, id)
-            idToSubscription.set(id, subscriptionId)
-            subscriptions.set(subscriptionId, [cb, unfollowMethod])
+          (subscriptionId, subscriber) => {
+            subscriptions.subscribe(subscriptionId, subscriber)
+            return () => {
+              subscriptions.unsubscribe(subscriptionId)
+            }
           },
         )
       }
@@ -88,11 +81,7 @@ export const createClient = (gProvider: GetProvider): Client => {
       if (!subscription || (!result && !error)) throw 0
 
       const data = result ?? new ErrorRpc(error!)
-      if (!subscriptions.has(subscription)) return
-
-      subscriptions.get(subscription)![0](data, () => {
-        clearSubscription(subscription)
-      })
+      subscriptions.next(subscription, data)
     } catch (e) {
       console.log(e)
       throw new Error("Error parsing incomming message: " + message)
@@ -118,20 +107,25 @@ export const createClient = (gProvider: GetProvider): Client => {
     provider?.close()
     provider = null
     responses.clear()
-    subscriptions.clear()
-    subscriptionToId.clear()
-    idToSubscription.clear()
     queuedRequests.clear()
+    subscriptions.errorAll(new Error("disconnected"))
   }
 
-  const process = (id: number, ...args: Parameters<ClientRequest>) => {
+  const process = (
+    id: number,
+    ...args: Parameters<ClientRequest<any, any>>
+  ) => {
     const [method, params, cb] = args
-    responses.set(id, cb)
+    if (cb) responses.set(id, cb)
     send(id, method, params)
   }
 
   let nextId = 1
-  const request: ClientRequest = (method, params, cb) => {
+  const request = <T, TT>(
+    method: string,
+    params: Array<any>,
+    cb?: ClientRequestCb<T, TT>,
+  ): UnsubscribeFn => {
     if (!provider) throw new Error("Not connected")
     const id = nextId++
 
@@ -148,11 +142,6 @@ export const createClient = (gProvider: GetProvider): Client => {
       }
 
       responses.delete(id)
-      if (!idToSubscription.has(id)) return
-
-      const subId = idToSubscription.get(id)!
-      const unsubscribeMethod = clearSubscription(subId)
-      if (unsubscribeMethod) send(nextId++, unsubscribeMethod, [subId])
     }
   }
 
