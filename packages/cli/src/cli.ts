@@ -17,6 +17,7 @@ import { DESCRIPTOR_SPEC } from "./descriptors"
 import { ExtrinsicData } from "./ExtrinsicData"
 import { confirm } from "@inquirer/prompts"
 import util from "util"
+import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
@@ -36,6 +37,8 @@ const EXIT = "EXIT"
 
 const CONSTANTS = "CONSTANTS"
 const STORAGE = "STORAGE"
+const EVENTS = "EVENTS"
+const ERRORS = "ERRORS"
 const EXTRINSICS = "EXTRINSICS"
 
 const data: Record<
@@ -43,6 +46,8 @@ const data: Record<
   {
     constants: CheckboxData
     storage: CheckboxData
+    events: CheckboxData
+    errors: CheckboxData
     extrinsics: ExtrinsicData
   }
 > = {}
@@ -75,6 +80,8 @@ while (!exit) {
         data[pallet.name] = {
           constants: new CheckboxData(),
           storage: new CheckboxData(),
+          events: new CheckboxData(),
+          errors: new CheckboxData(),
           extrinsics: new ExtrinsicData(),
         }
       }
@@ -86,6 +93,8 @@ while (!exit) {
           choices: [
             { name: "Constants", value: CONSTANTS },
             { name: "Storage", value: STORAGE },
+            { name: "Events", value: EVENTS },
+            { name: "Errors", value: ERRORS },
             { name: "Extrinsics", value: EXTRINSICS },
             { name: "Exit", value: EXIT },
           ],
@@ -103,13 +112,33 @@ while (!exit) {
               pallet.storage?.items.map((s) => s.name) ?? [],
             )
             break
+          case EVENTS:
+            await data[pallet.name].events.prompt("Select Events", events)
+            break
+          case ERRORS:
+            await data[pallet.name].errors.prompt("Select Errors", errors)
+            break
           case EXTRINSICS: {
             let selectExtrinsics = true
             while (selectExtrinsics) {
+              const a = Object.values(data).flatMap(({ events }) =>
+                Array.from(events.data).map(
+                  (event) => [pallet.name, event] as [string, string],
+                ),
+              )
+
               await data[pallet.name].extrinsics.prompt(
                 extrinsics,
-                events,
-                errors,
+                Object.values(data).flatMap(({ events }) =>
+                  Array.from(events.data).map(
+                    (event) => [pallet.name, event] as [string, string],
+                  ),
+                ),
+                Object.values(data).flatMap(({ errors }) =>
+                  Array.from(errors.data).map(
+                    (errors) => [pallet.name, errors] as [string, string],
+                  ),
+                ),
               )
               selectExtrinsics = await confirm({
                 message: "Continue?",
@@ -174,13 +203,14 @@ while (!exit) {
         callName: string,
         checksum: bigint,
         payload: string,
-        events: ReadonlySet<string>,
-        errors: ReadonlySet<string>,
+        events: ReadonlyRecord<string, ReadonlySet<string>>,
+        errors: ReadonlyRecord<string, ReadonlySet<string>>,
       ][] = []
 
-      for (const [pallet, { constants, storage, extrinsics }] of Object.entries(
-        data,
-      )) {
+      for (const [
+        pallet,
+        { constants, storage, events, extrinsics },
+      ] of Object.entries(data)) {
         for (const constantName of constants.data) {
           const payload = buildConstant(pallet, constantName)
           const checksum = checksumBuilder.buildConstant(pallet, constantName)!
@@ -191,19 +221,17 @@ while (!exit) {
           const checksum = checksumBuilder.buildStorage(pallet, entry)!
           storageDescriptors.push([pallet, entry, checksum, key, val])
         }
-        for (const [events] of Object.values(extrinsics.data)) {
-          for (const eventName of events) {
-            const payload = buildEvent(pallet, eventName)
-            const checksum = checksumBuilder.buildEvent(pallet, eventName)!
-            eventDescriptors[`${pallet}${eventName}`] = [
-              pallet,
-              eventName,
-              checksum,
-              payload,
-            ]
-          }
+        for (const eventName of events.data) {
+          const payload = buildEvent(pallet, eventName)
+          const checksum = checksumBuilder.buildEvent(pallet, eventName)!
+          eventDescriptors[`${pallet}${eventName}`] = [
+            pallet,
+            eventName,
+            checksum,
+            payload,
+          ]
         }
-        for (const [callName, [events, errors]] of Object.entries(
+        for (const [callName, { events, errors }] of Object.entries(
           extrinsics.data,
         )) {
           const payload = buildCall(pallet, callName)
@@ -237,7 +265,7 @@ while (!exit) {
 
       await fs.mkdir("codegen", { recursive: true })
       await fs.writeFile(`codegen/${outFile}`, constDeclarations.join("\n\n"))
-      await fs.writeFile(`codegen/descriptors.d.ts`, DESCRIPTOR_SPEC)
+      await fs.writeFile(`codegen/descriptors.ts`, DESCRIPTOR_SPEC)
       const tsc = deferred<number>()
       const process = childProcess.spawn("tsc", [
         `codegen/${outFile}`,
@@ -265,24 +293,33 @@ while (!exit) {
       await fs.rm(`codegen/${outFile}`)
 
       let descriptorCodegen = ""
-      const descriptorImports = [
+      const descriptorTypeImports = [
+        "DescriptorCommon",
+        "ArgsWithPayloadCodec",
         "StorageDescriptor",
         "ConstantDescriptor",
         "EventDescriptor",
-        "CallDescriptor",
-        "Descriptor",
+        "ErrorDescriptor",
         "EventToObject",
         "UnionizeTupleEvents",
-        "CallDescriptorArgs",
-        "CallDescriptorEvents",
-        "CallDescriptorErrors",
-        "CallFunction",
+        "TxDescriptorArgs",
+        "TxDescriptorEvents",
+        "TxDescriptorErrors",
+        "TxFunction",
+      ]
+      const descriptorImports = [
+        "createCommonDescriptor",
+        "getDescriptorCreator",
+        "getPalletCreator",
       ]
 
       descriptorCodegen += `import {${[...declarations.imports].join(
         ", ",
       )}} from "@unstoppablejs/substrate-bindings"\n`
-      descriptorCodegen += `import type {${[...descriptorImports].join(
+      descriptorCodegen += `import type {${[...descriptorTypeImports].join(
+        ", ",
+      )}} from "./descriptors"\n`
+      descriptorCodegen += `import {${[...descriptorImports].join(
         ", ",
       )}} from "./descriptors"\n`
       descriptorCodegen += `import type {${[...declarations.variables.values()]
@@ -290,48 +327,45 @@ while (!exit) {
         .join(", ")}} from "./codegen"\n\n`
 
       for (const pallet of Object.keys(data)) {
-        if (data[pallet].constants.data.size > 0) {
-          descriptorCodegen += `const ${pallet}Const = { type: \"const\", pallet: \"${pallet}\"} as const\n\n`
-        }
+        descriptorCodegen += `const ${pallet}Creator = getPalletCreator(\"${pallet}\")\n\n`
+        descriptorCodegen += `const CONST = "const"\n\n`
+        /*   
         if (data[pallet].storage.data.size > 0) {
           descriptorCodegen += `const ${pallet}Storage = { type: \"storage\", pallet: \"${pallet}\"} as const\n\n`
         }
-        if (Object.keys(data[pallet].extrinsics.data).length > 0) {
+        if (data[pallet].events.data.size > 0) {
           descriptorCodegen += `const ${pallet}Event = { type: \"event\", pallet: \"${pallet}\"} as const\n\n`
         }
-        if (
-          Object.values(data[pallet].extrinsics.data).find(
-            ([events, errors]) => events.size > 0 || errors.size > 0,
-          )
-        ) {
+        if (Object.keys(data[pallet].extrinsics.data).length > 0) {
           descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
-        }
+        } */
       }
 
       descriptorCodegen +=
         constantDescriptors
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Constant: ConstantDescriptor<${
+              `export const ${pallet}${name}Constant = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
-              }> = { ...${pallet}Const, name: \"${name}\", checksum: ${checksum}n}`,
+              })`,
           )
           .join("\n\n") + "\n"
       descriptorCodegen +=
         storageDescriptors
           .map(
-            ([pallet, name, checksum, key, value]) =>
-              `export const ${pallet}${name}Storage: StorageDescriptor<${
-                declarations.imports.has(key) ? `CodecType<typeof ${key}>` : key
-              }, ${
-                declarations.imports.has(value)
-                  ? `CodecType<typeof ${value}>`
-                  : value
-              }> = { ...${pallet}Storage, name: \"${name}\", checksum: ${checksum}n}`,
+            ([pallet, name, checksum, payload]) =>
+              `export const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(${checksum}n, \"${name}\", {} as ${
+                declarations.imports.has(payload)
+                  ? `CodecType<typeof ${payload}>`
+                  : payload
+              })`,
           )
           .join("\n\n") + "\n"
+
+      /*
+      
       descriptorCodegen +=
         Object.values(eventDescriptors)
           .map(
@@ -356,12 +390,28 @@ while (!exit) {
         events,
         errors,
       ] of callDescriptors) {
+        const eventVariables = Object.entries(events).reduce(
+          (p, [pallet, palletEvents]) => [
+            ...p,
+            ...Array.from(palletEvents).map((e) => `${pallet}${e}`),
+          ],
+          [] as string[],
+        )
+        const errorVariables = Object.entries(events).reduce(
+          (p, [_, palletEvents]) => [
+            ...p,
+            // ...Array.from(palletEvents).map((e) => `${pallet}${e}`),
+            ...Array.from(palletEvents).map((e) => `${e}`),
+          ],
+          [] as string[],
+        )
+
         descriptorCodegen +=
-          `const ${name}Events = inferEventDescriptorTuple(${[...events]
+          `const ${name}Events = inferEventDescriptorTuple(${[...eventVariables]
             .map((name) => `${pallet}${name}Event`)
             .join(",")})` + "\n\n"
         descriptorCodegen +=
-          `const ${name}Errors = inferStringTuple(${[...errors]
+          `const ${name}Errors = inferStringTuple(${[...errorVariables]
             .map((e) => `\"${e}\"`)
             .join(",")})` + "\n\n"
         descriptorCodegen +=
@@ -371,7 +421,7 @@ while (!exit) {
               : payload
           }, typeof ${name}Events, typeof ${name}Errors> = { ...${pallet}Call, name: \"${name}\", checksum: ${checksum}n, events: ${name}Events, errors: ${name}Errors}` +
           "\n\n"
-      }
+      } */
 
       await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
       break
@@ -386,7 +436,7 @@ while (!exit) {
 
 function getLookupEntry(lookup: V14Lookup, idx: number) {
   const lookupFns = getLookupFn(lookup)(idx)
-  assertIsEnum(lookupFns)
+  assertLookupEntryIsEnum(lookupFns)
 
   return Object.keys(lookupFns.value)
 }
@@ -399,10 +449,10 @@ function assertIsv14(
   }
 }
 
-function assertIsEnum(
-  metadata: LookupEntry,
-): asserts metadata is LookupEntry & { type: "enum" } {
-  if (metadata.type !== "enum") {
+function assertLookupEntryIsEnum(
+  lookupEntry: LookupEntry,
+): asserts lookupEntry is LookupEntry & { type: "enum" } {
+  if (lookupEntry.type !== "enum") {
     throw new Error("not an enum")
   }
 }
