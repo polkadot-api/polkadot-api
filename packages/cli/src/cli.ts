@@ -329,13 +329,8 @@ while (!exit) {
       for (const pallet of Object.keys(data)) {
         descriptorCodegen += `const ${pallet}Creator = getPalletCreator(\"${pallet}\")\n\n`
         descriptorCodegen += `const CONST = "const"\n\n`
+        descriptorCodegen += `const EVENT = "event"\n\n`
         /*   
-        if (data[pallet].storage.data.size > 0) {
-          descriptorCodegen += `const ${pallet}Storage = { type: \"storage\", pallet: \"${pallet}\"} as const\n\n`
-        }
-        if (data[pallet].events.data.size > 0) {
-          descriptorCodegen += `const ${pallet}Event = { type: \"event\", pallet: \"${pallet}\"} as const\n\n`
-        }
         if (Object.keys(data[pallet].extrinsics.data).length > 0) {
           descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
         } */
@@ -363,20 +358,19 @@ while (!exit) {
               })`,
           )
           .join("\n\n") + "\n"
-
-      /*
-      
       descriptorCodegen +=
         Object.values(eventDescriptors)
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Event: EventDescriptor<\"${name}\", ${
+              `export const ${pallet}${name}Event = ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
-              }> = { ...${pallet}Event, name: \"${name}\", checksum: ${checksum}n}`,
+              })`,
           )
           .join("\n\n") + "\n"
+
+      /*
       descriptorCodegen +=
         "const inferEventDescriptorTuple = <A extends Array<EventDescriptor<any, any>>>(...args: A): A => args;"
       descriptorCodegen +=
