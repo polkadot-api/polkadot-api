@@ -76,11 +76,16 @@ export class ExtrinsicData {
       })),
     })
 
-    for (const [pallet, events] of newSelectedEvents) {
-      this.#data[ext].events[pallet] = new Set(events)
+    for (const [pallet, _] of newSelectedEvents) {
+      this.#data[ext].events[pallet].clear()
+      this.#data[ext].errors[pallet].clear()
     }
-    for (const [pallet, errors] of newSelectedErrors) {
-      this.#data[ext].errors[pallet] = new Set(errors)
+
+    for (const [pallet, event] of newSelectedEvents) {
+      this.#data[ext].events[pallet].add(event)
+    }
+    for (const [pallet, error] of newSelectedErrors) {
+      this.#data[ext].errors[pallet].add(error)
     }
   }
 

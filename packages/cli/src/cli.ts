@@ -340,10 +340,6 @@ while (!exit) {
 
       for (const pallet of Object.keys(data)) {
         descriptorCodegen += `const ${pallet}Creator = getPalletCreator(\"${pallet}\")\n\n`
-        /*   
-        if (Object.keys(data[pallet].extrinsics.data).length > 0) {
-          descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
-        } */
       }
 
       descriptorCodegen +=
@@ -391,12 +387,6 @@ while (!exit) {
           )
           .join("\n\n") + "\n"
 
-      /*
-      descriptorCodegen +=
-        "const inferEventDescriptorTuple = <A extends Array<EventDescriptor<any, any>>>(...args: A): A => args;"
-      descriptorCodegen +=
-        "const inferStringTuple = <A extends Array<string>>(...args: A): A => args;"
-
       for (const [
         pallet,
         name,
@@ -408,35 +398,27 @@ while (!exit) {
         const eventVariables = Object.entries(events).reduce(
           (p, [pallet, palletEvents]) => [
             ...p,
-            ...Array.from(palletEvents).map((e) => `${pallet}${e}`),
+            ...Array.from(palletEvents).map((e) => `${pallet}${e}Event`),
           ],
           [] as string[],
         )
-        const errorVariables = Object.entries(events).reduce(
+        const errorVariables = Object.entries(errors).reduce(
           (p, [_, palletEvents]) => [
             ...p,
-            // ...Array.from(palletEvents).map((e) => `${pallet}${e}`),
-            ...Array.from(palletEvents).map((e) => `${e}`),
+            ...Array.from(palletEvents).map((e) => `${pallet}${e}Error`),
           ],
           [] as string[],
         )
 
         descriptorCodegen +=
-          `const ${name}Events = inferEventDescriptorTuple(${[...eventVariables]
-            .map((name) => `${pallet}${name}Event`)
-            .join(",")})` + "\n\n"
-        descriptorCodegen +=
-          `const ${name}Errors = inferStringTuple(${[...errorVariables]
-            .map((e) => `\"${e}\"`)
-            .join(",")})` + "\n\n"
-        descriptorCodegen +=
-          `export const ${pallet}${name}Call: CallDescriptor<${
+          `export const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
+            ",",
+          )}], [${errorVariables.join(",")}], {} as unknown as ${
             declarations.imports.has(payload)
               ? `CodecType<typeof ${payload}>`
               : payload
-          }, typeof ${name}Events, typeof ${name}Errors> = { ...${pallet}Call, name: \"${name}\", checksum: ${checksum}n, events: ${name}Events, errors: ${name}Errors}` +
-          "\n\n"
-      } */
+          })` + "\n\n"
+      }
 
       await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
       break
