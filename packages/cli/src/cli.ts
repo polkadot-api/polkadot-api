@@ -173,7 +173,7 @@ while (!exit) {
         variables: new Map(),
       }
 
-      const { buildStorage, buildEvent, buildCall, buildConstant } =
+      const { buildStorage, buildEvent, buildCall, buildConstant, buildError } =
         getStaticBuilder(metadata.value, declarations)
 
       const checksumBuilder = getChecksumBuilder(metadata.value)
@@ -197,6 +197,10 @@ while (!exit) {
         string,
         [pallet: string, name: string, checksum: bigint, payload: string]
       > = {}
+      const errorDescriptors: Record<
+        string,
+        [pallet: string, name: string, checksum: bigint, payload: string]
+      > = {}
 
       const callDescriptors: [
         pallet: string,
@@ -209,7 +213,7 @@ while (!exit) {
 
       for (const [
         pallet,
-        { constants, storage, events, extrinsics },
+        { constants, storage, events, extrinsics, errors },
       ] of Object.entries(data)) {
         for (const constantName of constants.data) {
           const payload = buildConstant(pallet, constantName)
@@ -227,6 +231,16 @@ while (!exit) {
           eventDescriptors[`${pallet}${eventName}`] = [
             pallet,
             eventName,
+            checksum,
+            payload,
+          ]
+        }
+        for (const errorName of errors.data) {
+          const payload = buildError(pallet, errorName)
+          const checksum = checksumBuilder.buildError(pallet, errorName)!
+          errorDescriptors[`${pallet}${errorName}`] = [
+            pallet,
+            errorName,
             checksum,
             payload,
           ]
@@ -330,6 +344,7 @@ while (!exit) {
         descriptorCodegen += `const ${pallet}Creator = getPalletCreator(\"${pallet}\")\n\n`
         descriptorCodegen += `const CONST = "const"\n\n`
         descriptorCodegen += `const EVENT = "event"\n\n`
+        descriptorCodegen += `const ERROR = "error"\n\n`
         /*   
         if (Object.keys(data[pallet].extrinsics.data).length > 0) {
           descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
@@ -340,7 +355,7 @@ while (!exit) {
         constantDescriptors
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Constant = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as ${
+              `export const ${pallet}${name}Constant = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as unknown as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
@@ -351,7 +366,7 @@ while (!exit) {
         storageDescriptors
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(${checksum}n, \"${name}\", {} as ${
+              `export const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(${checksum}n, \"${name}\", {} as unknown as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
@@ -362,7 +377,18 @@ while (!exit) {
         Object.values(eventDescriptors)
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Event = ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as ${
+              `export const ${pallet}${name}Event = ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as unknown as ${
+                declarations.imports.has(payload)
+                  ? `CodecType<typeof ${payload}>`
+                  : payload
+              })`,
+          )
+          .join("\n\n") + "\n"
+      descriptorCodegen +=
+        Object.values(errorDescriptors)
+          .map(
+            ([pallet, name, checksum, payload]) =>
+              `export const ${pallet}${name}Error = ${pallet}Creator.getPayloadDescriptor(ERROR, ${checksum}n, \"${name}\", {} as unknown as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
