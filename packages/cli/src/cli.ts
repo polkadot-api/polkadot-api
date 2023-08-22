@@ -121,12 +121,6 @@ while (!exit) {
           case EXTRINSICS: {
             let selectExtrinsics = true
             while (selectExtrinsics) {
-              const a = Object.values(data).flatMap(({ events }) =>
-                Array.from(events.data).map(
-                  (event) => [pallet.name, event] as [string, string],
-                ),
-              )
-
               await data[pallet.name].extrinsics.prompt(
                 extrinsics,
                 Object.values(data).flatMap(({ events }) =>
@@ -340,11 +334,12 @@ while (!exit) {
         .map((v) => v.id)
         .join(", ")}} from "./codegen"\n\n`
 
+      descriptorCodegen += `const CONST = "const"\n\n`
+      descriptorCodegen += `const EVENT = "event"\n\n`
+      descriptorCodegen += `const ERROR = "error"\n\n`
+
       for (const pallet of Object.keys(data)) {
         descriptorCodegen += `const ${pallet}Creator = getPalletCreator(\"${pallet}\")\n\n`
-        descriptorCodegen += `const CONST = "const"\n\n`
-        descriptorCodegen += `const EVENT = "event"\n\n`
-        descriptorCodegen += `const ERROR = "error"\n\n`
         /*   
         if (Object.keys(data[pallet].extrinsics.data).length > 0) {
           descriptorCodegen += `const ${pallet}Call = { type: \"tx\", pallet: \"${pallet}\"} as const\n\n`
