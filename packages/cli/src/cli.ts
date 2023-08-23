@@ -53,6 +53,8 @@ const data: Record<
 > = {}
 const { lookup, pallets } = metadata.value
 
+const checksumBuilder = getChecksumBuilder(metadata.value)
+
 let exit = false
 while (!exit) {
   const choice = await select({
@@ -100,23 +102,42 @@ while (!exit) {
           ],
         })
         switch (descriptorType) {
-          case CONSTANTS:
+          case CONSTANTS: {
             await data[pallet.name].constants.prompt(
               "Select Constants",
-              pallet.constants.map((c) => c.name),
+              pallet.constants.map((c) => [
+                c.name,
+                checksumBuilder.buildConstant(pallet.name, c.name)!,
+              ]),
             )
             break
+          }
           case STORAGE:
             await data[pallet.name].storage.prompt(
               "Select Storage",
-              pallet.storage?.items.map((s) => s.name) ?? [],
+              pallet.storage?.items.map((s) => [
+                s.name,
+                checksumBuilder.buildStorage(pallet.name, s.name)!,
+              ]) ?? [],
             )
             break
           case EVENTS:
-            await data[pallet.name].events.prompt("Select Events", events)
+            await data[pallet.name].events.prompt(
+              "Select Events",
+              events.map((e) => [
+                e,
+                checksumBuilder.buildEvent(pallet.name, e)!,
+              ]),
+            )
             break
           case ERRORS:
-            await data[pallet.name].errors.prompt("Select Errors", errors)
+            await data[pallet.name].errors.prompt(
+              "Select Errors",
+              errors.map((e) => [
+                e,
+                checksumBuilder.buildError(pallet.name, e)!,
+              ]),
+            )
             break
           case EXTRINSICS: {
             let selectExtrinsics = true
@@ -124,12 +145,12 @@ while (!exit) {
               await data[pallet.name].extrinsics.prompt(
                 extrinsics,
                 Object.values(data).flatMap(({ events }) =>
-                  Array.from(events.data).map(
+                  Array.from(Object.keys(events.data)).map(
                     (event) => [pallet.name, event] as [string, string],
                   ),
                 ),
                 Object.values(data).flatMap(({ errors }) =>
-                  Array.from(errors.data).map(
+                  Array.from(Object.keys(errors.data)).map(
                     (errors) => [pallet.name, errors] as [string, string],
                   ),
                 ),
@@ -170,8 +191,6 @@ while (!exit) {
       const { buildStorage, buildEvent, buildCall, buildConstant, buildError } =
         getStaticBuilder(metadata.value, declarations)
 
-      const checksumBuilder = getChecksumBuilder(metadata.value)
-
       const constantDescriptors: [
         pallet: string,
         name: string,
@@ -209,19 +228,16 @@ while (!exit) {
         pallet,
         { constants, storage, events, extrinsics, errors },
       ] of Object.entries(data)) {
-        for (const constantName of constants.data) {
+        for (const [constantName, checksum] of Object.entries(constants.data)) {
           const payload = buildConstant(pallet, constantName)
-          const checksum = checksumBuilder.buildConstant(pallet, constantName)!
           constantDescriptors.push([pallet, constantName, checksum, payload])
         }
-        for (const entry of storage.data) {
+        for (const [entry, checksum] of Object.entries(storage.data)) {
           const { key, val } = buildStorage(pallet, entry)
-          const checksum = checksumBuilder.buildStorage(pallet, entry)!
           storageDescriptors.push([pallet, entry, checksum, key, val])
         }
-        for (const eventName of events.data) {
+        for (const [eventName, checksum] of Object.entries(events.data)) {
           const payload = buildEvent(pallet, eventName)
-          const checksum = checksumBuilder.buildEvent(pallet, eventName)!
           eventDescriptors[`${pallet}${eventName}`] = [
             pallet,
             eventName,
@@ -229,9 +245,8 @@ while (!exit) {
             payload,
           ]
         }
-        for (const errorName of errors.data) {
+        for (const [errorName, checksum] of Object.entries(errors.data)) {
           const payload = buildError(pallet, errorName)
-          const checksum = checksumBuilder.buildError(pallet, errorName)!
           errorDescriptors[`${pallet}${errorName}`] = [
             pallet,
             errorName,
