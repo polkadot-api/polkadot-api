@@ -5,7 +5,11 @@ import util from "util"
 export class ExtrinsicData {
   #data: Record<
     string,
-    { events: Record<string, Set<string>>; errors: Record<string, Set<string>> }
+    {
+      checksum: bigint
+      events: Record<string, Set<string>>
+      errors: Record<string, Set<string>>
+    }
   >
 
   constructor() {
@@ -23,15 +27,15 @@ export class ExtrinsicData {
   }
 
   async prompt(
-    extrinsics: string[],
+    extrinsics: [name: string, checksum: bigint][],
     events: ReadonlyArray<readonly [pallet: string, event: string]>,
     errors: ReadonlyArray<readonly [pallet: string, event: string]>,
   ) {
-    const ext = await select({
+    const [ext, checksum] = await select({
       message: "Select an extrinsic",
-      choices: extrinsics.map((s) => ({
+      choices: extrinsics.map(([s, checksum]) => ({
         name: s,
-        value: s,
+        value: [s, checksum],
       })),
     })
 
@@ -44,7 +48,7 @@ export class ExtrinsicData {
     }
 
     if (!this.#data[ext]) {
-      this.#data[ext] = { events: {}, errors: {} }
+      this.#data[ext] = { events: {}, errors: {}, checksum }
     }
     for (const [pallet, _] of events) {
       if (!this.#data[ext].events[pallet]) {
@@ -98,6 +102,7 @@ export class ExtrinsicData {
       Object.entries(this.#data).map(([k, v]) => [
         k,
         {
+          checksum: v.checksum,
           events: Object.fromEntries(
             Object.entries(v.events).map(([k, v]) => [k, Array.from(v)]),
           ),

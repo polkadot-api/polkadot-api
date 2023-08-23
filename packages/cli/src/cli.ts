@@ -18,6 +18,10 @@ import { ExtrinsicData } from "./ExtrinsicData"
 import { confirm } from "@inquirer/prompts"
 import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
+import prettier from "prettier"
+;(BigInt.prototype as any).toJSON = function () {
+  return this.toString()
+}
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
@@ -33,6 +37,7 @@ assertIsv14(metadata)
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
 const OUTPUT_CODEGEN = "OUTPUT_CODEGEN"
+const OUTPUT_DESCRIPTORS = "OUTPUT_DESCRIPTORS"
 const EXIT = "EXIT"
 
 const CONSTANTS = "CONSTANTS"
@@ -62,6 +67,7 @@ while (!exit) {
     choices: [
       { name: "Select descriptors", value: SELECT_DESCRIPTORS },
       { name: "Show descriptors", value: SHOW_DESCRIPTORS },
+      { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS },
       { name: "Output Codegen", value: OUTPUT_CODEGEN },
       { name: "Exit", value: EXIT },
     ],
@@ -143,7 +149,10 @@ while (!exit) {
             let selectExtrinsics = true
             while (selectExtrinsics) {
               await data[pallet.name].extrinsics.prompt(
-                extrinsics,
+                extrinsics.map((e) => [
+                  e,
+                  checksumBuilder.buildCall(pallet.name, e)!,
+                ]),
                 Object.values(data).flatMap(({ events }) =>
                   Array.from(Object.keys(events.data)).map(
                     (event) => [pallet.name, event] as [string, string],
@@ -175,6 +184,15 @@ while (!exit) {
       console.log(
         util.inspect(data, { showHidden: false, depth: null, colors: true }),
       )
+      break
+    }
+    case OUTPUT_DESCRIPTORS: {
+      const outFile = await input({
+        message: "Enter output fileName",
+        default: "descriptors.json",
+      })
+
+      await fs.writeFile(outFile, JSON.stringify(data))
       break
     }
     case OUTPUT_CODEGEN: {
