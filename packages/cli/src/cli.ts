@@ -20,6 +20,7 @@ import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import * as writePkg from "write-pkg"
 import path from "path"
+import { z } from "zod"
 ;(BigInt.prototype as any).toJSON = function () {
   return this.toString()
 }
@@ -208,6 +209,9 @@ while (!exit) {
 
         await fs.writeFile(outFile, output)
       }
+      break
+    }
+    case LOAD_DESCRIPTORS: {
       break
     }
     case OUTPUT_CODEGEN: {

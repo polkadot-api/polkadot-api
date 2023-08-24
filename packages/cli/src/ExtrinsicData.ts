@@ -79,11 +79,11 @@ export class ExtrinsicData {
         checked: selectedErrors[pallet].has(error),
       })),
     })
-
+    /* 
     for (const [pallet, _] of newSelectedEvents) {
       this.#data[ext].events[pallet].clear()
       this.#data[ext].errors[pallet].clear()
-    }
+    } */
 
     for (const [pallet, event] of newSelectedEvents) {
       this.#data[ext].events[pallet].add(event)
