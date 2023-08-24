@@ -18,7 +18,8 @@ import { ExtrinsicData } from "./ExtrinsicData"
 import { confirm } from "@inquirer/prompts"
 import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
-import prettier from "prettier"
+import * as writePkg from "write-pkg"
+import path from "path"
 ;(BigInt.prototype as any).toJSON = function () {
   return this.toString()
 }
@@ -38,6 +39,7 @@ const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
 const OUTPUT_CODEGEN = "OUTPUT_CODEGEN"
 const OUTPUT_DESCRIPTORS = "OUTPUT_DESCRIPTORS"
+const LOAD_DESCRIPTORS = "LOAD_DESCRIPTORS"
 const EXIT = "EXIT"
 
 const CONSTANTS = "CONSTANTS"
@@ -187,12 +189,25 @@ while (!exit) {
       break
     }
     case OUTPUT_DESCRIPTORS: {
-      const outFile = await input({
-        message: "Enter output fileName",
-        default: "descriptors.json",
+      const output = JSON.stringify(data, null, 2)
+
+      const writeToPkgJSON = await confirm({
+        message: "Write to package.json?",
+        default: false,
       })
 
-      await fs.writeFile(outFile, JSON.stringify(data))
+      if (writeToPkgJSON) {
+        writePkg.updatePackage(
+          JSON.parse(JSON.stringify({ capi: { descriptors: data } })),
+        )
+      } else {
+        const outFile = await input({
+          message: "Enter output fileName",
+          default: "descriptors.json",
+        })
+
+        await fs.writeFile(outFile, output)
+      }
       break
     }
     case OUTPUT_CODEGEN: {

@@ -21,6 +21,8 @@
     "@inquirer/prompts": "^3.0.2",
     "@unstoppablejs/substrate-bindings": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
     "@unstoppablejs/substrate-codegen": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
-    "fp-ts": "^2.16.1"
+    "fp-ts": "^2.16.1",
+    "write-pkg": "^6.0.0",
+    "zod": "^3.22.2"
   }
 }
