@@ -35,10 +35,25 @@ export function getChainHead(
       | ((event: FollowEventWithRuntime) => void),
   ): FollowResponse => {
     const subscriptions = getSubscriptionsManager()
-    const _genesisHash = new Promise<string>((res) => {
-      request("chainHead_unstable_genesisHash", [], res)
-    })
     let unfollow: () => void = () => {}
+    let firstBlockResolver: (data: string) => void
+    let firstBlockRejecter: (e: any) => void
+
+    const firstBlockPromise = new Promise<string>((res, rej) => {
+      firstBlockResolver = res
+      firstBlockRejecter = rej
+    })
+
+    let _cb = (e: FollowEventWithRuntime) => {
+      if (e.event !== "initialized") {
+        firstBlockRejecter(new Error("Missing 'initialized' event"))
+      } else {
+        firstBlockResolver(e.finalizedBlockHash)
+      }
+      _cb = cb
+      cb(e)
+    }
+
     let followSubscription: Promise<string> | string = new Promise((res) => {
       unfollow = request(
         "chainHead_unstable_follow",
@@ -53,7 +68,7 @@ export function getChainHead(
                   done()
                   subscriptions.errorAll(new Error("disjoint"))
                 }
-                cb(event as any)
+                _cb(event as any)
               }
             },
             error: (e) => {
@@ -112,6 +127,24 @@ export function getChainHead(
       }
     }
 
+    const storage = createStorageFn(fRequest)
+
+    // System::BlockHash[0] using Twox64Concat
+    const SystemBlocHashAtZero =
+      "0x26aa394eea5630e07c48ae0c9558cef7a44704b568d21667356a5a050c118746b4def25cfda6ef3a00000000"
+
+    const _genesisHash = firstBlockPromise
+      .then((fBlock) =>
+        storage(
+          fBlock,
+          {
+            value: [SystemBlocHashAtZero],
+          },
+          null,
+        ),
+      )
+      .then((result) => result.values[SystemBlocHashAtZero])
+
     return {
       genesisHash: () => _genesisHash,
       unfollow() {
@@ -120,7 +153,7 @@ export function getChainHead(
       body: createBodyFn(fRequest),
       call: createCallFn(fRequest),
       header: createHeaderFn(fRequest),
-      storage: createStorageFn(fRequest),
+      storage,
       unpin: createUnpinFn(fRequest),
     }
   }
