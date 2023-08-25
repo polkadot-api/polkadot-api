@@ -1,4 +1,4 @@
-import type { OperationCallDone } from "./types"
+import type { OperationCallDone } from "./internal-types"
 import { createOperationPromise } from "./operation-promise"
 
 export const createCallFn = createOperationPromise(

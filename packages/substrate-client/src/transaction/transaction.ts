@@ -1,10 +1,10 @@
 import type { ClientRequest } from "../client"
-import { TxEvent } from "./types"
+import type { TxEvent, Transaction } from "./types"
 
 const finalEvents = new Set(["dropped", "invalid", "finalized"])
 
-export const transaction =
-  (request: ClientRequest<string, TxEvent>) =>
+export const getTransaction =
+  (request: ClientRequest<string, TxEvent>): Transaction =>
   (tx: string, next: (event: TxEvent) => void, error: (e: Error) => void) => {
     let cancel = request(
       "transaction_unstable_submitAndWatch",
