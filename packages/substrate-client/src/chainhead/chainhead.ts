@@ -119,6 +119,7 @@ export function getChainHead(
       header: createHeaderFn(fRequest),
       storage: createStorageFn(fRequest),
       unpin: createUnpinFn(fRequest),
+      _request: fRequest,
     }
   }
 }

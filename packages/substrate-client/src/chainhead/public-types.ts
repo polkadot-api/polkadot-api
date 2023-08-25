@@ -1,3 +1,4 @@
+import { ClientRequestCb } from "@/client"
 import type { AbortablePromiseFn, UnsubscribeFn } from "@/common-types"
 
 export interface Runtime {
@@ -86,6 +87,11 @@ export interface FollowResponse {
   >
   header: (hash: string) => Promise<string>
   unpin: (...hashes: Array<string>) => Promise<void>
+  _request: <Reply, Notification>(
+    method: string,
+    params: any[],
+    cb?: ClientRequestCb<Reply, Notification>,
+  ) => UnsubscribeFn
 }
 
 export interface ChainHead {
