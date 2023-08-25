@@ -16,7 +16,7 @@ import {
   getSubscriptionsManager,
 } from "@/utils/subscriptions-manager"
 
-function isOpeartionEvent(
+function isOperationEvent(
   event: FollowEventWithRuntime | FollowEventWithoutRuntime | OperationEvents,
 ): event is OperationEvents {
   return (event as OperationEvents).operationId !== undefined
@@ -44,7 +44,7 @@ export function getChainHead(
         (subscriptionId, follow) => {
           const done = follow(subscriptionId, {
             next: (event) => {
-              if (isOpeartionEvent(event)) {
+              if (isOperationEvent(event)) {
                 subscriptions.next(event.operationId, event)
               } else {
                 if (event.event === "stop") {

@@ -21,6 +21,21 @@ interface OperationEvent {
   operationId: string
 }
 
+export type OperationWaitingForContinue = OperationEvent & {
+  event: "operationWaitingForContinue"
+}
+
+export type OperationInaccessible = OperationEvent & {
+  event: "operationInaccessible"
+}
+
+export type OperationError = OperationEvent & {
+  event: "operationError"
+  error: string
+}
+
+export type CommonOperationEvents = OperationInaccessible | OperationError
+
 export type OperationBodyDone = OperationEvent & {
   event: "operationBodyDone"
   value: Array<string>
@@ -43,24 +58,9 @@ export type OperationStorageItems = OperationEvent & {
   items: Array<StorageItemResponse>
 }
 
-export type OperationWaitingForContinue = OperationEvent & {
-  event: "operationWaitingForContinue"
-}
-
 export type OperationStorageDone = OperationEvent & {
   event: "operationStorageDone"
 }
-
-export type OperationInaccessible = OperationEvent & {
-  event: "operationInaccessible"
-}
-
-export type OperationError = OperationEvent & {
-  event: "operationError"
-  error: string
-}
-
-export type CommonOperationEvents = OperationInaccessible | OperationError
 
 export type OperationEvents =
   | OperationBodyDone
