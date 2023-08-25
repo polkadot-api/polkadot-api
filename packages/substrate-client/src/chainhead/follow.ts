@@ -96,15 +96,13 @@ export function follow(
       cb?: ClientRequestCb<any, any>,
     ) => {
       const req = request as unknown as ClientRequest<any, any>
-      if (typeof followSubscription === "string")
-        return req(method, [followSubscription, ...params], cb)
 
       let isAborted = false
       let onCancel = () => {
         isAborted = true
       }
 
-      followSubscription.then((sub) => {
+      const followSubscriptionCb = (sub: string) => {
         if (isAborted) return
         onCancel = req(
           method,
@@ -120,7 +118,11 @@ export function follow(
               }
             : undefined,
         )
-      })
+      }
+
+      if (typeof followSubscription === "string")
+        followSubscriptionCb(followSubscription)
+      else followSubscription.then(followSubscriptionCb)
 
       return () => {
         onCancel()
