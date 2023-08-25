@@ -1,4 +1,4 @@
-import type { OperationBodyDone } from "./types"
+import type { OperationBodyDone } from "./internal-types"
 import { createOperationPromise } from "./operation-promise"
 
 export const createBodyFn = createOperationPromise(

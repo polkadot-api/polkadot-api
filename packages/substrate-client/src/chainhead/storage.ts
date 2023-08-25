@@ -2,8 +2,8 @@ import type {
   OperationStorageDone,
   OperationStorageItems,
   StorageItemInput,
-  StorageResponse,
-} from "./types"
+} from "./internal-types"
+import type { StorageResponse } from "./public-types"
 import { createOperationPromise } from "./operation-promise"
 
 export const createStorageFn = createOperationPromise(

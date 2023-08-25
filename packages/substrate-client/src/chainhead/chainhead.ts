@@ -1,10 +1,11 @@
 import type { ClientRequest, ClientRequestCb } from "../client"
+import type { OperationEvents } from "./internal-types"
 import type {
+  ChainHead,
   FollowEventWithoutRuntime,
   FollowEventWithRuntime,
   FollowResponse,
-  OperationEvents,
-} from "./types"
+} from "./public-types"
 import { createBodyFn } from "./body"
 import { createCallFn } from "./call"
 import { createHeaderFn } from "./header"
@@ -16,35 +17,17 @@ import {
 } from "@/utils/subscriptions-manager"
 
 function isOpeartionEvent(
-  event: FollowEventWithRuntime | FollowEventWithoutRuntime,
+  event: FollowEventWithRuntime | FollowEventWithoutRuntime | OperationEvents,
 ): event is OperationEvents {
   return (event as OperationEvents).operationId !== undefined
 }
 
-export function follow(
+export function getChainHead(
   request: ClientRequest<
     string,
-    FollowEventWithoutRuntime | FollowEventWithRuntime
+    FollowEventWithoutRuntime | FollowEventWithRuntime | OperationEvents
   >,
-): (
-  withRuntime: true,
-  cb: (event: FollowEventWithRuntime) => void,
-) => FollowResponse
-export function follow(
-  request: ClientRequest<
-    string,
-    FollowEventWithoutRuntime | FollowEventWithRuntime
-  >,
-): (
-  withRuntime: false,
-  cb: (event: FollowEventWithoutRuntime) => void,
-) => FollowResponse
-export function follow(
-  request: ClientRequest<
-    string,
-    FollowEventWithoutRuntime | FollowEventWithRuntime
-  >,
-) {
+): ChainHead {
   return (
     withRuntime: boolean,
     cb:
