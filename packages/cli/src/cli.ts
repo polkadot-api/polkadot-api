@@ -21,6 +21,8 @@ import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import * as writePkg from "write-pkg"
 import path from "path"
 import { z } from "zod"
+import descriptorSchema from "./descriptor-schema"
+import fsExists from "fs.promises.exists"
 ;(BigInt.prototype as any).toJSON = function () {
   return this.toString()
 }
@@ -71,6 +73,7 @@ while (!exit) {
       { name: "Select descriptors", value: SELECT_DESCRIPTORS },
       { name: "Show descriptors", value: SHOW_DESCRIPTORS },
       { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS },
+      { name: "Load Descriptors", value: LOAD_DESCRIPTORS },
       { name: "Output Codegen", value: OUTPUT_CODEGEN },
       { name: "Exit", value: EXIT },
     ],
@@ -212,6 +215,54 @@ while (!exit) {
       break
     }
     case LOAD_DESCRIPTORS: {
+      const descriptors = await (async () => {
+        if (await fsExists("package.json")) {
+          const pkgJSONSchema = z.object({
+            capi: z.object({ descriptors: descriptorSchema }).optional(),
+          })
+
+          const { capi } = await pkgJSONSchema.parseAsync(
+            JSON.parse(
+              await fs.readFile("package.json", { encoding: "utf-8" }),
+            ),
+          )
+
+          if (capi) {
+            return capi.descriptors
+          }
+        }
+
+        const inFile = await input({
+          message: "Enter descriptors fileName",
+          default: "descriptor.json",
+        })
+
+        return descriptorSchema.parseAsync(
+          JSON.parse(await fs.readFile(inFile, { encoding: "utf-8" })),
+        )
+      })()
+
+      const discrepancies: [pallet: string, type: "constant", bigint | null][] =
+        []
+
+      for (const [
+        pallet,
+        { constants, storage, events, errors, extrinsics },
+      ] of Object.entries(descriptors)) {
+        for (const [constantName, checksum] of Object.entries(
+          constants ?? {},
+        )) {
+          const newChecksum = checksumBuilder.buildConstant(
+            pallet,
+            constantName,
+          )
+          if (newChecksum === null || checksum != newChecksum) {
+            discrepancies.push([pallet, "constant", newChecksum])
+          }
+        }
+      }
+
+      console.log("discrepancies", discrepancies)
       break
     }
     case OUTPUT_CODEGEN: {
