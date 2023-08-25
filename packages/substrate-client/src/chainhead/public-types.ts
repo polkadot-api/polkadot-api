@@ -84,7 +84,6 @@ export interface FollowResponse {
     ],
     StorageResponse
   >
-  genesisHash: () => Promise<string>
   header: (hash: string) => Promise<string>
   unpin: (...hashes: Array<string>) => Promise<void>
 }
