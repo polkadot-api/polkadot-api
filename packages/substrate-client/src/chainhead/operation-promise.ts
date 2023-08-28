@@ -57,7 +57,7 @@ export const createOperationPromise =
           cancel = () => {
             if (!isOperationGoing) return
             done()
-            request("chainHead_unstable_stopOperation", [followSubscription])
+            request("chainHead_unstable_stopOperation", [response.operationId])
           }
         },
         onError: rej,

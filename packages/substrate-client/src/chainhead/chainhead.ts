@@ -92,7 +92,7 @@ export function getChainHead(
       cb?: ClientRequestCb<any, any>,
     ) => {
       if (followSubscription instanceof Error) {
-        cb?.onError(followSubscription)
+        cb?.onError(new ErrorDisjoint())
         return noop
       }
 
@@ -134,7 +134,7 @@ export function getChainHead(
         followSubscription.then((s) => {
           if (s instanceof Error) {
             onCancel = noop
-            cb?.onError(s)
+            cb?.onError(new ErrorDisjoint())
           } else followSubscriptionCb(s)
         })
 

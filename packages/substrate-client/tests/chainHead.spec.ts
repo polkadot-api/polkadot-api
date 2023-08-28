@@ -1,42 +1,6 @@
-import { expect, describe, test, vi } from "vitest"
-import { createTestClient } from "./fixtures"
+import { expect, describe, test } from "vitest"
 import { ErrorRpc, ErrorStop, RpcError } from "@/."
-
-function setupChainHead(withRuntime: boolean = true) {
-  const onMsg = vi.fn()
-  const onError = vi.fn()
-  const { client, fixtures } = createTestClient()
-  const { unfollow } = client.chainHead(withRuntime as any, onMsg, onError)
-
-  return { unfollow, fixtures: { ...fixtures, onMsg, onError } }
-}
-
-function setupChainHeadWithSubscription(withRuntime = true) {
-  const { unfollow, fixtures } = setupChainHead(withRuntime)
-  fixtures.getNewMessages()
-
-  const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-  fixtures.sendMessage({
-    id: 1,
-    result: SUBSCRIPTION_ID,
-  })
-
-  const sendSubscription = (
-    msg: { result: any } | { error: RpcError },
-  ): void => {
-    fixtures.sendMessage({
-      params: {
-        subscription: SUBSCRIPTION_ID,
-        ...msg,
-      },
-    })
-  }
-
-  return {
-    unfollow,
-    fixtures: { ...fixtures, sendSubscription, SUBSCRIPTION_ID },
-  }
-}
+import { setupChainHead, setupChainHeadWithSubscription } from "./fixtures"
 
 describe("chainHead", () => {
   test("it sends the correct follow message", () => {
