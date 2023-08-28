@@ -1,3 +1,5 @@
+import type { UnsubscribeFn } from ".."
+
 export interface TxValidated {
   event: "validated"
 }
@@ -41,3 +43,9 @@ export type TxEvent =
   | TxFinalized
   | TxInvalid
   | TxDropped
+
+export type Transaction = (
+  tx: string,
+  next: (event: TxEvent) => void,
+  error: (e: Error) => void,
+) => UnsubscribeFn

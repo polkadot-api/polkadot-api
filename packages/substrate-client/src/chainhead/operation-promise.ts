@@ -1,5 +1,5 @@
 import { ClientRequest } from "@/client"
-import { CommonOperationEvents, OperationResponse } from "./types"
+import { CommonOperationEvents, OperationResponse } from "./internal-types"
 import { abortablePromiseFn } from "@/utils/abortablePromiseFn"
 
 export const createOperationPromise =

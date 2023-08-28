@@ -1,10 +1,11 @@
 import type { ClientRequest, ClientRequestCb } from "../client"
+import type { OperationEvents } from "./internal-types"
 import type {
+  ChainHead,
   FollowEventWithoutRuntime,
   FollowEventWithRuntime,
   FollowResponse,
-  OperationEvents,
-} from "./types"
+} from "./public-types"
 import { createBodyFn } from "./body"
 import { createCallFn } from "./call"
 import { createHeaderFn } from "./header"
@@ -15,36 +16,18 @@ import {
   getSubscriptionsManager,
 } from "@/utils/subscriptions-manager"
 
-function isOpeartionEvent(
-  event: FollowEventWithRuntime | FollowEventWithoutRuntime,
+function isOperationEvent(
+  event: FollowEventWithRuntime | FollowEventWithoutRuntime | OperationEvents,
 ): event is OperationEvents {
   return (event as OperationEvents).operationId !== undefined
 }
 
-export function follow(
+export function getChainHead(
   request: ClientRequest<
     string,
-    FollowEventWithoutRuntime | FollowEventWithRuntime
+    FollowEventWithoutRuntime | FollowEventWithRuntime | OperationEvents
   >,
-): (
-  withRuntime: true,
-  cb: (event: FollowEventWithRuntime) => void,
-) => FollowResponse
-export function follow(
-  request: ClientRequest<
-    string,
-    FollowEventWithoutRuntime | FollowEventWithRuntime
-  >,
-): (
-  withRuntime: false,
-  cb: (event: FollowEventWithoutRuntime) => void,
-) => FollowResponse
-export function follow(
-  request: ClientRequest<
-    string,
-    FollowEventWithoutRuntime | FollowEventWithRuntime
-  >,
-) {
+): ChainHead {
   return (
     withRuntime: boolean,
     cb:
@@ -52,10 +35,8 @@ export function follow(
       | ((event: FollowEventWithRuntime) => void),
   ): FollowResponse => {
     const subscriptions = getSubscriptionsManager()
-    const _genesisHash = new Promise<string>((res) => {
-      request("chainHead_unstable_genesisHash", [], res)
-    })
     let unfollow: () => void = () => {}
+
     let followSubscription: Promise<string> | string = new Promise((res) => {
       unfollow = request(
         "chainHead_unstable_follow",
@@ -63,7 +44,7 @@ export function follow(
         (subscriptionId, follow) => {
           const done = follow(subscriptionId, {
             next: (event) => {
-              if (isOpeartionEvent(event)) {
+              if (isOperationEvent(event)) {
                 subscriptions.next(event.operationId, event)
               } else {
                 if (event.event === "stop") {
@@ -96,15 +77,13 @@ export function follow(
       cb?: ClientRequestCb<any, any>,
     ) => {
       const req = request as unknown as ClientRequest<any, any>
-      if (typeof followSubscription === "string")
-        return req(method, [followSubscription, ...params], cb)
 
       let isAborted = false
       let onCancel = () => {
         isAborted = true
       }
 
-      followSubscription.then((sub) => {
+      const followSubscriptionCb = (sub: string) => {
         if (isAborted) return
         onCancel = req(
           method,
@@ -120,7 +99,11 @@ export function follow(
               }
             : undefined,
         )
-      })
+      }
+
+      if (typeof followSubscription === "string")
+        followSubscriptionCb(followSubscription)
+      else followSubscription.then(followSubscriptionCb)
 
       return () => {
         onCancel()
@@ -128,7 +111,6 @@ export function follow(
     }
 
     return {
-      genesisHash: () => _genesisHash,
       unfollow() {
         unfollow()
       },
@@ -137,6 +119,7 @@ export function follow(
       header: createHeaderFn(fRequest),
       storage: createStorageFn(fRequest),
       unpin: createUnpinFn(fRequest),
+      _request: fRequest,
     }
   }
 }
