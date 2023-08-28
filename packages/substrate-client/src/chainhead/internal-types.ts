@@ -12,6 +12,10 @@ export interface FError {
   error: string
 }
 
+export interface Stop {
+  event: "stop"
+}
+
 export interface Done {
   event: "done"
 }

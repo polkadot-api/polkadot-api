@@ -32,7 +32,7 @@
     "build:cjs:dev": "esbuild src/index.ts --bundle --outfile=./dist/substrate-client.cjs.development.js --target=es2020 --format=cjs --sourcemap",
     "build:cjs:prod": "esbuild src/index.ts --bundle --outfile=./dist/substrate-client.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
     "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly",
-    "test": "echo 'No tests'",
+    "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "npm run build"

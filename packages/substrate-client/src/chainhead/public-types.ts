@@ -40,11 +40,7 @@ export interface Finalized {
   prunedBlockHashes: Array<string>
 }
 
-export interface Stop {
-  event: "stop"
-}
-
-type CommonFollowEvents = BestBlockChanged | Finalized | Stop
+type CommonFollowEvents = BestBlockChanged | Finalized
 
 export type FollowEventWithRuntime =
   | InitializedWithRuntime
@@ -98,9 +94,11 @@ export interface ChainHead {
   (
     withRuntime: false,
     cb: (event: FollowEventWithoutRuntime) => void,
+    onError: (error: Error) => void,
   ): FollowResponse
   (
     withRuntime: true,
     cb: (event: FollowEventWithRuntime) => void,
+    onError: (error: Error) => void,
   ): FollowResponse
 }

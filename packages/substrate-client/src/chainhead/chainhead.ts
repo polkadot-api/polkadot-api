@@ -1,5 +1,5 @@
 import type { ClientRequest, ClientRequestCb } from "../client"
-import type { OperationEvents } from "./internal-types"
+import type { OperationEvents, Stop } from "./internal-types"
 import type {
   ChainHead,
   FollowEventWithoutRuntime,
@@ -15,9 +15,15 @@ import {
   Subscriber,
   getSubscriptionsManager,
 } from "@/utils/subscriptions-manager"
+import { noop } from "@/utils/noop"
+import { ErrorDisjoint, ErrorStop } from "./errors"
 
 function isOperationEvent(
-  event: FollowEventWithRuntime | FollowEventWithoutRuntime | OperationEvents,
+  event:
+    | FollowEventWithRuntime
+    | FollowEventWithoutRuntime
+    | OperationEvents
+    | Stop,
 ): event is OperationEvents {
   return (event as OperationEvents).operationId !== undefined
 }
@@ -25,57 +31,71 @@ function isOperationEvent(
 export function getChainHead(
   request: ClientRequest<
     string,
-    FollowEventWithoutRuntime | FollowEventWithRuntime | OperationEvents
+    FollowEventWithoutRuntime | FollowEventWithRuntime | OperationEvents | Stop
   >,
 ): ChainHead {
   return (
     withRuntime: boolean,
-    cb:
+    onSuccess:
       | ((event: FollowEventWithoutRuntime) => void)
       | ((event: FollowEventWithRuntime) => void),
+    onError: (e: Error) => void,
   ): FollowResponse => {
     const subscriptions = getSubscriptionsManager()
     let unfollow: () => void = () => {}
 
-    let followSubscription: Promise<string> | string = new Promise((res) => {
-      unfollow = request(
-        "chainHead_unstable_follow",
-        [withRuntime],
-        (subscriptionId, follow) => {
-          const done = follow(subscriptionId, {
-            next: (event) => {
-              if (isOperationEvent(event)) {
-                subscriptions.next(event.operationId, event)
-              } else {
-                if (event.event === "stop") {
-                  done()
-                  subscriptions.errorAll(new Error("disjoint"))
+    let followSubscription: Promise<string | Error> | string | Error =
+      new Promise((res) => {
+        unfollow = request("chainHead_unstable_follow", [withRuntime], {
+          onSuccess: (subscriptionId, follow) => {
+            const done = follow(subscriptionId, {
+              next: (event) => {
+                if (isOperationEvent(event)) {
+                  subscriptions.next(event.operationId, event)
+                } else {
+                  if (event.event === "stop") {
+                    onError(new ErrorStop())
+                    sendUnfollow = false
+                    unfollow()
+                  } else onSuccess(event as any)
                 }
-                cb(event as any)
-              }
-            },
-            error: (e) => {
-              subscriptions.errorAll(e)
-            },
-          })
+              },
+              error: (e) => {
+                onError(e)
+                unfollow()
+              },
+            })
 
-          unfollow = () => {
-            done()
-            subscriptions.errorAll(new Error("disjoint"))
-            request("chainHead_unstable_unfollow", [subscriptionId])
-          }
+            let sendUnfollow = true
+            unfollow = () => {
+              unfollow = noop
+              done()
+              sendUnfollow &&
+                request("chainHead_unstable_unfollow", [subscriptionId])
+              subscriptions.errorAll(new ErrorDisjoint())
+            }
 
-          followSubscription = subscriptionId
-          res(subscriptionId)
-        },
-      )
-    })
+            followSubscription = subscriptionId
+            res(subscriptionId)
+          },
+          onError(e) {
+            onError(e)
+            followSubscription = e
+            res(e)
+          },
+        })
+      })
 
     const fRequest: ClientRequest<any, any> = (
       method: string,
       params: Array<any>,
       cb?: ClientRequestCb<any, any>,
     ) => {
+      if (followSubscription instanceof Error) {
+        cb?.onError(followSubscription)
+        return noop
+      }
+
       const req = request as unknown as ClientRequest<any, any>
 
       let isAborted = false
@@ -85,17 +105,24 @@ export function getChainHead(
 
       const followSubscriptionCb = (sub: string) => {
         if (isAborted) return
+
         onCancel = req(
           method,
           [sub, ...params],
           cb
-            ? (response) => {
-                cb(response, (id: string, subscriber: Subscriber<any>) => {
-                  subscriptions.subscribe(id, subscriber)
-                  return () => {
-                    subscriptions.unsubscribe(id)
-                  }
-                })
+            ? {
+                onSuccess: (response) => {
+                  cb.onSuccess(
+                    response,
+                    (id: string, subscriber: Subscriber<any>) => {
+                      subscriptions.subscribe(id, subscriber)
+                      return () => {
+                        subscriptions.unsubscribe(id)
+                      }
+                    },
+                  )
+                },
+                onError: cb.onError,
               }
             : undefined,
         )
@@ -103,7 +130,13 @@ export function getChainHead(
 
       if (typeof followSubscription === "string")
         followSubscriptionCb(followSubscription)
-      else followSubscription.then(followSubscriptionCb)
+      else
+        followSubscription.then((s) => {
+          if (s instanceof Error) {
+            onCancel = noop
+            cb?.onError(s)
+          } else followSubscriptionCb(s)
+        })
 
       return () => {
         onCancel()
