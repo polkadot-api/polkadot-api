@@ -1,6 +1,11 @@
 import { ClientRequest } from "@/client"
+import { abortablePromiseFn, noop } from "@/internal-utils"
 import { CommonOperationEvents, OperationResponse } from "./internal-types"
-import { abortablePromiseFn } from "@/utils/abortablePromiseFn"
+import {
+  ErrorOperation,
+  ErrorOperationInaccessible,
+  ErrorOperationLimit,
+} from "./errors"
 
 export const createOperationPromise =
   <I extends { operationId: string; event: string }, O, A extends Array<any>>(
@@ -15,15 +20,15 @@ export const createOperationPromise =
   (request: ClientRequest<OperationResponse, I | CommonOperationEvents>) =>
     abortablePromiseFn<O, A>((res, rej, ...args) => {
       const [requestArgs, logicCb] = factory(...args)
-      let cancel = request(
-        operationName,
-        requestArgs,
-        (response, followSubscription) => {
+      let cancel = request(operationName, requestArgs, {
+        onSuccess: (response, followSubscription) => {
           if (response.result === "limitReached") {
-            cancel = () => {}
-            return rej(new Error("Operations limit reached"))
+            cancel = noop
+            return rej(new ErrorOperationLimit())
           }
 
+          let isOperationGoing = true
+          let done = noop
           const _res = (x: O) => {
             isOperationGoing = false
             done()
@@ -35,14 +40,13 @@ export const createOperationPromise =
             rej(x)
           }
 
-          const done = followSubscription(response.operationId, {
+          done = followSubscription(response.operationId, {
             next: (e) => {
               const _e = e as CommonOperationEvents
-              if (
-                _e.event === "operationError" ||
-                _e.event === "operationInaccessible"
-              ) {
-                rej(new Error(_e.event))
+              if (_e.event === "operationError") {
+                rej(new ErrorOperation(_e.error))
+              } else if (_e.event === "operationInaccessible") {
+                rej(new ErrorOperationInaccessible())
               } else {
                 logicCb(e as I, _res, _rej)
               }
@@ -50,14 +54,14 @@ export const createOperationPromise =
             error: _rej,
           })
 
-          let isOperationGoing = true
           cancel = () => {
             if (!isOperationGoing) return
             done()
-            request("chainHead_unstable_stopOperation", [followSubscription])
+            request("chainHead_unstable_stopOperation", [response.operationId])
           }
         },
-      )
+        onError: rej,
+      })
 
       return () => {
         cancel()

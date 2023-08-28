@@ -1,20 +1,21 @@
-import { GetProvider, Provider, ProviderStatus } from "@unstoppablejs/provider"
-import type { UnsubscribeFn } from "../common-types"
-import { ErrorRpc, RpcError } from "./ErrorRpc"
 import {
-  getSubscriptionsManager,
-  Subscriber,
-} from "@/utils/subscriptions-manager"
+  type GetProvider,
+  type Provider,
+  ProviderStatus,
+} from "@unstoppablejs/provider"
+import { UnsubscribeFn } from "../common-types"
+import { ErrorRpc, RpcError } from "./ErrorRpc"
+import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
 
 export type FollowSubscriptionCb<T> = (
   subscriptionId: string,
   cb: Subscriber<T>,
 ) => UnsubscribeFn
 
-export type ClientRequestCb<T, TT> = (
-  result: T,
-  followSubscription: FollowSubscriptionCb<TT>,
-) => void
+export type ClientRequestCb<T, TT> = {
+  onSuccess: (result: T, followSubscription: FollowSubscriptionCb<TT>) => void
+  onError: (e: Error) => void
+}
 
 export type ClientRequest<T, TT> = (
   method: string,
@@ -65,26 +66,29 @@ export const createClient = (gProvider: GetProvider): Client => {
         if (!cb) return
 
         responses.delete(id)
-        return cb(
-          result === undefined ? new ErrorRpc(error!) : result,
-          (subscriptionId, subscriber) => {
-            subscriptions.subscribe(subscriptionId, subscriber)
-            return () => {
-              subscriptions.unsubscribe(subscriptionId)
-            }
-          },
-        )
+
+        return error
+          ? cb.onError(new ErrorRpc(error))
+          : cb.onSuccess(result, (subscriptionId, subscriber) => {
+              subscriptions.subscribe(subscriptionId, subscriber)
+              return () => {
+                subscriptions.unsubscribe(subscriptionId)
+              }
+            })
       }
 
       // at this point, it means that it should be a notification
       ;({ subscription, result, error } = params)
-      if (!subscription || (!result && !error)) throw 0
+      if (!subscription || (!error && !Object.hasOwn(params, "result"))) throw 0
 
-      const data = result ?? new ErrorRpc(error!)
-      subscriptions.next(subscription, data)
+      if (error) {
+        subscriptions.error(subscription, new ErrorRpc(error!))
+      } else {
+        subscriptions.next(subscription, result)
+      }
     } catch (e) {
-      console.log(e)
-      throw new Error("Error parsing incomming message: " + message)
+      console.warn("Error parsing incomming message: " + message)
+      console.error(e)
     }
   }
 

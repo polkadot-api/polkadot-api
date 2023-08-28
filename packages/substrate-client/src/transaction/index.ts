@@ -1,2 +1,2 @@
 export type * from "./types"
-export { getTransaction } from "./transaction"
+export { getTransaction, ErrorTx } from "./transaction"

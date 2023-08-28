@@ -36,6 +36,11 @@ export interface TxDropped {
   error: string
 }
 
+export interface TxError {
+  event: "error"
+  error: string
+}
+
 export type TxEvent =
   | TxValidated
   | TxBroadcasted
@@ -43,6 +48,7 @@ export type TxEvent =
   | TxFinalized
   | TxInvalid
   | TxDropped
+  | TxError
 
 export type Transaction = (
   tx: string,
