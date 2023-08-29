@@ -30,6 +30,7 @@
     "enquirer": "^2.4.1",
     "fp-ts": "^2.16.1",
     "fs.promises.exists": "^1.1.4",
+    "ora": "^7.0.1",
     "rxjs": "^7.8.1",
     "write-pkg": "^6.0.0",
     "zod": "^3.22.2"

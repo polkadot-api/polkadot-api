@@ -32,6 +32,7 @@ import Enquirer from "enquirer"
 import { Worker } from "node:worker_threads"
 import path from "path"
 import { PROVIDER_WORKER_CODE } from "./provider"
+import ora from "ora"
 
 const ProgramArgs = z.object({
   metadata: z.string().optional(),
@@ -50,7 +51,10 @@ program.parse()
 
 const options = ProgramArgs.parse(program.opts())
 
-const metadata = await getMetadataArgs(options.metadata).then(getMetadata)
+const metadataArgs = await getMetadataArgs(options.metadata)
+const spinner = ora(`Loading Metadata`).start()
+const metadata = await getMetadata(metadataArgs)
+spinner.stop()
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
