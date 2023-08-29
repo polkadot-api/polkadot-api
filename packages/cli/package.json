@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^3.0.2",
-    "@npmcli/package-json": "^5.0.0",
     "@substrate/connect": "^0.7.31",
     "@unstoppablejs/client": "0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671",
     "@unstoppablejs/sc-provider": "^0.2.0",
@@ -27,15 +26,12 @@
     "@unstoppablejs/substrate-codegen": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
     "@unstoppablejs/utils": "^1.1.0",
     "commander": "^11.0.0",
-    "enquirer": "^2.4.1",
     "fp-ts": "^2.16.1",
     "fs.promises.exists": "^1.1.4",
     "ora": "^7.0.1",
     "rxjs": "^7.8.1",
+    "type-fest": "^4.3.1",
     "write-pkg": "^6.0.0",
     "zod": "^3.22.2"
-  },
-  "devDependencies": {
-    "@types/npmcli__package-json": "^4.0.0"
   }
 }

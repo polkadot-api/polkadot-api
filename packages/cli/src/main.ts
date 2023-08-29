@@ -1,6 +1,5 @@
 import "./_polyfills"
 
-import { input, select } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
 import {
   LookupEntry,
@@ -8,17 +7,13 @@ import {
   getLookupFn,
   getStaticBuilder,
 } from "@unstoppablejs/substrate-codegen"
-import { GetProvider } from "@unstoppablejs/provider"
-import {
-  metadata as $metadata,
-  V14Lookup,
-} from "@unstoppablejs/substrate-bindings"
+import { V14Lookup } from "@unstoppablejs/substrate-bindings"
 import { CheckboxData } from "./CheckboxData"
 import * as childProcess from "node:child_process"
 import { deferred } from "./deferred"
 import { DESCRIPTOR_SPEC } from "./descriptors"
 import { ExtrinsicData } from "./ExtrinsicData"
-import { confirm } from "@inquirer/prompts"
+import { confirm, input, select, checkbox } from "@inquirer/prompts"
 import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import * as writePkg from "write-pkg"
@@ -28,11 +23,8 @@ import fsExists from "fs.promises.exists"
 import { program } from "commander"
 import { GetMetadataArgs, getMetadata } from "./metadata"
 import { WellKnownChain } from "@substrate/connect"
-import Enquirer from "enquirer"
-import { Worker } from "node:worker_threads"
-import path from "path"
-import { PROVIDER_WORKER_CODE } from "./provider"
 import ora from "ora"
+import { blowupMetadata } from "./testing"
 
 const ProgramArgs = z.object({
   metadata: z.string().optional(),
@@ -61,6 +53,7 @@ const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
 const OUTPUT_CODEGEN = "OUTPUT_CODEGEN"
 const OUTPUT_DESCRIPTORS = "OUTPUT_DESCRIPTORS"
 const LOAD_DESCRIPTORS = "LOAD_DESCRIPTORS"
+const BLOWUP_METADATA = "BLOWUP_METADATA"
 const EXIT = "EXIT"
 
 const CONSTANTS = "CONSTANTS"
@@ -85,17 +78,16 @@ const checksumBuilder = getChecksumBuilder(metadata.value)
 
 let exit = false
 while (!exit) {
-  const { choice } = await Enquirer.prompt<{ choice: string }>({
-    type: "select",
-    name: "choice",
+  const choice = await select({
     message: "What do you want to do?",
     choices: [
-      { name: SELECT_DESCRIPTORS, message: "Select descriptors" },
-      { name: SHOW_DESCRIPTORS, message: "Show descriptors" },
-      { name: OUTPUT_DESCRIPTORS, message: "Output Descriptors" },
-      { name: LOAD_DESCRIPTORS, message: "Load Descriptors" },
-      { name: OUTPUT_CODEGEN, message: "Output Codegen" },
-      { name: EXIT, message: "Exit" },
+      { name: "Select descriptors", value: SELECT_DESCRIPTORS },
+      { name: "Show descriptors", value: SHOW_DESCRIPTORS },
+      { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS },
+      { name: "Load Descriptors", value: LOAD_DESCRIPTORS },
+      { name: "Blowup Metadata", value: BLOWUP_METADATA },
+      { name: "Output Codegen", value: OUTPUT_CODEGEN },
+      { name: "Exit", value: EXIT },
     ],
   })
 
@@ -206,6 +198,10 @@ while (!exit) {
       }
       break
     }
+    case BLOWUP_METADATA: {
+      blowupMetadata(metadata)
+      break
+    }
     case SHOW_DESCRIPTORS: {
       console.log(
         util.inspect(data, { showHidden: false, depth: null, colors: true }),
@@ -254,7 +250,7 @@ while (!exit) {
 
         const inFile = await input({
           message: "Enter descriptors fileName",
-          default: "descriptor.json",
+          default: "descriptors.json",
         })
 
         return descriptorSchema.parseAsync(
@@ -290,6 +286,17 @@ while (!exit) {
           }
         }
       }
+
+      /*      await Enquirer.prompt<{ chain: WellKnownChain }>({
+        type: "multiselect",
+        name: "value",
+        message: "Metadata descriptor discrepancies",
+        choices: discrepancies.map(({ pallet, name, checksum }) => ({
+          name: "",
+          value: `${pallet},${name},${checksum}`,
+        })),
+        format: (s) => `${s.split(",")}`,
+      }) */
 
       console.log("discrepancies", discrepancies)
       break
@@ -588,15 +595,13 @@ async function getMetadataArgs(
     }
   }
 
-  const { chain } = await Enquirer.prompt<{ chain: WellKnownChain }>({
-    type: "select",
-    name: "chain",
+  const chain = await select({
     message: "Select a chain to pull metadata from",
     choices: [
-      WellKnownChain.polkadot,
-      WellKnownChain.westend2,
-      WellKnownChain.ksmcc3,
-      WellKnownChain.rococo_v2_2,
+      { name: "polkadot", value: WellKnownChain.polkadot },
+      { name: "westend", value: WellKnownChain.westend2 },
+      { name: "ksm", value: WellKnownChain.ksmcc3 },
+      { name: "rococo", value: WellKnownChain.rococo_v2_2 },
     ],
   })
 
