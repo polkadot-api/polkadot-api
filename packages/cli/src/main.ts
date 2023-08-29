@@ -8,6 +8,7 @@ import {
   getLookupFn,
   getStaticBuilder,
 } from "@unstoppablejs/substrate-codegen"
+import { GetProvider } from "@unstoppablejs/provider"
 import {
   metadata as $metadata,
   V14Lookup,
@@ -28,6 +29,9 @@ import { program } from "commander"
 import { GetMetadataArgs, getMetadata } from "./metadata"
 import { WellKnownChain } from "@substrate/connect"
 import Enquirer from "enquirer"
+import { Worker } from "node:worker_threads"
+import path from "path"
+import { PROVIDER_WORKER_CODE } from "./provider"
 
 const ProgramArgs = z.object({
   metadata: z.string().optional(),
@@ -77,15 +81,17 @@ const checksumBuilder = getChecksumBuilder(metadata.value)
 
 let exit = false
 while (!exit) {
-  const choice = await select({
+  const { choice } = await Enquirer.prompt<{ choice: string }>({
+    type: "select",
+    name: "choice",
     message: "What do you want to do?",
     choices: [
-      { name: "Select descriptors", value: SELECT_DESCRIPTORS },
-      { name: "Show descriptors", value: SHOW_DESCRIPTORS },
-      { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS },
-      { name: "Load Descriptors", value: LOAD_DESCRIPTORS },
-      { name: "Output Codegen", value: OUTPUT_CODEGEN },
-      { name: "Exit", value: EXIT },
+      { name: SELECT_DESCRIPTORS, message: "Select descriptors" },
+      { name: SHOW_DESCRIPTORS, message: "Show descriptors" },
+      { name: OUTPUT_DESCRIPTORS, message: "Output Descriptors" },
+      { name: LOAD_DESCRIPTORS, message: "Load Descriptors" },
+      { name: OUTPUT_CODEGEN, message: "Output Codegen" },
+      { name: EXIT, message: "Exit" },
     ],
   })
 
