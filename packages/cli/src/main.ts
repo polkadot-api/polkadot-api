@@ -1,3 +1,5 @@
+import "./_polyfills"
+
 import { input, select } from "@inquirer/prompts"
 import * as fs from "node:fs/promises"
 import {
@@ -19,24 +21,32 @@ import { confirm } from "@inquirer/prompts"
 import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import * as writePkg from "write-pkg"
-import path from "path"
 import { z } from "zod"
 import descriptorSchema from "./descriptor-schema"
 import fsExists from "fs.promises.exists"
-;(BigInt.prototype as any).toJSON = function () {
-  return this.toString()
-}
+import { program } from "commander"
+import { GetMetadataArgs, getMetadata } from "./metadata"
+import { WellKnownChain } from "@substrate/connect"
+import Enquirer from "enquirer"
 
-type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
-
-const metadataPath = await input({
-  message: "Enter path to metadata file",
-  default: "metadata.scale",
+const ProgramArgs = z.object({
+  metadata: z.string().optional(),
+  interactive: z.boolean(),
 })
-const rawMetadata = await fs.readFile(metadataPath)
-const { metadata } = $metadata.dec(rawMetadata)
 
-assertIsv14(metadata)
+type ProgramArgs = z.infer<typeof ProgramArgs>
+
+program
+  .name("capi")
+  .description("Capi CLI")
+  .option("-m, --metadata <path>", "path to scale encoded metadata file")
+  .option("-i, --interactive", "whether to run in interactive mode", false)
+
+program.parse()
+
+const options = ProgramArgs.parse(program.opts())
+
+const metadata = await getMetadataArgs(options.metadata).then(getMetadata)
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
@@ -242,8 +252,12 @@ while (!exit) {
         )
       })()
 
-      const discrepancies: [pallet: string, type: "constant", bigint | null][] =
-        []
+      const discrepancies: Array<{
+        pallet: string
+        type: "constant" | "storage"
+        name: string
+        checksum: bigint | null
+      }> = []
 
       for (const [
         pallet,
@@ -257,7 +271,12 @@ while (!exit) {
             constantName,
           )
           if (newChecksum === null || checksum != newChecksum) {
-            discrepancies.push([pallet, "constant", newChecksum])
+            discrepancies.push({
+              pallet,
+              type: "constant",
+              name: constantName,
+              checksum: newChecksum,
+            })
           }
         }
       }
@@ -541,18 +560,38 @@ function getLookupEntry(lookup: V14Lookup, idx: number) {
   return Object.keys(lookupFns.value)
 }
 
-function assertIsv14(
-  metadata: Metadata,
-): asserts metadata is Metadata & { tag: "v14" } {
-  if (metadata.tag !== "v14") {
-    throw new Error("unreachable")
-  }
-}
-
 function assertLookupEntryIsEnum(
   lookupEntry: LookupEntry,
 ): asserts lookupEntry is LookupEntry & { type: "enum" } {
   if (lookupEntry.type !== "enum") {
     throw new Error("not an enum")
+  }
+}
+
+async function getMetadataArgs(
+  metadataFile: ProgramArgs["metadata"],
+): Promise<GetMetadataArgs> {
+  if (metadataFile) {
+    return {
+      source: "file",
+      file: metadataFile,
+    }
+  }
+
+  const { chain } = await Enquirer.prompt<{ chain: WellKnownChain }>({
+    type: "select",
+    name: "chain",
+    message: "Select a chain to pull metadata from",
+    choices: [
+      WellKnownChain.polkadot,
+      WellKnownChain.westend2,
+      WellKnownChain.ksmcc3,
+      WellKnownChain.rococo_v2_2,
+    ],
+  })
+
+  return {
+    source: "chain",
+    chain,
   }
 }

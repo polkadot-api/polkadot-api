@@ -4,6 +4,7 @@
   "compilerOptions": {
     "baseUrl": "src",
     "noUnusedLocals": false,
+    "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["*"]
     }
