@@ -1,5 +1,5 @@
-import type { StringRecord, V14 } from "@unstoppablejs/substrate-bindings"
-import { h64 } from "@unstoppablejs/substrate-bindings"
+import type { StringRecord, V14 } from "@capi-dev/substrate-bindings"
+import { h64 } from "@capi-dev/substrate-bindings"
 import {
   EnumVar,
   LookupEntry,

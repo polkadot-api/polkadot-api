@@ -1,11 +1,7 @@
-import type {
-  Codec,
-  StringRecord,
-  V14,
-} from "@unstoppablejs/substrate-bindings"
+import type { Codec, StringRecord, V14 } from "@capi-dev/substrate-bindings"
 import type { LookupEntry } from "./lookups"
 import { getLookupFn } from "./lookups"
-import * as scale from "@unstoppablejs/substrate-bindings"
+import * as scale from "@capi-dev/substrate-bindings"
 
 const _bytes = scale.Bytes()
 

@@ -1,4 +1,4 @@
-import { StringRecord, V14 } from "@unstoppablejs/substrate-bindings"
+import { StringRecord, V14 } from "@capi-dev/substrate-bindings"
 import { LookupEntry, getLookupFn } from "./lookups"
 
 export interface Variable {

@@ -6,7 +6,7 @@
     "experiments"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@unstoppablejs/substrate-client --workspace=@unstoppablejs/substrate-bindings && npm run build --workspace=@unstoppablejs/substrate-codegen",
+    "build": "npm run build --workspace=@capi-dev/substrate-client --workspace=@capi-dev/substrate-bindings && npm run build --workspace=@capi-dev/substrate-codegen",
     "lint": "npm run lint --workspaces",
     "format": "npm run format --workspaces",
     "test": "npm run test --workspaces",
