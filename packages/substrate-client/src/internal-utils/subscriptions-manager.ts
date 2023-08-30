@@ -17,11 +17,6 @@ export const getSubscriptionsManager = () => {
     next(id: string, data: any) {
       subscriptions.get(id)?.next(data)
     },
-    broadcast(data: any) {
-      ;[...subscriptions.values()].forEach(({ next }) => {
-        next(data)
-      })
-    },
     error(id: string, e: Error) {
       const subscriber = subscriptions.get(id)
       if (subscriber) {

@@ -11,8 +11,19 @@ import type { Transaction } from "./transaction/types"
 import { UnsubscribeFn } from "./common-types"
 
 export type * from "./common-types"
+export type * from "./client"
 export type * from "./transaction"
 export type * from "./chainhead"
+
+export { RpcError } from "./client"
+export { TransactionError } from "./transaction"
+export {
+  StopError,
+  DisjointError,
+  OperationError,
+  OperationInaccessibleError,
+  OperationLimitError,
+} from "./chainhead"
 
 export interface SubstrateClient {
   chainHead: ChainHead
