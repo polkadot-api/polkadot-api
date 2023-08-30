@@ -1,9 +1,13 @@
-import { expect, describe, test } from "vitest"
-import { ErrorRpc, ErrorStop, RpcError } from "@/."
-import { setupChainHead, setupChainHeadWithSubscription } from "./fixtures"
+import { expect, describe, test, it } from "vitest"
+import { DisjointError, RpcError, StopError } from "@/."
+import {
+  parseError,
+  setupChainHead,
+  setupChainHeadWithSubscription,
+} from "./fixtures"
 
 describe("chainHead", () => {
-  test("it sends the correct follow message", () => {
+  it("sends the correct follow message", () => {
     const withRuntime = true
     const {
       fixtures: { getNewMessages },
@@ -17,7 +21,7 @@ describe("chainHead", () => {
     ])
   })
 
-  test("it receives its corresponding subscription messages", () => {
+  it("receives its corresponding subscription messages", () => {
     const {
       fixtures: { sendSubscription, onMsg, onError },
     } = setupChainHeadWithSubscription()
@@ -81,7 +85,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  test("it stops receiving messages upon cancelation", () => {
+  it("stops receiving messages upon cancelation", () => {
     const {
       unfollow,
       fixtures: { sendMessage, onMsg, onError },
@@ -116,7 +120,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  test("it sends an unsubscription message when necessary", () => {
+  it("sends an unsubscription message when necessary", () => {
     const {
       unfollow,
       fixtures: {
@@ -151,7 +155,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  test("`stop` event triggers an `ErrorStop` error and automatically cancels the subscription", () => {
+  test("`stop` event triggers an `StopError` and automatically cancels the subscription", () => {
     const {
       unfollow,
       fixtures: { sendSubscription, getNewMessages, onMsg, onError },
@@ -163,7 +167,7 @@ describe("chainHead", () => {
 
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
-    expect(onError).toHaveBeenCalledWith(new ErrorStop())
+    expect(onError).toHaveBeenCalledWith(new StopError())
 
     sendSubscription({
       result: {
@@ -182,26 +186,113 @@ describe("chainHead", () => {
     expect(getNewMessages()).toEqual([])
   })
 
-  test("it propagates the JSON-RPC Error when the initial request fails", () => {
+  test("`stop` event triggers a `DisjointError` on all running active operations", () => {
+    const {
+      body,
+      storage,
+      call,
+      fixtures: { sendSubscription, sendMessage },
+    } = setupChainHeadWithSubscription()
+
+    const bodyPromise = body("")
+    sendMessage({
+      id: 2,
+      result: {
+        result: "started",
+        operationId: "operationBody",
+      },
+    })
+
+    const storagePromise = storage("", { value: ["df"] }, null)
+    sendMessage({
+      id: 3,
+      result: {
+        result: "started",
+        operationId: "operationStorage",
+      },
+    })
+
+    const callPromise = call("", "", "")
+    sendMessage({
+      id: 4,
+      result: {
+        result: "started",
+        operationId: "operationCall",
+      },
+    })
+
+    sendSubscription({
+      result: { event: "stop" },
+    })
+
+    return Promise.all(
+      [bodyPromise, storagePromise, callPromise].map((p) =>
+        expect(p).rejects.toEqual(new DisjointError()),
+      ),
+    )
+  })
+
+  test("`stop` event triggers a `DisjointError` on all running pending operations", () => {
+    const {
+      body,
+      storage,
+      call,
+      fixtures: { sendSubscription, sendMessage },
+    } = setupChainHeadWithSubscription()
+
+    const bodyPromise = body("")
+    const storagePromise = storage("", { value: ["df"] }, null)
+    const callPromise = call("", "", "")
+
+    sendSubscription({
+      result: { event: "stop" },
+    })
+
+    sendMessage({
+      id: 3,
+      result: {
+        result: "started",
+        operationId: "operationStorage",
+      },
+    })
+    sendMessage({
+      id: 2,
+      result: {
+        result: "started",
+        operationId: "operationBody",
+      },
+    })
+    sendMessage({
+      id: 4,
+      result: {
+        result: "started",
+        operationId: "operationCall",
+      },
+    })
+
+    return Promise.all(
+      [bodyPromise, storagePromise, callPromise].map((p) =>
+        expect(p).rejects.toEqual(new DisjointError()),
+      ),
+    )
+  })
+
+  it("propagates the JSON-RPC Error when the initial request fails", () => {
     const {
       fixtures: { sendMessage, onMsg, onError },
     } = setupChainHead()
 
-    const error: RpcError = {
-      code: -32700,
-      message: "Parse error",
-    }
     sendMessage({
       id: 1,
-      error,
+      error: parseError,
     })
 
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
-    expect(onError).toHaveBeenCalledWith(new ErrorRpc(error))
+    expect(onError).toHaveBeenCalledWith(new RpcError(parseError))
   })
 
-  test("it propagates the JSON-RPC Error on the subscription and cancels the subscription", () => {
+  it("propagates the JSON-RPC Error on the subscription and cancels the subscription", () => {
     const {
       fixtures: {
         getNewMessages,
@@ -212,18 +303,13 @@ describe("chainHead", () => {
       },
     } = setupChainHeadWithSubscription()
 
-    const error: RpcError = {
-      code: -32603,
-      message: "Internal error",
-    }
-
     sendSubscription({
-      error,
+      error: parseError,
     })
 
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
-    expect(onError).toHaveBeenCalledWith(new ErrorRpc(error))
+    expect(onError).toHaveBeenCalledWith(new RpcError(parseError))
 
     expect(getNewMessages()).toMatchObject([
       {

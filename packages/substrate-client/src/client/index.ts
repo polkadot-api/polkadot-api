@@ -1,2 +1,2 @@
-export * from "./ErrorRpc"
+export * from "./RpcError"
 export * from "./createClient"

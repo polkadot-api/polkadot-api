@@ -15,14 +15,14 @@ export type * from "./client"
 export type * from "./transaction"
 export type * from "./chainhead"
 
-export { ErrorRpc } from "./client"
-export { ErrorTx } from "./transaction"
+export { RpcError } from "./client"
+export { TransactionError } from "./transaction"
 export {
-  ErrorStop,
-  ErrorDisjoint,
-  ErrorOperation,
-  ErrorOperationInaccessible,
-  ErrorOperationLimit,
+  StopError,
+  DisjointError,
+  OperationError,
+  OperationInaccessibleError,
+  OperationLimitError,
 } from "./chainhead"
 
 export interface SubstrateClient {

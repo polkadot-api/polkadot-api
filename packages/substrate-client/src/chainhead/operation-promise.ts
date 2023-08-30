@@ -1,11 +1,10 @@
 import { ClientRequest } from "@/client"
+import { abortablePromiseFn, noop } from "@/internal-utils"
 import { CommonOperationEvents, OperationResponse } from "./internal-types"
-import { abortablePromiseFn } from "@/utils/abortablePromiseFn"
-import { noop } from "@/utils/noop"
 import {
-  ErrorOperation,
-  ErrorOperationInaccessible,
-  ErrorOperationLimit,
+  OperationError,
+  OperationInaccessibleError,
+  OperationLimitError,
 } from "./errors"
 
 export const createOperationPromise =
@@ -25,9 +24,11 @@ export const createOperationPromise =
         onSuccess: (response, followSubscription) => {
           if (response.result === "limitReached") {
             cancel = noop
-            return rej(new ErrorOperationLimit())
+            return rej(new OperationLimitError())
           }
 
+          let isOperationGoing = true
+          let done = noop
           const _res = (x: O) => {
             isOperationGoing = false
             done()
@@ -39,13 +40,13 @@ export const createOperationPromise =
             rej(x)
           }
 
-          const done = followSubscription(response.operationId, {
+          done = followSubscription(response.operationId, {
             next: (e) => {
               const _e = e as CommonOperationEvents
               if (_e.event === "operationError") {
-                rej(new ErrorOperation(_e.error))
+                rej(new OperationError(_e.error))
               } else if (_e.event === "operationInaccessible") {
-                rej(new ErrorOperationInaccessible())
+                rej(new OperationInaccessibleError())
               } else {
                 logicCb(e as I, _res, _rej)
               }
@@ -53,7 +54,6 @@ export const createOperationPromise =
             error: _rej,
           })
 
-          let isOperationGoing = true
           cancel = () => {
             if (!isOperationGoing) return
             done()

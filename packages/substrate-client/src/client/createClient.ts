@@ -4,11 +4,8 @@ import {
   ProviderStatus,
 } from "@unstoppablejs/provider"
 import { UnsubscribeFn } from "../common-types"
-import { ErrorRpc, RpcError } from "./ErrorRpc"
-import {
-  getSubscriptionsManager,
-  Subscriber,
-} from "@/utils/subscriptions-manager"
+import { RpcError, IRpcError } from "./RpcError"
+import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
 
 export type FollowSubscriptionCb<T> = (
   subscriptionId: string,
@@ -59,8 +56,8 @@ export const createClient = (gProvider: GetProvider): Client => {
     try {
       let id: number,
         result,
-        error: RpcError | undefined,
-        params: { subscription: any; result: any; error?: RpcError },
+        error: IRpcError | undefined,
+        params: { subscription: any; result: any; error?: IRpcError },
         subscription: string
       ;({ id, result, error, params } = JSON.parse(message))
 
@@ -71,7 +68,7 @@ export const createClient = (gProvider: GetProvider): Client => {
         responses.delete(id)
 
         return error
-          ? cb.onError(new ErrorRpc(error))
+          ? cb.onError(new RpcError(error))
           : cb.onSuccess(result, (subscriptionId, subscriber) => {
               subscriptions.subscribe(subscriptionId, subscriber)
               return () => {
@@ -85,13 +82,13 @@ export const createClient = (gProvider: GetProvider): Client => {
       if (!subscription || (!error && !Object.hasOwn(params, "result"))) throw 0
 
       if (error) {
-        subscriptions.error(subscription, new ErrorRpc(error!))
+        subscriptions.error(subscription, new RpcError(error!))
       } else {
         subscriptions.next(subscription, result)
       }
     } catch (e) {
-      console.log(e)
-      throw new Error("Error parsing incomming message: " + message)
+      console.warn("Error parsing incomming message: " + message)
+      console.error(e)
     }
   }
 

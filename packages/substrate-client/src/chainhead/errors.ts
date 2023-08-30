@@ -1,29 +1,34 @@
-export class ErrorStop extends Error {
+export class StopError extends Error {
   constructor() {
     super("ChainHead stopped")
+    this.name = "StopError"
   }
 }
 
-export class ErrorDisjoint extends Error {
+export class DisjointError extends Error {
   constructor() {
     super("ChainHead disjointed")
+    this.name = "DisjointError"
   }
 }
 
-export class ErrorOperationLimit extends Error {
+export class OperationLimitError extends Error {
   constructor() {
     super("ChainHead operations limit reached")
+    this.name = "OperationLimitError"
   }
 }
 
-export class ErrorOperation extends Error {
+export class OperationError extends Error {
   constructor(error: string) {
     super(error)
+    this.name = "OperationError"
   }
 }
 
-export class ErrorOperationInaccessible extends Error {
+export class OperationInaccessibleError extends Error {
   constructor() {
     super("ChainHead operation inaccessible")
+    this.name = "OperationInaccessibleError"
   }
 }

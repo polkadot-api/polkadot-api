@@ -1,6 +1,6 @@
-import { expect, describe, test, vi } from "vitest"
-import { createTestClient } from "./fixtures"
-import { ErrorRpc, ErrorTx, RpcError } from "@/."
+import { expect, describe, test, vi, it } from "vitest"
+import { createTestClient, parseError } from "./fixtures"
+import { RpcError, TransactionError, IRpcError } from "@/."
 
 function setupTx(tx: string = "") {
   const onMsg = vi.fn()
@@ -21,7 +21,7 @@ function setupTxWithSubscription() {
   })
 
   const sendSubscription = (
-    msg: { result: any } | { error: RpcError },
+    msg: { result: any } | { error: IRpcError },
   ): void => {
     fixtures.sendMessage({
       params: {
@@ -38,7 +38,7 @@ function setupTxWithSubscription() {
 }
 
 describe("transaction", () => {
-  test("it sends the correct transaction message", () => {
+  it("sends the correct transaction message", () => {
     const FAKE_TX = "FAKE_TX"
     const {
       fixtures: { getNewMessages },
@@ -52,7 +52,7 @@ describe("transaction", () => {
     ])
   })
 
-  test("it receives its corresponding subscription messages", () => {
+  it("receives its corresponding subscription messages", () => {
     const {
       fixtures: { sendMessage, sendSubscription, onMsg, onError },
     } = setupTxWithSubscription()
@@ -101,7 +101,7 @@ describe("transaction", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  test("it stops receiving messages upon cancelation", () => {
+  it("stops receiving messages upon cancelation", () => {
     const {
       cancel,
       fixtures: { sendMessage, onMsg, onError },
@@ -128,7 +128,7 @@ describe("transaction", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  test("it sends an unsubscription message when necessary", () => {
+  it("sends an unsubscription message when necessary", () => {
     const {
       cancel,
       fixtures: {
@@ -157,7 +157,7 @@ describe("transaction", () => {
   })
 
   test.each(["dropped", "invalid", "error"])(
-    "`%s` event triggers an `ErrorTx` error and automatically cancels the subscription",
+    "`%s` event triggers a `TransactionError` error and automatically cancels the subscription",
     (eventType) => {
       const {
         cancel,
@@ -172,7 +172,7 @@ describe("transaction", () => {
       expect(onMsg).not.toHaveBeenCalled()
       expect(onError).toHaveBeenCalledOnce()
       expect(onError).toHaveBeenCalledWith(
-        new ErrorTx({ event: eventType as any, error }),
+        new TransactionError({ event: eventType as any, error }),
       )
 
       sendSubscription({
@@ -216,31 +216,27 @@ describe("transaction", () => {
     expect(getNewMessages()).toEqual([])
   })
 
-  test("it propagates the JSON-RPC Error when the initial request fails", () => {
+  it("propagates the JSON-RPC Error when the initial request fails", () => {
     const {
       fixtures: { sendMessage, onMsg, onError },
     } = setupTx()
 
-    const error: RpcError = {
-      code: -32700,
-      message: "Parse error",
-    }
     sendMessage({
       id: 1,
-      error,
+      error: parseError,
     })
 
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
-    expect(onError).toHaveBeenCalledWith(new ErrorRpc(error))
+    expect(onError).toHaveBeenCalledWith(new RpcError(parseError))
   })
 
-  test("it propagates the JSON-RPC Error on the subscription", () => {
+  it("propagates the JSON-RPC Error on the subscription", () => {
     const {
       fixtures: { sendSubscription, onMsg, onError },
     } = setupTxWithSubscription()
 
-    const error: RpcError = {
+    const error: IRpcError = {
       code: -32603,
       message: "Internal error",
     }
@@ -251,6 +247,6 @@ describe("transaction", () => {
 
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
-    expect(onError).toHaveBeenCalledWith(new ErrorRpc(error))
+    expect(onError).toHaveBeenCalledWith(new RpcError(error))
   })
 })

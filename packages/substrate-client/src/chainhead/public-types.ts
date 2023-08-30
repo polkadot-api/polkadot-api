@@ -82,7 +82,7 @@ export interface FollowResponse {
     StorageResponse
   >
   header: (hash: string) => Promise<string>
-  unpin: (...hashes: Array<string>) => Promise<void>
+  unpin: (hashes: Array<string>) => Promise<void>
   _request: <Reply, Notification>(
     method: string,
     params: any[],
