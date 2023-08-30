@@ -4,7 +4,7 @@
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unstoppablejs/unstoppablejs.git"
+    "url": "git+https://github.com/paritytech/capi.git"
   },
   "license": "MIT",
   "sideEffects": false,
