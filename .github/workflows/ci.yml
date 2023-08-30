@@ -49,6 +49,6 @@ jobs:
         run: npm run build
       - name: Publish
         run: |
-          npx lerna init --packages="packages/*"
+          npx lerna init
           npx lerna version prerelease --no-private --no-git-tag-version --yes --exact --preid ${{ github.sha }}.${{ github.run_attempt }}
           npm publish --workspaces packages --access public --tag pr-${{ github.event.number }} --dry-run
