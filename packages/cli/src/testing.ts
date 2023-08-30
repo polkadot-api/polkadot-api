@@ -9,5 +9,8 @@ export function blowupMetadata(metadata: AsyncReturnType<typeof getMetadata>) {
     throw new Error("no system pallet")
   }
 
-  systemPallet.constants = []
+  const blockWeightsIndex = systemPallet.constants.findIndex(
+    ({ name }) => name === "BlockWeights",
+  )
+  systemPallet.constants.splice(blockWeightsIndex, 1)
 }

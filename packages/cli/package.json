@@ -25,6 +25,8 @@
     "@unstoppablejs/substrate-bindings": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
     "@unstoppablejs/substrate-codegen": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
     "@unstoppablejs/utils": "^1.1.0",
+    "as-table": "^1.0.55",
+    "chalk": "^5.3.0",
     "commander": "^11.0.0",
     "fp-ts": "^2.16.1",
     "fs.promises.exists": "^1.1.4",

@@ -13,7 +13,7 @@ import * as childProcess from "node:child_process"
 import { deferred } from "./deferred"
 import { DESCRIPTOR_SPEC } from "./descriptors"
 import { ExtrinsicData } from "./ExtrinsicData"
-import { confirm, input, select, checkbox } from "@inquirer/prompts"
+import { confirm, input, select } from "@inquirer/prompts"
 import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import * as writePkg from "write-pkg"
@@ -25,6 +25,8 @@ import { GetMetadataArgs, getMetadata } from "./metadata"
 import { WellKnownChain } from "@substrate/connect"
 import ora from "ora"
 import { blowupMetadata } from "./testing"
+import asTable from "as-table"
+import chalk from "chalk"
 
 const ProgramArgs = z.object({
   metadata: z.string().optional(),
@@ -262,7 +264,8 @@ while (!exit) {
         pallet: string
         type: "constant" | "storage"
         name: string
-        checksum: bigint | null
+        oldChecksum: bigint | null
+        newChecksum: bigint | null
       }> = []
 
       for (const [
@@ -281,24 +284,59 @@ while (!exit) {
               pallet,
               type: "constant",
               name: constantName,
-              checksum: newChecksum,
+              oldChecksum: checksum,
+              newChecksum: newChecksum,
             })
           }
         }
       }
 
-      /*      await Enquirer.prompt<{ chain: WellKnownChain }>({
-        type: "multiselect",
-        name: "value",
-        message: "Metadata descriptor discrepancies",
-        choices: discrepancies.map(({ pallet, name, checksum }) => ({
-          name: "",
-          value: `${pallet},${name},${checksum}`,
-        })),
-        format: (s) => `${s.split(",")}`,
-      }) */
+      const mapDiscrepancy = ({
+        pallet,
+        name,
+        oldChecksum,
+        newChecksum,
+      }: (typeof discrepancies)[number]) => ({
+        Pallet: pallet,
+        Name: name,
+        "Old Checksum":
+          oldChecksum === null ? chalk.red(oldChecksum) : oldChecksum,
+        "New Checksum":
+          newChecksum === null ? chalk.red(newChecksum) : newChecksum,
+      })
 
-      console.log("discrepancies", discrepancies)
+      console.log("-------- Constant Discrepancies --------")
+      console.log(
+        asTable(
+          discrepancies
+            .filter(({ type }) => type === "constant")
+            .map(mapDiscrepancy),
+        ),
+      )
+      console.log("--------------------------------------")
+
+      const accept = await confirm({ message: "Accept changes" })
+      if (!accept) {
+        break
+      }
+
+      for (const discrepancy of discrepancies) {
+        if (discrepancy.newChecksum === null) {
+          switch (discrepancy.type) {
+            case "constant": {
+              const constants = descriptors[discrepancy.pallet].constants
+              if (constants) {
+                delete constants[discrepancy.name]
+              }
+              break
+            }
+            default:
+              break
+          }
+        }
+      }
+
+      console.log("descriptors", descriptors)
       break
     }
     case OUTPUT_CODEGEN: {
