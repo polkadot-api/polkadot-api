@@ -17,8 +17,7 @@ jobs:
         node-version: [18.x, 20.x]
     steps:
       - uses: actions/checkout@v3.5.3
-
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
@@ -31,8 +30,24 @@ jobs:
         run: npm run build
       - name: Run tests
         run: npm run test
+
+  publish:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: npm
+      - name: Install deps
+        run: npm ci
+      - name: Build
+        run: npm run build
       - name: Publish
-        if: ${{ github.event_name == 'pull_request' }}
         run: |
           npx lerna init
           npx lerna version prerelease --no-private --no-git-tag-version --yes --exact --preid ${{ github.sha }}.${{ github.run_attempt }}
