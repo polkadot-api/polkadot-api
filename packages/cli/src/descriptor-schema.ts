@@ -10,8 +10,8 @@ export default z.record(
       .record(
         z.object({
           checksum: z.coerce.bigint(),
-          events: z.record(z.array(z.string())),
-          errors: z.record(z.array(z.string())),
+          events: z.record(z.array(z.string()).transform((s) => new Set(s))),
+          errors: z.record(z.array(z.string()).transform((s) => new Set(s))),
         }),
       )
       .optional(),

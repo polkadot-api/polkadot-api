@@ -2,18 +2,20 @@ import { select, checkbox, confirm } from "@inquirer/prompts"
 import type { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import util from "util"
 
-export class ExtrinsicData {
-  #data: Record<
-    string,
-    {
-      checksum: bigint
-      events: Record<string, Set<string>>
-      errors: Record<string, Set<string>>
-    }
-  >
+type Data = Record<
+  string,
+  {
+    checksum: bigint
+    events: Record<string, Set<string>>
+    errors: Record<string, Set<string>>
+  }
+>
 
-  constructor() {
-    this.#data = {}
+export class ExtrinsicData {
+  #data: Data
+
+  constructor(data?: Data) {
+    this.#data = data ?? {}
   }
 
   get data(): ReadonlyRecord<

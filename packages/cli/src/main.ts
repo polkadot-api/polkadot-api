@@ -27,6 +27,7 @@ import ora from "ora"
 import { blowupMetadata } from "./testing"
 import asTable from "as-table"
 import chalk from "chalk"
+import * as Record from "fp-ts/lib/Record"
 
 const ProgramArgs = z.object({
   metadata: z.string().optional(),
@@ -302,7 +303,11 @@ while (!exit) {
         "Old Checksum":
           oldChecksum === null ? chalk.red(oldChecksum) : oldChecksum,
         "New Checksum":
-          newChecksum === null ? chalk.red(newChecksum) : newChecksum,
+          newChecksum !== oldChecksum
+            ? chalk.magenta(newChecksum)
+            : newChecksum === null
+            ? chalk.red(newChecksum)
+            : newChecksum,
       })
 
       console.log("-------- Constant Discrepancies --------")
@@ -315,9 +320,11 @@ while (!exit) {
       )
       console.log("--------------------------------------")
 
-      const accept = await confirm({ message: "Accept changes" })
-      if (!accept) {
-        break
+      if (discrepancies.length > 0) {
+        const accept = await confirm({ message: "Accept changes" })
+        if (!accept) {
+          break
+        }
       }
 
       for (const discrepancy of discrepancies) {
@@ -336,7 +343,17 @@ while (!exit) {
         }
       }
 
-      console.log("descriptors", descriptors)
+      for (const pallet of Object.keys(descriptors)) {
+        const palletDescriptors = descriptors[pallet]
+        data[pallet] = data[pallet] ?? {}
+        data[pallet].constants = new CheckboxData(palletDescriptors.constants)
+        data[pallet].storage = new CheckboxData(palletDescriptors.storage)
+        data[pallet].events = new CheckboxData(palletDescriptors.events)
+        data[pallet].errors = new CheckboxData(palletDescriptors.errors)
+        data[pallet].extrinsics = new ExtrinsicData(
+          palletDescriptors.extrinsics,
+        )
+      }
       break
     }
     case OUTPUT_CODEGEN: {

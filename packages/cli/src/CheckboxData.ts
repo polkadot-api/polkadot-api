@@ -5,8 +5,8 @@ import util from "util"
 export class CheckboxData {
   #data: Record<string, bigint>
 
-  constructor() {
-    this.#data = {}
+  constructor(data?: Record<string, bigint>) {
+    this.#data = data ?? {}
   }
 
   get data(): ReadonlyRecord<string, bigint> {
