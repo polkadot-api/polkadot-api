@@ -78,8 +78,8 @@ describe.each([
   it("rejects an `DisjointError` when the follow subscription fails", async () => {
     let { fixtures, ...chainHead } = setupChainHead()
 
-    const promise = chainHead[name](...(args as [any]))
-
+    let promise = chainHead[name](...(args as [any]))
+    // The errored JSON-RPC response comes **after** the user has called `header`/`unpin`
     fixtures.sendMessage({
       id: 1,
       error: parseError,
@@ -88,13 +88,13 @@ describe.each([
     await expect(promise).rejects.toEqual(new DisjointError())
     ;({ fixtures, ...chainHead } = setupChainHead())
 
+    // The errored JSON-RPC response comes **before** the user has called `header`/`unpin`
     fixtures.sendMessage({
       id: 1,
       error: parseError,
     })
+    promise = chainHead[name](...(args as [any]))
 
-    await expect(chainHead[name](...(args as [any]))).rejects.toEqual(
-      new DisjointError(),
-    )
+    await expect(promise).rejects.toEqual(new DisjointError())
   })
 })
