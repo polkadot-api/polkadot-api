@@ -22,7 +22,7 @@ import { createCallFn } from "./call"
 import { createHeaderFn } from "./header"
 import { createStorageFn } from "./storage"
 import { createUnpinFn } from "./unpin"
-import { ErrorDisjoint, ErrorStop } from "./errors"
+import { DisjointError, StopError } from "./errors"
 
 type FollowEvent =
   | FollowEventWithRuntime
@@ -56,7 +56,7 @@ export function getChainHead(
 
       if (event.event !== "stop") return onFollowEvent(event as any)
 
-      onFollowError(new ErrorStop())
+      onFollowError(new StopError())
       unfollow(false)
     }
 
@@ -79,7 +79,7 @@ export function getChainHead(
         unfollow = noop
         done()
         sendUnfollow && request("chainHead_unstable_unfollow", [subscriptionId])
-        subscriptions.errorAll(new ErrorDisjoint())
+        subscriptions.errorAll(new DisjointError())
       }
 
       followSubscription = subscriptionId
@@ -104,7 +104,7 @@ export function getChainHead(
       cb?: ClientRequestCb<any, any>,
     ) => {
       if (followSubscription === null) {
-        cb?.onError(new ErrorDisjoint())
+        cb?.onError(new DisjointError())
         return noop
       }
 
@@ -125,7 +125,7 @@ export function getChainHead(
           subscriber: Subscriber<any>,
         ) => {
           if (followSubscription === null) {
-            subscriber.error(new ErrorDisjoint())
+            subscriber.error(new DisjointError())
             return noop
           }
 
@@ -148,7 +148,7 @@ export function getChainHead(
         followSubscription.then((s) => {
           if (s instanceof Error) {
             onCancel = noop
-            cb?.onError(new ErrorDisjoint())
+            cb?.onError(new DisjointError())
           } else {
             onCancel = followSubscriptionCb(s)
           }

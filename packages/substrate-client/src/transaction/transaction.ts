@@ -10,7 +10,12 @@ import type {
 } from "./types"
 
 type TerminalEvent = TxDropped | TxInvalid | TxFinalized | TxError
-const terminalEvents = new Set(["dropped", "invalid", "finalized", "error"])
+const terminalEvents: Set<string> = new Set<TerminalEvent["event"]>([
+  "dropped",
+  "invalid",
+  "finalized",
+  "error",
+])
 
 function isTerminalEvent(event: TxEvent): event is TerminalEvent {
   return terminalEvents.has(event.event)
@@ -18,18 +23,19 @@ function isTerminalEvent(event: TxEvent): event is TerminalEvent {
 
 type ErrorEvents = TxDropped | TxInvalid | TxError
 
-export interface IErrorTx {
+export interface ITxError {
   type: ErrorEvents["event"]
   error: string
 }
 
-export class ErrorTx extends Error implements IErrorTx {
+export class TransactionError extends Error implements ITxError {
   type
   error
   constructor(e: ErrorEvents) {
     super(`TxError: ${e.event} - ${e.error}`)
     this.type = e.event
     this.error = e.error
+    this.name = "TransactionError"
   }
 }
 
@@ -43,7 +49,8 @@ export const getTransaction =
             if (isTerminalEvent(event)) {
               done()
               cancel = noop
-              if (event.event !== "finalized") return error(new ErrorTx(event))
+              if (event.event !== "finalized")
+                return error(new TransactionError(event))
             }
             next(event)
           },

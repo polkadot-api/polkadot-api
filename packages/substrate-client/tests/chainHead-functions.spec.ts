@@ -1,7 +1,11 @@
-import { expect, describe, test } from "vitest"
-import { setupChainHead, setupChainHeadWithSubscription } from "./fixtures"
-import { ErrorDisjoint } from "@/chainhead"
-import { ErrorRpc, RpcError } from "@/client"
+import { expect, describe, it } from "vitest"
+import {
+  parseError,
+  setupChainHead,
+  setupChainHeadWithSubscription,
+} from "./fixtures"
+import { DisjointError } from "@/chainhead"
+import { RpcError } from "@/client"
 
 describe.each([
   [
@@ -12,7 +16,7 @@ describe.each([
   ],
   ["header" as "header", ["someHash"] as [string], "someHeader", "someHeader"],
 ])("chainhead: %s", (name, args, result, expectedResult) => {
-  test("it sends the correct message", () => {
+  it("sends the correct message", () => {
     const {
       fixtures: { getNewMessages, SUBSCRIPTION_ID },
       ...chainHead
@@ -29,7 +33,7 @@ describe.each([
     ])
   })
 
-  test("it resolves the correct response", () => {
+  it("resolves the correct response", () => {
     const {
       fixtures: { sendMessage },
       ...chainHead
@@ -45,7 +49,7 @@ describe.each([
     return expect(promise).resolves.toEqual(expectedResult)
   })
 
-  test("it rejects the JSON-RPC Error when the request fails", () => {
+  it("rejects the JSON-RPC Error when the request fails", () => {
     const {
       fixtures: { sendMessage },
       ...chainHead
@@ -53,54 +57,44 @@ describe.each([
 
     const promise = chainHead[name](...(args as [any]))
 
-    const error: RpcError = {
-      code: -32700,
-      message: "Parse error",
-    }
     sendMessage({
       id: 2,
-      error,
+      error: parseError,
     })
 
-    return expect(promise).rejects.toEqual(new ErrorRpc(error))
+    return expect(promise).rejects.toEqual(new RpcError(parseError))
   })
 
-  test("it rejects with an `ErrorDisjoint` Error when the function is created after `unfollow`", () => {
+  it("rejects with an `DisjointError` when the function is created after `unfollow`", () => {
     const { unfollow, ...chainHead } = setupChainHead()
 
     unfollow()
 
     return expect(chainHead[name](...(args as [any]))).rejects.toEqual(
-      new ErrorDisjoint(),
+      new DisjointError(),
     )
   })
 
-  test("it rejects an `ErrorDisjoint` Error when the follow subscription fails", async () => {
+  it("rejects an `DisjointError` when the follow subscription fails", async () => {
     let { fixtures, ...chainHead } = setupChainHead()
 
     const promise = chainHead[name](...(args as [any]))
 
     fixtures.sendMessage({
       id: 1,
-      error: {
-        code: -32700,
-        message: "Parse error",
-      },
+      error: parseError,
     })
 
-    await expect(promise).rejects.toEqual(new ErrorDisjoint())
+    await expect(promise).rejects.toEqual(new DisjointError())
     ;({ fixtures, ...chainHead } = setupChainHead())
 
     fixtures.sendMessage({
       id: 1,
-      error: {
-        code: -32700,
-        message: "Parse error",
-      },
+      error: parseError,
     })
 
     await expect(chainHead[name](...(args as [any]))).rejects.toEqual(
-      new ErrorDisjoint(),
+      new DisjointError(),
     )
   })
 })

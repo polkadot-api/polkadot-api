@@ -1,6 +1,11 @@
 import type { GetProvider } from "@unstoppablejs/provider"
-import { FollowResponse, RpcError, createClient } from "@/."
+import { FollowResponse, IRpcError, createClient } from "@/."
 import { vi } from "vitest"
+
+export const parseError: IRpcError = {
+  code: -32700,
+  message: "Parse error",
+}
 
 export const createTestClient = () => {
   let onMessage: (msg: string) => void
@@ -32,8 +37,7 @@ export const createTestClient = () => {
     return result
   }
 
-  const getAllMessages = () =>
-    receivedMessages.slice(0).map((m) => JSON.parse(m))
+  const getAllMessages = () => receivedMessages.map((m) => JSON.parse(m))
 
   return {
     client,
@@ -65,7 +69,7 @@ export function setupChainHeadWithSubscription(withRuntime = true) {
   })
 
   const sendSubscription = (
-    msg: { result: any } | { error: RpcError },
+    msg: { result: any } | { error: IRpcError },
   ): void => {
     fixtures.sendMessage({
       params: {

@@ -1,14 +1,15 @@
-import { expect, describe, test } from "vitest"
+import { expect, describe, test, it } from "vitest"
 import {
+  parseError,
   setupChainHead,
   setupChainHeadOperation,
   setupChainHeadOperationSubscription,
 } from "./fixtures"
 import {
-  ErrorDisjoint,
-  ErrorOperation,
-  ErrorOperationInaccessible,
-  ErrorOperationLimit,
+  DisjointError,
+  OperationError,
+  OperationInaccessibleError,
+  OperationLimitError,
 } from "@/chainhead"
 
 describe.each([
@@ -77,7 +78,7 @@ describe.each([
 ])(
   "chainhead: %s",
   (name, args, expectedMsgArgs, operationNotifications, expectedResult) => {
-    test("it sends the correct operation message", () => {
+    it("sends the correct operation message", () => {
       const {
         fixtures: { getNewMessages, SUBSCRIPTION_ID },
       } = setupChainHeadOperation(name, ...args)
@@ -90,7 +91,7 @@ describe.each([
       ])
     })
 
-    test("it processes its operation notifications and resolves the correct value", () => {
+    it("processes its operation notifications and resolves the correct value", () => {
       const controller = new AbortController()
       const {
         fixtures: { sendOperationNotification },
@@ -105,7 +106,7 @@ describe.each([
       return expect(operationPromise).resolves.toEqual(expectedResult)
     })
 
-    test("it cancels the ongoing operation", async () => {
+    it("cancels the ongoing operation", async () => {
       const controller = new AbortController()
       const {
         operationPromise,
@@ -129,7 +130,7 @@ describe.each([
       })
     })
 
-    test("it cancels the ongoing operation before receiving its operationId", async () => {
+    it("cancels the ongoing operation before receiving its operationId", async () => {
       const controller = new AbortController()
       const {
         fixtures: { getNewMessages, sendMessage },
@@ -155,7 +156,7 @@ describe.each([
       })
     })
 
-    test("it rejects with an `ErrorOperationLimit` Error when necessary", () => {
+    it("rejects with an `OperationLimitError` when receiving its event", () => {
       const {
         fixtures: { sendMessage },
         operationPromise,
@@ -166,10 +167,10 @@ describe.each([
         result: { result: "limitReached" },
       })
 
-      return expect(operationPromise).rejects.toEqual(new ErrorOperationLimit())
+      return expect(operationPromise).rejects.toEqual(new OperationLimitError())
     })
 
-    test("ErrorOperationInaccessible", () => {
+    it("rejects with an `OperationInaccessibleError` when receiving its event", () => {
       const {
         fixtures: { sendOperationNotification },
         operationPromise,
@@ -180,11 +181,11 @@ describe.each([
       })
 
       return expect(operationPromise).rejects.toEqual(
-        new ErrorOperationInaccessible(),
+        new OperationInaccessibleError(),
       )
     })
 
-    test("ErrorOperation", () => {
+    it("rejects with an `OperationError` when receiving its event", () => {
       const {
         fixtures: { sendOperationNotification },
         operationPromise,
@@ -196,45 +197,39 @@ describe.each([
         error,
       })
 
-      return expect(operationPromise).rejects.toEqual(new ErrorOperation(error))
+      return expect(operationPromise).rejects.toEqual(new OperationError(error))
     })
 
-    test("it rejects with an `ErrorDisjoint` Error when the operation is created after `unfollow`", () => {
+    test("it rejects with an `DisjointError` when the operation is created after `unfollow`", () => {
       const { unfollow, ...chainHead } = setupChainHead()
 
       unfollow()
 
       return expect(chainHead[name](...(args as any[]))).rejects.toEqual(
-        new ErrorDisjoint(),
+        new DisjointError(),
       )
     })
 
-    test("it rejects an `ErrorDisjoint` error when the follow subscription fails", async () => {
+    test("it rejects an `DisjointError` error when the follow subscription fails", async () => {
       let { fixtures, ...chainHead } = setupChainHead()
 
       const promise = chainHead[name](...(args as any[]))
 
       fixtures.sendMessage({
         id: 1,
-        error: {
-          code: -32700,
-          message: "Parse error",
-        },
+        error: parseError,
       })
 
-      await expect(promise).rejects.toEqual(new ErrorDisjoint())
+      await expect(promise).rejects.toEqual(new DisjointError())
       ;({ fixtures, ...chainHead } = setupChainHead())
 
       fixtures.sendMessage({
         id: 1,
-        error: {
-          code: -32700,
-          message: "Parse error",
-        },
+        error: parseError,
       })
 
       await expect(chainHead[name](...(args as any[]))).rejects.toEqual(
-        new ErrorDisjoint(),
+        new DisjointError(),
       )
     })
   },
