@@ -6,15 +6,13 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild --bundle src/main.ts --outdir=build --sourcemap --format=esm --platform=node --packages=external",
-    "start": "npm run build && node --enable-source-maps ./build/main.js"
+    "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.4.7",
-    "esbuild": "^0.18.17",
     "prettier": "^2.6.2",
     "typescript": "^5.1.6"
   },

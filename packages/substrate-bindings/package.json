@@ -11,27 +11,23 @@
   "exports": {
     ".": {
       "node": {
-        "module": "./dist/substrate-bindings.js",
-        "import": "./dist/substrate-bindings.mjs",
-        "require": "./dist/index.cjs"
+        "module": "./dist/index.js",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js"
       },
-      "browser": "./dist/substrate-bindings.js",
-      "default": "./dist/substrate-bindings.js"
+      "browser": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "module": "./dist/substrate-bindings.js",
+  "module": "./dist/index.js",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npm run build:ts && npm run build:esm && npm run build:cjs:dev && npm run build:cjs:prod",
-    "build:esm": "esbuild src/index.ts --bundle --external:@noble/hashes --external:@unstoppablejs/* --outfile=./dist/substrate-bindings.js --target=es2020 --format=esm --sourcemap && cp ./dist/substrate-bindings.js ./dist/substrate-bindings.mjs && cp ./dist/substrate-bindings.js.map ./dist/substrate-bindings.mjs.map",
-    "build:cjs:dev": "esbuild src/index.ts --bundle --external:@noble/hashes --external:@unstoppablejs/* --outfile=./dist/substrate-bindings.cjs.development.js --target=es2020 --format=cjs --sourcemap",
-    "build:cjs:prod": "esbuild src/index.ts --bundle --external:@noble/hashes --external:@unstoppablejs/* --outfile=./dist/substrate-bindings.cjs.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
-    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
+    "build": "tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts",
     "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
