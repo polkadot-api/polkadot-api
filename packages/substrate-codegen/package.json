@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts",
     "test": "echo 'No tests'",
-    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "npm run build"
   },
