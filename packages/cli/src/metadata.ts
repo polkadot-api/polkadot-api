@@ -8,11 +8,10 @@ import {
   metadata as $metadata,
   OpaqueCodec,
 } from "@unstoppablejs/substrate-bindings"
-import { PROVIDER_WORKER_CODE } from "./provider"
+import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
 import { Subject } from "rxjs"
 import { z } from "zod"
-import ora from "ora"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 

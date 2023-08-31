@@ -30,7 +30,7 @@ import chalk from "chalk"
 import * as Record from "fp-ts/lib/Record"
 
 const ProgramArgs = z.object({
-  metadata: z.string().optional(),
+  metadataFile: z.string().optional(),
   interactive: z.boolean(),
 })
 
@@ -39,14 +39,30 @@ type ProgramArgs = z.infer<typeof ProgramArgs>
 program
   .name("capi")
   .description("Capi CLI")
-  .option("-m, --metadata <path>", "path to scale encoded metadata file")
+  .option("-m, --metadataFile <path>", "path to scale encoded metadata file")
   .option("-i, --interactive", "whether to run in interactive mode", false)
 
 program.parse()
 
 const options = ProgramArgs.parse(program.opts())
 
-const metadataArgs = await getMetadataArgs(options.metadata)
+const metadataArgs = options.metadataFile
+  ? {
+      source: "file" as const,
+      file: options.metadataFile,
+    }
+  : {
+      source: "chain" as const,
+      chain: await select({
+        message: "Select a chain to pull metadata from",
+        choices: [
+          { name: "polkadot", value: WellKnownChain.polkadot },
+          { name: "westend", value: WellKnownChain.westend2 },
+          { name: "ksm", value: WellKnownChain.ksmcc3 },
+          { name: "rococo", value: WellKnownChain.rococo_v2_2 },
+        ],
+      }),
+    }
 const spinner = ora(`Loading Metadata`).start()
 const metadata = await getMetadata(metadataArgs)
 spinner.stop()
@@ -789,31 +805,5 @@ function assertLookupEntryIsEnum(
 ): asserts lookupEntry is LookupEntry & { type: "enum" } {
   if (lookupEntry.type !== "enum") {
     throw new Error("not an enum")
-  }
-}
-
-async function getMetadataArgs(
-  metadataFile: ProgramArgs["metadata"],
-): Promise<GetMetadataArgs> {
-  if (metadataFile) {
-    return {
-      source: "file",
-      file: metadataFile,
-    }
-  }
-
-  const chain = await select({
-    message: "Select a chain to pull metadata from",
-    choices: [
-      { name: "polkadot", value: WellKnownChain.polkadot },
-      { name: "westend", value: WellKnownChain.westend2 },
-      { name: "ksm", value: WellKnownChain.ksmcc3 },
-      { name: "rococo", value: WellKnownChain.rococo_v2_2 },
-    ],
-  })
-
-  return {
-    source: "chain",
-    chain,
   }
 }
