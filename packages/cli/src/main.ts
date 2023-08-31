@@ -21,7 +21,7 @@ import { z } from "zod"
 import descriptorSchema from "./descriptor-schema"
 import fsExists from "fs.promises.exists"
 import { program } from "commander"
-import { GetMetadataArgs, getMetadata } from "./metadata"
+import { GetMetadataArgs, encodeMetadata, getMetadata } from "./metadata"
 import { WellKnownChain } from "@substrate/connect"
 import ora from "ora"
 import { blowupMetadata } from "./testing"
@@ -64,7 +64,7 @@ const metadataArgs = options.metadataFile
       }),
     }
 const spinner = ora(`Loading Metadata`).start()
-const metadata = await getMetadata(metadataArgs)
+const { magicNumber, metadata } = await getMetadata(metadataArgs)
 spinner.stop()
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
@@ -72,6 +72,7 @@ const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
 const OUTPUT_CODEGEN = "OUTPUT_CODEGEN"
 const OUTPUT_DESCRIPTORS = "OUTPUT_DESCRIPTORS"
 const LOAD_DESCRIPTORS = "LOAD_DESCRIPTORS"
+const SAVE_METADATA = "SAVE_METADATA"
 const BLOWUP_METADATA = "BLOWUP_METADATA"
 const EXIT = "EXIT"
 
@@ -102,6 +103,7 @@ while (!exit) {
     choices: [
       { name: "Select descriptors", value: SELECT_DESCRIPTORS },
       { name: "Show descriptors", value: SHOW_DESCRIPTORS },
+      { name: "Save Metadata", value: SAVE_METADATA },
       { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS },
       { name: "Load Descriptors", value: LOAD_DESCRIPTORS },
       { name: "Blowup Metadata", value: BLOWUP_METADATA },
@@ -215,6 +217,14 @@ while (!exit) {
             break
         }
       }
+      break
+    }
+    case SAVE_METADATA: {
+      const outFile = await input({
+        message: "Enter output fileName",
+        default: "metadata.scale",
+      })
+      await fs.writeFile(outFile, encodeMetadata({ magicNumber, metadata }))
       break
     }
     case BLOWUP_METADATA: {

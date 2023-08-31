@@ -6,6 +6,7 @@ import { fromHex } from "@unstoppablejs/utils"
 import * as fs from "node:fs/promises"
 import {
   metadata as $metadata,
+  CodecType,
   OpaqueCodec,
 } from "@unstoppablejs/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
@@ -114,11 +115,20 @@ export async function getMetadata(args: GetMetadataArgs) {
   const rawMetadata = await getRawMetadata(args)
   const { inner } = OpaqueCodec($metadata).dec(rawMetadata)
 
-  const { metadata } = inner()
+  const { magicNumber, metadata } = inner()
 
   assertIsv14(metadata)
 
-  return metadata
+  return { magicNumber, metadata }
+}
+
+export function encodeMetadata(metadata: CodecType<typeof $metadata>) {
+  const encodedMetadata = $metadata.enc(metadata)
+
+  return OpaqueCodec($metadata).enc({
+    length: encodedMetadata.length,
+    inner: () => metadata,
+  })
 }
 
 function assertIsv14(

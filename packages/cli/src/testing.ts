@@ -1,7 +1,9 @@
 import { getMetadata } from "./metadata"
 import type { AsyncReturnType } from "type-fest"
 
-export function blowupMetadata(metadata: AsyncReturnType<typeof getMetadata>) {
+export function blowupMetadata(
+  metadata: AsyncReturnType<typeof getMetadata>["metadata"],
+) {
   const { pallets } = metadata.value
 
   const systemPallet = pallets.find((pallet) => pallet.name === "System")
