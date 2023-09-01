@@ -232,48 +232,29 @@ describe("chainHead", () => {
     )
   })
 
-  test("`stop` event triggers a `DisjointError` on all running pending operations", () => {
+  test("`stop` event triggers a `DisjointError` on all pending requests", () => {
     const {
+      header,
+      unpin,
       body,
       storage,
       call,
-      fixtures: { sendSubscription, sendMessage },
+      fixtures: { sendSubscription },
     } = setupChainHeadWithSubscription()
 
-    const bodyPromise = body("")
-    const storagePromise = storage("", { value: ["df"] }, null)
-    const callPromise = call("", "", "")
-
+    const allPromises = [
+      header(""),
+      unpin([""]),
+      body(""),
+      storage("", { value: ["df"] }, null),
+      call("", "", ""),
+    ]
     sendSubscription({
       result: { event: "stop" },
     })
 
-    sendMessage({
-      id: 3,
-      result: {
-        result: "started",
-        operationId: "operationStorage",
-      },
-    })
-    sendMessage({
-      id: 2,
-      result: {
-        result: "started",
-        operationId: "operationBody",
-      },
-    })
-    sendMessage({
-      id: 4,
-      result: {
-        result: "started",
-        operationId: "operationCall",
-      },
-    })
-
     return Promise.all(
-      [bodyPromise, storagePromise, callPromise].map((p) =>
-        expect(p).rejects.toEqual(new DisjointError()),
-      ),
+      allPromises.map((p) => expect(p).rejects.toEqual(new DisjointError())),
     )
   })
 
