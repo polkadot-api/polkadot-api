@@ -11,7 +11,6 @@ import { V14Lookup } from "@unstoppablejs/substrate-bindings"
 import { CheckboxData } from "./CheckboxData"
 import * as childProcess from "node:child_process"
 import { deferred } from "./deferred"
-import { DESCRIPTOR_SPEC } from "./descriptors"
 import { ExtrinsicData } from "./ExtrinsicData"
 import { confirm, input, select } from "@inquirer/prompts"
 import util from "util"
@@ -649,7 +648,6 @@ while (!exit) {
 
       await fs.mkdir("codegen", { recursive: true })
       await fs.writeFile(`codegen/${outFile}`, constDeclarations.join("\n\n"))
-      await fs.writeFile(`codegen/descriptors.ts`, DESCRIPTOR_SPEC)
       const tsc = deferred<number>()
       const process = childProcess.spawn("tsc", [
         `codegen/${outFile}`,
@@ -697,15 +695,12 @@ while (!exit) {
         "getPalletCreator",
       ]
 
-      descriptorCodegen += `import {${[...declarations.imports].join(
-        ", ",
-      )}} from "@unstoppablejs/substrate-bindings"\n`
+      descriptorCodegen += `import {${[
+        ...new Set([...declarations.imports, ...descriptorImports]),
+      ].join(", ")}} from "@unstoppablejs/substrate-bindings"\n`
       descriptorCodegen += `import type {${[...descriptorTypeImports].join(
         ", ",
-      )}} from "./descriptors"\n`
-      descriptorCodegen += `import {${[...descriptorImports].join(
-        ", ",
-      )}} from "./descriptors"\n`
+      )}} from "@unstoppablejs/substrate-bindings"\n`
       descriptorCodegen += `import type {${[...declarations.variables.values()]
         .map((v) => v.id)
         .join(", ")}} from "./codegen"\n\n`
