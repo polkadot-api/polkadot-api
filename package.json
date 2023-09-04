@@ -6,10 +6,10 @@
     "experiments"
   ],
   "scripts": {
-    "build": "npm run build --workspace=@unstoppablejs/substrate-client --workspace=@unstoppablejs/substrate-bindings && npm run build --workspace=@unstoppablejs/substrate-codegen",
-    "lint": "npm run lint --workspaces",
-    "format": "npm run format --workspaces",
-    "test": "npm run test --workspaces",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "prepare": "husky install"
   },
   "prettier": {
@@ -19,11 +19,11 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.0.6",
-    "esbuild": "^0.18.17",
     "husky": ">=6",
     "lint-staged": "^12.4.1",
     "prettier": "^3.0.1",
     "tslib": "^2.4.0",
+    "tsup": "^7.2.0",
     "typescript": "^5.1.6",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.34.1"

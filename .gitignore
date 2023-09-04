@@ -4,13 +4,7 @@ node_modules
 coverage
 .cache
 packages/substrate-bindings/dist/**
-!packages/substrate-bindings/dist/index.cjs
-!packages/substrate-bindings/dist/index.js
 packages/substrate-client/dist/**
-!packages/substrate-client/dist/index.cjs
-!packages/substrate-client/dist/index.js
 packages/substrate-codegen/dist/**
-!packages/substrate-codegen/dist/index.cjs
-!packages/substrate-codegen/dist/index.js
-experiments/build
+experiments/dist/**
 .vscode
