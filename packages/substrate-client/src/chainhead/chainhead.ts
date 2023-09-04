@@ -1,9 +1,4 @@
-import type { UnsubscribeFn } from "@/."
-import type {
-  ClientRequest,
-  ClientRequestCb,
-  FollowSubscriptionCb,
-} from "@/client"
+import type { ClientRequest, FollowSubscriptionCb } from "@/client"
 import type { OperationEvents, Stop } from "./internal-types"
 import type {
   ChainHead,
@@ -98,27 +93,14 @@ export function getChainHead(
       { onSuccess: onFollowRequestSuccess, onError: onFollowRequestError },
     )
 
-    const fRequest: ClientRequest<any, any> = (
-      method: string,
-      params: Array<any>,
-      cb?: ClientRequestCb<any, any>,
-    ) => {
+    const fRequest: ClientRequest<any, any> = (method, params, cb) => {
       if (followSubscription === null) {
         cb?.onError(new DisjointError())
         return noop
       }
 
-      const req = request as unknown as ClientRequest<any, any>
-
-      let isAborted = false
-      let onCancel = () => {
-        isAborted = true
-      }
-
-      const followSubscriptionCb = (sub: string): UnsubscribeFn => {
-        if (isAborted) return noop
-
-        if (!cb) return req(method, [sub, ...params])
+      const onSubscription = (subscription: string) => {
+        if (!cb) return request(method, [subscription, ...params])
 
         const onSubscribeOperation = (
           operationId: string,
@@ -135,24 +117,22 @@ export function getChainHead(
           }
         }
 
-        const onSuccess = (response: string) => {
-          cb.onSuccess(response, onSubscribeOperation)
-        }
-
-        return req(method, [sub, ...params], { onSuccess, onError: cb.onError })
+        return request(method, [subscription, ...params], {
+          onSuccess: (response) => {
+            cb.onSuccess(response, onSubscribeOperation)
+          },
+          onError: cb.onError,
+        })
       }
 
       if (typeof followSubscription === "string")
-        onCancel = followSubscriptionCb(followSubscription)
-      else
-        followSubscription.then((s) => {
-          if (s instanceof Error) {
-            onCancel = noop
-            cb?.onError(new DisjointError())
-          } else {
-            onCancel = followSubscriptionCb(s)
-          }
-        })
+        return onSubscription(followSubscription)
+
+      let onCancel = noop
+      followSubscription.then((x) => {
+        if (x instanceof Error) return cb?.onError(new DisjointError())
+        if (followSubscription) onCancel = onSubscription(x)
+      })
 
       return () => {
         onCancel()
