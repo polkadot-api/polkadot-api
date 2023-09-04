@@ -192,14 +192,14 @@ while (!exit) {
                   e,
                   checksumBuilder.buildCall(pallet.name, e)!,
                 ]),
-                Object.values(data).flatMap(({ events }) =>
+                Object.entries(data).flatMap(([pallet, { events }]) =>
                   Array.from(Object.keys(events.data)).map(
-                    (event) => [pallet.name, event] as [string, string],
+                    (event) => [pallet, event] as [string, string],
                   ),
                 ),
-                Object.values(data).flatMap(({ errors }) =>
+                Object.entries(data).flatMap(([pallet, { errors }]) =>
                   Array.from(Object.keys(errors.data)).map(
-                    (errors) => [pallet.name, errors] as [string, string],
+                    (errors) => [pallet, errors] as [string, string],
                   ),
                 ),
               )
@@ -779,9 +779,9 @@ while (!exit) {
           [] as string[],
         )
         const errorVariables = Object.entries(errors).reduce(
-          (p, [_, palletEvents]) => [
+          (p, [pallet, palletErrors]) => [
             ...p,
-            ...Array.from(palletEvents).map((e) => `${pallet}${e}Error`),
+            ...Array.from(palletErrors).map((e) => `${pallet}${e}Error`),
           ],
           [] as string[],
         )
