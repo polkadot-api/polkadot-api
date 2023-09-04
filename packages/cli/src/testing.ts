@@ -4,15 +4,29 @@ import type { AsyncReturnType } from "type-fest"
 export function blowupMetadata(
   metadata: AsyncReturnType<typeof getMetadata>["metadata"],
 ) {
-  const { pallets } = metadata.value
+  const { pallets, lookup } = metadata.value
 
-  const systemPallet = pallets.find((pallet) => pallet.name === "System")
-  if (!systemPallet) {
-    throw new Error("no system pallet")
+  for (const pallet of pallets) {
+    popRandom(pallet.constants)
+    popRandom(pallet.storage?.items ?? [])
+
+    const events = lookup.find((l) => l.id == pallet.events)
+    if (events?.def.tag === "variant") {
+      popRandom(events.def.value)
+    }
+
+    const errors = lookup.find((l) => l.id == pallet.errors)
+    if (errors?.def.tag === "variant") {
+      popRandom(errors.def.value)
+    }
+
+    const calls = lookup.find((l) => l.id == pallet.calls)
+    if (calls?.def.tag === "variant") {
+      popRandom(calls.def.value)
+    }
   }
+}
 
-  const blockWeightsIndex = systemPallet.constants.findIndex(
-    ({ name }) => name === "BlockWeights",
-  )
-  systemPallet.constants.splice(blockWeightsIndex, 1)
+function popRandom<A>(arr: A[]) {
+  arr.splice(Math.floor(Math.random() * arr.length), 1)
 }

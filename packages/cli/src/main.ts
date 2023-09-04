@@ -390,6 +390,7 @@ while (!exit) {
             .map(mapDiscrepancy),
         ),
       )
+      console.log("")
       console.log("-------- Storage Discrepancies --------")
       console.log(
         asTable(
@@ -398,6 +399,7 @@ while (!exit) {
             .map(mapDiscrepancy),
         ),
       )
+      console.log("")
       console.log("-------- Event Discrepancies --------")
       console.log(
         asTable(
@@ -406,6 +408,7 @@ while (!exit) {
             .map(mapDiscrepancy),
         ),
       )
+      console.log("")
       console.log("-------- Error Discrepancies --------")
       console.log(
         asTable(
@@ -414,6 +417,7 @@ while (!exit) {
             .map(mapDiscrepancy),
         ),
       )
+      console.log("")
       console.log("-------- Extrinsic Discrepancies --------")
       console.log(
         asTable(
@@ -422,7 +426,7 @@ while (!exit) {
             .map(mapDiscrepancy),
         ),
       )
-      console.log("--------------------------------------")
+      console.log("")
 
       if (discrepancies.length > 0) {
         const accept = await confirm({ message: "Accept changes" })
