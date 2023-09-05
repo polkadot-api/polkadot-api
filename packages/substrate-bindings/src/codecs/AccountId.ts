@@ -1,19 +1,14 @@
 import { Bytes, enhanceCodec } from "scale-ts"
 import { blake2b } from "@noble/hashes/blake2b"
 import { base58 } from "@scure/base"
+import { toHex } from "@unstoppablejs/utils"
 
 const SS58_PREFIX = new TextEncoder().encode("SS58PRE")
 
 const CHECKSUM_LENGTH = 2
 
 const fromBufferToBase58 = (ss58Format: number) => {
-  const prefixBytes =
-    ss58Format < 64
-      ? Uint8Array.of(ss58Format)
-      : Uint8Array.of(
-          ((ss58Format & 0b0000_0000_1111_1100) >> 2) | 0b0100_0000,
-          (ss58Format >> 8) | ((ss58Format & 0b0000_0000_0000_0011) << 6),
-        )
+  const prefixBytes = getSs58FormatPrefixBytes(ss58Format)
   return (publicKey: Uint8Array) => {
     const checksum = blake2b(
       Uint8Array.of(...SS58_PREFIX, ...prefixBytes, ...publicKey),
@@ -27,7 +22,7 @@ const fromBufferToBase58 = (ss58Format: number) => {
   }
 }
 
-function fromBase58ToBuffer(nBytes: number) {
+function fromBase58ToBuffer(nBytes: number, ss58Format: number) {
   return (address: string) => {
     const decoded = base58.decode(address)
     const prefixBytes = decoded.subarray(0, decoded[0] & 0b0100_0000 ? 2 : 1)
@@ -49,6 +44,10 @@ function fromBase58ToBuffer(nBytes: number) {
       checksum[1] !== expectedChecksum[1]
     )
       throw new Error("Invalid checksum")
+
+    if (toHex(prefixBytes) != toHex(getSs58FormatPrefixBytes(ss58Format)))
+      throw new Error("Invalid SS58 prefix")
+
     return publicKey.slice()
   }
 }
@@ -56,6 +55,14 @@ function fromBase58ToBuffer(nBytes: number) {
 export const AccountId = (ss58Format: number = 42, nBytes: 32 | 33 = 32) =>
   enhanceCodec(
     Bytes(nBytes),
-    fromBase58ToBuffer(nBytes),
+    fromBase58ToBuffer(nBytes, ss58Format),
     fromBufferToBase58(ss58Format),
   )
+
+const getSs58FormatPrefixBytes = (ss58Format: number) =>
+  ss58Format < 64
+    ? Uint8Array.of(ss58Format)
+    : Uint8Array.of(
+        ((ss58Format & 0b0000_0000_1111_1100) >> 2) | 0b0100_0000,
+        (ss58Format >> 8) | ((ss58Format & 0b0000_0000_0000_0011) << 6),
+      )
