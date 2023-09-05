@@ -1,14 +1,19 @@
 import { Bytes, enhanceCodec } from "scale-ts"
 import { blake2b } from "@noble/hashes/blake2b"
 import { base58 } from "@scure/base"
-import { toHex } from "@unstoppablejs/utils"
 
 const SS58_PREFIX = new TextEncoder().encode("SS58PRE")
 
 const CHECKSUM_LENGTH = 2
 
 const fromBufferToBase58 = (ss58Format: number) => {
-  const prefixBytes = getSs58FormatPrefixBytes(ss58Format)
+  const prefixBytes =
+    ss58Format < 64
+      ? Uint8Array.of(ss58Format)
+      : Uint8Array.of(
+          ((ss58Format & 0b0000_0000_1111_1100) >> 2) | 0b0100_0000,
+          (ss58Format >> 8) | ((ss58Format & 0b0000_0000_0000_0011) << 6),
+        )
   return (publicKey: Uint8Array) => {
     const checksum = blake2b(
       Uint8Array.of(...SS58_PREFIX, ...prefixBytes, ...publicKey),
@@ -45,7 +50,7 @@ function fromBase58ToBuffer(nBytes: number, ss58Format: number) {
     )
       throw new Error("Invalid checksum")
 
-    if (toHex(prefixBytes) != toHex(getSs58FormatPrefixBytes(ss58Format)))
+    if (prefixBytesToNumber(prefixBytes) != ss58Format)
       throw new Error("Invalid SS58 prefix")
 
     return publicKey.slice()
@@ -59,10 +64,7 @@ export const AccountId = (ss58Format: number = 42, nBytes: 32 | 33 = 32) =>
     fromBufferToBase58(ss58Format),
   )
 
-const getSs58FormatPrefixBytes = (ss58Format: number) =>
-  ss58Format < 64
-    ? Uint8Array.of(ss58Format)
-    : Uint8Array.of(
-        ((ss58Format & 0b0000_0000_1111_1100) >> 2) | 0b0100_0000,
-        (ss58Format >> 8) | ((ss58Format & 0b0000_0000_0000_0011) << 6),
-      )
+const prefixBytesToNumber = (bytes: Uint8Array) => {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  return dv.byteLength === 1 ? dv.getUint8(0) : dv.getUint16(0)
+}
