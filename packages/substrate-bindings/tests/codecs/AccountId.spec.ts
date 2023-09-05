@@ -45,5 +45,12 @@ test("AccountId encode should throw with an invalid checksum", () => {
   const codec = AccountId(42, 33)
   // ss58 with invalid checksum
   const ss58Address = "KVqMLDzVyHChtJ8imRTkP22Tuz8Yd7X9MABUhz1rHNpHnxw8j"
-  expect(() => codec.enc(ss58Address)).toThrowError()
+  expect(() => codec.enc(ss58Address)).toThrowError("Invalid checksum")
+})
+
+test("AccountId encode should throw with an invalid ss58 prefix", () => {
+  const codec = AccountId(1)
+  // ss58 with invalid ss58 prefix
+  const ss58Address = "5HTFSjkXgjYXHL4zHqfRA4HH8LbserTLRWfcm3xe43ksQDe4"
+  expect(() => codec.enc(ss58Address)).toThrowError("Invalid SS58 prefix")
 })
