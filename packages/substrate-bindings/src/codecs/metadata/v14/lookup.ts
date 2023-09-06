@@ -1,3 +1,4 @@
+import { compactNumber } from "../../compact"
 import {
   CodecType,
   Enum,
@@ -5,7 +6,6 @@ import {
   Struct,
   Vector,
   _void,
-  compact,
   str,
   u32,
   u8,
@@ -35,7 +35,7 @@ const primitive = Enum({
 const fields = Vector(
   Struct({
     name: oStr,
-    type: compact,
+    type: compactNumber,
     typeName: oStr,
     docs: strs,
   }),
@@ -43,12 +43,12 @@ const fields = Vector(
 
 const arr = Struct({
   len: u32,
-  type: compact,
+  type: compactNumber,
 })
 
 const bitSequence = Struct({
-  bitStoreType: compact,
-  bitOrderType: compact,
+  bitStoreType: compactNumber,
+  bitOrderType: compactNumber,
 })
 
 const variant = Vector(
@@ -63,23 +63,23 @@ const variant = Vector(
 const def = Enum({
   composite: fields,
   variant,
-  sequence: compact,
+  sequence: compactNumber,
   array: arr,
-  tuple: Vector(compact),
+  tuple: Vector(compactNumber),
   primitive,
-  compact,
+  compact: compactNumber,
   bitSequence,
   historicMetaCompat: str,
 })
 
 const param = Struct({
   name: str,
-  type: Option(compact),
+  type: Option(compactNumber),
 })
 const params = Vector(param)
 
 const entry = Struct({
-  id: compact,
+  id: compactNumber,
   path: strs,
   params,
   def,
