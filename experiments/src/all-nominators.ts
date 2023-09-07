@@ -1,15 +1,9 @@
 import { WellKnownChain } from "@substrate/connect"
 import { ScProvider } from "@unstoppablejs/sc-provider"
 import { createClient } from "@unstoppablejs/substrate-client"
-import {
-  compact,
-  metadata,
-  CodecType,
-  Tuple,
-} from "@unstoppablejs/substrate-bindings"
 
 const smProvider = ScProvider(
-  WellKnownChain.polkadot /*, {
+  WellKnownChain.polkadot /* {
   embeddedNodeConfig: {
     maxLogLevel: 9,
   },
@@ -57,12 +51,8 @@ const withLogsProvider = (input: GetProvider): GetProvider => {
 
 export const { chainHead } = createClient(withLogsProvider(smProvider))
 
-type Metadata = CodecType<typeof metadata>
-
-const opaqueMeta = Tuple(compact, metadata)
-
-export const getMetadata = (): Promise<Metadata> =>
-  new Promise<Metadata>((res, rej) => {
+export const getAllNominators = (): Promise<any> =>
+  new Promise<any>((res, rej) => {
     let requested = false
     const chainHeadFollower = chainHead(
       true,
@@ -73,14 +63,21 @@ export const getMetadata = (): Promise<Metadata> =>
         }
         if (requested || message.event !== "initialized") return
         const latestFinalized = message.finalizedBlockHash
-        if (requested) return
+        console.log({ latestFinalized })
         requested = true
 
         chainHeadFollower
-          .call(latestFinalized, "Metadata_metadata", "")
+          .storage(
+            latestFinalized,
+            {
+              descendantsValues: [
+                "0x5f3e4907f716ac89b6347d15ececedca88dcde934c658227ee1dfafcd6e16903",
+              ],
+            },
+            null,
+          )
           .then((response) => {
-            const [, metadata] = opaqueMeta.dec(response)
-            res(metadata)
+            res(response.descendantsValues)
           })
           .catch((e) => {
             console.log("error", e)
@@ -93,3 +90,5 @@ export const getMetadata = (): Promise<Metadata> =>
       () => {},
     )
   })
+
+getAllNominators().then(console.log, console.error)
