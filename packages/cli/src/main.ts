@@ -718,12 +718,13 @@ while (!exit) {
         constantDescriptors
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Constant = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as unknown as ${
+              `const ${pallet}${name}Constant = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as unknown as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
               })`,
           )
+
           .join("\n\n") + "\n"
       descriptorCodegen +=
         storageDescriptors
@@ -733,7 +734,7 @@ while (!exit) {
               : payload
             const len = declarations.variables.get(key)!.directDependencies.size
 
-            return `export const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(
+            return `const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(
   ${checksum}n,
   \"${name}\",
   {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)`
@@ -743,7 +744,7 @@ while (!exit) {
         Object.values(eventDescriptors)
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Event = ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as unknown as ${
+              `const ${pallet}${name}Event = ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as unknown as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
@@ -754,7 +755,7 @@ while (!exit) {
         Object.values(errorDescriptors)
           .map(
             ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Error = ${pallet}Creator.getPayloadDescriptor(ERROR, ${checksum}n, \"${name}\", {} as unknown as ${
+              `const ${pallet}${name}Error = ${pallet}Creator.getPayloadDescriptor(ERROR, ${checksum}n, \"${name}\", {} as unknown as ${
                 declarations.imports.has(payload)
                   ? `CodecType<typeof ${payload}>`
                   : payload
@@ -786,7 +787,7 @@ while (!exit) {
         )
 
         descriptorCodegen +=
-          `export const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
+          `const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
             ",",
           )}], [${errorVariables.join(",")}], {} as unknown as ${
             declarations.imports.has(payload)
@@ -795,7 +796,23 @@ while (!exit) {
           })` + "\n\n"
       }
 
+      const descriptorVariablesRegexp = new RegExp(
+        /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))\s(?=\=)/g,
+      )
+
+      const descriptorVariableNames =
+        descriptorCodegen
+          .match(descriptorVariablesRegexp)
+          ?.map((s) => s.trim()) ?? []
+
+      descriptorCodegen +=
+        `const result: [${descriptorVariableNames
+          .map((s) => `typeof ${s}`)
+          .join(",")}] = [${descriptorVariableNames.join(",")}]` +
+        "\n\nexport default result\n\n"
+
       await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
+
       break
     }
     case EXIT:
