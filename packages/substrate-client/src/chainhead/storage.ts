@@ -94,7 +94,6 @@ export const createStorageFn = createOperationPromise(
             })
             result.descendantsValues[queriedKey] = values
           }
-          return
         }
 
         if (item.hash) {
@@ -113,7 +112,6 @@ export const createStorageFn = createOperationPromise(
             })
             result.descendantsHashes[queriedKey] = hashes
           }
-          return
         }
 
         if (
