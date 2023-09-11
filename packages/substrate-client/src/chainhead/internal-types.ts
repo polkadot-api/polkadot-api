@@ -54,7 +54,7 @@ export interface StorageItemResponse {
   key: string
   value?: string
   hash?: string
-  "closest-descendant-merkle-value"?: string
+  closestDescendantMerkleValue?: string
 }
 
 export type OperationStorageItems = OperationEvent & {
@@ -79,9 +79,9 @@ export interface StorageItemInput {
   type:
     | "value"
     | "hash"
-    | "closest-descendant-merkle-value"
-    | "descendants-values"
-    | "descendants-hashes"
+    | "closestDescendantMerkleValue"
+    | "descendantsValues"
+    | "descendantsHashes"
 }
 
 // Operation Responses

@@ -27,7 +27,7 @@ const fromBufferToBase58 = (ss58Format: number) => {
   }
 }
 
-function fromBase58ToBuffer(nBytes: number) {
+function fromBase58ToBuffer(nBytes: number, ss58Format: number) {
   return (address: string) => {
     const decoded = base58.decode(address)
     const prefixBytes = decoded.subarray(0, decoded[0] & 0b0100_0000 ? 2 : 1)
@@ -49,6 +49,10 @@ function fromBase58ToBuffer(nBytes: number) {
       checksum[1] !== expectedChecksum[1]
     )
       throw new Error("Invalid checksum")
+
+    if (prefixBytesToNumber(prefixBytes) != ss58Format)
+      throw new Error("Invalid SS58 prefix")
+
     return publicKey.slice()
   }
 }
@@ -56,6 +60,11 @@ function fromBase58ToBuffer(nBytes: number) {
 export const AccountId = (ss58Format: number = 42, nBytes: 32 | 33 = 32) =>
   enhanceCodec(
     Bytes(nBytes),
-    fromBase58ToBuffer(nBytes),
+    fromBase58ToBuffer(nBytes, ss58Format),
     fromBufferToBase58(ss58Format),
   )
+
+const prefixBytesToNumber = (bytes: Uint8Array) => {
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  return dv.byteLength === 1 ? dv.getUint8(0) : dv.getUint16(0)
+}

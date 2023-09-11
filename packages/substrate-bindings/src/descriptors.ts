@@ -7,7 +7,13 @@ export interface DescriptorCommon<Pallet extends string, Name extends string> {
 }
 
 // @ts-ignore
-export interface ArgsWithPayloadCodec<Args extends Array<any>, O> {}
+export interface ArgsWithPayloadCodec<Args extends Array<any>, O> {
+  len: Args["length"]
+}
+
+export interface ArgsWithoutPayloadCodec<Args extends Array<any>> {
+  len: Args["length"]
+}
 
 export interface StorageDescriptor<
   Common extends DescriptorCommon<string, string>,
@@ -47,7 +53,7 @@ export interface ErrorDescriptor<
 
 export interface TxDescriptor<
   Common extends DescriptorCommon<string, string>,
-  Codecs extends Array<any>,
+  Codecs extends ArgsWithoutPayloadCodec<any>,
   Events extends Tuple<EventDescriptor<any, any>>,
   Errors extends Tuple<ErrorDescriptor<any, any>>,
 > {
@@ -136,7 +142,7 @@ export const getPalletCreator = <Pallet extends string>(pallet: Pallet) => {
 
   const getTxDescriptor = <
     Name extends string,
-    Codecs extends Array<any>,
+    Codecs extends ArgsWithoutPayloadCodec<any>,
     Events extends Tuple<EventDescriptor<any, any>>,
     Errors extends Tuple<ErrorDescriptor<any, any>>,
   >(
@@ -174,7 +180,9 @@ export type UnionizeTupleEvents<E extends Array<EventDescriptor<any, any>>> =
     : unknown
 
 export type TxDescriptorArgs<D extends TxDescriptor<any, any, any, any>> =
-  D extends TxDescriptor<any, infer A, any, any> ? A : []
+  D extends TxDescriptor<any, ArgsWithoutPayloadCodec<infer A>, any, any>
+    ? A
+    : []
 
 export type TxDescriptorEvents<D extends TxDescriptor<any, any, any, any>> =
   D extends TxDescriptor<any, any, infer E, any> ? E : []
@@ -251,7 +259,7 @@ const myTxDescriptor = myPalletCreator.getTxDescriptor(
   "myTx",
   [fooEvent, bazEvent, barEvent],
   [unnexpectedBar, notEnoughBaz, wrongFoo],
-  {} as [name: string, value: number],
+  {len: 2} as ArgsWithoutPayloadCodec<[name: string, value: number]>,
 )
 
 export const myTx: TxFunction<typeof myTxDescriptor> = (() => {}) as any

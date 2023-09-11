@@ -41,6 +41,7 @@ export function getChainHead(
   ): FollowResponse => {
     const subscriptions = getSubscriptionsManager()
 
+    const ongoingRequests = new Set<() => void>()
     const deferredFollow = deferred<string | Error>()
     let followSubscription: Promise<string | Error> | string | null =
       deferredFollow.promise
@@ -75,6 +76,10 @@ export function getChainHead(
         done()
         sendUnfollow && request("chainHead_unstable_unfollow", [subscriptionId])
         subscriptions.errorAll(new DisjointError())
+        ongoingRequests.forEach((cb) => {
+          cb()
+        })
+        ongoingRequests.clear()
       }
 
       followSubscription = subscriptionId
@@ -94,13 +99,19 @@ export function getChainHead(
     )
 
     const fRequest: ClientRequest<any, any> = (method, params, cb) => {
-      if (followSubscription === null) {
+      const disjoint = () => {
         cb?.onError(new DisjointError())
+      }
+
+      if (followSubscription === null) {
+        disjoint()
         return noop
       }
 
       const onSubscription = (subscription: string) => {
         if (!cb) return request(method, [subscription, ...params])
+
+        ongoingRequests.add(disjoint)
 
         const onSubscribeOperation = (
           operationId: string,
@@ -117,12 +128,21 @@ export function getChainHead(
           }
         }
 
-        return request(method, [subscription, ...params], {
+        const cleanup = request(method, [subscription, ...params], {
           onSuccess: (response) => {
+            ongoingRequests.delete(disjoint)
             cb.onSuccess(response, onSubscribeOperation)
           },
-          onError: cb.onError,
+          onError: (e) => {
+            ongoingRequests.delete(disjoint)
+            cb.onError(e)
+          },
         })
+
+        return () => {
+          ongoingRequests.delete(disjoint)
+          cleanup()
+        }
       }
 
       if (typeof followSubscription === "string")
@@ -130,7 +150,7 @@ export function getChainHead(
 
       let onCancel = noop
       followSubscription.then((x) => {
-        if (x instanceof Error) return cb?.onError(new DisjointError())
+        if (x instanceof Error) return disjoint()
         if (followSubscription) onCancel = onSubscription(x)
       })
 

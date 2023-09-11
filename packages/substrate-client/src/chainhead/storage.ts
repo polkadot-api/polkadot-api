@@ -22,11 +22,11 @@ export const createStorageFn = createOperationPromise(
     const queries: Record<StorageItemInput["type"], Set<string>> = {
       value: new Set(query.value ?? []),
       hash: new Set(query.hash ?? []),
-      "closest-descendant-merkle-value": new Set(
+      closestDescendantMerkleValue: new Set(
         query.closestDescendantMerkleValue ?? [],
       ),
-      "descendants-values": new Set(query.descendantsValues ?? []),
-      "descendants-hashes": new Set(query.descendantsHashes ?? []),
+      descendantsValues: new Set(query.descendantsValues ?? []),
+      descendantsHashes: new Set(query.descendantsHashes ?? []),
     }
 
     const items: Array<StorageItemInput> = []
@@ -44,19 +44,19 @@ export const createStorageFn = createOperationPromise(
     })
     query.descendantsValues?.forEach((key) => {
       items.push({
-        type: "descendants-values",
+        type: "descendantsValues",
         key,
       })
     })
     query.descendantsHashes?.forEach((key) => {
       items.push({
-        type: "descendants-hashes",
+        type: "descendantsHashes",
         key,
       })
     })
-    queries["closest-descendant-merkle-value"]?.forEach((key) => {
+    queries["closestDescendantMerkleValue"]?.forEach((key) => {
       items.push({
-        type: "closest-descendant-merkle-value",
+        type: "closestDescendantMerkleValue",
         key,
       })
     })
@@ -83,7 +83,7 @@ export const createStorageFn = createOperationPromise(
             result.values[item.key] = item.value
           } else {
             // there could be many matching ones, we want to take the longest one
-            const queriedKey = [...queries["descendants-values"]]
+            const queriedKey = [...queries["descendantsValues"]]
               .filter((key) => item.key.startsWith(key))
               .sort((a, b) => b.length - a.length)[0]
 
@@ -102,7 +102,7 @@ export const createStorageFn = createOperationPromise(
             result.hashes[item.key] = item.hash
           } else {
             // there could be many matching ones, we want to take the longest one
-            const queriedKey = [...queries["descendants-hashes"]]
+            const queriedKey = [...queries["descendantsHashes"]]
               .filter((key) => item.key.startsWith(key))
               .sort((a, b) => b.length - a.length)[0]
 
@@ -117,10 +117,10 @@ export const createStorageFn = createOperationPromise(
         }
 
         if (
-          item["closest-descendant-merkle-value"] &&
-          queries["closest-descendant-merkle-value"].has(item.key)
+          item["closestDescendantMerkleValue"] &&
+          queries["closestDescendantMerkleValue"].has(item.key)
         ) {
-          result.closests[item.key] = item["closest-descendant-merkle-value"]
+          result.closests[item.key] = item["closestDescendantMerkleValue"]
         }
       })
     }
