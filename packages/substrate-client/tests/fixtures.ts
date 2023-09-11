@@ -97,18 +97,26 @@ export function setupChainHeadOperation<
   return { ...chainhead, fixtures, operationPromise }
 }
 
+let nextOperationId = 1
+type ChainHeadOperation =
+  | { name: "body" }
+  | { name: "call" }
+  | { name: "storage"; discardedItems: number }
+
 export function setupChainHeadOperationSubscription<
-  Name extends "body" | "call" | "storage",
->(name: Name, ...args: Parameters<FollowResponse[Name]>) {
+  Name extends ChainHeadOperation,
+>(op: Name, ...args: Parameters<FollowResponse[ChainHeadOperation["name"]]>) {
+  const { name, ...extras } = op
   const { fixtures, ...rest } = setupChainHeadOperation(name, ...args)
   fixtures.getNewMessages()
 
-  const OPERATION_ID = "OPERATION_ID"
+  const OPERATION_ID = `${nextOperationId++}`
   fixtures.sendMessage({
     id: 2,
     result: {
       result: "started",
       operationId: OPERATION_ID,
+      ...extras,
     },
   })
 
