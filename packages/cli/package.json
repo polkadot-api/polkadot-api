@@ -5,8 +5,8 @@
   "sideEffects": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild --bundle src/main.ts --outdir=build --sourcemap --format=esm --platform=node --packages=external",
-    "start": "npm run build && node --enable-source-maps ./build/main.js",
+    "build": "tsup-node src/main.ts --clean --out-dir build --sourcemap --platform node --format esm",
+    "start": "npm run build && node --enable-source-maps build/main.js",
     "start:interactive": "npm run start -- -i",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
