@@ -2,6 +2,7 @@ import "./_polyfills"
 
 import * as fs from "node:fs/promises"
 import {
+  CodeDeclarations,
   LookupEntry,
   getChecksumBuilder,
   getLookupFn,
@@ -543,7 +544,7 @@ while (!exit) {
         default: "codegen.ts",
       })
 
-      const declarations = {
+      const declarations: CodeDeclarations = {
         imports: new Set<string>(),
         variables: new Map(),
       }
@@ -726,14 +727,17 @@ while (!exit) {
           .join("\n\n") + "\n"
       descriptorCodegen +=
         storageDescriptors
-          .map(
-            ([pallet, name, checksum, payload]) =>
-              `export const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(${checksum}n, \"${name}\", {} as unknown as ${
-                declarations.imports.has(payload)
-                  ? `CodecType<typeof ${payload}>`
-                  : payload
-              })`,
-          )
+          .map(([pallet, name, checksum, key, payload]) => {
+            const returnType = declarations.imports.has(payload)
+              ? `CodecType<typeof ${payload}>`
+              : payload
+            const len = declarations.variables.get(key)!.directDependencies.size
+
+            return `export const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(
+  ${checksum}n,
+  \"${name}\",
+  {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)`
+          })
           .join("\n\n") + "\n"
       descriptorCodegen +=
         Object.values(eventDescriptors)
