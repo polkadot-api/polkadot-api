@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsup-node src/main.ts --clean --out-dir build --sourcemap --platform node --format esm",
-    "start": "npm run build && node --enable-source-maps build/main.js",
-    "start:interactive": "npm run start -- -i",
+    "start": "pnpm build && node --enable-source-maps build/main.js",
+    "start:interactive": "pnpm start -- -i",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
@@ -22,8 +22,9 @@
     "@substrate/connect": "^0.7.31",
     "@unstoppablejs/client": "0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671",
     "@unstoppablejs/sc-provider": "^0.2.0",
-    "@unstoppablejs/substrate-bindings": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
-    "@unstoppablejs/substrate-codegen": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
+    "@unstoppablejs/substrate-bindings": "workspace:*",
+    "@unstoppablejs/substrate-client": "workspace:*",
+    "@unstoppablejs/substrate-codegen": "workspace:*",
     "@unstoppablejs/utils": "^1.1.0",
     "as-table": "^1.0.55",
     "chalk": "^5.3.0",

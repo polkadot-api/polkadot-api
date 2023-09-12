@@ -17,17 +17,19 @@ jobs:
         node-version: [18.x, 20.x]
     steps:
       - uses: actions/checkout@v3.5.3
-
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: pnpm
       - name: Install deps
-        run: npm ci
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Run lint
-        run: npm run lint
+        run: pnpm lint
       - name: Run tests
-        run: npm run test
+        run: pnpm test
