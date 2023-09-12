@@ -45,7 +45,7 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0(@substrate/connect@0.7.31)
       '@unstoppablejs/substrate-bindings':
-        specifier: workspace:0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50
+        specifier: workspace:*
         version: link:../packages/substrate-bindings
       '@unstoppablejs/substrate-client':
         specifier: workspace:*
