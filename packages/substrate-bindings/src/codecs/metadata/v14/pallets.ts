@@ -1,3 +1,4 @@
+import { Hex } from "@/codecs/Hex"
 import { compactNumber } from "../../compact"
 import {
   Struct,
@@ -56,7 +57,7 @@ export const pallets = Vector(
       Struct({
         name: str,
         type: compactNumber,
-        value: Vector(u8),
+        value: Hex(),
         docs: Vector(str),
       }),
     ),
