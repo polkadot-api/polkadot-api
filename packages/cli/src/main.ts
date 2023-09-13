@@ -21,16 +21,20 @@ import { z } from "zod"
 import descriptorSchema from "./descriptor-schema"
 import fsExists from "fs.promises.exists"
 import { program } from "commander"
-import { encodeMetadata, getMetadata } from "./metadata"
+import { getMetadata } from "./metadata"
 import { WellKnownChain } from "@substrate/connect"
 import ora from "ora"
 import { blowupMetadata } from "./testing"
 import asTable from "as-table"
 import chalk from "chalk"
 import * as Record from "fp-ts/lib/Record"
+import { Data } from "./data"
 
 const ProgramArgs = z.object({
   metadataFile: z.string().optional(),
+  pkgJSONKey: z.string(),
+  key: z.string().optional(),
+  file: z.string().optional(),
   interactive: z.boolean(),
 })
 
@@ -39,33 +43,61 @@ type ProgramArgs = z.infer<typeof ProgramArgs>
 program
   .name("capi")
   .description("Capi CLI")
-  .option("-m, --metadataFile <path>", "path to scale encoded metadata file")
+  .option(
+    "-j, --pkgJSONKey <key>",
+    "key in package json for descriptor metadata",
+    "polkadot-api",
+  )
+  .option("k --key <key>", "first key in descriptor metadata")
+  .option(
+    "f --file file",
+    "path to descriptor metadata file; alternative to package json",
+  )
   .option("-i, --interactive", "whether to run in interactive mode", false)
 
 program.parse()
 
 const options = ProgramArgs.parse(program.opts())
 
-const metadataArgs = options.metadataFile
-  ? {
-      source: "file" as const,
-      file: options.metadataFile,
-    }
-  : {
-      source: "chain" as const,
-      chain: await select({
-        message: "Select a chain to pull metadata from",
-        choices: [
-          { name: "polkadot", value: WellKnownChain.polkadot },
-          { name: "westend", value: WellKnownChain.westend2 },
-          { name: "ksm", value: WellKnownChain.ksmcc3 },
-          { name: "rococo", value: WellKnownChain.rococo_v2_2 },
-        ],
-      }),
-    }
-const spinner = ora(`Loading Metadata`).start()
-const { magicNumber, metadata } = await getMetadata(metadataArgs)
-spinner.stop()
+const data2 = await (options.key
+  ? Data.fromSavedDescriptors({
+      key: options.key,
+      pkgJSONKey: options.pkgJSONKey,
+      fileName: options.file,
+    })
+  : Promise.resolve(new Data()))
+
+if (!options.interactive) {
+  process.exit(0)
+}
+
+if (!data2.isInitialized) {
+  const metadataArgs = options.metadataFile
+    ? {
+        source: "file" as const,
+        file: options.metadataFile,
+      }
+    : {
+        source: "chain" as const,
+        chain: await select({
+          message: "Select a chain to pull metadata from",
+          choices: [
+            { name: "polkadot", value: WellKnownChain.polkadot },
+            { name: "westend", value: WellKnownChain.westend2 },
+            { name: "ksm", value: WellKnownChain.ksmcc3 },
+            { name: "rococo", value: WellKnownChain.rococo_v2_2 },
+          ],
+        }),
+      }
+
+  const spinner = ora(`Loading Metadata`).start()
+  const { magicNumber, metadata } = await getMetadata(metadataArgs)
+  spinner.stop()
+
+  data2.setMetadata(magicNumber, metadata)
+}
+
+const metadata = data2.metadata
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
@@ -219,14 +251,14 @@ while (!exit) {
       }
       break
     }
-    case SAVE_METADATA: {
+    /*     case SAVE_METADATA: {
       const outFile = await input({
         message: "Enter output fileName",
         default: "metadata.scale",
       })
       await fs.writeFile(outFile, encodeMetadata({ magicNumber, metadata }))
       break
-    }
+    } */
     case BLOWUP_METADATA: {
       blowupMetadata(metadata)
       break

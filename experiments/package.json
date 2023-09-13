@@ -28,5 +28,81 @@
     "printWidth": 80,
     "semi": false,
     "trailingComma": "all"
+  },
+  "capi": {
+    "polkadot": {
+      "metadata": "polkadot-metadata.scale",
+      "chainSpec": "polkadot",
+      "outputFolder": "src/descriptors/",
+      "descriptors": {
+        "System": {
+          "constants": {
+            "BlockWeights": "9041406347359269990",
+            "BlockLength": "14166842245465713493",
+            "BlockHashCount": "6",
+            "DbWeight": "3357309396456286329",
+            "Version": "4019503174538417892",
+            "SS58Prefix": "5"
+          },
+          "storage": {},
+          "events": {
+            "ExtrinsicSuccess": "13099765670732146383",
+            "ExtrinsicFailed": "7304797062966333508",
+            "CodeUpdated": "0",
+            "NewAccount": "13750556108658342245",
+            "KilledAccount": "13750556108658342245",
+            "Remarked": "12673843241648213214"
+          },
+          "errors": {
+            "InvalidSpecName": "0",
+            "SpecVersionNeedsToIncrease": "0",
+            "FailedToExtractRuntimeVersion": "0",
+            "NonDefaultComposite": "0",
+            "NonZeroRefCount": "0",
+            "CallFiltered": "0"
+          },
+          "extrinsics": {
+            "remark": {
+              "checksum": "5198716037121554485",
+              "events": {
+                "System": [
+                  "ExtrinsicSuccess",
+                  "ExtrinsicFailed",
+                  "CodeUpdated",
+                  "NewAccount",
+                  "KilledAccount",
+                  "Remarked"
+                ]
+              },
+              "errors": {
+                "System": [
+                  "InvalidSpecName",
+                  "SpecVersionNeedsToIncrease",
+                  "FailedToExtractRuntimeVersion",
+                  "NonDefaultComposite",
+                  "NonZeroRefCount",
+                  "CallFiltered"
+                ]
+              }
+            }
+          }
+        },
+        "Balances": {
+          "constants": {},
+          "storage": {
+            "TotalIssuance": "11739910749150872187",
+            "InactiveIssuance": "11739910749150872187",
+            "Account": "17589354754484583392",
+            "Locks": "7066558255328166306",
+            "Reserves": "13984159508085493367",
+            "Holds": "18023816802587378729",
+            "Freezes": "18023816802587378729"
+          },
+          "events": {},
+          "errors": {},
+          "extrinsics": {}
+        }
+      }
+    }
   }
 }
