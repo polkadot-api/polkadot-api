@@ -19,9 +19,10 @@
   },
   "dependencies": {
     "@substrate/connect": "^0.7.31",
-    "@unstoppablejs/substrate-client": "0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671",
-    "@unstoppablejs/substrate-codegen": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
     "@unstoppablejs/sc-provider": "^0.2.0",
+    "@unstoppablejs/substrate-bindings": "workspace:*",
+    "@unstoppablejs/substrate-client": "workspace:*",
+    "@unstoppablejs/substrate-codegen": "workspace:*",
     "@unstoppablejs/utils": "^1.1.0"
   },
   "prettier": {

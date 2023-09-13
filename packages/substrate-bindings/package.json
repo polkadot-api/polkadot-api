@@ -34,7 +34,7 @@
     "test": "vitest",
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "npm run build"
+    "prepack": "pnpm run build"
   },
   "prettier": {
     "printWidth": 80,
