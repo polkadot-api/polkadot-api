@@ -1,4 +1,4 @@
-import type { GetProvider } from "@unstoppablejs/provider"
+import type { GetProvider } from "@polkadot-api/json-rpc-provider"
 import { FollowResponse, IRpcError, createClient } from "@/."
 import { vi } from "vitest"
 
@@ -22,7 +22,7 @@ export const createTestClient = () => {
         receivedMessages.push(msg)
       },
       open() {
-        _onStatus(0)
+        _onStatus("connected")
       },
       close() {},
     }

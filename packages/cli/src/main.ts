@@ -7,8 +7,8 @@ import {
   getChecksumBuilder,
   getLookupFn,
   getStaticBuilder,
-} from "@unstoppablejs/substrate-codegen"
-import { V14Lookup } from "@unstoppablejs/substrate-bindings"
+} from "@polkadot-api/substrate-codegen"
+import { V14Lookup } from "@polkadot-api/substrate-bindings"
 import { CheckboxData } from "./CheckboxData"
 import * as childProcess from "node:child_process"
 import { deferred } from "./deferred"
@@ -37,8 +37,8 @@ const ProgramArgs = z.object({
 type ProgramArgs = z.infer<typeof ProgramArgs>
 
 program
-  .name("capi")
-  .description("Capi CLI")
+  .name("polkadotApi")
+  .description("polkadot-api CLI")
   .option("-m, --metadataFile <path>", "path to scale encoded metadata file")
   .option("-i, --interactive", "whether to run in interactive mode", false)
 
@@ -247,7 +247,7 @@ while (!exit) {
 
       if (writeToPkgJSON) {
         writePkg.updatePackage(
-          JSON.parse(JSON.stringify({ capi: { descriptors: data } })),
+          JSON.parse(JSON.stringify({ polkadotApi: { descriptors: data } })),
         )
       } else {
         const outFile = await input({
@@ -263,17 +263,17 @@ while (!exit) {
       const descriptors = await (async () => {
         if (await fsExists("package.json")) {
           const pkgJSONSchema = z.object({
-            capi: z.object({ descriptors: descriptorSchema }).optional(),
+            polkadotApi: z.object({ descriptors: descriptorSchema }).optional(),
           })
 
-          const { capi } = await pkgJSONSchema.parseAsync(
+          const { polkadotApi } = await pkgJSONSchema.parseAsync(
             JSON.parse(
               await fs.readFile("package.json", { encoding: "utf-8" }),
             ),
           )
 
-          if (capi) {
-            return capi.descriptors
+          if (polkadotApi) {
+            return polkadotApi.descriptors
           }
         }
 
@@ -644,7 +644,7 @@ while (!exit) {
       constDeclarations.unshift(
         `import {${[...declarations.imports].join(
           ", ",
-        )}} from "@unstoppablejs/substrate-bindings"`,
+        )}} from "@polkadot-api/substrate-bindings"`,
       )
 
       await fs.mkdir("codegen", { recursive: true })
@@ -698,10 +698,10 @@ while (!exit) {
 
       descriptorCodegen += `import {${[
         ...new Set([...declarations.imports, ...descriptorImports]),
-      ].join(", ")}} from "@unstoppablejs/substrate-bindings"\n`
+      ].join(", ")}} from "@polkadot-api/substrate-bindings"\n`
       descriptorCodegen += `import type {${[...descriptorTypeImports].join(
         ", ",
-      )}} from "@unstoppablejs/substrate-bindings"\n`
+      )}} from "@polkadot-api/substrate-bindings"\n`
       descriptorCodegen += `import type {${[...declarations.variables.values()]
         .map((v) => v.id)
         .join(", ")}} from "./codegen"\n\n`

@@ -1,4 +1,8 @@
-import { GetProvider } from "@unstoppablejs/provider"
+import {
+  type GetProvider,
+  type Provider,
+  type ProviderStatus,
+} from "@polkadot-api/json-rpc-provider"
 import { getTransaction } from "./transaction/transaction"
 import { getChainHead } from "./chainhead"
 import {
@@ -9,6 +13,8 @@ import {
 import type { ChainHead } from "./chainhead"
 import type { Transaction } from "./transaction/types"
 import { UnsubscribeFn } from "./common-types"
+
+export type { GetProvider, Provider, ProviderStatus }
 
 export type * from "./common-types"
 export type * from "./client"

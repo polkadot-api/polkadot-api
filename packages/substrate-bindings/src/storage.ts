@@ -1,4 +1,4 @@
-import { mergeUint8, toHex, utf16StrToUtf8Bytes } from "@unstoppablejs/utils"
+import { mergeUint8, toHex, utf16StrToUtf8Bytes } from "@polkadot-api/utils"
 import { Codec, Decoder } from "scale-ts"
 import { Blake2128Concat, Identity, Twox128, Twox64Concat } from "./hashes"
 

@@ -1,6 +1,6 @@
 {
-  "name": "@polkadot-api/substrate-bindings",
-  "version": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
+  "name": "@polkadot-api/sc-provider",
+  "version": "1.0.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -13,7 +13,8 @@
       "node": {
         "production": {
           "require": "./dist/min/index.js"
-        }
+        },
+        "default": "./dist/index.js"
       },
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
@@ -31,7 +32,7 @@
   ],
   "scripts": {
     "build": "tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
-    "test": "vitest",
+    "test": "echo 'no tests'",
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
@@ -42,13 +43,9 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "@noble/hashes": "^1.3.1",
-    "@scure/base": "^1.1.1",
-    "@polkadot-api/utils": "workspace:*",
-    "scale-ts": "^1.4.0"
+    "@substrate/connect": "^0.7.31"
   },
   "devDependencies": {
-    "bigint-conversion": "^2.4.1",
-    "hash-wasm": "^4.9.0"
+    "@polkadot-api/json-rpc-provider": "workspace:*"
   }
 }
