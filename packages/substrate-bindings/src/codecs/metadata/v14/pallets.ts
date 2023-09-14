@@ -1,3 +1,5 @@
+import { Hex } from "@/codecs/Hex"
+import { compactNumber } from "../../compact"
 import {
   Struct,
   Option,
@@ -5,9 +7,7 @@ import {
   u8,
   str,
   Enum,
-  compact,
   _void,
-  Codec,
   CodecType,
 } from "scale-ts"
 
@@ -25,15 +25,15 @@ const hashers = Vector(hashType)
 
 const storageMap = Struct({
   hashers,
-  key: compact as Codec<number>,
-  value: compact as Codec<number>,
+  key: compactNumber,
+  value: compactNumber,
 })
 
 const storageItem = Struct({
   name: str,
   modifier: u8,
   type: Enum({
-    plain: compact as Codec<number>,
+    plain: compactNumber,
     map: storageMap,
   }),
   fallback: Vector(u8),
@@ -51,17 +51,17 @@ export const pallets = Vector(
   Struct({
     name: str,
     storage,
-    calls: Option(compact),
-    events: Option(compact),
+    calls: Option(compactNumber),
+    events: Option(compactNumber),
     constants: Vector(
       Struct({
         name: str,
-        type: compact,
-        value: Vector(u8),
+        type: compactNumber,
+        value: Hex(),
         docs: Vector(str),
       }),
     ),
-    errors: Option(compact),
+    errors: Option(compactNumber),
     index: u8,
   }),
 )

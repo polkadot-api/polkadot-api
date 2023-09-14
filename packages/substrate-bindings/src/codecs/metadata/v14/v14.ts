@@ -1,17 +1,18 @@
-import { CodecType, Struct, Vector, compact, str, u8 } from "scale-ts"
+import { CodecType, Struct, Vector, str, u8 } from "scale-ts"
 import { lookup } from "./lookup"
 import { pallets } from "./pallets"
+import { compactNumber } from "../../compact"
 export type { V14Lookup } from "./lookup"
 export type { V14Pallets } from "./pallets"
 
 const extrinsic = Struct({
-  type: compact,
+  type: compactNumber,
   version: u8,
   signedExtensions: Vector(
     Struct({
       identifier: str,
-      type: compact,
-      additionalSigned: compact,
+      type: compactNumber,
+      additionalSigned: compactNumber,
     }),
   ),
 })
@@ -21,6 +22,6 @@ export const v14 = Struct({
   lookup,
   pallets,
   extrinsic,
-  type: compact,
+  type: compactNumber,
 })
 export type V14 = CodecType<typeof v14>

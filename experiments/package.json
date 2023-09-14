@@ -6,22 +6,22 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild --bundle src/main.ts --outdir=build --sourcemap --format=esm --platform=node --packages=external",
-    "start": "npm run build && node --enable-source-maps ./build/main.js"
+    "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
+    "nominators": "tsup-node src/all-nominators.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.4.7",
-    "esbuild": "^0.18.17",
     "prettier": "^2.6.2",
     "typescript": "^5.1.6"
   },
   "dependencies": {
     "@substrate/connect": "^0.7.31",
-    "@capi-dev/substrate-client": "0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671",
-    "@capi-dev/substrate-codegen": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
+    "@capi-dev/substrate-bindings": "workspace:*",
+    "@capi-dev/substrate-client": "workspace:*",
+    "@capi-dev/substrate-codegen": "workspace:*",
     "@unstoppablejs/sc-provider": "^0.2.0",
     "@unstoppablejs/utils": "^1.1.0"
   },

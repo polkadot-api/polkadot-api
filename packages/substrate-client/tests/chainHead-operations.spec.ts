@@ -15,6 +15,7 @@ import {
 describe.each([
   [
     "body" as "body",
+    { name: "body" } as const,
     ["someHash"] as [string],
     ["someHash"] as [string],
     [
@@ -27,6 +28,7 @@ describe.each([
   ],
   [
     "call" as "call",
+    { name: "call" } as const,
     ["someHash", "someFnName", "someCallParams"] as [string, string, string],
     ["someHash", "someFnName", "someCallParams"] as [string, string, string],
     [
@@ -39,6 +41,7 @@ describe.each([
   ],
   [
     "storage" as "storage",
+    { name: "storage", discardedItems: 0 } as const,
     ["someHash", { value: ["someStorageKey"] }, null] as [
       hash: string,
       query: Partial<{
@@ -77,15 +80,15 @@ describe.each([
   ],
 ])(
   "chainhead: %s",
-  (name, args, expectedMsgArgs, operationNotifications, expectedResult) => {
+  (_, op, args, expectedMsgArgs, operationNotifications, expectedResult) => {
     it("sends the correct operation message", () => {
       const {
         fixtures: { getNewMessages, SUBSCRIPTION_ID },
-      } = setupChainHeadOperation(name, ...args)
+      } = setupChainHeadOperation(op.name, ...args)
 
       expect(getNewMessages()).toMatchObject([
         {
-          method: `chainHead_unstable_${name}`,
+          method: `chainHead_unstable_${op.name}`,
           params: [SUBSCRIPTION_ID, ...expectedMsgArgs],
         },
       ])
@@ -97,7 +100,7 @@ describe.each([
         fixtures: { sendOperationNotification },
         operationPromise,
       } = setupChainHeadOperationSubscription(
-        name,
+        op,
         ...[...args, controller.signal],
       )
 
@@ -112,7 +115,7 @@ describe.each([
         operationPromise,
         fixtures: { getNewMessages, OPERATION_ID, SUBSCRIPTION_ID },
       } = setupChainHeadOperationSubscription(
-        name,
+        op,
         ...[...args, controller.signal],
       )
 
@@ -138,7 +141,7 @@ describe.each([
       } = setupChainHead()
       getNewMessages()
 
-      const operationPromise = chainhead[name](
+      const operationPromise = chainhead[op.name](
         ...([...args, controller.signal] as any[]),
       )
 
@@ -160,7 +163,7 @@ describe.each([
       const {
         fixtures: { sendMessage },
         operationPromise,
-      } = setupChainHeadOperation(name, ...args)
+      } = setupChainHeadOperation(op.name, ...args)
 
       sendMessage({
         id: 2,
@@ -174,7 +177,7 @@ describe.each([
       const {
         fixtures: { sendOperationNotification },
         operationPromise,
-      } = setupChainHeadOperationSubscription(name, ...args)
+      } = setupChainHeadOperationSubscription(op, ...args)
 
       sendOperationNotification({
         event: "operationInaccessible",
@@ -189,7 +192,7 @@ describe.each([
       const {
         fixtures: { sendOperationNotification },
         operationPromise,
-      } = setupChainHeadOperationSubscription(name, ...args)
+      } = setupChainHeadOperationSubscription(op, ...args)
 
       const error = "something went wrong"
       sendOperationNotification({
@@ -205,7 +208,7 @@ describe.each([
 
       unfollow()
 
-      return expect(chainHead[name](...(args as any[]))).rejects.toEqual(
+      return expect(chainHead[op.name](...(args as any[]))).rejects.toEqual(
         new DisjointError(),
       )
     })
@@ -213,7 +216,7 @@ describe.each([
     test("it rejects an `DisjointError` error when the follow subscription fails", async () => {
       let { fixtures, ...chainHead } = setupChainHead()
 
-      const promise = chainHead[name](...(args as any[]))
+      const promise = chainHead[op.name](...(args as any[]))
 
       fixtures.sendMessage({
         id: 1,
@@ -228,7 +231,7 @@ describe.each([
         error: parseError,
       })
 
-      await expect(chainHead[name](...(args as any[]))).rejects.toEqual(
+      await expect(chainHead[op.name](...(args as any[]))).rejects.toEqual(
         new DisjointError(),
       )
     })

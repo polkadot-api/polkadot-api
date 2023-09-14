@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base",
+  "include": ["src", "tests"],
+  "compilerOptions": {
+    "baseUrl": "src",
+    "noUnusedLocals": false,
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}

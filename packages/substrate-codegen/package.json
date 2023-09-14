@@ -11,31 +11,30 @@
   "exports": {
     ".": {
       "node": {
-        "module": "./dist/substrate-codegen.js",
-        "import": "./dist/substrate-codegen.mjs",
-        "require": "./dist/index.cjs"
+        "production": {
+          "require": "./dist/min/index.js"
+        }
       },
-      "browser": "./dist/substrate-codegen.js",
-      "default": "./dist/substrate-codegen.js"
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "module": "./dist/substrate-codegen.js",
   "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npm run build:ts && npm run build:esm && npm run build:cjs:dev && npm run build:cjs:prod",
-    "build:esm": "esbuild src/index.ts --bundle --external:@unstoppablejs/* --outfile=./dist/substrate-codegen.js --target=es2020 --format=esm --sourcemap && cp ./dist/substrate-codegen.js ./dist/substrate-codegen.mjs && cp ./dist/substrate-codegen.js.map ./dist/substrate-codegen.mjs.map",
-    "build:cjs:dev": "esbuild src/index.ts --bundle --external:@unstoppablejs/* --outfile=./dist/substrate-codegen.cjs.development.js --target=es2020 --format=cjs --sourcemap",
-    "build:cjs:prod": "esbuild src/index.ts --bundle --external:@unstoppablejs/* --outfile=./dist/substrate-codegen.cjs.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
-    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly && rm -rf ./dist/internal",
+    "build": "tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
     "test": "echo 'No tests'",
-    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "npm run build"
+    "prepack": "pnpm run build"
   },
   "prettier": {
     "printWidth": 80,
@@ -44,6 +43,6 @@
   },
   "dependencies": {
     "@unstoppablejs/utils": "^1.1.0",
-    "@capi-dev/substrate-bindings": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50"
+    "@capi-dev/substrate-bindings": "workspace:*"
   }
 }

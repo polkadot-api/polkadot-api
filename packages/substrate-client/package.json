@@ -11,32 +11,31 @@
   "exports": {
     ".": {
       "node": {
-        "module": "./dist/substrate-client.es2017.js",
-        "import": "./dist/substrate-client.es2019.mjs",
-        "require": "./dist/index.cjs"
+        "production": {
+          "require": "./dist/min/index.js"
+        }
       },
-      "default": "./dist/substrate-client.es2017.js"
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "module": "./dist/substrate-client.es2017.js",
   "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npm run build:ts && npm run build:esm2017 && npm run build:esm2019 && npm run build:cjs:dev && npm run build:cjs:prod",
-    "build:esm2019": "esbuild src/index.ts --bundle --outfile=./dist/substrate-client.es2019.mjs --target=es2020 --format=esm --sourcemap",
-    "build:esm2017": "esbuild src/index.ts --bundle --outfile=./dist/substrate-client.es2017.js --target=es2020 --format=esm --sourcemap",
-    "build:cjs:dev": "esbuild src/index.ts --bundle --outfile=./dist/substrate-client.cjs.development.js --target=es2020 --format=cjs --sourcemap",
-    "build:cjs:prod": "esbuild src/index.ts --bundle --outfile=./dist/substrate-client.cjs.production.min.js --target=es2020 --format=cjs --minify --sourcemap",
-    "build:ts": "tsc -p ./tsconfig-build.json --outDir ./dist --skipLibCheck --emitDeclarationOnly",
+    "build": "tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "npm run build"
+    "prepack": "pnpm run build"
   },
   "prettier": {
     "printWidth": 80,
@@ -47,6 +46,7 @@
     "@unstoppablejs/provider": "^0.0.1"
   },
   "devDependencies": {
+    "@unstoppablejs/utils": "^1.1.0",
     "@vitest/coverage-v8": "^0.34.3"
   }
 }
