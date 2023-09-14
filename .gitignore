@@ -3,9 +3,5 @@
 node_modules
 coverage
 .cache
-packages/substrate-bindings/dist/**
-packages/substrate-client/dist/**
-packages/substrate-codegen/dist/**
-packages/utils/dist/**
-experiments/dist/**
+packages/**/dist/**
 .vscode

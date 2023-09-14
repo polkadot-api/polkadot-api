@@ -20,7 +20,7 @@
   "dependencies": {
     "@inquirer/prompts": "^3.0.2",
     "@substrate/connect": "^0.7.31",
-    "@unstoppablejs/sc-provider": "^0.2.0",
+    "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
