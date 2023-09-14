@@ -38,21 +38,21 @@ importers:
 
   experiments:
     dependencies:
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../packages/substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../packages/substrate-client
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../packages/substrate-codegen
       '@substrate/connect':
         specifier: ^0.7.31
         version: 0.7.31
       '@unstoppablejs/sc-provider':
         specifier: ^0.2.0
         version: 0.2.0(@substrate/connect@0.7.31)
-      '@unstoppablejs/substrate-bindings':
-        specifier: workspace:*
-        version: link:../packages/substrate-bindings
-      '@unstoppablejs/substrate-client':
-        specifier: workspace:*
-        version: link:../packages/substrate-client
-      '@unstoppablejs/substrate-codegen':
-        specifier: workspace:*
-        version: link:../packages/substrate-codegen
       '@unstoppablejs/utils':
         specifier: ^1.1.0
         version: 1.1.0
@@ -72,24 +72,21 @@ importers:
       '@inquirer/prompts':
         specifier: ^3.0.2
         version: 3.1.1
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../substrate-client
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../substrate-codegen
       '@substrate/connect':
         specifier: ^0.7.31
         version: 0.7.31
-      '@unstoppablejs/client':
-        specifier: 0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671
-        version: 0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671
       '@unstoppablejs/sc-provider':
         specifier: ^0.2.0
         version: 0.2.0(@substrate/connect@0.7.31)
-      '@unstoppablejs/substrate-bindings':
-        specifier: workspace:*
-        version: link:../substrate-bindings
-      '@unstoppablejs/substrate-client':
-        specifier: workspace:*
-        version: link:../substrate-client
-      '@unstoppablejs/substrate-codegen':
-        specifier: workspace:*
-        version: link:../substrate-codegen
       '@unstoppablejs/utils':
         specifier: ^1.1.0
         version: 1.1.0
@@ -161,7 +158,7 @@ importers:
 
   packages/substrate-codegen:
     dependencies:
-      '@unstoppablejs/substrate-bindings':
+      '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
       '@unstoppablejs/utils':
@@ -654,12 +651,6 @@ packages:
 
   /@types/wrap-ansi@3.0.0:
     resolution: {integrity: sha512-ltIpx+kM7g/MLRZfkbL7EsCEjfzCcScLpkg37eXEtx5kmrAKBkTJwd1GIAjDSL8wTpM6Hzn5YO4pSb91BEwu1g==}
-    dev: false
-
-  /@unstoppablejs/client@0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671:
-    resolution: {integrity: sha512-XVs0Us4dTGhVqVAVhXPuPoqvT3IBi2Kk9A2kjCrWuNzm1EU4XKENx+qLdS7jzQbw+DN8XRowxe7Nx1q0EA/4IQ==}
-    dependencies:
-      '@unstoppablejs/provider': 0.0.1
     dev: false
 
   /@unstoppablejs/provider@0.0.1:

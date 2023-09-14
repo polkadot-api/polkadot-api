@@ -1,3 +1,3 @@
-# Capi
+# polkadot-api
 
-Docs: coming soon!
+Docs: coming soon(ish)!

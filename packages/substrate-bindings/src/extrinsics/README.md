@@ -147,7 +147,7 @@ const $extra = Struct({
 })
 ```
 
-The extrinsic mortality is a mechanism which ensures that an extrinsic is only valid within a certain period. It could be 1-byte for inmortal and 2-byte for mortal extrinsics.  
+The extrinsic mortality is a mechanism which ensures that an extrinsic is only valid within a certain period. It could be 1-byte for inmortal and 2-byte for mortal extrinsics.
 Mortal extrinsics encode 2 values
 
 - `period`, which should be a power of `2` and greater or equal to `4`
@@ -234,9 +234,9 @@ In Substrate, an [`UncheckedExtrinsic`](https://github.com/paritytech/substrate/
 
 The concrete types to create the codecs for an `UncheckedExtrinsic` are chain specific and described in the chain [metadata](https://spec.polkadot.network/sect-metadata#sect-rtm-extrinsic-metadata).
 
-This is important because different Substrate chains may have different extrinsic shapes.  
-For example, the `UncheckedExtrinsic` in Polkadot and AssetHub are slightly different when it comes to tips.  
-In Polkadot, tips are paid with the native asset; and, in AssetHub, tips can be paid in the native asset or with another asset.  
+This is important because different Substrate chains may have different extrinsic shapes.
+For example, the `UncheckedExtrinsic` in Polkadot and AssetHub are slightly different when it comes to tips.
+In Polkadot, tips are paid with the native asset; and, in AssetHub, tips can be paid in the native asset or with another asset.
 For more details check
 
 - Polkadot [`UncheckedExtrinsic`](https://github.com/paritytech/polkadot/blob/7458cbda04aecb672a65be99e2a57e1724dca10c/runtime/polkadot/src/lib.rs#L1522-L1524) [`SignedExtra`](https://github.com/paritytech/polkadot/blob/7458cbda04aecb672a65be99e2a57e1724dca10c/runtime/polkadot/src/lib.rs#L1461-L1472) [`ChargeTransactionPayment`](https://github.com/paritytech/substrate/blob/51b2f0ed6af8dd4facb18f1a489e192fd0673f7b/frame/transaction-payment/src/lib.rs#L665-L677)
@@ -296,8 +296,8 @@ For more details, see [Substrate Quering Storage](https://docs.substrate.io/lear
 For example, to compute the `System.Number` storage key
 
 ```ts
-import { twoX128 } from "@unstoppablejs/substrate-bindings"
-import { mergeUint8, toHex } from "@unstoppablejs/utils"
+import { twoX128 } from "@polkadot-api/substrate-bindings"
+import { mergeUint8, toHex } from "@polkaddot-api/utils"
 
 const systemKey = toHex(twoX128(new TextEncoder().encode("System")))
 const numberKey = toHex(twoX128(new TextEncoder().encode("Number")))
@@ -321,8 +321,8 @@ For example, to compute the `System.Account(AccountId32)` storage key
 import { blake2b } from "@noble/hashes/blake2b"
 import { Keyring } from "@polkadot/keyring"
 import { cryptoWaitReady } from "@polkadot/util-crypto"
-import { twoX128 } from "@unstoppablejs/substrate-bindings"
-import { mergeUint8, toHex } from "@unstoppablejs/utils"
+import { twoX128 } from "@polkadot-api/substrate-bindings"
+import { mergeUint8, toHex } from "@polkadot-api/utils"
 
 await cryptoWaitReady()
 

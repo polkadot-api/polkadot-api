@@ -1,5 +1,5 @@
 import { WellKnownChain } from "@substrate/connect"
-import { createClient } from "@unstoppablejs/substrate-client"
+import { createClient } from "@polkadot-api/substrate-client"
 import { GetProvider } from "@unstoppablejs/provider"
 import { deferred } from "./deferred"
 import { fromHex } from "@unstoppablejs/utils"
@@ -8,7 +8,7 @@ import {
   metadata as $metadata,
   CodecType,
   OpaqueCodec,
-} from "@unstoppablejs/substrate-bindings"
+} from "@polkadot-api/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
 import { Subject } from "rxjs"

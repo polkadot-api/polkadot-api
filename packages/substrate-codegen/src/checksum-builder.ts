@@ -1,5 +1,5 @@
-import type { StringRecord, V14 } from "@unstoppablejs/substrate-bindings"
-import { h64 } from "@unstoppablejs/substrate-bindings"
+import type { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
+import { h64 } from "@polkadot-api/substrate-bindings"
 import {
   EnumVar,
   LookupEntry,

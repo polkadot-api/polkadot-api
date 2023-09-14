@@ -20,9 +20,9 @@
   "dependencies": {
     "@substrate/connect": "^0.7.31",
     "@unstoppablejs/sc-provider": "^0.2.0",
-    "@unstoppablejs/substrate-bindings": "workspace:*",
-    "@unstoppablejs/substrate-client": "workspace:*",
-    "@unstoppablejs/substrate-codegen": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/substrate-codegen": "workspace:*",
     "@unstoppablejs/utils": "^1.1.0"
   },
   "prettier": {

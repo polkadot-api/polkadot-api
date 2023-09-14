@@ -1,4 +1,4 @@
-import { StringRecord, V14 } from "@unstoppablejs/substrate-bindings"
+import { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
 import { LookupEntry, getLookupFn } from "./lookups"
 
 export interface Variable {

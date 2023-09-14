@@ -1,1 +1,1 @@
-# @unstoppablejs/substrate-codegen
+# @polkadot-api/substrate-codegen
