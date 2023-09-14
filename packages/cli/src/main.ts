@@ -9,10 +9,8 @@ import {
   getStaticBuilder,
 } from "@unstoppablejs/substrate-codegen"
 import { V14Lookup } from "@unstoppablejs/substrate-bindings"
-import { CheckboxData } from "./CheckboxData"
 import * as childProcess from "node:child_process"
 import { deferred } from "./deferred"
-import { ExtrinsicData } from "./ExtrinsicData"
 import { confirm, input, select } from "@inquirer/prompts"
 import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
@@ -29,6 +27,7 @@ import asTable from "as-table"
 import chalk from "chalk"
 import * as Record from "fp-ts/lib/Record"
 import { Data } from "./data"
+import { outputCodegen } from "./io"
 
 const ProgramArgs = z.object({
   metadataFile: z.string().optional(),
@@ -59,7 +58,7 @@ program.parse()
 
 const options = ProgramArgs.parse(program.opts())
 
-const data2 = await (options.key
+const data = await (options.key
   ? Data.fromSavedDescriptors({
       key: options.key,
       pkgJSONKey: options.pkgJSONKey,
@@ -67,11 +66,15 @@ const data2 = await (options.key
     })
   : Promise.resolve(new Data()))
 
+if (data.outputFolder && options.key) {
+  await outputCodegen(data, data.outputFolder, options.key)
+}
+
 if (!options.interactive) {
   process.exit(0)
 }
 
-if (!data2.isInitialized) {
+if (!data.isInitialized) {
   const metadataArgs = options.metadataFile
     ? {
         source: "file" as const,
@@ -94,16 +97,16 @@ if (!data2.isInitialized) {
   const { magicNumber, metadata } = await getMetadata(metadataArgs)
   spinner.stop()
 
-  data2.setMetadata(magicNumber, metadata)
+  data.setMetadata(magicNumber, metadata)
 }
 
-const metadata = data2.metadata
+const metadata = data.metadata
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
 const OUTPUT_CODEGEN = "OUTPUT_CODEGEN"
 const OUTPUT_DESCRIPTORS = "OUTPUT_DESCRIPTORS"
-const LOAD_DESCRIPTORS = "LOAD_DESCRIPTORS"
+/* const LOAD_DESCRIPTORS = "LOAD_DESCRIPTORS" */
 const SAVE_METADATA = "SAVE_METADATA"
 const BLOWUP_METADATA = "BLOWUP_METADATA"
 const EXIT = "EXIT"
@@ -114,16 +117,6 @@ const EVENTS = "EVENTS"
 const ERRORS = "ERRORS"
 const EXTRINSICS = "EXTRINSICS"
 
-const data: Record<
-  string,
-  {
-    constants: CheckboxData
-    storage: CheckboxData
-    events: CheckboxData
-    errors: CheckboxData
-    extrinsics: ExtrinsicData
-  }
-> = {}
 const { lookup, pallets } = metadata.value
 
 const checksumBuilder = getChecksumBuilder(metadata.value)
@@ -137,7 +130,7 @@ while (!exit) {
       { name: "Show descriptors", value: SHOW_DESCRIPTORS },
       { name: "Save Metadata", value: SAVE_METADATA },
       { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS },
-      { name: "Load Descriptors", value: LOAD_DESCRIPTORS },
+      /*      { name: "Load Descriptors", value: LOAD_DESCRIPTORS }, */
       { name: "Blowup Metadata", value: BLOWUP_METADATA },
       { name: "Output Codegen", value: OUTPUT_CODEGEN },
       { name: "Exit", value: EXIT },
@@ -155,16 +148,6 @@ while (!exit) {
       const errors = getLookupEntry(lookup, Number(pallet.errors))
       const extrinsics = getLookupEntry(lookup, Number(pallet.calls))
 
-      if (!data[pallet.name]) {
-        data[pallet.name] = {
-          constants: new CheckboxData(),
-          storage: new CheckboxData(),
-          events: new CheckboxData(),
-          errors: new CheckboxData(),
-          extrinsics: new ExtrinsicData(),
-        }
-      }
-
       let exitDescriptorSelection = false
       while (!exitDescriptorSelection) {
         const descriptorType = await select({
@@ -180,7 +163,9 @@ while (!exit) {
         })
         switch (descriptorType) {
           case CONSTANTS: {
-            await data[pallet.name].constants.prompt(
+            await data.promptCheckboxData(
+              "constants",
+              pallet.name,
               "Select Constants",
               pallet.constants.map((c) => [
                 c.name,
@@ -190,7 +175,9 @@ while (!exit) {
             break
           }
           case STORAGE:
-            await data[pallet.name].storage.prompt(
+            await data.promptCheckboxData(
+              "storage",
+              pallet.name,
               "Select Storage",
               pallet.storage?.items.map((s) => [
                 s.name,
@@ -199,7 +186,9 @@ while (!exit) {
             )
             break
           case EVENTS:
-            await data[pallet.name].events.prompt(
+            await data.promptCheckboxData(
+              "events",
+              pallet.name,
               "Select Events",
               events.map((e) => [
                 e,
@@ -208,7 +197,9 @@ while (!exit) {
             )
             break
           case ERRORS:
-            await data[pallet.name].errors.prompt(
+            await data.promptCheckboxData(
+              "errors",
+              pallet.name,
               "Select Errors",
               errors.map((e) => [
                 e,
@@ -219,20 +210,23 @@ while (!exit) {
           case EXTRINSICS: {
             let selectExtrinsics = true
             while (selectExtrinsics) {
-              await data[pallet.name].extrinsics.prompt(
+              await data.promptExtrinsicData(
+                pallet.name,
                 extrinsics.map((e) => [
                   e,
                   checksumBuilder.buildCall(pallet.name, e)!,
                 ]),
-                Object.entries(data).flatMap(([pallet, { events }]) =>
-                  Array.from(Object.keys(events.data)).map(
-                    (event) => [pallet, event] as [string, string],
-                  ),
+                Object.entries(data.descriptorData).flatMap(
+                  ([pallet, { events }]) =>
+                    Array.from(Object.keys(events)).map(
+                      (event) => [pallet, event] as [string, string],
+                    ),
                 ),
-                Object.entries(data).flatMap(([pallet, { errors }]) =>
-                  Array.from(Object.keys(errors.data)).map(
-                    (errors) => [pallet, errors] as [string, string],
-                  ),
+                Object.entries(data.descriptorData).flatMap(
+                  ([pallet, { errors }]) =>
+                    Array.from(Object.keys(errors)).map(
+                      (errors) => [pallet, errors] as [string, string],
+                    ),
                 ),
               )
               selectExtrinsics = await confirm({
@@ -251,14 +245,6 @@ while (!exit) {
       }
       break
     }
-    /*     case SAVE_METADATA: {
-      const outFile = await input({
-        message: "Enter output fileName",
-        default: "metadata.scale",
-      })
-      await fs.writeFile(outFile, encodeMetadata({ magicNumber, metadata }))
-      break
-    } */
     case BLOWUP_METADATA: {
       blowupMetadata(metadata)
       break
@@ -279,7 +265,9 @@ while (!exit) {
 
       if (writeToPkgJSON) {
         writePkg.updatePackage(
-          JSON.parse(JSON.stringify({ capi: { descriptors: data } })),
+          JSON.parse(
+            JSON.stringify({ [options.pkgJSONKey]: { descriptors: data } }),
+          ),
         )
       } else {
         const outFile = await input({
@@ -291,7 +279,7 @@ while (!exit) {
       }
       break
     }
-    case LOAD_DESCRIPTORS: {
+    /*     case LOAD_DESCRIPTORS: {
       const descriptors = await (async () => {
         if (await fsExists("package.json")) {
           const pkgJSONSchema = z.object({
@@ -559,292 +547,29 @@ while (!exit) {
 
       for (const pallet of Object.keys(descriptors)) {
         const palletDescriptors = descriptors[pallet]
-        data[pallet] = data[pallet] ?? {}
-        data[pallet].constants = new CheckboxData(palletDescriptors.constants)
-        data[pallet].storage = new CheckboxData(palletDescriptors.storage)
-        data[pallet].events = new CheckboxData(palletDescriptors.events)
-        data[pallet].errors = new CheckboxData(palletDescriptors.errors)
-        data[pallet].extrinsics = new ExtrinsicData(
-          palletDescriptors.extrinsics,
-        )
+        data.descriptorData[pallet] = data.descriptorData[pallet] ?? {}
+        data.descriptorData[pallet].constants =
+          palletDescriptors.constants ?? {}
+        data.descriptorData[pallet].storage = palletDescriptors.storage ?? {}
+        data.descriptorData[pallet].events = palletDescriptors.events ?? {}
+        data.descriptorData[pallet].errors = palletDescriptors.errors ?? {}
+        data.descriptorData[pallet].extrinsics =
+          palletDescriptors.extrinsics ?? {}
       }
       break
-    }
+    } */
     case OUTPUT_CODEGEN: {
-      const outFile = await input({
-        message: "Enter output fileName",
-        default: "codegen.ts",
+      const outputFolder = await input({
+        message: "Enter output folder name",
+        default: "src/descriptors/",
       })
+      const key =
+        options.key ??
+        (await input({
+          message: "Enter key to save descriptors under",
+        }))
 
-      const declarations: CodeDeclarations = {
-        imports: new Set<string>(),
-        variables: new Map(),
-      }
-
-      const { buildStorage, buildEvent, buildCall, buildConstant, buildError } =
-        getStaticBuilder(metadata.value, declarations)
-
-      const constantDescriptors: [
-        pallet: string,
-        name: string,
-        checksum: bigint,
-        payload: string,
-      ][] = []
-
-      const storageDescriptors: [
-        pallet: string,
-        name: string,
-        checksum: bigint,
-        key: string,
-        val: string,
-      ][] = []
-
-      const eventDescriptors: Record<
-        string,
-        [pallet: string, name: string, checksum: bigint, payload: string]
-      > = {}
-      const errorDescriptors: Record<
-        string,
-        [pallet: string, name: string, checksum: bigint, payload: string]
-      > = {}
-
-      const callDescriptors: [
-        pallet: string,
-        callName: string,
-        checksum: bigint,
-        payload: string,
-        events: ReadonlyRecord<string, ReadonlySet<string>>,
-        errors: ReadonlyRecord<string, ReadonlySet<string>>,
-      ][] = []
-
-      for (const [
-        pallet,
-        { constants, storage, events, extrinsics, errors },
-      ] of Object.entries(data)) {
-        for (const [constantName, checksum] of Object.entries(constants.data)) {
-          const payload = buildConstant(pallet, constantName)
-          constantDescriptors.push([pallet, constantName, checksum, payload])
-        }
-        for (const [entry, checksum] of Object.entries(storage.data)) {
-          const { key, val } = buildStorage(pallet, entry)
-          storageDescriptors.push([pallet, entry, checksum, key, val])
-        }
-        for (const [eventName, checksum] of Object.entries(events.data)) {
-          const payload = buildEvent(pallet, eventName)
-          eventDescriptors[`${pallet}${eventName}`] = [
-            pallet,
-            eventName,
-            checksum,
-            payload,
-          ]
-        }
-        for (const [errorName, checksum] of Object.entries(errors.data)) {
-          const payload = buildError(pallet, errorName)
-          errorDescriptors[`${pallet}${errorName}`] = [
-            pallet,
-            errorName,
-            checksum,
-            payload,
-          ]
-        }
-        for (const [callName, { events, errors }] of Object.entries(
-          extrinsics.data,
-        )) {
-          const payload = buildCall(pallet, callName)
-          const checksum = checksumBuilder.buildCall(pallet, callName)!
-          callDescriptors.push([
-            pallet,
-            callName,
-            checksum,
-            payload,
-            events,
-            errors,
-          ])
-        }
-      }
-
-      const constDeclarations = [...declarations.variables.values()].map(
-        (variable) =>
-          `const ${variable.id}${
-            variable.types ? ": " + variable.types : ""
-          } = ${variable.value}\nexport type ${
-            variable.id
-          } = CodecType<typeof ${variable.id}>`,
-      )
-      declarations.imports.add("CodecType")
-      declarations.imports.add("Codec")
-      constDeclarations.unshift(
-        `import {${[...declarations.imports].join(
-          ", ",
-        )}} from "@unstoppablejs/substrate-bindings"`,
-      )
-
-      await fs.mkdir("codegen", { recursive: true })
-      await fs.writeFile(`codegen/${outFile}`, constDeclarations.join("\n\n"))
-      const tsc = deferred<number>()
-      const process = childProcess.spawn("tsc", [
-        `codegen/${outFile}`,
-        "--outDir",
-        "./codegen",
-        "--skipLibCheck",
-        "--emitDeclarationOnly",
-        "--declaration",
-      ])
-
-      process.stdout.on("data", (data) => {
-        console.log(`stdout: ${data}`)
-      })
-
-      process.stderr.on("data", (data) => {
-        console.error(`stderr: ${data}`)
-      })
-
-      process.on("close", (code) => {
-        tsc.resolve(code ?? 1)
-      })
-
-      await tsc
-
-      await fs.rm(`codegen/${outFile}`)
-
-      let descriptorCodegen = ""
-      const descriptorTypeImports = [
-        "DescriptorCommon",
-        "ArgsWithPayloadCodec",
-        "StorageDescriptor",
-        "ConstantDescriptor",
-        "EventDescriptor",
-        "ErrorDescriptor",
-        "EventToObject",
-        "UnionizeTupleEvents",
-        "TxDescriptorArgs",
-        "TxDescriptorEvents",
-        "TxDescriptorErrors",
-        "TxFunction",
-      ]
-      const descriptorImports = [
-        "createCommonDescriptor",
-        "getDescriptorCreator",
-        "getPalletCreator",
-      ]
-
-      descriptorCodegen += `import {${[
-        ...new Set([...declarations.imports, ...descriptorImports]),
-      ].join(", ")}} from "@unstoppablejs/substrate-bindings"\n`
-      descriptorCodegen += `import type {${[...descriptorTypeImports].join(
-        ", ",
-      )}} from "@unstoppablejs/substrate-bindings"\n`
-      descriptorCodegen += `import type {${[...declarations.variables.values()]
-        .map((v) => v.id)
-        .join(", ")}} from "./codegen"\n\n`
-
-      descriptorCodegen += `const CONST = "const"\n\n`
-      descriptorCodegen += `const EVENT = "event"\n\n`
-      descriptorCodegen += `const ERROR = "error"\n\n`
-
-      for (const pallet of Object.keys(data)) {
-        descriptorCodegen += `const ${pallet}Creator = getPalletCreator(\"${pallet}\")\n\n`
-      }
-
-      descriptorCodegen +=
-        constantDescriptors
-          .map(
-            ([pallet, name, checksum, payload]) =>
-              `const ${pallet}${name}Constant = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as unknown as ${
-                declarations.imports.has(payload)
-                  ? `CodecType<typeof ${payload}>`
-                  : payload
-              })`,
-          )
-
-          .join("\n\n") + "\n"
-      descriptorCodegen +=
-        storageDescriptors
-          .map(([pallet, name, checksum, key, payload]) => {
-            const returnType = declarations.imports.has(payload)
-              ? `CodecType<typeof ${payload}>`
-              : payload
-            const len = declarations.variables.get(key)!.directDependencies.size
-
-            return `const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(
-  ${checksum}n,
-  \"${name}\",
-  {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)`
-          })
-          .join("\n\n") + "\n"
-      descriptorCodegen +=
-        Object.values(eventDescriptors)
-          .map(
-            ([pallet, name, checksum, payload]) =>
-              `const ${pallet}${name}Event = ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as unknown as ${
-                declarations.imports.has(payload)
-                  ? `CodecType<typeof ${payload}>`
-                  : payload
-              })`,
-          )
-          .join("\n\n") + "\n"
-      descriptorCodegen +=
-        Object.values(errorDescriptors)
-          .map(
-            ([pallet, name, checksum, payload]) =>
-              `const ${pallet}${name}Error = ${pallet}Creator.getPayloadDescriptor(ERROR, ${checksum}n, \"${name}\", {} as unknown as ${
-                declarations.imports.has(payload)
-                  ? `CodecType<typeof ${payload}>`
-                  : payload
-              })`,
-          )
-          .join("\n\n") + "\n"
-
-      for (const [
-        pallet,
-        name,
-        checksum,
-        payload,
-        events,
-        errors,
-      ] of callDescriptors) {
-        const eventVariables = Object.entries(events).reduce(
-          (p, [pallet, palletEvents]) => [
-            ...p,
-            ...Array.from(palletEvents).map((e) => `${pallet}${e}Event`),
-          ],
-          [] as string[],
-        )
-        const errorVariables = Object.entries(errors).reduce(
-          (p, [pallet, palletErrors]) => [
-            ...p,
-            ...Array.from(palletErrors).map((e) => `${pallet}${e}Error`),
-          ],
-          [] as string[],
-        )
-
-        descriptorCodegen +=
-          `const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
-            ",",
-          )}], [${errorVariables.join(",")}], {} as unknown as ${
-            declarations.imports.has(payload)
-              ? `CodecType<typeof ${payload}>`
-              : payload
-          })` + "\n\n"
-      }
-
-      const descriptorVariablesRegexp = new RegExp(
-        /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))\s(?=\=)/g,
-      )
-
-      const descriptorVariableNames =
-        descriptorCodegen
-          .match(descriptorVariablesRegexp)
-          ?.map((s) => s.trim()) ?? []
-
-      descriptorCodegen +=
-        `const result: [${descriptorVariableNames
-          .map((s) => `typeof ${s}`)
-          .join(",")}] = [${descriptorVariableNames.join(",")}]` +
-        "\n\nexport default result\n\n"
-
-      await fs.writeFile(`codegen/descriptor_codegen.ts`, descriptorCodegen)
-
+      outputCodegen(data, outputFolder, key)
       break
     }
     case EXIT:

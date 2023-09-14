@@ -29,7 +29,7 @@
     "semi": false,
     "trailingComma": "all"
   },
-  "capi": {
+  "polkadot-api": {
     "polkadot": {
       "metadata": "polkadot-metadata.scale",
       "chainSpec": "polkadot",
