@@ -8,6 +8,42 @@ import { Data } from "./data"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import { deferred } from "./deferred"
 import * as childProcess from "node:child_process"
+import * as readPkg from "read-pkg"
+import * as writePkg from "write-pkg"
+import * as z from "zod"
+import descriptorSchema from "./descriptor-schema"
+
+export async function outputDescriptors(
+  data: Data,
+  pkgJSONKey: string,
+  key: string,
+  metadataFile: string,
+  outputFolder: string,
+) {
+  let output: z.TypeOf<typeof descriptorSchema> = {}
+
+  const pkgJSONSchema = z.object({
+    [pkgJSONKey]: descriptorSchema,
+  })
+  const pkgJSON = await readPkg.readPackage()
+  const parseResult = await pkgJSONSchema.safeParseAsync(pkgJSON)
+  if (parseResult.success) {
+    output = parseResult.data[pkgJSONKey]
+  }
+
+  output = {
+    ...output,
+    [key]: {
+      metadata: metadataFile,
+      outputFolder: outputFolder,
+      descriptors: data.descriptorData,
+    },
+  }
+
+  await writePkg.updatePackage({
+    [pkgJSONKey]: output,
+  } as any)
+}
 
 export async function outputCodegen(
   data: Data,
@@ -57,8 +93,6 @@ export async function outputCodegen(
     events: ReadonlyRecord<string, ReadonlySet<string>>,
     errors: ReadonlyRecord<string, ReadonlySet<string>>,
   ][] = []
-
-  console.log("data.descriptorData", data.descriptorData)
 
   for (const [
     pallet,
@@ -147,7 +181,7 @@ export async function outputCodegen(
 
   await tsc
 
-  await fs.rm(`outputFolder/${key}.ts`)
+  await fs.rm(`${outputFolder}/${key}.ts`)
 
   let descriptorCodegen = ""
   const descriptorTypeImports = [

@@ -3,7 +3,7 @@ import { CodecType, metadata } from "@unstoppablejs/substrate-bindings"
 import fsExists from "fs.promises.exists"
 import fs from "fs/promises"
 import { z } from "zod"
-import { newDescriptorSchema } from "./descriptor-schema"
+import descriptorSchema from "./descriptor-schema"
 import { checkbox, select, confirm } from "@inquirer/prompts"
 import util from "util"
 
@@ -151,7 +151,7 @@ export class Data {
         const pkgJSON = JSON.parse(
           await fs.readFile("package.json", { encoding: "utf-8" }),
         )
-        const schema = z.object({ [args.pkgJSONKey]: newDescriptorSchema })
+        const schema = z.object({ [args.pkgJSONKey]: descriptorSchema })
 
         const result = await schema.parseAsync(pkgJSON)
 
@@ -160,7 +160,7 @@ export class Data {
         const file = JSON.parse(
           await fs.readFile(args.fileName, { encoding: "utf-8" }),
         )
-        const result = await newDescriptorSchema.parseAsync(file)
+        const result = await descriptorSchema.parseAsync(file)
 
         return result[args.key]
       }

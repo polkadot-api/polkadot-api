@@ -31,6 +31,7 @@
     "fp-ts": "^2.16.1",
     "fs.promises.exists": "^1.1.4",
     "ora": "^7.0.1",
+    "read-pkg": "^8.1.0",
     "rxjs": "^7.8.1",
     "type-fest": "^4.3.1",
     "write-pkg": "^6.0.0",

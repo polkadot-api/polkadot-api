@@ -15,6 +15,7 @@ import { confirm, input, select } from "@inquirer/prompts"
 import util from "util"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
 import * as writePkg from "write-pkg"
+import * as readPkg from "read-pkg"
 import { z } from "zod"
 import descriptorSchema from "./descriptor-schema"
 import fsExists from "fs.promises.exists"
@@ -27,12 +28,12 @@ import asTable from "as-table"
 import chalk from "chalk"
 import * as Record from "fp-ts/lib/Record"
 import { Data } from "./data"
-import { outputCodegen } from "./io"
+import { outputCodegen, outputDescriptors } from "./io"
 
 const ProgramArgs = z.object({
   metadataFile: z.string().optional(),
   pkgJSONKey: z.string(),
-  key: z.string().optional(),
+  key: z.string(),
   file: z.string().optional(),
   interactive: z.boolean(),
 })
@@ -47,7 +48,7 @@ program
     "key in package json for descriptor metadata",
     "polkadot-api",
   )
-  .option("k --key <key>", "first key in descriptor metadata")
+  .requiredOption("k --key <key>", "first key in descriptor metadata")
   .option(
     "f --file file",
     "path to descriptor metadata file; alternative to package json",
@@ -66,7 +67,7 @@ const data = await (options.key
     })
   : Promise.resolve(new Data()))
 
-if (data.outputFolder && options.key) {
+if (data.isInitialized && data.outputFolder && options.key) {
   await outputCodegen(data, data.outputFolder, options.key)
 }
 
@@ -104,11 +105,12 @@ const metadata = data.metadata
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
-const OUTPUT_CODEGEN = "OUTPUT_CODEGEN"
-const OUTPUT_DESCRIPTORS = "OUTPUT_DESCRIPTORS"
+const SAVE = "SAVE"
+/* const OUTPUT_CODEGEN = "OUTPUT_CODEGEN" */
+/* const OUTPUT_DESCRIPTORS = "OUTPUT_DESCRIPTORS" */
 /* const LOAD_DESCRIPTORS = "LOAD_DESCRIPTORS" */
-const SAVE_METADATA = "SAVE_METADATA"
-const BLOWUP_METADATA = "BLOWUP_METADATA"
+/* const SAVE_METADATA = "SAVE_METADATA" */
+/* const BLOWUP_METADATA = "BLOWUP_METADATA" */
 const EXIT = "EXIT"
 
 const CONSTANTS = "CONSTANTS"
@@ -128,11 +130,12 @@ while (!exit) {
     choices: [
       { name: "Select descriptors", value: SELECT_DESCRIPTORS },
       { name: "Show descriptors", value: SHOW_DESCRIPTORS },
-      { name: "Save Metadata", value: SAVE_METADATA },
-      { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS },
+      { name: "Save descriptors", value: SAVE },
+      /*       { name: "Save Metadata", value: SAVE_METADATA },
+      { name: "Output Descriptors", value: OUTPUT_DESCRIPTORS }, */
       /*      { name: "Load Descriptors", value: LOAD_DESCRIPTORS }, */
-      { name: "Blowup Metadata", value: BLOWUP_METADATA },
-      { name: "Output Codegen", value: OUTPUT_CODEGEN },
+      /*       { name: "Blowup Metadata", value: BLOWUP_METADATA },
+      { name: "Output Codegen", value: OUTPUT_CODEGEN }, */
       { name: "Exit", value: EXIT },
     ],
   })
@@ -245,18 +248,31 @@ while (!exit) {
       }
       break
     }
-    case BLOWUP_METADATA: {
-      blowupMetadata(metadata)
-      break
-    }
+
     case SHOW_DESCRIPTORS: {
       console.log(
         util.inspect(data, { showHidden: false, depth: null, colors: true }),
       )
       break
     }
-    case OUTPUT_DESCRIPTORS: {
-      const output = JSON.stringify(data, null, 2)
+    case SAVE: {
+      const writeToPkgJSON = await confirm({
+        message: "Write to package.json?",
+        default: false,
+      })
+
+      const outputFolder = await input({
+        message: "output folder",
+      })
+
+      await outputDescriptors(
+        data,
+        options.pkgJSONKey,
+        options.key,
+        "asdf.metadata.scale",
+        outputFolder,
+      )
+      /*       const output = JSON.stringify(data, null, 2)
 
       const writeToPkgJSON = await confirm({
         message: "Write to package.json?",
@@ -276,7 +292,7 @@ while (!exit) {
         })
 
         await fs.writeFile(outFile, output)
-      }
+      } */
       break
     }
     /*     case LOAD_DESCRIPTORS: {
@@ -558,7 +574,7 @@ while (!exit) {
       }
       break
     } */
-    case OUTPUT_CODEGEN: {
+    /*     case OUTPUT_CODEGEN: {
       const outputFolder = await input({
         message: "Enter output folder name",
         default: "src/descriptors/",
@@ -571,7 +587,7 @@ while (!exit) {
 
       outputCodegen(data, outputFolder, key)
       break
-    }
+    } */
     case EXIT:
       exit = true
       break
