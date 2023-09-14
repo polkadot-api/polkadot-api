@@ -1,6 +1,6 @@
 {
-  "name": "@polkadot-api/substrate-client",
-  "version": "0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671",
+  "name": "@polkadot-api/utils",
+  "version": "0.0.0-experimental-1519a4ce-142b-4667-bc73-f8913a6dcd50",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -31,8 +31,7 @@
   ],
   "scripts": {
     "build": "tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
-    "test": "vitest",
-    "coverage": "vitest run --coverage",
+    "test": "echo 'no tests'",
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
@@ -41,12 +40,5 @@
     "printWidth": 80,
     "semi": false,
     "trailingComma": "all"
-  },
-  "dependencies": {
-    "@unstoppablejs/provider": "^0.0.1"
-  },
-  "devDependencies": {
-    "@polkadot-api/utils": "workspace:*",
-    "@vitest/coverage-v8": "^0.34.3"
   }
 }

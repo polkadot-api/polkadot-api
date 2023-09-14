@@ -6,5 +6,6 @@ coverage
 packages/substrate-bindings/dist/**
 packages/substrate-client/dist/**
 packages/substrate-codegen/dist/**
+packages/utils/dist/**
 experiments/dist/**
 .vscode

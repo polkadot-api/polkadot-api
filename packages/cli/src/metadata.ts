@@ -2,7 +2,7 @@ import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
 import { GetProvider } from "@unstoppablejs/provider"
 import { deferred } from "./deferred"
-import { fromHex } from "@unstoppablejs/utils"
+import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
 import {
   metadata as $metadata,

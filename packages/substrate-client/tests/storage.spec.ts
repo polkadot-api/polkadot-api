@@ -1,7 +1,7 @@
 import { describe, expect } from "vitest"
 import { test, fc } from "@fast-check/vitest"
 import { setupChainHeadOperationSubscription } from "./fixtures"
-import { toHex } from "@unstoppablejs/utils"
+import { toHex } from "@polkadot-api/utils"
 import { pipe } from "./utils"
 
 describe.each([true, false])("storage correctness", (mergeItems) => {

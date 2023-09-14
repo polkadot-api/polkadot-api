@@ -1,4 +1,4 @@
-import { mergeUint8 } from "@unstoppablejs/utils"
+import { mergeUint8 } from "@polkadot-api/utils"
 import { blake2b } from "@noble/hashes/blake2b"
 
 const len32 = { dkLen: 32 }
