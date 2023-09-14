@@ -1,5 +1,5 @@
-import type { StringRecord, V14 } from "@capi-dev/substrate-bindings"
-import { h64 } from "@capi-dev/substrate-bindings"
+import type { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
+import { h64 } from "@polkadot-api/substrate-bindings"
 import {
   EnumVar,
   LookupEntry,

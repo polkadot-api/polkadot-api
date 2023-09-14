@@ -1,4 +1,4 @@
-import type { StringRecord, V14Lookup } from "@capi-dev/substrate-bindings"
+import type { StringRecord, V14Lookup } from "@polkadot-api/substrate-bindings"
 
 export type VoidVar = { type: "primitive"; value: "_void" }
 const voidVar: VoidVar = { type: "primitive", value: "_void" }

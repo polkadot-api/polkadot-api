@@ -1,12 +1,12 @@
 import { WellKnownChain } from "@substrate/connect"
 import { ScProvider } from "@unstoppablejs/sc-provider"
-import { createClient } from "@capi-dev/substrate-client"
+import { createClient } from "@polkadot-api/substrate-client"
 import {
   compact,
   metadata,
   CodecType,
   Tuple,
-} from "@capi-dev/substrate-bindings"
+} from "@polkadot-api/substrate-bindings"
 
 const smProvider = ScProvider(
   WellKnownChain.polkadot /*, {

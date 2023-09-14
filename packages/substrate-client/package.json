@@ -1,10 +1,10 @@
 {
-  "name": "@capi-dev/substrate-client",
+  "name": "@polkadot-api/substrate-client",
   "version": "0.0.0-experimental-d05a4674-ed4e-466d-bf47-213030678671",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/paritytech/capi.git"
+    "url": "git+https://github.com/paritytech/polkadot-api.git"
   },
   "license": "MIT",
   "sideEffects": false,

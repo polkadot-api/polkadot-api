@@ -38,13 +38,13 @@ importers:
 
   experiments:
     dependencies:
-      '@capi-dev/substrate-bindings':
+      '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../packages/substrate-bindings
-      '@capi-dev/substrate-client':
+      '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../packages/substrate-client
-      '@capi-dev/substrate-codegen':
+      '@polkadot-api/substrate-codegen':
         specifier: workspace:*
         version: link:../packages/substrate-codegen
       '@substrate/connect':
@@ -69,18 +69,18 @@ importers:
 
   packages/cli:
     dependencies:
-      '@capi-dev/substrate-bindings':
-        specifier: workspace:*
-        version: link:../substrate-bindings
-      '@capi-dev/substrate-client':
-        specifier: workspace:*
-        version: link:../substrate-client
-      '@capi-dev/substrate-codegen':
-        specifier: workspace:*
-        version: link:../substrate-codegen
       '@inquirer/prompts':
         specifier: ^3.0.2
         version: 3.1.1
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../substrate-client
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../substrate-codegen
       '@substrate/connect':
         specifier: ^0.7.31
         version: 0.7.31
@@ -161,7 +161,7 @@ importers:
 
   packages/substrate-codegen:
     dependencies:
-      '@capi-dev/substrate-bindings':
+      '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
       '@unstoppablejs/utils':
