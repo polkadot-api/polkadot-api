@@ -1,4 +1,4 @@
-import { SubstrateClient } from "@unstoppablejs/substrate-client"
+import { SubstrateClient } from "@polkadot-api/substrate-client"
 
 type Callback<T> = (value: T) => void
 type UnsubscribeFn = () => void

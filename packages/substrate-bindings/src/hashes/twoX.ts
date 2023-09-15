@@ -1,4 +1,4 @@
-import { mergeUint8 } from "@unstoppablejs/utils"
+import { mergeUint8 } from "@polkadot-api/utils"
 import { u64 } from "scale-ts"
 import { h64 } from "./h64"
 

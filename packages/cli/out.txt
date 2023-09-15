@@ -1,9 +1,9 @@
 
-> @capi/cli@0.0.0 start
+> @polkadot-api/cli@0.0.0 start
 > npm run build && node --enable-source-maps ./build/main.js
 
 
-> @capi/cli@0.0.0 build
+> @polkadot-api/cli@0.0.0 build
 > esbuild --bundle src/main.ts --outdir=build --sourcemap --format=esm --platform=node --packages=external
 
 [smoldot] Smoldot v1.0.16

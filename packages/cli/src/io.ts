@@ -2,7 +2,7 @@ import {
   CodeDeclarations,
   getChecksumBuilder,
   getStaticBuilder,
-} from "@unstoppablejs/substrate-codegen"
+} from "@polkadot-api/substrate-codegen"
 import fs from "fs/promises"
 import { Data } from "./data"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"

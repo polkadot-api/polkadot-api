@@ -1,5 +1,6 @@
-import { getMetadata, encodeMetadata } from "./metadata"
-import { CodecType, metadata } from "@unstoppablejs/substrate-bindings"
+import { getMetadata } from "./metadata"
+import { metadata } from "@polkadot-api/substrate-bindings"
+import type { CodecType } from "scale-ts"
 import fsExists from "fs.promises.exists"
 import fs from "fs/promises"
 import { z } from "zod"

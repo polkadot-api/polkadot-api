@@ -1,1 +1,1 @@
-# @unstoppablejs/substrate-client
+# @polkadot-api/substrate-client

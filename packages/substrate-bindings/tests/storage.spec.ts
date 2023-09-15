@@ -1,6 +1,6 @@
 import { fc, it } from "@fast-check/vitest"
 import { expect, describe, vi } from "vitest"
-import { mergeUint8, toHex } from "@unstoppablejs/utils"
+import { mergeUint8, toHex } from "@polkadot-api/utils"
 import { EncoderWithHash, _void, str, u32 } from "@/."
 
 describe("storage", () => {
@@ -28,14 +28,17 @@ describe("storage", () => {
   ])("should encode with custom encoders", async (hash, validator, era) => {
     vi.doMock("@/hashes", () => ({
       Twox128: (_: Uint8Array) => hash,
+      Identity: (_: Uint8Array) => hash,
+      Twox64Concat: (_: Uint8Array) => hash,
+      Blake2128Concat: (_: Uint8Array) => hash,
     }))
 
     const { Storage } = await import(`@/storage?${Date.now()}`)
 
     const FooStorage = Storage("foo")
     const barArgs: [EncoderWithHash<string>, EncoderWithHash<number>] = [
-      [str.enc, (i) => i],
-      [u32.enc, (i) => i],
+      [str, (i) => i],
+      [u32, (i) => i],
     ]
 
     const FooBarStorage = FooStorage("bar", _void.dec, ...barArgs)

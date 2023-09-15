@@ -4,8 +4,8 @@ import {
   LookupEntry,
   getChecksumBuilder,
   getLookupFn,
-} from "@unstoppablejs/substrate-codegen"
-import { V14Lookup } from "@unstoppablejs/substrate-bindings"
+} from "@polkadot-api/substrate-codegen"
+import { V14Lookup } from "@polkadot-api/substrate-bindings"
 import { confirm, input, select } from "@inquirer/prompts"
 import util from "util"
 import { z } from "zod"
@@ -278,17 +278,17 @@ while (!exit) {
       const descriptors = await (async () => {
         if (await fsExists("package.json")) {
           const pkgJSONSchema = z.object({
-            capi: z.object({ descriptors: descriptorSchema }).optional(),
+            polkadotApi: z.object({ descriptors: descriptorSchema }).optional(),
           })
 
-          const { capi } = await pkgJSONSchema.parseAsync(
+          const { polkadotApi } = await pkgJSONSchema.parseAsync(
             JSON.parse(
               await fs.readFile("package.json", { encoding: "utf-8" }),
             ),
           )
 
-          if (capi) {
-            return capi.descriptors
+          if (polkadotApi) {
+            return polkadotApi.descriptors
           }
         }
 

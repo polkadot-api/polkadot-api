@@ -1,14 +1,14 @@
 import { WellKnownChain } from "@substrate/connect"
-import { createClient } from "@unstoppablejs/substrate-client"
-import { GetProvider } from "@unstoppablejs/provider"
+import { createClient } from "@polkadot-api/substrate-client"
+import { GetProvider } from "@polkadot-api/json-rpc-provider"
 import { deferred } from "./deferred"
-import { fromHex } from "@unstoppablejs/utils"
+import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
 import {
   metadata as $metadata,
   CodecType,
   OpaqueCodec,
-} from "@unstoppablejs/substrate-bindings"
+} from "@polkadot-api/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
 import { Subject } from "rxjs"
@@ -25,13 +25,17 @@ async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
   })
 
   const onMsgSubject = new Subject<string>()
-  const onStatusSubject = new Subject<0 | 1 | 2>()
+  const onStatusSubject = new Subject<"connected" | "disconnected" | "halt">()
 
   const msgSchema = z.discriminatedUnion("type", [
     z.object({ type: z.literal("message"), value: z.string() }),
     z.object({
       type: z.literal("status"),
-      value: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+      value: z.union([
+        z.literal("connected"),
+        z.literal("disconnected"),
+        z.literal("halt"),
+      ]),
     }),
   ])
 

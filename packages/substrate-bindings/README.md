@@ -1,1 +1,1 @@
-# @unstoppablejs/substrate-bindings
+# @polkadot-api/substrate-bindings

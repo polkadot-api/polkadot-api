@@ -1,6 +1,6 @@
 import { fc, test } from "@fast-check/vitest"
 import { expect } from "vitest"
-import { mergeUint8 } from "@unstoppablejs/utils"
+import { mergeUint8 } from "@polkadot-api/utils"
 import { Blake2128, Blake2256, Blake2128Concat } from "@/hashes/blake2"
 import { blake2b } from "@noble/hashes/blake2b"
 
