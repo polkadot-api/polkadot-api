@@ -12,8 +12,12 @@
     ".": {
       "node": {
         "production": {
-          "require": "./dist/min/index.js"
+          "import": "./dist/index.mjs",
+          "require": "./dist/min/index.js",
+          "default": "./dist/index.js"
         },
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js",
         "default": "./dist/index.js"
       },
       "module": "./dist/index.mjs",
