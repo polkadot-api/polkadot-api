@@ -1,6 +1,6 @@
 import { fc, test } from "@fast-check/vitest"
 import { u64 } from "@/."
-import { mergeUint8 } from "@unstoppablejs/utils"
+import { mergeUint8 } from "@polkadot-api/utils"
 import { expect, vi } from "vitest"
 
 function setBytes(bytes: bigint[], out: Uint8Array) {

@@ -2,7 +2,7 @@ import {
   CodeDeclarations,
   getChecksumBuilder,
   getStaticBuilder,
-} from "@unstoppablejs/substrate-codegen"
+} from "@polkadot-api/substrate-codegen"
 import { getMetadata } from "./getMetadata"
 
 const metadata = await getMetadata()
@@ -46,9 +46,7 @@ const constDeclarations = [...variables.values()].map(
     };`,
 )
 constDeclarations.unshift(
-  `import {${[...imports].join(
-    ", ",
-  )}} from "@unstoppablejs/substrate-binding";`,
+  `import {${[...imports].join(", ")}} from "@polkadot-api/substrate-binding";`,
 )
 
 console.log(constDeclarations.join("\n\n"))

@@ -1,6 +1,6 @@
 import { fc, it } from "@fast-check/vitest"
 import { expect, describe, vi } from "vitest"
-import { mergeUint8, toHex } from "@unstoppablejs/utils"
+import { mergeUint8, toHex } from "@polkadot-api/utils"
 import { EncoderWithHash, _void, str, u32 } from "@/."
 
 describe("storage", () => {

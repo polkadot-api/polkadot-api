@@ -19,11 +19,11 @@
   },
   "dependencies": {
     "@substrate/connect": "^0.7.31",
+    "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
-    "@unstoppablejs/sc-provider": "^0.2.0",
-    "@unstoppablejs/utils": "^1.1.0"
+    "@polkadot-api/utils": "workspace:*"
   },
   "prettier": {
     "printWidth": 80,

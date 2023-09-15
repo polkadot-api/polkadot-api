@@ -1,5 +1,8 @@
-import { WellKnownChain } from "@substrate/connect"
-import { ScProvider } from "@unstoppablejs/sc-provider"
+import {
+  ScProvider,
+  WellKnownChain,
+  GetProvider,
+} from "@polkadot-api/sc-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 import {
   compact,
@@ -15,22 +18,6 @@ const smProvider = ScProvider(
   },
 }*/,
 )
-
-export interface Provider {
-  send: (message: string) => void
-  open: () => void
-  close: () => void
-}
-export declare enum ProviderStatus {
-  ready = 0,
-  disconnected = 1,
-  halt = 2,
-}
-
-export declare type GetProvider = (
-  onMessage: (message: string) => void,
-  onStatus: (status: ProviderStatus) => void,
-) => Provider
 
 const withLogsProvider = (input: GetProvider): GetProvider => {
   return (onMsg, onStatus) => {

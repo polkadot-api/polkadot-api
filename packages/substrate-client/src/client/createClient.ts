@@ -1,8 +1,8 @@
 import {
   type GetProvider,
   type Provider,
-  ProviderStatus,
-} from "@unstoppablejs/provider"
+  type ProviderStatus,
+} from "@polkadot-api/json-rpc-provider"
 import { UnsubscribeFn } from "../common-types"
 import { RpcError, IRpcError } from "./RpcError"
 import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
@@ -35,7 +35,7 @@ export const createClient = (gProvider: GetProvider): Client => {
 
   const queuedRequests = new Map<number, Parameters<ClientRequest<any, any>>>()
   let provider: Provider | null = null
-  let state: ProviderStatus = ProviderStatus.disconnected
+  let state: ProviderStatus = "disconnected"
 
   const send = (
     id: number,
@@ -93,7 +93,7 @@ export const createClient = (gProvider: GetProvider): Client => {
   }
 
   function onStatusChange(e: ProviderStatus) {
-    if (e === ProviderStatus.ready) {
+    if (e === "connected") {
       queuedRequests.forEach((args, id) => {
         process(id, ...args)
       })
@@ -133,7 +133,7 @@ export const createClient = (gProvider: GetProvider): Client => {
     if (!provider) throw new Error("Not connected")
     const id = nextId++
 
-    if (state === ProviderStatus.ready) {
+    if (state === "connected") {
       process(id, method, params, cb)
     } else {
       queuedRequests.set(id, [method, params, cb])

@@ -1,4 +1,4 @@
-import { fromHex, toHex } from "@unstoppablejs/utils"
+import { fromHex, toHex } from "@polkadot-api/utils"
 import { Bytes, Codec, Decoder, Encoder, createCodec } from "scale-ts"
 
 export type HexString = string & { __hexString: unknown }

@@ -1,6 +1,6 @@
 export const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
-const { ScProvider } = require("@unstoppablejs/sc-provider")
+const { ScProvider } = require("@polkadot-api/sc-provider")
 const { z } = require("zod")
 
 const msgSchema = z.discriminatedUnion("type", [

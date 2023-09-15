@@ -1,5 +1,5 @@
-import { LookupEntry } from "@unstoppablejs/substrate-codegen"
-import { CodecType, metadata } from "@unstoppablejs/substrate-bindings"
+import { LookupEntry } from "@polkadot-api/substrate-codegen"
+import { CodecType, metadata } from "@polkadot-api/substrate-bindings"
 
 type Metadata = CodecType<typeof metadata>["metadata"]
 

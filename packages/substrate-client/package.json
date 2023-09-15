@@ -42,11 +42,9 @@
     "semi": false,
     "trailingComma": "all"
   },
-  "dependencies": {
-    "@unstoppablejs/provider": "^0.0.1"
-  },
   "devDependencies": {
-    "@unstoppablejs/utils": "^1.1.0",
+    "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/utils": "workspace:*",
     "@vitest/coverage-v8": "^0.34.3"
   }
 }
