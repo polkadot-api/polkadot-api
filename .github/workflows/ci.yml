@@ -54,7 +54,7 @@ jobs:
         run: pnpm install
       - name: Build
         run: pnpm build
-      - name: Publish
+      - name: Pack
         run: |
           pnpm dlx lerna init
           pnpm dlx lerna version prerelease --no-git-tag-version --yes --exact --preid ${{ github.sha }}.${{ github.run_attempt }}
@@ -88,13 +88,11 @@ jobs:
         with:
           name: package
           path: ./packages/utils/*.tgz
-            
-
-      # - name: NPM Publish automation
-      #   uses: octokit/request-action@v2.x
-      #   with:
-      #     route: POST /repos/paritytech/npm_publish_automation/actions/workflows/publish.yml/dispatches
-      #     ref: main
-      #     inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}" }}'', github.repository, github.run_id) }}'
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
+      - name: NPM Publish automation
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/paritytech/npm_publish_automation/actions/workflows/publish.yml/dispatches
+          ref: main
+          inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}" }}'', github.repository, github.run_id) }}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
