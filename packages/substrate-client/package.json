@@ -10,11 +10,6 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "node": {
-        "production": {
-          "require": "./dist/min/index.js"
-        }
-      },
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js",
