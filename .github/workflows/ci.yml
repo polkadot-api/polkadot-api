@@ -61,6 +61,7 @@ jobs:
           pnpm pack --dir packages/cli
           pnpm pack --dir packages/json-rpc-provider
           pnpm pack --dir packages/sc-provider
+          pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
           pnpm pack --dir packages/substrate-codegen
           pnpm pack --dir packages/utils
@@ -76,6 +77,10 @@ jobs:
         with:
           name: package
           path: ./packages/sc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/substrate-bindings/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
