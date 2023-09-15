@@ -35,7 +35,7 @@ jobs:
         run: pnpm test
 
   publish:
-    if: ${{ github.event_name == 'pull_request' }}
+    if: contains(fromJSON('["push", "pull_request"]'), github.event_name)
     needs: build
     timeout-minutes: 10
     runs-on: ubuntu-latest
@@ -98,6 +98,6 @@ jobs:
         with:
           route: POST /repos/paritytech/npm_publish_automation/actions/workflows/publish.yml/dispatches
           ref: main
-          inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}", "npm_tag": "pr-{2}" }}'', github.repository, github.run_id, github.event.number) }}'
+          inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}", "npm_tag": "{2}" }}'', github.repository, github.run_id, github.ref_name == ''main'' && ''next'' || format(''pr-{0}'', github.event.number)) }}'
         env:
           GITHUB_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
