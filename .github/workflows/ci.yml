@@ -98,6 +98,6 @@ jobs:
         with:
           route: POST /repos/paritytech/npm_publish_automation/actions/workflows/publish.yml/dispatches
           ref: main
-          inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}" }}'', github.repository, github.run_id) }}'
+          inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}", "npm_tag": "pr-{2}" }}'', github.repository, github.run_id, github.event.number) }}'
         env:
           GITHUB_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
