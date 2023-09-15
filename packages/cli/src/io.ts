@@ -12,37 +12,71 @@ import * as readPkg from "read-pkg"
 import * as writePkg from "write-pkg"
 import * as z from "zod"
 import descriptorSchema from "./descriptor-schema"
+import { encodeMetadata } from "./metadata"
 
-export async function outputDescriptors(
-  data: Data,
-  pkgJSONKey: string,
-  key: string,
-  metadataFile: string,
-  outputFolder: string,
-) {
-  let output: z.TypeOf<typeof descriptorSchema> = {}
+type OutputDescriptorsArgs = (
+  | {
+      type: "package-json"
+      pkgJSONKey: string
+    }
+  | {
+      type: "file"
+      fileName: string
+    }
+) & {
+  data: Data
+  key: string
+  metadataFile: string
+  outputFolder: string
+}
 
-  const pkgJSONSchema = z.object({
-    [pkgJSONKey]: descriptorSchema,
+export async function outputDescriptors({
+  data,
+  key,
+  metadataFile,
+  outputFolder,
+  ...rest
+}: OutputDescriptorsArgs) {
+  switch (rest.type) {
+    case "package-json": {
+      let output: z.TypeOf<typeof descriptorSchema> = {}
+
+      const pkgJSONSchema = z.object({
+        [rest.pkgJSONKey]: descriptorSchema,
+      })
+      const pkgJSON = await readPkg.readPackage()
+      const parseResult = await pkgJSONSchema.safeParseAsync(pkgJSON)
+      if (parseResult.success) {
+        output = parseResult.data[rest.pkgJSONKey]
+      }
+
+      output = {
+        ...output,
+        [key]: {
+          metadata: metadataFile,
+          outputFolder: outputFolder,
+          descriptors: data.descriptorData,
+        },
+      }
+
+      await writePkg.updatePackage({
+        [rest.pkgJSONKey]: output,
+      } as any)
+      break
+    }
+    case "file": {
+      // TODO
+      break
+    }
+  }
+}
+
+export async function writeMetadataToDisk(data: Data, outFile: string) {
+  const encoded = encodeMetadata({
+    magicNumber: data.magicNumber,
+    metadata: data.metadata,
   })
-  const pkgJSON = await readPkg.readPackage()
-  const parseResult = await pkgJSONSchema.safeParseAsync(pkgJSON)
-  if (parseResult.success) {
-    output = parseResult.data[pkgJSONKey]
-  }
-
-  output = {
-    ...output,
-    [key]: {
-      metadata: metadataFile,
-      outputFolder: outputFolder,
-      descriptors: data.descriptorData,
-    },
-  }
-
-  await writePkg.updatePackage({
-    [pkgJSONKey]: output,
-  } as any)
+  await fs.writeFile(outFile, encoded)
 }
 
 export async function outputCodegen(

@@ -200,17 +200,14 @@ export class Data {
     this.#isInitialized = true
   }
 
-  async writeMetadataToDisk(outFile: string) {
-    this.#guardUninitialized()
-    const encoded = encodeMetadata({
-      magicNumber: this.#magicNumber,
-      metadata: this.metadata,
-    })
-    await fs.writeFile(outFile, encoded)
-  }
-
   get isInitialized(): boolean {
     return this.#isInitialized
+  }
+
+  get magicNumber(): number {
+    this.#guardUninitialized()
+
+    return this.#magicNumber
   }
 
   get metadata(): V14Metadata {
