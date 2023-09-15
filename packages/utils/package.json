@@ -13,8 +13,7 @@
       "node": {
         "production": {
           "require": "./dist/min/index.js"
-        },
-        "default": "./dist/index.js"
+        }
       },
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
