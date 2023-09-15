@@ -18,7 +18,6 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@substrate/connect": "^0.7.31",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",

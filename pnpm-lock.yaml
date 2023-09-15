@@ -53,9 +53,6 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../packages/utils
-      '@substrate/connect':
-        specifier: ^0.7.31
-        version: 0.7.31
     devDependencies:
       '@types/node':
         specifier: ^20.4.7
@@ -72,9 +69,9 @@ importers:
       '@inquirer/prompts':
         specifier: ^3.0.2
         version: 3.1.1
-      '@polkadot-api/sc-provider':
+      '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
-        version: link:../sc-provider
+        version: link:../json-rpc-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
@@ -88,8 +85,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@substrate/connect':
-        specifier: ^0.7.31
-        version: 0.7.31
+        specifier: ^0.7.32
+        version: 0.7.32
       as-table:
         specifier: ^1.0.55
         version: 1.0.55
@@ -126,8 +123,8 @@ importers:
   packages/sc-provider:
     dependencies:
       '@substrate/connect':
-        specifier: ^0.7.31
-        version: 0.7.31
+        specifier: ^0.7.32
+        version: 0.7.32
     devDependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
@@ -621,12 +618,12 @@ packages:
     resolution: {integrity: sha512-161JhCC1csjH3GE5mPLEd7HbWtwNSPJBg3p1Ksz9SFlTzj/bgEwudiRN2y5i0MoLGCIJRYKyKGMxVnd29PzNjg==}
     dev: false
 
-  /@substrate/connect@0.7.31:
-    resolution: {integrity: sha512-a6D1Yjk5b2D5QJn1HZEN/6J9Kk5YROO0AxfY7apFamkYJCePfKkCsBrergOFAk1ZC3x1FhGdSxUvfYyqPq8knw==}
+  /@substrate/connect@0.7.32:
+    resolution: {integrity: sha512-CdudmCTjYIYp9WufFdRZOxUE3zWxm3eXZpFqylETY2cuaLZrWBHDIyHyUm59fadEbZaezKW8iAs+4VZbx7ItqA==}
     requiresBuild: true
     dependencies:
       '@substrate/connect-extension-protocol': 1.0.1
-      smoldot: 1.0.13
+      smoldot: 2.0.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -2000,8 +1997,8 @@ packages:
       is-fullwidth-code-point: 4.0.0
     dev: true
 
-  /smoldot@1.0.13:
-    resolution: {integrity: sha512-IxOBMzsPles/8JlFM7Sm1ckunul3e6mYWBopf+Kg7zHmxtRwpox4nnEfaGxmhhHC8JgQVwsVPHa14AeQxtk6vA==}
+  /smoldot@2.0.1:
+    resolution: {integrity: sha512-Wqw2fL/sELQByLSeeTX1Z/d0H4McmphPMx8vh6UZS/bIIDx81oU7s/drmx2iL/ME36uk++YxpRuJey8/MOyfOA==}
     dependencies:
       ws: 8.14.1
     transitivePeerDependencies:
