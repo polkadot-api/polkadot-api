@@ -27,8 +27,8 @@ const ProgramArgs = z.object({
 type ProgramArgs = z.infer<typeof ProgramArgs>
 
 program
-  .name("capi")
-  .description("Capi CLI")
+  .name("polkadot-api")
+  .description("Polkadot API CLI")
   .option(
     "-j, --pkgJSONKey <key>",
     "key in package json for descriptor metadata",
@@ -238,7 +238,7 @@ while (!exit) {
 
       const writeToPkgJSON = await confirm({
         message: "Write to package.json?",
-        default: false,
+        default: true,
       })
 
       const outputFolder = await input({

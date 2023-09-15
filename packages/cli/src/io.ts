@@ -13,6 +13,8 @@ import * as writePkg from "write-pkg"
 import * as z from "zod"
 import descriptorSchema from "./descriptor-schema"
 import { encodeMetadata } from "./metadata"
+import { dirname } from "path"
+import fsExists from "fs.promises.exists"
 
 type OutputDescriptorsArgs = (
   | {
@@ -65,7 +67,26 @@ export async function outputDescriptors({
       break
     }
     case "file": {
-      // TODO
+      let output: z.TypeOf<typeof descriptorSchema> = {}
+
+      if (await fsExists(rest.fileName)) {
+        const existingFile = await fs.readFile(rest.fileName, {
+          encoding: "utf-8",
+        })
+        output = await descriptorSchema.parseAsync(existingFile)
+      }
+
+      output = {
+        ...output,
+        [key]: {
+          metadata: metadataFile,
+          outputFolder: outputFolder,
+          descriptors: data.descriptorData,
+        },
+      }
+
+      await fs.mkdir(dirname(rest.fileName), { recursive: true })
+      await fs.writeFile(rest.fileName, JSON.stringify(output, null, 2))
       break
     }
   }
@@ -76,6 +97,7 @@ export async function writeMetadataToDisk(data: Data, outFile: string) {
     magicNumber: data.magicNumber,
     metadata: data.metadata,
   })
+  await fs.mkdir(dirname(outFile), { recursive: true })
   await fs.writeFile(outFile, encoded)
 }
 
