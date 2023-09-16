@@ -1,6 +1,9 @@
 import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
-import { GetProvider } from "@polkadot-api/json-rpc-provider"
+import type {
+  GetProvider,
+  ProviderStatus,
+} from "@polkadot-api/json-rpc-provider"
 import { deferred } from "./deferred"
 import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
@@ -25,7 +28,7 @@ async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
   })
 
   const onMsgSubject = new Subject<string>()
-  const onStatusSubject = new Subject<"connected" | "disconnected" | "halt">()
+  const onStatusSubject = new Subject<ProviderStatus>()
 
   const msgSchema = z.discriminatedUnion("type", [
     z.object({ type: z.literal("message"), value: z.string() }),

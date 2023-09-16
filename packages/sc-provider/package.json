@@ -47,7 +47,7 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "@substrate/connect": "^0.7.31"
+    "@substrate/connect": "^0.7.32"
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*"
