@@ -43,7 +43,6 @@ const withLogsProvider = (input: GetProvider): GetProvider => {
 }
 
 export const { chainHead } = createClient(withLogsProvider(smProvider))
-/* export const { chainHead } = createClient(smProvider) */
 
 type Metadata = CodecType<typeof metadata>
 
@@ -75,7 +74,6 @@ export const getMetadata = (): Promise<Metadata> =>
             rej(e)
           })
           .finally(() => {
-            console.log("finally!")
             chainHeadFollower.unfollow()
           })
       },
