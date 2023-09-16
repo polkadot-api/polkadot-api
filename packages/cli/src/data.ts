@@ -154,9 +154,10 @@ export class Data {
         )
         const schema = z.object({ [args.pkgJSONKey]: descriptorSchema })
 
-        const result = await schema.parseAsync(pkgJSON)
-
-        return result[args.pkgJSONKey][args.key]
+        const result = await schema.safeParseAsync(pkgJSON)
+        if (result.success) {
+          return result.data[args.pkgJSONKey][args.key]
+        }
       } else if (args.fileName) {
         const file = JSON.parse(
           await fs.readFile(args.fileName, { encoding: "utf-8" }),

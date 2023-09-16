@@ -54,8 +54,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/utils
       '@substrate/connect':
-        specifier: ^0.7.31
-        version: 0.7.31
+        specifier: ^0.7.32
+        version: 0.7.32
     devDependencies:
       '@types/node':
         specifier: ^20.4.7
@@ -88,8 +88,8 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@substrate/connect':
-        specifier: ^0.7.31
-        version: 0.7.31
+        specifier: ^0.7.32
+        version: 0.7.32
       as-table:
         specifier: ^1.0.55
         version: 1.0.55
@@ -637,6 +637,17 @@ packages:
     dependencies:
       '@substrate/connect-extension-protocol': 1.0.1
       smoldot: 1.0.13
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
+
+  /@substrate/connect@0.7.32:
+    resolution: {integrity: sha512-CdudmCTjYIYp9WufFdRZOxUE3zWxm3eXZpFqylETY2cuaLZrWBHDIyHyUm59fadEbZaezKW8iAs+4VZbx7ItqA==}
+    requiresBuild: true
+    dependencies:
+      '@substrate/connect-extension-protocol': 1.0.1
+      smoldot: 2.0.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -2012,6 +2023,15 @@ packages:
 
   /smoldot@1.0.13:
     resolution: {integrity: sha512-IxOBMzsPles/8JlFM7Sm1ckunul3e6mYWBopf+Kg7zHmxtRwpox4nnEfaGxmhhHC8JgQVwsVPHa14AeQxtk6vA==}
+    dependencies:
+      ws: 8.14.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
+
+  /smoldot@2.0.1:
+    resolution: {integrity: sha512-Wqw2fL/sELQByLSeeTX1Z/d0H4McmphPMx8vh6UZS/bIIDx81oU7s/drmx2iL/ME36uk++YxpRuJey8/MOyfOA==}
     dependencies:
       ws: 8.14.1
     transitivePeerDependencies:

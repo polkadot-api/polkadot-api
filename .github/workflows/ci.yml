@@ -20,7 +20,7 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
@@ -33,3 +33,71 @@ jobs:
         run: pnpm lint
       - name: Run tests
         run: pnpm test
+
+  publish:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Install deps
+        run: pnpm install
+      - name: Build
+        run: pnpm build
+      - name: Pack
+        run: |
+          pnpm dlx lerna init
+          pnpm dlx lerna version prerelease --no-git-tag-version --yes --exact --preid ${{ github.sha }}.${{ github.run_attempt }}
+          pnpm pack --dir packages/cli
+          pnpm pack --dir packages/json-rpc-provider
+          pnpm pack --dir packages/sc-provider
+          pnpm pack --dir packages/substrate-bindings
+          pnpm pack --dir packages/substrate-client
+          pnpm pack --dir packages/substrate-codegen
+          pnpm pack --dir packages/utils
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/cli/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/json-rpc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/sc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/substrate-bindings/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/substrate-client/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/substrate-codegen/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/utils/*.tgz
+      - name: NPM Publish automation
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/paritytech/npm_publish_automation/actions/workflows/publish.yml/dispatches
+          ref: main
+          inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}", "npm_tag": "pr-{2}" }}'', github.repository, github.run_id, github.event.number) }}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}

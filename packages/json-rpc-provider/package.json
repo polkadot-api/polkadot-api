@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/json-rpc-provider",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -10,6 +10,16 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "node": {
+        "production": {
+          "import": "./dist/index.mjs",
+          "require": "./dist/min/index.js",
+          "default": "./dist/index.js"
+        },
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js",

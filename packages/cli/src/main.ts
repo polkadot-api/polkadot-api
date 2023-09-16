@@ -53,11 +53,11 @@ const data = await (options.key
     })
   : Promise.resolve(new Data()))
 
-if (data.isInitialized && data.outputFolder && options.key) {
-  await outputCodegen(data, data.outputFolder, options.key)
-}
-
 if (!options.interactive) {
+  if (data.isInitialized && data.outputFolder && options.key) {
+    await outputCodegen(data, data.outputFolder, options.key)
+  }
+
   process.exit(0)
 }
 
