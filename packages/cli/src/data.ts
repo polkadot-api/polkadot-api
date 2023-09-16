@@ -229,6 +229,35 @@ export class Data {
   }
 
   toJSON() {
-    return this.descriptorData
+    return Object.fromEntries(
+      Object.entries(this.descriptorData).map(
+        ([k, { extrinsics, ...rest }]) => [
+          k,
+          {
+            ...rest,
+            extrinsics: Object.fromEntries(
+              Object.entries(extrinsics).map(([k, v]) => [
+                k,
+                {
+                  checksum: v.checksum,
+                  events: Object.fromEntries(
+                    Object.entries(v.events).map(([k, v]) => [
+                      k,
+                      Array.from(v),
+                    ]),
+                  ),
+                  errors: Object.fromEntries(
+                    Object.entries(v.errors).map(([k, v]) => [
+                      k,
+                      Array.from(v),
+                    ]),
+                  ),
+                },
+              ]),
+            ),
+          },
+        ],
+      ),
+    )
   }
 }

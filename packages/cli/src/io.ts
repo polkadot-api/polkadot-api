@@ -205,7 +205,7 @@ export async function outputCodegen(
   constDeclarations.unshift(
     `import {${[...declarations.imports].join(
       ", ",
-    )}} from "@unstoppablejs/substrate-bindings"`,
+    )}} from "@polkadot-api/substrate-bindings"`,
   )
 
   await fs.mkdir(outputFolder, { recursive: true })
@@ -262,13 +262,13 @@ export async function outputCodegen(
 
   descriptorCodegen += `import {${[
     ...new Set([...declarations.imports, ...descriptorImports]),
-  ].join(", ")}} from "@unstoppablejs/substrate-bindings"\n`
+  ].join(", ")}} from "@polkadot-api/substrate-bindings"\n`
   descriptorCodegen += `import type {${[...descriptorTypeImports].join(
     ", ",
-  )}} from "@unstoppablejs/substrate-bindings"\n`
+  )}} from "@polkadot-api/substrate-bindings"\n`
   descriptorCodegen += `import type {${[...declarations.variables.values()]
     .map((v) => v.id)
-    .join(", ")}} from "./codegen"\n\n`
+    .join(", ")}} from "./${key}.d.ts"\n\n`
 
   descriptorCodegen += `const CONST = "const"\n\n`
   descriptorCodegen += `const EVENT = "event"\n\n`

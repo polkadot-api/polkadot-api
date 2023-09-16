@@ -15,6 +15,13 @@ import { WellKnownChain } from "@substrate/connect"
 import ora from "ora"
 import { Data } from "./data"
 import { outputCodegen, outputDescriptors, writeMetadataToDisk } from "./io"
+import {
+  checkDescriptorsForDiscrepancies,
+  synchronizeDescriptors,
+} from "./sync"
+import chalk from "chalk"
+import asTable from "as-table"
+import { blowupMetadata } from "./testing"
 
 const ProgramArgs = z.object({
   metadataFile: z.string().optional(),
@@ -22,6 +29,7 @@ const ProgramArgs = z.object({
   key: z.string(),
   file: z.string().optional(),
   interactive: z.boolean(),
+  sync: z.boolean(),
 })
 
 type ProgramArgs = z.infer<typeof ProgramArgs>
@@ -39,6 +47,7 @@ program
     "f --file file",
     "path to descriptor metadata file; alternative to package json",
   )
+  .option("s --sync", "synchronize", false)
   .option("-i, --interactive", "whether to run in interactive mode", false)
 
 program.parse()
@@ -53,12 +62,16 @@ const data = await (options.key
     })
   : Promise.resolve(new Data()))
 
-if (!options.interactive) {
-  if (data.isInitialized && data.outputFolder && options.key) {
-    await outputCodegen(data, data.outputFolder, options.key)
+if (data.isInitialized && data.outputFolder && options.key) {
+  if (options.sync) {
+    const discrepancies = checkDescriptorsForDiscrepancies(data)
+    synchronizeDescriptors(data, discrepancies)
   }
 
-  process.exit(0)
+  if (!options.interactive) {
+    await outputCodegen(data, data.outputFolder, options.key)
+    process.exit(0)
+  }
 }
 
 if (!data.isInitialized) {
@@ -91,7 +104,9 @@ const metadata = data.metadata
 
 const SELECT_DESCRIPTORS = "SELECT_DESCRIPTORS"
 const SHOW_DESCRIPTORS = "SHOW_DESCRIPTORS"
+const SYNC = "SYNC"
 const SAVE = "SAVE"
+const DELETE_METADATA = "DELETE_METADATA"
 const EXIT = "EXIT"
 
 const CONSTANTS = "CONSTANTS"
@@ -112,6 +127,8 @@ while (!exit) {
       { name: "Select descriptors", value: SELECT_DESCRIPTORS },
       { name: "Show descriptors", value: SHOW_DESCRIPTORS },
       { name: "Save descriptors", value: SAVE },
+      { name: "Synchronize descriptors", value: SYNC },
+      { name: "Delete metadata", value: DELETE_METADATA },
       { name: "Exit", value: EXIT },
     ],
   })
@@ -224,7 +241,10 @@ while (!exit) {
       }
       break
     }
-
+    case DELETE_METADATA: {
+      blowupMetadata(data.metadata)
+      break
+    }
     case SHOW_DESCRIPTORS: {
       console.log(
         util.inspect(data, { showHidden: false, depth: null, colors: true }),
@@ -274,114 +294,8 @@ while (!exit) {
 
       break
     }
-    /*     case LOAD_DESCRIPTORS: {
-      const descriptors = await (async () => {
-        if (await fsExists("package.json")) {
-          const pkgJSONSchema = z.object({
-            polkadotApi: z.object({ descriptors: descriptorSchema }).optional(),
-          })
-
-          const { polkadotApi } = await pkgJSONSchema.parseAsync(
-            JSON.parse(
-              await fs.readFile("package.json", { encoding: "utf-8" }),
-            ),
-          )
-
-          if (polkadotApi) {
-            return polkadotApi.descriptors
-          }
-        }
-
-        const inFile = await input({
-          message: "Enter descriptors fileName",
-          default: "descriptors.json",
-        })
-
-        return descriptorSchema.parseAsync(
-          JSON.parse(await fs.readFile(inFile, { encoding: "utf-8" })),
-        )
-      })()
-
-      const discrepancies: Array<{
-        pallet: string
-        type: "constant" | "storage" | "event" | "error" | "extrinsic"
-        name: string
-        oldChecksum: bigint | null
-        newChecksum: bigint | null
-      }> = []
-
-      for (const [
-        pallet,
-        { constants, storage, events, errors, extrinsics },
-      ] of Object.entries(descriptors)) {
-        for (const [constantName, checksum] of Object.entries(
-          constants ?? {},
-        )) {
-          const newChecksum = checksumBuilder.buildConstant(
-            pallet,
-            constantName,
-          )
-          if (checksum != newChecksum) {
-            discrepancies.push({
-              pallet,
-              type: "constant",
-              name: constantName,
-              oldChecksum: checksum,
-              newChecksum: newChecksum,
-            })
-          }
-        }
-        for (const [storageName, checksum] of Object.entries(storage ?? {})) {
-          const newChecksum = checksumBuilder.buildStorage(pallet, storageName)
-          if (checksum != newChecksum) {
-            discrepancies.push({
-              pallet,
-              type: "storage",
-              name: storageName,
-              oldChecksum: checksum,
-              newChecksum: newChecksum,
-            })
-          }
-        }
-        for (const [eventName, checksum] of Object.entries(events ?? {})) {
-          const newChecksum = checksumBuilder.buildEvent(pallet, eventName)
-          if (checksum != newChecksum) {
-            discrepancies.push({
-              pallet,
-              type: "event",
-              name: eventName,
-              oldChecksum: checksum,
-              newChecksum: newChecksum,
-            })
-          }
-        }
-        for (const [errorName, checksum] of Object.entries(errors ?? {})) {
-          const newChecksum = checksumBuilder.buildError(pallet, errorName)
-          if (checksum != newChecksum) {
-            discrepancies.push({
-              pallet,
-              type: "error",
-              name: errorName,
-              oldChecksum: checksum,
-              newChecksum: newChecksum,
-            })
-          }
-        }
-        for (const [callName, { checksum }] of Object.entries(
-          extrinsics ?? {},
-        )) {
-          const newChecksum = checksumBuilder.buildCall(pallet, callName)
-          if (checksum != newChecksum) {
-            discrepancies.push({
-              pallet,
-              type: "extrinsic",
-              name: callName,
-              oldChecksum: checksum,
-              newChecksum: newChecksum,
-            })
-          }
-        }
-      }
+    case SYNC: {
+      const discrepancies = checkDescriptorsForDiscrepancies(data)
 
       const mapDiscrepancy = ({
         pallet,
@@ -450,109 +364,9 @@ while (!exit) {
         }
       }
 
-      for (const discrepancy of discrepancies) {
-        switch (discrepancy.type) {
-          case "constant": {
-            const { constants } = descriptors[discrepancy.pallet]
-            if (!constants) {
-              break
-            }
-            if (discrepancy.newChecksum === null) {
-              delete constants[discrepancy.name]
-            } else {
-              constants[discrepancy.name] = discrepancy.newChecksum
-            }
-            break
-          }
-          case "storage": {
-            const { storage } = descriptors[discrepancy.pallet]
-            if (!storage) {
-              break
-            }
-            if (discrepancy.newChecksum === null) {
-              delete storage[discrepancy.name]
-            } else {
-              storage[discrepancy.name] = discrepancy.newChecksum
-            }
-            break
-          }
-          case "event": {
-            const { events } = descriptors[discrepancy.pallet]
-            if (!events) {
-              break
-            }
-            if (discrepancy.newChecksum === null) {
-              delete events[discrepancy.name]
-            } else {
-              events[discrepancy.name] = discrepancy.newChecksum
-            }
-            break
-          }
-          case "error": {
-            const { errors } = descriptors[discrepancy.pallet]
-            if (!errors) {
-              break
-            }
-            if (discrepancy.newChecksum === null) {
-              delete errors[discrepancy.name]
-            } else {
-              errors[discrepancy.name] = discrepancy.newChecksum
-            }
-            break
-          }
-          case "extrinsic": {
-            const { extrinsics } = descriptors[discrepancy.pallet]
-            if (!extrinsics) {
-              break
-            }
-            if (discrepancy.newChecksum === null) {
-              delete extrinsics[discrepancy.name]
-            } else {
-              const newEvents: Record<string, Set<string>> = extrinsics[
-                discrepancy.name
-              ].events
-              for (const d of discrepancies.filter((d) => d.type === "event")) {
-                newEvents[d.pallet] = newEvents[d.pallet] ?? {}
-                if (d.newChecksum === null) {
-                  newEvents[d.pallet].delete(d.name)
-                }
-              }
-              const newErrors: Record<string, Set<string>> = extrinsics[
-                discrepancy.name
-              ].errors
-              for (const d of discrepancies.filter((d) => d.type === "error")) {
-                newErrors[d.pallet] = newErrors[d.pallet] ?? {}
-                if (d.newChecksum === null) {
-                  newErrors[d.pallet].delete(d.name)
-                }
-              }
-
-              extrinsics[discrepancy.name] = {
-                events: newEvents,
-                errors: newErrors,
-                checksum: discrepancy.newChecksum,
-              }
-            }
-            break
-          }
-          default:
-            break
-        }
-      }
-
-      for (const pallet of Object.keys(descriptors)) {
-        const palletDescriptors = descriptors[pallet]
-        data.descriptorData[pallet] = data.descriptorData[pallet] ?? {}
-        data.descriptorData[pallet].constants =
-          palletDescriptors.constants ?? {}
-        data.descriptorData[pallet].storage = palletDescriptors.storage ?? {}
-        data.descriptorData[pallet].events = palletDescriptors.events ?? {}
-        data.descriptorData[pallet].errors = palletDescriptors.errors ?? {}
-        data.descriptorData[pallet].extrinsics =
-          palletDescriptors.extrinsics ?? {}
-      }
+      synchronizeDescriptors(data, discrepancies)
       break
-    } */
+    }
     case EXIT:
       exit = true
       break
