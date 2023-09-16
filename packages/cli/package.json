@@ -20,6 +20,7 @@
   "dependencies": {
     "@inquirer/prompts": "^3.0.2",
     "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
