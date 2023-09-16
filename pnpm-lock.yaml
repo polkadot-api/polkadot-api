@@ -72,6 +72,9 @@ importers:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
+      '@polkadot-api/sc-provider':
+        specifier: workspace:*
+        version: link:../sc-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
