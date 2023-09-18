@@ -1,14 +1,18 @@
 import type { Codec, StringRecord, V14 } from "@polkadot-api/substrate-bindings"
-import type { LookupEntry } from "./lookups"
+import type { LookupEntry, TupleVar } from "./lookups"
 import { getLookupFn } from "./lookups"
 import * as scale from "@polkadot-api/substrate-bindings"
 
-const _bytes = scale.Bytes()
+const _bytes = scale.Hex()
+
+const isBytes = (input: LookupEntry) =>
+  input.type === "primitive" && input.value === "u8"
 
 const _buildCodec = (
   input: LookupEntry,
   stack: Set<LookupEntry>,
   circularCodecs: Map<LookupEntry, Codec<any>>,
+  _accountId: Codec<scale.SS58String>,
 ): Codec<any> => {
   if (input.type === "primitive") return scale[input.value]
   if (input.type === "compact") return scale.compact
@@ -26,7 +30,12 @@ const _buildCodec = (
     if (!stack.has(nextInput)) {
       const nextStack = new Set(stack)
       nextStack.add(input)
-      const result = _buildCodec(nextInput, nextStack, circularCodecs)
+      const result = _buildCodec(
+        nextInput,
+        nextStack,
+        circularCodecs,
+        _accountId,
+      )
       if (circularCodecs.has(input)) circularCodecs.set(input, result)
       return result
     }
@@ -53,8 +62,11 @@ const _buildCodec = (
 
   if (input.type === "array") {
     // Bytes case
-    if (input.value.type === "primitive" && input.value.value === "u8")
-      return scale.Bytes(input.len)
+    if (isBytes(input.value)) {
+      return input.len === 32 && (input.id === 0 || input.id === 1)
+        ? _accountId
+        : scale.Hex(input.len)
+    }
 
     return buildVector(input.value, input.len)
   }
@@ -64,8 +76,16 @@ const _buildCodec = (
   if (input.type === "struct") return buildStruct(input.value)
 
   // it has to be an enum by now
-  const dependencies = Object.values(input.value).map((v) => {
+  const dependencies = Object.entries(input.value).map(([k, v]) => {
     if (v.type === "primitive") return scale._void
+    if (v.type === "tuple" && v.value.length === 1) {
+      const innerVal = v.value[0]
+      return k.startsWith("Raw") &&
+        innerVal.type === "array" &&
+        isBytes(innerVal.value)
+        ? scale.fixedStr(innerVal.len)
+        : buildNextCodec(innerVal)
+    }
     return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
   })
 
@@ -89,29 +109,54 @@ export const getDynamicBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
 
+  let _accountId = scale.AccountId()
+
+  const prefix = metadata.pallets
+    .find((x) => x.name === "System")
+    ?.constants.find((x) => x.name === "SS58Prefix")
+  if (prefix) {
+    try {
+      const prefixVal = _buildCodec(
+        getLookupEntryDef(prefix.type),
+        new Set(),
+        new Map(),
+        _accountId,
+      ).dec(prefix.value)
+      if (typeof prefixVal === "number") _accountId = scale.AccountId(prefixVal)
+    } catch (_) {}
+  }
+
   const buildDefinition = (id: number): Codec<any> =>
-    _buildCodec(getLookupEntryDef(id), new Set(), new Map())
+    _buildCodec(getLookupEntryDef(id), new Set(), new Map(), _accountId)
+
+  const storagePallets = new Map<string, ReturnType<typeof scale.Storage>>()
 
   const buildStorage = (pallet: string, entry: string) => {
+    let storagePallet = storagePallets.get(pallet)
+    if (!storagePallet)
+      storagePallets.set(pallet, (storagePallet = scale.Storage(pallet)))
+
     const storageEntry = metadata.pallets
       .find((x) => x.name === pallet)!
       .storage!.items.find((s) => s.name === entry)!
 
     if (storageEntry.type.tag === "plain")
-      return {
-        key: emptyTuple,
-        val: buildDefinition(storageEntry.type.value),
-      }
+      return storagePallet(entry, buildDefinition(storageEntry.type.value).dec)
 
-    const { key, value } = storageEntry.type.value
+    const { key, value, hashers } = storageEntry.type.value
     const val = buildDefinition(value)
+    const hashes = hashers.map((x) => scale[x.tag])
 
-    const returnKey =
-      storageEntry.type.value.hashers.length === 1
-        ? scale.Tuple(buildDefinition(key))
-        : buildDefinition(key)
-
-    return { key: returnKey, val }
+    const hashArgs: Array<scale.EncoderWithHash<any>> =
+      hashes.length === 1
+        ? [[buildDefinition(key), hashes[0]]]
+        : (getLookupEntryDef(key) as TupleVar).value.map(
+            (x, idx): scale.EncoderWithHash<any> => [
+              buildDefinition(x.id),
+              hashes[idx],
+            ],
+          )
+    return storagePallet(entry, val.dec, ...hashArgs)
   }
 
   const buildCall = (

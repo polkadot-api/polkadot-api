@@ -20,6 +20,9 @@ const toCamelCase = (...parts: string[]): string =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join("")
 
+const isBytes = (input: LookupEntry) =>
+  input.type === "primitive" && input.value === "u8"
+
 const _buildSyntax = (
   input: LookupEntry,
   declarations: CodeDeclarations,
@@ -47,10 +50,10 @@ const _buildSyntax = (
     input.value.type === "primitive" &&
     input.value.value === "u8"
   ) {
-    declarations.imports.add("Bytes")
+    declarations.imports.add("Hex")
     const variable = {
       id: "_bytesSeq",
-      value: "Bytes()",
+      value: "Hex()",
       directDependencies: new Set<string>(),
     }
 
@@ -132,11 +135,22 @@ const _buildSyntax = (
   const varId = getVarName(input.id)
   if (input.type === "array") {
     // Bytes case
-    if (input.value.type === "primitive" && input.value.value === "u8") {
-      declarations.imports.add("Bytes")
+    if (isBytes(input.value)) {
+      if (input.len === 32 && (input.id === 0 || input.id === 1)) {
+        declarations.imports.add("AccountId")
+        const id = "_accountId"
+        declarations.variables.set(id, {
+          id,
+          value: `AccountId()`,
+          directDependencies: new Set<string>(),
+        })
+        return id
+      }
+
+      declarations.imports.add("Hex")
       declarations.variables.set(varId, {
         id: varId,
-        value: `Bytes(${input.len})`,
+        value: `Hex(${input.len})`,
         directDependencies: new Set<string>(),
       })
       return varId
@@ -160,7 +174,28 @@ const _buildSyntax = (
 
     const varName = toCamelCase(varId, key)
     if (value.type === "tuple") {
-      buildTuple(varName, value.value)
+      if (value.value.length === 1) {
+        const innerVal = value.value[0]
+        if (
+          key.startsWith("Raw") &&
+          innerVal.type === "array" &&
+          isBytes(innerVal.value)
+        ) {
+          const id = `_fixedStr${innerVal.len}`
+          if (!declarations.variables.has(id)) {
+            declarations.imports.add("fixedStr")
+            declarations.variables.set(id, {
+              id,
+              value: `fixedStr(${innerVal.len})`,
+              directDependencies: new Set(),
+            })
+          }
+          return id
+        }
+
+        return buildNextSyntax(value.value[0])
+      }
+      return buildTuple(varName, value.value)
     } else {
       buildStruct(varName, value.value)
     }
