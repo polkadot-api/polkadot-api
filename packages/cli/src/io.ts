@@ -210,7 +210,7 @@ export async function outputCodegen(
 
   await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
-    `${outputFolder}/${key}.ts`,
+    `${outputFolder}/${key}-types.ts`,
     constDeclarations.join("\n\n"),
   )
   const tsc = deferred<number>()
@@ -269,7 +269,7 @@ export async function outputCodegen(
   )}} from "@polkadot-api/substrate-bindings"\n`
   descriptorCodegen += `import type {${[...declarations.variables.values()]
     .map((v) => v.id)
-    .join(", ")}} from "./${key}.d.ts"\n\n`
+    .join(", ")}} from "./${key}-types.d.ts"\n\n`
 
   descriptorCodegen += `const CONST = "const"\n\n`
   descriptorCodegen += `const EVENT = "event"\n\n`
