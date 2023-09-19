@@ -215,7 +215,7 @@ export async function outputCodegen(
   )
   const tsc = deferred<number>()
   const process = childProcess.spawn("tsc", [
-    `${outputFolder}/${key}.ts`,
+    `${outputFolder}/${key}-types.ts`,
     "--outDir",
     `${outputFolder}`,
     "--skipLibCheck",
@@ -237,7 +237,7 @@ export async function outputCodegen(
 
   await tsc
 
-  await fs.rm(`${outputFolder}/${key}.ts`)
+  await fs.rm(`${outputFolder}/${key}-types.ts`)
 
   let descriptorCodegen = ""
   const descriptorTypeImports = [
