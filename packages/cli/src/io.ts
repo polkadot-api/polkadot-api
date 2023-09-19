@@ -244,6 +244,7 @@ export async function outputCodegen(
     "DescriptorCommon",
     "ArgsWithPayloadCodec",
     "StorageDescriptor",
+    "StorageType",
     "ConstantDescriptor",
     "EventDescriptor",
     "ErrorDescriptor",
@@ -298,10 +299,14 @@ export async function outputCodegen(
           : payload
         const len = declarations.variables.get(key)!.directDependencies.size
 
-        return `const ${pallet}${name}Storage = ${pallet}Creator.getStorageDescriptor(
+        const constName = `${pallet}${name}Storage`
+        return `const ${constName} = ${pallet}Creator.getStorageDescriptor(
   ${checksum}n,
   \"${name}\",
-  {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)`
+  {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)
+
+export type ${constName} = StorageType<typeof ${constName}>
+`
       })
       .join("\n\n") + "\n"
   descriptorCodegen +=
