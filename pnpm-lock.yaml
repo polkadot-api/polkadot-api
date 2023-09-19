@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -108,9 +108,15 @@ importers:
       ora:
         specifier: ^7.0.1
         version: 7.0.1
+      read-pkg:
+        specifier: ^8.1.0
+        version: 8.1.0
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+      scale-ts:
+        specifier: ^1.4.0
+        version: 1.4.1
       type-fest:
         specifier: ^4.3.1
         version: 4.3.1
