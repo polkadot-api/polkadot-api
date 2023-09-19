@@ -210,6 +210,14 @@ export type TxFunction<D extends TxDescriptor<any, any, any, any>> = (
     }
   | { ok: false; error: TxDescriptorErrors<D> }
 >
+export type StorageType<
+  T extends StorageDescriptor<any, ArgsWithPayloadCodec<any, any>>,
+> = T extends StorageDescriptor<
+  any,
+  ArgsWithPayloadCodec<infer Args, infer Payload>
+>
+  ? { keyArgs: Args; value: Payload }
+  : unknown
 
 /* try it out!
 
