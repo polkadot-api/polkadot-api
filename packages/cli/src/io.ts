@@ -14,6 +14,7 @@ import { encodeMetadata } from "./metadata"
 import { dirname } from "path"
 import fsExists from "fs.promises.exists"
 import tsc from "tsc-prog"
+import path from "path"
 
 type OutputDescriptorsArgs = (
   | {
@@ -207,8 +208,8 @@ export async function outputCodegen(
     )}} from "@polkadot-api/substrate-bindings"`,
   )
 
-  const tscFileName = `${outputFolder}/${key}`
-  const tscTypesFileName = `${tscFileName}-types`
+  const tscFileName = path.join(outputFolder, key)
+  const tscTypesFileName = path.join(outputFolder, `${key}-types`)
 
   await fs.mkdir(outputFolder, { recursive: true })
 
@@ -231,6 +232,7 @@ export async function outputCodegen(
       module: "esnext",
       moduleResolution: "node",
     },
+    include: [`${key}-types.ts`],
   })
 
   if (await fsExists(`${tscTypesFileName}.ts`)) {
