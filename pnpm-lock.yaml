@@ -141,6 +141,9 @@ importers:
       scale-ts:
         specifier: ^1.4.0
         version: 1.4.1
+      tsc-prog:
+        specifier: ^2.3.0
+        version: 2.3.0(typescript@5.2.2)
       type-fest:
         specifier: ^4.3.1
         version: 4.3.1
@@ -2977,6 +2980,15 @@ packages:
   /ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
+
+  /tsc-prog@2.3.0(typescript@5.2.2):
+    resolution: {integrity: sha512-ycET2d75EgcX7y8EmG4KiZkLAwUzbY4xRhA6NU0uVbHkY4ZjrAAuzTMxXI85kOwATqPnBI5C/7y7rlpY0xdqHA==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      typescript: '>=4'
+    dependencies:
+      typescript: 5.2.2
+    dev: false
 
   /tsconfck@2.1.2(typescript@5.2.2):
     resolution: {integrity: sha512-ghqN1b0puy3MhhviwO2kGF8SeMDNhEbnKxjK7h6+fvY9JAxqvXi8y5NAHSQv687OVboS2uZIByzGd45/YxrRHg==}

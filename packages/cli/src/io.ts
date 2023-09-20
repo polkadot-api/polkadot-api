@@ -6,8 +6,6 @@ import {
 import fs from "fs/promises"
 import { Data } from "./data"
 import { ReadonlyRecord } from "fp-ts/lib/ReadonlyRecord"
-import { deferred } from "./deferred"
-import * as childProcess from "node:child_process"
 import * as readPkg from "read-pkg"
 import * as writePkg from "write-pkg"
 import * as z from "zod"
@@ -15,6 +13,8 @@ import descriptorSchema from "./descriptor-schema"
 import { encodeMetadata } from "./metadata"
 import { dirname } from "path"
 import fsExists from "fs.promises.exists"
+import tsc from "tsc-prog"
+import path from "path"
 import { ESLint } from "eslint"
 
 type OutputDescriptorsArgs = (
@@ -209,36 +209,36 @@ export async function outputCodegen(
     )}} from "@polkadot-api/substrate-bindings"`,
   )
 
+  const tscFileName = path.join(outputFolder, key)
+  const tscTypesFileName = path.join(outputFolder, `${key}-types`)
+
   await fs.mkdir(outputFolder, { recursive: true })
-  await fs.writeFile(
-    `${outputFolder}/${key}-types.ts`,
-    constDeclarations.join("\n\n"),
-  )
-  const tsc = deferred<number>()
-  const process = childProcess.spawn("tsc", [
-    `${outputFolder}/${key}-types.ts`,
-    "--outDir",
-    `${outputFolder}`,
-    "--skipLibCheck",
-    "--emitDeclarationOnly",
-    "--declaration",
-  ])
 
-  process.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`)
+  if (await fsExists(`${tscTypesFileName}.d.ts`)) {
+    await fs.rm(`${tscTypesFileName}.d.ts`)
+  }
+  if (await fsExists(`${tscFileName}.ts`)) {
+    await fs.rm(`${tscFileName}.ts`)
+  }
+
+  await fs.writeFile(`${tscTypesFileName}.ts`, constDeclarations.join("\n\n"))
+
+  tsc.build({
+    basePath: outputFolder,
+    compilerOptions: {
+      skipLibCheck: true,
+      emitDeclarationOnly: true,
+      declaration: true,
+      target: "esnext",
+      module: "esnext",
+      moduleResolution: "node",
+    },
+    include: [`${key}-types.ts`],
   })
 
-  process.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`)
-  })
-
-  process.on("close", (code) => {
-    tsc.resolve(code ?? 1)
-  })
-
-  await tsc
-
-  await fs.rm(`${outputFolder}/${key}-types.ts`)
+  if (await fsExists(`${tscTypesFileName}.ts`)) {
+    await fs.rm(`${tscTypesFileName}.ts`)
+  }
 
   let descriptorCodegen = ""
   const descriptorTypeImports = [
