@@ -1,17 +1,6 @@
 export const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
 const { ScProvider } = require("@polkadot-api/sc-provider")
-const { z } = require("zod")
-
-const msgSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("send"), value: z.string() }),
-  z.object({
-    type: z.literal("open"),
-  }),
-  z.object({
-    type: z.literal("close"),
-  }),
-])
 
 const chain = workerData
 const getProvider = ScProvider(chain)
@@ -26,10 +15,9 @@ const provider = getProvider(
 )
 
 parentPort.on("message", (msg) => {
-  const parsedMsg = msgSchema.parse(msg)
-  switch (parsedMsg.type) {
+  switch (msg.type) {
     case "send":
-      provider.send(parsedMsg.value)
+      provider.send(msg.value)
       break
     case "open":
       provider.open()

@@ -15,6 +15,7 @@ import { dirname } from "path"
 import fsExists from "fs.promises.exists"
 import tsc from "tsc-prog"
 import path from "path"
+import { ESLint } from "eslint"
 
 type OutputDescriptorsArgs = (
   | {
@@ -380,4 +381,22 @@ export type ${constName} = StorageType<typeof ${constName}>
     "\n\nexport default result\n\n"
 
   await fs.writeFile(`${outputFolder}/${key}.ts`, descriptorCodegen)
+
+  const eslint = new ESLint({
+    useEslintrc: false,
+    fix: true,
+    overrideConfig: {
+      extends: ["plugin:prettier/recommended"],
+      parser: "@typescript-eslint/parser",
+      plugins: ["@typescript-eslint", "unused-imports", "prettier"],
+      rules: {
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars:": "error",
+        "max-len": ["error", { code: 120, ignoreUrls: true }],
+      },
+    },
+  })
+
+  const results = await eslint.lintFiles([`${outputFolder}/**/*.ts`])
+  await ESLint.outputFixes(results)
 }
