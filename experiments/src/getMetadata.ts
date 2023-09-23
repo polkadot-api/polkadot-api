@@ -54,11 +54,11 @@ export const getMetadata = (): Promise<Metadata> =>
     const chainHeadFollower = chainHead(
       true,
       (message) => {
-        if (message.event === "newBlock") {
+        if (message.type === "newBlock") {
           chainHeadFollower.unpin([message.blockHash])
           return
         }
-        if (requested || message.event !== "initialized") return
+        if (requested || message.type !== "initialized") return
         const latestFinalized = message.finalizedBlockHash
         if (requested) return
         requested = true

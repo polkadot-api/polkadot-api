@@ -1,16 +1,16 @@
 import type { UnsubscribeFn } from ".."
 
 export interface TxValidated {
-  event: "validated"
+  type: "validated"
 }
 
 export interface TxBroadcasted {
-  event: "broadcasted"
+  type: "broadcasted"
   numPeers: number
 }
 
 export interface TxBestChainBlockIncluded {
-  event: "bestChainBlockIncluded"
+  type: "bestChainBlockIncluded"
   block: {
     hash: string
     index: number
@@ -18,7 +18,7 @@ export interface TxBestChainBlockIncluded {
 }
 
 export interface TxFinalized {
-  event: "finalized"
+  type: "finalized"
   block: {
     hash: string
     index: number
@@ -26,18 +26,18 @@ export interface TxFinalized {
 }
 
 export interface TxInvalid {
-  event: "invalid"
+  type: "invalid"
   error: string
 }
 
 export interface TxDropped {
-  event: "dropped"
+  type: "dropped"
   broadcasted: boolean
   error: string
 }
 
 export interface TxError {
-  event: "error"
+  type: "error"
   error: string
 }
 

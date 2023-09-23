@@ -75,7 +75,7 @@ export const createStorageFn = createOperationPromise(
       e: OperationStorageItems | OperationStorageDone,
       res: (x: StorageResponse) => void,
     ) => {
-      if (e.event === "operationStorageDone") return res(result)
+      if (e.type === "operationStorageDone") return res(result)
 
       e.items.forEach((item) => {
         if (item.value) {

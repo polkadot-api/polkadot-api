@@ -88,15 +88,15 @@ export function createPullClient<
   const runtime$ = chainHead$.pipe(
     scan(
       (acc, event) => {
-        if (event.event === "initialized") {
+        if (event.type === "initialized") {
           acc.candidates.clear()
           acc.current = event.finalizedBlockRuntime
         }
 
-        if (event.event === "newBlock" && event.newRuntime)
+        if (event.type === "newBlock" && event.newRuntime)
           acc.candidates.set(event.blockHash, event.newRuntime)
 
-        if (event.event !== "finalized") return acc
+        if (event.type !== "finalized") return acc
 
         const [newRuntimeHash] = event.finalizedBlockHashes
           .filter((h) => acc.candidates.has(h))
@@ -117,8 +117,8 @@ export function createPullClient<
 
   const finalized$: Observable<string> = chainHead$.pipe(
     mergeMap((e) => {
-      if (e.event === "initialized") return [e.finalizedBlockHash]
-      if (e.event === "finalized") return e.finalizedBlockHashes
+      if (e.type === "initialized") return [e.finalizedBlockHash]
+      if (e.type === "finalized") return e.finalizedBlockHashes
       return []
     }),
     shareReplay(1),

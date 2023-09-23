@@ -50,7 +50,7 @@ export function getChainHead(
       if (isOperationEvent(event))
         return subscriptions.next(event.operationId, event)
 
-      if (event.event !== "stop") return onFollowEvent(event as any)
+      if (event.type !== "stop") return onFollowEvent(event as any)
 
       onFollowError(new StopError())
       unfollow(false)
