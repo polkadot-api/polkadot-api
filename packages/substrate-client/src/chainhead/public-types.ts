@@ -11,7 +11,7 @@ export interface Runtime {
 }
 
 export interface Initialized {
-  event: "initialized"
+  type: "initialized"
   finalizedBlockHash: string
 }
 
@@ -20,7 +20,7 @@ export type InitializedWithRuntime = Initialized & {
 }
 
 export interface NewBlock {
-  event: "newBlock"
+  type: "newBlock"
   blockHash: string
   parentBlockHash: string
 }
@@ -30,12 +30,12 @@ export type NewBlockWithRuntime = NewBlock & {
 }
 
 export interface BestBlockChanged {
-  event: "bestBlockChanged"
+  type: "bestBlockChanged"
   bestBlockHash: string
 }
 
 export interface Finalized {
-  event: "finalized"
+  type: "finalized"
   finalizedBlockHashes: Array<string>
   prunedBlockHashes: Array<string>
 }

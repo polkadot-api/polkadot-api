@@ -57,7 +57,7 @@ describe("transaction", () => {
       fixtures: { sendMessage, sendSubscription, onMsg, onError },
     } = setupTxWithSubscription()
 
-    const validated = { event: "validated" }
+    const validated = { type: "validated" }
     sendSubscription({
       result: validated,
     })
@@ -66,7 +66,7 @@ describe("transaction", () => {
     expect(onMsg).toHaveBeenCalledWith(validated)
     expect(onError).not.toHaveBeenCalled()
 
-    const broadcasted = { event: "broadcasted", numPeers: 2 }
+    const broadcasted = { type: "broadcasted", numPeers: 2 }
     sendSubscription({
       result: broadcasted,
     })
@@ -78,7 +78,7 @@ describe("transaction", () => {
     sendMessage({
       params: {
         subscription: "wrongSubscriptionId",
-        result: { event: "broadcasted", numPeers: 5 },
+        result: { type: "broadcasted", numPeers: 5 },
       },
     })
 
@@ -86,7 +86,7 @@ describe("transaction", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const finalized = {
-      event: "finalized",
+      type: "finalized",
       block: {
         hash: "someHash",
         index: "1",
@@ -121,7 +121,7 @@ describe("transaction", () => {
     sendMessage({
       params: {
         subscription: SUBSCRIPTION_ID,
-        result: { event: "validated" },
+        result: { type: "validated" },
       },
     })
     expect(onMsg).not.toHaveBeenCalled()
@@ -150,7 +150,7 @@ describe("transaction", () => {
     ])
 
     sendSubscription({
-      result: { event: "validated" },
+      result: { type: "validated" },
     })
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
@@ -166,17 +166,17 @@ describe("transaction", () => {
 
       const error = `${eventType}: something wrong happened`
       sendSubscription({
-        result: { event: eventType, error },
+        result: { type: eventType, error },
       })
 
       expect(onMsg).not.toHaveBeenCalled()
       expect(onError).toHaveBeenCalledOnce()
       expect(onError).toHaveBeenCalledWith(
-        new TransactionError({ event: eventType as any, error }),
+        new TransactionError({ type: eventType as any, error }),
       )
 
       sendSubscription({
-        result: { event: "broadcasted", numPeers: 5 },
+        result: { type: "broadcasted", numPeers: 5 },
       })
 
       expect(onMsg).not.toHaveBeenCalled()
@@ -193,7 +193,7 @@ describe("transaction", () => {
       fixtures: { sendSubscription, getNewMessages, onMsg, onError },
     } = setupTxWithSubscription()
 
-    const finalizedEvent = { event: "finalized" }
+    const finalizedEvent = { type: "finalized" }
     sendSubscription({
       result: finalizedEvent,
     })
@@ -203,7 +203,7 @@ describe("transaction", () => {
     expect(onError).not.toHaveBeenCalled()
 
     sendSubscription({
-      result: { event: "broadcasted", numPeers: 5 },
+      result: { type: "broadcasted", numPeers: 5 },
     })
 
     expect(onMsg).toHaveBeenCalledOnce()

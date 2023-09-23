@@ -8,7 +8,7 @@ import {
 } from "./errors"
 
 export const createOperationPromise =
-  <I extends { operationId: string; event: string }, O, A extends Array<any>>(
+  <I extends { operationId: string; type: string }, O, A extends Array<any>>(
     operationName: string,
     factory: (
       ...args: A
@@ -43,9 +43,9 @@ export const createOperationPromise =
           done = followSubscription(response.operationId, {
             next: (e) => {
               const _e = e as CommonOperationEvents
-              if (_e.event === "operationError") {
+              if (_e.type === "operationError") {
                 rej(new OperationError(_e.error))
-              } else if (_e.event === "operationInaccessible") {
+              } else if (_e.type === "operationInaccessible") {
                 rej(new OperationInaccessibleError())
               } else {
                 logicCb(e as I, _res, _rej)

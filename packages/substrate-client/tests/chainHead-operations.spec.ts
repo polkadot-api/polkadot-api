@@ -20,7 +20,7 @@ describe.each([
     ["someHash"] as [string],
     [
       {
-        event: "operationBodyDone",
+        type: "operationBodyDone",
         value: ["tx1", "tx2"],
       },
     ],
@@ -33,7 +33,7 @@ describe.each([
     ["someHash", "someFnName", "someCallParams"] as [string, string, string],
     [
       {
-        event: "operationCallDone",
+        type: "operationCallDone",
         output: "operationCallOutput",
       },
     ],
@@ -56,7 +56,7 @@ describe.each([
     ["someHash", [{ key: "someStorageKey", type: "value" }], null],
     [
       {
-        event: "operationStorageItems",
+        type: "operationStorageItems",
         items: [
           {
             key: "someStorageKey",
@@ -65,7 +65,7 @@ describe.each([
         ],
       },
       {
-        event: "operationStorageDone",
+        type: "operationStorageDone",
       },
     ],
     {
@@ -180,7 +180,7 @@ describe.each([
       } = setupChainHeadOperationSubscription(op, ...args)
 
       sendOperationNotification({
-        event: "operationInaccessible",
+        type: "operationInaccessible",
       })
 
       return expect(operationPromise).rejects.toEqual(
@@ -196,7 +196,7 @@ describe.each([
 
       const error = "something went wrong"
       sendOperationNotification({
-        event: "operationError",
+        type: "operationError",
         error,
       })
 

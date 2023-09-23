@@ -1,23 +1,23 @@
 // Common
 export interface Inaccessible {
-  event: "inaccessible"
+  type: "inaccessible"
 }
 
 export interface Disjoint {
-  event: "disjoint"
+  type: "disjoint"
 }
 
 export interface FError {
-  event: "error"
+  type: "error"
   error: string
 }
 
 export interface Stop {
-  event: "stop"
+  type: "stop"
 }
 
 export interface Done {
-  event: "done"
+  type: "done"
 }
 
 // operation events
@@ -26,27 +26,27 @@ interface OperationEvent {
 }
 
 export type OperationWaitingForContinue = OperationEvent & {
-  event: "operationWaitingForContinue"
+  type: "operationWaitingForContinue"
 }
 
 export type OperationInaccessible = OperationEvent & {
-  event: "operationInaccessible"
+  type: "operationInaccessible"
 }
 
 export type OperationError = OperationEvent & {
-  event: "operationError"
+  type: "operationError"
   error: string
 }
 
 export type CommonOperationEvents = OperationInaccessible | OperationError
 
 export type OperationBodyDone = OperationEvent & {
-  event: "operationBodyDone"
+  type: "operationBodyDone"
   value: Array<string>
 }
 
 export type OperationCallDone = OperationEvent & {
-  event: "operationCallDone"
+  type: "operationCallDone"
   output: string
 }
 
@@ -58,12 +58,12 @@ export interface StorageItemResponse {
 }
 
 export type OperationStorageItems = OperationEvent & {
-  event: "operationStorageItems"
+  type: "operationStorageItems"
   items: Array<StorageItemResponse>
 }
 
 export type OperationStorageDone = OperationEvent & {
-  event: "operationStorageDone"
+  type: "operationStorageDone"
 }
 
 export type OperationEvents =

@@ -216,11 +216,11 @@ describe.each([true, false])("storage correctness", (mergeItems) => {
           ]
 
       sendOperationNotification({
-        event: "operationStorageItems",
+        type: "operationStorageItems",
         items,
       })
       sendOperationNotification({
-        event: "operationStorageDone",
+        type: "operationStorageDone",
       })
 
       const expected = {

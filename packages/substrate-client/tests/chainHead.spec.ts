@@ -27,7 +27,7 @@ describe("chainHead", () => {
     } = setupChainHeadWithSubscription()
 
     const initialized = {
-      event: "initialized",
+      type: "initialized",
       finalizedBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       finalizedBlockRuntime:
@@ -43,7 +43,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const newBlock = {
-      event: "newBlock",
+      type: "newBlock",
       blockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       parentBlockHash:
@@ -59,7 +59,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const operationBodyDone = {
-      event: "operationBodyDone",
+      type: "operationBodyDone",
       operationId: "someOperationId",
       value: [""],
     }
@@ -72,7 +72,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const bestBlockChanged = {
-      event: "bestBlockChanged",
+      type: "bestBlockChanged",
       bestBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
     }
@@ -103,7 +103,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const initialized = {
-      event: "initialized",
+      type: "initialized",
       finalizedBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       finalizedBlockRuntime:
@@ -142,7 +142,7 @@ describe("chainHead", () => {
     ])
 
     const initialized = {
-      event: "initialized",
+      type: "initialized",
       finalizedBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       finalizedBlockRuntime:
@@ -162,7 +162,7 @@ describe("chainHead", () => {
     } = setupChainHeadWithSubscription()
 
     sendSubscription({
-      result: { event: "stop" },
+      result: { type: "stop" },
     })
 
     expect(onMsg).not.toHaveBeenCalled()
@@ -171,7 +171,7 @@ describe("chainHead", () => {
 
     sendSubscription({
       result: {
-        event: "initialized",
+        type: "initialized",
         finalizedBlockHash:
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         finalizedBlockRuntime:
@@ -222,7 +222,7 @@ describe("chainHead", () => {
     })
 
     sendSubscription({
-      result: { event: "stop" },
+      result: { type: "stop" },
     })
 
     return Promise.all(
@@ -250,7 +250,7 @@ describe("chainHead", () => {
       call("", "", ""),
     ]
     sendSubscription({
-      result: { event: "stop" },
+      result: { type: "stop" },
     })
 
     return Promise.all(
