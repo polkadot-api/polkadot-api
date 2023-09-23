@@ -1,5 +1,8 @@
 import { ClientRequestCb } from "@/client"
 import type { AbortablePromiseFn, UnsubscribeFn } from "@/common-types"
+import { StorageItemInput, StorageItemResponse } from "./internal-types"
+
+export type { StorageItemInput, StorageItemResponse } from "./internal-types"
 
 export interface Runtime {
   specName: string
@@ -81,6 +84,15 @@ export interface FollowResponse {
     ],
     StorageResponse
   >
+  storageSubscription: (
+    hash: string,
+    inputs: Array<StorageItemInput>,
+    childTrie: string | null,
+    onItems: (items: Array<StorageItemResponse>) => void,
+    onError: (e: Error) => void,
+    onDone: () => void,
+    onDiscartedItems: (nDiscarted: number) => void,
+  ) => () => void
   header: (hash: string) => Promise<string>
   unpin: (hashes: Array<string>) => Promise<void>
   _request: <Reply, Notification>(

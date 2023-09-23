@@ -3,6 +3,7 @@ import { test, fc } from "@fast-check/vitest"
 import { setupChainHeadOperationSubscription } from "./fixtures"
 import { toHex } from "@polkadot-api/utils"
 import { pipe } from "./utils"
+import { OperationLimitError } from "@/chainhead"
 
 describe.each([true, false])("storage correctness", (mergeItems) => {
   const fcHash = fc.uint8Array({ minLength: 32, maxLength: 32 }).map(toHex)
@@ -92,7 +93,7 @@ describe.each([true, false])("storage correctness", (mergeItems) => {
         .map((t) => Object.fromEntries(t)),
     ),
     fc.option(fcHash, { nil: null }),
-    fc.integer({ min: 0, max: 0 }), // TODO: add functionality for discarded items
+    fc.integer({ min: 0, max: 5 }),
   ])(
     `chainHead_unstable_storage - mergeItems = ${mergeItems}`,
     async (blockHash, storageMap, childTrie, discardedItems) => {
@@ -158,21 +159,37 @@ describe.each([true, false])("storage correctness", (mergeItems) => {
         }
       }
 
+      const query = {
+        value: valueQueryKeys,
+        hash: hashQueryKeys,
+        closestDescendantMerkleValue: closestQueryKeys,
+        descendantsValues: descendantValuesKeys,
+        descendantsHashes: descendantHashesKeys,
+      }
       const {
         fixtures: { sendOperationNotification },
         operationPromise,
       } = setupChainHeadOperationSubscription(
         { name: "storage", discardedItems: discardedItems },
         blockHash,
-        {
-          value: valueQueryKeys,
-          hash: hashQueryKeys,
-          closestDescendantMerkleValue: closestQueryKeys,
-          descendantsValues: descendantValuesKeys,
-          descendantsHashes: descendantHashesKeys,
-        },
+        query,
         childTrie,
       )
+
+      if (discardedItems > 0) {
+        if (
+          Object.values(query)
+            .filter(Boolean)
+            .map((x) => x.length)
+            .reduce((a, b) => a + b) === 0
+        )
+          return
+
+        await expect(operationPromise).rejects.toEqual(
+          new OperationLimitError(),
+        )
+        return
+      }
 
       const descendantValues = Object.values(descendantValuesStorage).flatMap(
         (a) => Object.entries(a).flatMap(([key, value]) => ({ key, value })),

@@ -1,24 +1,42 @@
+import { ClientRequest, OperationLimitError } from ".."
 import type {
+  CommonOperationEvents,
+  LimitReached,
   OperationStorageDone,
   OperationStorageItems,
+  OperationWaitingForContinue,
   StorageItemInput,
+  StorageOperationStarted,
 } from "./internal-types"
 import type { StorageResponse } from "./public-types"
-import { createOperationPromise } from "./operation-promise"
+import { abortablePromiseFn } from "@/internal-utils"
+import { createStorageCb } from "./storage-subscription"
 
-export const createStorageFn = createOperationPromise(
-  "chainHead_unstable_storage",
-  (
-    hash: string,
-    query: Partial<{
-      value: Array<string>
-      hash: Array<string>
-      descendantsValues: Array<string>
-      descendantsHashes: Array<string>
-      closestDescendantMerkleValue: Array<string>
-    }>,
-    childTrie: string | null,
-  ) => {
+export const createStorageFn = (
+  request: ClientRequest<
+    StorageOperationStarted | LimitReached,
+    | CommonOperationEvents
+    | OperationStorageItems
+    | OperationStorageDone
+    | OperationWaitingForContinue
+  >,
+) => {
+  const cbStore = createStorageCb(request)
+
+  return abortablePromiseFn<
+    StorageResponse,
+    [
+      hash: string,
+      query: Partial<{
+        value: Array<string>
+        hash: Array<string>
+        descendantsValues: Array<string>
+        descendantsHashes: Array<string>
+        closestDescendantMerkleValue: Array<string>
+      }>,
+      childTrie: string | null,
+    ]
+  >((res, rej, hash, query, childTrie) => {
     const queries: Record<StorageItemInput["type"], Set<string>> = {
       value: new Set(query.value ?? []),
       hash: new Set(query.hash ?? []),
@@ -61,8 +79,6 @@ export const createStorageFn = createOperationPromise(
       })
     })
 
-    const requestArgs = [hash, items, childTrie]
-
     const result: StorageResponse = {
       values: {},
       hashes: {},
@@ -71,58 +87,69 @@ export const createStorageFn = createOperationPromise(
       descendantsValues: {},
     }
 
-    const resultBuilder = (
-      e: OperationStorageItems | OperationStorageDone,
-      res: (x: StorageResponse) => void,
-    ) => {
-      if (e.type === "operationStorageDone") return res(result)
+    const cancel = cbStore(
+      hash,
+      items,
+      childTrie,
+      (items) => {
+        items.forEach((item) => {
+          if (item.value) {
+            if (queries.value.has(item.key)) {
+              result.values[item.key] = item.value
+            } else {
+              // there could be many matching ones, we want to take the longest one
+              const queriedKey = [...queries["descendantsValues"]]
+                .filter((key) => item.key.startsWith(key))
+                .sort((a, b) => b.length - a.length)[0]
 
-      e.items.forEach((item) => {
-        if (item.value) {
-          if (queries.value.has(item.key)) {
-            result.values[item.key] = item.value
-          } else {
-            // there could be many matching ones, we want to take the longest one
-            const queriedKey = [...queries["descendantsValues"]]
-              .filter((key) => item.key.startsWith(key))
-              .sort((a, b) => b.length - a.length)[0]
-
-            const values = result.descendantsValues[queriedKey] ?? []
-            values.push({
-              key: item.key,
-              value: item.value,
-            })
-            result.descendantsValues[queriedKey] = values
+              const values = result.descendantsValues[queriedKey] ?? []
+              values.push({
+                key: item.key,
+                value: item.value,
+              })
+              result.descendantsValues[queriedKey] = values
+            }
           }
-        }
 
-        if (item.hash) {
-          if (queries.hash.has(item.key)) {
-            result.hashes[item.key] = item.hash
-          } else {
-            // there could be many matching ones, we want to take the longest one
-            const queriedKey = [...queries["descendantsHashes"]]
-              .filter((key) => item.key.startsWith(key))
-              .sort((a, b) => b.length - a.length)[0]
+          if (item.hash) {
+            if (queries.hash.has(item.key)) {
+              result.hashes[item.key] = item.hash
+            } else {
+              // there could be many matching ones, we want to take the longest one
+              const queriedKey = [...queries["descendantsHashes"]]
+                .filter((key) => item.key.startsWith(key))
+                .sort((a, b) => b.length - a.length)[0]
 
-            const hashes = result.descendantsHashes[queriedKey] ?? []
-            hashes.push({
-              key: item.key,
-              hash: item.hash,
-            })
-            result.descendantsHashes[queriedKey] = hashes
+              const hashes = result.descendantsHashes[queriedKey] ?? []
+              hashes.push({
+                key: item.key,
+                hash: item.hash,
+              })
+              result.descendantsHashes[queriedKey] = hashes
+            }
           }
-        }
 
-        if (
-          item["closestDescendantMerkleValue"] &&
-          queries["closestDescendantMerkleValue"].has(item.key)
-        ) {
-          result.closests[item.key] = item["closestDescendantMerkleValue"]
+          if (
+            item["closestDescendantMerkleValue"] &&
+            queries["closestDescendantMerkleValue"].has(item.key)
+          ) {
+            result.closests[item.key] = item["closestDescendantMerkleValue"]
+          }
+        })
+      },
+      (error) => {
+        rej(error)
+      },
+      () => {
+        res(result)
+      },
+      (nDiscarded) => {
+        if (nDiscarded > 0) {
+          cancel()
+          rej(new OperationLimitError())
         }
-      })
-    }
-
-    return [requestArgs, resultBuilder]
-  },
-)
+      },
+    )
+    return cancel
+  })
+}
