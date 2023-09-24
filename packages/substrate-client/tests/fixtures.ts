@@ -90,9 +90,9 @@ export function setupChainHeadOperation<
 >(name: Name, ...args: Parameters<FollowResponse[Name]>) {
   const { fixtures, ...chainhead } = setupChainHeadWithSubscription()
   fixtures.getNewMessages()
-  const operationPromise = chainhead[name](...(args as any[])) as ReturnType<
-    FollowResponse[Name]
-  >
+  const operationPromise = (chainhead[name] as any)(
+    ...(args as any[]),
+  ) as ReturnType<FollowResponse[Name]>
 
   return { ...chainhead, fixtures, operationPromise }
 }

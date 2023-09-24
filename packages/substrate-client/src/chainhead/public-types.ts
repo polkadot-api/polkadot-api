@@ -55,13 +55,12 @@ export type FollowEventWithoutRuntime =
   | NewBlock
   | CommonFollowEvents
 
-export interface StorageResponse {
-  values: Record<string, string>
-  hashes: Record<string, string>
-  closests: Record<string, string>
-  descendantsValues: Record<string, Array<{ key: string; value: string }>>
-  descendantsHashes: Record<string, Array<{ key: string; hash: string }>>
-}
+export type StorageResult<Input extends StorageItemInput["type"]> =
+  Input extends "descendantsHashes"
+    ? Array<{ key: string; hash: string }>
+    : Input extends "descendantsValues"
+    ? Array<{ key: string; value: string }>
+    : string | null
 
 export interface FollowResponse {
   unfollow: UnsubscribeFn
@@ -70,20 +69,13 @@ export interface FollowResponse {
     [hash: string, fnName: string, callParameters: string],
     string
   >
-  storage: AbortablePromiseFn<
-    [
-      hash: string,
-      query: Partial<{
-        value: Array<string>
-        hash: Array<string>
-        descendantsValues: Array<string>
-        descendantsHashes: Array<string>
-        closestDescendantMerkleValue: Array<string>
-      }>,
-      childTrie: string | null,
-    ],
-    StorageResponse
-  >
+  storage: <Type extends StorageItemInput["type"]>(
+    hash: string,
+    type: Type,
+    key: string,
+    childTrie: string | null,
+    abortSignal?: AbortSignal | undefined,
+  ) => Promise<StorageResult<Type>>
   storageSubscription: (
     hash: string,
     inputs: Array<StorageItemInput>,

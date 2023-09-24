@@ -203,7 +203,7 @@ describe("chainHead", () => {
       },
     })
 
-    const storagePromise = storage("", { value: ["df"] }, null)
+    const storagePromise = storage("", "value", "df", null)
     sendMessage({
       id: 3,
       result: {
@@ -246,7 +246,7 @@ describe("chainHead", () => {
       header(""),
       unpin([""]),
       body(""),
-      storage("", { value: ["df"] }, null),
+      storage("", "value", "df", null),
       call("", "", ""),
     ]
     sendSubscription({

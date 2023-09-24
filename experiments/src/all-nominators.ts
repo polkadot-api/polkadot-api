@@ -56,16 +56,11 @@ export const getAllNominators = (): Promise<any> =>
         chainHeadFollower
           .storage(
             latestFinalized,
-            {
-              descendantsValues: [
-                "0x5f3e4907f716ac89b6347d15ececedca88dcde934c658227ee1dfafcd6e16903",
-              ],
-            },
+            "descendantsValues",
+            "0x5f3e4907f716ac89b6347d15ececedca88dcde934c658227ee1dfafcd6e16903",
             null,
           )
-          .then((response) => {
-            res(response.descendantsValues)
-          })
+          .then(res)
           .catch((e) => {
             console.log("error", e)
             rej(e)
@@ -73,6 +68,7 @@ export const getAllNominators = (): Promise<any> =>
           .finally(() => {
             chainHeadFollower.unfollow()
           })
+        chainHeadFollower.unpin([latestFinalized])
       },
       () => {},
     )
