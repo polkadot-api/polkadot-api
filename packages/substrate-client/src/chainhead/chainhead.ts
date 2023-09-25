@@ -18,6 +18,7 @@ import { createHeaderFn } from "./header"
 import { createStorageFn } from "./storage"
 import { createUnpinFn } from "./unpin"
 import { DisjointError, StopError } from "./errors"
+import { createStorageCb } from "./storage-subscription"
 
 type FollowEvent =
   | FollowEventWithRuntime
@@ -168,6 +169,7 @@ export function getChainHead(
       call: createCallFn(fRequest),
       header: createHeaderFn(fRequest),
       storage: createStorageFn(fRequest),
+      storageSubscription: createStorageCb(fRequest),
       unpin: createUnpinFn(fRequest),
       _request: fRequest,
     }

@@ -1,5 +1,8 @@
 import { ClientRequestCb } from "@/client"
 import type { AbortablePromiseFn, UnsubscribeFn } from "@/common-types"
+import { StorageItemInput, StorageItemResponse } from "./internal-types"
+
+export type { StorageItemInput, StorageItemResponse } from "./internal-types"
 
 export interface Runtime {
   specName: string
@@ -52,13 +55,12 @@ export type FollowEventWithoutRuntime =
   | NewBlock
   | CommonFollowEvents
 
-export interface StorageResponse {
-  values: Record<string, string>
-  hashes: Record<string, string>
-  closests: Record<string, string>
-  descendantsValues: Record<string, Array<{ key: string; value: string }>>
-  descendantsHashes: Record<string, Array<{ key: string; hash: string }>>
-}
+export type StorageResult<Input extends StorageItemInput["type"]> =
+  Input extends "descendantsHashes"
+    ? Array<{ key: string; hash: string }>
+    : Input extends "descendantsValues"
+    ? Array<{ key: string; value: string }>
+    : string | null
 
 export interface FollowResponse {
   unfollow: UnsubscribeFn
@@ -67,20 +69,22 @@ export interface FollowResponse {
     [hash: string, fnName: string, callParameters: string],
     string
   >
-  storage: AbortablePromiseFn<
-    [
-      hash: string,
-      query: Partial<{
-        value: Array<string>
-        hash: Array<string>
-        descendantsValues: Array<string>
-        descendantsHashes: Array<string>
-        closestDescendantMerkleValue: Array<string>
-      }>,
-      childTrie: string | null,
-    ],
-    StorageResponse
-  >
+  storage: <Type extends StorageItemInput["type"]>(
+    hash: string,
+    type: Type,
+    key: string,
+    childTrie: string | null,
+    abortSignal?: AbortSignal | undefined,
+  ) => Promise<StorageResult<Type>>
+  storageSubscription: (
+    hash: string,
+    inputs: Array<StorageItemInput>,
+    childTrie: string | null,
+    onItems: (items: Array<StorageItemResponse>) => void,
+    onError: (e: Error) => void,
+    onDone: () => void,
+    onDiscardedItems: (nDiscarded: number) => void,
+  ) => () => void
   header: (hash: string) => Promise<string>
   unpin: (hashes: Array<string>) => Promise<void>
   _request: <Reply, Notification>(

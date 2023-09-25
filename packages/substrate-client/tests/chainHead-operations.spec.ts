@@ -40,17 +40,12 @@ describe.each([
     "operationCallOutput",
   ],
   [
-    "storage" as "storage",
+    "storage - value",
     { name: "storage", discardedItems: 0 } as const,
-    ["someHash", { value: ["someStorageKey"] }, null] as [
+    ["someHash", "value", "someStorageKey", null] as [
       hash: string,
-      query: Partial<{
-        value: Array<string>
-        hash: Array<string>
-        descendantsValues: Array<string>
-        descendantsHashes: Array<string>
-        closestDescendantMerkleValue: Array<string>
-      }>,
+      type: "value",
+      key: string,
       childTrie: string | null,
     ],
     ["someHash", [{ key: "someStorageKey", type: "value" }], null],
@@ -68,15 +63,141 @@ describe.each([
         type: "operationStorageDone",
       },
     ],
-    {
-      values: {
-        someStorageKey: "someStorageValue",
+    "someStorageValue",
+  ],
+  [
+    "storage - hash",
+    { name: "storage", discardedItems: 0 } as const,
+    ["someHash", "hash", "someStorageKey", null] as [
+      hash: string,
+      type: "hash",
+      key: string,
+      childTrie: string | null,
+    ],
+    ["someHash", [{ key: "someStorageKey", type: "hash" }], null],
+    [
+      {
+        type: "operationStorageItems",
+        items: [
+          {
+            key: "someStorageKey",
+            hash: "someStorageHash",
+          },
+        ],
       },
-      closests: {},
-      descendantsHashes: {},
-      descendantsValues: {},
-      hashes: {},
-    },
+      {
+        type: "operationStorageDone",
+      },
+    ],
+    "someStorageHash",
+  ],
+  [
+    "storage - closestDescendantMerkleValue",
+    { name: "storage", discardedItems: 0 } as const,
+    ["someHash", "closestDescendantMerkleValue", "someStorageKey", null] as [
+      hash: string,
+      type: "closestDescendantMerkleValue",
+      key: string,
+      childTrie: string | null,
+    ],
+    [
+      "someHash",
+      [{ key: "someStorageKey", type: "closestDescendantMerkleValue" }],
+      null,
+    ],
+    [
+      {
+        type: "operationStorageItems",
+        items: [
+          {
+            key: "someStorageKey",
+            closestDescendantMerkleValue: "someStorageDescendantMerkleValue",
+          },
+        ],
+      },
+      {
+        type: "operationStorageDone",
+      },
+    ],
+    "someStorageDescendantMerkleValue",
+  ],
+  [
+    "storage - descendantsValues",
+    { name: "storage", discardedItems: 0 } as const,
+    ["someHash", "descendantsValues", "someStorageKey", null] as [
+      hash: string,
+      type: "descendantsValues",
+      key: string,
+      childTrie: string | null,
+    ],
+    ["someHash", [{ key: "someStorageKey", type: "descendantsValues" }], null],
+    [
+      {
+        type: "operationStorageItems",
+        items: [
+          {
+            key: "someStorageKey1",
+            value: "value1",
+          },
+          {
+            key: "someStorageKey2",
+            value: "value2",
+          },
+        ],
+      },
+      {
+        type: "operationStorageDone",
+      },
+    ],
+    [
+      {
+        key: "someStorageKey1",
+        value: "value1",
+      },
+      {
+        key: "someStorageKey2",
+        value: "value2",
+      },
+    ],
+  ],
+  [
+    "storage - descendantsHashes",
+    { name: "storage", discardedItems: 0 } as const,
+    ["someHash", "descendantsHashes", "someStorageKey", null] as [
+      hash: string,
+      type: "descendantsHashes",
+      key: string,
+      childTrie: string | null,
+    ],
+    ["someHash", [{ key: "someStorageKey", type: "descendantsHashes" }], null],
+    [
+      {
+        type: "operationStorageItems",
+        items: [
+          {
+            key: "someStorageKey1",
+            hash: "hash1",
+          },
+          {
+            key: "someStorageKey2",
+            hash: "hash2",
+          },
+        ],
+      },
+      {
+        type: "operationStorageDone",
+      },
+    ],
+    [
+      {
+        key: "someStorageKey1",
+        hash: "hash1",
+      },
+      {
+        key: "someStorageKey2",
+        hash: "hash2",
+      },
+    ],
   ],
 ])(
   "chainhead: %s",
@@ -141,7 +262,7 @@ describe.each([
       } = setupChainHead()
       getNewMessages()
 
-      const operationPromise = chainhead[op.name](
+      const operationPromise = (chainhead[op.name] as any)(
         ...([...args, controller.signal] as any[]),
       )
 
@@ -208,15 +329,15 @@ describe.each([
 
       unfollow()
 
-      return expect(chainHead[op.name](...(args as any[]))).rejects.toEqual(
-        new DisjointError(),
-      )
+      return expect(
+        (chainHead[op.name] as any)(...(args as any[])),
+      ).rejects.toEqual(new DisjointError())
     })
 
     test("it rejects an `DisjointError` error when the follow subscription fails", async () => {
       let { fixtures, ...chainHead } = setupChainHead()
 
-      const promise = chainHead[op.name](...(args as any[]))
+      const promise = (chainHead[op.name] as any)(...(args as any[]))
 
       fixtures.sendMessage({
         id: 1,
@@ -231,9 +352,9 @@ describe.each([
         error: parseError,
       })
 
-      await expect(chainHead[op.name](...(args as any[]))).rejects.toEqual(
-        new DisjointError(),
-      )
+      await expect(
+        (chainHead[op.name] as any)(...(args as any[])),
+      ).rejects.toEqual(new DisjointError())
     })
   },
 )

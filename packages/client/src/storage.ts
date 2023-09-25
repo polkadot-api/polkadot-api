@@ -11,7 +11,11 @@ import {
   mergeMap,
   take,
 } from "rxjs"
-import { FollowResponse, StorageResponse } from "@polkadot-api/substrate-client"
+import {
+  FollowResponse,
+  StorageItemInput,
+  StorageResult,
+} from "@polkadot-api/substrate-client"
 import { RuntimeDescriptors } from "./codecs"
 
 type CallOptions = Partial<{
@@ -58,29 +62,29 @@ export const createStorageEntry = <
   finalized$: Observable<string>,
   getFollower: () => FollowResponse,
 ) => {
-  const storageCall = <T>(
+  const storageCall = <T, Type extends StorageItemInput["type"]>(
     block: string | null,
-    mapper: (descriptors: RuntimeDescriptors) => [
-      Partial<{
-        value: Array<string>
-        hash: Array<string>
-        descendantsValues: Array<string>
-        descendantsHashes: Array<string>
-        closestDescendantMerkleValue: Array<string>
-      }>,
-      (response: StorageResponse) => T,
+    mapper: (
+      descriptors: RuntimeDescriptors,
+    ) => [
+      [
+        type: Type,
+        key: string,
+        childTrie: string | null,
+        abortSignal?: AbortSignal,
+      ],
+      (input: StorageResult<Type>) => T,
     ],
-    signal?: AbortSignal,
   ): Promise<T> => {
     const descriptors$ = codecs$.pipe(filter(Boolean))
     const request$ = combineLatest([descriptors$, finalized$]).pipe(
       take(1),
       mergeMap(([descriptors, finalized]) => {
-        const [query, mapperValue] = mapper(descriptors)
+        const [args, decoder] = mapper(descriptors)
 
         return getFollower()
-          .storage(block || finalized, query, null, signal)
-          .then(mapperValue)
+          .storage(block || finalized, ...args)
+          .then(decoder)
       }),
     )
     return firstValueFrom(request$)
@@ -104,24 +108,18 @@ export const createStorageEntry = <
     if (typeof options !== "object") throw invalidArgs()
     const { signal, at } = options
 
-    return storageCall(
-      at ?? null,
-      (descriptors) => {
-        const codecs = descriptors.storage[pallet]?.[name]
-        if (!codecs)
-          throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
+    return storageCall(at ?? null, (descriptors) => {
+      const codecs = descriptors.storage[pallet]?.[name]
+      if (!codecs)
+        throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
 
-        const key = codecs.enc(...actualArgs)
-        return [
-          { value: [key] },
-          (x) => {
-            const response = x.values[key]
-            return response && codecs.dec(response)
-          },
-        ]
-      },
-      signal,
-    )
+      const key = codecs.enc(...actualArgs)
+      return [
+        ["value", key, null, signal],
+        (response: StorageResult<"value">) =>
+          response && codecs.dec(response as string),
+      ]
+    })
   }
 
   if (descriptor.codecs.len === 0) return { getValue }
@@ -158,26 +156,22 @@ export const createStorageEntry = <
 
     const { signal, at } = options
 
-    return storageCall(
-      at ?? null,
-      (descriptors) => {
-        const codecs = descriptors.storage[pallet]?.[name]
-        if (!codecs)
-          throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
+    return storageCall(at ?? null, (descriptors) => {
+      const codecs = descriptors.storage[pallet]?.[name]
+      if (!codecs)
+        throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
 
-        const key = codecs.enc(...actualArgs)
-        return [
-          { descendantsValues: [key] },
-          (x) => {
-            return (x.descendantsValues[key] ?? []).map(({ key, value }) => ({
-              keyArgs: codecs.keyDecoder(key),
-              value: codecs.dec(value),
-            }))
-          },
-        ]
-      },
-      signal,
-    )
+      const key = codecs.enc(...actualArgs)
+      return [
+        ["descendantsValues", key, null, signal],
+        (x: StorageResult<"descendantsValues">) => {
+          return x.map(({ key, value }) => ({
+            keyArgs: codecs.keyDecoder(key),
+            value: codecs.dec(value),
+          }))
+        },
+      ]
+    })
   }
 
   const getValues = (keyArgs: Array<Array<any>>, options?: CallOptions) =>

@@ -88,6 +88,12 @@ export interface StorageItemInput {
 export type OperationStarted = OperationEvent & {
   result: "started"
 }
+
+export type StorageOperationStarted = OperationEvent & {
+  result: "started"
+  discardedItems: number
+}
+
 export interface LimitReached {
   result: "limitReached"
 }
