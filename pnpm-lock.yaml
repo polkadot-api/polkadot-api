@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -57,18 +57,12 @@ importers:
         specifier: workspace:*
         version: link:../packages/utils
     devDependencies:
-      '@polkadot-api/cli':
-        specifier: workspace:*
-        version: link:../packages/cli
       '@types/node':
         specifier: ^20.4.7
         version: 20.6.0
       prettier:
         specifier: ^2.6.2
         version: 2.8.8
-      typescript:
-        specifier: ^5.1.6
-        version: 5.2.2
 
   packages/cli:
     dependencies:
