@@ -83,7 +83,7 @@ export interface FollowResponse {
     onItems: (items: Array<StorageItemResponse>) => void,
     onError: (e: Error) => void,
     onDone: () => void,
-    onDiscartedItems: (nDiscarted: number) => void,
+    onDiscardedItems: (nDiscarded: number) => void,
   ) => () => void
   header: (hash: string) => Promise<string>
   unpin: (hashes: Array<string>) => Promise<void>
