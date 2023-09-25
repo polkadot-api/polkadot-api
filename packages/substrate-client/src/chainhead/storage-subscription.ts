@@ -1,6 +1,7 @@
 import { noop } from "@polkadot-api/utils"
 import {
   ClientRequest,
+  FollowResponse,
   OperationError,
   OperationInaccessibleError,
   OperationLimitError,
@@ -11,8 +12,6 @@ import {
   OperationStorageDone,
   OperationStorageItems,
   OperationWaitingForContinue,
-  StorageItemInput,
-  StorageItemResponse,
   StorageOperationStarted,
 } from "./internal-types"
 
@@ -25,7 +24,6 @@ export const createStorageCb =
       | OperationStorageDone
       | OperationWaitingForContinue
     >,
-  ) =>
   ): FollowResponse["storageSubscription"] =>
   (hash, inputs, childTrie, onItems, onError, onDone, onDiscardedItems) => {
     if (inputs.length === 0) {
@@ -87,7 +85,7 @@ export const createStorageCb =
             onDone()
           }
 
-          onDiscartedItems(response.discardedItems)
+          onDiscardedItems(response.discardedItems)
         },
         onError,
       },
