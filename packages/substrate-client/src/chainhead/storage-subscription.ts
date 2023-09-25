@@ -26,15 +26,8 @@ export const createStorageCb =
       | OperationWaitingForContinue
     >,
   ) =>
-  (
-    hash: string,
-    inputs: Array<StorageItemInput>,
-    childTrie: string | null,
-    onItems: (items: Array<StorageItemResponse>) => void,
-    onError: (e: Error) => void,
-    onDone: () => void,
-    onDiscartedItems: (nDiscarted: number) => void,
-  ): (() => void) => {
+  ): FollowResponse["storageSubscription"] =>
+  (hash, inputs, childTrie, onItems, onError, onDone, onDiscardedItems) => {
     if (inputs.length === 0) {
       onDone()
       return noop
