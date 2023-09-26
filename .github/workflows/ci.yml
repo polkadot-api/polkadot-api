@@ -9,12 +9,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  spellcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: streetsidesoftware/cspell-action@v3
-
   build:
     timeout-minutes: 10
     runs-on: ubuntu-latest

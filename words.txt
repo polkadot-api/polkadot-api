@@ -1,3 +1,0 @@
-preid
-codegen
-paritytech
