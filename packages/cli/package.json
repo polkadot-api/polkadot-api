@@ -4,9 +4,16 @@
   "license": "MIT",
   "sideEffects": true,
   "type": "module",
+  "bin": {
+    "papi": "./bin/main.js",
+    "polkadot-api": "./bin/main.js"
+  },
+  "files": [
+    "/bin"
+  ],
   "scripts": {
-    "build": "tsup-node src/main.ts --clean --out-dir build --sourcemap --platform node --format esm",
-    "start": "pnpm build && node --enable-source-maps build/main.js",
+    "build": "tsup-node src/main.ts --clean --out-dir bin --sourcemap --platform node --format esm",
+    "start": "pnpm build && node --enable-source-maps bin/main.js",
     "start:interactive": "pnpm start -- -i",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
