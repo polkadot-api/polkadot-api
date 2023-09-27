@@ -1,5 +1,6 @@
 import {
   CodeDeclarations,
+  Variable,
   getChecksumBuilder,
   getStaticBuilder,
 } from "@polkadot-api/substrate-codegen"
@@ -16,6 +17,7 @@ import fsExists from "fs.promises.exists"
 import tsc from "tsc-prog"
 import path from "path"
 import { ESLint } from "eslint"
+import * as A from "fp-ts/lib/Array.js"
 
 type OutputDescriptorsArgs = (
   | {
@@ -195,49 +197,74 @@ export async function outputCodegen(
     }
   }
 
-  const constDeclarations = [...declarations.variables.values()].map(
-    (variable) =>
-      `const ${variable.id}${variable.types ? ": " + variable.types : ""} = ${
-        variable.value
-      }\nexport type ${variable.id} = CodecType<typeof ${variable.id}>`,
-  )
-  declarations.imports.add("CodecType")
-  declarations.imports.add("Codec")
-  constDeclarations.unshift(
-    `import {${[...declarations.imports].join(
-      ", ",
-    )}} from "@polkadot-api/substrate-bindings"`,
-  )
-
-  const tscFileName = path.join(outputFolder, key)
-  const tscTypesFileName = path.join(outputFolder, `${key}-types`)
-
   await fs.mkdir(outputFolder, { recursive: true })
 
-  if (await fsExists(`${tscTypesFileName}.d.ts`)) {
-    await fs.rm(`${tscTypesFileName}.d.ts`)
-  }
-  if (await fsExists(`${tscFileName}.ts`)) {
-    await fs.rm(`${tscFileName}.ts`)
-  }
+  declarations.imports.add("CodecType")
+  declarations.imports.add("Codec")
 
-  await fs.writeFile(`${tscTypesFileName}.ts`, constDeclarations.join("\n\n"))
+  let count = 0
+  let variables = [...declarations.variables.values()]
 
-  tsc.build({
-    basePath: outputFolder,
-    compilerOptions: {
-      skipLibCheck: true,
-      emitDeclarationOnly: true,
-      declaration: true,
-      target: "esnext",
-      module: "esnext",
-      moduleResolution: "node",
-    },
-    include: [`${key}-types.ts`],
-  })
+  const codegenedVariables: string[] = []
 
-  if (await fsExists(`${tscTypesFileName}.ts`)) {
-    await fs.rm(`${tscTypesFileName}.ts`)
+  while (variables.length > 0) {
+    count += 1
+    const [split, next] = A.splitAt(20)(variables)
+
+    const constDeclarations = split.map(
+      (variable) =>
+        `const ${variable.id}${variable.types ? ": " + variable.types : ""} = ${
+          variable.value
+        }\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`,
+    )
+    constDeclarations.unshift(
+      `import {${[...declarations.imports].join(
+        ", ",
+      )}} from "@polkadot-api/substrate-bindings"`,
+    )
+    if (count > 1) {
+      constDeclarations.unshift(
+        `import {${codegenedVariables.join(", ")}} from "./${key}-${
+          count - 1
+        }-types"`,
+      )
+    }
+
+    codegenedVariables.push(...split.map((v) => v.id))
+    constDeclarations.push(`export {${codegenedVariables.join(", ")}}\n`)
+
+    const tscFileName = path.join(outputFolder, `${key}`)
+    const tscTypesFileName = path.join(outputFolder, `${key}-${count}-types`)
+
+    if (await fsExists(`${tscTypesFileName}.d.ts`)) {
+      await fs.rm(`${tscTypesFileName}.d.ts`)
+    }
+    if (await fsExists(`${tscFileName}.ts`)) {
+      await fs.rm(`${tscFileName}.ts`)
+    }
+
+    await fs.writeFile(`${tscTypesFileName}.ts`, constDeclarations.join("\n\n"))
+
+    try {
+      tsc.build({
+        basePath: outputFolder,
+        compilerOptions: {
+          skipLibCheck: true,
+          emitDeclarationOnly: true,
+          declaration: true,
+          target: "esnext",
+          module: "esnext",
+          moduleResolution: "node",
+        },
+        include: [`${key}-${count}-types.ts`],
+      })
+    } catch (err) {}
+
+    if (await fsExists(`${tscTypesFileName}.ts`)) {
+      await fs.rm(`${tscTypesFileName}.ts`)
+    }
+
+    variables = next
   }
 
   let descriptorCodegen = ""
@@ -270,7 +297,7 @@ export async function outputCodegen(
   )}} from "@polkadot-api/substrate-bindings"\n`
   descriptorCodegen += `import type {${[...declarations.variables.values()]
     .map((v) => v.id)
-    .join(", ")}} from "./${key}-types.d.ts"\n\n`
+    .join(", ")}} from "./${key}-${count}-types.d.ts"\n\n`
 
   descriptorCodegen += `const CONST = "const"\n\n`
   descriptorCodegen += `const EVENT = "event"\n\n`
