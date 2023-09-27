@@ -2,6 +2,11 @@ import { expect, describe, test, vi, it } from "vitest"
 import { createTestClient, parseError } from "./fixtures"
 import { RpcError, TransactionError, IRpcError } from "@/."
 
+const eventToType = (input: { event: string }) => {
+  const { event: type, ...rest } = input
+  return { type, ...rest }
+}
+
 function setupTx(tx: string = "") {
   const onMsg = vi.fn()
   const onError = vi.fn()
@@ -57,28 +62,28 @@ describe("transaction", () => {
       fixtures: { sendMessage, sendSubscription, onMsg, onError },
     } = setupTxWithSubscription()
 
-    const validated = { type: "validated" }
+    const validated = { event: "validated" }
     sendSubscription({
       result: validated,
     })
 
     expect(onMsg).toHaveBeenCalledOnce()
-    expect(onMsg).toHaveBeenCalledWith(validated)
+    expect(onMsg).toHaveBeenCalledWith(eventToType(validated))
     expect(onError).not.toHaveBeenCalled()
 
-    const broadcasted = { type: "broadcasted", numPeers: 2 }
+    const broadcasted = { event: "broadcasted", numPeers: 2 }
     sendSubscription({
       result: broadcasted,
     })
 
     expect(onMsg).toHaveBeenCalledTimes(2)
-    expect(onMsg).toHaveBeenLastCalledWith(broadcasted)
+    expect(onMsg).toHaveBeenLastCalledWith(eventToType(broadcasted))
     expect(onError).not.toHaveBeenCalled()
 
     sendMessage({
       params: {
         subscription: "wrongSubscriptionId",
-        result: { type: "broadcasted", numPeers: 5 },
+        result: { event: "broadcasted", numPeers: 5 },
       },
     })
 
@@ -86,7 +91,7 @@ describe("transaction", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const finalized = {
-      type: "finalized",
+      event: "finalized",
       block: {
         hash: "someHash",
         index: "1",
@@ -97,7 +102,7 @@ describe("transaction", () => {
     })
 
     expect(onMsg).toHaveBeenCalledTimes(3)
-    expect(onMsg).toHaveBeenLastCalledWith(finalized)
+    expect(onMsg).toHaveBeenLastCalledWith(eventToType(finalized))
     expect(onError).not.toHaveBeenCalled()
   })
 
@@ -121,7 +126,7 @@ describe("transaction", () => {
     sendMessage({
       params: {
         subscription: SUBSCRIPTION_ID,
-        result: { type: "validated" },
+        result: { event: "validated" },
       },
     })
     expect(onMsg).not.toHaveBeenCalled()
@@ -150,7 +155,7 @@ describe("transaction", () => {
     ])
 
     sendSubscription({
-      result: { type: "validated" },
+      result: { event: "validated" },
     })
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
@@ -166,17 +171,17 @@ describe("transaction", () => {
 
       const error = `${eventType}: something wrong happened`
       sendSubscription({
-        result: { type: eventType, error },
+        result: { event: eventType, error },
       })
 
       expect(onMsg).not.toHaveBeenCalled()
       expect(onError).toHaveBeenCalledOnce()
       expect(onError).toHaveBeenCalledWith(
-        new TransactionError({ type: eventType as any, error }),
+        new TransactionError({ event: eventType as any, error }),
       )
 
       sendSubscription({
-        result: { type: "broadcasted", numPeers: 5 },
+        result: { event: "broadcasted", numPeers: 5 },
       })
 
       expect(onMsg).not.toHaveBeenCalled()
@@ -193,17 +198,17 @@ describe("transaction", () => {
       fixtures: { sendSubscription, getNewMessages, onMsg, onError },
     } = setupTxWithSubscription()
 
-    const finalizedEvent = { type: "finalized" }
+    const finalizedEvent = { event: "finalized" }
     sendSubscription({
       result: finalizedEvent,
     })
 
     expect(onMsg).toHaveBeenCalledOnce()
-    expect(onMsg).toHaveBeenCalledWith(finalizedEvent)
+    expect(onMsg).toHaveBeenCalledWith(eventToType(finalizedEvent))
     expect(onError).not.toHaveBeenCalled()
 
     sendSubscription({
-      result: { type: "broadcasted", numPeers: 5 },
+      result: { event: "broadcasted", numPeers: 5 },
     })
 
     expect(onMsg).toHaveBeenCalledOnce()

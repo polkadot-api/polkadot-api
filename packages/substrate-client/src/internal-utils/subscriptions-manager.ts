@@ -3,18 +3,18 @@ export interface Subscriber<T> {
   error: (e: Error) => void
 }
 
-export const getSubscriptionsManager = () => {
-  const subscriptions = new Map<string, Subscriber<any>>()
+export const getSubscriptionsManager = <T>() => {
+  const subscriptions = new Map<string, Subscriber<T>>()
 
   return {
     has: subscriptions.has.bind(subscriptions),
-    subscribe(id: string, subscriber: Subscriber<any>) {
+    subscribe(id: string, subscriber: Subscriber<T>) {
       subscriptions.set(id, subscriber)
     },
     unsubscribe(id: string) {
       subscriptions.delete(id)
     },
-    next(id: string, data: any) {
+    next(id: string, data: T) {
       subscriptions.get(id)?.next(data)
     },
     error(id: string, e: Error) {
@@ -34,4 +34,6 @@ export const getSubscriptionsManager = () => {
   }
 }
 
-export type SubscriptionManager = ReturnType<typeof getSubscriptionsManager>
+export type SubscriptionManager<T> = ReturnType<
+  typeof getSubscriptionsManager<T>
+>

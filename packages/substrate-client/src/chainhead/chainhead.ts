@@ -1,5 +1,10 @@
 import type { ClientRequest, FollowSubscriptionCb } from "@/client"
-import type { OperationEvents, Stop } from "./internal-types"
+import type {
+  FollowEventWithRuntimeRpc,
+  FollowEventWithoutRuntimeRpc,
+  OperationEventsRpc,
+  StopRpc,
+} from "./json-rpc-types"
 import type {
   ChainHead,
   FollowEventWithoutRuntime,
@@ -20,18 +25,18 @@ import { createUnpinFn } from "./unpin"
 import { DisjointError, StopError } from "./errors"
 import { createStorageCb } from "./storage-subscription"
 
-type FollowEvent =
-  | FollowEventWithRuntime
-  | FollowEventWithoutRuntime
-  | OperationEvents
-  | Stop
+type FollowEventRpc =
+  | FollowEventWithRuntimeRpc
+  | FollowEventWithoutRuntimeRpc
+  | OperationEventsRpc
+  | StopRpc
 
-function isOperationEvent(event: FollowEvent): event is OperationEvents {
-  return (event as OperationEvents).operationId !== undefined
+function isOperationEvent(event: FollowEventRpc): event is OperationEventsRpc {
+  return (event as OperationEventsRpc).operationId !== undefined
 }
 
 export function getChainHead(
-  request: ClientRequest<string, FollowEvent>,
+  request: ClientRequest<string, FollowEventRpc>,
 ): ChainHead {
   return (
     withRuntime: boolean,
@@ -40,18 +45,22 @@ export function getChainHead(
       | ((event: FollowEventWithRuntime) => void),
     onFollowError: (e: Error) => void,
   ): FollowResponse => {
-    const subscriptions = getSubscriptionsManager()
+    const subscriptions = getSubscriptionsManager<OperationEventsRpc>()
 
     const ongoingRequests = new Set<() => void>()
     const deferredFollow = deferred<string | Error>()
     let followSubscription: Promise<string | Error> | string | null =
       deferredFollow.promise
 
-    const onAllFollowEventsNext = (event: FollowEvent) => {
+    const onAllFollowEventsNext = (event: FollowEventRpc) => {
       if (isOperationEvent(event))
         return subscriptions.next(event.operationId, event)
 
-      if (event.type !== "stop") return onFollowEvent(event as any)
+      if (event.event !== "stop") {
+        const { event: type, ...rest } = event
+        // This is kinda dangerous, but YOLO
+        return onFollowEvent({ type, ...rest } as any)
+      }
 
       onFollowError(new StopError())
       unfollow(false)
@@ -64,7 +73,7 @@ export function getChainHead(
 
     const onFollowRequestSuccess = (
       subscriptionId: string,
-      follow: FollowSubscriptionCb<FollowEvent>,
+      follow: FollowSubscriptionCb<FollowEventRpc>,
     ) => {
       const done = follow(subscriptionId, {
         next: onAllFollowEventsNext,

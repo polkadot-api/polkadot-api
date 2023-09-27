@@ -1,23 +1,22 @@
 import { ClientRequest, FollowResponse, OperationLimitError } from ".."
 import type {
-  CommonOperationEvents,
-  LimitReached,
-  OperationStorageDone,
-  OperationStorageItems,
-  OperationWaitingForContinue,
-  StorageItemResponse,
-  StorageOperationStarted,
-} from "./internal-types"
+  CommonOperationEventsRpc,
+  LimitReachedRpc,
+  OperationStorageDoneRpc,
+  OperationStorageItemsRpc,
+  OperationWaitingForContinueRpc,
+  OperationStorageStartedRpc,
+} from "./json-rpc-types"
 import { abortablePromiseFn } from "@/internal-utils"
 import { createStorageCb } from "./storage-subscription"
 
 export const createStorageFn = (
   request: ClientRequest<
-    StorageOperationStarted | LimitReached,
-    | CommonOperationEvents
-    | OperationStorageItems
-    | OperationStorageDone
-    | OperationWaitingForContinue
+    OperationStorageStartedRpc | LimitReachedRpc,
+    | CommonOperationEventsRpc
+    | OperationStorageItemsRpc
+    | OperationStorageDoneRpc
+    | OperationWaitingForContinueRpc
   >,
 ): FollowResponse["storage"] => {
   const cbStore = createStorageCb(request)
@@ -25,11 +24,11 @@ export const createStorageFn = (
     const isDescendants = type.startsWith("descendants")
     let result: any = isDescendants ? [] : null
 
-    const onItems = isDescendants
-      ? (items: StorageItemResponse[]) => {
+    const onItems: Parameters<typeof cbStore>[3] = isDescendants
+      ? (items) => {
           result.push(...items)
         }
-      : (items: StorageItemResponse[]) => {
+      : (items) => {
           result = items[0]?.[type as "value"]
         }
 

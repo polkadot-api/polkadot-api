@@ -1,6 +1,9 @@
 import { ClientRequest } from "@/client"
 import { abortablePromiseFn, noop } from "@/internal-utils"
-import { CommonOperationEvents, OperationResponse } from "./internal-types"
+import {
+  CommonOperationEventsRpc,
+  OperationResponseRpc,
+} from "./json-rpc-types"
 import {
   OperationError,
   OperationInaccessibleError,
@@ -8,7 +11,7 @@ import {
 } from "./errors"
 
 export const createOperationPromise =
-  <I extends { operationId: string; type: string }, O, A extends Array<any>>(
+  <I extends { operationId: string; event: string }, O, A extends Array<any>>(
     operationName: string,
     factory: (
       ...args: A
@@ -17,7 +20,9 @@ export const createOperationPromise =
       (e: I, res: (x: O) => void, rej: (e: Error) => void) => void,
     ],
   ) =>
-  (request: ClientRequest<OperationResponse, I | CommonOperationEvents>) =>
+  (
+    request: ClientRequest<OperationResponseRpc, I | CommonOperationEventsRpc>,
+  ) =>
     abortablePromiseFn<O, A>((res, rej, ...args) => {
       const [requestArgs, logicCb] = factory(...args)
       let cancel = request(operationName, requestArgs, {
@@ -42,10 +47,10 @@ export const createOperationPromise =
 
           done = followSubscription(response.operationId, {
             next: (e) => {
-              const _e = e as CommonOperationEvents
-              if (_e.type === "operationError") {
+              const _e = e as CommonOperationEventsRpc
+              if (_e.event === "operationError") {
                 rej(new OperationError(_e.error))
-              } else if (_e.type === "operationInaccessible") {
+              } else if (_e.event === "operationInaccessible") {
                 rej(new OperationInaccessibleError())
               } else {
                 logicCb(e as I, _res, _rej)
