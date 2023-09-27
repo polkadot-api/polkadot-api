@@ -11,7 +11,7 @@ import {
   createClient as createRawClient,
 } from "./client"
 import type { ChainHead } from "./chainhead"
-import type { Transaction } from "./transaction/types"
+import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"
 
 export type { GetProvider, Provider, ProviderStatus }
