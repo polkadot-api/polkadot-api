@@ -1,19 +1,13 @@
-import { FollowResponse } from "@polkadot-api/substrate-client"
 import {
   Decoder,
   DescriptorCommon,
   StorageDescriptor,
-  Tuple,
   V14,
-  compact,
-  metadata,
 } from "@polkadot-api/substrate-bindings"
-import { Observable, map } from "rxjs"
 import {
   getChecksumBuilder,
   getDynamicBuilder,
 } from "@polkadot-api/substrate-codegen"
-import { fromAbortControllerFn } from "./utils"
 
 export interface RuntimeDescriptors {
   storage: Record<
@@ -29,7 +23,7 @@ export interface RuntimeDescriptors {
   >
 }
 
-const getCodecsFromMetadata =
+export const getCodecsFromMetadata =
   (descriptors: {
     storage: Array<StorageDescriptor<DescriptorCommon<string, string>, any>>
   }) =>
@@ -54,26 +48,3 @@ const getCodecsFromMetadata =
       storage,
     }
   }
-
-const opaqueMeta = Tuple(compact, metadata)
-
-export const getCodecs$ = (
-  follower: FollowResponse,
-  descriptors: {
-    storage: Array<StorageDescriptor<DescriptorCommon<string, string>, any>>
-  },
-  latestBlock: string,
-): Observable<RuntimeDescriptors> =>
-  fromAbortControllerFn(follower.call)(
-    latestBlock,
-    "Metadata_metadata",
-    "",
-  ).pipe(
-    map((response) => {
-      const metadata = opaqueMeta.dec(response)[1]
-      if (metadata.metadata.tag !== "v14")
-        throw new Error("Wrong metadata version")
-      return metadata.metadata.value
-    }),
-    map(getCodecsFromMetadata(descriptors)),
-  )
