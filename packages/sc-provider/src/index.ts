@@ -61,7 +61,7 @@ export const ScProvider = (
         .catch((e) => {
           console.warn("There was a problem adding the Chain")
           console.error(e)
-          onStatus("halt")
+          onStatus("disconnected")
         })
         .finally(() => {
           pending = false
