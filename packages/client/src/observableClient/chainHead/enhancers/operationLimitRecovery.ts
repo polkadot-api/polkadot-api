@@ -8,7 +8,7 @@ interface PendingTaskNode<T> {
   prev?: PendingTaskNode<T>
 }
 
-export default class PendigTasksQueue<T> {
+export default class PendingTaskQueue<T> {
   private first?: PendingTaskNode<T>
   private last?: PendingTaskNode<T>
 
@@ -89,7 +89,7 @@ export const getWithRecovery = () => {
     tearDownOperations.get(observable)?.()
   }
 
-  const pendingTasks = new PendigTasksQueue<{
+  const pendingTasks = new PendingTaskQueue<{
     observer: Subscriber<any>
     source$: Observable<any>
   }>()
