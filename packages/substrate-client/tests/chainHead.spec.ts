@@ -6,6 +6,11 @@ import {
   setupChainHeadWithSubscription,
 } from "./fixtures"
 
+const eventToType = (input: { event: string }) => {
+  const { event: type, ...rest } = input
+  return { type, ...rest }
+}
+
 describe("chainHead", () => {
   it("sends the correct follow message", () => {
     const withRuntime = true
@@ -27,7 +32,7 @@ describe("chainHead", () => {
     } = setupChainHeadWithSubscription()
 
     const initialized = {
-      type: "initialized",
+      event: "initialized",
       finalizedBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       finalizedBlockRuntime:
@@ -39,11 +44,11 @@ describe("chainHead", () => {
     })
 
     expect(onMsg).toHaveBeenCalledOnce()
-    expect(onMsg).toHaveBeenCalledWith(initialized)
+    expect(onMsg).toHaveBeenCalledWith(eventToType(initialized))
     expect(onError).not.toHaveBeenCalled()
 
     const newBlock = {
-      type: "newBlock",
+      event: "newBlock",
       blockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       parentBlockHash:
@@ -55,11 +60,11 @@ describe("chainHead", () => {
     })
 
     expect(onMsg).toHaveBeenCalledTimes(2)
-    expect(onMsg).toHaveBeenLastCalledWith(newBlock)
+    expect(onMsg).toHaveBeenCalledWith(eventToType(newBlock))
     expect(onError).not.toHaveBeenCalled()
 
     const operationBodyDone = {
-      type: "operationBodyDone",
+      event: "operationBodyDone",
       operationId: "someOperationId",
       value: [""],
     }
@@ -72,7 +77,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const bestBlockChanged = {
-      type: "bestBlockChanged",
+      event: "bestBlockChanged",
       bestBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
     }
@@ -81,7 +86,7 @@ describe("chainHead", () => {
     })
 
     expect(onMsg).toHaveBeenCalledTimes(3)
-    expect(onMsg).toHaveBeenLastCalledWith(bestBlockChanged)
+    expect(onMsg).toHaveBeenCalledWith(eventToType(bestBlockChanged))
     expect(onError).not.toHaveBeenCalled()
   })
 
@@ -103,7 +108,7 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
 
     const initialized = {
-      type: "initialized",
+      event: "initialized",
       finalizedBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       finalizedBlockRuntime:
@@ -142,7 +147,7 @@ describe("chainHead", () => {
     ])
 
     const initialized = {
-      type: "initialized",
+      event: "initialized",
       finalizedBlockHash:
         "0x0000000000000000000000000000000000000000000000000000000000000000",
       finalizedBlockRuntime:
@@ -162,7 +167,7 @@ describe("chainHead", () => {
     } = setupChainHeadWithSubscription()
 
     sendSubscription({
-      result: { type: "stop" },
+      result: { event: "stop" },
     })
 
     expect(onMsg).not.toHaveBeenCalled()
@@ -171,7 +176,7 @@ describe("chainHead", () => {
 
     sendSubscription({
       result: {
-        type: "initialized",
+        event: "initialized",
         finalizedBlockHash:
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         finalizedBlockRuntime:
@@ -222,7 +227,7 @@ describe("chainHead", () => {
     })
 
     sendSubscription({
-      result: { type: "stop" },
+      result: { event: "stop" },
     })
 
     return Promise.all(
@@ -250,7 +255,7 @@ describe("chainHead", () => {
       call("", "", ""),
     ]
     sendSubscription({
-      result: { type: "stop" },
+      result: { event: "stop" },
     })
 
     return Promise.all(

@@ -1,4 +1,4 @@
-import type { UnsubscribeFn } from ".."
+import type { UnsubscribeFn } from "../common-types"
 
 export interface TxValidated {
   type: "validated"

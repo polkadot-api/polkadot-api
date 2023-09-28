@@ -4,8 +4,18 @@ import {
   getStaticBuilder,
 } from "@polkadot-api/substrate-codegen"
 import { getMetadata } from "./getMetadata"
+import { writeFile } from "fs"
+import { fromHex } from "@unstoppablejs/utils"
+import * as fs from "node:fs/promises"
 
 const metadata = await getMetadata()
+await fs.writeFile("./collectives-meta.scale", fromHex(metadata))
+console.log("DONE")
+process.exit(0)
+
+/*
+console.log(JSON.stringify(metadata, null, 2))
+process.exit(0)
 
 if (metadata.metadata.tag !== "v14") throw new Error("wrong metadata version")
 
@@ -50,3 +60,4 @@ constDeclarations.unshift(
 )
 
 console.log(constDeclarations.join("\n\n"))
+*/

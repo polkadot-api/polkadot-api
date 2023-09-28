@@ -7,7 +7,8 @@
   "main": "index.js",
   "scripts": {
     "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
-    "nominators": "tsup-node src/all-nominators.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\""
+    "nominators": "tsup-node src/all-nominators.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\"",
+    "client": "tsup-node src/client.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/client.js\""
   },
   "keywords": [],
   "author": "",
@@ -22,7 +23,8 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/utils": "workspace:*",
+    "@polkadot-api/client": "workspace:*"
   },
   "prettier": {
     "printWidth": 80,

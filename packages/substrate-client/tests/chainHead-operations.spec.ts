@@ -20,7 +20,7 @@ describe.each([
     ["someHash"] as [string],
     [
       {
-        type: "operationBodyDone",
+        event: "operationBodyDone",
         value: ["tx1", "tx2"],
       },
     ],
@@ -33,7 +33,7 @@ describe.each([
     ["someHash", "someFnName", "someCallParams"] as [string, string, string],
     [
       {
-        type: "operationCallDone",
+        event: "operationCallDone",
         output: "operationCallOutput",
       },
     ],
@@ -51,7 +51,7 @@ describe.each([
     ["someHash", [{ key: "someStorageKey", type: "value" }], null],
     [
       {
-        type: "operationStorageItems",
+        event: "operationStorageItems",
         items: [
           {
             key: "someStorageKey",
@@ -60,7 +60,7 @@ describe.each([
         ],
       },
       {
-        type: "operationStorageDone",
+        event: "operationStorageDone",
       },
     ],
     "someStorageValue",
@@ -77,7 +77,7 @@ describe.each([
     ["someHash", [{ key: "someStorageKey", type: "hash" }], null],
     [
       {
-        type: "operationStorageItems",
+        event: "operationStorageItems",
         items: [
           {
             key: "someStorageKey",
@@ -86,7 +86,7 @@ describe.each([
         ],
       },
       {
-        type: "operationStorageDone",
+        event: "operationStorageDone",
       },
     ],
     "someStorageHash",
@@ -107,7 +107,7 @@ describe.each([
     ],
     [
       {
-        type: "operationStorageItems",
+        event: "operationStorageItems",
         items: [
           {
             key: "someStorageKey",
@@ -116,7 +116,7 @@ describe.each([
         ],
       },
       {
-        type: "operationStorageDone",
+        event: "operationStorageDone",
       },
     ],
     "someStorageDescendantMerkleValue",
@@ -133,7 +133,7 @@ describe.each([
     ["someHash", [{ key: "someStorageKey", type: "descendantsValues" }], null],
     [
       {
-        type: "operationStorageItems",
+        event: "operationStorageItems",
         items: [
           {
             key: "someStorageKey1",
@@ -146,7 +146,7 @@ describe.each([
         ],
       },
       {
-        type: "operationStorageDone",
+        event: "operationStorageDone",
       },
     ],
     [
@@ -172,7 +172,7 @@ describe.each([
     ["someHash", [{ key: "someStorageKey", type: "descendantsHashes" }], null],
     [
       {
-        type: "operationStorageItems",
+        event: "operationStorageItems",
         items: [
           {
             key: "someStorageKey1",
@@ -185,7 +185,7 @@ describe.each([
         ],
       },
       {
-        type: "operationStorageDone",
+        event: "operationStorageDone",
       },
     ],
     [
@@ -301,7 +301,7 @@ describe.each([
       } = setupChainHeadOperationSubscription(op, ...args)
 
       sendOperationNotification({
-        type: "operationInaccessible",
+        event: "operationInaccessible",
       })
 
       return expect(operationPromise).rejects.toEqual(
@@ -317,7 +317,7 @@ describe.each([
 
       const error = "something went wrong"
       sendOperationNotification({
-        type: "operationError",
+        event: "operationError",
         error,
       })
 

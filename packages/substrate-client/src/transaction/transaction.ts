@@ -1,30 +1,38 @@
 import { noop } from "@/internal-utils"
 import type { ClientRequest } from "../client"
 import type {
-  TxEvent,
-  Transaction,
-  TxFinalized,
-  TxInvalid,
-  TxDropped,
-  TxError,
-} from "./types"
+  TxEventRpc,
+  TxFinalizedRpc,
+  TxInvalidRpc,
+  TxDroppedRpc,
+  TxErrorRpc,
+} from "./json-rpc-types"
+import { Transaction, TxEvent } from "./public-types"
 
-type TerminalEvent = TxDropped | TxInvalid | TxFinalized | TxError
-const terminalEvents: Set<string> = new Set<TerminalEvent["type"]>([
+type EventToType<T extends { event: string }> = T extends { event: infer Type }
+  ? Omit<T, "event"> & { type: Type }
+  : T
+const eventToType = <T extends { event: string }>(input: T): EventToType<T> => {
+  const { event: type, ...rest } = input
+  return { type, ...rest } as any
+}
+
+type TerminalEvent = TxDroppedRpc | TxInvalidRpc | TxFinalizedRpc | TxErrorRpc
+const terminalEvents: Set<string> = new Set<TerminalEvent["event"]>([
   "dropped",
   "invalid",
   "finalized",
   "error",
 ])
 
-function isTerminalEvent(event: TxEvent): event is TerminalEvent {
-  return terminalEvents.has(event.type)
+function isTerminalEvent(event: TxEventRpc): event is TerminalEvent {
+  return terminalEvents.has(event.event)
 }
 
-type ErrorEvents = TxDropped | TxInvalid | TxError
+type ErrorEvents = TxDroppedRpc | TxInvalidRpc | TxErrorRpc
 
 export interface ITxError {
-  type: ErrorEvents["type"]
+  type: ErrorEvents["event"]
   error: string
 }
 
@@ -32,15 +40,15 @@ export class TransactionError extends Error implements ITxError {
   type
   error
   constructor(e: ErrorEvents) {
-    super(`TxError: ${e.type} - ${e.error}`)
-    this.type = e.type
+    super(`TxError: ${e.event} - ${e.error}`)
+    this.type = e.event
     this.error = e.error
     this.name = "TransactionError"
   }
 }
 
 export const getTransaction =
-  (request: ClientRequest<string, TxEvent>): Transaction =>
+  (request: ClientRequest<string, TxEventRpc>): Transaction =>
   (tx: string, next: (event: TxEvent) => void, error: (e: Error) => void) => {
     let cancel = request("transaction_unstable_submitAndWatch", [tx], {
       onSuccess: (subscriptionId, follow) => {
@@ -49,10 +57,10 @@ export const getTransaction =
             if (isTerminalEvent(event)) {
               done()
               cancel = noop
-              if (event.type !== "finalized")
+              if (event.event !== "finalized")
                 return error(new TransactionError(event))
             }
-            next(event)
+            next(eventToType(event))
           },
           error(e) {
             cancel()
