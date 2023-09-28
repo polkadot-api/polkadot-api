@@ -4,7 +4,7 @@ export interface Provider {
   close: () => void
 }
 
-export type ProviderStatus = "connected" | "disconnected" | "halt"
+export type ProviderStatus = "connected" | "disconnected"
 
 export declare type GetProvider = (
   onMessage: (message: string) => void,

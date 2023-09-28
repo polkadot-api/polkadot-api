@@ -34,6 +34,7 @@ export {
 export interface SubstrateClient {
   chainHead: ChainHead
   transaction: Transaction
+  destroy: UnsubscribeFn
   _request: <Reply, Notification>(
     method: string,
     params: any[],
@@ -48,6 +49,9 @@ export const createClient = (provider: GetProvider): SubstrateClient => {
   return {
     chainHead: getChainHead(client.request as ClientRequest<any, any>),
     transaction: getTransaction(client.request as ClientRequest<any, any>),
+    destroy: () => {
+      client.disconnect()
+    },
     _request: client.request,
   }
 }
