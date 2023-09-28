@@ -66,6 +66,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@deepkit/topsort':
+        specifier: 1.0.1-alpha.89
+        version: 1.0.1-alpha.89
       '@inquirer/prompts':
         specifier: ^3.0.2
         version: 3.1.1
@@ -271,6 +274,10 @@ packages:
   /@bcoe/v8-coverage@0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
+
+  /@deepkit/topsort@1.0.1-alpha.89:
+    resolution: {integrity: sha512-0Iu+atoeri+Uecn3AidW7T5wKF69uAc/br2rUT5J6DyKf4/yroqyAWGSQgjbuLh1vYLVi2hWA+j5zxVpf16rFw==}
+    dev: false
 
   /@esbuild/android-arm64@0.18.20:
     resolution: {integrity: sha512-Nz4rJcchGDtENV0eMKUNa6L12zz2zBDXuhj/Vjh18zGqB44Bi7MBMSXjgunJgjRhCmKOjnPuZp4Mb6OKqtMHLQ==}

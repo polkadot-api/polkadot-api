@@ -1,6 +1,5 @@
 import {
   CodeDeclarations,
-  Variable,
   getChecksumBuilder,
   getStaticBuilder,
 } from "@polkadot-api/substrate-codegen"
@@ -17,7 +16,7 @@ import fsExists from "fs.promises.exists"
 import tsc from "tsc-prog"
 import path from "path"
 import { ESLint } from "eslint"
-import * as A from "fp-ts/lib/Array.js"
+import { ArraySort, GroupArraySort } from "@deepkit/topsort"
 
 type OutputDescriptorsArgs = (
   | {
@@ -201,17 +200,49 @@ export async function outputCodegen(
 
   declarations.imports.add("CodecType")
   declarations.imports.add("Codec")
+  declarations.imports.add("SS58String")
+  declarations.imports.add("HexString")
+
+  const sorter = new ArraySort(true)
+
+  const circular = new Set<string>()
+  sorter.circularInterceptor = (items) => {
+    items.forEach((item) => circular.add(item))
+  }
+
+  for (const v of declarations.variables.values()) {
+    sorter.add(
+      v.id,
+      [...v.directDependencies].filter((dep) => !declarations.imports.has(dep)),
+    )
+  }
+
+  sorter.sort()
+
+  const groupSorter = new GroupArraySort(false)
+  for (const v of declarations.variables.values()) {
+    groupSorter.add(
+      v.id,
+      circular.has(v.id) ? "circular" : "regular",
+      [...v.directDependencies].filter((dep) => !declarations.imports.has(dep)),
+    )
+  }
+
+  groupSorter.sort()
+
+  const groups = groupSorter.getGroups()
 
   let count = 0
-  let variables = [...declarations.variables.values()]
-
   const codegenedVariables: string[] = []
-
-  while (variables.length > 0) {
+  for (const group of groups) {
     count += 1
-    const [split, next] = A.splitAt(20)(variables)
 
-    const constDeclarations = split.map(
+    const chunk = group.items.map((id) => declarations.variables.get(id)!)
+
+    // hack: throw the variables with Self at the top
+    chunk.sort((a) => (a.value.startsWith("Self") ? -1 : 0))
+
+    const constDeclarations = chunk.map(
       (variable) =>
         `const ${variable.id}${variable.types ? ": " + variable.types : ""} = ${
           variable.value
@@ -230,7 +261,7 @@ export async function outputCodegen(
       )
     }
 
-    codegenedVariables.push(...split.map((v) => v.id))
+    codegenedVariables.push(...chunk.map((v) => v.id))
     constDeclarations.push(`export {${codegenedVariables.join(", ")}}\n`)
 
     const tscFileName = path.join(outputFolder, `${key}`)
@@ -263,8 +294,6 @@ export async function outputCodegen(
     if (await fsExists(`${tscTypesFileName}.ts`)) {
       await fs.rm(`${tscTypesFileName}.ts`)
     }
-
-    variables = next
   }
 
   let descriptorCodegen = ""
