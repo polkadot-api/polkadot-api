@@ -1,4 +1,5 @@
-import { ToExtension, ToPage } from "@/protocol"
+import type { ToExtension, ToPage } from "@/protocol"
+import { CONTEXT, PORT } from "@/shared"
 
 console.log(
   "@polkadot-api/light-client-extension-helpers content-script helper registered",
@@ -17,13 +18,12 @@ const whenActivated = new Promise<void>((resolve) => {
 })
 
 function postToPage(msg: ToPage, targetOrigin: string) {
-  console.log({ msg })
   window.postMessage(msg, targetOrigin)
 }
 
 function checkMessage(msg: any): msg is ToExtension {
   if (!msg) return false
-  if (msg?.origin !== "web-page-helper") return false
+  if (msg?.origin !== CONTEXT.WEB_PAGE) return false
   if (!msg?.id) return false
   return true
 }
@@ -34,21 +34,16 @@ const portPostMessage = (port: chrome.runtime.Port, msg: ToExtension) =>
 let port: chrome.runtime.Port | undefined
 
 window.addEventListener("message", async ({ data, source, origin }) => {
-  console.log("content-script onMessage", { data })
   if (source !== window) return
-  if (data?.origin !== "web-page-helper") return
-  if (!checkMessage(data)) {
-    console.warn("Malformed message - unrecognised message", data)
-    return
-  }
-  console.log({ data, origin })
+  if (data?.origin !== CONTEXT.WEB_PAGE) return
+  if (!checkMessage(data)) return console.warn("Unrecognized message", data)
 
   await whenActivated
 
   // FIXME: forward to port
   if (!port) {
     // FIXME: extract to port name to constant
-    port = chrome.runtime.connect({ name: "content" })
+    port = chrome.runtime.connect({ name: PORT.CONTENT_SCRIPT })
     port.onMessage.addListener((msg: ToPage) => {
       postToPage(msg, origin)
     })

@@ -1,17 +1,25 @@
 import "@polkadot-api/light-client-extension-helpers/content-script"
+import { ToContent } from "./protocol"
 
-console.log("content")
-
-{
-  try {
-    const s = document.createElement("script")
-    s.src = chrome.runtime.getURL("js/inpage.global.js")
-    s.onload = function () {
-      // @ts-ignore
-      this.remove()
-    }
-    ;(document.head || document.documentElement).appendChild(s)
-  } catch (error) {
-    console.error("error injecting js/inpage.global.js", error)
+// TODO: inpage script might not be needed
+try {
+  const s = document.createElement("script")
+  s.src = chrome.runtime.getURL("js/inpage.global.js")
+  s.onload = function () {
+    // @ts-ignore
+    this.remove()
   }
+  ;(document.head || document.documentElement).appendChild(s)
+} catch (error) {
+  console.error("error injecting js/inpage.global.js", error)
 }
+
+chrome.runtime.onMessage.addListener((msg: ToContent, sender, sendResponse) => {
+  if (
+    !sender.tab &&
+    msg.origin === "my-extension-background" &&
+    msg.type === "onAddChainByUser"
+  ) {
+    sendResponse(confirm(`Confirm addChain ${JSON.stringify(msg.inputChain)}?`))
+  }
+})

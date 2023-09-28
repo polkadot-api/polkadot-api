@@ -1,36 +1,35 @@
-import { ToExtension, ToPage } from "@/protocol"
+import { ToExtension, ToPage, ToPageResponse } from "@/protocol"
 import { LightClientProvider } from "./types"
+import { CONTEXT } from "@/shared"
 
 function postToExtension(msg: ToExtension) {
-  console.log({ msg })
   window.postMessage(msg, "*")
 }
 
 function checkMessage(msg: any): msg is ToPage {
   if (!msg) return false
-  if (msg?.origin !== "content-script-helper") return false
-  // FIXME: is is optional for notificatios "onChainsChange"
-  if (!msg?.id) return false
+  if (msg?.origin !== CONTEXT.CONTENT_SCRIPT) return false
+  if (!msg?.type && !msg?.id) return false
   return true
 }
 
-window.addEventListener("message", ({ data, source, origin }) => {
-  console.log("web-page onMessage", { data })
+window.addEventListener("message", ({ data, source }) => {
   if (source !== window) return
-  if (data?.origin !== "content-script-helper") return
-  if (!checkMessage(data)) {
-    console.warn("Malformed message - unrecognised message", data)
+  if (data?.origin !== CONTEXT.CONTENT_SCRIPT) return
+  if (!checkMessage(data)) return console.warn("Unrecognized message", data)
+
+  if (data.id === undefined) {
+    if (data.type === "onAddChains") {
+      chainsChangeCallbacks.forEach((cb) =>
+        // FIXME: chainsChangeCallbacks might take RawChain[]
+        // @ts-ignore
+        cb(data.payload),
+      )
+    }
     return
   }
 
-  console.log({ data, origin })
-  // FIXME: handle notifications without id for "onChainsChange"
-  const pendingRequest = pendingRequests[data.id]
-  if (!pendingRequest) console.warn("unhandled response", data)
-  data.error
-    ? pendingRequest.reject(data.error)
-    : pendingRequest.resolve(data.result)
-  delete pendingRequests[data.id]
+  handleResponse(data)
 })
 
 const chainsChangeCallbacks: Parameters<
@@ -41,38 +40,45 @@ const pendingRequests: Record<
   string,
   { resolve(result: any): void; reject(error: any): void }
 > = {}
-// FIXME: improve id generation
-let nextId = 0
-const requestReply = (method: string, params?: any[]): Promise<any> => {
-  const id = "" + nextId++
+
+const requestReply = (msg: ToExtension): Promise<any> => {
   const promise = new Promise((resolve, reject) => {
-    pendingRequests[id] = { resolve, reject }
+    pendingRequests[msg.id] = { resolve, reject }
   })
-  postToExtension({
-    origin: "web-page-helper",
-    id,
-    method,
-    params,
-  })
+  postToExtension(msg)
   return promise
 }
+const handleResponse = (msg: ToPageResponse) => {
+  const pendingRequest = pendingRequests[msg.id]
+  if (!pendingRequest) return console.warn("Unhandled response", msg)
+  msg.error
+    ? pendingRequest.reject(msg.error)
+    : pendingRequest.resolve(msg.result)
+  delete pendingRequests[msg.id]
+}
 
+// FIXME: improve id generation, random-id?
+const nextId = (
+  (initialId) => () =>
+    "" + initialId++
+)(0)
 export const provider: LightClientProvider = {
   async addChain(chainspec) {
-    console.log("addChain", { chainspec })
-
-    // FIXME: handle errors
-    return requestReply("addChain", [chainspec])
+    return requestReply({
+      origin: CONTEXT.WEB_PAGE,
+      id: nextId(),
+      type: "addChain",
+      chainspec,
+    })
   },
   async getChains() {
-    console.log("getChains")
-
-    // FIXME: handle errors
-    return requestReply("getChains")
+    return requestReply({
+      origin: CONTEXT.WEB_PAGE,
+      id: nextId(),
+      type: "getChains",
+    })
   },
   onChainsChange(callback) {
-    console.log("onChainsChange")
-
     chainsChangeCallbacks.push(callback)
     return () => {
       chainsChangeCallbacks.splice(chainsChangeCallbacks.indexOf(callback), 1)

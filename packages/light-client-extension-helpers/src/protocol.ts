@@ -1,16 +1,30 @@
-export type ToExtension = {
-  // FIXME: prefix origin
-  origin: "web-page-helper"
+type ToExtensionAddChain = {
+  origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   id: string
-  method: string
-  params?: any[]
+  type: "addChain"
+  chainspec: string
 }
 
-export type ToPage = {
-  // FIXME: prefix origin
-  origin: "content-script-helper"
-  // FIXME: id is optional for notifications "onChainsChange"
+type ToExtensionGetChains = {
+  origin: "@polkadot-api/light-client-extension-helper-context-web-page"
+  id: string
+  type: "getChains"
+}
+
+export type ToExtension = ToExtensionAddChain | ToExtensionGetChains
+
+export type ToPageResponse = {
+  origin: "@polkadot-api/light-client-extension-helper-context-content-script"
   id: string
   result?: any
   error?: any
 }
+
+export type ToPageNotification = {
+  origin: "@polkadot-api/light-client-extension-helper-context-content-script"
+  id?: undefined
+  type: string
+  payload?: any
+}
+
+export type ToPage = ToPageResponse | ToPageNotification
