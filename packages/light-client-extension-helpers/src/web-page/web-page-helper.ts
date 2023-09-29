@@ -17,19 +17,15 @@ window.addEventListener("message", ({ data, source }) => {
   if (source !== window) return
   if (data?.origin !== CONTEXT.CONTENT_SCRIPT) return
   if (!checkMessage(data)) return console.warn("Unrecognized message", data)
-
-  if (data.id === undefined) {
-    if (data.type === "onAddChains") {
-      chainsChangeCallbacks.forEach((cb) =>
-        // FIXME: chainsChangeCallbacks might take RawChain[]
-        // @ts-ignore
-        cb(data.payload),
-      )
-    }
-    return
+  if (data.id !== undefined) return handleResponse(data)
+  if (data.type === "onAddChains") {
+    chainsChangeCallbacks.forEach((cb) =>
+      // FIXME: chainsChangeCallbacks might take RawChain[]
+      // @ts-ignore
+      cb(data.payload),
+    )
   }
-
-  handleResponse(data)
+  console.warn("Unhandled message", data)
 })
 
 const chainsChangeCallbacks: Parameters<
