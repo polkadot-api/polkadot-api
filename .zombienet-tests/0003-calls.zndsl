@@ -1,0 +1,7 @@
+Description: Relay Chain Smoke Test
+Network: ./0003-calls.toml
+Creds: config
+
+alice: is up
+bob: is up
+bob: ts-script ./0003-calls.ts within 140 seconds
