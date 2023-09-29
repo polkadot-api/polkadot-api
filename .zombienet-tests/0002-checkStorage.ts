@@ -46,7 +46,6 @@ export async function run(_nodeName: string, networkInfo: any) {
           )
           let res = storageAccount.dec(result as string)
           aliceBalance = res?.data?.free?.toString()
-          console.log("alice => ", aliceBalance)
           resolve(chainHeadFollower.unfollow())
         }
       },

@@ -14,9 +14,6 @@ importers:
       '@types/node':
         specifier: ^20.4.7
         version: 20.6.0
-      bignumber.js:
-        specifier: ^9.1.2
-        version: 9.1.2
       husky:
         specifier: '>=6'
         version: 8.0.3
@@ -1128,10 +1125,6 @@ packages:
     resolution: {integrity: sha512-2s3aRYaQtYGqY1w6x2PQqYbHUjktOWX0S0dkv7c+FjRnkKspictZ4IaEKmGEtZJjT2ccR29ufPB7QPEDfSs4bg==}
     dependencies:
       '@juanelas/base64': 1.1.2
-    dev: true
-
-  /bignumber.js@9.1.2:
-    resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==}
     dev: true
 
   /binary-extensions@2.2.0:
