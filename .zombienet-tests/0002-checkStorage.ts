@@ -1,7 +1,6 @@
 import { Tuple, compact, metadata } from "../packages/substrate-bindings/dist"
 import { getDynamicBuilder } from "../packages/substrate-codegen/dist"
 import { connect } from "./utils"
-import { BigNumber } from "bignumber.js"
 
 const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 
@@ -46,7 +45,8 @@ export async function run(_nodeName: string, networkInfo: any) {
             null,
           )
           let res = storageAccount.dec(result as string)
-          aliceBalance = new BigNumber(res?.data?.free).toNumber()
+          aliceBalance = res?.data?.free?.toString()
+          console.log("alice => ", aliceBalance)
           resolve(chainHeadFollower.unfollow())
         }
       },
