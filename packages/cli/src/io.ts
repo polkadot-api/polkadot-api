@@ -242,11 +242,52 @@ export async function outputCodegen(
     // hack: throw the variables with Self at the top
     chunk.sort((a) => (a.value.startsWith("Self") ? -1 : 0))
 
-    const constDeclarations = chunk.map(
-      (variable) =>
-        `const ${variable.id}${variable.types ? ": " + variable.types : ""} = ${
-          variable.value
-        }\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`,
+    const constDeclarations = await Promise.all(
+      chunk.map(async (variable) => {
+        const value = variable.value.replace(/(\r\n|\n|\r)/gm, "")
+        const enumRegex = /(?<=Enum\(\{)(.*)(?=\}.*\))/g
+        const vectorRegex = /(?<=Vector\()([a-zA-Z0-9_]*)(?=.*\))/g
+        const tupleRegex = /(?<=Tuple\()(.*)(?=.*\))/g
+
+        const vectorMatch = value.match(vectorRegex)
+        const tupleMatch = value.match(tupleRegex)
+        const enumMatch = value.match(enumRegex)
+
+        if (vectorMatch && vectorMatch[0]) {
+          const vectorType = `type I${variable.id} = Codec<CodecType<typeof ${vectorMatch[0]}>[]>`
+
+          return `${vectorType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+        }
+        if (tupleMatch && tupleMatch[0]) {
+          const tupleValues = tupleMatch[0].split(",").map((s) => s.trim())
+
+          const tupleType = `type I${variable.id} = Codec<[${tupleValues.map(
+            (s) => `CodecType<typeof ${s}>`,
+          )}]>`
+
+          return `${tupleType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+        }
+
+        if (enumMatch && enumMatch[0]) {
+          const enumKeyValues = enumMatch[0]
+            .split(",")
+            .map((s) => s.split(":").map((s) => s.trim()) as [string, string])
+
+          const enumType = `type I${variable.id} = Codec<${enumKeyValues
+            .map(
+              ([k, v]) => `\{tag: \"${k}\", value: CodecType<typeof ${v}> \}`,
+            )
+            .join("|")}>`
+
+          return `${enumType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+        }
+
+        return `const ${variable.id}${
+          variable.types ? ": " + variable.types : ""
+        } = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${
+          variable.id
+        }>\n`
+      }),
     )
     constDeclarations.unshift(
       `import {${[...declarations.imports].join(
