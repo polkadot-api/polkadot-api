@@ -72,11 +72,8 @@ chrome.runtime.onConnect.addListener((port) => {
             postMessage(port, {
               origin: CONTEXT.CONTENT_SCRIPT,
               type: "onAddChains",
-              // FIXME: revisit, may need to send all activeChains
-              payload: activeChains[genesisHash],
+              chains: activeChains,
             })
-
-            console.log("background addChain ok")
           } catch (error) {
             console.error("background addChain error", error)
             postMessage(port, {

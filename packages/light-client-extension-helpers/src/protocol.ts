@@ -20,11 +20,19 @@ export type ToPageResponse = {
   error?: any
 }
 
-export type ToPageNotification = {
+type ToPageNotificationOnAddChains = {
   origin: "@polkadot-api/light-client-extension-helper-context-content-script"
   id?: undefined
-  type: string
-  payload?: any
+  type: "onAddChains"
+  chains: Record<
+    string,
+    {
+      genesisHash: string
+      name: string
+    }
+  >
 }
+
+export type ToPageNotification = ToPageNotificationOnAddChains
 
 export type ToPage = ToPageResponse | ToPageNotification

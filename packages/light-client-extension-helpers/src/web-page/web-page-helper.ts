@@ -1,5 +1,5 @@
 import { ToExtension, ToPage, ToPageResponse } from "@/protocol"
-import { LightClientProvider } from "./types"
+import type { LightClientProvider } from "./types"
 import { CONTEXT } from "@/shared"
 
 function postToExtension(msg: ToExtension) {
@@ -18,13 +18,15 @@ window.addEventListener("message", ({ data, source }) => {
   if (data?.origin !== CONTEXT.CONTENT_SCRIPT) return
   if (!checkMessage(data)) return console.warn("Unrecognized message", data)
   if (data.id !== undefined) return handleResponse(data)
-  if (data.type === "onAddChains") {
+  if (data.type === "onAddChains")
     return chainsChangeCallbacks.forEach((cb) =>
-      // FIXME: chainsChangeCallbacks might take RawChain[]
-      // @ts-ignore
-      cb(data.payload),
+      cb({
+        ...data.chains,
+        // FIXME: implement connect
+        // @ts-ignore
+        connect() {},
+      }),
     )
-  }
   console.warn("Unhandled message", data)
 })
 

@@ -6,11 +6,14 @@ export interface LightClientProvider {
   addChain: (chainspec: string) => Promise<RawChain>
 
   // Retrieves the current list of available Chains
-  getChains: () => Promise<Record<string, RawChain>>
+  getChains: () => Promise<RawChains>
 
   // Registers a callback invoked when the list of available chains changes
-  onChainsChange: (chains: Callback<RawChain>) => UnsubscribeFn
+  onChainsChange: (chains: Callback<RawChains>) => UnsubscribeFn
 }
+
+// The key is the genesis hash
+type RawChains = Record<string, RawChain>
 
 export interface RawChain {
   genesisHash: string

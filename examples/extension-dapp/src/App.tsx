@@ -7,9 +7,8 @@ function App() {
   const [updatedChains, setUpdatedChains] = useState("")
   useEffect(
     () =>
-      provider.onChainsChange((rawChain) => {
-        const { genesisHash, name } = rawChain
-        setUpdatedChains(JSON.stringify({ genesisHash, name }))
+      provider.onChainsChange((rawChains) => {
+        setUpdatedChains(JSON.stringify(rawChains))
       }),
     [],
   )
