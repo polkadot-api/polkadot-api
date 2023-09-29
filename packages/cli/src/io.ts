@@ -16,7 +16,6 @@ import fsExists from "fs.promises.exists"
 import tsc from "tsc-prog"
 import path from "path"
 import { ESLint } from "eslint"
-import { ArraySort, GroupArraySort } from "@deepkit/topsort"
 
 type OutputDescriptorsArgs = (
   | {
@@ -216,38 +215,35 @@ export async function outputCodegen(
       const tupleMatch = value.match(tupleRegex)
       const enumMatch = value.match(enumRegex)
 
+      let declaration = ""
+
       if (vectorMatch && vectorMatch[0]) {
-        const vectorType = `type I${variable.id} = Codec<CodecType<typeof ${vectorMatch[0]}>[]>`
-
-        return `${vectorType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
-      }
-      if (tupleMatch && tupleMatch[0]) {
+        declaration += `type I${variable.id} = Codec<CodecType<typeof ${vectorMatch[0]}>[]>\n`
+        declaration += `const ${variable.id}: I${variable.id} = ${variable.value}\n`
+      } else if (tupleMatch && tupleMatch[0]) {
         const tupleValues = tupleMatch[0].split(",").map((s) => s.trim())
-
-        const tupleType = `type I${variable.id} = Codec<[${tupleValues.map(
+        declaration += `type I${variable.id} = Codec<[${tupleValues.map(
           (s) => `CodecType<typeof ${s}>`,
-        )}]>`
-
-        return `${tupleType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
-      }
-
-      if (enumMatch && enumMatch[0]) {
+        )}]>\n`
+        declaration += `const ${variable.id}: I${variable.id} = ${variable.value}\n`
+      } else if (enumMatch && enumMatch[0]) {
         const enumKeyValues = enumMatch[0]
           .split(",")
           .map((s) => s.split(":").map((s) => s.trim()) as [string, string])
 
-        const enumType = `type I${variable.id} = Codec<${enumKeyValues
+        declaration += `type I${variable.id} = Codec<${enumKeyValues
           .map(([k, v]) => `\{tag: \"${k}\", value: CodecType<typeof ${v}> \}`)
-          .join("|")}>`
-
-        return `${enumType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+          .join("|")}>\n`
+        declaration += `const ${variable.id}: I${variable.id} = ${variable.value}\n`
+      } else {
+        declaration += `const ${variable.id}${
+          variable.types ? ": " + variable.types : ""
+        } = ${variable.value}\n`
       }
 
-      return `const ${variable.id}${
-        variable.types ? ": " + variable.types : ""
-      } = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${
-        variable.id
-      }>\n`
+      declaration += `export type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+
+      return declaration
     }),
   )
   constDeclarations.unshift(
@@ -256,7 +252,7 @@ export async function outputCodegen(
     )}} from "@polkadot-api/substrate-bindings"`,
   )
 
-  const tscFileName = path.join(outputFolder, `${key}`)
+  const tscFileName = path.join(outputFolder, key)
   const tscTypesFileName = path.join(outputFolder, `${key}-types`)
 
   if (await fsExists(`${tscTypesFileName}.d.ts`)) {

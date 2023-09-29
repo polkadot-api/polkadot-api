@@ -25,7 +25,6 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "@deepkit/topsort": "1.0.1-alpha.89",
     "@inquirer/prompts": "^3.0.2",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
