@@ -1,17 +1,28 @@
-type ToExtensionAddChain = {
+type ToExtensionRequestAddChain = {
   origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   id: string
   type: "addChain"
-  chainspec: string
+  chainSpec: string
 }
 
-type ToExtensionGetChains = {
+type ToExtensionRequestGetChains = {
   origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   id: string
   type: "getChains"
 }
 
-export type ToExtension = ToExtensionAddChain | ToExtensionGetChains
+export type ToExtensionRequest =
+  | ToExtensionRequestAddChain
+  | ToExtensionRequestGetChains
+
+type ToExtensionRpc = {
+  origin: "@polkadot-api/light-client-extension-helper-context-web-page"
+  type: "rpc"
+  genesisHash: string
+  msg: string
+}
+
+export type ToExtension = ToExtensionRequest | ToExtensionRpc
 
 export type ToPageResponse = {
   origin: "@polkadot-api/light-client-extension-helper-context-content-script"
@@ -35,4 +46,14 @@ type ToPageNotificationOnAddChains = {
 
 export type ToPageNotification = ToPageNotificationOnAddChains
 
-export type ToPage = ToPageResponse | ToPageNotification
+type ToPageRpc = {
+  origin: "@polkadot-api/light-client-extension-helper-context-content-script"
+  // FIXME: remove "id" and improve type narrowing
+  id?: undefined
+  type: "rpc"
+  // TODO: add chainId to support multiple instances of the same chain
+  genesisHash: string
+  msg: string
+}
+
+export type ToPage = ToPageResponse | ToPageNotification | ToPageRpc

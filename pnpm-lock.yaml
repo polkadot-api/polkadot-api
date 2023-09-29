@@ -41,6 +41,9 @@ importers:
       '@polkadot-api/light-client-extension-helpers':
         specifier: workspace:*
         version: link:../../packages/light-client-extension-helpers
+      smoldot:
+        specifier: 2.0.3
+        version: 2.0.3
     devDependencies:
       '@types/chrome':
         specifier: ^0.0.246
@@ -54,6 +57,9 @@ importers:
       '@polkadot-api/light-client-extension-helpers':
         specifier: workspace:*
         version: link:../../packages/light-client-extension-helpers
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../../packages/substrate-client
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -300,10 +306,17 @@ importers:
         version: 0.34.4(vitest@0.34.4)
 
   packages/light-client-extension-helpers:
+    dependencies:
+      smoldot:
+        specifier: 2.0.3
+        version: 2.0.3
     devDependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../substrate-client
       '@types/chrome':
         specifier: ^0.0.246
         version: 0.0.246
@@ -5836,6 +5849,15 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  /smoldot@2.0.3:
+    resolution: {integrity: sha512-kmT+V2gB+tpWR/W6TSa/xzKfEJ2uMJQIaBsg2eKycaCH6uDLOEWPWEJDHtVVX/vfIfPrOVERznpHvReM6BVaaw==}
+    dependencies:
+      ws: 8.14.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
 
   /sonic-boom@3.4.0:
     resolution: {integrity: sha512-zSe9QQW30nPzjkSJ0glFQO5T9lHsk39tz+2bAAwCj8CNgEG8ItZiX7Wb2ZgA8I04dwRGCcf1m3ABJa8AYm12Fw==}

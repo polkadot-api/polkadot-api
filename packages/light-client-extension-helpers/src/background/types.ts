@@ -7,5 +7,5 @@ export type BackgroundHelper = (
 export interface InputChain {
   genesisHash: string
   name: string
-  chainspec: string
+  chainSpec: string
 }

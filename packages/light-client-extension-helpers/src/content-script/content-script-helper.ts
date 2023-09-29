@@ -24,7 +24,7 @@ function postToPage(msg: ToPage, targetOrigin: string) {
 function checkMessage(msg: any): msg is ToExtension {
   if (!msg) return false
   if (msg?.origin !== CONTEXT.WEB_PAGE) return false
-  if (!msg?.id) return false
+  if (!msg?.type && !msg?.id) return false
   return true
 }
 
@@ -40,9 +40,7 @@ window.addEventListener("message", async ({ data, source, origin }) => {
 
   await whenActivated
 
-  // FIXME: forward to port
   if (!port) {
-    // FIXME: extract to port name to constant
     port = chrome.runtime.connect({ name: PORT.CONTENT_SCRIPT })
     port.onMessage.addListener((msg: ToPage) => {
       postToPage(msg, origin)

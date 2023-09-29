@@ -8,7 +8,8 @@
     "start": "web-ext run --source-dir ./dist -t chromium"
   },
   "dependencies": {
-    "@polkadot-api/light-client-extension-helpers": "workspace:*"
+    "@polkadot-api/light-client-extension-helpers": "workspace:*",
+    "smoldot": "2.0.3"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.246",

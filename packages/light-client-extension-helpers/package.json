@@ -30,6 +30,10 @@
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
     "@types/chrome": "^0.0.246"
+  },
+  "peerDependencies": {
+    "smoldot": "2.0.3"
   }
 }
