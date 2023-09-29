@@ -6,7 +6,7 @@ export const fromAbortControllerFn =
   ) =>
   (...args: A): Observable<T> =>
     new Observable((observer) => {
-      const aborter = new AbortController()
+      let aborter: AbortController | undefined = new AbortController()
 
       fn(...[...args, aborter.signal]).then(
         (value: any) => {
@@ -19,6 +19,8 @@ export const fromAbortControllerFn =
       )
 
       return () => {
-        aborter.abort()
+        observer.unsubscribe()
+        aborter!.abort()
+        aborter = undefined
       }
     })

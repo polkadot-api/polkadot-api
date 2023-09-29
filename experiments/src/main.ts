@@ -5,11 +5,11 @@ import {
 } from "@polkadot-api/substrate-codegen"
 import { getMetadata } from "./getMetadata"
 import { writeFile } from "fs"
-import { fromHex } from "@unstoppablejs/utils"
 import * as fs from "node:fs/promises"
+import { metadata as $metadata } from "@polkadot-api/substrate-bindings"
 
 const metadata = await getMetadata()
-await fs.writeFile("./collectives-meta.scale", fromHex(metadata))
+await fs.writeFile("./collectives-meta.scale", $metadata.enc(metadata))
 console.log("DONE")
 process.exit(0)
 

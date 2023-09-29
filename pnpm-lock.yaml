@@ -69,9 +69,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@deepkit/topsort':
-        specifier: 1.0.1-alpha.89
-        version: 1.0.1-alpha.89
       '@inquirer/prompts':
         specifier: ^3.0.2
         version: 3.1.1
@@ -175,13 +172,13 @@ importers:
       '@polkadot-api/substrate-codegen':
         specifier: workspace:*
         version: link:../substrate-codegen
-      rxjs:
-        specifier: ^7.8.1
-        version: 7.8.1
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^0.34.3
         version: 0.34.4(vitest@0.34.4)
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
 
   packages/json-rpc-provider: {}
 
@@ -277,10 +274,6 @@ packages:
   /@bcoe/v8-coverage@0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
-
-  /@deepkit/topsort@1.0.1-alpha.89:
-    resolution: {integrity: sha512-0Iu+atoeri+Uecn3AidW7T5wKF69uAc/br2rUT5J6DyKf4/yroqyAWGSQgjbuLh1vYLVi2hWA+j5zxVpf16rFw==}
-    dev: false
 
   /@esbuild/android-arm64@0.18.20:
     resolution: {integrity: sha512-Nz4rJcchGDtENV0eMKUNa6L12zz2zBDXuhj/Vjh18zGqB44Bi7MBMSXjgunJgjRhCmKOjnPuZp4Mb6OKqtMHLQ==}

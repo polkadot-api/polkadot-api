@@ -34,8 +34,9 @@ export const createClient = (gProvider: GetProvider): Client => {
   const subscriptions = getSubscriptionsManager()
 
   const queuedRequests = new Map<number, Parameters<ClientRequest<any, any>>>()
+
   let provider: Provider | null = null
-  let state: ProviderStatus = "disconnected"
+  let isConnecting = true
 
   const send = (
     id: number,
@@ -94,12 +95,21 @@ export const createClient = (gProvider: GetProvider): Client => {
 
   function onStatusChange(e: ProviderStatus) {
     if (e === "connected") {
+      isConnecting = false
+
       queuedRequests.forEach((args, id) => {
         process(id, ...args)
       })
       queuedRequests.clear()
+      return
     }
-    state = e
+
+    if (isConnecting) {
+      isConnecting = false
+    } else {
+      provider = null
+      disconnect()
+    }
   }
 
   const connect = () => {
@@ -110,9 +120,19 @@ export const createClient = (gProvider: GetProvider): Client => {
   const disconnect = () => {
     provider?.close()
     provider = null
-    responses.clear()
+
+    const disconnectError = new Error("disconnect")
+
+    ;[...queuedRequests.values()].forEach((request) => {
+      request[2]?.onError(disconnectError)
+    })
     queuedRequests.clear()
-    subscriptions.errorAll(new Error("disconnected"))
+    ;[...responses.values()].forEach((response) => {
+      response.onError(disconnectError)
+    })
+    responses.clear()
+
+    subscriptions.errorAll(disconnectError)
   }
 
   const process = (
@@ -130,14 +150,11 @@ export const createClient = (gProvider: GetProvider): Client => {
     params: Array<any>,
     cb?: ClientRequestCb<T, TT>,
   ): UnsubscribeFn => {
-    if (!provider) throw new Error("Not connected")
+    if (!provider && !isConnecting) throw new Error("Not connected")
     const id = nextId++
 
-    if (state === "connected") {
-      process(id, method, params, cb)
-    } else {
-      queuedRequests.set(id, [method, params, cb])
-    }
+    if (isConnecting) queuedRequests.set(id, [method, params, cb])
+    else process(id, method, params, cb)
 
     return (): void => {
       if (queuedRequests.has(id)) {
