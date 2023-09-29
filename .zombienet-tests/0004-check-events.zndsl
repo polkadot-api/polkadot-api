@@ -1,0 +1,10 @@
+Description: Simple Parachain Smoke Test
+Network: ./0004-check-events.toml
+Creds: config
+
+alice: is up
+bob: is up
+alice: reports block height is at least 5 within 120 seconds
+alice: reports best block is at least 5 within 120 seconds
+alice: reports finalised height is at least 2 within 120 seconds
+alice: reports finalised block is at least 2 within 120 seconds
