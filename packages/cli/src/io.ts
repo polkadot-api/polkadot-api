@@ -203,138 +203,86 @@ export async function outputCodegen(
   declarations.imports.add("SS58String")
   declarations.imports.add("HexString")
 
-  const sorter = new ArraySort(true)
+  const variables = [...declarations.variables.values()]
 
-  const circular = new Set<string>()
-  sorter.circularInterceptor = (items) => {
-    items.forEach((item) => circular.add(item))
+  const constDeclarations = await Promise.all(
+    variables.map(async (variable) => {
+      const value = variable.value.replace(/(\r\n|\n|\r)/gm, "")
+      const enumRegex = /(?<=Enum\(\{)(.*)(?=\}.*\))/g
+      const vectorRegex = /(?<=Vector\()([a-zA-Z0-9_]*)(?=.*\))/g
+      const tupleRegex = /(?<=Tuple\()(.*)(?=.*\))/g
+
+      const vectorMatch = value.match(vectorRegex)
+      const tupleMatch = value.match(tupleRegex)
+      const enumMatch = value.match(enumRegex)
+
+      if (vectorMatch && vectorMatch[0]) {
+        const vectorType = `type I${variable.id} = Codec<CodecType<typeof ${vectorMatch[0]}>[]>`
+
+        return `${vectorType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+      }
+      if (tupleMatch && tupleMatch[0]) {
+        const tupleValues = tupleMatch[0].split(",").map((s) => s.trim())
+
+        const tupleType = `type I${variable.id} = Codec<[${tupleValues.map(
+          (s) => `CodecType<typeof ${s}>`,
+        )}]>`
+
+        return `${tupleType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+      }
+
+      if (enumMatch && enumMatch[0]) {
+        const enumKeyValues = enumMatch[0]
+          .split(",")
+          .map((s) => s.split(":").map((s) => s.trim()) as [string, string])
+
+        const enumType = `type I${variable.id} = Codec<${enumKeyValues
+          .map(([k, v]) => `\{tag: \"${k}\", value: CodecType<typeof ${v}> \}`)
+          .join("|")}>`
+
+        return `${enumType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+      }
+
+      return `const ${variable.id}${
+        variable.types ? ": " + variable.types : ""
+      } = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${
+        variable.id
+      }>\n`
+    }),
+  )
+  constDeclarations.unshift(
+    `import {${[...declarations.imports].join(
+      ", ",
+    )}} from "@polkadot-api/substrate-bindings"`,
+  )
+
+  const tscFileName = path.join(outputFolder, `${key}`)
+  const tscTypesFileName = path.join(outputFolder, `${key}-types`)
+
+  if (await fsExists(`${tscTypesFileName}.d.ts`)) {
+    await fs.rm(`${tscTypesFileName}.d.ts`)
+  }
+  if (await fsExists(`${tscFileName}.ts`)) {
+    await fs.rm(`${tscFileName}.ts`)
   }
 
-  for (const v of declarations.variables.values()) {
-    sorter.add(
-      v.id,
-      [...v.directDependencies].filter((dep) => !declarations.imports.has(dep)),
-    )
-  }
+  await fs.writeFile(`${tscTypesFileName}.ts`, constDeclarations.join("\n\n"))
 
-  sorter.sort()
+  tsc.build({
+    basePath: outputFolder,
+    compilerOptions: {
+      skipLibCheck: true,
+      emitDeclarationOnly: true,
+      declaration: true,
+      target: "esnext",
+      module: "esnext",
+      moduleResolution: "node",
+    },
+    include: [`${key}-types.ts`],
+  })
 
-  const groupSorter = new GroupArraySort(false)
-  for (const v of declarations.variables.values()) {
-    groupSorter.add(
-      v.id,
-      circular.has(v.id) ? "circular" : "regular",
-      [...v.directDependencies].filter((dep) => !declarations.imports.has(dep)),
-    )
-  }
-
-  groupSorter.sort()
-
-  const groups = groupSorter.getGroups()
-
-  let count = 0
-  const codegenedVariables: string[] = []
-  for (const group of groups) {
-    count += 1
-
-    const chunk = group.items.map((id) => declarations.variables.get(id)!)
-
-    // hack: throw the variables with Self at the top
-    chunk.sort((a) => (a.value.startsWith("Self") ? -1 : 0))
-
-    const constDeclarations = await Promise.all(
-      chunk.map(async (variable) => {
-        const value = variable.value.replace(/(\r\n|\n|\r)/gm, "")
-        const enumRegex = /(?<=Enum\(\{)(.*)(?=\}.*\))/g
-        const vectorRegex = /(?<=Vector\()([a-zA-Z0-9_]*)(?=.*\))/g
-        const tupleRegex = /(?<=Tuple\()(.*)(?=.*\))/g
-
-        const vectorMatch = value.match(vectorRegex)
-        const tupleMatch = value.match(tupleRegex)
-        const enumMatch = value.match(enumRegex)
-
-        if (vectorMatch && vectorMatch[0]) {
-          const vectorType = `type I${variable.id} = Codec<CodecType<typeof ${vectorMatch[0]}>[]>`
-
-          return `${vectorType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
-        }
-        if (tupleMatch && tupleMatch[0]) {
-          const tupleValues = tupleMatch[0].split(",").map((s) => s.trim())
-
-          const tupleType = `type I${variable.id} = Codec<[${tupleValues.map(
-            (s) => `CodecType<typeof ${s}>`,
-          )}]>`
-
-          return `${tupleType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
-        }
-
-        if (enumMatch && enumMatch[0]) {
-          const enumKeyValues = enumMatch[0]
-            .split(",")
-            .map((s) => s.split(":").map((s) => s.trim()) as [string, string])
-
-          const enumType = `type I${variable.id} = Codec<${enumKeyValues
-            .map(
-              ([k, v]) => `\{tag: \"${k}\", value: CodecType<typeof ${v}> \}`,
-            )
-            .join("|")}>`
-
-          return `${enumType}\nconst ${variable.id}: I${variable.id} = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${variable.id}>\n`
-        }
-
-        return `const ${variable.id}${
-          variable.types ? ": " + variable.types : ""
-        } = ${variable.value}\nexport type ${variable.id} = CodecType<typeof ${
-          variable.id
-        }>\n`
-      }),
-    )
-    constDeclarations.unshift(
-      `import {${[...declarations.imports].join(
-        ", ",
-      )}} from "@polkadot-api/substrate-bindings"`,
-    )
-    if (count > 1) {
-      constDeclarations.unshift(
-        `import {${codegenedVariables.join(", ")}} from "./${key}-${
-          count - 1
-        }-types"`,
-      )
-    }
-
-    codegenedVariables.push(...chunk.map((v) => v.id))
-    constDeclarations.push(`export {${codegenedVariables.join(", ")}}\n`)
-
-    const tscFileName = path.join(outputFolder, `${key}`)
-    const tscTypesFileName = path.join(outputFolder, `${key}-${count}-types`)
-
-    if (await fsExists(`${tscTypesFileName}.d.ts`)) {
-      await fs.rm(`${tscTypesFileName}.d.ts`)
-    }
-    if (await fsExists(`${tscFileName}.ts`)) {
-      await fs.rm(`${tscFileName}.ts`)
-    }
-
-    await fs.writeFile(`${tscTypesFileName}.ts`, constDeclarations.join("\n\n"))
-
-    try {
-      tsc.build({
-        basePath: outputFolder,
-        compilerOptions: {
-          skipLibCheck: true,
-          emitDeclarationOnly: true,
-          declaration: true,
-          target: "esnext",
-          module: "esnext",
-          moduleResolution: "node",
-        },
-        include: [`${key}-${count}-types.ts`],
-      })
-    } catch (err) {}
-
-    if (await fsExists(`${tscTypesFileName}.ts`)) {
-      await fs.rm(`${tscTypesFileName}.ts`)
-    }
+  if (await fsExists(`${tscTypesFileName}.ts`)) {
+    await fs.rm(`${tscTypesFileName}.ts`)
   }
 
   let descriptorCodegen = ""
@@ -367,7 +315,7 @@ export async function outputCodegen(
   )}} from "@polkadot-api/substrate-bindings"\n`
   descriptorCodegen += `import type {${[...declarations.variables.values()]
     .map((v) => v.id)
-    .join(", ")}} from "./${key}-${count}-types.d.ts"\n\n`
+    .join(", ")}} from "./${key}-types.d.ts"\n\n`
 
   descriptorCodegen += `const CONST = "const"\n\n`
   descriptorCodegen += `const EVENT = "event"\n\n`
@@ -494,6 +442,6 @@ export type ${constName} = StorageType<typeof ${constName}>
     },
   })
 
-  const results = await eslint.lintFiles([`${outputFolder}/**/*.ts`])
+  const results = await eslint.lintFiles([`${outputFolder}/${key}.ts`])
   await ESLint.outputFixes(results)
 }
