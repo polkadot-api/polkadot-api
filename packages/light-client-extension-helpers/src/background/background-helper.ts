@@ -26,6 +26,8 @@ chrome.runtime.onConnect.addListener((port) => {
     port.onMessage.addListener(async (msg: ToExtension, port) => {
       switch (msg.type) {
         case "addChain": {
+          const tabId = port.sender?.tab?.id
+          if (!tabId) return
           try {
             // FIXME: use msg.chainspec to query for genesisHash & name
             const genesisHash = "chain-genesisHash"
@@ -44,11 +46,14 @@ chrome.runtime.onConnect.addListener((port) => {
 
             await Promise.all(
               addChainByUserCallbacks.map((cb) =>
-                cb({
-                  genesisHash,
-                  name,
-                  chainspec: msg.chainspec,
-                }),
+                cb(
+                  {
+                    genesisHash,
+                    name,
+                    chainspec: msg.chainspec,
+                  },
+                  tabId,
+                ),
               ),
             )
 

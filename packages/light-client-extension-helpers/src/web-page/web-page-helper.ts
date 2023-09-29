@@ -19,7 +19,7 @@ window.addEventListener("message", ({ data, source }) => {
   if (!checkMessage(data)) return console.warn("Unrecognized message", data)
   if (data.id !== undefined) return handleResponse(data)
   if (data.type === "onAddChains") {
-    chainsChangeCallbacks.forEach((cb) =>
+    return chainsChangeCallbacks.forEach((cb) =>
       // FIXME: chainsChangeCallbacks might take RawChain[]
       // @ts-ignore
       cb(data.payload),
