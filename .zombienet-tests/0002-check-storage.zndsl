@@ -4,4 +4,4 @@ Creds: config
 
 alice: is up
 bob: is up
-alice: ts-script ./0002-check-storage.ts with "alice" return is 1000000000000000000 within 200 seconds
+alice: ts-script ./0002-checkStorage.ts with "alice" return is 1000000000000000000 within 200 seconds
