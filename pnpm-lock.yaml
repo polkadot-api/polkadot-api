@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -11,6 +11,9 @@ importers:
       '@fast-check/vitest':
         specifier: ^0.0.6
         version: 0.0.6(vitest@0.34.4)
+      '@types/node':
+        specifier: ^20.4.7
+        version: 20.6.0
       husky:
         specifier: '>=6'
         version: 8.0.3

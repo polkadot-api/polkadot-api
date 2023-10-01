@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.0.6",
+    "@types/node": "^20.4.7",
     "husky": ">=6",
     "lint-staged": "^12.4.1",
     "prettier": "^3.0.1",
