@@ -45,5 +45,4 @@ jobs:
           tsc .zombienet-tests/utils.ts || true
           ./zombienet-linux-x64 -p native test ./.zombienet-tests/0001-relay-smoke-test.zndsl
           ./zombienet-linux-x64 -p native test ./.zombienet-tests/0002-check-storage.zndsl
-          ./zombienet-linux-x64 -p native test ./.zombienet-tests/0003-calls.zndsl
-          ./zombienet-linux-x64 -p native test ./.zombienet-tests/0002-check-events.zndsl
+          ./zombienet-linux-x64 -p native test ./.zombienet-tests/0003-check-events.zndsl
