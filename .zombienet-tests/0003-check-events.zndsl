@@ -1,5 +1,5 @@
 Description: Simple Parachain Smoke Test
-Network: ./0004-check-events.toml
+Network: ./0003-check-events.toml
 Creds: config
 
 alice: is up
