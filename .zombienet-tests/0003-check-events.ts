@@ -19,8 +19,6 @@ export async function run(_nodeName: string, networkInfo: any) {
     const chainHeadFollower = chainHead(
       true,
       (event) => {
-        console.log("event", event.type)
-
         if (!newBlock && event.type === "newBlock" && ++newBlockCount === 2) {
           newBlock = true
           chainHeadFollower.unpin([event.blockHash])
