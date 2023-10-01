@@ -11,7 +11,7 @@ export async function run(_nodeName: string, networkInfo: any) {
 
   let aliceBalance = 0
 
-  await new Promise(async (resolve, reject) => {
+  await new Promise((resolve, reject) => {
     let requested = false
     const chainHeadFollower = chainHead(
       true,
