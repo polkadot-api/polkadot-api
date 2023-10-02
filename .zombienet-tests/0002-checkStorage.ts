@@ -1,11 +1,14 @@
 import { Tuple, compact, metadata } from "../packages/substrate-bindings/dist"
 import { getDynamicBuilder } from "../packages/substrate-codegen/dist"
-import { connect } from "./utils"
+import { createClient } from "../packages/substrate-client/dist"
+import { ScProvider } from "../packages/sc-provider/dist"
 
 const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 
 export async function run(_nodeName: string, networkInfo: any) {
-  const { chainHead } = await connect(networkInfo)
+  const customChainSpec = require(networkInfo.chainSpecPath)
+  let provider = ScProvider(JSON.stringify(customChainSpec))
+  const { chainHead } = await createClient(provider)
 
   const opaqueMeta = Tuple(compact, metadata)
 

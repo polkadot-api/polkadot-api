@@ -1,7 +1,0 @@
-Description: Simple Parachain Smoke Test
-Network: ./0003-check-events.toml
-Creds: config
-
-alice: is up
-bob: is up
-alice: ts-script ./0003-check-events.ts within 200 seconds

@@ -15,6 +15,7 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 8
+          cache: pnpm
       - name: build
         run: |
           pnpm install
@@ -42,7 +43,4 @@ jobs:
       - name: Run test
         run: |
           export PATH=$(pwd):$PATH
-          tsc .zombienet-tests/utils.ts || true
-          ./zombienet-linux-x64 -p native test ./.zombienet-tests/0001-relay-smoke-test.zndsl
-          ./zombienet-linux-x64 -p native test ./.zombienet-tests/0002-check-storage.zndsl
-          ./zombienet-linux-x64 -p native test ./.zombienet-tests/0003-check-events.zndsl
+          ./zombienet-linux-x64 -p native test ./.zombienet-tests/0001-test.zndsl
