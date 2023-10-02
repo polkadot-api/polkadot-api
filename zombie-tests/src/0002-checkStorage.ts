@@ -1,7 +1,7 @@
-import { Tuple, compact, metadata } from "../packages/substrate-bindings/dist"
-import { getDynamicBuilder } from "../packages/substrate-codegen/dist"
-import { createClient } from "../packages/substrate-client/dist"
-import { ScProvider } from "../packages/sc-provider/dist"
+import { Tuple, compact, metadata } from "@polkadot-api/substrate-bindings"
+import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
+import { createClient } from "@polkadot-api/substrate-client"
+import { ScProvider } from "@polkadot-api/sc-provider"
 
 const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 

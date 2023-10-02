@@ -1,5 +1,5 @@
-import { createClient } from "../packages/substrate-client/dist"
-import { ScProvider } from "../packages/sc-provider/dist"
+import { createClient } from "@polkadot-api/substrate-client"
+import { ScProvider } from "@polkadot-api/sc-provider"
 
 export async function run(_nodeName: string, networkInfo: any) {
   const customChainSpec = require(networkInfo.chainSpecPath)

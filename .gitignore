@@ -5,4 +5,5 @@ coverage
 .cache
 packages/*/dist/**
 experiments/dist/**
+zombie-tests/dist/**
 .vscode

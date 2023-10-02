@@ -11,9 +11,6 @@ importers:
       '@fast-check/vitest':
         specifier: ^0.0.6
         version: 0.0.6(vitest@0.34.4)
-      '@types/node':
-        specifier: ^20.4.7
-        version: 20.6.0
       husky:
         specifier: '>=6'
         version: 8.0.3
@@ -236,6 +233,40 @@ importers:
         version: link:../substrate-bindings
 
   packages/utils: {}
+
+  zombie-tests:
+    dependencies:
+      '@polkadot-api/cli':
+        specifier: workspace:*
+        version: link:../packages/cli
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../packages/client
+      '@polkadot-api/sc-provider':
+        specifier: workspace:*
+        version: link:../packages/sc-provider
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../packages/substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../packages/substrate-client
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../packages/substrate-codegen
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../packages/utils
+      typescript:
+        specifier: ^5.1.6
+        version: 5.2.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.6.0
+        version: 20.6.0
+      prettier:
+        specifier: ^2.6.2
+        version: 2.8.8
 
 packages:
 
