@@ -5,13 +5,10 @@
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "@polkadot-api/cli": "workspace:*",
-    "@polkadot-api/client": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/substrate-codegen": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/substrate-codegen": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.6.0"
