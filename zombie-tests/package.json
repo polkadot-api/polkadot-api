@@ -11,8 +11,7 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
-    "typescript": "^5.1.6"
+    "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.6.0",
@@ -23,7 +22,5 @@
     "semi": false,
     "trailingComma": "all"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "license": "MIT"
 }
