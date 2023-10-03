@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@picocss/pico": "^1.5.10",
     "@polkadot-api/light-client-extension-helpers": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "react": "^18.2.0",

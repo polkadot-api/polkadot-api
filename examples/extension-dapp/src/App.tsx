@@ -2,21 +2,35 @@ import { useCallback, useEffect, useState } from "react"
 import {
   provider,
   type JsonRpcProvider,
+  RawChain,
 } from "@polkadot-api/light-client-extension-helpers/web-page"
 import { createClient } from "@polkadot-api/substrate-client"
 
-import westend from "./chainspecs/westend2.json?raw"
 import polkadot from "./chainspecs/polkadot.json?raw"
 import ksmcc3 from "./chainspecs/ksmcc3.json?raw"
+import westend from "./chainspecs/westend2.json?raw"
+import westmint from "./chainspecs/westend-westmint.json?raw"
 
-import "./App.css"
+const rawChainsToHuman = (rawChains: Record<string, RawChain>) =>
+  JSON.stringify(
+    Object.values(rawChains).map(({ name, genesisHash }) => [
+      name,
+      `${genesisHash.substring(0, 6)}..${genesisHash.substring(
+        genesisHash.length - 4,
+      )}`,
+    ]),
+    undefined,
+    2,
+  )
 
 function App() {
   const [updatedChains, setUpdatedChains] = useState("")
+  const [getChains, setGetChains] = useState("")
+  const [westendGenesisHash, setWestendGenesisHash] = useState<string>()
   useEffect(
     () =>
       provider.onChainsChange((rawChains) => {
-        setUpdatedChains(JSON.stringify(rawChains))
+        setUpdatedChains(rawChainsToHuman(rawChains))
       }),
     [],
   )
@@ -73,20 +87,34 @@ function App() {
   }, [])
   const handleAddChainWestend = useCallback(async () => {
     try {
-      console.log("provider.addChain()", await provider.addChain(westend))
+      const chain = await provider.addChain(westend)
+      console.log("provider.addChain()", chain)
+      setWestendGenesisHash(chain.genesisHash)
     } catch (error) {
       console.error("provider.addChain()", error)
     }
   }, [])
+  const handleAddChainWestmint = useCallback(async () => {
+    try {
+      console.log(
+        "provider.addChain()",
+        await provider.addChain(westmint, westendGenesisHash),
+      )
+    } catch (error) {
+      console.error("provider.addChain()", error)
+    }
+  }, [westendGenesisHash])
   const handleGetChains = useCallback(async () => {
     try {
-      console.log("provider.getChains()", await provider.getChains())
+      const chains = await provider.getChains()
+      console.log("provider.getChains()", chains)
+      setGetChains(rawChainsToHuman(chains))
     } catch (error) {
       console.error("provider.getChains()", error)
     }
   }, [])
   return (
-    <>
+    <main className="container">
       <h1>Extension Test DApp</h1>
       <div>Actions</div>
       <div>
@@ -99,13 +127,20 @@ function App() {
         <button onClick={handleAddChainWestend}>Add Westend Chain</button>
       </div>
       <div>
+        <button onClick={handleAddChainWestmint}>Add Westmint Chain</button>
+      </div>
+      <div>
         <button onClick={handleGetChains}>Get Chains</button>
+      </div>
+      <div>
+        <div>Get Chains</div>
+        <pre>{getChains}</pre>
       </div>
       <div>
         <div>Updated Chains</div>
         <pre>{updatedChains}</pre>
       </div>
-    </>
+    </main>
   )
 }
 
