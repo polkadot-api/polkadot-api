@@ -307,6 +307,9 @@ importers:
 
   packages/light-client-extension-helpers:
     dependencies:
+      '@substrate/connect-extension-protocol':
+        specifier: ^1.0.1
+        version: 1.0.1
       smoldot:
         specifier: 2.0.3
         version: 2.0.3

@@ -48,7 +48,11 @@ export const smoldotProvider = async ({
         onStatus("connected")
       },
       close() {
-        chain.remove()
+        try {
+          chain.remove()
+        } catch (error) {
+          console.error("error removing chain", error)
+        }
         getProviderChains.delete(getProvider)
         // TODO: validate, Should onStatus be invoked on .close()?
         onStatus("disconnected")

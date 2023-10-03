@@ -1,3 +1,8 @@
+import type {
+  ToExtension as ConnectToExtension,
+  ToApplication as ConnectToApplication,
+} from "@substrate/connect-extension-protocol"
+
 type ToExtensionRequestAddChain = {
   origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   id: string
@@ -15,14 +20,7 @@ export type ToExtensionRequest =
   | ToExtensionRequestAddChain
   | ToExtensionRequestGetChains
 
-type ToExtensionRpc = {
-  origin: "@polkadot-api/light-client-extension-helper-context-web-page"
-  type: "rpc"
-  genesisHash: string
-  msg: string
-}
-
-export type ToExtension = ToExtensionRequest | ToExtensionRpc
+export type ToExtension = ToExtensionRequest | ConnectToExtension
 
 export type ToPageResponse = {
   origin: "@polkadot-api/light-client-extension-helper-context-content-script"
@@ -46,14 +44,4 @@ type ToPageNotificationOnAddChains = {
 
 export type ToPageNotification = ToPageNotificationOnAddChains
 
-type ToPageRpc = {
-  origin: "@polkadot-api/light-client-extension-helper-context-content-script"
-  // FIXME: remove "id" and improve type narrowing
-  id?: undefined
-  type: "rpc"
-  // TODO: add chainId to support multiple instances of the same chain
-  genesisHash: string
-  msg: string
-}
-
-export type ToPage = ToPageResponse | ToPageNotification | ToPageRpc
+export type ToPage = ToPageResponse | ToPageNotification | ConnectToApplication

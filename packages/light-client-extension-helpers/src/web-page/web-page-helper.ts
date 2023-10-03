@@ -1,44 +1,47 @@
-import { ProviderStatus } from "@polkadot-api/json-rpc-provider"
-import {
+import type {
   ToExtension,
   ToExtensionRequest,
   ToPage,
   ToPageResponse,
 } from "@/protocol"
-import type { LightClientProvider, RawChain } from "./types"
 import { CONTEXT } from "@/shared"
+import type { LightClientProvider, RawChain } from "./types"
 
 export * from "./types"
 
-function postToExtension(msg: ToExtension) {
-  window.postMessage(msg, "*")
-}
+const postToExtension = (msg: ToExtension) =>
+  window.postMessage(msg, window.origin)
 
-function checkMessage(msg: any): msg is ToPage {
+const validOrigins = [CONTEXT.CONTENT_SCRIPT, "substrate-connect-extension"]
+
+const checkMessage = (msg: any): msg is ToPage => {
   if (!msg) return false
-  if (msg?.origin !== CONTEXT.CONTENT_SCRIPT) return false
+  if (!validOrigins.includes(msg?.origin)) return false
   if (!msg?.type && !msg?.id) return false
   return true
 }
 
 window.addEventListener("message", ({ data, source }) => {
   if (source !== window) return
-  if (data?.origin !== CONTEXT.CONTENT_SCRIPT) return
+  if (!validOrigins.includes(data?.origin)) return
   if (!checkMessage(data)) return console.warn("Unrecognized message", data)
+  if (data.origin === "substrate-connect-extension")
+    return rawChainCallbacks[data.chainId]?.(data)
   if (data.id !== undefined) return handleResponse(data)
   if (data.type === "onAddChains")
     return chainsChangeCallbacks.forEach((cb) =>
-      // FIXME: implement connect with getOrCreateRawChain
-      cb({
-        ...data.chains,
-        // @ts-ignore
-        connect() {},
-      }),
+      cb(
+        Object.fromEntries(
+          Object.entries(data.chains).map(([key, chain]) => [
+            key,
+            // FIXME: chainSpec should be internal to content-script-helper
+            // @ts-ignore
+            createRawChain(chain),
+          ]),
+        ),
+      ),
     )
-  if (data.type === "rpc" && rawChainCallbacks[data.genesisHash])
-    return rawChainCallbacks[data.genesisHash]?.onMessage.forEach((cb) =>
-      cb(data.msg),
-    )
+
   console.warn("Unhandled message", data)
 })
 
@@ -74,24 +77,36 @@ const nextId = (
 )(0)
 export const provider: LightClientProvider = {
   async addChain(chainSpec) {
-    const chain = await requestReply<{ name: string; genesisHash: string }>({
-      origin: CONTEXT.WEB_PAGE,
-      id: nextId(),
-      type: "addChain",
-      chainSpec: chainSpec,
-    })
-
-    return getOrCreateRawChain(chain)
+    return createRawChain(
+      await requestReply<{
+        name: string
+        genesisHash: string
+        // FIXME: this should be internal to content-script-helper
+        chainSpec: string
+      }>({
+        origin: CONTEXT.WEB_PAGE,
+        id: nextId(),
+        type: "addChain",
+        chainSpec,
+      }),
+    )
   },
   async getChains() {
-    const chains = await requestReply<{ name: string; genesisHash: string }[]>({
+    const chains = await requestReply<
+      {
+        name: string
+        genesisHash: string
+        // FIXME: this should be internal to content-script-helper
+        chainSpec: string
+      }[]
+    >({
       origin: CONTEXT.WEB_PAGE,
       id: nextId(),
       type: "getChains",
     })
     return Object.entries(chains).reduce(
       (acc, [key, chain]) => {
-        acc[key] = getOrCreateRawChain(chain)
+        acc[key] = createRawChain(chain)
         return acc
       },
       {} as Record<string, RawChain>,
@@ -107,47 +122,90 @@ export const provider: LightClientProvider = {
 
 const rawChainCallbacks: Record<
   string,
-  {
-    onMessage: ((msg: string) => void)[] // TODO: Should it be an array?
-    onStatusChange: ((status: ProviderStatus) => void)[] // TODO: Should it be an array?
-  }
+  (msg: ToPage & { origin: "substrate-connect-extension" }) => void
 > = {}
 
-const getOrCreateRawChain = ({
+const createRawChain = ({
   name,
   genesisHash,
+  chainSpec,
 }: {
   name: string
   genesisHash: string
+  // FIXME: this should be internal to content-script-helper
+  chainSpec: string
 }): RawChain => {
   return {
     name,
     genesisHash,
     async connect(onMessage, onStatusChange) {
-      rawChainCallbacks[genesisHash] ??= { onMessage: [], onStatusChange: [] }
-      rawChainCallbacks[genesisHash].onMessage.push(onMessage)
-      rawChainCallbacks[genesisHash].onStatusChange.push(onStatusChange)
+      const chainId = getRandomChainId()
+      const pendingJsonRpcMessages: string[] = []
+      let isReady = false
+      rawChainCallbacks[chainId] = (msg) => {
+        switch (msg.type) {
+          case "error": {
+            delete rawChainCallbacks[chainId]
+            onStatusChange("disconnected")
+            break
+          }
+          case "rpc": {
+            onMessage(msg.jsonRpcMessage)
+            break
+          }
+          case "chain-ready": {
+            isReady = true
+            pendingJsonRpcMessages.forEach((jsonRpcMessage) =>
+              postToExtension({
+                origin: "substrate-connect-client",
+                type: "rpc",
+                chainId,
+                jsonRpcMessage,
+              }),
+            )
+            pendingJsonRpcMessages.length = 0
+            onStatusChange("connected")
+            break
+          }
+          default:
+            const unrecognizedMsg: never = msg
+            console.warn("Unrecognized message", unrecognizedMsg)
+            break
+        }
+      }
+
+      postToExtension({
+        origin: "substrate-connect-client",
+        type: "add-chain",
+        chainId,
+        // FIXME: this should be internal to content-script-helper
+        chainSpec,
+        // FIXME: handle potential relay chains
+        potentialRelayChainIds: [],
+      })
+
       return {
-        send(msg) {
+        send(jsonRpcMessage) {
+          if (!isReady) {
+            pendingJsonRpcMessages.push(jsonRpcMessage)
+            return
+          }
           postToExtension({
-            origin: CONTEXT.WEB_PAGE,
+            origin: "substrate-connect-client",
             type: "rpc",
-            genesisHash,
-            msg,
+            chainId,
+            jsonRpcMessage,
           })
         },
         disconnect() {
-          // FIXME: notify extension
-          // postToExtension({
-          //   origin: CONTEXT.WEB_PAGE,
-          //   type: "disconnect",
-          //   genesisHash,
-          // })
-          removeArrayItem(rawChainCallbacks[genesisHash].onMessage, onMessage)
-          removeArrayItem(
-            rawChainCallbacks[genesisHash].onStatusChange,
-            onStatusChange,
-          )
+          delete rawChainCallbacks[chainId]
+          postToExtension({
+            origin: "substrate-connect-client",
+            type: "remove-chain",
+            chainId,
+          })
+          // TODO: validate, Should onStatusChange be invoked on .disconnect()?
+          onStatusChange("disconnected")
         },
       }
     },
@@ -156,4 +214,12 @@ const getOrCreateRawChain = ({
 
 const removeArrayItem = <T>(array: T[], item: T) => {
   array.splice(array.indexOf(item), 1)
+}
+
+const getRandomChainId = () => {
+  const arr = new BigUint64Array(2)
+  // It can only be used from the browser, so this is fine.
+  crypto.getRandomValues(arr)
+  const result = (arr[1]! << BigInt(64)) | arr[0]!
+  return result.toString(36)
 }

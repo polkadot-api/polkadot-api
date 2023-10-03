@@ -35,5 +35,8 @@
   },
   "peerDependencies": {
     "smoldot": "2.0.3"
+  },
+  "dependencies": {
+    "@substrate/connect-extension-protocol": "^1.0.1"
   }
 }
