@@ -1,73 +1,63 @@
-import type { GetProvider, Provider } from "@polkadot-api/json-rpc-provider"
-import type { Client, Chain } from "smoldot"
+import type { GetProvider } from "@polkadot-api/json-rpc-provider"
+import type { Chain, Client } from "smoldot"
+
+const getProviderChains = new WeakMap<GetProvider, Chain>()
 
 type SmoldotProviderOptions = {
   smoldotClient: Client
   chainSpec: string
   databaseContent?: string
 }
-export const smoldotProvider = ({
+export const smoldotProvider = async ({
   smoldotClient,
   chainSpec,
   databaseContent,
-}: SmoldotProviderOptions): GetProvider => {
-  return (onMessage, onStatus): Provider => {
-    let chain: Chain | null = null
-    let pending = false
+}: SmoldotProviderOptions): Promise<GetProvider> => {
+  const chain = await smoldotClient!.addChain({
+    chainSpec,
+    disableJsonRpc: false,
+    // FIXME: handle potentialRelayChains
+    //   potentialRelayChains: []
+    databaseContent,
+  })
+  const getProvider: GetProvider = (onMessage, onStatus) => {
+    let opened = false
     return {
       open() {
-        if (chain || pending) return
-        pending = true
-        smoldotClient!
-          .addChain({
-            chainSpec,
-            disableJsonRpc: false,
-            // FIXME: handle potentialRelayChains
-            //   potentialRelayChains: []
-            databaseContent,
-          })
-          .then((smoldotChain) => {
-            ;(async () => {
-              while (true) {
-                let jsonRpcResponse
-                try {
-                  jsonRpcResponse = await smoldotChain.nextJsonRpcResponse()
-                } catch (_) {
-                  break
-                }
+        if (opened) return
+        opened = true
+        ;(async () => {
+          while (true) {
+            let jsonRpcResponse
+            try {
+              jsonRpcResponse = await chain.nextJsonRpcResponse()
+            } catch (_) {
+              break
+            }
 
-                // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
-                // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
-                // this code is never reachable if `jsonRpcCallback` is undefined.
-                try {
-                  onMessage(jsonRpcResponse)
-                } catch (error) {
-                  console.error(
-                    "JSON-RPC callback has thrown an exception:",
-                    error,
-                  )
-                }
-              }
-            })()
-            chain = smoldotChain
-            onStatus("connected")
-          })
-          .catch((e) => {
-            console.warn("There was a problem adding the Chain")
-            console.error(e)
-            onStatus("disconnected")
-          })
-          .finally(() => {
-            pending = false
-          })
+            // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
+            // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
+            // this code is never reachable if `jsonRpcCallback` is undefined.
+            try {
+              onMessage(jsonRpcResponse)
+            } catch (error) {
+              console.error("JSON-RPC callback has thrown an exception:", error)
+            }
+          }
+        })()
+        onStatus("connected")
       },
       close() {
-        chain?.remove()
-        chain = null
+        chain.remove()
+        getProviderChains.delete(getProvider)
+        // TODO: validate, Should onStatus be invoked on .close()?
+        onStatus("disconnected")
       },
       send(msg: string) {
-        chain!.sendJsonRpc(msg)
+        chain.sendJsonRpc(msg)
       },
     }
   }
+  getProviderChains.set(getProvider, chain)
+  return getProvider
 }

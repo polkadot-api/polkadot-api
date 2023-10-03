@@ -187,8 +187,7 @@ chrome.runtime.onConnect.addListener((port) => {
 
 const getChainData = async (chainSpec: string) => {
   const client = createClient(
-    // FIXME: handle provider async errors, for example invalid chainSpec
-    smoldotProvider({ smoldotClient, chainSpec }),
+    await smoldotProvider({ smoldotClient, chainSpec }),
   )
   try {
     const [genesisHash, name] = await Promise.all(
@@ -197,11 +196,11 @@ const getChainData = async (chainSpec: string) => {
           new Promise<string>((resolve, reject) => {
             try {
               const unsub = client._request<string, never>(method, [], {
-                onSuccess(result) {
+                onSuccess(result: any) {
                   unsub()
                   resolve(result)
                 },
-                onError(error) {
+                onError(error: any) {
                   unsub()
                   reject(error)
                 },
