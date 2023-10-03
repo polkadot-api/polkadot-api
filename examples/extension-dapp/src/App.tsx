@@ -52,7 +52,10 @@ function App() {
       const follower = client.chainHead(
         true,
         (event) => {
-          if (count === 5) follower.unfollow()
+          if (count === 5) {
+            follower.unfollow()
+            client.destroy()
+          }
           console.log(`chainHead event#${count++}`, event)
         },
         (error) => console.error(error),
