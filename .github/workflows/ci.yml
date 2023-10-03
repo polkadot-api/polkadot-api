@@ -33,6 +33,9 @@ jobs:
         run: pnpm lint
       - name: Run tests
         run: pnpm test
+      - name: Run Integration Tests
+        working-directory: ./experiments
+        run: pnpm test:ci
 
   publish:
     if: contains(fromJSON('["push", "pull_request"]'), github.event_name)

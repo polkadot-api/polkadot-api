@@ -8,23 +8,26 @@
   "scripts": {
     "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
     "nominators": "tsup-node src/all-nominators.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\"",
-    "client": "tsup-node src/client.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/client.js\""
+    "client": "tsup-node src/client.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/client.js\"",
+    "test:ci": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.4.7",
+    "fs.promises.exists": "^1.1.4",
+    "clet": "^1.0.1",
     "prettier": "^2.6.2"
   },
   "dependencies": {
     "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/client": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
-    "@polkadot-api/client": "workspace:*"
+    "@polkadot-api/utils": "workspace:*"
   },
   "prettier": {
     "printWidth": 80,
