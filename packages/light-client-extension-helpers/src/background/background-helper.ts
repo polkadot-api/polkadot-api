@@ -34,16 +34,17 @@ chrome.runtime.onConnect.addListener((port) => {
       const tabId = port.sender?.tab?.id
       if (!tabId) return
       if (!activeChains[tabId]) return
-      for (const [genesisHash, chain] of Object.entries(activeChains[tabId])) {
+      for (const [chainId, chain] of Object.entries(activeChains[tabId])) {
         try {
           chain.remove()
         } catch (error) {
           console.error("error removing chain", error)
         }
-        delete activeChains[tabId][genesisHash]
+        delete activeChains[tabId][chainId]
       }
       delete activeChains[tabId]
     })
+    const pendingAddChains: Record<string, boolean> = {}
     port.onMessage.addListener(async (msg: ToExtension, port) => {
       const tabId = port.sender?.tab?.id
       if (!tabId) return
@@ -130,8 +131,13 @@ chrome.runtime.onConnect.addListener((port) => {
           if (!tabId) return
           activeChains[tabId] ??= {}
           try {
-            if (activeChains[tabId][msg.chainId])
+            if (
+              activeChains[tabId][msg.chainId] ||
+              pendingAddChains[msg.chainId]
+            )
               throw new Error("Requested chainId already in use")
+
+            pendingAddChains[msg.chainId] = true
 
             const chainSpec =
               msg.type === "add-well-known-chain"
@@ -178,7 +184,13 @@ chrome.runtime.onConnect.addListener((port) => {
                 }
               }
             })()
-            // FIXME: detect pending add chains for the same msg.chainId
+
+            if (!pendingAddChains[msg.chainId]) {
+              smoldotChain.remove()
+              return
+            }
+            delete pendingAddChains[msg.chainId]
+
             activeChains[tabId][msg.chainId] = smoldotChain
 
             postMessage(port, {
@@ -187,6 +199,7 @@ chrome.runtime.onConnect.addListener((port) => {
               chainId: msg.chainId,
             })
           } catch (error) {
+            delete pendingAddChains[msg.chainId]
             postMessage(port, {
               origin: "substrate-connect-extension",
               type: "error",
@@ -203,6 +216,8 @@ chrome.runtime.onConnect.addListener((port) => {
         case "remove-chain": {
           const tabId = port.sender?.tab?.id!
           if (!tabId) return
+
+          delete pendingAddChains[msg.chainId]
 
           removeChain(tabId, msg.chainId)
 
