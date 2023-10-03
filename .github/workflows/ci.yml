@@ -35,7 +35,9 @@ jobs:
         run: pnpm test
       - name: Run Integration Tests
         working-directory: ./experiments
-        run: pnpm test:ci
+        run: |
+          ls node_modules/.bin
+          pnpm test:ci
 
   publish:
     if: contains(fromJSON('["push", "pull_request"]'), github.event_name)
