@@ -8,17 +8,12 @@ import { CONTEXT, PORT } from "@/shared"
 
 export * from "./types"
 
-console.log(
-  "@polkadot-api/light-client-extension-helpers background helper registered",
-)
-
 const addChainByUserCallbacks: Parameters<BackgroundHelper>[0][] = []
 
 export const backgroundHelper: BackgroundHelper = async (onAddChainByUser) => {
   addChainByUserCallbacks.push(onAddChainByUser)
 }
 
-// TODO: side-effects + register chains
 const postMessage = (port: chrome.runtime.Port, message: ToPage) =>
   port.postMessage(message)
 
@@ -57,8 +52,17 @@ chrome.runtime.onConnect.addListener((port) => {
           const tabId = port.sender?.tab?.id
           if (!tabId) return
           try {
-            const { chainSpec } = msg
-            const { genesisHash, name } = await getChainData(chainSpec)
+            const { chainSpec, relayChainGenesisHash } = msg
+            if (relayChainGenesisHash && !chains[relayChainGenesisHash])
+              throw new Error(
+                `Unknown relayChainGenesisHash ${relayChainGenesisHash}`,
+              )
+            const { genesisHash, name } = await getChainData(
+              chainSpec,
+              relayChainGenesisHash
+                ? chains[relayChainGenesisHash].chainSpec
+                : undefined,
+            )
 
             if (chains[genesisHash]) {
               return postMessage(port, {
@@ -249,9 +253,9 @@ const removeChain = (tabId: number, chainId: string) => {
   }
 }
 
-const getChainData = async (chainSpec: string) => {
+const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
   const client = createClient(
-    await smoldotProvider({ smoldotClient, chainSpec }),
+    await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
   )
   try {
     const [genesisHash, name] = await Promise.all(

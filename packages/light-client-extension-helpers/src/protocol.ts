@@ -8,6 +8,7 @@ type ToExtensionRequestAddChain = {
   id: string
   type: "addChain"
   chainSpec: string
+  relayChainGenesisHash?: string
 }
 
 type ToExtensionRequestGetChains = {

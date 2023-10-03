@@ -4,18 +4,26 @@ import type { Client } from "smoldot"
 type SmoldotProviderOptions = {
   smoldotClient: Client
   chainSpec: string
+  relayChainSpec?: string
   databaseContent?: string
 }
 export const smoldotProvider = async ({
   smoldotClient,
   chainSpec,
+  relayChainSpec,
   databaseContent,
 }: SmoldotProviderOptions): Promise<GetProvider> => {
-  const chain = await smoldotClient!.addChain({
+  const chain = await smoldotClient.addChain({
     chainSpec,
     disableJsonRpc: false,
-    // FIXME: handle potentialRelayChains
-    //   potentialRelayChains: []
+    potentialRelayChains: relayChainSpec
+      ? [
+          await smoldotClient.addChain({
+            chainSpec: relayChainSpec,
+            disableJsonRpc: true,
+          }),
+        ]
+      : [],
     databaseContent,
   })
   return (onMessage, onStatus) => {

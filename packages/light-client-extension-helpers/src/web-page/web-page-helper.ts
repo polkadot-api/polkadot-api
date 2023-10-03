@@ -76,7 +76,7 @@ const nextId = (
     "" + initialId++
 )(0)
 export const provider: LightClientProvider = {
-  async addChain(chainSpec) {
+  async addChain(chainSpec, relayChainGenesisHash) {
     return createRawChain(
       await requestReply<{
         name: string
@@ -88,6 +88,7 @@ export const provider: LightClientProvider = {
         id: nextId(),
         type: "addChain",
         chainSpec,
+        relayChainGenesisHash,
       }),
     )
   },
