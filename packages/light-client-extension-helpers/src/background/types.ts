@@ -8,4 +8,5 @@ export interface InputChain {
   genesisHash: string
   name: string
   chainSpec: string
+  relayChainGenesisHash?: string
 }

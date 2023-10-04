@@ -1,5 +1,5 @@
 import { createClient } from "@polkadot-api/substrate-client"
-import type { Chain } from "smoldot"
+import type { AddChainOptions, Chain } from "smoldot"
 import type { BackgroundHelper } from "./types"
 import { smoldotProvider } from "./smoldot-provider"
 import { smoldotClient } from "./smoldot-client"
@@ -20,7 +20,12 @@ const postMessage = (port: chrome.runtime.Port, message: ToPage) =>
 // FIXME: use to customize bootnodes and update chain database
 const chains: Record<
   string,
-  { genesisHash: string; name: string; chainSpec: string }
+  {
+    genesisHash: string
+    name: string
+    chainSpec: string
+    relayChainGenesisHash?: string
+  }
 > = {}
 
 // Chains by TabId
@@ -73,29 +78,23 @@ chrome.runtime.onConnect.addListener((port) => {
               })
             }
 
-            await Promise.all(
-              addChainByUserCallbacks.map((cb) =>
-                cb(
-                  {
-                    genesisHash,
-                    name,
-                    chainSpec,
-                  },
-                  tabId,
-                ),
-              ),
-            )
-
-            chains[genesisHash] = {
+            const chain = {
               genesisHash,
               name,
               chainSpec,
+              relayChainGenesisHash,
             }
+
+            await Promise.all(
+              addChainByUserCallbacks.map((cb) => cb(chain, tabId)),
+            )
+
+            chains[genesisHash] = chain
 
             postMessage(port, {
               origin: CONTEXT.CONTENT_SCRIPT,
               id: msg.id,
-              result: chains[genesisHash],
+              result: chain,
             })
 
             // FIXME: broadcast/notify all tabs
@@ -139,22 +138,45 @@ chrome.runtime.onConnect.addListener((port) => {
 
             pendingAddChains[msg.chainId] = true
 
-            const chainSpec =
-              msg.type === "add-well-known-chain"
-                ? Object.values(chains).find(
-                    (chain) => (chain.name = msg.chainName),
-                  )?.name
-                : msg.chainSpec
-            if (!chainSpec) throw new Error("Unknown well-known chain")
+            let addChainOptions: AddChainOptions
+            if (msg.type === "add-well-known-chain") {
+              const chain =
+                Object.values(chains).find(
+                  (chain) => chain.genesisHash === msg.chainName,
+                ) ??
+                Object.values(chains).find(
+                  (chain) => chain.name === msg.chainName,
+                )
+              if (!chain) throw new Error("Unknown well-known chain")
+              addChainOptions = {
+                chainSpec: chain.chainSpec,
+                disableJsonRpc: false,
+                potentialRelayChains: chain.relayChainGenesisHash
+                  ? [
+                      await smoldotClient.addChain({
+                        chainSpec:
+                          chains[chain.relayChainGenesisHash].chainSpec,
+                        disableJsonRpc: true,
+                      }),
+                    ]
+                  : [],
+                // FIXME: handle databaseContent
+                // databaseContent,
+              }
+            } else {
+              addChainOptions = {
+                chainSpec: msg.chainSpec,
+                disableJsonRpc: false,
+                potentialRelayChains: msg.potentialRelayChainIds
+                  .filter((chainId) => activeChains[tabId][chainId])
+                  .map((chainId) => activeChains[tabId][chainId]),
+                // FIXME: handle databaseContent
+                // databaseContent,
+              }
+            }
 
-            const smoldotChain = await smoldotClient.addChain({
-              chainSpec,
-              disableJsonRpc: false,
-              // FIXME: handle potentialRelayChains
-              //   potentialRelayChains: []
-              // FIXME: handle databaseContent
-              // databaseContent,
-            })
+            const smoldotChain = await smoldotClient.addChain(addChainOptions)
+
             ;(async () => {
               while (true) {
                 let jsonRpcMessage: string | undefined

@@ -32,11 +32,9 @@ window.addEventListener("message", ({ data, source }) => {
     return chainsChangeCallbacks.forEach((cb) =>
       cb(
         Object.fromEntries(
-          Object.entries(data.chains).map(([key, chain]) => [
+          Object.entries(data.chains).map(([key, { genesisHash, name }]) => [
             key,
-            // FIXME: chainSpec should be internal to content-script-helper
-            // @ts-ignore
-            createRawChain(chain),
+            createRawChain({ genesisHash, name }),
           ]),
         ),
       ),
@@ -81,8 +79,6 @@ export const provider: LightClientProvider = {
       await requestReply<{
         name: string
         genesisHash: string
-        // FIXME: this should be internal to content-script-helper
-        chainSpec: string
       }>({
         origin: CONTEXT.WEB_PAGE,
         id: nextId(),
@@ -97,8 +93,6 @@ export const provider: LightClientProvider = {
       {
         name: string
         genesisHash: string
-        // FIXME: this should be internal to content-script-helper
-        chainSpec: string
       }[]
     >({
       origin: CONTEXT.WEB_PAGE,
@@ -129,12 +123,9 @@ const rawChainCallbacks: Record<
 const createRawChain = ({
   name,
   genesisHash,
-  chainSpec,
 }: {
   name: string
   genesisHash: string
-  // FIXME: this should be internal to content-script-helper
-  chainSpec: string
 }): RawChain => {
   return {
     name,
@@ -177,12 +168,9 @@ const createRawChain = ({
 
       postToExtension({
         origin: "substrate-connect-client",
-        type: "add-chain",
+        type: "add-well-known-chain",
         chainId,
-        // FIXME: this should be internal to content-script-helper
-        chainSpec,
-        // FIXME: handle potential relay chains
-        potentialRelayChainIds: [],
+        chainName: genesisHash,
       })
 
       return {

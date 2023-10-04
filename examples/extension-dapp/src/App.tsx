@@ -11,6 +11,9 @@ import ksmcc3 from "./chainspecs/ksmcc3.json?raw"
 import westend from "./chainspecs/westend2.json?raw"
 import westmint from "./chainspecs/westend-westmint.json?raw"
 
+const westendGenesisHash =
+  "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
+
 const rawChainsToHuman = (rawChains: Record<string, RawChain>) =>
   JSON.stringify(
     Object.values(rawChains).map(({ name, genesisHash }) => [
@@ -26,7 +29,6 @@ const rawChainsToHuman = (rawChains: Record<string, RawChain>) =>
 function App() {
   const [updatedChains, setUpdatedChains] = useState("")
   const [getChains, setGetChains] = useState("")
-  const [westendGenesisHash, setWestendGenesisHash] = useState<string>()
   useEffect(
     () =>
       provider.onChainsChange((rawChains) => {
@@ -89,21 +91,54 @@ function App() {
     try {
       const chain = await provider.addChain(westend)
       console.log("provider.addChain()", chain)
-      setWestendGenesisHash(chain.genesisHash)
     } catch (error) {
       console.error("provider.addChain()", error)
     }
   }, [])
   const handleAddChainWestmint = useCallback(async () => {
     try {
-      console.log(
-        "provider.addChain()",
-        await provider.addChain(westmint, westendGenesisHash),
+      const chain = await provider.addChain(westmint, westendGenesisHash)
+      console.log("provider.addChain()", chain)
+
+      const client = createClient((onMessage, onStatus) => {
+        let jsonProvider: JsonRpcProvider | undefined
+        return {
+          open() {
+            chain
+              .connect(onMessage, onStatus)
+              .then((provider) => {
+                jsonProvider = provider
+                onStatus("connected")
+              })
+              .catch((error) => {
+                console.error("custom provider", error)
+                onStatus("disconnected")
+              })
+          },
+          close() {
+            jsonProvider?.disconnect()
+          },
+          send(message) {
+            jsonProvider?.send(message)
+          },
+        }
+      })
+      let count = 0
+      const follower = client.chainHead(
+        true,
+        (event) => {
+          if (count === 5) {
+            follower.unfollow()
+            client.destroy()
+          }
+          console.log(`chainHead event#${count++}`, event)
+        },
+        (error) => console.error(error),
       )
     } catch (error) {
       console.error("provider.addChain()", error)
     }
-  }, [westendGenesisHash])
+  }, [])
   const handleGetChains = useCallback(async () => {
     try {
       const chains = await provider.getChains()
