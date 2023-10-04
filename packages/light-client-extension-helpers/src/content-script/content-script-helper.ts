@@ -1,10 +1,6 @@
 import type { ToExtension, ToPage } from "@/protocol"
 import { CONTEXT, PORT } from "@/shared"
 
-console.log(
-  "@polkadot-api/light-client-extension-helpers content-script helper registered",
-)
-
 // Set up a promise for when the page is activated,
 // which is needed for prerendered pages.
 const whenActivated = new Promise<void>((resolve) => {
@@ -49,4 +45,10 @@ window.addEventListener("message", async ({ data, source, origin }) => {
   }
 
   portPostMessage(port, data)
+})
+
+chrome.runtime.onMessage.addListener((msg: ToPage) => {
+  console.log("frombackground", { msg })
+  // FIXME: filter background-helper messages
+  postToPage(msg, window.origin)
 })

@@ -3,8 +3,8 @@ import type { AddChainOptions, Chain } from "smoldot"
 import type { BackgroundHelper } from "./types"
 import { smoldotProvider } from "./smoldot-provider"
 import { smoldotClient } from "./smoldot-client"
-import type { ToExtension, ToPage } from "@/protocol"
-import { CONTEXT, PORT } from "@/shared"
+import type { BackgroundRequest, ToExtension, ToPage } from "@/protocol"
+import { CONTEXT, PORT, sendBackgroundResponse, storage } from "@/shared"
 
 export * from "./types"
 
@@ -14,19 +14,18 @@ export const backgroundHelper: BackgroundHelper = async (onAddChainByUser) => {
   addChainByUserCallbacks.push(onAddChainByUser)
 }
 
+storage.onChainsChanged(async (chains) => {
+  ;(await chrome.tabs.query({})).forEach(({ id }) =>
+    chrome.tabs.sendMessage(id!, {
+      origin: CONTEXT.CONTENT_SCRIPT,
+      type: "onAddChains",
+      chains,
+    } as ToPage),
+  )
+})
+
 const postMessage = (port: chrome.runtime.Port, message: ToPage) =>
   port.postMessage(message)
-
-// FIXME: use to customize bootnodes and update chain database
-const chains: Record<
-  string,
-  {
-    genesisHash: string
-    name: string
-    chainSpec: string
-    relayChainGenesisHash?: string
-  }
-> = {}
 
 // Chains by TabId
 const activeChains: Record<number, Record<string, Chain>> = {}
@@ -54,16 +53,18 @@ chrome.runtime.onConnect.addListener((port) => {
       const tabId = port.sender?.tab?.id
       if (!tabId) return
       switch (msg.type) {
+        // FIXME: move to chrome.runtime.onMessage.addListener
         case "addChain": {
           const tabId = port.sender?.tab?.id
           if (!tabId) return
           try {
+            const chains = await storage.getChains()
             const { chainSpec, relayChainGenesisHash } = msg
             if (relayChainGenesisHash && !chains[relayChainGenesisHash])
               throw new Error(
                 `Unknown relayChainGenesisHash ${relayChainGenesisHash}`,
               )
-            const { genesisHash, name } = await getChainData(
+            const { genesisHash, name, ss58Format } = await getChainData(
               chainSpec,
               relayChainGenesisHash
                 ? chains[relayChainGenesisHash].chainSpec
@@ -89,19 +90,15 @@ chrome.runtime.onConnect.addListener((port) => {
               addChainByUserCallbacks.map((cb) => cb(chain, tabId)),
             )
 
-            chains[genesisHash] = chain
+            await storage.set(
+              { type: "chain", genesisHash },
+              { ...chain, ss58Format },
+            )
 
             postMessage(port, {
               origin: CONTEXT.CONTENT_SCRIPT,
               id: msg.id,
               result: chain,
-            })
-
-            // FIXME: broadcast/notify all tabs
-            postMessage(port, {
-              origin: CONTEXT.CONTENT_SCRIPT,
-              type: "onAddChains",
-              chains,
             })
           } catch (error) {
             console.error("background addChain error", error)
@@ -116,11 +113,12 @@ chrome.runtime.onConnect.addListener((port) => {
           }
           break
         }
+        // FIXME: move to chrome.runtime.onMessage.addListener
         case "getChains": {
           postMessage(port, {
             origin: CONTEXT.CONTENT_SCRIPT,
             id: msg.id,
-            result: chains,
+            result: await storage.getChains(),
           })
           break
         }
@@ -137,6 +135,7 @@ chrome.runtime.onConnect.addListener((port) => {
               throw new Error("Requested chainId already in use")
 
             pendingAddChains[msg.chainId] = true
+            const chains = await storage.getChains()
 
             let addChainOptions: AddChainOptions
             if (msg.type === "add-well-known-chain") {
@@ -149,19 +148,23 @@ chrome.runtime.onConnect.addListener((port) => {
                 )
               if (!chain) throw new Error("Unknown well-known chain")
               addChainOptions = {
+                // FIXME: use custom bootNodes
                 chainSpec: chain.chainSpec,
                 disableJsonRpc: false,
                 potentialRelayChains: chain.relayChainGenesisHash
                   ? [
                       await smoldotClient.addChain({
                         chainSpec:
+                          // FIXME: use custom bootNodes
                           chains[chain.relayChainGenesisHash].chainSpec,
                         disableJsonRpc: true,
                       }),
                     ]
                   : [],
-                // FIXME: handle databaseContent
-                // databaseContent,
+                databaseContent: await storage.get({
+                  type: "databaseContent",
+                  genesisHash: chain.genesisHash,
+                }),
               }
             } else {
               addChainOptions = {
@@ -280,6 +283,55 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 })
 
+chrome.runtime.onMessage.addListener(
+  (msg: BackgroundRequest, _sender, sendResponse) => {
+    switch (msg.type) {
+      case "getChainData": {
+        getChainData(msg.chainSpec, msg.relayChainGenesisHash)
+          .then((chainData) =>
+            sendBackgroundResponse(sendResponse, {
+              type: "getChainDataResponse",
+              ...chainData,
+            }),
+          )
+          .catch((error) => {
+            sendBackgroundResponse(sendResponse, {
+              type: "error",
+              error:
+                error instanceof Error
+                  ? error.toString()
+                  : "Unknown error getting chain data",
+            })
+          })
+        return true
+      }
+      case "getActiveConnections": {
+        // FIXME: need to map chainId to genesisHash
+        sendBackgroundResponse(sendResponse, {
+          type: "error",
+          error: "not implemented",
+        })
+        // return true
+        break
+      }
+      case "disconnect": {
+        // FIXME: need to map chainId to genesisHash
+        sendBackgroundResponse(sendResponse, {
+          type: "error",
+          error: "not implemented",
+        })
+        break
+      }
+      default: {
+        const unrecognizedMsg: never = msg
+        console.warn("Unrecognized message", unrecognizedMsg)
+        break
+      }
+    }
+    return
+  },
+)
+
 const removeChain = (tabId: number, chainId: string) => {
   const chain = activeChains?.[tabId]?.[chainId]
   delete activeChains?.[tabId]?.[chainId]
@@ -295,12 +347,16 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
     await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
   )
   try {
-    const [genesisHash, name] = await Promise.all(
-      ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map(
+    const [genesisHash, name, properties] = (await Promise.all(
+      [
+        "chainSpec_v1_genesisHash",
+        "chainSpec_v1_chainName",
+        "chainSpec_v1_properties",
+      ].map(
         (method) =>
-          new Promise<string>((resolve, reject) => {
+          new Promise((resolve, reject) => {
             try {
-              const unsub = client._request<string, never>(method, [], {
+              const unsub = client._request(method, [], {
                 onSuccess(result: any) {
                   unsub()
                   resolve(result)
@@ -315,8 +371,17 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
             }
           }),
       ),
-    )
-    return { genesisHash, name }
+    )) as [
+      genesisHash: string,
+      name: string,
+      properties?: { ss58Format?: number },
+    ]
+    return {
+      genesisHash,
+      name,
+      // TODO: it may be better to query the storage constant System.ss58Prefix
+      ss58Format: properties?.ss58Format ?? 42,
+    }
   } finally {
     client.destroy()
   }

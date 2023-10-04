@@ -2,8 +2,11 @@ import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 
 export interface LightClientPageHelper {
   deleteChain: (genesisHash: string) => Promise<void>
-  persistChain: (chainSpec: string) => Promise<void>
-  getChain: (genesisHash: string) => Promise<PageChain>
+  persistChain: (
+    chainSpec: string,
+    relayChainGenesisHash?: string,
+  ) => Promise<void>
+  getChain: (genesisHash: string) => Promise<PageChain | undefined>
   getActiveConnections: () => Promise<
     Array<{ tabId: number; genesisHash: string }>
   >
@@ -14,7 +17,7 @@ export interface LightClientPageHelper {
 export interface PageChain {
   genesisHash: string
   name: string
-  ss58format: number
+  ss58Format: number
   nPeers: number
   bootNodes: Array<string>
   provider: ConnectProvider
