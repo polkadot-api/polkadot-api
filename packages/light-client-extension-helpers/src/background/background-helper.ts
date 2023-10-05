@@ -41,7 +41,7 @@ const activeChains: Record<
 > = {}
 
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === PORT.CONTENT_SCRIPT) {
+  if (port.name === PORT.CONTENT_SCRIPT || port.name === PORT.EXTENSION_PAGE) {
     let isPortDisconnected = false
     port.onDisconnect.addListener((port) => {
       isPortDisconnected = true
@@ -317,6 +317,7 @@ chrome.runtime.onMessage.addListener(
             (acc, [tabIdStr, tabChains]) => {
               const tabId = parseInt(tabIdStr)
               Object.values(tabChains).forEach(({ genesisHash }) =>
+                // TODO: Should options-tab/popup connections be filtered from activeConnectionså?
                 acc.push({ tabId, genesisHash }),
               )
               return acc
@@ -328,6 +329,7 @@ chrome.runtime.onMessage.addListener(
       }
       case "disconnect": {
         Object.entries(activeChains[msg.tabId] ?? {})
+          // TODO: Should options-tab/popup connections connections be disconnectable?
           .filter(([_, { genesisHash }]) => genesisHash === msg.genesisHash)
           .forEach(
             // FIXME: notify content-script

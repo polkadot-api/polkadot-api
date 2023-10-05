@@ -4,7 +4,7 @@ import type {
   ToPage,
   ToPageResponse,
 } from "@/protocol"
-import { CONTEXT } from "@/shared"
+import { CONTEXT, getRandomChainId } from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
 
 export * from "./types"
@@ -207,12 +207,4 @@ const createRawChain = ({
 
 const removeArrayItem = <T>(array: T[], item: T) => {
   array.splice(array.indexOf(item), 1)
-}
-
-const getRandomChainId = () => {
-  const arr = new BigUint64Array(2)
-  // It can only be used from the browser, so this is fine.
-  crypto.getRandomValues(arr)
-  const result = (arr[1]! << BigInt(64)) | arr[0]!
-  return result.toString(36)
 }

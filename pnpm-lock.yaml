@@ -41,6 +41,9 @@ importers:
       '@polkadot-api/light-client-extension-helpers':
         specifier: workspace:*
         version: link:../../packages/light-client-extension-helpers
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../../packages/substrate-client
       smoldot:
         specifier: 2.0.3
         version: 2.0.3

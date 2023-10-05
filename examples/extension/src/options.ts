@@ -1,5 +1,6 @@
 import { helper } from "@polkadot-api/light-client-extension-helpers/extension-page"
 import { genesisHash, chainSpec } from "./test-data/westend"
+import { createClient } from "@polkadot-api/substrate-client"
 ;(async () => {
   console.log({ getChain: await helper.getChains() })
   console.log({ persistChain: await helper.persistChain(chainSpec) })
@@ -20,3 +21,20 @@ import { genesisHash, chainSpec } from "./test-data/westend"
 setInterval(async () => {
   console.log({ getActiveConnections: await helper.getActiveConnections() })
 }, 5000)
+;(async () => {
+  const [chain] = await helper.getChains()
+  const client = createClient(chain.provider)
+
+  let count = 0
+  const follower = client.chainHead(
+    true,
+    (event) => {
+      if (count === 5) {
+        follower.unfollow()
+        client.destroy()
+      }
+      console.log(`${chain.name} chainHead event#${count++}`, event)
+    },
+    (error) => console.error(error),
+  )
+})()

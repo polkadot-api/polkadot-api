@@ -11,4 +11,5 @@ export const CONTEXT = {
 const portPrefix = `${extensionPrefix}-port`
 export const PORT = {
   CONTENT_SCRIPT: `${portPrefix}-content-script`,
+  EXTENSION_PAGE: `${portPrefix}-extension-page`,
 } as const

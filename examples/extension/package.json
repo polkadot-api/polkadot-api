@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@polkadot-api/light-client-extension-helpers": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
     "smoldot": "2.0.3"
   },
   "devDependencies": {
