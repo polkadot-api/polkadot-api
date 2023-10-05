@@ -294,6 +294,7 @@ while (!exit) {
         })
       }
 
+      await outputCodegen(data, outputFolder, options.key)
       break
     }
     case SYNC: {

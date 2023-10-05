@@ -52,8 +52,13 @@ export class Data {
     message: string,
     items: [string, bigint][],
   ) {
-    this.descriptorData[pallet] = this.descriptorData[pallet] ?? {}
-    this.descriptorData[pallet][type] = this.descriptorData[pallet][type] ?? {}
+    this.descriptorData[pallet] = this.descriptorData[pallet] ?? {
+      constants: {},
+      storage: {},
+      events: {},
+      errors: {},
+      extrinsics: {},
+    }
     const data = this.descriptorData[pallet][type]
 
     const selected = await checkbox({
