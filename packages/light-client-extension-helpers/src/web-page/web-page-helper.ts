@@ -82,9 +82,11 @@ export const provider: LightClientProvider = {
       }>({
         origin: CONTEXT.WEB_PAGE,
         id: nextId(),
-        type: "addChain",
-        chainSpec,
-        relayChainGenesisHash,
+        request: {
+          type: "addChain",
+          chainSpec,
+          relayChainGenesisHash,
+        },
       }),
     )
   },
@@ -97,7 +99,9 @@ export const provider: LightClientProvider = {
     >({
       origin: CONTEXT.WEB_PAGE,
       id: nextId(),
-      type: "getChains",
+      request: {
+        type: "getChains",
+      },
     })
     return Object.entries(chains).reduce(
       (acc, [key, chain]) => {

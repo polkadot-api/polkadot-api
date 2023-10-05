@@ -3,8 +3,14 @@ import type { AddChainOptions, Chain } from "smoldot"
 import type { BackgroundHelper } from "./types"
 import { smoldotProvider } from "./smoldot-provider"
 import { smoldotClient } from "./smoldot-client"
-import type { BackgroundRequest, ToExtension, ToPage } from "@/protocol"
-import { CONTEXT, PORT, sendBackgroundResponse, storage } from "@/shared"
+import type {
+  BackgroundRequest,
+  BackgroundResponse,
+  BackgroundResponseError,
+  ToExtension,
+  ToPage,
+} from "@/protocol"
+import { CONTEXT, PORT, storage } from "@/shared"
 
 export * from "./types"
 
@@ -53,13 +59,188 @@ chrome.runtime.onConnect.addListener((port) => {
       delete activeChains[tabId]
     })
     const pendingAddChains: Record<string, boolean> = {}
-    port.onMessage.addListener(async (msg: ToExtension, port) => {
-      const tabId = port.sender?.tab?.id
-      if (!tabId) return
-      switch (msg.type) {
-        // FIXME: move to chrome.runtime.onMessage.addListener
-        case "addChain": {
-          const tabId = port.sender?.tab?.id
+    port.onMessage.addListener(
+      async (
+        // FIXME: use @substrate/connect types
+        msg: ToExtension & { origin: "substrate-connect-client" },
+        port,
+      ) => {
+        const tabId = port.sender?.tab?.id
+        if (!tabId) return
+        switch (msg.type) {
+          case "add-well-known-chain":
+          case "add-chain": {
+            const tabId = port.sender?.tab?.id!
+            if (!tabId) return
+            activeChains[tabId] ??= {}
+            try {
+              if (
+                activeChains[tabId][msg.chainId] ||
+                pendingAddChains[msg.chainId]
+              )
+                throw new Error("Requested chainId already in use")
+
+              pendingAddChains[msg.chainId] = true
+              const chains = await storage.getChains()
+
+              let addChainOptions: AddChainOptions
+              if (msg.type === "add-well-known-chain") {
+                const chain =
+                  Object.values(chains).find(
+                    (chain) => chain.genesisHash === msg.chainName,
+                  ) ??
+                  Object.values(chains).find(
+                    (chain) => chain.name === msg.chainName,
+                  )
+                if (!chain) throw new Error("Unknown well-known chain")
+                addChainOptions = {
+                  // FIXME: use custom bootNodes
+                  chainSpec: chain.chainSpec,
+                  disableJsonRpc: false,
+                  potentialRelayChains: chain.relayChainGenesisHash
+                    ? [
+                        await smoldotClient.addChain({
+                          chainSpec:
+                            // FIXME: use custom bootNodes
+                            chains[chain.relayChainGenesisHash].chainSpec,
+                          disableJsonRpc: true,
+                        }),
+                      ]
+                    : [],
+                  databaseContent: await storage.get({
+                    type: "databaseContent",
+                    genesisHash: chain.genesisHash,
+                  }),
+                }
+              } else {
+                addChainOptions = {
+                  chainSpec: msg.chainSpec,
+                  disableJsonRpc: false,
+                  potentialRelayChains: msg.potentialRelayChainIds
+                    .filter((chainId) => activeChains[tabId][chainId])
+                    .map((chainId) => activeChains[tabId][chainId].chain),
+                  // FIXME: handle databaseContent
+                  // databaseContent,
+                }
+              }
+
+              const smoldotChain = await smoldotClient.addChain(addChainOptions)
+              const genesisHash = await getGenesisHash(smoldotChain)
+
+              ;(async () => {
+                while (true) {
+                  let jsonRpcMessage: string | undefined
+                  try {
+                    jsonRpcMessage = await smoldotChain.nextJsonRpcResponse()
+                  } catch (_) {
+                    break
+                  }
+
+                  if (isPortDisconnected) break
+
+                  // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
+                  // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
+                  // this code is never reachable if `jsonRpcCallback` is undefined.
+                  try {
+                    postMessage(port, {
+                      origin: "substrate-connect-extension",
+                      type: "rpc",
+                      chainId: msg.chainId,
+                      jsonRpcMessage,
+                    })
+                  } catch (error) {
+                    console.error(
+                      "JSON-RPC callback has thrown an exception:",
+                      error,
+                    )
+                  }
+                }
+              })()
+
+              if (!pendingAddChains[msg.chainId]) {
+                smoldotChain.remove()
+                return
+              }
+              delete pendingAddChains[msg.chainId]
+
+              activeChains[tabId][msg.chainId] = {
+                chain: smoldotChain,
+                genesisHash,
+              }
+
+              postMessage(port, {
+                origin: "substrate-connect-extension",
+                type: "chain-ready",
+                chainId: msg.chainId,
+              })
+            } catch (error) {
+              delete pendingAddChains[msg.chainId]
+              postMessage(port, {
+                origin: "substrate-connect-extension",
+                type: "error",
+                chainId: msg.chainId,
+                errorMessage:
+                  error instanceof Error
+                    ? error.toString()
+                    : "Unknown error when adding chain",
+              })
+            }
+
+            break
+          }
+          case "remove-chain": {
+            const tabId = port.sender?.tab?.id!
+            if (!tabId) return
+
+            delete pendingAddChains[msg.chainId]
+
+            removeChain(tabId, msg.chainId)
+
+            break
+          }
+          case "rpc": {
+            const tabId = port.sender?.tab?.id
+            if (!tabId) return
+
+            const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
+            if (!chain) return
+
+            try {
+              chain.sendJsonRpc(msg.jsonRpcMessage)
+            } catch (error) {
+              removeChain(tabId, msg.chainId)
+              postMessage(port, {
+                origin: "substrate-connect-extension",
+                type: "error",
+                chainId: msg.chainId,
+                errorMessage:
+                  error instanceof Error
+                    ? error.toString()
+                    : "Unknown error when sending RPC message",
+              })
+            }
+
+            break
+          }
+
+          default: {
+            const unrecognizedMsg: never = msg
+            console.warn("Unrecognized message", unrecognizedMsg)
+            break
+          }
+        }
+      },
+    )
+  }
+})
+
+chrome.runtime.onMessage.addListener(
+  (msg: BackgroundRequest, sender, sendResponse) => {
+    // FIXME: check msg.origin to any BackgroundRequest
+    switch (msg.type) {
+      case "addChain": {
+        ;(async () => {
+          const tabId = sender?.tab?.id
           if (!tabId) return
           try {
             const chains = await storage.getChains()
@@ -76,10 +257,9 @@ chrome.runtime.onConnect.addListener((port) => {
             )
 
             if (chains[genesisHash]) {
-              return postMessage(port, {
-                origin: CONTEXT.CONTENT_SCRIPT,
-                id: msg.id,
-                result: chains[genesisHash],
+              return sendBackgroundResponse(sendResponse, {
+                type: "addChainResponse",
+                chain: chains[genesisHash],
               })
             }
 
@@ -99,201 +279,26 @@ chrome.runtime.onConnect.addListener((port) => {
               { ...chain, ss58Format },
             )
 
-            postMessage(port, {
-              origin: CONTEXT.CONTENT_SCRIPT,
-              id: msg.id,
-              result: chain,
+            sendBackgroundResponse(sendResponse, {
+              type: "addChainResponse",
+              chain,
             })
           } catch (error) {
             console.error("background addChain error", error)
-            postMessage(port, {
-              origin: CONTEXT.CONTENT_SCRIPT,
-              id: msg.id,
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "unknown addChain error",
-            })
+            sendBackgroundErrorResponse(sendResponse, error)
           }
-          break
-        }
-        // FIXME: move to chrome.runtime.onMessage.addListener
-        case "getChains": {
-          postMessage(port, {
-            origin: CONTEXT.CONTENT_SCRIPT,
-            id: msg.id,
-            result: await storage.getChains(),
-          })
-          break
-        }
-        case "add-well-known-chain":
-        case "add-chain": {
-          const tabId = port.sender?.tab?.id!
-          if (!tabId) return
-          activeChains[tabId] ??= {}
-          try {
-            if (
-              activeChains[tabId][msg.chainId] ||
-              pendingAddChains[msg.chainId]
-            )
-              throw new Error("Requested chainId already in use")
-
-            pendingAddChains[msg.chainId] = true
-            const chains = await storage.getChains()
-
-            let addChainOptions: AddChainOptions
-            if (msg.type === "add-well-known-chain") {
-              const chain =
-                Object.values(chains).find(
-                  (chain) => chain.genesisHash === msg.chainName,
-                ) ??
-                Object.values(chains).find(
-                  (chain) => chain.name === msg.chainName,
-                )
-              if (!chain) throw new Error("Unknown well-known chain")
-              addChainOptions = {
-                // FIXME: use custom bootNodes
-                chainSpec: chain.chainSpec,
-                disableJsonRpc: false,
-                potentialRelayChains: chain.relayChainGenesisHash
-                  ? [
-                      await smoldotClient.addChain({
-                        chainSpec:
-                          // FIXME: use custom bootNodes
-                          chains[chain.relayChainGenesisHash].chainSpec,
-                        disableJsonRpc: true,
-                      }),
-                    ]
-                  : [],
-                databaseContent: await storage.get({
-                  type: "databaseContent",
-                  genesisHash: chain.genesisHash,
-                }),
-              }
-            } else {
-              addChainOptions = {
-                chainSpec: msg.chainSpec,
-                disableJsonRpc: false,
-                potentialRelayChains: msg.potentialRelayChainIds
-                  .filter((chainId) => activeChains[tabId][chainId])
-                  .map((chainId) => activeChains[tabId][chainId].chain),
-                // FIXME: handle databaseContent
-                // databaseContent,
-              }
-            }
-
-            const smoldotChain = await smoldotClient.addChain(addChainOptions)
-            const genesisHash = await getGenesisHash(smoldotChain)
-
-            ;(async () => {
-              while (true) {
-                let jsonRpcMessage: string | undefined
-                try {
-                  jsonRpcMessage = await smoldotChain.nextJsonRpcResponse()
-                } catch (_) {
-                  break
-                }
-
-                if (isPortDisconnected) break
-
-                // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
-                // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
-                // this code is never reachable if `jsonRpcCallback` is undefined.
-                try {
-                  postMessage(port, {
-                    origin: "substrate-connect-extension",
-                    type: "rpc",
-                    chainId: msg.chainId,
-                    jsonRpcMessage,
-                  })
-                } catch (error) {
-                  console.error(
-                    "JSON-RPC callback has thrown an exception:",
-                    error,
-                  )
-                }
-              }
-            })()
-
-            if (!pendingAddChains[msg.chainId]) {
-              smoldotChain.remove()
-              return
-            }
-            delete pendingAddChains[msg.chainId]
-
-            activeChains[tabId][msg.chainId] = {
-              chain: smoldotChain,
-              genesisHash,
-            }
-
-            postMessage(port, {
-              origin: "substrate-connect-extension",
-              type: "chain-ready",
-              chainId: msg.chainId,
-            })
-          } catch (error) {
-            delete pendingAddChains[msg.chainId]
-            postMessage(port, {
-              origin: "substrate-connect-extension",
-              type: "error",
-              chainId: msg.chainId,
-              errorMessage:
-                error instanceof Error
-                  ? error.toString()
-                  : "Unknown error when adding chain",
-            })
-          }
-
-          break
-        }
-        case "remove-chain": {
-          const tabId = port.sender?.tab?.id!
-          if (!tabId) return
-
-          delete pendingAddChains[msg.chainId]
-
-          removeChain(tabId, msg.chainId)
-
-          break
-        }
-        case "rpc": {
-          const tabId = port.sender?.tab?.id
-          if (!tabId) return
-
-          const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
-          if (!chain) return
-
-          try {
-            chain.sendJsonRpc(msg.jsonRpcMessage)
-          } catch (error) {
-            removeChain(tabId, msg.chainId)
-            postMessage(port, {
-              origin: "substrate-connect-extension",
-              type: "error",
-              chainId: msg.chainId,
-              errorMessage:
-                error instanceof Error
-                  ? error.toString()
-                  : "Unknown error when sending RPC message",
-            })
-          }
-
-          break
-        }
-
-        default: {
-          const unrecognizedMsg: never = msg
-          console.warn("Unrecognized message", unrecognizedMsg)
-          break
-        }
+        })()
+        return true
       }
-    })
-  }
-})
-
-chrome.runtime.onMessage.addListener(
-  (msg: BackgroundRequest, _sender, sendResponse) => {
-    switch (msg.type) {
+      case "getChains": {
+        storage.getChains().then((chains) => {
+          sendBackgroundResponse(sendResponse, {
+            type: "getChainsResponse",
+            chains,
+          })
+        })
+        return true
+      }
       case "getChainData": {
         getChainData(msg.chainSpec, msg.relayChainGenesisHash)
           .then((chainData) =>
@@ -302,15 +307,7 @@ chrome.runtime.onMessage.addListener(
               ...chainData,
             }),
           )
-          .catch((error) => {
-            sendBackgroundResponse(sendResponse, {
-              type: "error",
-              error:
-                error instanceof Error
-                  ? error.toString()
-                  : "Unknown error getting chain data",
-            })
-          })
+          .catch((error) => sendBackgroundErrorResponse(sendResponse, error))
         return true
       }
       case "getActiveConnections": {
@@ -419,3 +416,24 @@ const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {
   )
   return JSON.parse(await smoldotChain.nextJsonRpcResponse()).result
 }
+
+const sendBackgroundResponse = <
+  T extends BackgroundResponse | BackgroundResponseError,
+>(
+  sendResponse: (msg: any) => void,
+  msg: T,
+) => sendResponse(msg)
+
+const sendBackgroundErrorResponse = (
+  sendResponse: (msg: any) => void,
+  error: Error | string | unknown,
+) =>
+  sendBackgroundResponse(sendResponse, {
+    type: "error",
+    error:
+      error instanceof Error
+        ? error.toString()
+        : typeof error === "string"
+        ? error
+        : "Unknown error getting chain data",
+  })

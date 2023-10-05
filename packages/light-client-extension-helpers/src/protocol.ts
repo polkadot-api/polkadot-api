@@ -3,23 +3,11 @@ import type {
   ToApplication as ConnectToApplication,
 } from "@substrate/connect-extension-protocol"
 
-type ToExtensionRequestAddChain = {
+export type ToExtensionRequest = {
   origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   id: string
-  type: "addChain"
-  chainSpec: string
-  relayChainGenesisHash?: string
+  request: BackgroundRequestAddChain | BackgroundRequestGetChains
 }
-
-type ToExtensionRequestGetChains = {
-  origin: "@polkadot-api/light-client-extension-helper-context-web-page"
-  id: string
-  type: "getChains"
-}
-
-export type ToExtensionRequest =
-  | ToExtensionRequestAddChain
-  | ToExtensionRequestGetChains
 
 export type ToExtension = ToExtensionRequest | ConnectToExtension
 
@@ -43,45 +31,75 @@ type ToPageNotificationOnAddChains = {
   >
 }
 
-export type ToPageNotification = ToPageNotificationOnAddChains
+type ToPageNotification = ToPageNotificationOnAddChains
 
 export type ToPage = ToPageResponse | ToPageNotification | ConnectToApplication
 
 // FIXME: merge BackgroundRequest/BackgroundResponse/ToExtensionRequest/ToPageResponse
-export type BackgroundRequestAddChainData = {
+type BackgroundRequestAddChain = {
+  // FIXME: add origin
+  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
+  type: "addChain"
+  chainSpec: string
+  relayChainGenesisHash?: string
+}
+
+type BackgroundRequestGetChains = {
+  // FIXME: add origin
+  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
+  type: "getChains"
+}
+
+type BackgroundRequestGetChainData = {
   type: "getChainData"
   chainSpec: string
   relayChainGenesisHash?: string
 }
 
-export type BackgroundRequestGetActiveConnections = {
+type BackgroundRequestGetActiveConnections = {
   type: "getActiveConnections"
 }
 
-export type BackgroundRequestDisconnect = {
+type BackgroundRequestDisconnect = {
   type: "disconnect"
   tabId: number
   genesisHash: string
 }
 
+// FIXME: add origin to any request
 export type BackgroundRequest =
-  | BackgroundRequestAddChainData
+  | BackgroundRequestAddChain
+  | BackgroundRequestGetChains
+  | BackgroundRequestGetChainData
   | BackgroundRequestGetActiveConnections
   | BackgroundRequestDisconnect
 
-export type BackgroundResponseAddChainData = {
+type BackgroundResponseAddChain = {
+  type: "addChainResponse"
+  chain: {
+    genesisHash: string
+    name: string
+  }
+}
+
+type BackgroundResponseGetChains = {
+  type: "getChainsResponse"
+  chains: Record<string, { genesisHash: string; name: string }>
+}
+
+type BackgroundResponseGetChainData = {
   type: "getChainDataResponse"
   genesisHash: string
   name: string
   ss58Format: number
 }
 
-export type BackgroundResponseGetActiveConnections = {
+type BackgroundResponseGetActiveConnections = {
   type: "getActiveConnectionsResponse"
   connections: { tabId: number; genesisHash: string }[]
 }
 
-export type BackgroundResponseDisconnect = {
+type BackgroundResponseDisconnect = {
   type: "disconnectResponse"
 }
 
@@ -90,7 +108,10 @@ export type BackgroundResponseError = {
   error: string
 }
 
+// FIXME: add origin to any response
 export type BackgroundResponse =
-  | BackgroundResponseAddChainData
+  | BackgroundResponseAddChain
+  | BackgroundResponseGetChains
+  | BackgroundResponseGetChainData
   | BackgroundResponseGetActiveConnections
   | BackgroundResponseDisconnect
