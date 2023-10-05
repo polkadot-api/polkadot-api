@@ -256,6 +256,7 @@ while (!exit) {
     case SAVE: {
       const metadataFilePath = await input({
         message: "metadata file path",
+        default: `${options.key}-metadata.scale`,
       })
 
       const writeToPkgJSON = await confirm({
