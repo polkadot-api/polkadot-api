@@ -4,14 +4,17 @@ import {
   BackgroundResponseError,
 } from "@/protocol"
 
-// FIXME: improve typings so R is narrowed by M
-export const sendBackgroundRequest = async <T extends BackgroundResponse>(
-  msg: BackgroundRequest,
+export const sendBackgroundRequest = async <
+  TRequest extends BackgroundRequest,
+  TResponse extends BackgroundResponse & {
+    type: `${TRequest["type"]}Response`
+  },
+>(
+  msg: TRequest,
 ) => {
-  const response = await chrome.runtime.sendMessage<
-    BackgroundRequest,
-    T | BackgroundResponseError
-  >(msg)
+  // TResponse | BackgroundResponseError does not narrow
+  const response: BackgroundResponse | BackgroundResponseError =
+    await chrome.runtime.sendMessage(msg)
   if (response.type === "error") throw new Error(response.error)
-  return response
+  return response as TResponse
 }

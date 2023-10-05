@@ -1,10 +1,5 @@
 import type { LightClientPageHelper } from "./types"
 import { storage, sendBackgroundRequest } from "@/shared"
-import {
-  BackgroundResponseAddChainData,
-  BackgroundResponseDisconnect,
-  BackgroundResponseGetActiveConnections,
-} from "@/protocol"
 
 export const helper: LightClientPageHelper = {
   async deleteChain(genesisHash) {
@@ -35,12 +30,11 @@ export const helper: LightClientPageHelper = {
   },
   async persistChain(chainSpec, relayChainGenesisHash) {
     // TODO: What if the chain already exists? Throw?
-    const { type, ...chainData } =
-      await sendBackgroundRequest<BackgroundResponseAddChainData>({
-        type: "getChainData",
-        chainSpec,
-        relayChainGenesisHash,
-      })
+    const { type, ...chainData } = await sendBackgroundRequest({
+      type: "getChainData",
+      chainSpec,
+      relayChainGenesisHash,
+    })
     await storage.set(
       { type: "chain", genesisHash: chainData?.genesisHash },
       { ...chainData, chainSpec, relayChainGenesisHash },
@@ -70,14 +64,13 @@ export const helper: LightClientPageHelper = {
     )
   },
   async getActiveConnections() {
-    const { connections } =
-      await sendBackgroundRequest<BackgroundResponseGetActiveConnections>({
-        type: "getActiveConnections",
-      })
+    const { connections } = await sendBackgroundRequest({
+      type: "getActiveConnections",
+    })
     return connections
   },
   async disconnect(tabId: number, genesisHash: string) {
-    await sendBackgroundRequest<BackgroundResponseDisconnect>({
+    await sendBackgroundRequest({
       type: "disconnect",
       tabId,
       genesisHash,

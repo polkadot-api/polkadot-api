@@ -194,7 +194,7 @@ const createRawChain = ({
             chainId,
           })
           // TODO: validate, Should onStatusChange be invoked on .disconnect()?
-          onStatusChange("disconnected")
+          // onStatusChange("disconnected")
         },
       }
     },
