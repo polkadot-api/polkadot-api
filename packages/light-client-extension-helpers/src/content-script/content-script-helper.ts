@@ -48,7 +48,6 @@ window.addEventListener("message", async ({ data, source, origin }) => {
 })
 
 chrome.runtime.onMessage.addListener((msg: ToPage) => {
-  console.log("frombackground", { msg })
   // FIXME: filter background-helper messages
   postToPage(msg, window.origin)
 })

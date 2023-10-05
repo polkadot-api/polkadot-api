@@ -1,15 +1,15 @@
 import type { LightClientPageHelper } from "./types"
-import { storage } from "@/shared"
+import { storage, sendBackgroundRequest } from "@/shared"
 import {
   BackgroundResponseAddChainData,
   BackgroundResponseDisconnect,
   BackgroundResponseGetActiveConnections,
 } from "@/protocol"
-import { sendBackgroundRequest } from "@/shared"
 
 export const helper: LightClientPageHelper = {
   async deleteChain(genesisHash) {
     // TODO: check, Should it disconnect any activeChain?
+    // TODO: batch storage.remove
     await Promise.all([
       storage.remove({ type: "chain", genesisHash }),
       storage.remove({ type: "bootNodes", genesisHash }),
@@ -46,29 +46,28 @@ export const helper: LightClientPageHelper = {
       { ...chainData, chainSpec, relayChainGenesisHash },
     )
   },
-  async getChain(genesisHash) {
-    const chain = await storage.get({ type: "chain", genesisHash })
-    if (!chain) return
-
-    const bootNodes =
-      (await storage.get({ type: "bootNodes", genesisHash })) ??
-      (JSON.parse(chain.chainSpec).bootNodes as string[])
-
-    return {
-      ...chain,
-      bootNodes,
-      // FIXME: Implement
-      nPeers: -1,
-      // FIXME: Implement
-      provider: (_onMessage, _onStatus) => {
-        throw new Error("Function not implemented.")
-        return {
-          send: (_message: string) => {},
-          open: () => {},
-          close: () => {},
-        }
-      },
-    }
+  async getChains() {
+    return Promise.all(
+      Object.entries(await storage.getChains()).map(
+        async ([genesisHash, chain]) => ({
+          ...chain,
+          bootNodes:
+            (await storage.get({ type: "bootNodes", genesisHash })) ??
+            (JSON.parse(chain.chainSpec).bootNodes as string[]),
+          // FIXME: Implement
+          nPeers: -1,
+          // FIXME: Implement
+          provider: (_onMessage, _onStatus) => {
+            throw new Error("Function not implemented.")
+            return {
+              send: (_message: string) => {},
+              open: () => {},
+              close: () => {},
+            }
+          },
+        }),
+      ),
+    )
   },
   async getActiveConnections() {
     const { connections } =

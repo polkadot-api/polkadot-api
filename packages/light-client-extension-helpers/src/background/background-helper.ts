@@ -15,12 +15,13 @@ export const backgroundHelper: BackgroundHelper = async (onAddChainByUser) => {
 }
 
 storage.onChainsChanged(async (chains) => {
-  ;(await chrome.tabs.query({})).forEach(({ id }) =>
-    chrome.tabs.sendMessage(id!, {
-      origin: CONTEXT.CONTENT_SCRIPT,
-      type: "onAddChains",
-      chains,
-    } as ToPage),
+  ;(await chrome.tabs.query({ url: ["https://*/*", "http://*/*"] })).forEach(
+    ({ id }) =>
+      chrome.tabs.sendMessage(id!, {
+        origin: CONTEXT.CONTENT_SCRIPT,
+        type: "onAddChains",
+        chains,
+      } as ToPage),
   )
 })
 
@@ -28,7 +29,10 @@ const postMessage = (port: chrome.runtime.Port, message: ToPage) =>
   port.postMessage(message)
 
 // Chains by TabId
-const activeChains: Record<number, Record<string, Chain>> = {}
+const activeChains: Record<
+  number,
+  Record<string, { chain: Chain; genesisHash: string }>
+> = {}
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === PORT.CONTENT_SCRIPT) {
@@ -38,7 +42,7 @@ chrome.runtime.onConnect.addListener((port) => {
       const tabId = port.sender?.tab?.id
       if (!tabId) return
       if (!activeChains[tabId]) return
-      for (const [chainId, chain] of Object.entries(activeChains[tabId])) {
+      for (const [chainId, { chain }] of Object.entries(activeChains[tabId])) {
         try {
           chain.remove()
         } catch (error) {
@@ -172,13 +176,14 @@ chrome.runtime.onConnect.addListener((port) => {
                 disableJsonRpc: false,
                 potentialRelayChains: msg.potentialRelayChainIds
                   .filter((chainId) => activeChains[tabId][chainId])
-                  .map((chainId) => activeChains[tabId][chainId]),
+                  .map((chainId) => activeChains[tabId][chainId].chain),
                 // FIXME: handle databaseContent
                 // databaseContent,
               }
             }
 
             const smoldotChain = await smoldotClient.addChain(addChainOptions)
+            const genesisHash = await getGenesisHash(smoldotChain)
 
             ;(async () => {
               while (true) {
@@ -216,7 +221,10 @@ chrome.runtime.onConnect.addListener((port) => {
             }
             delete pendingAddChains[msg.chainId]
 
-            activeChains[tabId][msg.chainId] = smoldotChain
+            activeChains[tabId][msg.chainId] = {
+              chain: smoldotChain,
+              genesisHash,
+            }
 
             postMessage(port, {
               origin: "substrate-connect-extension",
@@ -252,7 +260,7 @@ chrome.runtime.onConnect.addListener((port) => {
           const tabId = port.sender?.tab?.id
           if (!tabId) return
 
-          const chain = activeChains?.[tabId]?.[msg.chainId]
+          const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
           if (!chain) return
 
           try {
@@ -306,19 +314,31 @@ chrome.runtime.onMessage.addListener(
         return true
       }
       case "getActiveConnections": {
-        // FIXME: need to map chainId to genesisHash
         sendBackgroundResponse(sendResponse, {
-          type: "error",
-          error: "not implemented",
+          type: "getActiveConnectionsResponse",
+          connections: Object.entries(activeChains).reduce(
+            (acc, [tabIdStr, tabChains]) => {
+              const tabId = parseInt(tabIdStr)
+              Object.values(tabChains).forEach(({ genesisHash }) =>
+                acc.push({ tabId, genesisHash }),
+              )
+              return acc
+            },
+            [] as { tabId: number; genesisHash: string }[],
+          ),
         })
-        // return true
         break
       }
       case "disconnect": {
-        // FIXME: need to map chainId to genesisHash
+        Object.entries(activeChains[msg.tabId] ?? {})
+          .filter(([_, { genesisHash }]) => genesisHash === msg.genesisHash)
+          .forEach(
+            // FIXME: notify content-script
+            ([chainId]) => removeChain(msg.tabId, chainId),
+          )
+        // TODO: this might not be needed
         sendBackgroundResponse(sendResponse, {
-          type: "error",
-          error: "not implemented",
+          type: "disconnectResponse",
         })
         break
       }
@@ -333,7 +353,7 @@ chrome.runtime.onMessage.addListener(
 )
 
 const removeChain = (tabId: number, chainId: string) => {
-  const chain = activeChains?.[tabId]?.[chainId]
+  const chain = activeChains?.[tabId]?.[chainId]?.chain
   delete activeChains?.[tabId]?.[chainId]
   try {
     chain?.remove()
@@ -385,4 +405,17 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
   } finally {
     client.destroy()
   }
+}
+
+// FIXME: merge with getChainData
+const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {
+  smoldotChain.sendJsonRpc(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: "chainSpec_v1_genesisHash",
+      method: "chainSpec_v1_genesisHash",
+      params: [],
+    }),
+  )
+  return JSON.parse(await smoldotChain.nextJsonRpcResponse()).result
 }

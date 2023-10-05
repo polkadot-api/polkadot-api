@@ -6,7 +6,7 @@ export interface LightClientPageHelper {
     chainSpec: string,
     relayChainGenesisHash?: string,
   ) => Promise<void>
-  getChain: (genesisHash: string) => Promise<PageChain | undefined>
+  getChains: () => Promise<Array<PageChain>>
   getActiveConnections: () => Promise<
     Array<{ tabId: number; genesisHash: string }>
   >

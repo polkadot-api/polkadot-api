@@ -3,7 +3,7 @@
   "name": "Test Extension",
   "version": "0.0.1",
   "description": "Test Extension for @polkadot-api/light-client-extension-helpers",
-  "permissions": ["storage", "alarms"],
+  "permissions": ["storage", "alarms", "tabs"],
   "background": {
     "service_worker": "js/background.global.js"
   },
