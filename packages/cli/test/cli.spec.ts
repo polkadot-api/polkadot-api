@@ -6,7 +6,10 @@ describe("cli", () => {
   test(
     "descriptor codegen",
     async () => {
-      await runner().spawn("polkadot-api", ["--key polkadot"], {}).code(0).end()
+      await runner()
+        .spawn("pnpm polkadot-api", ["--file test_descriptors.json"], {})
+        .code(0)
+        .end()
       await expect(
         fsExists("src/descriptors/polkadot-types.d.ts"),
       ).resolves.toEqual(true)

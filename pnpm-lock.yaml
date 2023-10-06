@@ -63,12 +63,6 @@ importers:
       '@types/node':
         specifier: ^20.4.7
         version: 20.6.0
-      clet:
-        specifier: ^1.0.1
-        version: 1.0.1
-      fs.promises.exists:
-        specifier: ^1.1.4
-        version: 1.1.4
       prettier:
         specifier: ^2.6.2
         version: 2.8.8
@@ -163,6 +157,9 @@ importers:
       '@types/eslint':
         specifier: ^8.44.2
         version: 8.44.2
+      clet:
+        specifier: ^1.0.1
+        version: 1.0.1
 
   packages/client:
     dependencies:
@@ -1893,6 +1890,7 @@ packages:
 
   /fs.promises.exists@1.1.4:
     resolution: {integrity: sha512-lJzUGWbZn8vhGWBedA+RYjB/BeJ+3458ljUfmplqhIeb6ewzTFWNPCR1HCiYCkXV9zxcHz9zXkJzMsEgDLzh3Q==}
+    dev: false
 
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}

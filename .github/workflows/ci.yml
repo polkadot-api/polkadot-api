@@ -33,11 +33,7 @@ jobs:
         run: pnpm lint
       - name: Run tests
         run: pnpm test
-      - name: Link CLI
-        working-directory: ./packages/cli
-        run: pnpm link --global
       - name: Run Integration Tests
-        working-directory: ./experiments
         run: pnpm test:ci
 
   publish:
