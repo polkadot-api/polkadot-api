@@ -240,6 +240,25 @@ importers:
 
   packages/utils: {}
 
+  zombie-tests:
+    dependencies:
+      '@polkadot-api/sc-provider':
+        specifier: workspace:*
+        version: link:../packages/sc-provider
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../packages/substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../packages/substrate-client
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../packages/substrate-codegen
+    devDependencies:
+      '@types/node':
+        specifier: ^20.6.0
+        version: 20.6.0
+
 packages:
 
   /@aashutoshrathi/word-wrap@1.2.6:

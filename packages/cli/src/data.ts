@@ -52,8 +52,13 @@ export class Data {
     message: string,
     items: [string, bigint][],
   ) {
-    this.descriptorData[pallet] = this.descriptorData[pallet] ?? {}
-    this.descriptorData[pallet][type] = this.descriptorData[pallet][type] ?? {}
+    this.descriptorData[pallet] = this.descriptorData[pallet] ?? {
+      constants: {},
+      storage: {},
+      events: {},
+      errors: {},
+      extrinsics: {},
+    }
     const data = this.descriptorData[pallet][type]
 
     const selected = await checkbox({
@@ -144,53 +149,29 @@ export class Data {
     }
   }
 
-  static async fromSavedDescriptors(args: FromSavedDescriptorsArgs) {
+  static async fromSavedDescriptors(
+    descriptorMetadata: z.TypeOf<typeof descriptorSchema>[string],
+  ) {
     const data = new Data()
 
-    const descriptorMetadata = await (async () => {
-      if (await fsExists("package.json")) {
-        const pkgJSON = JSON.parse(
-          await fs.readFile("package.json", { encoding: "utf-8" }),
-        )
-        const schema = z.object({ [args.pkgJSONKey]: descriptorSchema })
+    const { magicNumber, metadata } = await getMetadata({
+      source: "file",
+      file: descriptorMetadata.metadata,
+    })
 
-        const result = await schema.safeParseAsync(pkgJSON)
-        if (result.success) {
-          return result.data[args.pkgJSONKey][args.key]
-        }
-      } else if (args.fileName) {
-        const file = JSON.parse(
-          await fs.readFile(args.fileName, { encoding: "utf-8" }),
-        )
-        const result = await descriptorSchema.parseAsync(file)
+    data.outputFolder = descriptorMetadata.outputFolder
+    data.setMetadata(magicNumber, metadata)
 
-        return result[args.key]
-      }
-
-      return
-    })()
-
-    if (descriptorMetadata) {
-      const { magicNumber, metadata } = await getMetadata({
-        source: "file",
-        file: descriptorMetadata?.metadata,
-      })
-
-      data.outputFolder = descriptorMetadata.outputFolder
-      data.setMetadata(magicNumber, metadata)
-
-      const { descriptors } = descriptorMetadata
-      for (const pallet of Object.keys(descriptors)) {
-        const palletDescriptors = descriptors[pallet]
-        data.descriptorData[pallet] = data.descriptorData[pallet] ?? {}
-        data.descriptorData[pallet].constants =
-          palletDescriptors.constants ?? {}
-        data.descriptorData[pallet].storage = palletDescriptors.storage ?? {}
-        data.descriptorData[pallet].events = palletDescriptors.events ?? {}
-        data.descriptorData[pallet].errors = palletDescriptors.errors ?? {}
-        data.descriptorData[pallet].extrinsics =
-          palletDescriptors.extrinsics ?? {}
-      }
+    const { descriptors } = descriptorMetadata
+    for (const pallet of Object.keys(descriptors)) {
+      const palletDescriptors = descriptors[pallet]
+      data.descriptorData[pallet] = data.descriptorData[pallet] ?? {}
+      data.descriptorData[pallet].constants = palletDescriptors.constants ?? {}
+      data.descriptorData[pallet].storage = palletDescriptors.storage ?? {}
+      data.descriptorData[pallet].events = palletDescriptors.events ?? {}
+      data.descriptorData[pallet].errors = palletDescriptors.errors ?? {}
+      data.descriptorData[pallet].extrinsics =
+        palletDescriptors.extrinsics ?? {}
     }
 
     return data

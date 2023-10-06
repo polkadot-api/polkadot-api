@@ -12,7 +12,7 @@
     "/bin"
   ],
   "scripts": {
-    "build": "tsup-node src/main.ts --clean --out-dir bin --sourcemap --platform node --format esm",
+    "build": "tsc --noEmit && tsup-node src/main.ts --clean --out-dir bin --sourcemap --platform node --format esm",
     "start": "pnpm build && node --enable-source-maps bin/main.js",
     "start:interactive": "pnpm start -- -i",
     "test": "echo 'no tests'",

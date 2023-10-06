@@ -34,11 +34,7 @@ async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
     z.object({ type: z.literal("message"), value: z.string() }),
     z.object({
       type: z.literal("status"),
-      value: z.union([
-        z.literal("connected"),
-        z.literal("disconnected"),
-        z.literal("halt"),
-      ]),
+      value: z.union([z.literal("connected"), z.literal("disconnected")]),
     }),
   ])
 
@@ -73,7 +69,7 @@ async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
   const chainHeadFollower = chainHead(
     true,
     (event) => {
-      switch (event.event) {
+      switch (event.type) {
         case "finalized":
           blockHashDeferred.resolve(
             event.finalizedBlockHashes[event.finalizedBlockHashes.length - 1],
