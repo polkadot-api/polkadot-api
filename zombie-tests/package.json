@@ -1,0 +1,22 @@
+{
+  "name": "zombie-tests",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "@polkadot-api/sc-provider": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/substrate-codegen": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.0"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "license": "MIT"
+}
