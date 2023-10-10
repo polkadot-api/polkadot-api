@@ -6,3 +6,4 @@ coverage
 packages/*/dist/**
 experiments/dist/**
 .vscode
+.pnpm-store
