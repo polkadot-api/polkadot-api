@@ -18,7 +18,6 @@ export interface PageChain {
   genesisHash: string
   name: string
   ss58Format: number
-  nPeers: number
   bootNodes: Array<string>
   provider: ConnectProvider
 }

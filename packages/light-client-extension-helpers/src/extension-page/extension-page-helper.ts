@@ -55,8 +55,6 @@ export const helper: LightClientPageHelper = {
           bootNodes:
             (await storage.get({ type: "bootNodes", genesisHash })) ??
             (JSON.parse(chain.chainSpec).bootNodes as string[]),
-          // FIXME: Implement
-          nPeers: -1,
           provider: createBackgroundClientGetProvider(genesisHash),
         }),
       ),
