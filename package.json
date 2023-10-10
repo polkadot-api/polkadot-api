@@ -10,6 +10,7 @@
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "test": "pnpm -r test",
+    "test:ci": "pnpm -r test:ci",
     "prepare": "husky install"
   },
   "prettier": {
