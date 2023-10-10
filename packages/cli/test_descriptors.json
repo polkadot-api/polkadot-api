@@ -1,8 +1,7 @@
 {
   "polkadot": {
     "metadata": "polkadot-metadata.scale",
-    "chainSpec": "polkadot",
-    "outputFolder": "src/descriptors/",
+    "outputFolder": "artifacts/descriptors",
     "descriptors": {
       "System": {
         "constants": {
@@ -46,6 +45,31 @@
           "NonDefaultComposite": "0",
           "NonZeroRefCount": "0",
           "CallFiltered": "0"
+        },
+        "extrinsics": {
+          "remark": {
+            "events": {
+              "System": [
+                "ExtrinsicSuccess",
+                "ExtrinsicFailed",
+                "CodeUpdated",
+                "NewAccount",
+                "KilledAccount",
+                "Remarked"
+              ]
+            },
+            "errors": {
+              "System": [
+                "InvalidSpecName",
+                "SpecVersionNeedsToIncrease",
+                "FailedToExtractRuntimeVersion",
+                "NonDefaultComposite",
+                "NonZeroRefCount",
+                "CallFiltered"
+              ]
+            },
+            "checksum": "5198716037121554485"
+          }
         }
       }
     }

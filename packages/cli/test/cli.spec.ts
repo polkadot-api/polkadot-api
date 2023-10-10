@@ -2,12 +2,15 @@ import { describe, test, expect } from "vitest"
 import { runner } from "clet"
 import fsExists from "fs.promises.exists"
 
+const cmd = "./bin/main.js"
+
 describe("cli", () => {
   test(
     "descriptor codegen",
     async () => {
       await runner()
-        .spawn("pnpm polkadot-api", ["--file test_descriptors.json"], {})
+        .file("package.json", { bin: { "polkadot-api": "./bin/main.js" } })
+        .spawn(cmd, ["--file test_descriptors.json"], {})
         .code(0)
         .end()
       await expect(
