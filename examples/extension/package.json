@@ -5,7 +5,7 @@
   "scripts": {
     "build": "mkdir -p dist && cp assets/* ./dist && tsup src/background.ts src/content.ts src/inpage.ts src/options.ts --clean --out-dir dist/js --platform neutral --target=es2020 --format iife",
     "dev": "pnpm build --sourcemap inline --watch",
-    "start": "web-ext run --source-dir ./dist -t chromium"
+    "start": "web-ext run --source-dir ./dist -t chromium --start-url http://localhost:5173"
   },
   "dependencies": {
     "@polkadot-api/light-client-extension-helpers": "workspace:*",

@@ -323,9 +323,15 @@ importers:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
       '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../substrate-client
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../substrate-codegen
       '@types/chrome':
         specifier: ^0.0.246
         version: 0.0.246

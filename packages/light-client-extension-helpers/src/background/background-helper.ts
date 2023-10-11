@@ -1,4 +1,10 @@
 import { createClient } from "@polkadot-api/substrate-client"
+import {
+  Tuple,
+  compact,
+  metadata as metadataCodec,
+} from "@polkadot-api/substrate-bindings"
+import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
 import type { AddChainOptions, Chain } from "smoldot"
 import type { BackgroundHelper } from "./types"
 import { smoldotProvider } from "./smoldot-provider"
@@ -366,12 +372,8 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
     await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
   )
   try {
-    const [genesisHash, name, properties] = (await Promise.all(
-      [
-        "chainSpec_v1_genesisHash",
-        "chainSpec_v1_chainName",
-        "chainSpec_v1_properties",
-      ].map(
+    const [genesisHash, name] = (await Promise.all(
+      ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map(
         (method) =>
           new Promise((resolve, reject) => {
             try {
@@ -390,16 +392,48 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
             }
           }),
       ),
-    )) as [
-      genesisHash: string,
-      name: string,
-      properties?: { ss58Format?: number },
-    ]
+    )) as [genesisHash: string, name: string]
+
+    const ss58Format: number = await new Promise(async (resolve, reject) => {
+      const chainHeadFollower = client.chainHead(
+        true,
+        async (event) => {
+          try {
+            if (event.type === "newBlock") {
+              chainHeadFollower.unpin([event.blockHash])
+              return
+            }
+            if (event.type !== "initialized") return
+            const [, { metadata }] = Tuple(compact, metadataCodec).dec(
+              await chainHeadFollower.call(
+                event.finalizedBlockHash,
+                "Metadata_metadata",
+                "",
+              ),
+            )
+            if (metadata.tag !== "v14")
+              throw new Error("Wrong metadata version")
+            const prefix = metadata.value.pallets
+              .find((x) => x.name === "System")
+              ?.constants.find((x) => x.name === "SS58Prefix")
+            chainHeadFollower.unfollow()
+            if (!prefix) throw new Error("unable to get SS58Prefix")
+            resolve(
+              getDynamicBuilder(metadata.value)
+                .buildConstant("System", "SS58Prefix")
+                .dec(prefix.value),
+            )
+          } catch (error) {
+            reject(error)
+          }
+        },
+        reject,
+      )
+    })
     return {
       genesisHash,
       name,
-      // TODO: it may be better to query the storage constant System.ss58Prefix
-      ss58Format: properties?.ss58Format ?? 42,
+      ss58Format,
     }
   } finally {
     client.destroy()
