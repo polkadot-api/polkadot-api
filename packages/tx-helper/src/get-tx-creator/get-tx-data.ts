@@ -11,7 +11,7 @@ import {
   of,
   race,
 } from "rxjs"
-import type { SignedExntension } from "@/internal-types"
+import type { SignedExtension } from "@/internal-types"
 import { getObservableClient } from "@polkadot-api/client"
 import { mergeUint8 } from "@polkadot-api/utils"
 import {
@@ -26,7 +26,7 @@ interface Ctx {
     all: string[]
     user: Array<UserSignedExtensionName>
     chain: Array<"CheckGenesis" | "CheckNonce" | "CheckSpecVersion">
-    unkown: string[]
+    unknown: string[]
   }
 }
 
@@ -41,14 +41,14 @@ export const getTxData =
     ) => void,
   ) =>
   ({ metadata, at, signedExtensions }: Ctx) => {
-    const { all, user, chain, unkown } = signedExtensions
+    const { all, user, chain, unknown } = signedExtensions
     const { overrides$, getUserInput$, signer$ } = getInput$<T>(
       {
         from,
         callData,
         metadata: v14.enc(metadata),
         userSingedExtensionsName: user as any,
-        unknownSignedExtensions: unkown,
+        unknownSignedExtensions: unknown,
       },
       onCreateTx,
     )
@@ -65,9 +65,9 @@ export const getTxData =
       )
 
     const withOverrides = (
-      { additional, extra }: SignedExntension,
+      { additional, extra }: SignedExtension,
       name: string,
-    ): SignedExntension => ({
+    ): SignedExtension => ({
       additional: race([fromOverrides(name, "value", true), additional]),
       extra: race([fromOverrides(name, "additionalSigned", true), extra]),
     })

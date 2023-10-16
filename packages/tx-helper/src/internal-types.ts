@@ -11,14 +11,14 @@ export interface ChainExtensionCtx {
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>
 }
 
-export interface SignedExntension {
+export interface SignedExtension {
   extra: Observable<Uint8Array>
   additional: Observable<Uint8Array>
 }
 
 export type GetChainSignedExtension = (
   ctx: ChainExtensionCtx,
-) => SignedExntension
+) => SignedExtension
 
 export type GetUserSignedExtension<K extends UserSignedExtensionName> = (
   input$: Observable<UserSignedExtensionsInput<K>>,

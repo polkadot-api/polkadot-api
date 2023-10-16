@@ -34,7 +34,7 @@ export type OnCreateTxCtx<
   // different chains may require a different set of these.
   userSingedExtensionsName: UserSignedExtensionsName
 
-  // An Array containing a list of the signed extensions which are unkown
+  // An Array containing a list of the signed extensions which are unknown
   // to the library and that require for a value on the "extra" field
   // and/or additionally signed data. This will give the consumer the opportunity
   // to provide that data via the `overrides` field of the callback.
@@ -42,7 +42,7 @@ export type OnCreateTxCtx<
   unknownSignedExtensions: Array<string>
   // The user interface may need the metadata for many different reasons:
   // knowing how to decode and present the arguments of the call to the user,
-  // validate the user iput, later decode the singer data, etc, etc.
+  // validate the user input, later decode the singer data, etc, etc.
   metadata: Uint8Array
 }
 

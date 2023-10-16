@@ -13,7 +13,7 @@ export const getInput$ = <T extends Array<UserSignedExtensionName>>(
     callback: Callback<null | ConsumerCallback<T>>,
   ) => void,
 ) => {
-  const { userSingedExtensionsName: user, unknownSignedExtensions: unkown } =
+  const { userSingedExtensionsName: user, unknownSignedExtensions: unknown } =
     ctx
 
   const input$ = new Observable<ConsumerCallback<T>>((observer) => {
@@ -29,7 +29,7 @@ export const getInput$ = <T extends Array<UserSignedExtensionName>>(
           return observer.error(new Error(`Missing user data for "${userKey}"`))
       }
 
-      const missingUnknown = unkown.filter((uKey) => !x.overrides[uKey])
+      const missingUnknown = unknown.filter((uKey) => !x.overrides[uKey])
 
       if (missingUnknown.length) {
         return observer.error(

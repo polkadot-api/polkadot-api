@@ -28,7 +28,7 @@ export const getRelevantSignedExtensions = (metadata: V14) => {
 
   const user: Array<UserSignedExtensionName> = []
   const chain: Array<"CheckGenesis" | "CheckNonce" | "CheckSpecVersion"> = []
-  const unkown: Array<string> = []
+  const unknown: Array<string> = []
 
   const all: Array<string> = relevant.map((x) => x.identifier)
 
@@ -37,8 +37,8 @@ export const getRelevantSignedExtensions = (metadata: V14) => {
       chain.push(sExtension as any)
     else if (userSignedExtensions[sExtension as "CheckMortality"])
       user.push(sExtension as any)
-    else unkown.push(sExtension)
+    else unknown.push(sExtension)
   })
 
-  return { all, user, chain, unkown }
+  return { all, user, chain, unknown }
 }
