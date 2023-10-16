@@ -94,6 +94,7 @@ export default (chainHead: ChainHead) => () => {
   metadata$.subscribe()
 
   return {
+    finalized$,
     follow$,
     runtime$,
     metadata$,

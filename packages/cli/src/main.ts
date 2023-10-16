@@ -51,7 +51,7 @@ program
   )
   .option("k --key <key>", "first key in descriptor metadata")
   .option(
-    "f --file file",
+    "f --file <file>",
     "path to descriptor metadata file; alternative to package json",
   )
   .option("s --sync", "synchronize", false)
