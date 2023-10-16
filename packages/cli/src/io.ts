@@ -24,6 +24,14 @@ type ReadDescriptorsArgs = {
 
 export async function readDescriptors(args: ReadDescriptorsArgs) {
   const descriptorMetadata = await (async () => {
+    if (args.fileName) {
+      const file = JSON.parse(
+        await fs.readFile(args.fileName, { encoding: "utf-8" }),
+      )
+      const result = await descriptorSchema.parseAsync(file)
+
+      return result
+    }
     if (await fsExists("package.json")) {
       const pkgJSON = JSON.parse(
         await fs.readFile("package.json", { encoding: "utf-8" }),
@@ -34,13 +42,6 @@ export async function readDescriptors(args: ReadDescriptorsArgs) {
       if (result.success) {
         return result.data[args.pkgJSONKey]
       }
-    } else if (args.fileName) {
-      const file = JSON.parse(
-        await fs.readFile(args.fileName, { encoding: "utf-8" }),
-      )
-      const result = await descriptorSchema.parseAsync(file)
-
-      return result
     }
 
     return
