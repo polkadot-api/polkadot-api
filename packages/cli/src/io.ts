@@ -445,7 +445,7 @@ export type ${constName} = StorageType<typeof ${constName}>
   }
 
   const descriptorVariablesRegexp = new RegExp(
-    /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))\s(?=\=)/g,
+    /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))(?=[\s|:].*\=)/g,
   )
 
   const descriptorVariableNames =
