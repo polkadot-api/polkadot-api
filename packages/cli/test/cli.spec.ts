@@ -24,6 +24,9 @@ describe("cli", () => {
       await expect(
         fsExists(path.join(outputDir, "polkadot.ts")),
       ).resolves.toEqual(true)
+      await expect(
+        fsExists(path.join(outputDir, "polkadot.d.ts")),
+      ).resolves.toEqual(false)
     },
     5 * 60_000,
   )

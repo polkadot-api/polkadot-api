@@ -374,9 +374,12 @@ export async function outputCodegen(
         const len = declarations.variables.get(key)!.directDependencies.size
 
         const constName = `${pallet}${name}Storage`
-        return `const ${constName} = ${pallet}Creator.getStorageDescriptor(
-  ${checksum}n,
-  \"${name}\",
+        return `
+type ${constName}Descriptor = StorageDescriptor<DescriptorCommon<\"${pallet}\", \"${name}\">, ArgsWithPayloadCodec<${key}, ${returnType}>>
+
+const ${constName}: ${constName}Descriptor = ${pallet}Creator.getStorageDescriptor(
+  ${checksum}n, 
+  \"${name}\", 
   {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)
 
 export type ${constName} = StorageType<typeof ${constName}>
@@ -476,4 +479,28 @@ export type ${constName} = StorageType<typeof ${constName}>
 
   const results = await eslint.lintFiles([`${outputFolder}/${key}.ts`])
   await ESLint.outputFixes(results)
+
+  // Run tsc again to make sure the final .ts file has no compile errors
+  {
+    if (await fsExists(`${tscFileName}.d.ts`)) {
+      await fs.rm(`${tscFileName}.d.ts`)
+    }
+
+    tsc.build({
+      basePath: outputFolder,
+      compilerOptions: {
+        skipLibCheck: true,
+        emitDeclarationOnly: true,
+        declaration: true,
+        target: "esnext",
+        module: "esnext",
+        moduleResolution: "node",
+      },
+      include: [`${key}.ts`],
+    })
+
+    if (await fsExists(`${tscFileName}.d.ts`)) {
+      await fs.rm(`${tscFileName}.d.ts`)
+    }
+  }
 }
