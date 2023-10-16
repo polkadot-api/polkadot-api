@@ -316,6 +316,7 @@ export async function outputCodegen(
   const descriptorTypeImports = [
     "DescriptorCommon",
     "ArgsWithPayloadCodec",
+    "ArgsWithoutPayloadCodec",
     "StorageDescriptor",
     "StorageType",
     "ConstantDescriptor",
@@ -428,14 +429,16 @@ export type ${constName} = StorageType<typeof ${constName}>
       [] as string[],
     )
 
+    const returnType = declarations.imports.has(payload)
+      ? `CodecType<typeof ${payload}>`
+      : payload
+    const len = declarations.variables.get(returnType)?.directDependencies.size
     descriptorCodegen +=
       `const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
         ",",
-      )}], [${errorVariables.join(",")}], {} as unknown as ${
-        declarations.imports.has(payload)
-          ? `CodecType<typeof ${payload}>`
-          : payload
-      })` + "\n\n"
+      )}], [${errorVariables.join(
+        ",",
+      )}], {len: ${len}} as ArgsWithoutPayloadCodec<${returnType}>)` + "\n\n"
   }
 
   const descriptorVariablesRegexp = new RegExp(
