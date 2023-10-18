@@ -287,7 +287,7 @@ while (!exit) {
       })
 
       const outputFolder = await input({
-        message: "output folder",
+        message: "codegen output directory",
       })
 
       await writeMetadataToDisk(data, metadataFilePath)
@@ -307,7 +307,10 @@ while (!exit) {
         })
       } else {
         const fileName = await input({
-          message: "output file",
+          message: "descriptor json file name",
+          validate: (value) =>
+            value !== outputFolder ||
+            "descriptor json file name cannot be equal to codegen output directory",
         })
 
         await outputDescriptors({
