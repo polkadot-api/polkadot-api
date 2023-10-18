@@ -204,41 +204,4 @@ export class Data {
       throw new Error("uninitialized")
     }
   }
-
-  [util.inspect.custom]() {
-    return this.toJSON()
-  }
-
-  toJSON() {
-    return Object.fromEntries(
-      Object.entries(this.descriptorData).map(
-        ([k, { extrinsics, ...rest }]) => [
-          k,
-          {
-            ...rest,
-            extrinsics: Object.fromEntries(
-              Object.entries(extrinsics).map(([k, v]) => [
-                k,
-                {
-                  checksum: v.checksum,
-                  events: Object.fromEntries(
-                    Object.entries(v.events).map(([k, v]) => [
-                      k,
-                      Array.from(v),
-                    ]),
-                  ),
-                  errors: Object.fromEntries(
-                    Object.entries(v.errors).map(([k, v]) => [
-                      k,
-                      Array.from(v),
-                    ]),
-                  ),
-                },
-              ]),
-            ),
-          },
-        ],
-      ),
-    )
-  }
 }
