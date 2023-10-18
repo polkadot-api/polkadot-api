@@ -316,6 +316,7 @@ export async function outputCodegen(
   const descriptorTypeImports = [
     "DescriptorCommon",
     "ArgsWithPayloadCodec",
+    "ArgsWithoutPayloadCodec",
     "StorageDescriptor",
     "StorageType",
     "ConstantDescriptor",
@@ -373,9 +374,12 @@ export async function outputCodegen(
         const len = declarations.variables.get(key)!.directDependencies.size
 
         const constName = `${pallet}${name}Storage`
-        return `const ${constName} = ${pallet}Creator.getStorageDescriptor(
-  ${checksum}n,
-  \"${name}\",
+        return `
+type ${constName}Descriptor = StorageDescriptor<DescriptorCommon<\"${pallet}\", \"${name}\">, ArgsWithPayloadCodec<${key}, ${returnType}>>
+
+const ${constName}: ${constName}Descriptor = ${pallet}Creator.getStorageDescriptor(
+  ${checksum}n, 
+  \"${name}\", 
   {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)
 
 export type ${constName} = StorageType<typeof ${constName}>
@@ -428,18 +432,20 @@ export type ${constName} = StorageType<typeof ${constName}>
       [] as string[],
     )
 
+    const returnType = declarations.imports.has(payload)
+      ? `CodecType<typeof ${payload}>`
+      : payload
+    const len = declarations.variables.get(returnType)?.directDependencies.size
     descriptorCodegen +=
       `const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
         ",",
-      )}], [${errorVariables.join(",")}], {} as unknown as ${
-        declarations.imports.has(payload)
-          ? `CodecType<typeof ${payload}>`
-          : payload
-      })` + "\n\n"
+      )}], [${errorVariables.join(
+        ",",
+      )}], {len: ${len}} as ArgsWithoutPayloadCodec<${returnType}>)` + "\n\n"
   }
 
   const descriptorVariablesRegexp = new RegExp(
-    /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))\s(?=\=)/g,
+    /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))(?=[\s|:].*\=)/g,
   )
 
   const descriptorVariableNames =
@@ -473,4 +479,28 @@ export type ${constName} = StorageType<typeof ${constName}>
 
   const results = await eslint.lintFiles([`${outputFolder}/${key}.ts`])
   await ESLint.outputFixes(results)
+
+  // Run tsc again to make sure the final .ts file has no compile errors
+  {
+    if (await fsExists(`${tscFileName}.d.ts`)) {
+      await fs.rm(`${tscFileName}.d.ts`)
+    }
+
+    tsc.build({
+      basePath: outputFolder,
+      compilerOptions: {
+        skipLibCheck: true,
+        emitDeclarationOnly: true,
+        declaration: true,
+        target: "esnext",
+        module: "esnext",
+        moduleResolution: "node",
+      },
+      include: [`${key}.ts`],
+    })
+
+    if (await fsExists(`${tscFileName}.d.ts`)) {
+      await fs.rm(`${tscFileName}.d.ts`)
+    }
+  }
 }
