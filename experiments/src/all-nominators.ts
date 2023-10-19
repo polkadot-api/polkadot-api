@@ -1,17 +1,8 @@
-import {
-  ScProvider,
-  WellKnownChain,
-  GetProvider,
-} from "@polkadot-api/sc-provider"
+import { WellKnownChain, GetProvider } from "@polkadot-api/sc-provider"
 import { createClient } from "@polkadot-api/substrate-client"
+import { createProvider } from "./smolldot-worker"
 
-const smProvider = ScProvider(
-  WellKnownChain.polkadot /* {
-  embeddedNodeConfig: {
-    maxLogLevel: 9,
-  },
-}*/,
-)
+const [provider, terminateProvider] = createProvider(WellKnownChain.polkadot)
 
 const withLogsProvider = (input: GetProvider): GetProvider => {
   return (onMsg, onStatus) => {
@@ -36,7 +27,7 @@ const withLogsProvider = (input: GetProvider): GetProvider => {
   }
 }
 
-export const { chainHead } = createClient(withLogsProvider(smProvider))
+export const { chainHead, destroy } = createClient(withLogsProvider(provider))
 
 export const getAllNominators = (): Promise<any> =>
   new Promise<any>((res, rej) => {
@@ -74,4 +65,17 @@ export const getAllNominators = (): Promise<any> =>
     )
   })
 
-getAllNominators().then(console.log, console.error)
+try {
+  const nominators = await getAllNominators()
+  console.log(nominators)
+} catch (err) {
+  console.error(err)
+}
+
+// we need to set a delay because `getAllNominators` resolves BEFORE the finally
+// block where `chainHeadFollower.unfollow()` is invoked ... which causing some
+// timing errors
+setTimeout(async () => {
+  console.log("destroy", destroy())
+  console.log("terminate provider", await terminateProvider())
+}, 5000)
