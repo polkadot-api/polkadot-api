@@ -1,17 +1,10 @@
-import {
-  ScProvider,
-  WellKnownChain,
-  GetProvider,
-} from "@polkadot-api/sc-provider"
+import { GetProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 import { createClient } from "@polkadot-api/substrate-client"
+import { createProvider } from "./smolldot-worker"
+import { getObservableClient } from "@polkadot-api/client"
+import { firstValueFrom } from "rxjs"
 
-const smProvider = ScProvider(
-  WellKnownChain.polkadot /* {
-  embeddedNodeConfig: {
-    maxLogLevel: 9,
-  },
-}*/,
-)
+const provider = createProvider(WellKnownChain.polkadot)
 
 const withLogsProvider = (input: GetProvider): GetProvider => {
   return (onMsg, onStatus) => {
@@ -36,42 +29,23 @@ const withLogsProvider = (input: GetProvider): GetProvider => {
   }
 }
 
-export const { chainHead } = createClient(withLogsProvider(smProvider))
+export const { chainHead$, destroy } = getObservableClient(
+  createClient(withLogsProvider(provider)),
+)
+const chainHead = chainHead$()
+const allNominators$ = chainHead.storage$(
+  null,
+  "descendantsValues",
+  "0x5f3e4907f716ac89b6347d15ececedca88dcde934c658227ee1dfafcd6e16903",
+  null,
+)
 
-export const getAllNominators = (): Promise<any> =>
-  new Promise<any>((res, rej) => {
-    let requested = false
-    const chainHeadFollower = chainHead(
-      true,
-      (message) => {
-        if (message.type === "newBlock") {
-          chainHeadFollower.unpin([message.blockHash])
-          return
-        }
-        if (requested || message.type !== "initialized") return
-        const latestFinalized = message.finalizedBlockHash
-        console.log({ latestFinalized })
-        requested = true
+try {
+  const nominators = await firstValueFrom(allNominators$)
+  console.log(nominators)
+} catch (err) {
+  console.error(err)
+}
 
-        chainHeadFollower
-          .storage(
-            latestFinalized,
-            "descendantsValues",
-            "0x5f3e4907f716ac89b6347d15ececedca88dcde934c658227ee1dfafcd6e16903",
-            null,
-          )
-          .then(res)
-          .catch((e) => {
-            console.log("error", e)
-            rej(e)
-          })
-          .finally(() => {
-            chainHeadFollower.unfollow()
-          })
-        chainHeadFollower.unpin([latestFinalized])
-      },
-      () => {},
-    )
-  })
-
-getAllNominators().then(console.log, console.error)
+chainHead.unfollow()
+destroy()
