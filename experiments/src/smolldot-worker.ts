@@ -37,9 +37,7 @@ parentPort.on("message", (msg) => {
 })
 `
 
-export const createProvider = (
-  chain: WellKnownChain,
-): [GetProvider, () => Promise<number>] => {
+export const createProvider = (chain: WellKnownChain): GetProvider => {
   const worker = new Worker(PROVIDER_WORKER_CODE, {
     eval: true,
     workerData: chain,
@@ -64,17 +62,19 @@ export const createProvider = (
     }
   })
 
-  return [
-    (onMsg, onStatus) => {
-      onMsgSubject.subscribe((msg) => onMsg(msg))
-      onStatusSubject.subscribe((status) => onStatus(status))
+  return (onMsg, onStatus) => {
+    const sub1 = onMsgSubject.subscribe((msg) => onMsg(msg))
+    const sub2 = onStatusSubject.subscribe((status) => onStatus(status))
 
-      return {
-        send: (msg) => worker.postMessage({ type: "send", value: msg }),
-        open: () => worker.postMessage({ type: "open" }),
-        close: () => worker.postMessage({ type: "close" }),
-      }
-    },
-    () => worker.terminate(),
-  ]
+    return {
+      send: (msg) => worker.postMessage({ type: "send", value: msg }),
+      open: () => worker.postMessage({ type: "open" }),
+      close: () => {
+        sub1.unsubscribe()
+        sub2.unsubscribe()
+        worker.postMessage({ type: "close" })
+        worker.terminate()
+      },
+    }
+  }
 }
