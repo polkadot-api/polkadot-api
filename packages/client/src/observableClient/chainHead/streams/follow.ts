@@ -3,7 +3,7 @@ import {
   FollowEventWithRuntime,
   FollowResponse,
 } from "@polkadot-api/substrate-client"
-import { EMPTY, Observable, catchError, noop, repeat, share } from "rxjs"
+import { Observable, noop, share } from "rxjs"
 
 export const getFollow$ = (chainHead: ChainHead) => {
   let follower: FollowResponse
@@ -16,6 +16,8 @@ export const getFollow$ = (chainHead: ChainHead) => {
         observer.next(e)
       },
       (e) => {
+        console.warn("chainHead crashed")
+        console.error(e)
         observer.error(e)
       },
     )
@@ -23,15 +25,7 @@ export const getFollow$ = (chainHead: ChainHead) => {
       follower.unfollow()
       observer.complete()
     }
-  }).pipe(
-    catchError((e) => {
-      console.warn("chainHead crashed")
-      console.error(e)
-      return EMPTY
-    }),
-    repeat(),
-    share(),
-  )
+  }).pipe(share())
 
   return {
     getFollower: () => {
