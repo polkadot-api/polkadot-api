@@ -1,6 +1,8 @@
-import type { GetProvider } from "@polkadot-api/json-rpc-provider"
+import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import { FollowResponse, IRpcError, createClient } from "@/."
-import { vi } from "vitest"
+import * as vitest from "vitest"
+
+const vi = vitest.vi
 
 export const parseError: IRpcError = {
   code: -32700,
@@ -15,16 +17,13 @@ export const createTestClient = () => {
 
   const receivedMessages: Array<string> = []
 
-  const provider: GetProvider = (_onMessage, _onStatus) => {
+  const provider: ConnectProvider = (_onMessage) => {
     onMessage = _onMessage
     return {
       send(msg) {
         receivedMessages.push(msg)
       },
-      open() {
-        _onStatus("connected")
-      },
-      close() {},
+      disconnect() {},
     }
   }
 

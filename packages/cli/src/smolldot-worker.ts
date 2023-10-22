@@ -10,8 +10,7 @@ if (!parentPort) {
 }
 
 const provider = getProvider(
-  (msg) => parentPort.postMessage({ type: "message", value: msg }),
-  (status) => parentPort.postMessage({ type: "status", value: status }),
+  (msg) => parentPort.postMessage(msg)
 )
 
 parentPort.on("message", (msg) => {
@@ -19,12 +18,8 @@ parentPort.on("message", (msg) => {
     case "send":
       provider.send(msg.value)
       break
-    case "open":
-      provider.open()
-      break
-    case "close":
-      provider.close()
-      break
+    case "disconnect":
+      provider.disconnect()
   }
 })
 `

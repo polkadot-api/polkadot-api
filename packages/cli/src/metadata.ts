@@ -1,9 +1,6 @@
 import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
-import type {
-  GetProvider,
-  ProviderStatus,
-} from "@polkadot-api/json-rpc-provider"
+import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import { deferred } from "./deferred"
 import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
@@ -14,56 +11,33 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
-import { Subject } from "rxjs"
-import { z } from "zod"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
 async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
-  const worker = new Worker(PROVIDER_WORKER_CODE, {
-    eval: true,
-    workerData: chain,
-    stderr: true,
-    stdout: true,
-  })
-
-  const onMsgSubject = new Subject<string>()
-  const onStatusSubject = new Subject<ProviderStatus>()
-
-  const msgSchema = z.discriminatedUnion("type", [
-    z.object({ type: z.literal("message"), value: z.string() }),
-    z.object({
-      type: z.literal("status"),
-      value: z.union([z.literal("connected"), z.literal("disconnected")]),
-    }),
-  ])
-
-  worker.on("message", (msg) => {
-    const parsedMsg = msgSchema.parse(msg)
-    switch (parsedMsg.type) {
-      case "message":
-        onMsgSubject.next(parsedMsg.value)
-        break
-      case "status":
-        onStatusSubject.next(parsedMsg.value)
-        break
-      default:
-        break
-    }
-  })
-
-  const provider: GetProvider = (onMsg, onStatus) => {
-    onMsgSubject.subscribe((msg) => onMsg(msg))
-    onStatusSubject.subscribe((status) => onStatus(status))
+  const provider: ConnectProvider = (onMsg) => {
+    let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
+      eval: true,
+      workerData: chain,
+      stderr: true,
+      stdout: true,
+    })
+    worker.on("message", onMsg)
 
     return {
-      send: (msg) => worker.postMessage({ type: "send", value: msg }),
-      open: () => worker.postMessage({ type: "open" }),
-      close: () => worker.postMessage({ type: "close" }),
+      send: (msg) => worker?.postMessage({ type: "send", value: msg }),
+      disconnect: () => {
+        if (!worker) return
+
+        worker.postMessage({ type: "disconnect" })
+        worker.removeAllListeners()
+        worker.terminate()
+        worker = null
+      },
     }
   }
 
-  const { chainHead } = createClient(provider)
+  const { chainHead, destroy } = createClient(provider)
 
   const blockHashDeferred = deferred<string>()
   const chainHeadFollower = chainHead(
@@ -88,7 +62,7 @@ async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
     await chainHeadFollower.call(blockHash, "Metadata_metadata", ""),
   )
   chainHeadFollower.unfollow()
-  await worker.terminate()
+  destroy()
 
   return metadata
 }

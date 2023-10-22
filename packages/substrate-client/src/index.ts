@@ -1,7 +1,6 @@
 import {
-  type GetProvider,
+  type ConnectProvider,
   type Provider,
-  type ProviderStatus,
 } from "@polkadot-api/json-rpc-provider"
 import { getTransaction } from "./transaction/transaction"
 import { getChainHead } from "./chainhead"
@@ -14,7 +13,7 @@ import type { ChainHead } from "./chainhead"
 import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"
 
-export type { GetProvider, Provider, ProviderStatus }
+export type { ConnectProvider, Provider }
 
 export type * from "./common-types"
 export type * from "./client"
@@ -42,9 +41,8 @@ export interface SubstrateClient {
   ) => UnsubscribeFn
 }
 
-export const createClient = (provider: GetProvider): SubstrateClient => {
+export const createClient = (provider: ConnectProvider): SubstrateClient => {
   const client = createRawClient(provider)
-  client.connect()
 
   return {
     chainHead: getChainHead(client.request as ClientRequest<any, any>),

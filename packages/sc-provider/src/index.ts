@@ -1,13 +1,10 @@
-import type {
-  GetProvider,
-  Provider,
-  ProviderStatus,
-} from "@polkadot-api/json-rpc-provider"
-import type { ScClient, Chain, Config } from "@substrate/connect"
+import type { ConnectProvider, Provider } from "@polkadot-api/json-rpc-provider"
+import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
+import type { ScClient, Config, Chain } from "@substrate/connect"
 import { WellKnownChain, createScClient } from "@substrate/connect"
 
 export { WellKnownChain }
-export type { GetProvider, Provider, ProviderStatus }
+export type { ConnectProvider, Provider }
 
 export const wellKnownChains = new Set(Object.values(WellKnownChain))
 
@@ -36,47 +33,42 @@ const customCreateScClient = (...args: Parameters<typeof createScClient>) => {
 
 let client: ScClient
 
+const noop = () => {}
+
 export const ScProvider = (
   input: WellKnownChain | string,
   config?: Config,
-): GetProvider => {
+): ConnectProvider => {
   client ??= customCreateScClient(config)
+  return getSyncProvider(async () => {
+    let listener: (message: string) => void = noop
+    const onMessage = (msg: string) => {
+      listener(msg)
+    }
 
-  return (onMessage, onStatus): Provider => {
-    let chain: Chain | null = null
-    let pending = false
+    let chain: Chain
 
-    const open = () => {
-      if (chain || pending) return
-
-      pending = true
-      ;(wellKnownChains.has(input as any)
+    try {
+      chain = await (wellKnownChains.has(input as any)
         ? client.addWellKnownChain(input as WellKnownChain, onMessage)
-        : client.addChain(input, onMessage)
-      )
-        .then((_chain) => {
-          chain = _chain
-          onStatus("connected")
-        })
-        .catch((e) => {
-          console.warn("There was a problem adding the Chain")
-          console.error(e)
-          onStatus("disconnected")
-        })
-        .finally(() => {
-          pending = false
-        })
+        : client.addChain(input, onMessage))
+    } catch (e) {
+      console.warn(`couldn't create chain with: ${input}`)
+      console.error(e)
+      throw e
     }
 
-    const close = () => {
-      chain?.remove()
-      chain = null
+    return (onMessage) => {
+      listener = onMessage
+      return {
+        send(msg: string) {
+          chain.sendJsonRpc(msg)
+        },
+        disconnect() {
+          listener = noop
+          chain.remove()
+        },
+      }
     }
-
-    const send = (msg: string) => {
-      chain!.sendJsonRpc(msg)
-    }
-
-    return { open, close, send }
-  }
+  })
 }

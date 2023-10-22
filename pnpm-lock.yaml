@@ -194,8 +194,17 @@ importers:
 
   packages/json-rpc-provider: {}
 
+  packages/json-rpc-provider-proxy:
+    devDependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+
   packages/sc-provider:
     dependencies:
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
       '@substrate/connect':
         specifier: ^0.7.32
         version: 0.7.32

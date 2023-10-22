@@ -1,10 +1,5 @@
-import { Subject } from "rxjs"
 import { Worker } from "node:worker_threads"
-import {
-  GetProvider,
-  ProviderStatus,
-  WellKnownChain,
-} from "@polkadot-api/sc-provider"
+import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 
 const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
@@ -18,8 +13,7 @@ if (!parentPort) {
 }
 
 const provider = getProvider(
-  (msg) => parentPort.postMessage({ type: "message", value: msg }),
-  (status) => parentPort.postMessage({ type: "status", value: status }),
+  (msg) => parentPort.postMessage(msg)
 )
 
 parentPort.on("message", (msg) => {
@@ -27,54 +21,32 @@ parentPort.on("message", (msg) => {
     case "send":
       provider.send(msg.value)
       break
-    case "open":
-      provider.open()
-      break
-    case "close":
-      provider.close()
-      break
+    case "disconnect":
+      provider.disconnect()
   }
 })
 `
 
-export const createProvider = (chain: WellKnownChain): GetProvider => {
-  const worker = new Worker(PROVIDER_WORKER_CODE, {
-    eval: true,
-    workerData: chain,
-    stderr: true,
-    stdout: true,
-  })
-
-  const onMsgSubject = new Subject<string>()
-  const onStatusSubject = new Subject<ProviderStatus>()
-
-  worker.on("message", (msg) => {
-    const parsedMsg = msg
-    switch (parsedMsg.type) {
-      case "message":
-        onMsgSubject.next(parsedMsg.value)
-        break
-      case "status":
-        onStatusSubject.next(parsedMsg.value)
-        break
-      default:
-        break
-    }
-  })
-
-  return (onMsg, onStatus) => {
-    const sub1 = onMsgSubject.subscribe((msg) => onMsg(msg))
-    const sub2 = onStatusSubject.subscribe((status) => onStatus(status))
+export const createProvider =
+  (chain: WellKnownChain): ConnectProvider =>
+  (onMsg) => {
+    let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
+      eval: true,
+      workerData: chain,
+      stderr: true,
+      stdout: true,
+    })
+    worker.on("message", onMsg)
 
     return {
-      send: (msg) => worker.postMessage({ type: "send", value: msg }),
-      open: () => worker.postMessage({ type: "open" }),
-      close: () => {
-        sub1.unsubscribe()
-        sub2.unsubscribe()
-        worker.postMessage({ type: "close" })
+      send: (msg) => worker?.postMessage({ type: "send", value: msg }),
+      disconnect: () => {
+        if (!worker) return
+
+        worker.postMessage({ type: "disconnect" })
+        worker.removeAllListeners()
         worker.terminate()
+        worker = null
       },
     }
   }
-}
