@@ -1,4 +1,4 @@
-import { GetProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 import { createProvider } from "./smolldot-worker"
 import { getObservableClient } from "@polkadot-api/client"
@@ -6,18 +6,12 @@ import { firstValueFrom } from "rxjs"
 
 const provider = createProvider(WellKnownChain.polkadot)
 
-const withLogsProvider = (input: GetProvider): GetProvider => {
-  return (onMsg, onStatus) => {
-    const result = input(
-      (msg) => {
-        console.log("<< " + msg)
-        onMsg(msg)
-      },
-      (status) => {
-        console.log("STATUS CHANGED =>" + status)
-        onStatus(status)
-      },
-    )
+const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
+  return (onMsg) => {
+    const result = input((msg) => {
+      console.log("<< " + msg)
+      onMsg(msg)
+    })
 
     return {
       ...result,

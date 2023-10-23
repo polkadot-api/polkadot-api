@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/sc-provider",
+  "name": "@polkadot-api/json-rpc-provider-proxy",
   "version": "0.0.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
@@ -45,10 +45,6 @@
     "printWidth": 80,
     "semi": false,
     "trailingComma": "all"
-  },
-  "dependencies": {
-    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
-    "@substrate/connect": "^0.7.32"
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*"

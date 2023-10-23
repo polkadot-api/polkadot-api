@@ -63,6 +63,7 @@ jobs:
           pnpm pack --dir packages/cli
           pnpm pack --dir packages/client
           pnpm pack --dir packages/json-rpc-provider
+          pnpm pack --dir packages/json-rpc-provider-proxy
           pnpm pack --dir packages/sc-provider
           pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
@@ -81,6 +82,10 @@ jobs:
         with:
           name: package
           path: ./packages/json-rpc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/json-rpc-provider-proxy/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
