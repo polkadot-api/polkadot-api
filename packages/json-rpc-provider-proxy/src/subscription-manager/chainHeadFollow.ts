@@ -11,7 +11,9 @@ const terminalEvents = new Set([
   "operationError",
 ])
 
-export const chainHeadFollow: SubscriptionLogic = {
+export const chainHeadFollow = (
+  onMessage: (msg: string) => void,
+): SubscriptionLogic => ({
   onSent(parsed) {
     if (parsed.method === START_METHOD)
       return {
@@ -39,14 +41,18 @@ export const chainHeadFollow: SubscriptionLogic = {
         }
       : null
   },
-  onAbort: (id) => ({
-    jsonrpc: "2.0",
-    method: NOTIFICATION_METHOD,
-    params: {
-      subscription: id,
-      result: {
-        event: ABORT_EVENT,
-      },
-    },
-  }),
-}
+  onAbort: (id) => {
+    onMessage(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        method: NOTIFICATION_METHOD,
+        params: {
+          subscription: id,
+          result: {
+            event: ABORT_EVENT,
+          },
+        },
+      }),
+    )
+  },
+})

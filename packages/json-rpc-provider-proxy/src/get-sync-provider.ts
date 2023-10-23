@@ -16,7 +16,7 @@ export const getSyncProvider =
 
     let bufferedMessages: Array<string> = []
     const pendingResponses = new Set<RequestId>()
-    const subscriptionManager = getSubscriptionManager()
+    const subscriptionManager = getSubscriptionManager(onMessage)
 
     const onMessageProxy = (message: string) => {
       let parsed: any
@@ -65,10 +65,7 @@ export const getSyncProvider =
       // react to those by sending new requests
       const result = start()
 
-      subscriptionManager.onAbort().forEach((msg) => {
-        onMessage(JSON.stringify(msg))
-      })
-
+      subscriptionManager.onAbort()
       pendingResponsesCopy.forEach((id) => {
         onMessage(
           JSON.stringify({
@@ -111,7 +108,7 @@ export const getSyncProvider =
       if (!provider) return
 
       const finishIt = (input: Provider | null) => {
-        subscriptionManager.onAbort()
+        subscriptionManager.onDisconnect()
         pendingResponses.clear()
         provider = null
         input?.disconnect()

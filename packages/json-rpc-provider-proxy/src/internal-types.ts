@@ -16,5 +16,5 @@ export interface SubscriptionLogic {
     | { type: "unsubscribe"; id: SubscriptionId }
     | null
   onNotification: (parsed: any) => { type: "end"; id: SubscriptionId } | null
-  onAbort: (id: SubscriptionId) => JsonMessage
+  onAbort: (id: SubscriptionId) => void
 }

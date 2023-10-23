@@ -2,7 +2,6 @@ import type {
   RequestId,
   SubscriptionId,
   SubscriptionLogic,
-  JsonMessage,
 } from "../internal-types"
 import { chainHeadFollow } from "./chainHeadFollow"
 import { txSubmitAndWatch } from "./transaction-submit-watch"
@@ -17,6 +16,11 @@ export const addSubscription = ({
     (parsed: any) => { id: SubscriptionId } | null
   >()
   const active = new Set<SubscriptionId>()
+
+  const onDisconnect = () => {
+    preActive.clear()
+    active.clear()
+  }
 
   return {
     onSent(parsed: any) {
@@ -39,18 +43,18 @@ export const addSubscription = ({
       if (!result) return
       active.delete(result.id)
     },
-    onAbort(): Array<JsonMessage> {
-      preActive.clear()
-      const result = [...active].map(onAbort)
-      active.clear()
-      return result
+    onDisconnect,
+    onAbort() {
+      const activeCopy = [...active]
+      onDisconnect()
+      activeCopy.forEach(onAbort)
     },
   }
 }
 
-export const getSubscriptionManager = () => {
+export const getSubscriptionManager = (onMessage: (msg: string) => void) => {
   const subscriptions = [chainHeadFollow, txSubmitAndWatch].map((logic) =>
-    addSubscription(logic),
+    addSubscription(logic(onMessage)),
   )
 
   return {
@@ -69,8 +73,11 @@ export const getSubscriptionManager = () => {
         s.onNotifiaction(parsed)
       })
     },
-    onAbort(): Array<JsonMessage> {
-      return subscriptions.map((s) => s.onAbort()).flat()
+    onDisconnect() {
+      subscriptions.forEach((s) => s.onDisconnect())
+    },
+    onAbort() {
+      subscriptions.forEach((s) => s.onAbort())
     },
   }
 }

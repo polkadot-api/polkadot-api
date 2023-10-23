@@ -7,7 +7,9 @@ const ABORT_EVENT = "dropped"
 
 const terminalEvents = new Set([ABORT_EVENT, "finalized", "error", "invalid"])
 
-export const txSubmitAndWatch: SubscriptionLogic = {
+export const txSubmitAndWatch = (
+  onMessage: (msg: string) => void,
+): SubscriptionLogic => ({
   onSent(parsed) {
     if (parsed.method === START_METHOD)
       return {
@@ -35,14 +37,18 @@ export const txSubmitAndWatch: SubscriptionLogic = {
         }
       : null
   },
-  onAbort: (id) => ({
-    jsonrpc: "2.0",
-    method: NOTIFICATION_METHOD,
-    params: {
-      subscription: id,
-      result: {
-        event: ABORT_EVENT,
-      },
-    },
-  }),
-}
+  onAbort: (id) => {
+    onMessage(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        method: NOTIFICATION_METHOD,
+        params: {
+          subscription: id,
+          result: {
+            event: ABORT_EVENT,
+          },
+        },
+      }),
+    )
+  },
+})
