@@ -54,6 +54,12 @@ export const getSyncProvider =
       const pendingResponsesCopy = [...pendingResponses]
       pendingResponses.clear()
 
+      // it means that the user has disconnected while the
+      // provider promise was being rejected. Therefore, we must
+      // throw to prevent the Promise from recovering.
+      // The rejection will be handled from the teardown logic.
+      if (!provider) throw null
+
       // It needs to restart before sending the errored
       // responses/notifications because the consumer may
       // react to those by sending new requests
@@ -104,15 +110,15 @@ export const getSyncProvider =
     const disconnect = () => {
       if (!provider) return
 
-      const finishIt = (input: Provider) => {
+      const finishIt = (input: Provider | null) => {
         subscriptionManager.onAbort()
         pendingResponses.clear()
         provider = null
-        input.disconnect()
+        input?.disconnect()
       }
 
       if (provider instanceof Promise) {
-        provider.then(finishIt)
+        provider.then(finishIt, finishIt)
         provider = null
       } else finishIt(provider)
     }
