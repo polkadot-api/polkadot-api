@@ -26,7 +26,7 @@ export interface RawChain {
   connect: (
     // the listener callback that the JsonRpcProvider will be sending messages to.
     onMessage: Callback<string>,
-  ) => Promise<JsonRpcProvider>
+  ) => JsonRpcProvider
 }
 
 export interface JsonRpcProvider {

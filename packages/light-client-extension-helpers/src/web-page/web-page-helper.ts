@@ -6,6 +6,7 @@ import type {
 } from "@/protocol"
 import { CONTEXT, getRandomChainId } from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
+import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 export * from "./types"
 
@@ -134,74 +135,70 @@ const createRawChain = ({
   return {
     name,
     genesisHash,
-    async connect(onMessage, onStatusChange) {
+    connect: getSyncProvider(async () => {
       const chainId = getRandomChainId()
-      const pendingJsonRpcMessages: string[] = []
-      let isReady = false
-      rawChainCallbacks[chainId] = (msg) => {
-        switch (msg.type) {
-          case "error": {
+      await new Promise<void>((resolve, reject) => {
+        rawChainCallbacks[chainId] = (msg) => {
+          switch (msg.type) {
+            case "chain-ready": {
+              resolve()
+              break
+            }
+            case "error": {
+              reject(new Error(msg.errorMessage))
+              break
+            }
+            default:
+              reject(new Error(`Unrecognized message ${JSON.stringify(msg)}`))
+              break
+          }
+          delete rawChainCallbacks[chainId]
+        }
+        postToExtension({
+          origin: "substrate-connect-client",
+          type: "add-well-known-chain",
+          chainId,
+          chainName: genesisHash,
+        })
+      })
+      return (onMessage, onHalt) => {
+        rawChainCallbacks[chainId] = (msg) => {
+          switch (msg.type) {
+            case "rpc": {
+              onMessage(msg.jsonRpcMessage)
+              break
+            }
+            case "error": {
+              console.error(msg.errorMessage)
+              delete rawChainCallbacks[chainId]
+              onHalt()
+              break
+            }
+            default:
+              console.warn(`Unrecognized message ${JSON.stringify(msg)}`)
+              break
+          }
+        }
+        return {
+          send(jsonRpcMessage) {
+            postToExtension({
+              origin: "substrate-connect-client",
+              type: "rpc",
+              chainId,
+              jsonRpcMessage,
+            })
+          },
+          disconnect() {
             delete rawChainCallbacks[chainId]
-            onStatusChange("disconnected")
-            break
-          }
-          case "rpc": {
-            onMessage(msg.jsonRpcMessage)
-            break
-          }
-          case "chain-ready": {
-            isReady = true
-            pendingJsonRpcMessages.forEach((jsonRpcMessage) =>
-              postToExtension({
-                origin: "substrate-connect-client",
-                type: "rpc",
-                chainId,
-                jsonRpcMessage,
-              }),
-            )
-            pendingJsonRpcMessages.length = 0
-            onStatusChange("connected")
-            break
-          }
-          default:
-            const unrecognizedMsg: never = msg
-            console.warn("Unrecognized message", unrecognizedMsg)
-            break
+            postToExtension({
+              origin: "substrate-connect-client",
+              type: "remove-chain",
+              chainId,
+            })
+          },
         }
       }
-
-      postToExtension({
-        origin: "substrate-connect-client",
-        type: "add-well-known-chain",
-        chainId,
-        chainName: genesisHash,
-      })
-
-      return {
-        send(jsonRpcMessage) {
-          if (!isReady) {
-            pendingJsonRpcMessages.push(jsonRpcMessage)
-            return
-          }
-          postToExtension({
-            origin: "substrate-connect-client",
-            type: "rpc",
-            chainId,
-            jsonRpcMessage,
-          })
-        },
-        disconnect() {
-          delete rawChainCallbacks[chainId]
-          postToExtension({
-            origin: "substrate-connect-client",
-            type: "remove-chain",
-            chainId,
-          })
-          // TODO: validate, Should onStatusChange be invoked on .disconnect()?
-          // onStatusChange("disconnected")
-        },
-      }
-    },
+    }),
   }
 }
 

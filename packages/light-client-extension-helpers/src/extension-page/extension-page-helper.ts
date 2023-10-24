@@ -1,4 +1,5 @@
-import { GetProvider } from "@polkadot-api/json-rpc-provider"
+import { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 import { ToPage, ToExtension } from "@/protocol"
 import {
   storage,
@@ -55,7 +56,7 @@ export const helper: LightClientPageHelper = {
           bootNodes:
             (await storage.get({ type: "bootNodes", genesisHash })) ??
             (JSON.parse(chain.chainSpec).bootNodes as string[]),
-          provider: createBackgroundClientGetProvider(genesisHash),
+          provider: createBackgroundClientConnectProvider(genesisHash),
         }),
       ),
     )
@@ -81,87 +82,84 @@ export const helper: LightClientPageHelper = {
 // FIXME: re-connect?
 const port = chrome.runtime.connect({ name: PORT.EXTENSION_PAGE })
 // FIXME: refactor with createRawChain from web-page-helper
-const createBackgroundClientGetProvider =
-  (genesisHash: string): GetProvider =>
-  (onMessage, onStatus) => {
+const createBackgroundClientConnectProvider = (
+  genesisHash: string,
+): ConnectProvider =>
+  getSyncProvider(async () => {
     const chainId = getRandomChainId()
-    const pendingJsonRpcMessages: string[] = []
-    let isReady = false
-
     const postMessage = (
       msg: ToExtension & { origin: "substrate-connect-client" },
     ) => port.postMessage(msg)
-
-    const onMessageListener = (
-      msg: ToPage & { origin: "substrate-connect-extension" },
-    ) => {
-      switch (msg.type) {
-        case "error": {
+    await new Promise<void>((resolve, reject) => {
+      const onMessageListener = (
+        msg: ToPage & { origin: "substrate-connect-extension" },
+      ) => {
+        switch (msg.type) {
+          case "chain-ready": {
+            resolve()
+            break
+          }
+          case "error": {
+            reject(new Error(msg.errorMessage))
+            break
+          }
+          default:
+            reject(new Error(`Unrecognized message ${JSON.stringify(msg)}`))
+            break
+        }
+        port.onMessage.removeListener(onMessageListener)
+      }
+      port.onMessage.addListener(onMessageListener)
+      postMessage({
+        origin: "substrate-connect-client",
+        type: "add-well-known-chain",
+        chainId,
+        chainName: genesisHash,
+      })
+    })
+    return (onMessage, onHalt) => {
+      const onMessageListener = (
+        msg: ToPage & { origin: "substrate-connect-extension" },
+      ) => {
+        switch (msg.type) {
+          case "rpc": {
+            onMessage(msg.jsonRpcMessage)
+            break
+          }
+          case "error": {
+            console.error(msg.errorMessage)
+            removeListeners()
+            onHalt()
+            break
+          }
+          default:
+            console.warn(`Unrecognized message ${JSON.stringify(msg)}`)
+            break
+        }
+      }
+      port.onMessage.addListener(onMessageListener)
+      port.onDisconnect.addListener(onHalt)
+      const removeListeners = () => {
+        port.onMessage.removeListener(onMessageListener)
+        port.onDisconnect.removeListener(onHalt)
+      }
+      return {
+        send(jsonRpcMessage) {
+          postMessage({
+            origin: "substrate-connect-client",
+            type: "rpc",
+            chainId,
+            jsonRpcMessage,
+          })
+        },
+        disconnect() {
           removeListeners()
-          onStatus("disconnected")
-          break
-        }
-        case "rpc": {
-          onMessage(msg.jsonRpcMessage)
-          break
-        }
-        case "chain-ready": {
-          isReady = true
-          pendingJsonRpcMessages.forEach((jsonRpcMessage) =>
-            postMessage({
-              origin: "substrate-connect-client",
-              type: "rpc",
-              chainId,
-              jsonRpcMessage,
-            }),
-          )
-          pendingJsonRpcMessages.length = 0
-          onStatus("connected")
-          break
-        }
-        default:
-          const unrecognizedMsg: never = msg
-          console.warn("Unrecognized message", unrecognizedMsg)
-          break
+          postMessage({
+            origin: "substrate-connect-client",
+            type: "remove-chain",
+            chainId,
+          })
+        },
       }
     }
-    const onDisconnectListener = () => onStatus("disconnected")
-
-    port.onMessage.addListener(onMessageListener)
-    port.onDisconnect.addListener(onDisconnectListener)
-    const removeListeners = () => {
-      port.onMessage.removeListener(onMessageListener)
-      port.onDisconnect.removeListener(onDisconnectListener)
-    }
-
-    return {
-      send: (jsonRpcMessage) => {
-        if (!isReady) {
-          pendingJsonRpcMessages.push(jsonRpcMessage)
-          return
-        }
-        postMessage({
-          origin: "substrate-connect-client",
-          type: "rpc",
-          chainId,
-          jsonRpcMessage,
-        })
-      },
-      open: () => {
-        postMessage({
-          origin: "substrate-connect-client",
-          type: "add-well-known-chain",
-          chainId,
-          chainName: genesisHash,
-        })
-      },
-      close: () => {
-        removeListeners()
-        postMessage({
-          origin: "substrate-connect-client",
-          type: "remove-chain",
-          chainId,
-        })
-      },
-    }
-  }
+  })

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import {
   provider,
-  type JsonRpcProvider,
   RawChain,
 } from "@polkadot-api/light-client-extension-helpers/web-page"
 import { createClient } from "@polkadot-api/substrate-client"
@@ -40,30 +39,7 @@ function App() {
     try {
       const chain = await provider.addChain(polkadot)
       console.log("provider.addChain()", chain)
-
-      const client = createClient((onMessage, onStatus) => {
-        let jsonProvider: JsonRpcProvider | undefined
-        return {
-          open() {
-            chain
-              .connect(onMessage, onStatus)
-              .then((provider) => {
-                jsonProvider = provider
-                onStatus("connected")
-              })
-              .catch((error) => {
-                console.error("custom provider", error)
-                onStatus("disconnected")
-              })
-          },
-          close() {
-            jsonProvider?.disconnect()
-          },
-          send(message) {
-            jsonProvider?.send(message)
-          },
-        }
-      })
+      const client = createClient(chain.connect)
       let count = 0
       const follower = client.chainHead(
         true,
@@ -100,29 +76,7 @@ function App() {
       const chain = await provider.addChain(westmint, westendGenesisHash)
       console.log("provider.addChain()", chain)
 
-      const client = createClient((onMessage, onStatus) => {
-        let jsonProvider: JsonRpcProvider | undefined
-        return {
-          open() {
-            chain
-              .connect(onMessage, onStatus)
-              .then((provider) => {
-                jsonProvider = provider
-                onStatus("connected")
-              })
-              .catch((error) => {
-                console.error("custom provider", error)
-                onStatus("disconnected")
-              })
-          },
-          close() {
-            jsonProvider?.disconnect()
-          },
-          send(message) {
-            jsonProvider?.send(message)
-          },
-        }
-      })
+      const client = createClient(chain.connect)
       let count = 0
       const follower = client.chainHead(
         true,
