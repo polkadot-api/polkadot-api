@@ -1,0 +1,40 @@
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100vh;
+}
+
+body, html {
+  display: inline-flex !important;
+  flex-direction: column;
+  margin: 0;
+  min-height: 100vh;
+}
+
+section {
+  padding: 1em;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+label > span {
+  display: inline-block;
+  width: 4em
+}
+
+label > input, label > select {
+  display: inline-block;
+  width: 10em;
+}
+
+#logs {
+  flex-grow: 1;
+  background-color: black;
+  color: white;
+  width: 100%;
+}

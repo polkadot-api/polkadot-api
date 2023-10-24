@@ -2,3 +2,4 @@ packages:
   - packages/*
   - experiments
   - zombie-tests
+  - vite

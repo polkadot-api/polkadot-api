@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>polkadot-api-legacy-provider</title>
+</head>
+
+<body style="display: none;">
+  <section>
+    <h1>Transfer</h1>
+    <div><label><span>From: </span><select id="alexa"></select></label></div>
+    <div><label><span>To: </span><select id="billy"></select></label></div>
+    <div><label><span>Amount: </span><input id="amount" type="number" value="12345" min="0" step="1"></label></div>
+    <div><button id="submit">Submit</button></div>
+  </section>
+  <section id="logs">
+    <h1>Logs</h1>
+    <pre id="log"></pre>
+  </section>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
