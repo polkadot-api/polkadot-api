@@ -6,8 +6,6 @@ ARG POLKADOT_VERSION=1.1.0
 
 WORKDIR /bin
 
-RUN pnpm build
-
 RUN curl -fsSL -O https://github.com/paritytech/zombienet/releases/download/v${ZOMBIENET_VERSION}/zombienet-linux-x64 \
   && chmod +x zombienet-linux-x64
 
