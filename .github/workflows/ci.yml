@@ -90,7 +90,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: package
-          path: ./packages/legacy-polkadot-provider
+          path: ./packages/legacy-polkadot-provider/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
