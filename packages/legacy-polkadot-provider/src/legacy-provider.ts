@@ -1,16 +1,19 @@
 import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
-import { accountsReady, getAccountsChainFns, signer } from "./accounts"
+import { getAccountsChainFns, getAllAccounts$, getSigner } from "./accounts"
 import { Chain, PolkadotProvider } from "./types/polkadot-provider"
 import { SignerPayloadJSON } from "./types/internal-types"
 import { getTxCreator } from "./get-tx-creator"
 import { CreateTxCallback, UserSignedExtensions } from "./types/public-types"
 import { knownChainsData } from "./known-chain-data"
 import { getChainProps } from "./get-chain-props"
+import { InjectedAccountWithMeta } from "@polkadot/extension-inject/types"
+import { Observable } from "rxjs"
 
 const createChain =
   (
     onCreateTx: CreateTxCallback,
     signPayload: (payload: SignerPayloadJSON) => Promise<{ signature: string }>,
+    allAccounts$: Observable<InjectedAccountWithMeta[]>,
   ) =>
   ({
     chain,
@@ -29,7 +32,7 @@ const createChain =
       chainId,
       name,
       connect,
-      ...getAccountsChainFns(chainId, ss58Format),
+      ...getAccountsChainFns(chainId, ss58Format, allAccounts$),
     }
   }
 
@@ -55,17 +58,20 @@ const defaultOnCreateTx: CreateTxCallback = (
   callback(userSignedExtensionsData)
 }
 
-export const getLegacyProvider = async (
+export const getLegacyProvider = (
   onCreateTx: CreateTxCallback = defaultOnCreateTx,
-): Promise<PolkadotProvider> => {
-  const signPayload = (payload: SignerPayloadJSON) =>
-    signer.then((s) => s.signPayload!(payload as any))
+  name: string = "polkadot-js",
+): PolkadotProvider => {
+  const signer = getSigner(name)
+  const allAccounts$ = getAllAccounts$(name)
 
-  const chainCreator = createChain(onCreateTx, signPayload)
+  const signPayload = (payload: SignerPayloadJSON) =>
+    signer.then((s) => s(payload as any))
+
+  const chainCreator = createChain(onCreateTx, signPayload, allAccounts$ as any)
   const chainsArray = Object.values(knownChainsData).map(chainCreator)
   const chains = Object.fromEntries(chainsArray.map((c) => [c.chainId, c]))
 
-  await accountsReady
   return {
     getChains: () => chains,
     getChain: async (chainSpec: string) =>

@@ -16,13 +16,13 @@ import {
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 
-const provider = await getLegacyProvider()
+const provider = getLegacyProvider()
 
 const westend = provider.getChains()[knownChainsData.westend2.chainId]
 
 await new Promise((res) => setTimeout(res, 500))
 
-const accounts = westend.getAccounts()
+const accounts = await westend.getAccounts()
 const jsonRPCProvider = westend.connect(() => {})
 
 console.log("westend accounts", accounts)

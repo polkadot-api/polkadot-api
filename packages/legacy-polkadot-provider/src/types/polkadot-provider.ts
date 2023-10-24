@@ -32,7 +32,7 @@ export interface Chain {
   name: string
 
   // it pulls the current list of available accounts for this Chain
-  getAccounts: () => Array<Account>
+  getAccounts: () => Promise<Array<Account>>
 
   // registers a callback that will be invoked whenever the list
   // of available accounts for this chain has changed. The callback
