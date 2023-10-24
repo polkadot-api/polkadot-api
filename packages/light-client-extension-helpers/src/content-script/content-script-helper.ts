@@ -42,14 +42,9 @@ window.addEventListener("message", async ({ data, source, origin }) => {
     try {
       let result: any
       switch (request.type) {
-        case "addChain": {
-          const { chain } = await sendBackgroundRequest(request)
-          result = chain
-          break
-        }
+        case "addChain":
         case "getChains": {
-          const { chains } = await sendBackgroundRequest(request)
-          result = chains
+          result = await sendBackgroundRequest(request)
           break
         }
         default: {

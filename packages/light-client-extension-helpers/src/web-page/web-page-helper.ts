@@ -1,4 +1,5 @@
 import type {
+  BackgroundResponse,
   ToExtension,
   ToExtensionRequest,
   ToPage,
@@ -53,8 +54,15 @@ const pendingRequests: Record<
   { resolve(result: any): void; reject(error: any): void }
 > = {}
 
-const requestReply = <T>(msg: ToExtensionRequest): Promise<T> => {
-  const promise = new Promise<T>((resolve, reject) => {
+const requestReply = <
+  TReq extends ToExtensionRequest,
+  TRes extends BackgroundResponse & {
+    type: `${TReq["request"]["type"]}Response`
+  },
+>(
+  msg: TReq,
+): Promise<TRes> => {
+  const promise = new Promise<TRes>((resolve, reject) => {
     pendingRequests[msg.id] = { resolve, reject }
   })
   postToExtension(msg)
@@ -76,15 +84,7 @@ const nextId = (
 )(0)
 export const getLightClientProvider =
   async (): Promise<LightClientProvider> => {
-    let chains = await requestReply<
-      Record<
-        string,
-        {
-          name: string
-          genesisHash: string
-        }
-      >
-    >({
+    let { chains } = await requestReply({
       origin: CONTEXT.WEB_PAGE,
       id: nextId(),
       request: {
@@ -94,10 +94,7 @@ export const getLightClientProvider =
     chainsChangeCallbacks.push((chains_) => (chains = chains_))
     return {
       async getChain(chainSpec, relayChainGenesisHash) {
-        const chainInfo = await requestReply<{
-          name: string
-          genesisHash: string
-        }>({
+        const { chain: chainInfo } = await requestReply({
           origin: CONTEXT.WEB_PAGE,
           id: nextId(),
           request: {
