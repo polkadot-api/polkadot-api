@@ -1,7 +1,19 @@
-type StorageEntry =
-  | { type: "chain"; genesisHash: string }
-  | { type: "bootNodes"; genesisHash: string }
-  | { type: "databaseContent"; genesisHash: string }
+type StorageConfig = {
+  chain: [entry: { type: "chain"; genesisHash: string }, value: ChainInfo]
+  bootNodes: [
+    entry: { type: "bootNodes"; genesisHash: string },
+    value: string[],
+  ]
+  databaseContent: [
+    entry: { type: "databaseContent"; genesisHash: string },
+    value: string,
+  ]
+}
+
+type StorageEntry = StorageConfig[keyof StorageConfig][0]
+type StorageValue<T> = T extends StorageEntry
+  ? StorageConfig[T["type"]][1]
+  : never
 
 type ChainInfo = {
   genesisHash: string
@@ -11,14 +23,6 @@ type ChainInfo = {
   ss58Format: number
 }
 
-type StorageEntryValue<E extends StorageEntry> = E["type"] extends "chain"
-  ? ChainInfo
-  : E["type"] extends "bootNodes"
-  ? string[]
-  : E["type"] extends "databaseContent"
-  ? string
-  : never
-
 const keyOf = ({ type, genesisHash }: StorageEntry) => {
   if (!type.length || !genesisHash.length) throw new Error("Invalid entry")
 
@@ -27,18 +31,14 @@ const keyOf = ({ type, genesisHash }: StorageEntry) => {
 
 export const get = async <E extends StorageEntry>(
   entry: E,
-): Promise<StorageEntryValue<E> | undefined> => {
+): Promise<StorageValue<E> | undefined> => {
   const key = keyOf(entry)
-  // console.log("key", { [key]: undefined })
-  // const { [key]: value } = await chrome.storage.local.get({ [key]: undefined })
   const { [key]: value } = await chrome.storage.local.get([key])
   return value
 }
 
-export const set = <E extends StorageEntry>(
-  entry: E,
-  value: StorageEntryValue<E>,
-) => chrome.storage.local.set({ [keyOf(entry)]: value })
+export const set = <E extends StorageEntry>(entry: E, value: StorageValue<E>) =>
+  chrome.storage.local.set({ [keyOf(entry)]: value })
 
 export const remove = (entry: StorageEntry) =>
   chrome.storage.local.remove(keyOf(entry))
