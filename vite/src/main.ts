@@ -86,12 +86,8 @@ async function transfer(alexa: Account, billy: Account, amount: bigint) {
   console.log("rawTx")
   console.log(toHex(rawTx))
 
-  // How to submit this badboy?
   const transaction = toHex(rawTx)
   console.log("transaction", transaction)
-
-  // -----------------
-  // making a 2nd client here
 
   const client = createClient(westend.connect)
 
