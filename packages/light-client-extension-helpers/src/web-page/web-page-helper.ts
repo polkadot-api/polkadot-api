@@ -45,7 +45,7 @@ window.addEventListener("message", ({ data, source }) => {
 })
 
 const chainsChangeCallbacks: Parameters<
-  LightClientProvider["onChainsChange"]
+  LightClientProvider["addChainsChangeListener"]
 >[0][] = []
 
 const pendingRequests: Record<
@@ -74,29 +74,16 @@ const nextId = (
   (initialId) => () =>
     "" + initialId++
 )(0)
-export const provider: LightClientProvider = {
-  async addChain(chainSpec, relayChainGenesisHash) {
-    return createRawChain(
-      await requestReply<{
-        name: string
-        genesisHash: string
-      }>({
-        origin: CONTEXT.WEB_PAGE,
-        id: nextId(),
-        request: {
-          type: "addChain",
-          chainSpec,
-          relayChainGenesisHash,
-        },
-      }),
-    )
-  },
-  async getChains() {
-    const chains = await requestReply<
-      {
-        name: string
-        genesisHash: string
-      }[]
+export const getLightClientProvider =
+  async (): Promise<LightClientProvider> => {
+    let chains = await requestReply<
+      Record<
+        string,
+        {
+          name: string
+          genesisHash: string
+        }
+      >
     >({
       origin: CONTEXT.WEB_PAGE,
       id: nextId(),
@@ -104,21 +91,44 @@ export const provider: LightClientProvider = {
         type: "getChains",
       },
     })
-    return Object.entries(chains).reduce(
-      (acc, [key, chain]) => {
-        acc[key] = createRawChain(chain)
-        return acc
+    chainsChangeCallbacks.push((chains_) => (chains = chains_))
+    return {
+      async getChain(chainSpec, relayChainGenesisHash) {
+        const chainInfo = await requestReply<{
+          name: string
+          genesisHash: string
+        }>({
+          origin: CONTEXT.WEB_PAGE,
+          id: nextId(),
+          request: {
+            type: "addChain",
+            chainSpec,
+            relayChainGenesisHash,
+          },
+        })
+        return createRawChain(
+          chains[chainInfo.genesisHash]
+            ? chainInfo
+            : { ...chainInfo, chainSpec, relayChainGenesisHash },
+        )
       },
-      {} as Record<string, RawChain>,
-    )
-  },
-  onChainsChange(callback) {
-    chainsChangeCallbacks.push(callback)
-    return () => {
-      removeArrayItem(chainsChangeCallbacks, callback)
+      getChains() {
+        return Object.entries(chains).reduce(
+          (acc, [key, chain]) => {
+            acc[key] = createRawChain(chain)
+            return acc
+          },
+          {} as Record<string, RawChain>,
+        )
+      },
+      addChainsChangeListener(callback) {
+        chainsChangeCallbacks.push(callback)
+        return () => {
+          removeArrayItem(chainsChangeCallbacks, callback)
+        }
+      },
     }
-  },
-}
+  }
 
 const rawChainCallbacks: Record<
   string,
@@ -128,9 +138,13 @@ const rawChainCallbacks: Record<
 const createRawChain = ({
   name,
   genesisHash,
+  chainSpec,
+  relayChainGenesisHash,
 }: {
   name: string
   genesisHash: string
+  chainSpec?: string
+  relayChainGenesisHash?: string
 }): RawChain => {
   return {
     name,
@@ -154,12 +168,24 @@ const createRawChain = ({
           }
           delete rawChainCallbacks[chainId]
         }
-        postToExtension({
-          origin: "substrate-connect-client",
-          type: "add-well-known-chain",
-          chainId,
-          chainName: genesisHash,
-        })
+        postToExtension(
+          chainSpec
+            ? {
+                origin: "substrate-connect-client",
+                type: "add-chain",
+                chainId,
+                chainSpec,
+                potentialRelayChainIds: relayChainGenesisHash
+                  ? [relayChainGenesisHash]
+                  : [],
+              }
+            : {
+                origin: "substrate-connect-client",
+                type: "add-well-known-chain",
+                chainId,
+                chainName: genesisHash,
+              },
+        )
       })
       return (onMessage, onHalt) => {
         rawChainCallbacks[chainId] = (msg) => {

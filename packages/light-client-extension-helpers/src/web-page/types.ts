@@ -3,16 +3,16 @@ type UnsubscribeFn = () => void
 
 export interface LightClientProvider {
   // Allows dApp developers to request the provider to register their chain
-  addChain: (
+  getChain: (
     chainSpec: string,
     relayChainGenesisHash?: string,
   ) => Promise<RawChain>
 
   // Retrieves the current list of available Chains
-  getChains: () => Promise<RawChains>
+  getChains: () => RawChains
 
   // Registers a callback invoked when the list of available chains changes
-  onChainsChange: (chains: Callback<RawChains>) => UnsubscribeFn
+  addChainsChangeListener: (listener: Callback<RawChains>) => UnsubscribeFn
 }
 
 // The key is the genesis hash

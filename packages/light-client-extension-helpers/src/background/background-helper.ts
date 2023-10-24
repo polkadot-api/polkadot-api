@@ -20,10 +20,11 @@ import { CONTEXT, PORT, storage } from "@/shared"
 
 export * from "./types"
 
-const addChainByUserCallbacks: Parameters<BackgroundHelper>[0][] = []
+// const addChainByUserCallbacks: Parameters<BackgroundHelper>[0][] = []
 
-export const backgroundHelper: BackgroundHelper = async (onAddChainByUser) => {
-  addChainByUserCallbacks.push(onAddChainByUser)
+export const backgroundHelper: BackgroundHelper = async (_onAddChainByUser) => {
+  console.warn("TBD, this is very likely to be deprecated")
+  // addChainByUserCallbacks.push(onAddChainByUser)
 }
 
 storage.onChainsChanged(async (chains) => {
@@ -110,6 +111,10 @@ chrome.runtime.onConnect.addListener((port) => {
                             // FIXME: use custom bootNodes
                             chains[chain.relayChainGenesisHash].chainSpec,
                           disableJsonRpc: true,
+                          databaseContent: await storage.get({
+                            type: "databaseContent",
+                            genesisHash: chain.relayChainGenesisHash,
+                          }),
                         }),
                       ]
                     : [],
@@ -119,14 +124,27 @@ chrome.runtime.onConnect.addListener((port) => {
                   }),
                 }
               } else {
+                const relayChainGenesisHashOrChainId =
+                  msg.potentialRelayChainIds[0]
                 addChainOptions = {
                   chainSpec: msg.chainSpec,
                   disableJsonRpc: false,
-                  potentialRelayChains: msg.potentialRelayChainIds
-                    .filter((chainId) => activeChains[tabId][chainId])
-                    .map((chainId) => activeChains[tabId][chainId].chain),
-                  // FIXME: handle databaseContent
-                  // databaseContent,
+                  potentialRelayChains: chains[relayChainGenesisHashOrChainId]
+                    ? [
+                        await smoldotClient.addChain({
+                          chainSpec:
+                            // FIXME: use custom bootNodes
+                            chains[relayChainGenesisHashOrChainId].chainSpec,
+                          disableJsonRpc: true,
+                          databaseContent: await storage.get({
+                            type: "databaseContent",
+                            genesisHash: relayChainGenesisHashOrChainId,
+                          }),
+                        }),
+                      ]
+                    : msg.potentialRelayChainIds
+                        .filter((chainId) => activeChains[tabId][chainId])
+                        .map((chainId) => activeChains[tabId][chainId].chain),
                 }
               }
 
@@ -255,7 +273,7 @@ chrome.runtime.onMessage.addListener(
               throw new Error(
                 `Unknown relayChainGenesisHash ${relayChainGenesisHash}`,
               )
-            const { genesisHash, name, ss58Format } = await getChainData(
+            const { genesisHash, name } = await getChainData(
               chainSpec,
               relayChainGenesisHash
                 ? chains[relayChainGenesisHash].chainSpec
@@ -269,25 +287,14 @@ chrome.runtime.onMessage.addListener(
               })
             }
 
-            const chain = {
-              genesisHash,
-              name,
-              chainSpec,
-              relayChainGenesisHash,
-            }
-
-            await Promise.all(
-              addChainByUserCallbacks.map((cb) => cb(chain, tabId)),
-            )
-
-            await storage.set(
-              { type: "chain", genesisHash },
-              { ...chain, ss58Format },
-            )
-
             sendBackgroundResponse(sendResponse, {
               type: "addChainResponse",
-              chain,
+              chain: {
+                genesisHash,
+                name,
+                chainSpec,
+                relayChainGenesisHash,
+              },
             })
           } catch (error) {
             console.error("background addChain error", error)

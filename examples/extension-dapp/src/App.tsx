@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import {
-  provider,
-  RawChain,
+  getLightClientProvider,
+  type RawChain,
 } from "@polkadot-api/light-client-extension-helpers/web-page"
 import { createClient } from "@polkadot-api/substrate-client"
 
@@ -25,19 +25,21 @@ const rawChainsToHuman = (rawChains: Record<string, RawChain>) =>
     2,
   )
 
+const provider = await getLightClientProvider()
+
 function App() {
   const [updatedChains, setUpdatedChains] = useState("")
   const [getChains, setGetChains] = useState("")
   useEffect(
     () =>
-      provider.onChainsChange((rawChains) => {
+      provider.addChainsChangeListener((rawChains) => {
         setUpdatedChains(rawChainsToHuman(rawChains))
       }),
     [],
   )
   const handleAddChainPolkadot = useCallback(async () => {
     try {
-      const chain = await provider.addChain(polkadot)
+      const chain = await provider.getChain(polkadot)
       console.log("provider.addChain()", chain)
       const client = createClient(chain.connect)
       let count = 0
@@ -58,14 +60,14 @@ function App() {
   }, [])
   const handleAddChainKusama = useCallback(async () => {
     try {
-      console.log("provider.addChain()", await provider.addChain(ksmcc3))
+      console.log("provider.addChain()", await provider.getChain(ksmcc3))
     } catch (error) {
       console.error("provider.addChain()", error)
     }
   }, [])
   const handleAddChainWestend = useCallback(async () => {
     try {
-      const chain = await provider.addChain(westend)
+      const chain = await provider.getChain(westend)
       console.log("provider.addChain()", chain)
     } catch (error) {
       console.error("provider.addChain()", error)
@@ -73,7 +75,7 @@ function App() {
   }, [])
   const handleAddChainWestmint = useCallback(async () => {
     try {
-      const chain = await provider.addChain(westmint, westendGenesisHash)
+      const chain = await provider.getChain(westmint, westendGenesisHash)
       console.log("provider.addChain()", chain)
 
       const client = createClient(chain.connect)

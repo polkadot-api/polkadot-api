@@ -1,21 +1,27 @@
 import { helper } from "@polkadot-api/light-client-extension-helpers/extension-page"
-import { genesisHash, chainSpec } from "./test-data/westend"
+import * as westend from "./test-data/westend"
+import * as kusama from "./test-data/kusama"
 import { createClient } from "@polkadot-api/substrate-client"
 ;(async () => {
   console.log({ getChain: await helper.getChains() })
-  console.log({ persistChain: await helper.persistChain(chainSpec) })
+  console.log({ persistChain: await helper.persistChain(westend.chainSpec) })
   console.log({ getChain: await helper.getChains() })
+  console.log({ disconnect: await helper.disconnect(123, westend.genesisHash) })
+
+  console.log({ persistChain: await helper.persistChain(kusama.chainSpec) })
   console.log({
-    setBootNodes: await helper.setBootNodes(genesisHash, ["fake-bootnode"]),
+    setBootNodes: await helper.setBootNodes(kusama.genesisHash, [
+      "fake-bootnode",
+    ]),
   })
   console.log({ getChain: await helper.getChains() })
   console.log({
-    setBootNodes: await helper.setBootNodes(genesisHash, []),
+    setBootNodes: await helper.setBootNodes(kusama.genesisHash, []),
   })
   console.log({ getChain: await helper.getChains() })
-  console.log({ deleteChain: await helper.deleteChain(genesisHash) })
+  await new Promise((res) => setTimeout(res, 2000))
+  console.log({ deleteChain: await helper.deleteChain(kusama.genesisHash) })
   console.log({ getChains: await helper.getChains() })
-  console.log({ disconnect: await helper.disconnect(123, genesisHash) })
 })()
 
 setInterval(async () => {
