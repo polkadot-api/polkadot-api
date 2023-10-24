@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import "./_polyfills"
 
 import {
@@ -14,7 +16,12 @@ import { getMetadata } from "./metadata"
 import { WellKnownChain } from "@substrate/connect"
 import ora from "ora"
 import { Data } from "./data"
-import { outputCodegen, outputDescriptors, writeMetadataToDisk } from "./io"
+import {
+  outputCodegen,
+  outputDescriptors,
+  readDescriptors,
+  writeMetadataToDisk,
+} from "./io"
 import {
   checkDescriptorsForDiscrepancies,
   synchronizeDescriptors,
@@ -26,7 +33,7 @@ import { blowupMetadata } from "./testing"
 const ProgramArgs = z.object({
   metadataFile: z.string().optional(),
   pkgJSONKey: z.string(),
-  key: z.string(),
+  key: z.string().optional(),
   file: z.string().optional(),
   interactive: z.boolean(),
   sync: z.boolean(),
@@ -42,9 +49,9 @@ program
     "key in package json for descriptor metadata",
     "polkadot-api",
   )
-  .requiredOption("k --key <key>", "first key in descriptor metadata")
+  .option("k --key <key>", "first key in descriptor metadata")
   .option(
-    "f --file file",
+    "f --file <file>",
     "path to descriptor metadata file; alternative to package json",
   )
   .option("s --sync", "synchronize", false)
@@ -54,25 +61,36 @@ program.parse()
 
 const options = ProgramArgs.parse(program.opts())
 
-const data = await (options.key
-  ? Data.fromSavedDescriptors({
-      key: options.key,
-      pkgJSONKey: options.pkgJSONKey,
-      fileName: options.file,
-    })
-  : Promise.resolve(new Data()))
+const descriptorMetadata = await readDescriptors({
+  pkgJSONKey: options.pkgJSONKey,
+  fileName: options.file,
+})
 
-if (data.isInitialized && data.outputFolder && options.key) {
-  if (options.sync) {
-    const discrepancies = checkDescriptorsForDiscrepancies(data)
-    synchronizeDescriptors(data, discrepancies)
-  }
+if (descriptorMetadata && !options.interactive) {
+  for (const key of Object.keys(descriptorMetadata)) {
+    const data = await Data.fromSavedDescriptors(descriptorMetadata[key])
+    if (data.isInitialized && data.outputFolder) {
+      if (options.sync) {
+        const discrepancies = checkDescriptorsForDiscrepancies(data)
+        synchronizeDescriptors(data, discrepancies)
+      }
 
-  if (!options.interactive) {
-    await outputCodegen(data, data.outputFolder, options.key)
-    process.exit(0)
+      if (!options.interactive) {
+        await outputCodegen(data, data.outputFolder, key)
+      }
+    }
   }
 }
+
+if (!options.interactive) {
+  process.exit(0)
+}
+
+const data = await (descriptorMetadata &&
+options.key &&
+descriptorMetadata[options.key]
+  ? Data.fromSavedDescriptors(descriptorMetadata[options.key])
+  : Promise.resolve(new Data()))
 
 if (!data.isInitialized) {
   const metadataArgs = options.metadataFile
@@ -252,8 +270,15 @@ while (!exit) {
       break
     }
     case SAVE: {
+      const key = options.key
+        ? options.key
+        : await input({
+            message: "descriptor key",
+          })
+
       const metadataFilePath = await input({
         message: "metadata file path",
+        default: `${options.key}-metadata.scale`,
       })
 
       const writeToPkgJSON = await confirm({
@@ -262,14 +287,14 @@ while (!exit) {
       })
 
       const outputFolder = await input({
-        message: "output folder",
+        message: "codegen output directory",
       })
 
       await writeMetadataToDisk(data, metadataFilePath)
 
       const args = {
         data,
-        key: options.key,
+        key,
         metadataFile: metadataFilePath,
         outputFolder,
       }
@@ -282,7 +307,10 @@ while (!exit) {
         })
       } else {
         const fileName = await input({
-          message: "output file",
+          message: "descriptor json file name",
+          validate: (value) =>
+            value !== outputFolder ||
+            "descriptor json file name cannot be equal to codegen output directory",
         })
 
         await outputDescriptors({
@@ -292,6 +320,7 @@ while (!exit) {
         })
       }
 
+      await outputCodegen(data, outputFolder, key)
       break
     }
     case SYNC: {

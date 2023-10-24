@@ -4,8 +4,18 @@ import {
   getStaticBuilder,
 } from "@polkadot-api/substrate-codegen"
 import { getMetadata } from "./getMetadata"
+import { writeFile } from "fs"
+import * as fs from "node:fs/promises"
+import { metadata as $metadata } from "@polkadot-api/substrate-bindings"
 
 const metadata = await getMetadata()
+await fs.writeFile("./collectives-meta.scale", $metadata.enc(metadata))
+console.log("DONE")
+process.exit(0)
+
+/*
+console.log(JSON.stringify(metadata, null, 2))
+process.exit(0)
 
 if (metadata.metadata.tag !== "v14") throw new Error("wrong metadata version")
 
@@ -50,3 +60,4 @@ constDeclarations.unshift(
 )
 
 console.log(constDeclarations.join("\n\n"))
+*/

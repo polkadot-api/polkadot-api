@@ -1,11 +1,13 @@
-import { mergeUint8, toHex, utf16StrToUtf8Bytes } from "@polkadot-api/utils"
+import { mergeUint8, toHex } from "@polkadot-api/utils"
 import { Codec, Decoder } from "scale-ts"
 import { Blake2128Concat, Identity, Twox128, Twox64Concat } from "./hashes"
 
 export type EncoderWithHash<T> = [Codec<T>, (input: Uint8Array) => Uint8Array]
 
+const textEncoder = new TextEncoder()
+
 export const Storage = (pallet: string) => {
-  const palledEncoded = Twox128(utf16StrToUtf8Bytes(pallet))
+  const palledEncoded = Twox128(textEncoder.encode(pallet))
   return <T, A extends Array<EncoderWithHash<any>>>(
     name: string,
     dec: Decoder<T>,
@@ -23,7 +25,7 @@ export const Storage = (pallet: string) => {
   } => {
     const palletItemEncoded = mergeUint8(
       palledEncoded,
-      Twox128(utf16StrToUtf8Bytes(name)),
+      Twox128(textEncoder.encode(name)),
     )
 
     const palletItemEncodedHex = toHex(palletItemEncoded)

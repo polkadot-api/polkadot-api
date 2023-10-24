@@ -7,7 +7,9 @@
   "main": "index.js",
   "scripts": {
     "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
-    "nominators": "tsup-node src/all-nominators.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\""
+    "nominators": "tsup-node src/all-nominators.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\"",
+    "tx": "tsup-node src/tx.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/tx.js\"",
+    "client": "tsup-node src/client.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/client.js\""
   },
   "keywords": [],
   "author": "",
@@ -17,12 +19,16 @@
     "prettier": "^2.6.2"
   },
   "dependencies": {
-    "@polkadot-api/sc-provider": "workspace:*",
+    "@noble/curves": "^1.2.0",
     "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/client": "workspace:*",
+    "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/tx-helper": "workspace:*",
+    "@polkadot-api/utils": "workspace:*",
+    "rxjs": "^7.8.1"
   },
   "prettier": {
     "printWidth": 80,
@@ -44,7 +50,24 @@
             "Version": "4019503174538417892",
             "SS58Prefix": "5"
           },
-          "storage": {},
+          "storage": {
+            "Account": "8784467665714374359",
+            "ExtrinsicCount": "2571917859619161382",
+            "BlockWeight": "15402635091331367352",
+            "AllExtrinsicsLen": "2571917859619161382",
+            "BlockHash": "535885597421715197",
+            "ExtrinsicData": "7527234083247090220",
+            "Number": "2571917859619161382",
+            "ParentHash": "6799637561483078943",
+            "Digest": "3657688499452367579",
+            "Events": "2863101223185493143",
+            "EventCount": "2571917859619161382",
+            "EventTopics": "1009630212849999899",
+            "LastRuntimeUpgrade": "5028591118551952176",
+            "UpgradedToU32RefCount": "11466160773928732634",
+            "UpgradedToTripleRefCount": "11466160773928732634",
+            "ExecutionPhase": "17727573351706468196"
+          },
           "events": {
             "ExtrinsicSuccess": "13099765670732146383",
             "ExtrinsicFailed": "7304797062966333508",
@@ -60,47 +83,7 @@
             "NonDefaultComposite": "0",
             "NonZeroRefCount": "0",
             "CallFiltered": "0"
-          },
-          "extrinsics": {
-            "remark": {
-              "checksum": "5198716037121554485",
-              "events": {
-                "System": [
-                  "ExtrinsicSuccess",
-                  "ExtrinsicFailed",
-                  "CodeUpdated",
-                  "NewAccount",
-                  "KilledAccount",
-                  "Remarked"
-                ]
-              },
-              "errors": {
-                "System": [
-                  "InvalidSpecName",
-                  "SpecVersionNeedsToIncrease",
-                  "FailedToExtractRuntimeVersion",
-                  "NonDefaultComposite",
-                  "NonZeroRefCount",
-                  "CallFiltered"
-                ]
-              }
-            }
           }
-        },
-        "Balances": {
-          "constants": {},
-          "storage": {
-            "TotalIssuance": "11739910749150872187",
-            "InactiveIssuance": "11739910749150872187",
-            "Account": "17589354754484583392",
-            "Locks": "7066558255328166306",
-            "Reserves": "13984159508085493367",
-            "Holds": "18023816802587378729",
-            "Freezes": "18023816802587378729"
-          },
-          "events": {},
-          "errors": {},
-          "extrinsics": {}
         }
       }
     }

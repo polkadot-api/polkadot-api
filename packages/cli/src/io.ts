@@ -17,6 +17,39 @@ import tsc from "tsc-prog"
 import path from "path"
 import { ESLint } from "eslint"
 
+type ReadDescriptorsArgs = {
+  pkgJSONKey: string
+  fileName?: string
+}
+
+export async function readDescriptors(args: ReadDescriptorsArgs) {
+  const descriptorMetadata = await (async () => {
+    if (args.fileName) {
+      const file = JSON.parse(
+        await fs.readFile(args.fileName, { encoding: "utf-8" }),
+      )
+      const result = await descriptorSchema.parseAsync(file)
+
+      return result
+    }
+    if (await fsExists("package.json")) {
+      const pkgJSON = JSON.parse(
+        await fs.readFile("package.json", { encoding: "utf-8" }),
+      )
+      const schema = z.object({ [args.pkgJSONKey]: descriptorSchema })
+
+      const result = await schema.safeParseAsync(pkgJSON)
+      if (result.success) {
+        return result.data[args.pkgJSONKey]
+      }
+    }
+
+    return
+  })()
+
+  return descriptorMetadata
+}
+
 type OutputDescriptorsArgs = (
   | {
       type: "package-json"
@@ -195,14 +228,55 @@ export async function outputCodegen(
     }
   }
 
-  const constDeclarations = [...declarations.variables.values()].map(
-    (variable) =>
-      `const ${variable.id}${variable.types ? ": " + variable.types : ""} = ${
-        variable.value
-      }\nexport type ${variable.id} = CodecType<typeof ${variable.id}>`,
-  )
+  await fs.mkdir(outputFolder, { recursive: true })
+
   declarations.imports.add("CodecType")
   declarations.imports.add("Codec")
+  declarations.imports.add("SS58String")
+  declarations.imports.add("HexString")
+
+  const variables = [...declarations.variables.values()]
+
+  const constDeclarations = variables.map((variable) => {
+    const value = variable.value.replace(/(\r\n|\n|\r)/gm, "")
+    const enumRegex = /(?<=Enum\(\{)(.*)(?=\}.*\))/g
+    const vectorRegex = /(?<=Vector\()([a-zA-Z0-9_]*)(?=.*\))/g
+    const tupleRegex = /(?<=Tuple\()(.*)(?=.*\))/g
+
+    const vectorMatch = value.match(vectorRegex)
+    const tupleMatch = value.match(tupleRegex)
+    const enumMatch = value.match(enumRegex)
+
+    let declaration = ""
+
+    if (vectorMatch && vectorMatch[0]) {
+      declaration += `type I${variable.id} = Codec<CodecType<typeof ${vectorMatch[0]}>[]>\n`
+      declaration += `const ${variable.id}: I${variable.id} = ${variable.value}\n`
+    } else if (tupleMatch && tupleMatch[0]) {
+      const tupleValues = tupleMatch[0].split(",").map((s) => s.trim())
+      declaration += `type I${variable.id} = Codec<[${tupleValues.map(
+        (s) => `CodecType<typeof ${s}>`,
+      )}]>\n`
+      declaration += `const ${variable.id}: I${variable.id} = ${variable.value}\n`
+    } else if (enumMatch && enumMatch[0]) {
+      const enumKeyValues = enumMatch[0]
+        .split(",")
+        .map((s) => s.split(":").map((s) => s.trim()) as [string, string])
+      declaration += `type I${variable.id} = Codec<${enumKeyValues
+        .map(([k, v]) => `\{tag: \"${k}\", value: CodecType<typeof ${v}> \}`)
+        .join("|")}>\n`
+      declaration += `const ${variable.id}: I${variable.id} = ${variable.value}\n`
+    } else {
+      declaration += `const ${variable.id}${
+        variable.types ? ": " + variable.types : ""
+      } = ${variable.value}\n`
+    }
+
+    declaration += `export type ${variable.id} = CodecType<typeof ${variable.id}>\n`
+
+    return declaration
+  })
+
   constDeclarations.unshift(
     `import {${[...declarations.imports].join(
       ", ",
@@ -211,8 +285,6 @@ export async function outputCodegen(
 
   const tscFileName = path.join(outputFolder, key)
   const tscTypesFileName = path.join(outputFolder, `${key}-types`)
-
-  await fs.mkdir(outputFolder, { recursive: true })
 
   if (await fsExists(`${tscTypesFileName}.d.ts`)) {
     await fs.rm(`${tscTypesFileName}.d.ts`)
@@ -244,6 +316,7 @@ export async function outputCodegen(
   const descriptorTypeImports = [
     "DescriptorCommon",
     "ArgsWithPayloadCodec",
+    "ArgsWithoutPayloadCodec",
     "StorageDescriptor",
     "StorageType",
     "ConstantDescriptor",
@@ -301,9 +374,12 @@ export async function outputCodegen(
         const len = declarations.variables.get(key)!.directDependencies.size
 
         const constName = `${pallet}${name}Storage`
-        return `const ${constName} = ${pallet}Creator.getStorageDescriptor(
-  ${checksum}n,
-  \"${name}\",
+        return `
+type ${constName}Descriptor = StorageDescriptor<DescriptorCommon<\"${pallet}\", \"${name}\">, ArgsWithPayloadCodec<${key}, ${returnType}>>
+
+const ${constName}: ${constName}Descriptor = ${pallet}Creator.getStorageDescriptor(
+  ${checksum}n, 
+  \"${name}\", 
   {len: ${len}} as ArgsWithPayloadCodec<${key}, ${returnType}>)
 
 export type ${constName} = StorageType<typeof ${constName}>
@@ -356,18 +432,20 @@ export type ${constName} = StorageType<typeof ${constName}>
       [] as string[],
     )
 
+    const returnType = declarations.imports.has(payload)
+      ? `CodecType<typeof ${payload}>`
+      : payload
+    const len = declarations.variables.get(returnType)?.directDependencies.size
     descriptorCodegen +=
       `const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
         ",",
-      )}], [${errorVariables.join(",")}], {} as unknown as ${
-        declarations.imports.has(payload)
-          ? `CodecType<typeof ${payload}>`
-          : payload
-      })` + "\n\n"
+      )}], [${errorVariables.join(
+        ",",
+      )}], {len: ${len}} as ArgsWithoutPayloadCodec<${returnType}>)` + "\n\n"
   }
 
   const descriptorVariablesRegexp = new RegExp(
-    /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))\s(?=\=)/g,
+    /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))(?=[\s|:].*\=)/g,
   )
 
   const descriptorVariableNames =
@@ -379,6 +457,8 @@ export type ${constName} = StorageType<typeof ${constName}>
       .map((s) => `typeof ${s}`)
       .join(",")}] = [${descriptorVariableNames.join(",")}]` +
     "\n\nexport default result\n\n"
+
+  descriptorCodegen = "// Generated by @polkadot-api/cli\n" + descriptorCodegen
 
   await fs.writeFile(`${outputFolder}/${key}.ts`, descriptorCodegen)
 
@@ -397,6 +477,30 @@ export type ${constName} = StorageType<typeof ${constName}>
     },
   })
 
-  const results = await eslint.lintFiles([`${outputFolder}/**/*.ts`])
+  const results = await eslint.lintFiles([`${outputFolder}/${key}.ts`])
   await ESLint.outputFixes(results)
+
+  // Run tsc again to make sure the final .ts file has no compile errors
+  {
+    if (await fsExists(`${tscFileName}.d.ts`)) {
+      await fs.rm(`${tscFileName}.d.ts`)
+    }
+
+    tsc.build({
+      basePath: outputFolder,
+      compilerOptions: {
+        skipLibCheck: true,
+        emitDeclarationOnly: true,
+        declaration: true,
+        target: "esnext",
+        module: "esnext",
+        moduleResolution: "node",
+      },
+      include: [`${key}.ts`],
+    })
+
+    if (await fsExists(`${tscFileName}.d.ts`)) {
+      await fs.rm(`${tscFileName}.d.ts`)
+    }
+  }
 }

@@ -1,12 +1,8 @@
 export interface Provider {
   send: (message: string) => void
-  open: () => void
-  close: () => void
+  disconnect: () => void
 }
 
-export type ProviderStatus = "connected" | "disconnected" | "halt"
-
-export declare type GetProvider = (
+export declare type ConnectProvider = (
   onMessage: (message: string) => void,
-  onStatus: (status: ProviderStatus) => void,
 ) => Provider

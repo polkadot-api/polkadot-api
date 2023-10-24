@@ -1,7 +1,6 @@
 import {
-  type GetProvider,
+  type ConnectProvider,
   type Provider,
-  type ProviderStatus,
 } from "@polkadot-api/json-rpc-provider"
 import { UnsubscribeFn } from "../common-types"
 import { RpcError, IRpcError } from "./RpcError"
@@ -24,18 +23,15 @@ export type ClientRequest<T, TT> = (
 ) => UnsubscribeFn
 
 export interface Client {
-  connect: () => void
   disconnect: () => void
   request: ClientRequest<any, any>
 }
 
-export const createClient = (gProvider: GetProvider): Client => {
+export const createClient = (gProvider: ConnectProvider): Client => {
   const responses = new Map<number, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
 
-  const queuedRequests = new Map<number, Parameters<ClientRequest<any, any>>>()
   let provider: Provider | null = null
-  let state: ProviderStatus = "disconnected"
 
   const send = (
     id: number,
@@ -91,37 +87,11 @@ export const createClient = (gProvider: GetProvider): Client => {
       console.error(e)
     }
   }
-
-  function onStatusChange(e: ProviderStatus) {
-    if (e === "connected") {
-      queuedRequests.forEach((args, id) => {
-        process(id, ...args)
-      })
-      queuedRequests.clear()
-    }
-    state = e
-  }
-
-  const connect = () => {
-    provider = gProvider(onMessage, onStatusChange)
-    provider.open()
-  }
+  provider = gProvider(onMessage)
 
   const disconnect = () => {
-    provider?.close()
+    provider?.disconnect()
     provider = null
-    responses.clear()
-    queuedRequests.clear()
-    subscriptions.errorAll(new Error("disconnected"))
-  }
-
-  const process = (
-    id: number,
-    ...args: Parameters<ClientRequest<any, any>>
-  ) => {
-    const [method, params, cb] = args
-    if (cb) responses.set(id, cb)
-    send(id, method, params)
   }
 
   let nextId = 1
@@ -133,25 +103,16 @@ export const createClient = (gProvider: GetProvider): Client => {
     if (!provider) throw new Error("Not connected")
     const id = nextId++
 
-    if (state === "connected") {
-      process(id, method, params, cb)
-    } else {
-      queuedRequests.set(id, [method, params, cb])
-    }
+    if (cb) responses.set(id, cb)
+    send(id, method, params)
 
     return (): void => {
-      if (queuedRequests.has(id)) {
-        queuedRequests.delete(id)
-        return
-      }
-
       responses.delete(id)
     }
   }
 
   return {
     request,
-    connect,
     disconnect,
   }
 }

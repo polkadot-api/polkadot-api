@@ -7,22 +7,22 @@ import {
   OperationLimitError,
 } from ".."
 import {
-  CommonOperationEvents,
-  LimitReached,
-  OperationStorageDone,
-  OperationStorageItems,
-  OperationWaitingForContinue,
-  StorageOperationStarted,
-} from "./internal-types"
+  CommonOperationEventsRpc,
+  LimitReachedRpc,
+  OperationStorageDoneRpc,
+  OperationStorageItemsRpc,
+  OperationWaitingForContinueRpc,
+  OperationStorageStartedRpc,
+} from "./json-rpc-types"
 
 export const createStorageCb =
   (
     request: ClientRequest<
-      StorageOperationStarted | LimitReached,
-      | CommonOperationEvents
-      | OperationStorageItems
-      | OperationStorageDone
-      | OperationWaitingForContinue
+      OperationStorageStartedRpc | LimitReachedRpc,
+      | CommonOperationEventsRpc
+      | OperationStorageItemsRpc
+      | OperationStorageDoneRpc
+      | OperationWaitingForContinueRpc
     >,
   ): FollowResponse["storageSubscription"] =>
   (hash, inputs, childTrie, onItems, onError, onDone, onDiscardedItems) => {
@@ -44,7 +44,7 @@ export const createStorageCb =
 
           const doneListening = followSubscription(response.operationId, {
             next: (event) => {
-              switch (event.type) {
+              switch (event.event) {
                 case "operationStorageItems": {
                   onItems(event.items)
                   break

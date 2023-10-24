@@ -1,8 +1,22 @@
 import { ClientRequestCb } from "@/client"
 import type { AbortablePromiseFn, UnsubscribeFn } from "@/common-types"
-import { StorageItemInput, StorageItemResponse } from "./internal-types"
 
-export type { StorageItemInput, StorageItemResponse } from "./internal-types"
+export interface StorageItemInput {
+  key: string
+  type:
+    | "value"
+    | "hash"
+    | "closestDescendantMerkleValue"
+    | "descendantsValues"
+    | "descendantsHashes"
+}
+
+export interface StorageItemResponse {
+  key: string
+  value?: string
+  hash?: string
+  closestDescendantMerkleValue?: string
+}
 
 export interface Runtime {
   specName: string

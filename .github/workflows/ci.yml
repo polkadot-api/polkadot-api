@@ -39,6 +39,8 @@ jobs:
         run: pnpm lint
       - name: Run tests
         run: pnpm test
+      - name: Run Integration Tests
+        run: pnpm test:ci
 
   publish:
     if: contains(fromJSON('["push", "pull_request"]'), github.event_name)
@@ -65,11 +67,14 @@ jobs:
           pnpm dlx lerna init
           pnpm dlx lerna version prerelease --no-git-tag-version --yes --exact --preid ${{ github.sha }}.${{ github.run_attempt }}
           pnpm pack --dir packages/cli
+          pnpm pack --dir packages/client
           pnpm pack --dir packages/json-rpc-provider
+          pnpm pack --dir packages/json-rpc-provider-proxy
           pnpm pack --dir packages/sc-provider
           pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
           pnpm pack --dir packages/substrate-codegen
+          pnpm pack --dir packages/tx-helper
           pnpm pack --dir packages/utils
       - uses: actions/upload-artifact@v3
         with:
@@ -78,7 +83,15 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: package
+          path: ./packages/client/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
           path: ./packages/json-rpc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/json-rpc-provider-proxy/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
@@ -95,6 +108,10 @@ jobs:
         with:
           name: package
           path: ./packages/substrate-codegen/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/tx-helper/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
