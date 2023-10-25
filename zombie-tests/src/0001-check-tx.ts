@@ -6,6 +6,7 @@ import {
 import { ScProvider } from "@polkadot-api/sc-provider"
 import {
   AccountId,
+  Blake2256,
   Enum,
   SS58String,
   Struct,
@@ -35,16 +36,16 @@ const ALICE_SR25519_PUB_KEY = fromHex(
 const ALICE_ED25519_PUB_KEY = fromHex(
   "0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee",
 )
-/* const ALICE_ECDSA_PUB_KEY = fromHex(
+const ALICE_ECDSA_PUB_KEY = fromHex(
   "0x020a1091341fe5664bfa1782d5e04779689068c916b04cb365ec3153755684d9a1",
-) */
+)
 
 const BOB_SR25519_SS58_ADDR =
   "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty" as SS58String
 const BOB_ED25519_SS58_ADDR =
   "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E" as SS58String
-/* const BOB_ECDSA_SS58_ADDR =
-  "5DVskgSC9ncWQpxFMeUn45NU43RUq93ByEge6ApbnLk6BR9N" as SS58String */
+const BOB_ECDSA_SS58_ADDR =
+  "5DVskgSC9ncWQpxFMeUn45NU43RUq93ByEge6ApbnLk6BR9N" as SS58String
 
 const TEST_ARGS: [
   signingType: SigningType,
@@ -56,9 +57,8 @@ const TEST_ARGS: [
   ["Sr25519", true, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
   ["Ed25519", false, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
   ["Ed25519", true, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
-  //  TODO: https://github.com/paritytech/polkadot-api/issues/133
-  // ["Ecdsa", false, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR],
-  // ["Ecdsa", true, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR]
+  ["Ecdsa", false, Blake2256(ALICE_ECDSA_PUB_KEY), BOB_ECDSA_SS58_ADDR],
+  ["Ecdsa", true, Blake2256(ALICE_ECDSA_PUB_KEY), BOB_ECDSA_SS58_ADDR],
 ]
 
 export async function run(_nodeName: string, networkInfo: any) {
@@ -127,8 +127,16 @@ export async function run(_nodeName: string, networkInfo: any) {
                 userSignedExtensionsData,
                 overrides: {},
                 signingType: "Ecdsa",
-                signer: async (value) =>
-                  secp256k1.sign(value, priv).toCompactRawBytes(),
+                signer: async (value) => {
+                  const signature = secp256k1.sign(Blake2256(value), priv)
+                  const signedBytes = signature.toCompactRawBytes()
+
+                  const result = new Uint8Array(signedBytes.length + 1)
+                  result.set(signedBytes)
+                  result[signedBytes.length] = signature.recovery
+
+                  return result
+                },
               })
               break
             }
