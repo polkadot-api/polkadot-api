@@ -1,4 +1,4 @@
-import { createClient } from "@polkadot-api/substrate-client"
+import { SubstrateClient, createClient } from "@polkadot-api/substrate-client"
 import {
   Tuple,
   compact,
@@ -16,9 +16,70 @@ import type {
   ToExtension,
   ToPage,
 } from "@/protocol"
-import { CONTEXT, PORT, storage } from "@/shared"
+import { ALARM, CONTEXT, PORT, storage } from "@/shared"
 
 export * from "./types"
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== ALARM.DATABASE_UPDATE) return
+  const chains = await storage.getChains()
+  Object.values(chains).forEach(
+    async ({ genesisHash, chainSpec, relayChainGenesisHash }) => {
+      const client = createClient(
+        await smoldotProvider({
+          smoldotClient,
+          chainSpec,
+          relayChainSpec: relayChainGenesisHash
+            ? chains[relayChainGenesisHash]?.chainSpec
+            : undefined,
+          databaseContent: await storage.get({
+            type: "databaseContent",
+            genesisHash,
+          }),
+        }),
+      )
+      const chainHeadFollower = client.chainHead(
+        true,
+        async (event) => {
+          if (event.type === "newBlock") {
+            chainHeadFollower.unpin([event.blockHash])
+            return
+          } else if (event.type !== "initialized") return
+          try {
+            await storage.set(
+              { type: "databaseContent", genesisHash },
+              await substrateClientRequest(
+                client,
+                "chainHead_unstable_finalizedDatabase",
+              ),
+            )
+          } catch (error) {
+            console.error("Error updating DB", error)
+          }
+          chainHeadFollower.unfollow()
+          client.destroy()
+        },
+        (error) => {
+          console.error("Error updating DB", error)
+          chainHeadFollower.unfollow()
+          client.destroy()
+        },
+      )
+    },
+  )
+})
+
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (
+    reason !== chrome.runtime.OnInstalledReason.INSTALL &&
+    reason !== chrome.runtime.OnInstalledReason.UPDATE
+  )
+    return
+
+  chrome.alarms.create(ALARM.DATABASE_UPDATE, {
+    periodInMinutes: 2,
+  })
+})
 
 const addChainByUserCallbacks: Parameters<BackgroundHelper>[0][] = []
 
@@ -384,28 +445,11 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
     await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
   )
   try {
-    const [genesisHash, name] = (await Promise.all(
-      ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map(
-        (method) =>
-          new Promise((resolve, reject) => {
-            try {
-              const unsub = client._request(method, [], {
-                onSuccess(result: any) {
-                  unsub()
-                  resolve(result)
-                },
-                onError(error: any) {
-                  unsub()
-                  reject(error)
-                },
-              })
-            } catch (error) {
-              reject(error)
-            }
-          }),
+    const [genesisHash, name] = await Promise.all(
+      ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map((method) =>
+        substrateClientRequest<string>(client, method),
       ),
-    )) as [genesisHash: string, name: string]
-
+    )
     const ss58Format: number = await new Promise(async (resolve, reject) => {
       const chainHeadFollower = client.chainHead(
         true,
@@ -484,4 +528,26 @@ const sendBackgroundErrorResponse = (
         : typeof error === "string"
         ? error
         : "Unknown error getting chain data",
+  })
+
+const substrateClientRequest = <T>(
+  client: SubstrateClient,
+  method: string,
+  params: any[] = [],
+) =>
+  new Promise<T>((resolve, reject) => {
+    try {
+      const unsub = client._request(method, params, {
+        onSuccess(result: any) {
+          unsub()
+          resolve(result)
+        },
+        onError(error: any) {
+          unsub()
+          reject(error)
+        },
+      })
+    } catch (error) {
+      reject(error)
+    }
   })

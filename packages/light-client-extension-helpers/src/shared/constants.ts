@@ -13,3 +13,8 @@ export const PORT = {
   CONTENT_SCRIPT: `${portPrefix}-content-script`,
   EXTENSION_PAGE: `${portPrefix}-extension-page`,
 } as const
+
+const alarmPrefix = `${extensionPrefix}-alarm`
+export const ALARM = {
+  DATABASE_UPDATE: `${alarmPrefix}-database-update`,
+}
