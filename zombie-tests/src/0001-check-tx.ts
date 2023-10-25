@@ -136,58 +136,61 @@ export async function run(_nodeName: string, networkInfo: any) {
         },
       )
 
-      const call = Struct({
-        module: u8,
-        method: u8,
-        args: Struct({
-          dest: Enum({
-            Id: AccountId(42),
+      // Run multiple times to ensure we can create tx with increasing nonce
+      for (let i = 0; i < 3; i++) {
+        const call = Struct({
+          module: u8,
+          method: u8,
+          args: Struct({
+            dest: Enum({
+              Id: AccountId(42),
+            }),
+            value: compact,
           }),
-          value: compact,
-        }),
-      })
+        })
 
-      const transaction = toHex(
-        await createTx(
-          from,
-          call.enc({
-            module: 4,
-            method: 0,
-            args: {
-              dest: {
-                tag: "Id",
-                value: to,
+        const transaction = toHex(
+          await createTx(
+            from,
+            call.enc({
+              module: 4,
+              method: 0,
+              args: {
+                dest: {
+                  tag: "Id",
+                  value: to,
+                },
+                value: 1000000n,
               },
-              value: 1000000n,
-            },
-          }),
-        ),
-      )
+            }),
+          ),
+        )
 
-      console.log("transaction", transaction)
+        console.log("transaction", transaction)
 
-      const done = deferred()
-      client.transaction(
-        transaction,
-        (e) => {
-          console.log(e)
-          switch (e.type) {
-            case "finalized":
-              done.resolve()
-              break
-            case "invalid":
-              process.exit(1)
-            default:
-              break
-          }
-        },
-        (e) => {
-          console.error("there was an error ", e)
-          process.exit(1)
-        },
-      )
+        const done = deferred()
+        client.transaction(
+          transaction,
+          (e) => {
+            console.log(e)
+            switch (e.type) {
+              case "finalized":
+                done.resolve()
+                break
+              case "invalid":
+                process.exit(1)
+              default:
+                break
+            }
+          },
+          (e) => {
+            console.error("there was an error ", e)
+            process.exit(1)
+          },
+        )
 
-      await done
+        await done
+      }
     }
   } catch (err) {
     console.log(err)
