@@ -1,8 +1,8 @@
 ARG VARIANT=bullseye
 FROM --platform=linux/amd64 mcr.microsoft.com/devcontainers/base:0-${VARIANT}
 
-ARG ZOMBIENET_VERSION=1.3.68
-ARG POLKADOT_VERSION=1.1.0
+ARG ZOMBIENET_VERSION=1.3.71
+ARG POLKADOT_VERSION=1.2.0
 
 WORKDIR /bin
 
