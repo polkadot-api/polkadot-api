@@ -6,7 +6,7 @@ import type {
 export type ToExtensionRequest = {
   origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   id: string
-  request: BackgroundRequestAddChain | BackgroundRequestGetChains
+  request: BackgroundRequestGetChain | BackgroundRequestGetChains
 }
 
 export type ToExtension = ToExtensionRequest | ConnectToExtension
@@ -36,10 +36,10 @@ type ToPageNotification = ToPageNotificationOnAddChains
 export type ToPage = ToPageResponse | ToPageNotification | ConnectToApplication
 
 // FIXME: merge BackgroundRequest/BackgroundResponse/ToExtensionRequest/ToPageResponse
-type BackgroundRequestAddChain = {
+type BackgroundRequestGetChain = {
   // FIXME: add origin
   // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
-  type: "addChain"
+  type: "getChain"
   chainSpec: string
   relayChainGenesisHash?: string
 }
@@ -68,14 +68,14 @@ type BackgroundRequestDisconnect = {
 
 // FIXME: add origin to any request
 export type BackgroundRequest =
-  | BackgroundRequestAddChain
+  | BackgroundRequestGetChain
   | BackgroundRequestGetChains
   | BackgroundRequestGetChainData
   | BackgroundRequestGetActiveConnections
   | BackgroundRequestDisconnect
 
-type BackgroundResponseAddChain = {
-  type: "addChainResponse"
+type BackgroundResponseGetChain = {
+  type: "getChainResponse"
   chain: {
     genesisHash: string
     name: string
@@ -110,7 +110,7 @@ export type BackgroundResponseError = {
 
 // FIXME: add origin to any response
 export type BackgroundResponse =
-  | BackgroundResponseAddChain
+  | BackgroundResponseGetChain
   | BackgroundResponseGetChains
   | BackgroundResponseGetChainData
   | BackgroundResponseGetActiveConnections

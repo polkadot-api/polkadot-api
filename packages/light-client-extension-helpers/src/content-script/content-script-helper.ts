@@ -42,7 +42,7 @@ window.addEventListener("message", async ({ data, source, origin }) => {
     try {
       let result: any
       switch (request.type) {
-        case "addChain":
+        case "getChain":
         case "getChains": {
           result = await sendBackgroundRequest(request)
           break

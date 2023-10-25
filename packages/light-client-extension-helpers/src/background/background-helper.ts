@@ -20,11 +20,10 @@ import { CONTEXT, PORT, storage } from "@/shared"
 
 export * from "./types"
 
-// const addChainByUserCallbacks: Parameters<BackgroundHelper>[0][] = []
+const addChainByUserCallbacks: Parameters<BackgroundHelper>[0][] = []
 
-export const backgroundHelper: BackgroundHelper = async (_onAddChainByUser) => {
-  console.warn("TBD, this is very likely to be deprecated")
-  // addChainByUserCallbacks.push(onAddChainByUser)
+export const backgroundHelper: BackgroundHelper = async (onAddChainByUser) => {
+  addChainByUserCallbacks.push(onAddChainByUser)
 }
 
 storage.onChainsChanged(async (chains) => {
@@ -262,7 +261,7 @@ chrome.runtime.onMessage.addListener(
   (msg: BackgroundRequest, sender, sendResponse) => {
     // FIXME: check msg.origin to any BackgroundRequest
     switch (msg.type) {
-      case "addChain": {
+      case "getChain": {
         ;(async () => {
           const tabId = sender?.tab?.id
           if (!tabId) return
@@ -282,19 +281,25 @@ chrome.runtime.onMessage.addListener(
 
             if (chains[genesisHash]) {
               return sendBackgroundResponse(sendResponse, {
-                type: "addChainResponse",
+                type: "getChainResponse",
                 chain: chains[genesisHash],
               })
             }
 
+            const chain = {
+              genesisHash,
+              name,
+              chainSpec,
+              relayChainGenesisHash,
+            }
+
+            await Promise.all(
+              addChainByUserCallbacks.map((cb) => cb(chain, tabId)),
+            )
+
             sendBackgroundResponse(sendResponse, {
-              type: "addChainResponse",
-              chain: {
-                genesisHash,
-                name,
-                chainSpec,
-                relayChainGenesisHash,
-              },
+              type: "getChainResponse",
+              chain,
             })
           } catch (error) {
             console.error("background addChain error", error)

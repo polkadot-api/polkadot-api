@@ -98,7 +98,7 @@ export const getLightClientProvider =
           origin: CONTEXT.WEB_PAGE,
           id: nextId(),
           request: {
-            type: "addChain",
+            type: "getChain",
             chainSpec,
             relayChainGenesisHash,
           },
