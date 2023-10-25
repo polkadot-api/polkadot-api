@@ -52,12 +52,12 @@ const TEST_ARGS: [
   from: Uint8Array,
   to: SS58String,
 ][] = [
+  ["Ecdsa", false, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR],
+  ["Ecdsa", true, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR],
   ["Sr25519", false, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
   ["Sr25519", true, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
   ["Ed25519", false, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
   ["Ed25519", true, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
-  ["Ecdsa", false, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR],
-  ["Ecdsa", true, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR],
 ]
 
 export async function run(_nodeName: string, networkInfo: any) {
