@@ -81,10 +81,13 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   })
 })
 
-const addChainByUserCallbacks: Parameters<BackgroundHelper>[0][] = []
+let addChainByUserCallback: Parameters<BackgroundHelper>[0] | undefined =
+  undefined
 
 export const backgroundHelper: BackgroundHelper = async (onAddChainByUser) => {
-  addChainByUserCallbacks.push(onAddChainByUser)
+  if (addChainByUserCallback)
+    throw new Error("addChainByUserCallback is already set")
+  addChainByUserCallback = onAddChainByUser
 }
 
 storage.onChainsChanged(async (chains) => {
@@ -354,9 +357,7 @@ chrome.runtime.onMessage.addListener(
               relayChainGenesisHash,
             }
 
-            await Promise.all(
-              addChainByUserCallbacks.map((cb) => cb(chain, tabId)),
-            )
+            await addChainByUserCallback?.(chain, tabId)
 
             sendBackgroundResponse(sendResponse, {
               type: "getChainResponse",
