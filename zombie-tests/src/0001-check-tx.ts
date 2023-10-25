@@ -22,9 +22,11 @@ import { Sr25519Account } from "@unique-nft/sr25519"
  * Public and Private keys were pulled from subkey:
  * substrate key inspect --scheme sr25519 //Alice
  * substrate key inspect --scheme ed25519 //Alice
+ * substrate key inspect --scheme ecdsa //Alice
  *
  * substrate key inspect --scheme sr25519 //Bob
  * substrate key inspect --scheme ed25519 //Bob
+ * substrate key inspect --scheme ecdsa //Bob
  */
 
 const ALICE_SR25519_PUB_KEY = fromHex(
@@ -33,11 +35,16 @@ const ALICE_SR25519_PUB_KEY = fromHex(
 const ALICE_ED25519_PUB_KEY = fromHex(
   "0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee",
 )
+const ALICE_ECDSA_PUB_KEY = fromHex(
+  "0x020a1091341fe5664bfa1782d5e04779689068c916b04cb365ec3153755684d9a1",
+)
 
 const BOB_SR25519_SS58_ADDR =
   "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty" as SS58String
 const BOB_ED25519_SS58_ADDR =
   "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E" as SS58String
+const BOB_ECDSA_SS58_ADDR =
+  "5DVskgSC9ncWQpxFMeUn45NU43RUq93ByEge6ApbnLk6BR9N" as SS58String
 
 const TEST_ARGS: [
   signingType: SigningType,
@@ -49,6 +56,8 @@ const TEST_ARGS: [
   ["Sr25519", true, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
   ["Ed25519", false, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
   ["Ed25519", true, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
+  ["Ecdsa", false, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR],
+  ["Ecdsa", true, ALICE_ECDSA_PUB_KEY, BOB_ECDSA_SS58_ADDR],
 ]
 
 export async function run(_nodeName: string, networkInfo: any) {
@@ -105,6 +114,19 @@ export async function run(_nodeName: string, networkInfo: any) {
               overrides: {},
               signingType: "Ed25519",
               signer: async (value) => ed25519.sign(value, priv),
+            })
+            break
+          }
+          case "Ecdsa": {
+            const priv = fromHex(
+              "0xcb6df9de1efca7a3998a8ead4e02159d5fa99c3e0d4fd6432667390bb4726854",
+            )
+            callback({
+              userSignedExtensionsData,
+              overrides: {},
+              signingType: "Ecdsa",
+              signer: async (value) =>
+                secp256k1.sign(value, priv).toCompactRawBytes(),
             })
             break
           }
