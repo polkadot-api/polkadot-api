@@ -115,3 +115,8 @@ export type BackgroundResponse =
   | BackgroundResponseGetChainData
   | BackgroundResponseGetActiveConnections
   | BackgroundResponseDisconnect
+
+export type PostMessage<T> = {
+  channelId: string
+  msg: T
+}

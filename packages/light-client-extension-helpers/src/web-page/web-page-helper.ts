@@ -1,5 +1,6 @@
 import type {
   BackgroundResponse,
+  PostMessage,
   ToExtension,
   ToExtensionRequest,
   ToPage,
@@ -11,8 +12,8 @@ import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 export * from "./types"
 
-const postToExtension = (msg: ToExtension) =>
-  window.postMessage(msg, window.origin)
+const postToExtension = (message: PostMessage<ToExtension>) =>
+  window.postMessage(message, window.origin)
 
 const validOrigins = [CONTEXT.CONTENT_SCRIPT, "substrate-connect-extension"]
 
@@ -23,26 +24,29 @@ const checkMessage = (msg: any): msg is ToPage => {
   return true
 }
 
+const channelIds = new Set<string>()
 window.addEventListener("message", ({ data, source }) => {
   if (source !== window) return
-  if (!validOrigins.includes(data?.origin)) return
-  if (!checkMessage(data)) return console.warn("Unrecognized message", data)
-  if (data.origin === "substrate-connect-extension")
-    return rawChainCallbacks[data.chainId]?.(data)
-  if (data.id !== undefined) return handleResponse(data)
-  if (data.type === "onAddChains")
+  const { channelId, msg } = data
+  if (!channelIds.has(channelId)) return
+  if (!validOrigins.includes(msg?.origin)) return
+  if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
+  if (msg.origin === "substrate-connect-extension")
+    return rawChainCallbacks[msg.chainId]?.(msg)
+  if (msg.id !== undefined) return handleResponse(msg)
+  if (msg.type === "onAddChains")
     return chainsChangeCallbacks.forEach((cb) =>
       cb(
         Object.fromEntries(
-          Object.entries(data.chains).map(([key, { genesisHash, name }]) => [
+          Object.entries(msg.chains).map(([key, { genesisHash, name }]) => [
             key,
-            createRawChain({ genesisHash, name }),
+            createRawChain(channelId, { genesisHash, name }),
           ]),
         ),
       ),
     )
 
-  console.warn("Unhandled message", data)
+  console.warn("Unhandled message", msg)
 })
 
 const chainsChangeCallbacks: Parameters<
@@ -60,12 +64,13 @@ const requestReply = <
     type: `${TReq["request"]["type"]}Response`
   },
 >(
+  channelId: string,
   msg: TReq,
 ): Promise<TRes> => {
   const promise = new Promise<TRes>((resolve, reject) => {
     pendingRequests[msg.id] = { resolve, reject }
   })
-  postToExtension(msg)
+  postToExtension({ channelId, msg })
   return promise
 }
 const handleResponse = (msg: ToPageResponse) => {
@@ -82,67 +87,73 @@ const nextId = (
   (initialId) => () =>
     "" + initialId++
 )(0)
-export const getLightClientProvider =
-  async (): Promise<LightClientProvider> => {
-    let { chains } = await requestReply({
-      origin: CONTEXT.WEB_PAGE,
-      id: nextId(),
-      request: {
-        type: "getChains",
-      },
-    })
-    chainsChangeCallbacks.push((chains_) => (chains = chains_))
-    return {
-      async getChain(chainSpec, relayChainGenesisHash) {
-        const { chain: chainInfo } = await requestReply({
-          origin: CONTEXT.WEB_PAGE,
-          id: nextId(),
-          request: {
-            type: "getChain",
-            chainSpec,
-            relayChainGenesisHash,
-          },
-        })
-        return createRawChain(
-          chains[chainInfo.genesisHash]
-            ? chainInfo
-            : { ...chainInfo, chainSpec, relayChainGenesisHash },
-        )
-      },
-      getChains() {
-        return Object.entries(chains).reduce(
-          (acc, [key, chain]) => {
-            acc[key] = createRawChain(chain)
-            return acc
-          },
-          {} as Record<string, RawChain>,
-        )
-      },
-      addChainsChangeListener(callback) {
-        chainsChangeCallbacks.push(callback)
-        return () => {
-          removeArrayItem(chainsChangeCallbacks, callback)
-        }
-      },
-    }
+export const getLightClientProvider = async (
+  channelId: string,
+): Promise<LightClientProvider> => {
+  channelIds.add(channelId)
+  let { chains } = await requestReply(channelId, {
+    origin: CONTEXT.WEB_PAGE,
+    id: nextId(),
+    request: {
+      type: "getChains",
+    },
+  })
+  chainsChangeCallbacks.push((chains_) => (chains = chains_))
+  return {
+    async getChain(chainSpec, relayChainGenesisHash) {
+      const { chain: chainInfo } = await requestReply(channelId, {
+        origin: CONTEXT.WEB_PAGE,
+        id: nextId(),
+        request: {
+          type: "getChain",
+          chainSpec,
+          relayChainGenesisHash,
+        },
+      })
+      return createRawChain(
+        channelId,
+        chains[chainInfo.genesisHash]
+          ? chainInfo
+          : { ...chainInfo, chainSpec, relayChainGenesisHash },
+      )
+    },
+    getChains() {
+      return Object.entries(chains).reduce(
+        (acc, [key, chain]) => {
+          acc[key] = createRawChain(channelId, chain)
+          return acc
+        },
+        {} as Record<string, RawChain>,
+      )
+    },
+    addChainsChangeListener(callback) {
+      chainsChangeCallbacks.push(callback)
+      return () => {
+        removeArrayItem(chainsChangeCallbacks, callback)
+      }
+    },
   }
+}
 
 const rawChainCallbacks: Record<
   string,
   (msg: ToPage & { origin: "substrate-connect-extension" }) => void
 > = {}
 
-const createRawChain = ({
-  name,
-  genesisHash,
-  chainSpec,
-  relayChainGenesisHash,
-}: {
-  name: string
-  genesisHash: string
-  chainSpec?: string
-  relayChainGenesisHash?: string
-}): RawChain => {
+const createRawChain = (
+  channelId: string,
+  {
+    name,
+    genesisHash,
+    chainSpec,
+    relayChainGenesisHash,
+  }: {
+    name: string
+    genesisHash: string
+    chainSpec?: string
+    relayChainGenesisHash?: string
+  },
+): RawChain => {
   return {
     name,
     genesisHash,
@@ -165,8 +176,9 @@ const createRawChain = ({
           }
           delete rawChainCallbacks[chainId]
         }
-        postToExtension(
-          chainSpec
+        postToExtension({
+          channelId,
+          msg: chainSpec
             ? {
                 origin: "substrate-connect-client",
                 type: "add-chain",
@@ -182,7 +194,7 @@ const createRawChain = ({
                 chainId,
                 chainName: genesisHash,
               },
-        )
+        })
       })
       return (onMessage, onHalt) => {
         rawChainCallbacks[chainId] = (msg) => {
@@ -205,18 +217,24 @@ const createRawChain = ({
         return {
           send(jsonRpcMessage) {
             postToExtension({
-              origin: "substrate-connect-client",
-              type: "rpc",
-              chainId,
-              jsonRpcMessage,
+              channelId,
+              msg: {
+                origin: "substrate-connect-client",
+                type: "rpc",
+                chainId,
+                jsonRpcMessage,
+              },
             })
           },
           disconnect() {
             delete rawChainCallbacks[chainId]
             postToExtension({
-              origin: "substrate-connect-client",
-              type: "remove-chain",
-              chainId,
+              channelId,
+              msg: {
+                origin: "substrate-connect-client",
+                type: "remove-chain",
+                chainId,
+              },
             })
           },
         }
