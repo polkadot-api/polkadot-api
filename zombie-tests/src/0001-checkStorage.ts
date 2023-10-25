@@ -2,7 +2,6 @@ import { Tuple, compact, metadata } from "@polkadot-api/substrate-bindings"
 import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
 import { createClient } from "@polkadot-api/substrate-client"
 import { ScProvider } from "@polkadot-api/sc-provider"
-import * as fs from "fs/promises"
 
 const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 
@@ -37,7 +36,6 @@ export async function run(_nodeName: string, networkInfo: any) {
 
         const [, metadata] = opaqueMeta.dec(response)
         if (metadata.metadata.tag === "v14") {
-          await fs.writeFile("derp.json", JSON.stringify(metadata))
           const dynamicBuilder = getDynamicBuilder(metadata.metadata.value)
           const storageAccount = dynamicBuilder.buildStorage(
             "System",
