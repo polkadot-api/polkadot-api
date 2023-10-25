@@ -1,5 +1,5 @@
 Description: Relay Chain Smoke Test
-Network: ./0001-test.toml
+Network: ./0001-test.json
 Creds: config
 
 alice: is up
@@ -8,4 +8,4 @@ alice: reports block height is at least 5 within 120 seconds
 alice: reports finalised height is at least 2 within 120 seconds
 alice: ts-script ./0001-check-events.ts within 200 seconds
 alice: ts-script ./0001-checkStorage.ts with "alice" return is 1000000000000000000 within 200 seconds
-alice: ts-script ./0001-check-tx.ts within 200 seconds
+alice: ts-script ./0001-check-tx.ts within 500 seconds

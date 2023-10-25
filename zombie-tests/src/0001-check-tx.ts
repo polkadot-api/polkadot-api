@@ -15,13 +15,40 @@ import {
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { createClient } from "@polkadot-api/substrate-client"
 import { ed25519 } from "@noble/curves/ed25519"
+import { secp256k1 } from "@noble/curves/secp256k1"
 import { Sr25519Account } from "@unique-nft/sr25519"
 
-const TEST_ARGS: [signingType: SigningType, isMortal: boolean][] = [
-  ["Sr25519", false],
-  ["Sr25519", true],
-  ["Ed25519", false],
-  ["Ed25519", true],
+/**
+ * Public and Private keys were pulled from subkey:
+ * substrate key inspect --scheme sr25519 //Alice
+ * substrate key inspect --scheme ed25519 //Alice
+ *
+ * substrate key inspect --scheme sr25519 //Bob
+ * substrate key inspect --scheme ed25519 //Bob
+ */
+
+const ALICE_SR25519_PUB_KEY = fromHex(
+  "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+)
+const ALICE_ED25519_PUB_KEY = fromHex(
+  "0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee",
+)
+
+const BOB_SR25519_SS58_ADDR =
+  "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty" as SS58String
+const BOB_ED25519_SS58_ADDR =
+  "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E" as SS58String
+
+const TEST_ARGS: [
+  signingType: SigningType,
+  isMortal: boolean,
+  from: Uint8Array,
+  to: SS58String,
+][] = [
+  ["Sr25519", false, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
+  ["Sr25519", true, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
+  ["Ed25519", false, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
+  ["Ed25519", true, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
 ]
 
 export async function run(_nodeName: string, networkInfo: any) {
@@ -29,8 +56,12 @@ export async function run(_nodeName: string, networkInfo: any) {
   const provider = ScProvider(JSON.stringify(customChainSpec))
   const client = createClient(provider)
 
-  for (const [signingType, isMortal] of TEST_ARGS) {
-    console.log(`Signing Type: ${signingType}, Is Mortal: ${isMortal}`)
+  for (const [signingType, isMortal, from, to] of TEST_ARGS) {
+    console.log(
+      `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${toHex(
+        from,
+      )}, To: ${to}`,
+    )
 
     const { createTx } = getTxCreator(
       provider,
@@ -92,18 +123,6 @@ export async function run(_nodeName: string, networkInfo: any) {
       }),
     })
 
-    const from =
-      signingType === "Sr25519"
-        ? fromHex(
-            "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
-          )
-        : fromHex(
-            "0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee",
-          )
-    const to =
-      signingType === "Sr25519"
-        ? "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E"
-        : "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
     const transaction = toHex(
       await createTx(
         from,
@@ -113,7 +132,7 @@ export async function run(_nodeName: string, networkInfo: any) {
           args: {
             dest: {
               tag: "Id",
-              value: to as SS58String,
+              value: to,
             },
             value: 1000000n,
           },
