@@ -62,12 +62,12 @@ const TEST_ARGS: [
 ]
 
 export async function run(_nodeName: string, networkInfo: any) {
-  const customChainSpec = require(networkInfo.chainSpecPath)
-  const provider = ScProvider(JSON.stringify(customChainSpec))
-  const client = createClient(provider)
+  try {
+    const customChainSpec = require(networkInfo.chainSpecPath)
+    const provider = ScProvider(JSON.stringify(customChainSpec))
+    const client = createClient(provider)
 
-  await Promise.all(
-    TEST_ARGS.map(async ([signingType, isMortal, from, to]) => {
+    for (const [signingType, isMortal, from, to] of TEST_ARGS) {
       console.log(
         `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${toHex(
           from,
@@ -174,10 +174,7 @@ export async function run(_nodeName: string, networkInfo: any) {
           ),
         )
 
-        console.log(
-          `${signingType} transaction, isMortal: ${isMortal}, iteration: ${i}`,
-          transaction,
-        )
+        console.log("transaction", transaction)
 
         const done = deferred()
         client.transaction(
@@ -202,8 +199,12 @@ export async function run(_nodeName: string, networkInfo: any) {
 
         await done
       }
-    }),
-  )
+    }
+  } catch (err) {
+    console.log(err)
+    console.log((err as any).stack)
+    throw err
+  }
 }
 
 interface Deferred<T> extends Promise<T> {
