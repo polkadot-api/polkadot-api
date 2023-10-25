@@ -28,6 +28,23 @@ const checkMessage = (msg: any): msg is ToExtension => {
 const portPostMessage = (port: chrome.runtime.Port, msg: ToExtension) =>
   port.postMessage(msg)
 
+const chainIds = new Set<string>()
+const handleExtensionError = (errorMessage: string, origin: string) => {
+  console.error(errorMessage)
+  chainIds.forEach((chainId) =>
+    postToPage(
+      {
+        origin: "substrate-connect-extension",
+        chainId,
+        type: "error",
+        errorMessage,
+      },
+      origin,
+    ),
+  )
+  chainIds.clear()
+}
+
 let port: chrome.runtime.Port | undefined
 window.addEventListener("message", async ({ data, source, origin }) => {
   if (source !== window) return
@@ -78,18 +95,46 @@ window.addEventListener("message", async ({ data, source, origin }) => {
   }
 
   if (!port) {
-    port = chrome.runtime.connect({ name: PORT.CONTENT_SCRIPT })
-    port.onMessage.addListener((msg: ToPage) => postToPage(msg, origin))
+    try {
+      port = chrome.runtime.connect({ name: PORT.CONTENT_SCRIPT })
+    } catch (error) {
+      handleExtensionError("Cannot connect to extension", origin)
+      return
+    }
+    port.onMessage.addListener((msg: ToPage) => {
+      if (msg.origin === "substrate-connect-extension" && msg.type === "error")
+        chainIds.delete(msg.chainId)
+      postToPage(msg, origin)
+    })
+
     port.onDisconnect.addListener(() => {
       // FIXME: send error to active chains
       port = undefined
+      handleExtensionError("Disconnected from extension", origin)
     })
   }
 
   portPostMessage(port, data)
+
+  if (data.origin !== "substrate-connect-client") return
+  switch (data.type) {
+    case "add-chain":
+    case "add-well-known-chain": {
+      chainIds.add(data.chainId)
+      break
+    }
+    case "remove-chain": {
+      chainIds.delete(data.chainId)
+      break
+    }
+    default:
+      break
+  }
 })
 
 chrome.runtime.onMessage.addListener((msg: ToPage) => {
+  if (msg.origin === "substrate-connect-extension" && msg.type === "error")
+    chainIds.delete(msg.chainId)
   // FIXME: filter background-helper messages
   postToPage(msg, window.origin)
 })

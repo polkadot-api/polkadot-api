@@ -410,10 +410,15 @@ chrome.runtime.onMessage.addListener(
         Object.entries(activeChains[msg.tabId] ?? {})
           // TODO: Should options-tab/popup connections connections be disconnectable?
           .filter(([_, { genesisHash }]) => genesisHash === msg.genesisHash)
-          .forEach(
-            // FIXME: notify content-script
-            ([chainId]) => removeChain(msg.tabId, chainId),
-          )
+          .forEach(([chainId]) => {
+            removeChain(msg.tabId, chainId)
+            chrome.tabs.sendMessage(msg.tabId, {
+              origin: "substrate-connect-extension",
+              type: "error",
+              chainId,
+              errorMessage: "Disconnected",
+            } as ToPage)
+          })
         // TODO: this might not be needed
         sendBackgroundResponse(sendResponse, {
           type: "disconnectResponse",
