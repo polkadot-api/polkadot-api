@@ -11,6 +11,6 @@ const encoder = Struct({
 export const ChargeAssetTxPayment: GetUserSignedExtension<
   "ChargeAssetTxPayment"
 > = (user$) => ({
-  extra: user$.pipe(map(encoder)),
-  additional: empty$,
+  value: user$.pipe(map(encoder)),
+  additionalSigned: empty$,
 })

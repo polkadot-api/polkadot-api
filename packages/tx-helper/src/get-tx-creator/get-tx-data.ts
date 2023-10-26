@@ -1,17 +1,8 @@
 import { V14, v14 } from "@polkadot-api/substrate-bindings"
 import { ConsumerCallback, OnCreateTxCtx, UserSignedExtensionName } from ".."
 import { getInput$ } from "./input"
-import {
-  EMPTY,
-  NEVER,
-  Observable,
-  combineLatest,
-  map,
-  mergeMap,
-  of,
-  race,
-} from "rxjs"
-import type { SignedExtension } from "@/internal-types"
+import { EMPTY, NEVER, combineLatest, map, mergeMap, of, race } from "rxjs"
+import type { FlattenSignedExtension } from "@/internal-types"
 import { getObservableClient } from "@polkadot-api/client"
 import { mergeUint8 } from "@polkadot-api/utils"
 import {
@@ -53,27 +44,17 @@ export const getTxData =
       onCreateTx,
     )
 
-    const fromOverrides = (
-      name: string,
-      type: "value" | "additionalSigned",
-      endless: boolean,
-    ) =>
+    const fromOverrides = (name: string, endless: boolean) =>
       overrides$.pipe(
         mergeMap((overrides) =>
-          overrides[name] ? of(overrides[name][type]) : endless ? NEVER : EMPTY,
+          overrides[name] ? of(overrides[name]) : endless ? NEVER : EMPTY,
         ),
       )
 
     const withOverrides = (
-      { additional, extra }: SignedExtension,
+      input: FlattenSignedExtension,
       name: string,
-    ): SignedExtension => ({
-      additional: race([fromOverrides(name, "value", true), additional]),
-      extra: race([fromOverrides(name, "additionalSigned", true), extra]),
-    })
-
-    const extra: Array<Observable<Uint8Array>> = []
-    const additional: Array<Observable<Uint8Array>> = []
+    ): FlattenSignedExtension => race([fromOverrides(name, true), input])
 
     const chainSet = new Set(chain)
     const userSet = new Set(user)
@@ -85,41 +66,46 @@ export const getTxData =
       chainHead,
     }
 
-    all
-      .map((key) => {
+    const signedExtensions$ = combineLatest(
+      all.map((key) => {
         if (chainSet.has(key as any))
           return withOverrides(
-            chainSignedExtensions[key as "CheckNonce"](ctx),
+            combineLatest(chainSignedExtensions[key as "CheckNonce"](ctx)),
             key,
           )
 
         if (userSet.has(key as any))
           return withOverrides(
-            userSignedExtensions[key as "CheckMortality"](
-              getUserInput$(key as "CheckMortality") as any,
-              ctx,
+            combineLatest(
+              userSignedExtensions[key as "CheckMortality"](
+                getUserInput$(key as "CheckMortality") as any,
+                ctx,
+              ),
             ),
             key,
           )
 
-        return {
-          extra: fromOverrides(key, "value", false),
-          additional: fromOverrides(key, "additionalSigned", false),
-        }
-      })
-      .forEach((value) => {
-        additional.push(value.additional)
-        extra.push(value.extra)
-      })
+        return fromOverrides(key, false)
+      }),
+    ).pipe(
+      map((data) => {
+        const extra: Array<Uint8Array> = []
+        const additional: Array<Uint8Array> = []
 
-    const extra$ = combineLatest(extra).pipe(map((x) => mergeUint8(...x)))
-    const additional$ = combineLatest(additional).pipe(
-      map((x) => mergeUint8(...x)),
+        data.forEach((x) => {
+          extra.push(x.value)
+          additional.push(x.additionalSigned)
+        })
+
+        return {
+          value: mergeUint8(...extra),
+          additionalSigned: mergeUint8(...additional),
+        }
+      }),
     )
 
     return combineLatest({
+      signedExtensions: signedExtensions$,
       signer: signer$,
-      extra: extra$,
-      additional: additional$,
     })
   }

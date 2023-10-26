@@ -6,6 +6,6 @@ import { empty$ } from "../utils"
 export const ChargeTransactionPayment: GetUserSignedExtension<
   "ChargeTransactionPayment"
 > = (user$) => ({
-  extra: user$.pipe(map(compactBn.enc)),
-  additional: empty$,
+  value: user$.pipe(map(compactBn.enc)),
+  additionalSigned: empty$,
 })
