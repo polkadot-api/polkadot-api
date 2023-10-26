@@ -44,6 +44,21 @@ type BackgroundRequestGetChain = {
   relayChainGenesisHash?: string
 }
 
+type BackgroundRequestDeleteChain = {
+  // FIXME: add origin
+  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
+  type: "deleteChain"
+  genesisHash: string
+}
+
+type BackgroundRequestPersistChain = {
+  // FIXME: add origin
+  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
+  type: "persistChain"
+  chainSpec: string
+  relayChainGenesisHash?: string
+}
+
 type BackgroundRequestGetChains = {
   // FIXME: add origin
   // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
@@ -66,13 +81,22 @@ type BackgroundRequestDisconnect = {
   genesisHash: string
 }
 
+type BackgroundRequestSetBootNodes = {
+  type: "setBootNodes"
+  genesisHash: string
+  bootNodes: string[]
+}
+
 // FIXME: add origin to any request
 export type BackgroundRequest =
   | BackgroundRequestGetChain
+  | BackgroundRequestDeleteChain
+  | BackgroundRequestPersistChain
   | BackgroundRequestGetChains
   | BackgroundRequestGetChainData
   | BackgroundRequestGetActiveConnections
   | BackgroundRequestDisconnect
+  | BackgroundRequestSetBootNodes
 
 type BackgroundResponseGetChain = {
   type: "getChainResponse"
@@ -80,6 +104,14 @@ type BackgroundResponseGetChain = {
     genesisHash: string
     name: string
   }
+}
+
+type BackgroundResponseDeleteChain = {
+  type: "deleteChainResponse"
+}
+
+type BackgroundResponsePersistChain = {
+  type: "persistChainResponse"
 }
 
 type BackgroundResponseGetChains = {
@@ -103,6 +135,10 @@ type BackgroundResponseDisconnect = {
   type: "disconnectResponse"
 }
 
+type BackgroundResponseSetBootNodes = {
+  type: "setBootNodesResponse"
+}
+
 export type BackgroundResponseError = {
   type: "error"
   error: string
@@ -111,10 +147,13 @@ export type BackgroundResponseError = {
 // FIXME: add origin to any response
 export type BackgroundResponse =
   | BackgroundResponseGetChain
+  | BackgroundResponseDeleteChain
+  | BackgroundResponsePersistChain
   | BackgroundResponseGetChains
   | BackgroundResponseGetChainData
   | BackgroundResponseGetActiveConnections
   | BackgroundResponseDisconnect
+  | BackgroundResponseSetBootNodes
 
 export type PostMessage<T> = {
   channelId: string

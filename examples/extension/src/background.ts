@@ -1,4 +1,7 @@
-import { backgroundHelper } from "@polkadot-api/light-client-extension-helpers/background"
+import {
+  backgroundHelper,
+  lightClientPageHelper,
+} from "@polkadot-api/light-client-extension-helpers/background"
 import type { ToContent } from "./protocol"
 
 backgroundHelper(async (inputChain, tabId) => {
@@ -10,4 +13,9 @@ backgroundHelper(async (inputChain, tabId) => {
     } as ToContent))
   )
     throw new Error("addChainByUser rejected")
+
+  await lightClientPageHelper.persistChain(
+    inputChain.chainSpec,
+    inputChain.relayChainGenesisHash,
+  )
 })

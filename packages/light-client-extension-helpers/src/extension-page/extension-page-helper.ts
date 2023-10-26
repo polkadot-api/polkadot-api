@@ -11,42 +11,14 @@ import type { LightClientPageHelper } from "./types"
 
 export const helper: LightClientPageHelper = {
   async deleteChain(genesisHash) {
-    // TODO: check, Should it disconnect any activeChain?
-    // TODO: batch storage.remove
-    await Promise.all([
-      storage.remove({ type: "chain", genesisHash }),
-      storage.remove({ type: "bootNodes", genesisHash }),
-      storage.remove({ type: "databaseContent", genesisHash }),
-    ])
-    for (const {
-      genesisHash: parachainGenesisHash,
-      relayChainGenesisHash,
-    } of Object.values(await storage.getChains())) {
-      if (relayChainGenesisHash !== genesisHash) continue
-      await Promise.all([
-        storage.remove({ type: "chain", genesisHash: parachainGenesisHash }),
-        storage.remove({
-          type: "bootNodes",
-          genesisHash: parachainGenesisHash,
-        }),
-        storage.remove({
-          type: "databaseContent",
-          genesisHash: parachainGenesisHash,
-        }),
-      ])
-    }
+    await sendBackgroundRequest({ type: "deleteChain", genesisHash })
   },
   async persistChain(chainSpec, relayChainGenesisHash) {
-    // TODO: What if the chain already exists? Throw?
-    const { type, ...chainData } = await sendBackgroundRequest({
-      type: "getChainData",
+    await sendBackgroundRequest({
+      type: "persistChain",
       chainSpec,
       relayChainGenesisHash,
     })
-    await storage.set(
-      { type: "chain", genesisHash: chainData?.genesisHash },
-      { ...chainData, chainSpec, relayChainGenesisHash },
-    )
   },
   async getChains() {
     return Promise.all(
@@ -74,8 +46,12 @@ export const helper: LightClientPageHelper = {
       genesisHash,
     })
   },
-  setBootNodes(genesisHash, bootNodes) {
-    return storage.set({ type: "bootNodes", genesisHash }, bootNodes)
+  async setBootNodes(genesisHash, bootNodes) {
+    await sendBackgroundRequest({
+      type: "setBootNodes",
+      genesisHash,
+      bootNodes,
+    })
   },
 }
 

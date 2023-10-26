@@ -6,7 +6,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
 import type { AddChainOptions, Chain } from "smoldot"
-import type { BackgroundHelper } from "./types"
+import type { BackgroundHelper, LightClientPageHelper } from "./types"
 import { smoldotProvider } from "./smoldot-provider"
 import { smoldotClient } from "./smoldot-client"
 import type {
@@ -80,6 +80,94 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
     periodInMinutes: 2,
   })
 })
+
+export const lightClientPageHelper: LightClientPageHelper = {
+  async deleteChain(genesisHash) {
+    // TODO: check, Should it disconnect any activeChain?
+    // TODO: batch storage.remove
+    await Promise.all([
+      storage.remove({ type: "chain", genesisHash }),
+      storage.remove({ type: "bootNodes", genesisHash }),
+      storage.remove({ type: "databaseContent", genesisHash }),
+    ])
+    for (const {
+      genesisHash: parachainGenesisHash,
+      relayChainGenesisHash,
+    } of Object.values(await storage.getChains())) {
+      if (relayChainGenesisHash !== genesisHash) continue
+      await Promise.all([
+        storage.remove({ type: "chain", genesisHash: parachainGenesisHash }),
+        storage.remove({
+          type: "bootNodes",
+          genesisHash: parachainGenesisHash,
+        }),
+        storage.remove({
+          type: "databaseContent",
+          genesisHash: parachainGenesisHash,
+        }),
+      ])
+    }
+  },
+  async persistChain(chainSpec, relayChainGenesisHash) {
+    // TODO: What if the chain already exists? Throw?
+    const chainData = await getChainData(chainSpec, relayChainGenesisHash)
+    await storage.set(
+      { type: "chain", genesisHash: chainData?.genesisHash },
+      { ...chainData, chainSpec, relayChainGenesisHash },
+    )
+  },
+  async getChains() {
+    const chains = await storage.getChains()
+    return Promise.all(
+      Object.entries(chains).map(async ([genesisHash, chain]) => ({
+        ...chain,
+        bootNodes:
+          (await storage.get({ type: "bootNodes", genesisHash })) ??
+          (JSON.parse(chain.chainSpec).bootNodes as string[]),
+        provider: await smoldotProvider({
+          smoldotClient,
+          chainSpec: chain.chainSpec,
+          relayChainSpec: chain.relayChainGenesisHash
+            ? chains[chain.relayChainGenesisHash].chainSpec
+            : undefined,
+        }),
+      })),
+    )
+  },
+  async getActiveConnections() {
+    return Object.entries(activeChains).reduce(
+      (acc, [tabIdStr, tabChains]) => {
+        const tabId = parseInt(tabIdStr)
+        Object.values(tabChains).forEach(({ genesisHash }) =>
+          // TODO: Should options-tab/popup connections be filtered from activeConnectionså?
+          acc.push({ tabId, genesisHash }),
+        )
+        return acc
+      },
+      [] as { tabId: number; genesisHash: string }[],
+    )
+  },
+  async disconnect(tabId: number, genesisHash: string) {
+    Object.entries(activeChains[tabId] ?? {})
+      // TODO: Should options-tab/popup connections connections be disconnectable?
+      .filter(
+        ([_, { genesisHash: activeGenesisHash }]) =>
+          activeGenesisHash === genesisHash,
+      )
+      .forEach(([chainId]) => {
+        removeChain(tabId, chainId)
+        chrome.tabs.sendMessage(tabId, {
+          origin: "substrate-connect-extension",
+          type: "error",
+          chainId,
+          errorMessage: "Disconnected",
+        } as ToPage)
+      })
+  },
+  setBootNodes(genesisHash, bootNodes) {
+    return storage.set({ type: "bootNodes", genesisHash }, bootNodes)
+  },
+}
 
 let addChainByUserCallback: Parameters<BackgroundHelper>[0] | undefined =
   undefined
@@ -370,13 +458,38 @@ chrome.runtime.onMessage.addListener(
         })()
         return true
       }
+      case "deleteChain": {
+        lightClientPageHelper
+          .deleteChain(msg.genesisHash)
+          .then(() =>
+            sendBackgroundResponse(sendResponse, {
+              type: "deleteChainResponse",
+            }),
+          )
+          .catch(handleBackgroundErrorResponse(sendResponse))
+        return true
+      }
+      case "persistChain": {
+        lightClientPageHelper
+          .persistChain(msg.chainSpec, msg.relayChainGenesisHash)
+          .then(() =>
+            sendBackgroundResponse(sendResponse, {
+              type: "persistChainResponse",
+            }),
+          )
+          .catch(handleBackgroundErrorResponse(sendResponse))
+        return true
+      }
       case "getChains": {
-        storage.getChains().then((chains) => {
-          sendBackgroundResponse(sendResponse, {
-            type: "getChainsResponse",
-            chains,
+        storage
+          .getChains()
+          .then((chains) => {
+            sendBackgroundResponse(sendResponse, {
+              type: "getChainsResponse",
+              chains,
+            })
           })
-        })
+          .catch(handleBackgroundErrorResponse(sendResponse))
         return true
       }
       case "getChainData": {
@@ -387,25 +500,20 @@ chrome.runtime.onMessage.addListener(
               ...chainData,
             }),
           )
-          .catch((error) => sendBackgroundErrorResponse(sendResponse, error))
+          .catch(handleBackgroundErrorResponse(sendResponse))
         return true
       }
       case "getActiveConnections": {
-        sendBackgroundResponse(sendResponse, {
-          type: "getActiveConnectionsResponse",
-          connections: Object.entries(activeChains).reduce(
-            (acc, [tabIdStr, tabChains]) => {
-              const tabId = parseInt(tabIdStr)
-              Object.values(tabChains).forEach(({ genesisHash }) =>
-                // TODO: Should options-tab/popup connections be filtered from activeConnectionså?
-                acc.push({ tabId, genesisHash }),
-              )
-              return acc
-            },
-            [] as { tabId: number; genesisHash: string }[],
-          ),
-        })
-        break
+        lightClientPageHelper
+          .getActiveConnections()
+          .then((connections) =>
+            sendBackgroundResponse(sendResponse, {
+              type: "getActiveConnectionsResponse",
+              connections,
+            }),
+          )
+          .catch(handleBackgroundErrorResponse(sendResponse))
+        return true
       }
       case "disconnect": {
         Object.entries(activeChains[msg.tabId] ?? {})
@@ -425,6 +533,17 @@ chrome.runtime.onMessage.addListener(
           type: "disconnectResponse",
         })
         break
+      }
+      case "setBootNodes": {
+        lightClientPageHelper
+          .setBootNodes(msg.genesisHash, msg.bootNodes)
+          .then(() =>
+            sendBackgroundResponse(sendResponse, {
+              type: "setBootNodesResponse",
+            }),
+          )
+          .catch(handleBackgroundErrorResponse(sendResponse))
+        return true
       }
       default: {
         const unrecognizedMsg: never = msg
@@ -535,6 +654,10 @@ const sendBackgroundErrorResponse = (
         ? error
         : "Unknown error getting chain data",
   })
+
+const handleBackgroundErrorResponse =
+  (sendResponse: (msg: any) => void) => (error: Error | string | unknown) =>
+    sendBackgroundErrorResponse(sendResponse, error)
 
 const substrateClientRequest = <T>(
   client: SubstrateClient,
