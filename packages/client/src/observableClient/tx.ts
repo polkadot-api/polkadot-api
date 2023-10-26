@@ -27,7 +27,7 @@ export default (baseTransaction: SubstrateClient["transaction"]) =>
           if (event.type === "error")
             return observer.error(new Error(event.error))
 
-          observer.next()
+          observer.next(event)
           if (terminalTxEvents.has(event.type)) observer.complete()
         },
         (error) => {
