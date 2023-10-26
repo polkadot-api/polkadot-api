@@ -11,7 +11,7 @@ const lenToDecoder = {
 }
 
 export const CheckNonce: GetChainSignedExtension = (ctx) => ({
-  extra: ctx.chainHead
+  value: ctx.chainHead
     .call$(ctx.at, "AccountNonceApi_account_nonce", toHex(ctx.from))
     .pipe(
       map((result) => {
@@ -22,5 +22,5 @@ export const CheckNonce: GetChainSignedExtension = (ctx) => ({
         return compact.enc(decoder(bytes))
       }),
     ),
-  additional: empty$,
+  additionalSigned: empty$,
 })

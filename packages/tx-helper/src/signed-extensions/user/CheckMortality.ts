@@ -42,12 +42,12 @@ export const CheckMortality: GetUserSignedExtension<"CheckMortality"> = (
     .pipe(map((x) => SystemNumber.dec(x!)))
 
   return {
-    additional: userInput$.pipe(
+    additionalSigned: userInput$.pipe(
       mergeMap((input) =>
         input.mortal ? of(fromHex(ctx.at)) : genesisHashFromCtx(ctx),
       ),
     ),
-    extra: combineLatest([userInput$, blockNumber$]).pipe(
+    value: combineLatest([userInput$, blockNumber$]).pipe(
       map(([input, blockNumber]) =>
         input.mortal
           ? mortal({

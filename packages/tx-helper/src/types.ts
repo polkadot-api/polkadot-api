@@ -63,13 +63,8 @@ export type ConsumerCallback<T extends Array<UserSignedExtensionName>> = {
 export type CreateTx = (
   from: Uint8Array, // The public-key of the sender
   callData: Uint8Array,
-  consumerCallback?: <
-    UserSignedExtensionsName extends Array<UserSignedExtensionName>,
-  >(
+  cb?: <UserSignedExtensionsName extends Array<UserSignedExtensionName>>(
     context: OnCreateTxCtx<UserSignedExtensionsName>,
-
-    // The function to call once the user has decided to cancel or proceed with the tx.
-    // Passing `null` indicates that the user has decided not to sing the tx.
     callback: Callback<null | ConsumerCallback<UserSignedExtensionsName>>,
   ) => void,
 ) => Promise<Uint8Array>
