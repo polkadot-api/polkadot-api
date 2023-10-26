@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -386,6 +386,9 @@ importers:
       '@noble/curves':
         specifier: ^1.2.0
         version: 1.2.0
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../packages/client
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../packages/sc-provider
@@ -407,6 +410,9 @@ importers:
       '@unique-nft/sr25519':
         specifier: ^0.0.1
         version: 0.0.1
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
     devDependencies:
       '@types/node':
         specifier: ^20.6.0

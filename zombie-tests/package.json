@@ -6,13 +6,15 @@
   "scripts": {},
   "dependencies": {
     "@noble/curves": "^1.2.0",
+    "@polkadot-api/client": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
     "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "@unique-nft/sr25519": "^0.0.1"
+    "@unique-nft/sr25519": "^0.0.1",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@types/node": "^20.6.0"

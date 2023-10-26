@@ -1,5 +1,9 @@
 import {
+  Callback,
+  ConsumerCallback,
+  OnCreateTxCtx,
   SigningType,
+  UserSignedExtensionName,
   UserSignedExtensions,
   getTxCreator,
 } from "@polkadot-api/tx-helper"
@@ -18,6 +22,8 @@ import { createClient } from "@polkadot-api/substrate-client"
 import { ed25519 } from "@noble/curves/ed25519"
 import { secp256k1 } from "@noble/curves/secp256k1"
 import { Sr25519Account } from "@unique-nft/sr25519"
+import { getObservableClient } from "@polkadot-api/client"
+import { tap, lastValueFrom } from "rxjs"
 
 /**
  * Public and Private keys were pulled from subkey:
@@ -49,183 +55,168 @@ const BOB_ECDSA_SS58_ADDR =
 
 const TEST_ARGS: [
   signingType: SigningType,
-  isMortal: boolean,
   from: Uint8Array,
   to: SS58String,
 ][] = [
-  ["Sr25519", false, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
-  ["Sr25519", true, ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
-  ["Ed25519", false, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
-  ["Ed25519", true, ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
-  ["Ecdsa", false, Blake2256(ALICE_ECDSA_PUB_KEY), BOB_ECDSA_SS58_ADDR],
-  ["Ecdsa", true, Blake2256(ALICE_ECDSA_PUB_KEY), BOB_ECDSA_SS58_ADDR],
+  ["Sr25519", ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
+  ["Ed25519", ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
+  ["Ecdsa", Blake2256(ALICE_ECDSA_PUB_KEY), BOB_ECDSA_SS58_ADDR],
 ]
+type UserCb = <UserSignedExtensionsName extends Array<UserSignedExtensionName>>(
+  context: OnCreateTxCtx<UserSignedExtensionsName>,
+  callback: Callback<null | ConsumerCallback<UserSignedExtensionsName>>,
+) => void
+
+const getSigner = (
+  signingType: SigningType,
+): ((value: Uint8Array) => Promise<Uint8Array>) => {
+  switch (signingType) {
+    case "Sr25519": {
+      const alice = Sr25519Account.fromUri("//Alice")
+      return async (value) => alice.sign(value)
+    }
+
+    case "Ed25519": {
+      const priv = fromHex(
+        "0xabf8e5bdbe30c65656c0a3cbd181ff8a56294a69dfedd27982aace4a76909115",
+      )
+      return async (value) => ed25519.sign(value, priv)
+    }
+
+    case "Ecdsa": {
+      const priv = fromHex(
+        "0xcb6df9de1efca7a3998a8ead4e02159d5fa99c3e0d4fd6432667390bb4726854",
+      )
+      return async (value) => {
+        const signature = secp256k1.sign(Blake2256(value), priv)
+        const signedBytes = signature.toCompactRawBytes()
+
+        const result = new Uint8Array(signedBytes.length + 1)
+        result.set(signedBytes)
+        result[signedBytes.length] = signature.recovery
+
+        return result
+      }
+    }
+  }
+}
+
+const getCreatTxCb =
+  (isMortal: boolean, signingType: SigningType): UserCb =>
+  ({ userSingedExtensionsName }, callback) => {
+    const userSignedExtensionsData = Object.fromEntries(
+      userSingedExtensionsName.map((x) => {
+        if (x === "CheckMortality") {
+          const result: UserSignedExtensions["CheckMortality"] = isMortal
+            ? {
+                mortal: true,
+                period: 128,
+              }
+            : {
+                mortal: false,
+              }
+
+          return [x, result]
+        }
+
+        if (x === "ChargeTransactionPayment") return [x, 0n]
+        return [x, { tip: 0n }]
+      }),
+    )
+
+    callback({
+      overrides: {},
+      userSignedExtensionsData,
+      signingType,
+      signer: getSigner(signingType),
+    })
+  }
 
 export async function run(_nodeName: string, networkInfo: any) {
   try {
     const customChainSpec = require(networkInfo.chainSpecPath)
     const provider = ScProvider(JSON.stringify(customChainSpec))
-    const client = createClient(provider)
+    const client = getObservableClient(createClient(provider))
 
-    for (const [signingType, isMortal, from, to] of TEST_ARGS) {
-      console.log(
-        `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${toHex(
-          from,
-        )}, To: ${to}`,
-      )
+    const getPromises = (isMortal: boolean) =>
+      TEST_ARGS.map(async ([signingType, from, to]) => {
+        console.log(
+          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${toHex(
+            from,
+          )}, To: ${to}`,
+        )
 
-      const { createTx } = getTxCreator(
-        provider,
-        ({ userSingedExtensionsName }, callback) => {
-          const userSignedExtensionsData = Object.fromEntries(
-            userSingedExtensionsName.map((x) => {
-              if (x === "CheckMortality") {
-                const result: UserSignedExtensions["CheckMortality"] = isMortal
-                  ? {
-                      mortal: true,
-                      period: 128,
-                    }
-                  : {
-                      mortal: false,
-                    }
+        const { createTx } = getTxCreator(
+          provider,
+          getCreatTxCb(isMortal, signingType),
+        )
 
-                return [x, result]
-              }
-
-              if (x === "ChargeTransactionPayment") return [x, 0n]
-              return [x, { tip: 0n }]
+        const call = Struct({
+          module: u8,
+          method: u8,
+          args: Struct({
+            dest: Enum({
+              Id: AccountId(42),
             }),
-          )
-          switch (signingType) {
-            case "Sr25519": {
-              const alice = Sr25519Account.fromUri("//Alice")
-              callback({
-                userSignedExtensionsData,
-                overrides: {},
-                signingType: "Sr25519",
-                signer: async (value) => alice.sign(value),
-              })
-              break
-            }
-            case "Ed25519": {
-              const priv = fromHex(
-                "0xabf8e5bdbe30c65656c0a3cbd181ff8a56294a69dfedd27982aace4a76909115",
-              )
-              callback({
-                userSignedExtensionsData,
-                overrides: {},
-                signingType: "Ed25519",
-                signer: async (value) => ed25519.sign(value, priv),
-              })
-              break
-            }
-            case "Ecdsa": {
-              const priv = fromHex(
-                "0xcb6df9de1efca7a3998a8ead4e02159d5fa99c3e0d4fd6432667390bb4726854",
-              )
-              callback({
-                userSignedExtensionsData,
-                overrides: {},
-                signingType: "Ecdsa",
-                signer: async (value) => {
-                  const signature = secp256k1.sign(Blake2256(value), priv)
-                  const signedBytes = signature.toCompactRawBytes()
-
-                  const result = new Uint8Array(signedBytes.length + 1)
-                  result.set(signedBytes)
-                  result[signedBytes.length] = signature.recovery
-
-                  return result
-                },
-              })
-              break
-            }
-          }
-        },
-      )
-
-      const call = Struct({
-        module: u8,
-        method: u8,
-        args: Struct({
-          dest: Enum({
-            Id: AccountId(42),
+            value: compact,
           }),
-          value: compact,
-        }),
-      })
+        })
 
-      const transaction = toHex(
-        await createTx(
-          from,
-          call.enc({
-            module: 4,
-            method: 0,
-            args: {
-              dest: {
-                tag: "Id",
-                value: to,
+        const transaction = toHex(
+          await createTx(
+            from,
+            call.enc({
+              module: 4,
+              method: 0,
+              args: {
+                dest: {
+                  tag: "Id",
+                  value: to,
+                },
+                value: 1000000n,
               },
-              value: 1000000n,
+            }),
+          ),
+        )
+
+        console.log(
+          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, Transaction`,
+          transaction,
+        )
+
+        const tx$ = client.tx$(transaction).pipe(
+          tap({
+            next: (e) => {
+              console.log(
+                `Signing Type: ${signingType}, Is Mortal: ${isMortal}, event:`,
+                e,
+              )
+              switch (e.type) {
+                case "finalized":
+                  break
+                case "invalid":
+                  process.exit(1)
+                default:
+                  break
+              }
+            },
+            error: (e) => {
+              console.error(
+                `Signing Type: ${signingType}, Is Mortal: ${isMortal}, ERROR:`,
+                e,
+              )
+              process.exit(1)
             },
           }),
-        ),
-      )
+        )
+        await lastValueFrom(tx$)
+      })
 
-      console.log("transaction", transaction)
-
-      const done = deferred()
-      client.transaction(
-        transaction,
-        (e) => {
-          console.log(e)
-          switch (e.type) {
-            case "finalized":
-              done.resolve()
-              break
-            case "invalid":
-              process.exit(1)
-            default:
-              break
-          }
-        },
-        (e) => {
-          console.error("there was an error ", e)
-          process.exit(1)
-        },
-      )
-
-      await done
-    }
+    await Promise.all(getPromises(true))
+    await Promise.all(getPromises(false))
   } catch (err) {
     console.log(err)
     console.log((err as any).stack)
     throw err
   }
-}
-
-interface Deferred<T> extends Promise<T> {
-  readonly state: "pending" | "fulfilled" | "rejected"
-  resolve(value?: T | PromiseLike<T>): void
-  reject(reason?: any): void
-}
-
-function deferred<T>(): Deferred<T> {
-  let methods
-  let state = "pending"
-  const promise = new Promise<T>((resolve, reject) => {
-    methods = {
-      async resolve(value: T | PromiseLike<T>) {
-        await value
-        state = "fulfilled"
-        resolve(value)
-      },
-      reject(reason?: any) {
-        state = "rejected"
-        reject(reason)
-      },
-    }
-  })
-  Object.defineProperty(promise, "state", { get: () => state })
-  return Object.assign(promise, methods) as Deferred<T>
 }
