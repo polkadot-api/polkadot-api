@@ -69,7 +69,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   )
 })
 
-chrome.runtime.onInstalled.addListener(({ reason }) => {
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   if (
     reason !== chrome.runtime.OnInstalledReason.INSTALL &&
     reason !== chrome.runtime.OnInstalledReason.UPDATE
@@ -79,6 +79,21 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   chrome.alarms.create(ALARM.DATABASE_UPDATE, {
     periodInMinutes: 2,
   })
+
+  Promise.all([
+    lightClientPageHelper.persistChain(
+      (await import("./specs/polkadot")).chainSpec,
+    ),
+    lightClientPageHelper.persistChain(
+      (await import("./specs/ksmcc3")).chainSpec,
+    ),
+    lightClientPageHelper.persistChain(
+      (await import("./specs/rococo_v2_2")).chainSpec,
+    ),
+    lightClientPageHelper.persistChain(
+      (await import("./specs/westend2")).chainSpec,
+    ),
+  ])
 })
 
 export const lightClientPageHelper: LightClientPageHelper = {
@@ -110,7 +125,12 @@ export const lightClientPageHelper: LightClientPageHelper = {
   },
   async persistChain(chainSpec, relayChainGenesisHash) {
     // TODO: What if the chain already exists? Throw?
-    const chainData = await getChainData(chainSpec, relayChainGenesisHash)
+    const chainData = await getChainData(
+      chainSpec,
+      relayChainGenesisHash
+        ? (await storage.getChains())[relayChainGenesisHash].chainSpec
+        : undefined,
+    )
     await storage.set(
       { type: "chain", genesisHash: chainData?.genesisHash },
       { ...chainData, chainSpec, relayChainGenesisHash },
@@ -492,17 +512,6 @@ chrome.runtime.onMessage.addListener(
           .catch(handleBackgroundErrorResponse(sendResponse))
         return true
       }
-      case "getChainData": {
-        getChainData(msg.chainSpec, msg.relayChainGenesisHash)
-          .then((chainData) =>
-            sendBackgroundResponse(sendResponse, {
-              type: "getChainDataResponse",
-              ...chainData,
-            }),
-          )
-          .catch(handleBackgroundErrorResponse(sendResponse))
-        return true
-      }
       case "getActiveConnections": {
         lightClientPageHelper
           .getActiveConnections()
@@ -575,6 +584,7 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
         substrateClientRequest<string>(client, method),
       ),
     )
+    // FIXME: ss58Format is not needed on every getChainData invocation
     const ss58Format: number = await new Promise(async (resolve, reject) => {
       const chainHeadFollower = client.chainHead(
         true,

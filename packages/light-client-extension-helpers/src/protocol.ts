@@ -65,12 +65,6 @@ type BackgroundRequestGetChains = {
   type: "getChains"
 }
 
-type BackgroundRequestGetChainData = {
-  type: "getChainData"
-  chainSpec: string
-  relayChainGenesisHash?: string
-}
-
 type BackgroundRequestGetActiveConnections = {
   type: "getActiveConnections"
 }
@@ -93,7 +87,6 @@ export type BackgroundRequest =
   | BackgroundRequestDeleteChain
   | BackgroundRequestPersistChain
   | BackgroundRequestGetChains
-  | BackgroundRequestGetChainData
   | BackgroundRequestGetActiveConnections
   | BackgroundRequestDisconnect
   | BackgroundRequestSetBootNodes
@@ -117,13 +110,6 @@ type BackgroundResponsePersistChain = {
 type BackgroundResponseGetChains = {
   type: "getChainsResponse"
   chains: Record<string, { genesisHash: string; name: string }>
-}
-
-type BackgroundResponseGetChainData = {
-  type: "getChainDataResponse"
-  genesisHash: string
-  name: string
-  ss58Format: number
 }
 
 type BackgroundResponseGetActiveConnections = {
@@ -150,7 +136,6 @@ export type BackgroundResponse =
   | BackgroundResponseDeleteChain
   | BackgroundResponsePersistChain
   | BackgroundResponseGetChains
-  | BackgroundResponseGetChainData
   | BackgroundResponseGetActiveConnections
   | BackgroundResponseDisconnect
   | BackgroundResponseSetBootNodes
