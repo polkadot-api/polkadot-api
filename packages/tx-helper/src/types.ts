@@ -63,6 +63,10 @@ export type ConsumerCallback<T extends Array<UserSignedExtensionName>> = {
 export type CreateTx = (
   from: Uint8Array, // The public-key of the sender
   callData: Uint8Array,
+  cb?: <UserSignedExtensionsName extends Array<UserSignedExtensionName>>(
+    context: OnCreateTxCtx<UserSignedExtensionsName>,
+    callback: Callback<null | ConsumerCallback<UserSignedExtensionsName>>,
+  ) => void,
 ) => Promise<Uint8Array>
 
 export type SigningType = "Ed25519" | "Sr25519" | "Ecdsa"
