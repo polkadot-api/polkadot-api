@@ -58,9 +58,21 @@ export const onChainsChanged = (
 
 export const getChains = async (): Promise<Record<string, ChainInfo>> =>
   Object.fromEntries(
-    Object.entries(await chrome.storage.local.get())
-      .filter((entry): entry is [string, ChainInfo] =>
-        entry[0].startsWith("chain_"),
-      )
-      .map(([_, chain]) => [chain.genesisHash, chain]),
+    await Promise.all(
+      Object.entries(await chrome.storage.local.get())
+        .filter((entry): entry is [string, ChainInfo] =>
+          entry[0].startsWith("chain_"),
+        )
+        .map(async ([_, { chainSpec, ...chain }]) => {
+          const chainSpecJson = JSON.parse(chainSpec)
+          chainSpecJson.bootNodes = await get({
+            type: "bootNodes",
+            genesisHash: chain.genesisHash,
+          })
+          return [
+            chain.genesisHash,
+            { ...chain, chainSpec: JSON.stringify(chainSpecJson) },
+          ]
+        }),
+    ),
   )

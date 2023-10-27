@@ -1,4 +1,7 @@
-import { SubstrateClient, createClient } from "@polkadot-api/substrate-client"
+import {
+  type SubstrateClient,
+  createClient,
+} from "@polkadot-api/substrate-client"
 import {
   Tuple,
   compact,
@@ -30,7 +33,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
           smoldotClient,
           chainSpec,
           relayChainSpec: relayChainGenesisHash
-            ? chains[relayChainGenesisHash]?.chainSpec
+            ? chains[relayChainGenesisHash].chainSpec
             : undefined,
           databaseContent: await storage.get({
             type: "databaseContent",
@@ -131,13 +134,10 @@ export const lightClientPageHelper: LightClientPageHelper = {
     }
   },
   async persistChain(chainSpec, relayChainGenesisHash) {
-    // TODO: What if the chain already exists? Throw?
-    const chainData = await getChainData(
-      chainSpec,
-      relayChainGenesisHash
-        ? (await storage.getChains())[relayChainGenesisHash].chainSpec
-        : undefined,
-    )
+    const relayChainSpec = relayChainGenesisHash
+      ? (await storage.getChains())[relayChainGenesisHash].chainSpec
+      : undefined
+    const chainData = await getChainData(chainSpec, relayChainSpec)
     if (
       await storage.get({ type: "chain", genesisHash: chainData.genesisHash })
     )
@@ -157,7 +157,12 @@ export const lightClientPageHelper: LightClientPageHelper = {
     await Promise.all([
       storage.set(
         { type: "chain", genesisHash: chainData.genesisHash },
-        { ...chainData, chainSpec, relayChainGenesisHash },
+        {
+          ...chainData,
+          ss58Format: await getSs58Format(chainSpec, relayChainSpec),
+          chainSpec: JSON.stringify(chainSpecJson),
+          relayChainGenesisHash,
+        },
       ),
       storage.set(
         { type: "bootNodes", genesisHash: chainData.genesisHash },
@@ -301,18 +306,13 @@ chrome.runtime.onConnect.addListener((port) => {
                   )
                 if (!chain) throw new Error("Unknown well-known chain")
                 addChainOptions = {
-                  chainSpec: await addBootNodes(
-                    chain.chainSpec,
-                    chain.genesisHash,
-                  ),
+                  chainSpec: chain.chainSpec,
                   disableJsonRpc: false,
                   potentialRelayChains: chain.relayChainGenesisHash
                     ? [
                         await smoldotClient.addChain({
-                          chainSpec: await addBootNodes(
+                          chainSpec:
                             chains[chain.relayChainGenesisHash].chainSpec,
-                            chain.relayChainGenesisHash,
-                          ),
                           disableJsonRpc: true,
                           databaseContent: await storage.get({
                             type: "databaseContent",
@@ -335,10 +335,8 @@ chrome.runtime.onConnect.addListener((port) => {
                   potentialRelayChains: chains[relayChainGenesisHashOrChainId]
                     ? [
                         await smoldotClient.addChain({
-                          chainSpec: await addBootNodes(
+                          chainSpec:
                             chains[relayChainGenesisHashOrChainId].chainSpec,
-                            relayChainGenesisHashOrChainId,
-                          ),
                           disableJsonRpc: true,
                           databaseContent: await storage.get({
                             type: "databaseContent",
@@ -607,18 +605,34 @@ const removeChain = (tabId: number, chainId: string) => {
   }
 }
 
-const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
-  const client = createClient(
-    await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
-  )
-  try {
-    const [genesisHash, name] = await Promise.all(
-      ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map((method) =>
-        substrateClientRequest<string>(client, method),
-      ),
+const withClient =
+  <T>(fn: (client: SubstrateClient) => T | PromiseLike<T>) =>
+  async (chainSpec: string, relayChainSpec?: string) => {
+    const client = createClient(
+      await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
     )
-    // FIXME: ss58Format is not needed on every getChainData invocation
-    const ss58Format: number = await new Promise(async (resolve, reject) => {
+    try {
+      return await fn(client)
+    } finally {
+      client.destroy()
+    }
+  }
+
+const getChainData = withClient(async (client) => {
+  const [genesisHash, name] = await Promise.all(
+    ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map((method) =>
+      substrateClientRequest<string>(client, method),
+    ),
+  )
+  return {
+    genesisHash,
+    name,
+  }
+})
+
+const getSs58Format = withClient(
+  (client) =>
+    new Promise<number>(async (resolve, reject) => {
       const chainHeadFollower = client.chainHead(
         true,
         async (event) => {
@@ -653,16 +667,8 @@ const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
         },
         reject,
       )
-    })
-    return {
-      genesisHash,
-      name,
-      ss58Format,
-    }
-  } finally {
-    client.destroy()
-  }
-}
+    }),
+)
 
 // FIXME: merge with getChainData
 const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {
@@ -723,15 +729,3 @@ const substrateClientRequest = <T>(
       reject(error)
     }
   })
-
-const addBootNodes = async (chainSpec: string, genesisHash: string) => {
-  const bootNodes = await storage.get({
-    type: "bootNodes",
-    genesisHash,
-  })
-  if (!bootNodes) return chainSpec
-  const chainSpecJson = JSON.parse(chainSpec)
-  chainSpecJson.bootNodes = bootNodes
-  console.log(chainSpecJson.bootNodes)
-  return JSON.stringify(chainSpecJson)
-}
