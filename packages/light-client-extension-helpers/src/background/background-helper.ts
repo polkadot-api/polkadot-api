@@ -51,6 +51,13 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
               await substrateClientRequest(
                 client,
                 "chainHead_unstable_finalizedDatabase",
+                (await chrome.permissions.contains({
+                  permissions: ["unlimitedStorage"],
+                }))
+                  ? []
+                  : // 1mb will strip the runtime code
+                    // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
+                    [1024 * 1024],
               ),
             )
           } catch (error) {
@@ -131,10 +138,32 @@ export const lightClientPageHelper: LightClientPageHelper = {
         ? (await storage.getChains())[relayChainGenesisHash].chainSpec
         : undefined,
     )
-    await storage.set(
-      { type: "chain", genesisHash: chainData?.genesisHash },
-      { ...chainData, chainSpec, relayChainGenesisHash },
+    if (
+      await storage.get({ type: "chain", genesisHash: chainData.genesisHash })
     )
+      return
+
+    const chainSpecJson = JSON.parse(chainSpec)
+    const bootNodes = chainSpecJson.bootNodes
+    delete chainSpecJson.bootNodes
+    delete chainSpecJson.protocolId
+    delete chainSpecJson.telemetryEndpoints
+
+    // FIXME: set stateRootHash if !chainSpecJson.genesis.stateRootHash
+    // Note: RPC chain_getHeader is legacy JSON-RPC API
+
+    // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
+
+    await Promise.all([
+      storage.set(
+        { type: "chain", genesisHash: chainData.genesisHash },
+        { ...chainData, chainSpec, relayChainGenesisHash },
+      ),
+      storage.set(
+        { type: "bootNodes", genesisHash: chainData.genesisHash },
+        bootNodes,
+      ),
+    ])
   },
   async getChains() {
     const chains = await storage.getChains()
@@ -272,15 +301,18 @@ chrome.runtime.onConnect.addListener((port) => {
                   )
                 if (!chain) throw new Error("Unknown well-known chain")
                 addChainOptions = {
-                  // FIXME: use custom bootNodes
-                  chainSpec: chain.chainSpec,
+                  chainSpec: await addBootNodes(
+                    chain.chainSpec,
+                    chain.genesisHash,
+                  ),
                   disableJsonRpc: false,
                   potentialRelayChains: chain.relayChainGenesisHash
                     ? [
                         await smoldotClient.addChain({
-                          chainSpec:
-                            // FIXME: use custom bootNodes
+                          chainSpec: await addBootNodes(
                             chains[chain.relayChainGenesisHash].chainSpec,
+                            chain.relayChainGenesisHash,
+                          ),
                           disableJsonRpc: true,
                           databaseContent: await storage.get({
                             type: "databaseContent",
@@ -303,9 +335,10 @@ chrome.runtime.onConnect.addListener((port) => {
                   potentialRelayChains: chains[relayChainGenesisHashOrChainId]
                     ? [
                         await smoldotClient.addChain({
-                          chainSpec:
-                            // FIXME: use custom bootNodes
+                          chainSpec: await addBootNodes(
                             chains[relayChainGenesisHashOrChainId].chainSpec,
+                            relayChainGenesisHashOrChainId,
+                          ),
                           disableJsonRpc: true,
                           databaseContent: await storage.get({
                             type: "databaseContent",
@@ -690,3 +723,15 @@ const substrateClientRequest = <T>(
       reject(error)
     }
   })
+
+const addBootNodes = async (chainSpec: string, genesisHash: string) => {
+  const bootNodes = await storage.get({
+    type: "bootNodes",
+    genesisHash,
+  })
+  if (!bootNodes) return chainSpec
+  const chainSpecJson = JSON.parse(chainSpec)
+  chainSpecJson.bootNodes = bootNodes
+  console.log(chainSpecJson.bootNodes)
+  return JSON.stringify(chainSpecJson)
+}
