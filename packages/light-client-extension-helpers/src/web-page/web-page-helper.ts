@@ -4,7 +4,6 @@ import type {
   ToExtension,
   ToExtensionRequest,
   ToPage,
-  ToPageResponse,
 } from "@/protocol"
 import { CONTEXT, getRandomChainId } from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
@@ -25,72 +24,76 @@ const checkMessage = (msg: any): msg is ToPage => {
 }
 
 const channelIds = new Set<string>()
-window.addEventListener("message", ({ data, source }) => {
-  if (source !== window) return
-  const { channelId, msg } = data
-  if (!channelIds.has(channelId)) return
-  if (!validOrigins.includes(msg?.origin)) return
-  if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
-  if (msg.origin === "substrate-connect-extension")
-    return rawChainCallbacks[msg.chainId]?.(msg)
-  if (msg.id !== undefined) return handleResponse(msg)
-  if (msg.type === "onAddChains")
-    return chainsChangeCallbacks.forEach((cb) =>
-      cb(
-        Object.fromEntries(
-          Object.entries(msg.chains).map(([key, { genesisHash, name }]) => [
-            key,
-            createRawChain(channelId, { genesisHash, name }),
-          ]),
-        ),
-      ),
-    )
 
-  console.warn("Unhandled message", msg)
-})
-
-const chainsChangeCallbacks: Parameters<
-  LightClientProvider["addChainsChangeListener"]
->[0][] = []
-
-const pendingRequests: Record<
-  string,
-  { resolve(result: any): void; reject(error: any): void }
-> = {}
-
-const requestReply = <
-  TReq extends ToExtensionRequest,
-  TRes extends BackgroundResponse & {
-    type: `${TReq["request"]["type"]}Response`
-  },
->(
-  channelId: string,
-  msg: TReq,
-): Promise<TRes> => {
-  const promise = new Promise<TRes>((resolve, reject) => {
-    pendingRequests[msg.id] = { resolve, reject }
-  })
-  postToExtension({ channelId, msg })
-  return promise
-}
-const handleResponse = (msg: ToPageResponse) => {
-  const pendingRequest = pendingRequests[msg.id]
-  if (!pendingRequest) return console.warn("Unhandled response", msg)
-  msg.error
-    ? pendingRequest.reject(msg.error)
-    : pendingRequest.resolve(msg.result)
-  delete pendingRequests[msg.id]
-}
-
-// FIXME: improve id generation, random-id?
-const nextId = (
-  (initialId) => () =>
-    "" + initialId++
-)(0)
 export const getLightClientProvider = async (
   channelId: string,
 ): Promise<LightClientProvider> => {
+  const chainsChangeCallbacks: Parameters<
+    LightClientProvider["addChainsChangeListener"]
+  >[0][] = []
+  if (channelIds.has(channelId))
+    throw new Error(`channelId "${channelId}" already in use`)
   channelIds.add(channelId)
+
+  const pendingRequests: Record<
+    string,
+    { resolve(result: any): void; reject(error: any): void }
+  > = {}
+
+  window.addEventListener("message", ({ data, source }) => {
+    if (source !== window) return
+    const { channelId: messageChannelId, msg } = data
+    if (messageChannelId !== channelId) return
+    if (!validOrigins.includes(msg?.origin)) return
+    if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
+    if (msg.origin === "substrate-connect-extension")
+      return rawChainCallbacks[msg.chainId]?.(msg)
+    if (msg.id !== undefined) {
+      const pendingRequest = pendingRequests[msg.id]
+      if (!pendingRequest) return console.warn("Unhandled response", msg)
+      msg.error
+        ? pendingRequest.reject(msg.error)
+        : pendingRequest.resolve(msg.result)
+      delete pendingRequests[msg.id]
+      return
+    }
+    if (msg.type === "onAddChains")
+      return chainsChangeCallbacks.forEach((cb) =>
+        cb(
+          Object.fromEntries(
+            Object.entries(msg.chains).map(([key, { genesisHash, name }]) => [
+              key,
+              createRawChain(channelId, { genesisHash, name }),
+            ]),
+          ),
+        ),
+      )
+
+    console.warn("Unhandled message", msg)
+  })
+
+  const requestReply = <
+    TReq extends ToExtensionRequest,
+    TRes extends BackgroundResponse & {
+      type: `${TReq["request"]["type"]}Response`
+    },
+  >(
+    channelId: string,
+    msg: TReq,
+  ): Promise<TRes> => {
+    const promise = new Promise<TRes>((resolve, reject) => {
+      pendingRequests[msg.id] = { resolve, reject }
+    })
+    postToExtension({ channelId, msg })
+    return promise
+  }
+
+  // FIXME: improve id generation, random-id?
+  const nextId = (
+    (initialId) => () =>
+      "" + initialId++
+  )(0)
+
   let { chains } = await requestReply(channelId, {
     origin: CONTEXT.WEB_PAGE,
     id: nextId(),
@@ -128,9 +131,7 @@ export const getLightClientProvider = async (
     },
     addChainsChangeListener(callback) {
       chainsChangeCallbacks.push(callback)
-      return () => {
-        removeArrayItem(chainsChangeCallbacks, callback)
-      }
+      return () => removeArrayItem(chainsChangeCallbacks, callback)
     },
   }
 }
