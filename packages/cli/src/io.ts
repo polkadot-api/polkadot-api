@@ -353,11 +353,17 @@ export async function outputCodegen(
     descriptorCodegen += `const ${pallet}Creator = getPalletCreator(\"${pallet}\")\n\n`
   }
 
+  const constantDescriptorNames = constantDescriptors.map(
+    ([pallet, name]) => `${pallet}${name}Constant`,
+  )
+
   descriptorCodegen +=
     constantDescriptors
       .map(
-        ([pallet, name, checksum, payload]) =>
-          `const ${pallet}${name}Constant = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as unknown as ${
+        ([pallet, name, checksum, payload], i) =>
+          `const ${
+            constantDescriptorNames[i]
+          } = ${pallet}Creator.getPayloadDescriptor(CONST, ${checksum}n, \"${name}\", {} as unknown as ${
             declarations.imports.has(payload)
               ? `CodecType<typeof ${payload}>`
               : payload
@@ -365,15 +371,20 @@ export async function outputCodegen(
       )
 
       .join("\n\n") + "\n"
+
+  const storageDescriptorsNames = storageDescriptors.map(
+    ([pallet, name]) => `${pallet}${name}Storage`,
+  )
+
   descriptorCodegen +=
     storageDescriptors
-      .map(([pallet, name, checksum, key, payload]) => {
+      .map(([pallet, name, checksum, key, payload], i) => {
         const returnType = declarations.imports.has(payload)
           ? `CodecType<typeof ${payload}>`
           : payload
         const len = declarations.variables.get(key)!.directDependencies.size
 
-        const constName = `${pallet}${name}Storage`
+        const constName = `${storageDescriptorsNames[i]}`
         return `
 type ${constName}Descriptor = StorageDescriptor<DescriptorCommon<\"${pallet}\", \"${name}\">, ArgsWithPayloadCodec<${key}, ${returnType}>>
 
@@ -386,22 +397,36 @@ export type ${constName} = StorageType<typeof ${constName}>
 `
       })
       .join("\n\n") + "\n"
+
+  const eventDescriptorsNames = Object.values(eventDescriptors).map(
+    ([pallet, name]) => `${pallet}${name}Event`,
+  )
+
   descriptorCodegen +=
     Object.values(eventDescriptors)
       .map(
-        ([pallet, name, checksum, payload]) =>
-          `const ${pallet}${name}Event = ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as unknown as ${
+        ([pallet, name, checksum, payload], i) =>
+          `const ${
+            eventDescriptorsNames[i]
+          }= ${pallet}Creator.getPayloadDescriptor(EVENT, ${checksum}n, \"${name}\", {} as unknown as ${
             declarations.imports.has(payload)
               ? `CodecType<typeof ${payload}>`
               : payload
           })`,
       )
       .join("\n\n") + "\n"
+
+  const errorDescriptorsNames = Object.values(errorDescriptors).map(
+    ([pallet, name]) => `${pallet}${name}Error`,
+  )
+
   descriptorCodegen +=
     Object.values(errorDescriptors)
       .map(
-        ([pallet, name, checksum, payload]) =>
-          `const ${pallet}${name}Error = ${pallet}Creator.getPayloadDescriptor(ERROR, ${checksum}n, \"${name}\", {} as unknown as ${
+        ([pallet, name, checksum, payload], i) =>
+          `const ${
+            errorDescriptorsNames[i]
+          } = ${pallet}Creator.getPayloadDescriptor(ERROR, ${checksum}n, \"${name}\", {} as unknown as ${
             declarations.imports.has(payload)
               ? `CodecType<typeof ${payload}>`
               : payload
@@ -409,53 +434,66 @@ export type ${constName} = StorageType<typeof ${constName}>
       )
       .join("\n\n") + "\n"
 
-  for (const [
-    pallet,
-    name,
-    checksum,
-    payload,
-    events,
-    errors,
-  ] of callDescriptors) {
-    const eventVariables = Object.entries(events).reduce(
-      (p, [pallet, palletEvents]) => [
-        ...p,
-        ...Array.from(palletEvents).map((e) => `${pallet}${e}Event`),
-      ],
-      [] as string[],
-    )
-    const errorVariables = Object.entries(errors).reduce(
-      (p, [pallet, palletErrors]) => [
-        ...p,
-        ...Array.from(palletErrors).map((e) => `${pallet}${e}Error`),
-      ],
-      [] as string[],
-    )
-
-    const returnType = declarations.imports.has(payload)
-      ? `CodecType<typeof ${payload}>`
-      : payload
-    const len = declarations.variables.get(returnType)?.directDependencies.size
-    descriptorCodegen +=
-      `const ${pallet}${name}Call = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
-        ",",
-      )}], [${errorVariables.join(
-        ",",
-      )}], {len: ${len}} as ArgsWithoutPayloadCodec<${returnType}>)` + "\n\n"
-  }
-
-  const descriptorVariablesRegexp = new RegExp(
-    /(?<=const)\s(.*(Constant|Storage|Event|Error|Call))(?=[\s|:].*\=)/g,
+  const callDescriptorNames = callDescriptors.map(
+    ([pallet, name]) => `${pallet}${name}Call`,
   )
 
-  const descriptorVariableNames =
-    descriptorCodegen.match(descriptorVariablesRegexp)?.map((s) => s.trim()) ??
-    []
+  callDescriptors.forEach(
+    ([pallet, name, checksum, payload, events, errors], i) => {
+      const eventVariables = Object.entries(events).reduce(
+        (p, [pallet, palletEvents]) => [
+          ...p,
+          ...Array.from(palletEvents).map((e) => `${pallet}${e}Event`),
+        ],
+        [] as string[],
+      )
+      const errorVariables = Object.entries(errors).reduce(
+        (p, [pallet, palletErrors]) => [
+          ...p,
+          ...Array.from(palletErrors).map((e) => `${pallet}${e}Error`),
+        ],
+        [] as string[],
+      )
+
+      const returnType = declarations.imports.has(payload)
+        ? `CodecType<typeof ${payload}>`
+        : payload
+      const len =
+        declarations.variables.get(returnType)?.directDependencies.size
+      descriptorCodegen +=
+        `const ${
+          callDescriptorNames[i]
+        } = ${pallet}Creator.getTxDescriptor(${checksum}n, "${name}", [${eventVariables.join(
+          ",",
+        )}], [${errorVariables.join(
+          ",",
+        )}], {len: ${len}} as ArgsWithoutPayloadCodec<${returnType}>)` + "\n\n"
+    },
+  )
+
+  const descriptorVariableNames: [string, string[]][] = [
+    ["constantDescriptors", constantDescriptorNames],
+    ["storageDescriptors", storageDescriptorsNames],
+    ["eventDescriptors", eventDescriptorsNames],
+    ["errorDescriptors", errorDescriptorsNames],
+    ["callDescriptors", callDescriptorNames],
+  ]
+
+  descriptorCodegen += descriptorVariableNames
+    .map(
+      ([constName, variableNames]) =>
+        `const ${constName}: [${variableNames
+          .map((s) => `typeof ${s}`)
+          .join(",")}] = [${variableNames.join(",")}]\n`,
+    )
+    .join("\n\n")
+
+  const descriptorVariableNamesKeys = descriptorVariableNames.map((a) => a[0])
 
   descriptorCodegen +=
-    `const result: [${descriptorVariableNames
+    `const result: [${descriptorVariableNamesKeys
       .map((s) => `typeof ${s}`)
-      .join(",")}] = [${descriptorVariableNames.join(",")}]` +
+      .join(",")}] = [${descriptorVariableNamesKeys.join(",")}]` +
     "\n\nexport default result\n\n"
 
   descriptorCodegen = "// Generated by @polkadot-api/cli\n" + descriptorCodegen
