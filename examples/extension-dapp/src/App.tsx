@@ -4,6 +4,7 @@ import {
   type RawChain,
 } from "@polkadot-api/light-client-extension-helpers/web-page"
 import { createClient } from "@polkadot-api/substrate-client"
+import { getObservableClient } from "@polkadot-api/client"
 
 import polkadot from "./chainspecs/polkadot.json?raw"
 import ksmcc3 from "./chainspecs/ksmcc3.json?raw"
@@ -104,6 +105,13 @@ function App() {
       console.error("provider.getChains()", error)
     }
   }, [])
+  const [polkadotFinalized, setPolkadotFinalized] = useState<string>()
+  const handleFollowPolkadotFinalized = useCallback(async () => {
+    setPolkadotFinalized("...")
+    const chain = await provider.getChain(polkadot)
+    const client = getObservableClient(createClient(chain.connect))
+    client.chainHead$().finalized$.subscribe(setPolkadotFinalized)
+  }, [])
   return (
     <main className="container">
       <h1>Extension Test DApp</h1>
@@ -122,6 +130,15 @@ function App() {
       </div>
       <div>
         <button onClick={handleGetChains}>Get Chains</button>
+      </div>
+      <div>
+        {polkadotFinalized ? (
+          <div>Polkadot finalized {polkadotFinalized}</div>
+        ) : (
+          <button onClick={handleFollowPolkadotFinalized}>
+            Follow Polkadot Finalized
+          </button>
+        )}
       </div>
       <div>
         <div>Get Chains</div>
