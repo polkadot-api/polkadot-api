@@ -12,7 +12,10 @@ export const ChargeAssetTxPayment: GetUserSignedExtension<
 > = (user$) =>
   user$.pipe(
     map((val) => ({
-      extra: encoder(val),
+      extra: encoder({
+        tip: val.tip,
+        assetId: val.assetId,
+      }),
       additional: new Uint8Array(),
       pjs: {},
     })),
