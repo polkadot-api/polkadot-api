@@ -20,8 +20,8 @@ await cryptoWaitReady()
 
 const createKeyring = (): Keyring => {
   const keyring = new PolkadotJSKeyring({ type: "sr25519" })
-  keyring.addFromUri("//Alice", { name: "Alice default" })
-  keyring.addFromUri("//Bob", { name: "Bob default" })
+  keyring.addFromUri("//Alice", { name: "Alice" })
+  keyring.addFromUri("//Bob", { name: "Bob" })
 
   return {
     getPairs() {
@@ -52,8 +52,8 @@ const chain = getChain({
 const accounts = await chain.getAccounts()
 console.log("accounts", accounts)
 
-const alice = accounts[0]!
-const bob = accounts[1]!
+const alice = accounts.find((acct) => acct.displayName === "Alice")!
+const bob = accounts.find((acct) => acct.displayName === "Bob")!
 
 const { createTx } = chain.connect(console.log)
 
