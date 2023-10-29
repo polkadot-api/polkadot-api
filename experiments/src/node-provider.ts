@@ -11,7 +11,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { cryptoWaitReady } from "@polkadot/util-crypto"
 import { toHex } from "@polkadot-api/utils"
-import { lastValueFrom, tap } from "rxjs"
+import { firstValueFrom, lastValueFrom, tap } from "rxjs"
 import { createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
 import { createProvider } from "./smolldot-worker"
@@ -58,7 +58,9 @@ const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
 }
 
 const provider = createProvider(WellKnownChain.westend2)
-const client = getObservableClient(createClient(withLogsProvider(provider)))
+const client = getObservableClient(createClient(provider))
+
+let invocations = 0
 
 const chain = getChain({
   chainId: "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
@@ -69,6 +71,8 @@ const chain = getChain({
     ChargeTransactionPayment: 1n,
   },
   customizeTx: async (ctx) => {
+    invocations += 1
+    console.log("invocations", invocations)
     const nonce = BigInt(await getNonce(client)(ctx.from))
     console.log("nonce", nonce)
     if (nonce % 2n === 0n) {

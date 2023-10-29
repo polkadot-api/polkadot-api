@@ -1,7 +1,7 @@
 import { getObservableClient } from "@polkadot-api/client"
 import { u16, u32, u64 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
-import { lastValueFrom, map, switchMap } from "rxjs"
+import { firstValueFrom, map, switchMap } from "rxjs"
 
 type ObservableClient = ReturnType<typeof getObservableClient>
 
@@ -14,11 +14,9 @@ export const getNonce =
     }
 
     const chainHead = client.chainHead$()
-    return lastValueFrom(
-      chainHead.finalized$.pipe(
-        switchMap((at) =>
-          chainHead.call$(at, "AccountNonceApi_account_nonce", toHex(from)),
-        ),
+    const at = await firstValueFrom(chainHead.finalized$)
+    return firstValueFrom(
+      chainHead.call$(at, "AccountNonceApi_account_nonce", toHex(from)).pipe(
         map((result) => {
           const bytes = fromHex(result)
           const decoder = lenToDecoder[bytes.length as 2 | 4 | 8]
