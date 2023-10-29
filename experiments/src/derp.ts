@@ -1,5 +1,5 @@
 import { Keyring, getChain } from "@polkadot-api/node-polkadot-provider"
-import { WellKnownChain } from "@polkadot-api/sc-provider"
+import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 import { Keyring as PolkadotJSKeyring } from "@polkadot/api"
 import {
   AccountId,
@@ -15,6 +15,7 @@ import { lastValueFrom, tap } from "rxjs"
 import { createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
 import { createProvider } from "./smolldot-worker"
+import { getNonce } from "./utils"
 
 await cryptoWaitReady()
 
@@ -39,8 +40,25 @@ const createKeyring = (): Keyring => {
   }
 }
 
+const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
+  return (onMsg) => {
+    const result = input((msg) => {
+      console.log("<< " + msg)
+      onMsg(msg)
+    })
+
+    return {
+      ...result,
+      send: (msg) => {
+        console.log(">> " + msg)
+        result.send(msg)
+      },
+    }
+  }
+}
+
 const provider = createProvider(WellKnownChain.westend2)
-const client = getObservableClient(createClient(provider))
+const client = getObservableClient(createClient(withLogsProvider(provider)))
 
 const chain = getChain({
   chainId: "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
@@ -49,6 +67,22 @@ const chain = getChain({
   keyring: createKeyring(),
   userSignedExtensionDefaults: {
     ChargeTransactionPayment: 1n,
+  },
+  customizeTx: async (ctx) => {
+    const nonce = BigInt(await getNonce(client)(ctx.from))
+    console.log("nonce", nonce)
+    if (nonce % 2n === 0n) {
+      return {
+        userSignedExtensionsData: {
+          ChargeTransactionPayment: 10n,
+        },
+      }
+    }
+
+    return {} as any
+  },
+  onCreateTxError: (err) => {
+    console.error("create tx error", err)
   },
 })
 
