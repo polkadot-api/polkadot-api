@@ -1,9 +1,8 @@
 import { Keyring, getChain } from "@polkadot-api/node-polkadot-provider"
-import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { WellKnownChain } from "@polkadot-api/sc-provider"
 import { Keyring as PolkadotJSKeyring } from "@polkadot/api"
 import {
   AccountId,
-  Blake2256,
   Enum,
   SS58String,
   Struct,
@@ -11,10 +10,11 @@ import {
   u8,
 } from "@polkadot-api/substrate-bindings"
 import { cryptoWaitReady } from "@polkadot/util-crypto"
-import { fromHex, toHex } from "@polkadot-api/utils"
+import { toHex } from "@polkadot-api/utils"
 import { lastValueFrom, tap } from "rxjs"
 import { createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
+import { createProvider } from "./smolldot-worker"
 
 await cryptoWaitReady()
 
@@ -39,8 +39,7 @@ const createKeyring = (): Keyring => {
   }
 }
 
-const provider = ScProvider(WellKnownChain.westend2)
-console.log("chainProvider", provider)
+const provider = createProvider(WellKnownChain.westend2)
 const client = getObservableClient(createClient(provider))
 
 const chain = getChain({
@@ -109,3 +108,6 @@ const tx$ = client.tx$(transaction).pipe(
   }),
 )
 await lastValueFrom(tx$)
+
+client.chainHead$().unfollow()
+client.destroy()
