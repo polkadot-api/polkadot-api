@@ -47,6 +47,9 @@ const chain = getChain({
   name: "Westend",
   chainProvider: provider,
   keyring: createKeyring(),
+  userSignedExtensionDefaults: {
+    ChargeTransactionPayment: 1n,
+  },
 })
 
 const accounts = await chain.getAccounts()
