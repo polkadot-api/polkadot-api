@@ -11,7 +11,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { cryptoWaitReady } from "@polkadot/util-crypto"
 import { toHex } from "@polkadot-api/utils"
-import { firstValueFrom, lastValueFrom, tap } from "rxjs"
+import { lastValueFrom, tap } from "rxjs"
 import { createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
 import { createProvider } from "./smolldot-worker"
@@ -40,23 +40,6 @@ const createKeyring = (): Keyring => {
   }
 }
 
-const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
-  return (onMsg) => {
-    const result = input((msg) => {
-      console.log("<< " + msg)
-      onMsg(msg)
-    })
-
-    return {
-      ...result,
-      send: (msg) => {
-        console.log(">> " + msg)
-        result.send(msg)
-      },
-    }
-  }
-}
-
 const provider = createProvider(WellKnownChain.westend2)
 const client = getObservableClient(createClient(provider))
 
@@ -73,13 +56,17 @@ const chain = getChain({
   customizeTx: async (ctx) => {
     invocations += 1
     console.log("invocations", invocations)
-    const nonce = BigInt(await getNonce(client)(ctx.from))
-    console.log("nonce", nonce)
-    if (nonce % 2n === 0n) {
-      return {
-        userSignedExtensionsData: {
-          ChargeTransactionPayment: 10n,
-        },
+    // HACK: this callback is called multiple times and seemingly it will
+    // crash smolldot is get nonce is called repeatedly in quick succession.
+    if (invocations === 3) {
+      const nonce = BigInt(await getNonce(client)(ctx.from))
+      console.log("nonce", nonce)
+      if (nonce % 2n === 0n) {
+        return {
+          userSignedExtensionsData: {
+            ChargeTransactionPayment: 10n,
+          },
+        }
       }
     }
 
