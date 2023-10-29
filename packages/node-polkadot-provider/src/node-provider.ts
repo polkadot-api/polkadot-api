@@ -1,16 +1,7 @@
-import { Chain } from "./types/polkadot-provider"
-import { ConnectProvider } from "@polkadot-api/json-rpc-provider"
-import { Keyring } from "./types/public-types"
+import { Chain, JsonRpcProvider } from "./types/polkadot-provider"
+import { GetChainArgs } from "./types/public-types"
 import { UserSignedExtensions, getTxCreator } from "@polkadot-api/tx-helper"
 import { equals } from "./bytes"
-
-export type GetChainArgs = {
-  chainId: string
-  name: string
-  keyring: Keyring
-  chainProvider: ConnectProvider
-  userSignedExtensionDefaults?: Partial<UserSignedExtensions>
-}
 
 const defaultUserSignedExtensions: UserSignedExtensions = {
   CheckMortality: {
@@ -28,6 +19,7 @@ export const getChain = ({
   chainProvider,
   keyring,
   userSignedExtensionDefaults = defaultUserSignedExtensions,
+  customizeTx = async () => ({}),
 }: GetChainArgs): Chain => {
   const getAccounts: Chain["getAccounts"] = async () =>
     keyring.getPairs().map((kp) => ({
@@ -46,11 +38,11 @@ export const getChain = ({
 
   const connect: Chain["connect"] = (onMessage) => {
     const provider = chainProvider(onMessage)
-    const { createTx, destroy } = getTxCreator(
-      chainProvider,
-      ({ userSingedExtensionsName, from }, callback) => {
+    const txCreator = getTxCreator(chainProvider, async (ctx, cb) => {
+      try {
+        const userCustomizations = await customizeTx(ctx)
         const userSignedExtensionsData = Object.fromEntries(
-          userSingedExtensionsName.map((x) => [
+          ctx.userSingedExtensionsName.map((x) => [
             x,
             userSignedExtensionDefaults[x] ?? defaultUserSignedExtensions[x],
           ]),
@@ -58,25 +50,35 @@ export const getChain = ({
 
         const keypair = keyring
           .getPairs()
-          .find((kp) => equals(kp.publicKey, from))
+          .find((kp) => equals(kp.publicKey, ctx.from))
         if (keypair) {
-          callback({
-            overrides: {},
-            userSignedExtensionsData,
+          cb({
+            overrides: {
+              ...(userCustomizations.overrides ?? {}),
+            },
+            userSignedExtensionsData: {
+              ...userSignedExtensionsData,
+              ...((userCustomizations.userSignedExtensionsData as any) ?? {}),
+            },
             signingType: keypair.signingType,
             signer: keypair.sign,
           })
         } else {
-          callback(null)
+          cb(null)
         }
-      },
-    )
+      } catch (_) {
+        cb(null)
+      }
+    })
+
+    const createTx: JsonRpcProvider["createTx"] = async (from, callData) =>
+      txCreator.createTx(from, callData)
 
     return {
       createTx,
       send: provider.send,
       disconnect() {
-        destroy()
+        txCreator.destroy()
       },
     }
   }
