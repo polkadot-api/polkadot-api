@@ -9,6 +9,17 @@ export type GetChainArgs = {
   name: string
   keyring: Keyring
   chainProvider: ConnectProvider
+  userSignedExtensionDefaults?: UserSignedExtensions
+}
+
+const defaultUserSignedExtensions: UserSignedExtensions = {
+  CheckMortality: {
+    mortal: false,
+  },
+  ChargeTransactionPayment: 0n,
+  ChargeAssetTxPayment: {
+    tip: 0n,
+  },
 }
 
 export const getChain = ({
@@ -16,6 +27,7 @@ export const getChain = ({
   name,
   chainProvider,
   keyring,
+  userSignedExtensionDefaults = defaultUserSignedExtensions,
 }: GetChainArgs): Chain => {
   const getAccounts: Chain["getAccounts"] = async () =>
     keyring.getPairs().map((kp) => ({
@@ -38,19 +50,11 @@ export const getChain = ({
       chainProvider,
       ({ userSingedExtensionsName, from }, callback) => {
         const userSignedExtensionsData = Object.fromEntries(
-          userSingedExtensionsName.map((x) => {
-            if (x === "CheckMortality") {
-              const result: UserSignedExtensions["CheckMortality"] = {
-                mortal: false,
-              }
-
-              return [x, result]
-            }
-
-            if (x === "ChargeTransactionPayment") return [x, 0n]
-            return [x, { tip: 0n }]
-          }),
-        )
+          userSingedExtensionsName.map((x) => [
+            x,
+            userSignedExtensionDefaults[x],
+          ]),
+        ) as any
 
         const keypair = keyring
           .getPairs()
