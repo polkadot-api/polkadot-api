@@ -2,6 +2,7 @@ import { Chain, JsonRpcProvider } from "./types/polkadot-provider"
 import { GetChainArgs } from "./types/public-types"
 import { UserSignedExtensions, getTxCreator } from "@polkadot-api/tx-helper"
 import { equals } from "./bytes"
+import { toHex } from "@polkadot-api/utils"
 
 const defaultUserSignedExtensions: UserSignedExtensions = {
   CheckMortality: {
@@ -20,6 +21,7 @@ export const getChain = ({
   keyring,
   userSignedExtensionDefaults = defaultUserSignedExtensions,
   customizeTx = async () => ({}),
+  onCreateTxError = () => {},
 }: GetChainArgs): Chain => {
   const getAccounts: Chain["getAccounts"] = async () =>
     keyring.getPairs().map((kp) => ({
@@ -64,9 +66,13 @@ export const getChain = ({
             signer: keypair.sign,
           })
         } else {
+          onCreateTxError(
+            new Error(`${toHex(ctx.from)} doesn't exist in keyring`),
+          )
           cb(null)
         }
-      } catch (_) {
+      } catch (err) {
+        onCreateTxError(err as Error)
         cb(null)
       }
     })
