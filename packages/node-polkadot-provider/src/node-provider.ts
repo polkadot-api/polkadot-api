@@ -9,7 +9,7 @@ export type GetChainArgs = {
   name: string
   keyring: Keyring
   chainProvider: ConnectProvider
-  userSignedExtensionDefaults?: UserSignedExtensions
+  userSignedExtensionDefaults?: Partial<UserSignedExtensions>
 }
 
 const defaultUserSignedExtensions: UserSignedExtensions = {
@@ -52,7 +52,7 @@ export const getChain = ({
         const userSignedExtensionsData = Object.fromEntries(
           userSingedExtensionsName.map((x) => [
             x,
-            userSignedExtensionDefaults[x],
+            userSignedExtensionDefaults[x] ?? defaultUserSignedExtensions[x],
           ]),
         ) as any
 
