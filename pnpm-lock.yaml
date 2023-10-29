@@ -47,6 +47,9 @@ importers:
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../packages/client
+      '@polkadot-api/node-polkadot-provider':
+        specifier: workspace:*
+        version: link:../packages/node-polkadot-provider
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../packages/sc-provider
@@ -65,6 +68,12 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../packages/utils
+      '@polkadot/api':
+        specifier: ^10.3.4
+        version: 10.10.1
+      '@polkadot/util-crypto':
+        specifier: ^12.5.1
+        version: 12.5.1(@polkadot/util@12.5.1)
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1

@@ -1,0 +1,111 @@
+import { Keyring, getChain } from "@polkadot-api/node-polkadot-provider"
+import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { Keyring as PolkadotJSKeyring } from "@polkadot/api"
+import {
+  AccountId,
+  Blake2256,
+  Enum,
+  SS58String,
+  Struct,
+  compact,
+  u8,
+} from "@polkadot-api/substrate-bindings"
+import { cryptoWaitReady } from "@polkadot/util-crypto"
+import { fromHex, toHex } from "@polkadot-api/utils"
+import { lastValueFrom, tap } from "rxjs"
+import { createClient } from "@polkadot-api/substrate-client"
+import { getObservableClient } from "@polkadot-api/client"
+
+await cryptoWaitReady()
+
+const createKeyring = (): Keyring => {
+  const keyring = new PolkadotJSKeyring({ type: "sr25519" })
+  keyring.addFromUri("//Alice", { name: "Alice default" })
+  keyring.addFromUri("//Bob", { name: "Bob default" })
+
+  return {
+    getPairs() {
+      return keyring.getPairs().map((kp) => ({
+        address: kp.address,
+        publicKey: kp.publicKey,
+        signingType: "Sr25519",
+        sign: async (input) => kp.sign(input),
+        name: kp.meta.name,
+      }))
+    },
+    onKeyPairsChanged() {
+      return () => {}
+    },
+  }
+}
+
+const provider = ScProvider(WellKnownChain.westend2)
+console.log("chainProvider", provider)
+const client = getObservableClient(createClient(provider))
+
+const chain = getChain({
+  chainId: "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+  name: "Westend",
+  chainProvider: provider,
+  keyring: createKeyring(),
+})
+
+const accounts = await chain.getAccounts()
+console.log("accounts", accounts)
+
+const alice = accounts[0]!
+const bob = accounts[1]!
+
+const { createTx } = chain.connect(console.log)
+
+const call = Struct({
+  module: u8,
+  method: u8,
+  args: Struct({
+    dest: Enum({
+      Id: AccountId(42),
+    }),
+    value: compact,
+  }),
+})
+
+const from = alice.publicKey
+const to = bob.address as SS58String
+
+const transaction = toHex(
+  await createTx(
+    from,
+    call.enc({
+      module: 4,
+      method: 0,
+      args: {
+        dest: {
+          tag: "Id",
+          value: to,
+        },
+        value: 1000000n,
+      },
+    }),
+  ),
+)
+
+const tx$ = client.tx$(transaction).pipe(
+  tap({
+    next: (e) => {
+      console.log(e)
+      switch (e.type) {
+        case "finalized":
+          break
+        case "invalid":
+          process.exit(1)
+        default:
+          break
+      }
+    },
+    error: (e) => {
+      console.error(e)
+      process.exit(1)
+    },
+  }),
+)
+await lastValueFrom(tx$)
