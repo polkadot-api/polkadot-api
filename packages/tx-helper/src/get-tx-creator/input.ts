@@ -4,7 +4,7 @@ import {
   UserSignedExtensionName,
   Callback,
 } from "@/types"
-import { Observable, filter, map, noop, share } from "rxjs"
+import { Observable, filter, firstValueFrom, map, noop, share } from "rxjs"
 
 export const getInput$ = <T extends Array<UserSignedExtensionName>>(
   ctx: OnCreateTxCtx<T>,
@@ -79,7 +79,7 @@ export const getInput$ = <T extends Array<UserSignedExtensionName>>(
 
   return {
     getUserInput$,
-    overrides$,
+    overrides: firstValueFrom(overrides$),
     signer$,
   }
 }
