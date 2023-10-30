@@ -5,9 +5,8 @@ import type {
   ToExtensionRequest,
   ToPage,
 } from "@/protocol"
-import { CONTEXT, getRandomChainId } from "@/shared"
+import { CONTEXT, createBackgroundClientConnectProvider } from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
-import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 export * from "./types"
 
@@ -47,7 +46,7 @@ export const getLightClientProvider = async (
     if (!validOrigins.includes(msg?.origin)) return
     if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
     if (msg.origin === "substrate-connect-extension")
-      return rawChainCallbacks[msg.chainId]?.(msg)
+      return rawChainCallbacks.forEach((cb) => cb(msg))
     if (msg.id !== undefined) {
       const pendingRequest = pendingRequests[msg.id]
       if (!pendingRequest) return console.warn("Unhandled response", msg)
@@ -136,10 +135,9 @@ export const getLightClientProvider = async (
   }
 }
 
-const rawChainCallbacks: Record<
-  string,
-  (msg: ToPage & { origin: "substrate-connect-extension" }) => void
-> = {}
+const rawChainCallbacks: ((
+  msg: ToPage & { origin: "substrate-connect-extension" },
+) => void)[] = []
 
 const createRawChain = (
   channelId: string,
@@ -158,88 +156,17 @@ const createRawChain = (
   return {
     name,
     genesisHash,
-    connect: getSyncProvider(async () => {
-      const chainId = getRandomChainId()
-      await new Promise<void>((resolve, reject) => {
-        rawChainCallbacks[chainId] = (msg) => {
-          switch (msg.type) {
-            case "chain-ready": {
-              resolve()
-              break
-            }
-            case "error": {
-              reject(new Error(msg.errorMessage))
-              break
-            }
-            default:
-              reject(new Error(`Unrecognized message ${JSON.stringify(msg)}`))
-              break
-          }
-          delete rawChainCallbacks[chainId]
-        }
-        postToExtension({
-          channelId,
-          msg: chainSpec
-            ? {
-                origin: "substrate-connect-client",
-                type: "add-chain",
-                chainId,
-                chainSpec,
-                potentialRelayChainIds: relayChainGenesisHash
-                  ? [relayChainGenesisHash]
-                  : [],
-              }
-            : {
-                origin: "substrate-connect-client",
-                type: "add-well-known-chain",
-                chainId,
-                chainName: genesisHash,
-              },
-        })
-      })
-      return (onMessage, onHalt) => {
-        rawChainCallbacks[chainId] = (msg) => {
-          switch (msg.type) {
-            case "rpc": {
-              onMessage(msg.jsonRpcMessage)
-              break
-            }
-            case "error": {
-              console.error(msg.errorMessage)
-              delete rawChainCallbacks[chainId]
-              onHalt()
-              break
-            }
-            default:
-              console.warn(`Unrecognized message ${JSON.stringify(msg)}`)
-              break
-          }
-        }
-        return {
-          send(jsonRpcMessage) {
-            postToExtension({
-              channelId,
-              msg: {
-                origin: "substrate-connect-client",
-                type: "rpc",
-                chainId,
-                jsonRpcMessage,
-              },
-            })
-          },
-          disconnect() {
-            delete rawChainCallbacks[chainId]
-            postToExtension({
-              channelId,
-              msg: {
-                origin: "substrate-connect-client",
-                type: "remove-chain",
-                chainId,
-              },
-            })
-          },
-        }
-      }
+    connect: createBackgroundClientConnectProvider({
+      genesisHash,
+      chainSpec,
+      relayChainGenesisHash,
+      postMessage(msg) {
+        postToExtension({ channelId, msg })
+      },
+      addOnMessageListener(cb) {
+        rawChainCallbacks.push(cb)
+        return () => removeArrayItem(rawChainCallbacks, cb)
+      },
     }),
   }
 }
