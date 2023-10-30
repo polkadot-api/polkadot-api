@@ -1,5 +1,5 @@
 import { Keyring, getChain } from "@polkadot-api/node-polkadot-provider"
-import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { WellKnownChain } from "@polkadot-api/sc-provider"
 import { Keyring as PolkadotJSKeyring } from "@polkadot/api"
 import {
   AccountId,
@@ -64,7 +64,7 @@ const chain = getChain({
 
     return {} as any
   },
-  onCreateTxError: (err) => {
+  onCreateTxError: (ctx, err) => {
     console.error("create tx error", err)
   },
 })

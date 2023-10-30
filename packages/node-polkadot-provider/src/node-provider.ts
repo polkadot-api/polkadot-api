@@ -67,12 +67,13 @@ export const getChain = ({
           })
         } else {
           onCreateTxError(
+            ctx,
             new Error(`${toHex(ctx.from)} doesn't exist in keyring`),
           )
           cb(null)
         }
       } catch (err) {
-        onCreateTxError(err as Error)
+        onCreateTxError(ctx, err as Error)
         cb(null)
       }
     })
