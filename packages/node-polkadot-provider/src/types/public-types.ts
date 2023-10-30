@@ -21,9 +21,9 @@ export type Keyring = {
   onKeyPairsChanged: (cb: () => void) => UnsubscribeFn
 }
 
-type CreateTxParams = NonNullable<Parameters<CreateTx>[2]>
-type CreateTxContext = Parameters<CreateTxParams>[0]
-type CustomizeTxResult<T extends Array<UserSignedExtensionName>> = {
+export type CreateTxParams = NonNullable<Parameters<CreateTx>[2]>
+export type CreateTxContext = Parameters<CreateTxParams>[0]
+export type CustomizeTxResult<T extends Array<UserSignedExtensionName>> = {
   userSignedExtensionsData: ConsumerCallback<T>["userSignedExtensionsData"]
   overrides: ConsumerCallback<T>["overrides"]
 }
@@ -33,9 +33,10 @@ export type GetChainArgs = {
   name: string
   keyring: Keyring
   chainProvider: ConnectProvider
-  userSignedExtensionDefaults?: Partial<UserSignedExtensions>
-  customizeTx?: <T extends Array<UserSignedExtensionName>>(
-    ctx: CreateTxContext,
-  ) => Promise<Partial<CustomizeTxResult<T>>>
+  txCustomizations?:
+    | Partial<UserSignedExtensions>
+    | (<T extends Array<UserSignedExtensionName>>(
+        ctx: CreateTxContext,
+      ) => Promise<Partial<CustomizeTxResult<T>>>)
   onCreateTxError?: (ctx: CreateTxContext, err: Error) => unknown
 }

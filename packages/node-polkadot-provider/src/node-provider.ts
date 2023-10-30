@@ -1,6 +1,14 @@
 import { Chain, JsonRpcProvider } from "./types/polkadot-provider"
-import { GetChainArgs } from "./types/public-types"
-import { UserSignedExtensions, getTxCreator } from "@polkadot-api/tx-helper"
+import {
+  CreateTxContext,
+  CustomizeTxResult,
+  GetChainArgs,
+} from "./types/public-types"
+import {
+  UserSignedExtensionName,
+  UserSignedExtensions,
+  getTxCreator,
+} from "@polkadot-api/tx-helper"
 import { equals } from "./bytes"
 import { toHex } from "@polkadot-api/utils"
 
@@ -19,8 +27,7 @@ export const getChain = ({
   name,
   chainProvider,
   keyring,
-  userSignedExtensionDefaults = defaultUserSignedExtensions,
-  customizeTx = async () => ({}),
+  txCustomizations = defaultUserSignedExtensions,
   onCreateTxError = () => {},
 }: GetChainArgs): Chain => {
   const getAccounts: Chain["getAccounts"] = async () =>
@@ -38,11 +45,30 @@ export const getChain = ({
     }
   }
 
+  const getUserSignedExtensionDefaults = () => {
+    if (typeof txCustomizations === "object") {
+      return txCustomizations
+    }
+
+    return {}
+  }
+
+  const getCustomizeTx = (): (<T extends Array<UserSignedExtensionName>>(
+    ctx: CreateTxContext,
+  ) => Promise<Partial<CustomizeTxResult<T>>>) => {
+    if (typeof txCustomizations === "function") {
+      return txCustomizations
+    }
+
+    return async () => ({})
+  }
+
   const connect: Chain["connect"] = (onMessage) => {
     const provider = chainProvider(onMessage)
     const txCreator = getTxCreator(chainProvider, async (ctx, cb) => {
       try {
-        const userCustomizations = await customizeTx(ctx)
+        const customizeTx = await getCustomizeTx()(ctx)
+        const userSignedExtensionDefaults = getUserSignedExtensionDefaults()
         const userSignedExtensionsData = Object.fromEntries(
           ctx.userSingedExtensionsName.map((x) => [
             x,
@@ -56,11 +82,11 @@ export const getChain = ({
         if (keypair) {
           cb({
             overrides: {
-              ...(userCustomizations.overrides ?? {}),
+              ...(customizeTx.overrides ?? {}),
             },
             userSignedExtensionsData: {
               ...userSignedExtensionsData,
-              ...((userCustomizations.userSignedExtensionsData as any) ?? {}),
+              ...((customizeTx.userSignedExtensionsData as any) ?? {}),
             },
             signingType: keypair.signingType,
             signer: keypair.sign,
