@@ -1,16 +1,7 @@
 import { V14, v14 } from "@polkadot-api/substrate-bindings"
 import { ConsumerCallback, OnCreateTxCtx, UserSignedExtensionName } from ".."
 import { getInput$ } from "./input"
-import {
-  EMPTY,
-  NEVER,
-  combineLatest,
-  from as fromRx,
-  map,
-  mergeMap,
-  of,
-  race,
-} from "rxjs"
+import { EMPTY, NEVER, combineLatest, map, mergeMap, of, race } from "rxjs"
 import type { FlattenSignedExtension } from "@/internal-types"
 import { getObservableClient } from "@polkadot-api/client"
 import { mergeUint8 } from "@polkadot-api/utils"
@@ -42,7 +33,7 @@ export const getTxData =
   ) =>
   ({ metadata, at, signedExtensions }: Ctx) => {
     const { all, user, chain, unknown } = signedExtensions
-    const { overrides, getUserInput$, signer$ } = getInput$<T>(
+    const { overrides$, getUserInput$, signer$ } = getInput$<T>(
       {
         from,
         callData,
@@ -54,7 +45,7 @@ export const getTxData =
     )
 
     const fromOverrides = (name: string, endless: boolean) =>
-      fromRx(overrides).pipe(
+      overrides$.pipe(
         mergeMap((overrides) =>
           overrides[name] ? of(overrides[name]) : endless ? NEVER : EMPTY,
         ),
