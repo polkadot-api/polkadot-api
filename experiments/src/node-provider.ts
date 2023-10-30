@@ -43,8 +43,6 @@ const createKeyring = (): Keyring => {
 const provider = createProvider(WellKnownChain.westend2)
 const client = getObservableClient(createClient(provider))
 
-let invocations = 0
-
 const chain = getChain({
   chainId: "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
   name: "Westend",
@@ -54,19 +52,13 @@ const chain = getChain({
     ChargeTransactionPayment: 1n,
   },
   customizeTx: async (ctx) => {
-    invocations += 1
-    console.log("invocations", invocations)
-    // HACK: this callback is called multiple times and seemingly it will
-    // crash smolldot is get nonce is called repeatedly in quick succession.
-    if (invocations === 3) {
-      const nonce = BigInt(await getNonce(client)(ctx.from))
-      console.log("nonce", nonce)
-      if (nonce % 2n === 0n) {
-        return {
-          userSignedExtensionsData: {
-            ChargeTransactionPayment: 10n,
-          },
-        }
+    const nonce = BigInt(await getNonce(client)(ctx.from))
+    console.log("nonce", nonce)
+    if (nonce % 2n === 0n) {
+      return {
+        userSignedExtensionsData: {
+          ChargeTransactionPayment: 10n,
+        },
       }
     }
 
