@@ -1,7 +1,7 @@
 import { register } from "@polkadot-api/light-client-extension-helpers/content-script"
 import type { ToContent } from "./protocol"
 
-register("some-random-id")
+register("extension-unique-id")
 
 // TODO: inpage script might not be needed
 try {

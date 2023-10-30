@@ -26,7 +26,7 @@ const rawChainsToHuman = (rawChains: Record<string, RawChain>) =>
     2,
   )
 
-const provider = await getLightClientProvider("some-random-id")
+const provider = await getLightClientProvider("extension-unique-id")
 
 function App() {
   const [updatedChains, setUpdatedChains] = useState("")
