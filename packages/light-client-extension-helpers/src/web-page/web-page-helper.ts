@@ -5,7 +5,11 @@ import type {
   ToPage,
   ToPageResponse,
 } from "@/protocol"
-import { CONTEXT, createBackgroundClientConnectProvider } from "@/shared"
+import {
+  CONTEXT,
+  createBackgroundClientConnectProvider,
+  createIsHelperMessage,
+} from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
 
 export * from "./types"
@@ -13,18 +17,11 @@ export * from "./types"
 const postToExtension = (message: PostMessage<ToExtension>) =>
   window.postMessage(message, window.origin)
 
-const validOrigins = [
+const isHelperMessage = createIsHelperMessage<ToPage>([
   CONTEXT.CONTENT_SCRIPT,
   CONTEXT.BACKGROUND,
   "substrate-connect-extension",
-]
-
-const isHelperMessage = (msg: any): msg is ToPage => {
-  if (!msg) return false
-  if (!validOrigins.includes(msg?.origin)) return false
-  if (!msg?.type && !msg?.id) return false
-  return true
-}
+])
 
 const channelIds = new Set<string>()
 

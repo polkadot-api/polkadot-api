@@ -17,4 +17,4 @@ export const PORT = {
 const alarmPrefix = `${extensionPrefix}-alarm`
 export const ALARM = {
   DATABASE_UPDATE: `${alarmPrefix}-database-update`,
-}
+} as const
