@@ -66,25 +66,24 @@ export const register = (channelId: string) => {
 
     if (msg.origin === CONTEXT.WEB_PAGE) {
       try {
-        const { request } = msg
-        switch (request.type) {
+        switch (msg.type) {
           case "getChain":
           case "getChains": {
             postToPage(
               {
-                id: msg.id,
+                ...(await sendBackgroundRequest({
+                  ...msg,
+                  origin: CONTEXT.CONTENT_SCRIPT,
+                })),
                 origin: CONTEXT.CONTENT_SCRIPT,
-                result: await sendBackgroundRequest({
-                  origin: msg.origin,
-                  ...request,
-                }),
+                id: msg.id,
               },
               origin,
             )
             break
           }
           default: {
-            const unrecognizedMsg: never = request
+            const unrecognizedMsg: never = msg
             console.warn("Unrecognized message", unrecognizedMsg)
             break
           }
@@ -92,8 +91,9 @@ export const register = (channelId: string) => {
       } catch (error) {
         postToPage(
           {
-            id: msg.id,
             origin: CONTEXT.CONTENT_SCRIPT,
+            type: "error",
+            id: msg.id,
             error: error instanceof Error ? error.toString() : "Unknown error",
           },
           origin,
