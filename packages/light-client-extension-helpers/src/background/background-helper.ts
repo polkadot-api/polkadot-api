@@ -458,7 +458,7 @@ chrome.runtime.onConnect.addListener((port) => {
 })
 
 const isHelperMessage = createIsHelperMessage<BackgroundRequest>([
-  CONTEXT.WEB_PAGE,
+  CONTEXT.CONTENT_SCRIPT,
   CONTEXT.EXTENSION_PAGE,
 ])
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {

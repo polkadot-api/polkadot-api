@@ -1,9 +1,9 @@
 import type {
-  BackgroundResponse,
   PostMessage,
   ToExtension,
   ToExtensionRequest,
   ToPage,
+  ToPageResponse,
 } from "@/protocol"
 import { CONTEXT, createBackgroundClientConnectProvider } from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
@@ -50,12 +50,12 @@ export const getLightClientProvider = async (
     if (!isHelperMessage(msg)) return
     if (msg.origin === "substrate-connect-extension")
       return rawChainCallbacks.forEach((cb) => cb(msg))
-    if (msg.origin === CONTEXT.CONTENT_SCRIPT && msg.id !== undefined) {
+    if (msg.origin === CONTEXT.CONTENT_SCRIPT) {
       const pendingRequest = pendingRequests[msg.id]
       if (!pendingRequest) return console.warn("Unhandled response", msg)
-      msg.error
+      msg.type === "error"
         ? pendingRequest.reject(msg.error)
-        : pendingRequest.resolve(msg.result)
+        : pendingRequest.resolve(msg)
       delete pendingRequests[msg.id]
       return
     }
@@ -76,8 +76,8 @@ export const getLightClientProvider = async (
 
   const requestReply = <
     TReq extends ToExtensionRequest,
-    TRes extends BackgroundResponse & {
-      type: `${TReq["request"]["type"]}Response`
+    TRes extends ToPageResponse & {
+      type: `${TReq["type"]}Response`
     },
   >(
     channelId: string,
@@ -99,9 +99,7 @@ export const getLightClientProvider = async (
   let { chains } = await requestReply(channelId, {
     origin: CONTEXT.WEB_PAGE,
     id: nextId(),
-    request: {
-      type: "getChains",
-    },
+    type: "getChains",
   })
   chainsChangeCallbacks.push((chains_) => (chains = chains_))
   return {
@@ -109,11 +107,9 @@ export const getLightClientProvider = async (
       const { chain: chainInfo } = await requestReply(channelId, {
         origin: CONTEXT.WEB_PAGE,
         id: nextId(),
-        request: {
-          type: "getChain",
-          chainSpec,
-          relayChainGenesisHash,
-        },
+        type: "getChain",
+        chainSpec,
+        relayChainGenesisHash,
       })
       return createRawChain(
         channelId,
