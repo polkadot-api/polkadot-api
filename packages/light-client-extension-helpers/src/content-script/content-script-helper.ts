@@ -1,5 +1,10 @@
 import type { PostMessage, ToExtension, ToPage } from "@/protocol"
-import { CONTEXT, PORT, sendBackgroundRequest } from "@/shared"
+import {
+  CONTEXT,
+  PORT,
+  createIsHelperMessage,
+  sendBackgroundRequest,
+} from "@/shared"
 
 let isRegistered = false
 export const register = (channelId: string) => {
@@ -22,10 +27,10 @@ export const register = (channelId: string) => {
     window.postMessage({ channelId, msg } as PostMessage<ToPage>, targetOrigin)
   }
 
-  const validOrigins = [CONTEXT.WEB_PAGE, "substrate-connect-client"]
-  const checkMessage = (msg: any): msg is ToExtension => {
+  const validWebPageOrigins = [CONTEXT.WEB_PAGE, "substrate-connect-client"]
+  const isWebPageHelperMessage = (msg: any): msg is ToExtension => {
     if (!msg) return false
-    if (!validOrigins.includes(msg?.origin)) return false
+    if (!validWebPageOrigins.includes(msg?.origin)) return false
     if (!msg?.type && !msg?.id) return false
     return true
   }
@@ -52,46 +57,43 @@ export const register = (channelId: string) => {
 
   let port: chrome.runtime.Port | undefined
   window.addEventListener("message", async ({ data, source, origin }) => {
-    if (source !== window) return
+    if (source !== window || !data) return
     const { channelId: msgChannelId, msg } = data
     if (channelId !== msgChannelId) return
-    if (!validOrigins.includes(msg?.origin)) return
-    if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
+    if (!isWebPageHelperMessage(msg)) return
 
     await whenActivated
 
     if (msg.origin === CONTEXT.WEB_PAGE) {
-      // TODO: re-write more elegantly
-      const { request } = msg
       try {
-        let result: any
+        const { request } = msg
         switch (request.type) {
           case "getChain":
           case "getChains": {
-            result = await sendBackgroundRequest(request)
+            postToPage(
+              {
+                id: msg.id,
+                origin: CONTEXT.CONTENT_SCRIPT,
+                result: await sendBackgroundRequest({
+                  origin: msg.origin,
+                  ...request,
+                }),
+              },
+              origin,
+            )
             break
           }
           default: {
             const unrecognizedMsg: never = request
             console.warn("Unrecognized message", unrecognizedMsg)
-            return
+            break
           }
         }
-        postToPage(
-          {
-            id: msg.id,
-            origin:
-              "@polkadot-api/light-client-extension-helper-context-content-script",
-            result,
-          },
-          origin,
-        )
       } catch (error) {
         postToPage(
           {
             id: msg.id,
-            origin:
-              "@polkadot-api/light-client-extension-helper-context-content-script",
+            origin: CONTEXT.CONTENT_SCRIPT,
             error: error instanceof Error ? error.toString() : "Unknown error",
           },
           origin,
@@ -141,10 +143,14 @@ export const register = (channelId: string) => {
     }
   })
 
-  chrome.runtime.onMessage.addListener((msg: ToPage) => {
+  const isBackgroundHelperMessage = createIsHelperMessage<ToPage>([
+    CONTEXT.BACKGROUND,
+    "substrate-connect-extension",
+  ])
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (!isBackgroundHelperMessage(msg)) return
     if (msg.origin === "substrate-connect-extension" && msg.type === "error")
       chainIds.delete(msg.chainId)
-    // FIXME: filter background-helper messages
     postToPage(msg, window.origin)
   })
 }
