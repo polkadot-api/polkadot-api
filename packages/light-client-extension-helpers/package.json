@@ -31,9 +31,7 @@
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
-    "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/substrate-codegen": "workspace:*",
     "@types/chrome": "^0.0.246"
   },
   "peerDependencies": {

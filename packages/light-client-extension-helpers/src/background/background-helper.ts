@@ -2,12 +2,6 @@ import {
   type SubstrateClient,
   createClient,
 } from "@polkadot-api/substrate-client"
-import {
-  Tuple,
-  compact,
-  metadata as metadataCodec,
-} from "@polkadot-api/substrate-bindings"
-import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
 import type { AddChainOptions, Chain } from "smoldot"
 import type { BackgroundHelper, LightClientPageHelper } from "./types"
 import { smoldotProvider } from "./smoldot-provider"
@@ -39,6 +33,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             type: "databaseContent",
             genesisHash,
           }),
+          relayChainDatabaseContent: relayChainGenesisHash
+            ? await storage.get({
+                type: "databaseContent",
+                genesisHash: relayChainGenesisHash,
+              })
+            : undefined,
         }),
       )
       const chainHeadFollower = client.chainHead(
@@ -134,10 +134,7 @@ export const lightClientPageHelper: LightClientPageHelper = {
     }
   },
   async persistChain(chainSpec, relayChainGenesisHash) {
-    const relayChainSpec = relayChainGenesisHash
-      ? (await storage.getChains())[relayChainGenesisHash].chainSpec
-      : undefined
-    const chainData = await getChainData(chainSpec, relayChainSpec)
+    const chainData = await getChainData(chainSpec, relayChainGenesisHash)
     if (
       await storage.get({ type: "chain", genesisHash: chainData.genesisHash })
     )
@@ -149,8 +146,12 @@ export const lightClientPageHelper: LightClientPageHelper = {
     delete chainSpecJson.protocolId
     delete chainSpecJson.telemetryEndpoints
 
-    // FIXME: set stateRootHash if !chainSpecJson.genesis.stateRootHash
-    // Note: RPC chain_getHeader is legacy JSON-RPC API
+    if (!chainSpecJson.genesis.stateRootHash) {
+      chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot(
+        chainSpec,
+        relayChainGenesisHash,
+      )
+    }
 
     // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
 
@@ -474,9 +475,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             )
           const { genesisHash, name } = await getChainData(
             chainSpec,
-            relayChainGenesisHash
-              ? chains[relayChainGenesisHash].chainSpec
-              : undefined,
+            relayChainGenesisHash,
           )
 
           if (chains[genesisHash]) {
@@ -609,27 +608,79 @@ const removeChain = (tabId: number, chainId: string) => {
   }
 }
 
-const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
-  const client = createClient(
-    await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
-  )
-  try {
-    const [genesisHash, name, { ss58Format }] = (await Promise.all(
-      [
-        "chainSpec_v1_genesisHash",
-        "chainSpec_v1_chainName",
-        "chainSpec_v1_properties",
-      ].map((method) => substrateClientRequest(client, method)),
-    )) as [string, string, { ss58Format: number }]
-    return {
-      genesisHash,
-      name,
-      ss58Format,
+const withClient =
+  <T>(fn: (client: SubstrateClient) => T | PromiseLike<T>) =>
+  async (chainSpec: string, relayChainGenesisHash?: string) => {
+    const client = createClient(
+      await smoldotProvider({
+        smoldotClient,
+        chainSpec,
+        relayChainSpec: relayChainGenesisHash
+          ? (await storage.getChains())[relayChainGenesisHash].chainSpec
+          : undefined,
+        relayChainDatabaseContent: relayChainGenesisHash
+          ? await storage.get({
+              type: "databaseContent",
+              genesisHash: relayChainGenesisHash,
+            })
+          : undefined,
+      }),
+    )
+    try {
+      return await fn(client)
+    } finally {
+      client.destroy()
     }
-  } finally {
-    client.destroy()
   }
-}
+
+const getChainData = withClient(async (client) => {
+  const [genesisHash, name, { ss58Format }] = (await Promise.all(
+    [
+      "chainSpec_v1_genesisHash",
+      "chainSpec_v1_chainName",
+      "chainSpec_v1_properties",
+    ].map((method) => substrateClientRequest(client, method)),
+  )) as [string, string, { ss58Format: number }]
+  return {
+    genesisHash,
+    name,
+    ss58Format,
+  }
+})
+
+// TODO: update this implementation when these issues are implemented
+// https://github.com/paritytech/json-rpc-interface-spec/issues/110
+// https://github.com/smol-dot/smoldot/issues/1186
+const getGenesisStateRoot = withClient(
+  (client) =>
+    new Promise<string>((resolve, reject) => {
+      const chainHeadFollower = client.chainHead(
+        true,
+        async (event) => {
+          if (event.type === "newBlock") {
+            chainHeadFollower.unpin([event.blockHash])
+            return
+          } else if (event.type !== "initialized") return
+          try {
+            const { stateRoot } = await substrateClientRequest<{
+              stateRoot: string
+            }>(client, "chain_getHeader", [
+              await substrateClientRequest<string>(
+                client,
+                "chainSpec_v1_genesisHash",
+              ),
+            ])
+            resolve(stateRoot)
+          } catch (error) {
+            reject(error)
+          } finally {
+            chainHeadFollower.unfollow()
+          }
+        },
+        reject,
+      )
+    }),
+)
 
 // FIXME: merge with getChainData
 const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {

@@ -6,6 +6,7 @@ type SmoldotProviderOptions = {
   chainSpec: string
   relayChainSpec?: string
   databaseContent?: string
+  relayChainDatabaseContent?: string
 }
 // TODO: check if this needs to use getSyncProvider
 export const smoldotProvider = async ({
@@ -13,6 +14,7 @@ export const smoldotProvider = async ({
   chainSpec,
   relayChainSpec,
   databaseContent,
+  relayChainDatabaseContent,
 }: SmoldotProviderOptions): Promise<ConnectProvider> => {
   const chain = await smoldotClient.addChain({
     chainSpec,
@@ -22,6 +24,7 @@ export const smoldotProvider = async ({
           await smoldotClient.addChain({
             chainSpec: relayChainSpec,
             disableJsonRpc: true,
+            databaseContent: relayChainDatabaseContent,
           }),
         ]
       : [],
