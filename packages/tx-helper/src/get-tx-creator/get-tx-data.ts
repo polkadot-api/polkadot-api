@@ -1,7 +1,7 @@
 import { V14, v14 } from "@polkadot-api/substrate-bindings"
 import { ConsumerCallback, OnCreateTxCtx, UserSignedExtensionName } from ".."
 import { getInput$ } from "./input"
-import { EMPTY, NEVER, combineLatest, map, mergeMap, of, race } from "rxjs"
+import { combineLatest, filter, map, startWith, take } from "rxjs"
 import type { FlattenSignedExtension } from "@/internal-types"
 import { getObservableClient } from "@polkadot-api/client"
 import { mergeUint8 } from "@polkadot-api/utils"
@@ -44,17 +44,18 @@ export const getTxData =
       onCreateTx,
     )
 
-    const fromOverrides = (name: string, endless: boolean) =>
-      overrides$.pipe(
-        mergeMap((overrides) =>
-          overrides[name] ? of(overrides[name]) : endless ? NEVER : EMPTY,
-        ),
-      )
-
     const withOverrides = (
-      input: FlattenSignedExtension,
+      input$: FlattenSignedExtension,
       name: string,
-    ): FlattenSignedExtension => race([fromOverrides(name, true), input])
+    ): FlattenSignedExtension => {
+      const inputWithNull$ = input$.pipe(startWith(null))
+
+      return combineLatest([inputWithNull$, overrides$]).pipe(
+        map(([inputWithNull, overrides]) => overrides[name] ?? inputWithNull),
+        filter(Boolean),
+        take(1),
+      )
+    }
 
     const chainSet = new Set(chain)
     const userSet = new Set(user)
@@ -85,7 +86,15 @@ export const getTxData =
             key,
           )
 
-        return fromOverrides(key, false)
+        return overrides$.pipe(
+          map(
+            (overrides) =>
+              overrides[key] ?? {
+                value: new Uint8Array(),
+                additionalSigned: new Uint8Array(),
+              },
+          ),
+        )
       }),
     ).pipe(
       map((data) => {

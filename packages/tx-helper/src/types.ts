@@ -74,7 +74,7 @@ export type SigningType = "Ed25519" | "Sr25519" | "Ecdsa"
 export type UserSignedExtensions = {
   CheckMortality: { mortal: false } | { mortal: true; period: number }
   ChargeTransactionPayment: bigint
-  ChargeAssetTxPayment: { tip: bigint; assetId: number | undefined }
+  ChargeAssetTxPayment: { tip: bigint; assetId?: number }
 }
 
 export type UserSignedExtensionName = keyof UserSignedExtensions
