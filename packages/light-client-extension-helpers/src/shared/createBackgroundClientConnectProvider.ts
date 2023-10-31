@@ -32,7 +32,7 @@ export const createBackgroundClientConnectProvider = ({
     await new Promise<void>((resolve, reject) => {
       const removeOnMessageListener = addOnMessageListener(
         (msg: ToPage & { origin: "substrate-connect-extension" }) => {
-          if (msg.chainId !== chainId) return
+          if (msg?.chainId !== chainId) return
           switch (msg.type) {
             case "chain-ready": {
               resolve()
