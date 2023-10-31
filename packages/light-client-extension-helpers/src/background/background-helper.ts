@@ -13,7 +13,16 @@ import type {
   ToExtension,
   ToPage,
 } from "@/protocol"
-import { ALARM, CONTEXT, PORT, createIsHelperMessage, storage } from "@/shared"
+import {
+  ALARM,
+  CONTEXT,
+  PORT,
+  createIsHelperMessage,
+  storage,
+  wellKnownChainGenesisHashes,
+  getWellKnownChainSpec,
+  WellKnownChainGenesisHash,
+} from "@/shared"
 
 export * from "./types"
 
@@ -90,24 +99,24 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     periodInMinutes: 2,
   })
 
-  Promise.all([
-    lightClientPageHelper.persistChain(
-      (await import("./specs/polkadot")).chainSpec,
+  Promise.all(
+    wellKnownChainGenesisHashes.map(async (genesisHash) =>
+      lightClientPageHelper.persistChain(
+        (await getWellKnownChainSpec(genesisHash))!,
+      ),
     ),
-    lightClientPageHelper.persistChain(
-      (await import("./specs/ksmcc3")).chainSpec,
-    ),
-    lightClientPageHelper.persistChain(
-      (await import("./specs/rococo_v2_2")).chainSpec,
-    ),
-    lightClientPageHelper.persistChain(
-      (await import("./specs/westend2")).chainSpec,
-    ),
-  ])
+  )
 })
 
 export const lightClientPageHelper: LightClientPageHelper = {
   async deleteChain(genesisHash) {
+    if (
+      wellKnownChainGenesisHashes.includes(
+        genesisHash as WellKnownChainGenesisHash,
+      )
+    )
+      throw new Error("Cannot delete well-known-chain")
+
     // TODO: check, Should it disconnect any activeChain?
     // TODO: batch storage.remove
     await Promise.all([
@@ -142,25 +151,29 @@ export const lightClientPageHelper: LightClientPageHelper = {
 
     const chainSpecJson = JSON.parse(chainSpec)
     const bootNodes = chainSpecJson.bootNodes
-    delete chainSpecJson.bootNodes
-    delete chainSpecJson.protocolId
-    delete chainSpecJson.telemetryEndpoints
+    let minimalChainSpec: string = ""
+    if (!(await getWellKnownChainSpec(chainData.genesisHash))) {
+      delete chainSpecJson.bootNodes
+      delete chainSpecJson.protocolId
+      delete chainSpecJson.telemetryEndpoints
 
-    if (!chainSpecJson.genesis.stateRootHash) {
-      chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot(
-        chainSpec,
-        relayChainGenesisHash,
-      )
+      if (!chainSpecJson.genesis.stateRootHash) {
+        chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot(
+          chainSpec,
+          relayChainGenesisHash,
+        )
+      }
+
+      // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
+
+      minimalChainSpec = JSON.stringify(chainSpecJson)
     }
-
-    // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
-
     await Promise.all([
       storage.set(
         { type: "chain", genesisHash: chainData.genesisHash },
         {
           ...chainData,
-          chainSpec: JSON.stringify(chainSpecJson),
+          chainSpec: minimalChainSpec,
           relayChainGenesisHash,
         },
       ),
