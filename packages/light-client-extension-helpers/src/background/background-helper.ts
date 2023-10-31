@@ -159,7 +159,6 @@ export const lightClientPageHelper: LightClientPageHelper = {
         { type: "chain", genesisHash: chainData.genesisHash },
         {
           ...chainData,
-          ss58Format: await getSs58Format(chainSpec, relayChainSpec),
           chainSpec: JSON.stringify(chainSpecJson),
           relayChainGenesisHash,
         },
@@ -610,70 +609,27 @@ const removeChain = (tabId: number, chainId: string) => {
   }
 }
 
-const withClient =
-  <T>(fn: (client: SubstrateClient) => T | PromiseLike<T>) =>
-  async (chainSpec: string, relayChainSpec?: string) => {
-    const client = createClient(
-      await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
-    )
-    try {
-      return await fn(client)
-    } finally {
-      client.destroy()
-    }
-  }
-
-const getChainData = withClient(async (client) => {
-  const [genesisHash, name] = await Promise.all(
-    ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map((method) =>
-      substrateClientRequest<string>(client, method),
-    ),
+const getChainData = async (chainSpec: string, relayChainSpec?: string) => {
+  const client = createClient(
+    await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
   )
-  return {
-    genesisHash,
-    name,
+  try {
+    const [genesisHash, name, { ss58Format }] = (await Promise.all(
+      [
+        "chainSpec_v1_genesisHash",
+        "chainSpec_v1_chainName",
+        "chainSpec_v1_properties",
+      ].map((method) => substrateClientRequest(client, method)),
+    )) as [string, string, { ss58Format: number }]
+    return {
+      genesisHash,
+      name,
+      ss58Format,
+    }
+  } finally {
+    client.destroy()
   }
-})
-
-const getSs58Format = withClient(
-  (client) =>
-    new Promise<number>(async (resolve, reject) => {
-      const chainHeadFollower = client.chainHead(
-        true,
-        async (event) => {
-          try {
-            if (event.type === "newBlock") {
-              chainHeadFollower.unpin([event.blockHash])
-              return
-            }
-            if (event.type !== "initialized") return
-            const [, { metadata }] = Tuple(compact, metadataCodec).dec(
-              await chainHeadFollower.call(
-                event.finalizedBlockHash,
-                "Metadata_metadata",
-                "",
-              ),
-            )
-            if (metadata.tag !== "v14")
-              throw new Error("Wrong metadata version")
-            const prefix = metadata.value.pallets
-              .find((x) => x.name === "System")
-              ?.constants.find((x) => x.name === "SS58Prefix")
-            chainHeadFollower.unfollow()
-            if (!prefix) throw new Error("unable to get SS58Prefix")
-            resolve(
-              getDynamicBuilder(metadata.value)
-                .buildConstant("System", "SS58Prefix")
-                .dec(prefix.value),
-            )
-          } catch (error) {
-            reject(error)
-          }
-        },
-        reject,
-      )
-    }),
-)
+}
 
 // FIXME: merge with getChainData
 const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {
