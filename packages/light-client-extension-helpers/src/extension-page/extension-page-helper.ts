@@ -3,6 +3,7 @@ import {
   sendBackgroundRequest,
   PORT,
   createBackgroundClientConnectProvider,
+  CONTEXT,
 } from "@/shared"
 import type { LightClientPageHelper } from "./types"
 
@@ -11,10 +12,15 @@ const port = chrome.runtime.connect({ name: PORT.EXTENSION_PAGE })
 
 export const helper: LightClientPageHelper = {
   async deleteChain(genesisHash) {
-    await sendBackgroundRequest({ type: "deleteChain", genesisHash })
+    await sendBackgroundRequest({
+      origin: CONTEXT.EXTENSION_PAGE,
+      type: "deleteChain",
+      genesisHash,
+    })
   },
   async persistChain(chainSpec, relayChainGenesisHash) {
     await sendBackgroundRequest({
+      origin: CONTEXT.EXTENSION_PAGE,
       type: "persistChain",
       chainSpec,
       relayChainGenesisHash,
@@ -48,12 +54,14 @@ export const helper: LightClientPageHelper = {
   },
   async getActiveConnections() {
     const { connections } = await sendBackgroundRequest({
+      origin: CONTEXT.EXTENSION_PAGE,
       type: "getActiveConnections",
     })
     return connections
   },
   async disconnect(tabId: number, genesisHash: string) {
     await sendBackgroundRequest({
+      origin: CONTEXT.EXTENSION_PAGE,
       type: "disconnect",
       tabId,
       genesisHash,
@@ -61,6 +69,7 @@ export const helper: LightClientPageHelper = {
   },
   async setBootNodes(genesisHash, bootNodes) {
     await sendBackgroundRequest({
+      origin: CONTEXT.EXTENSION_PAGE,
       type: "setBootNodes",
       genesisHash,
       bootNodes,

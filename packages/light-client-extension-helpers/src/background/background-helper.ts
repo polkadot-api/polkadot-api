@@ -19,7 +19,7 @@ import type {
   ToExtension,
   ToPage,
 } from "@/protocol"
-import { ALARM, CONTEXT, PORT, storage } from "@/shared"
+import { ALARM, CONTEXT, PORT, createIsHelperMessage, storage } from "@/shared"
 
 export * from "./types"
 
@@ -236,23 +236,26 @@ storage.onChainsChanged(async (chains) => {
   ;(await chrome.tabs.query({ url: ["https://*/*", "http://*/*"] })).forEach(
     ({ id }) =>
       chrome.tabs.sendMessage(id!, {
-        origin: CONTEXT.CONTENT_SCRIPT,
+        origin: CONTEXT.BACKGROUND,
         type: "onAddChains",
         chains,
       } as ToPage),
   )
 })
 
-const postMessage = (port: chrome.runtime.Port, message: ToPage) =>
-  port.postMessage(message)
-
 // Chains by TabId
 const activeChains: Record<
   number,
   Record<string, { chain: Chain; genesisHash: string }>
 > = {}
+const isSubstrateConnectMessage = createIsHelperMessage<
+  ToExtension & { origin: "substrate-connect-client" }
+>(["substrate-connect-client"])
 
 chrome.runtime.onConnect.addListener((port) => {
+  const postMessage = (
+    message: ToPage & { origin: "substrate-connect-extension" },
+  ) => port.postMessage(message)
   if (port.name === PORT.CONTENT_SCRIPT || port.name === PORT.EXTENSION_PAGE) {
     let isPortDisconnected = false
     port.onDisconnect.addListener((port) => {
@@ -271,329 +274,333 @@ chrome.runtime.onConnect.addListener((port) => {
       delete activeChains[tabId]
     })
     const pendingAddChains: Record<string, boolean> = {}
-    port.onMessage.addListener(
-      async (
-        // FIXME: use @substrate/connect types
-        msg: ToExtension & { origin: "substrate-connect-client" },
-        port,
-      ) => {
-        const tabId = port.sender?.tab?.id
-        if (!tabId) return
-        switch (msg.type) {
-          case "add-well-known-chain":
-          case "add-chain": {
-            const tabId = port.sender?.tab?.id!
-            if (!tabId) return
-            activeChains[tabId] ??= {}
-            try {
-              if (
-                activeChains[tabId][msg.chainId] ||
-                pendingAddChains[msg.chainId]
-              )
-                throw new Error("Requested chainId already in use")
+    port.onMessage.addListener(async (msg, port) => {
+      const tabId = port.sender?.tab?.id
+      if (!tabId) return
+      if (!isSubstrateConnectMessage(msg)) return
+      switch (msg.type) {
+        case "add-well-known-chain":
+        case "add-chain": {
+          const tabId = port.sender?.tab?.id!
+          if (!tabId) return
+          activeChains[tabId] ??= {}
+          try {
+            if (
+              activeChains[tabId][msg.chainId] ||
+              pendingAddChains[msg.chainId]
+            )
+              throw new Error("Requested chainId already in use")
 
-              pendingAddChains[msg.chainId] = true
-              const chains = await storage.getChains()
+            pendingAddChains[msg.chainId] = true
+            const chains = await storage.getChains()
 
-              let addChainOptions: AddChainOptions
-              if (msg.type === "add-well-known-chain") {
-                const chain =
-                  Object.values(chains).find(
-                    (chain) => chain.genesisHash === msg.chainName,
-                  ) ??
-                  Object.values(chains).find(
-                    (chain) => chain.name === msg.chainName,
-                  )
-                if (!chain) throw new Error("Unknown well-known chain")
-                addChainOptions = {
-                  chainSpec: chain.chainSpec,
-                  disableJsonRpc: false,
-                  potentialRelayChains: chain.relayChainGenesisHash
-                    ? [
-                        await smoldotClient.addChain({
-                          chainSpec:
-                            chains[chain.relayChainGenesisHash].chainSpec,
-                          disableJsonRpc: true,
-                          databaseContent: await storage.get({
-                            type: "databaseContent",
-                            genesisHash: chain.relayChainGenesisHash,
-                          }),
+            let addChainOptions: AddChainOptions
+            if (msg.type === "add-well-known-chain") {
+              const chain =
+                Object.values(chains).find(
+                  (chain) => chain.genesisHash === msg.chainName,
+                ) ??
+                Object.values(chains).find(
+                  (chain) => chain.name === msg.chainName,
+                )
+              if (!chain) throw new Error("Unknown well-known chain")
+              addChainOptions = {
+                chainSpec: chain.chainSpec,
+                disableJsonRpc: false,
+                potentialRelayChains: chain.relayChainGenesisHash
+                  ? [
+                      await smoldotClient.addChain({
+                        chainSpec:
+                          chains[chain.relayChainGenesisHash].chainSpec,
+                        disableJsonRpc: true,
+                        databaseContent: await storage.get({
+                          type: "databaseContent",
+                          genesisHash: chain.relayChainGenesisHash,
                         }),
-                      ]
-                    : [],
-                  databaseContent: await storage.get({
-                    type: "databaseContent",
-                    genesisHash: chain.genesisHash,
-                  }),
-                }
-              } else {
-                const relayChainGenesisHashOrChainId =
-                  msg.potentialRelayChainIds[0]
-                addChainOptions = {
-                  chainSpec: msg.chainSpec,
-                  disableJsonRpc: false,
-                  potentialRelayChains: chains[relayChainGenesisHashOrChainId]
-                    ? [
-                        await smoldotClient.addChain({
-                          chainSpec:
-                            chains[relayChainGenesisHashOrChainId].chainSpec,
-                          disableJsonRpc: true,
-                          databaseContent: await storage.get({
-                            type: "databaseContent",
-                            genesisHash: relayChainGenesisHashOrChainId,
-                          }),
+                      }),
+                    ]
+                  : [],
+                databaseContent: await storage.get({
+                  type: "databaseContent",
+                  genesisHash: chain.genesisHash,
+                }),
+              }
+            } else {
+              const relayChainGenesisHashOrChainId =
+                msg.potentialRelayChainIds[0]
+              addChainOptions = {
+                chainSpec: msg.chainSpec,
+                disableJsonRpc: false,
+                potentialRelayChains: chains[relayChainGenesisHashOrChainId]
+                  ? [
+                      await smoldotClient.addChain({
+                        chainSpec:
+                          chains[relayChainGenesisHashOrChainId].chainSpec,
+                        disableJsonRpc: true,
+                        databaseContent: await storage.get({
+                          type: "databaseContent",
+                          genesisHash: relayChainGenesisHashOrChainId,
                         }),
-                      ]
-                    : msg.potentialRelayChainIds
-                        .filter((chainId) => activeChains[tabId][chainId])
-                        .map((chainId) => activeChains[tabId][chainId].chain),
-                }
+                      }),
+                    ]
+                  : msg.potentialRelayChainIds
+                      .filter((chainId) => activeChains[tabId][chainId])
+                      .map((chainId) => activeChains[tabId][chainId].chain),
               }
-
-              const smoldotChain = await smoldotClient.addChain(addChainOptions)
-              const genesisHash = await getGenesisHash(smoldotChain)
-
-              ;(async () => {
-                while (true) {
-                  let jsonRpcMessage: string | undefined
-                  try {
-                    jsonRpcMessage = await smoldotChain.nextJsonRpcResponse()
-                  } catch (_) {
-                    break
-                  }
-
-                  if (isPortDisconnected) break
-
-                  // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
-                  // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
-                  // this code is never reachable if `jsonRpcCallback` is undefined.
-                  try {
-                    postMessage(port, {
-                      origin: "substrate-connect-extension",
-                      type: "rpc",
-                      chainId: msg.chainId,
-                      jsonRpcMessage,
-                    })
-                  } catch (error) {
-                    console.error(
-                      "JSON-RPC callback has thrown an exception:",
-                      error,
-                    )
-                  }
-                }
-              })()
-
-              if (!pendingAddChains[msg.chainId]) {
-                smoldotChain.remove()
-                return
-              }
-              delete pendingAddChains[msg.chainId]
-
-              activeChains[tabId][msg.chainId] = {
-                chain: smoldotChain,
-                genesisHash,
-              }
-
-              postMessage(port, {
-                origin: "substrate-connect-extension",
-                type: "chain-ready",
-                chainId: msg.chainId,
-              })
-            } catch (error) {
-              delete pendingAddChains[msg.chainId]
-              postMessage(port, {
-                origin: "substrate-connect-extension",
-                type: "error",
-                chainId: msg.chainId,
-                errorMessage:
-                  error instanceof Error
-                    ? error.toString()
-                    : "Unknown error when adding chain",
-              })
             }
 
-            break
-          }
-          case "remove-chain": {
-            const tabId = port.sender?.tab?.id!
-            if (!tabId) return
+            const smoldotChain = await smoldotClient.addChain(addChainOptions)
+            const genesisHash = await getGenesisHash(smoldotChain)
 
+            ;(async () => {
+              while (true) {
+                let jsonRpcMessage: string | undefined
+                try {
+                  jsonRpcMessage = await smoldotChain.nextJsonRpcResponse()
+                } catch (_) {
+                  break
+                }
+
+                if (isPortDisconnected) break
+
+                // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
+                // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
+                // this code is never reachable if `jsonRpcCallback` is undefined.
+                try {
+                  postMessage({
+                    origin: "substrate-connect-extension",
+                    type: "rpc",
+                    chainId: msg.chainId,
+                    jsonRpcMessage,
+                  })
+                } catch (error) {
+                  console.error(
+                    "JSON-RPC callback has thrown an exception:",
+                    error,
+                  )
+                }
+              }
+            })()
+
+            if (!pendingAddChains[msg.chainId]) {
+              smoldotChain.remove()
+              return
+            }
             delete pendingAddChains[msg.chainId]
 
-            removeChain(tabId, msg.chainId)
-
-            break
-          }
-          case "rpc": {
-            const tabId = port.sender?.tab?.id
-            if (!tabId) return
-
-            const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
-            if (!chain) return
-
-            try {
-              chain.sendJsonRpc(msg.jsonRpcMessage)
-            } catch (error) {
-              removeChain(tabId, msg.chainId)
-              postMessage(port, {
-                origin: "substrate-connect-extension",
-                type: "error",
-                chainId: msg.chainId,
-                errorMessage:
-                  error instanceof Error
-                    ? error.toString()
-                    : "Unknown error when sending RPC message",
-              })
+            activeChains[tabId][msg.chainId] = {
+              chain: smoldotChain,
+              genesisHash,
             }
 
-            break
+            postMessage({
+              origin: "substrate-connect-extension",
+              type: "chain-ready",
+              chainId: msg.chainId,
+            })
+          } catch (error) {
+            delete pendingAddChains[msg.chainId]
+            postMessage({
+              origin: "substrate-connect-extension",
+              type: "error",
+              chainId: msg.chainId,
+              errorMessage:
+                error instanceof Error
+                  ? error.toString()
+                  : "Unknown error when adding chain",
+            })
           }
 
-          default: {
-            const unrecognizedMsg: never = msg
-            console.warn("Unrecognized message", unrecognizedMsg)
-            break
-          }
+          break
         }
-      },
-    )
+        case "remove-chain": {
+          const tabId = port.sender?.tab?.id!
+          if (!tabId) return
+
+          delete pendingAddChains[msg.chainId]
+
+          removeChain(tabId, msg.chainId)
+
+          break
+        }
+        case "rpc": {
+          const tabId = port.sender?.tab?.id
+          if (!tabId) return
+
+          const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
+          if (!chain) return
+
+          try {
+            chain.sendJsonRpc(msg.jsonRpcMessage)
+          } catch (error) {
+            removeChain(tabId, msg.chainId)
+            postMessage({
+              origin: "substrate-connect-extension",
+              type: "error",
+              chainId: msg.chainId,
+              errorMessage:
+                error instanceof Error
+                  ? error.toString()
+                  : "Unknown error when sending RPC message",
+            })
+          }
+
+          break
+        }
+        default: {
+          const unrecognizedMsg: never = msg
+          console.warn("Unrecognized message", unrecognizedMsg)
+          break
+        }
+      }
+    })
   }
 })
 
-chrome.runtime.onMessage.addListener(
-  (msg: BackgroundRequest, sender, sendResponse) => {
-    // FIXME: check msg.origin to any BackgroundRequest
-    switch (msg.type) {
-      case "getChain": {
-        ;(async () => {
-          const tabId = sender?.tab?.id
-          if (!tabId) return
-          try {
-            const chains = await storage.getChains()
-            const { chainSpec, relayChainGenesisHash } = msg
-            if (relayChainGenesisHash && !chains[relayChainGenesisHash])
-              throw new Error(
-                `Unknown relayChainGenesisHash ${relayChainGenesisHash}`,
-              )
-            const { genesisHash, name } = await getChainData(
-              chainSpec,
-              relayChainGenesisHash
-                ? chains[relayChainGenesisHash].chainSpec
-                : undefined,
+const isHelperMessage = createIsHelperMessage<BackgroundRequest>([
+  CONTEXT.WEB_PAGE,
+  CONTEXT.EXTENSION_PAGE,
+])
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (!isHelperMessage(msg)) return
+  switch (msg.type) {
+    case "getChain": {
+      ;(async () => {
+        const tabId = sender?.tab?.id
+        if (!tabId) return
+        try {
+          const chains = await storage.getChains()
+          const { chainSpec, relayChainGenesisHash } = msg
+          if (relayChainGenesisHash && !chains[relayChainGenesisHash])
+            throw new Error(
+              `Unknown relayChainGenesisHash ${relayChainGenesisHash}`,
             )
+          const { genesisHash, name } = await getChainData(
+            chainSpec,
+            relayChainGenesisHash
+              ? chains[relayChainGenesisHash].chainSpec
+              : undefined,
+          )
 
-            if (chains[genesisHash]) {
-              return sendBackgroundResponse(sendResponse, {
-                type: "getChainResponse",
-                chain: chains[genesisHash],
-              })
-            }
-
-            const chain = {
-              genesisHash,
-              name,
-              chainSpec,
-              relayChainGenesisHash,
-            }
-
-            await addChainByUserCallback?.(chain, tabId)
-
-            sendBackgroundResponse(sendResponse, {
+          if (chains[genesisHash]) {
+            return sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
               type: "getChainResponse",
-              chain,
+              chain: chains[genesisHash],
             })
-          } catch (error) {
-            console.error("background addChain error", error)
-            sendBackgroundErrorResponse(sendResponse, error)
           }
-        })()
-        return true
-      }
-      case "deleteChain": {
-        lightClientPageHelper
-          .deleteChain(msg.genesisHash)
-          .then(() =>
-            sendBackgroundResponse(sendResponse, {
-              type: "deleteChainResponse",
-            }),
-          )
-          .catch(handleBackgroundErrorResponse(sendResponse))
-        return true
-      }
-      case "persistChain": {
-        lightClientPageHelper
-          .persistChain(msg.chainSpec, msg.relayChainGenesisHash)
-          .then(() =>
-            sendBackgroundResponse(sendResponse, {
-              type: "persistChainResponse",
-            }),
-          )
-          .catch(handleBackgroundErrorResponse(sendResponse))
-        return true
-      }
-      case "getChains": {
-        storage
-          .getChains()
-          .then((chains) => {
-            sendBackgroundResponse(sendResponse, {
-              type: "getChainsResponse",
-              chains,
-            })
+
+          const chain = {
+            genesisHash,
+            name,
+            chainSpec,
+            relayChainGenesisHash,
+          }
+
+          await addChainByUserCallback?.(chain, tabId)
+
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "getChainResponse",
+            chain,
           })
-          .catch(handleBackgroundErrorResponse(sendResponse))
-        return true
-      }
-      case "getActiveConnections": {
-        lightClientPageHelper
-          .getActiveConnections()
-          .then((connections) =>
-            sendBackgroundResponse(sendResponse, {
-              type: "getActiveConnectionsResponse",
-              connections,
-            }),
-          )
-          .catch(handleBackgroundErrorResponse(sendResponse))
-        return true
-      }
-      case "disconnect": {
-        Object.entries(activeChains[msg.tabId] ?? {})
-          // TODO: Should options-tab/popup connections connections be disconnectable?
-          .filter(([_, { genesisHash }]) => genesisHash === msg.genesisHash)
-          .forEach(([chainId]) => {
-            removeChain(msg.tabId, chainId)
-            chrome.tabs.sendMessage(msg.tabId, {
-              origin: "substrate-connect-extension",
-              type: "error",
-              chainId,
-              errorMessage: "Disconnected",
-            } as ToPage)
-          })
-        // TODO: this might not be needed
-        sendBackgroundResponse(sendResponse, {
-          type: "disconnectResponse",
-        })
-        break
-      }
-      case "setBootNodes": {
-        lightClientPageHelper
-          .setBootNodes(msg.genesisHash, msg.bootNodes)
-          .then(() =>
-            sendBackgroundResponse(sendResponse, {
-              type: "setBootNodesResponse",
-            }),
-          )
-          .catch(handleBackgroundErrorResponse(sendResponse))
-        return true
-      }
-      default: {
-        const unrecognizedMsg: never = msg
-        console.warn("Unrecognized message", unrecognizedMsg)
-        break
-      }
+        } catch (error) {
+          console.error("background addChain error", error)
+          sendBackgroundErrorResponse(sendResponse, error)
+        }
+      })()
+      return true
     }
-    return
-  },
-)
+    case "deleteChain": {
+      lightClientPageHelper
+        .deleteChain(msg.genesisHash)
+        .then(() =>
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "deleteChainResponse",
+          }),
+        )
+        .catch(handleBackgroundErrorResponse(sendResponse))
+      return true
+    }
+    case "persistChain": {
+      lightClientPageHelper
+        .persistChain(msg.chainSpec, msg.relayChainGenesisHash)
+        .then(() =>
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "persistChainResponse",
+          }),
+        )
+        .catch(handleBackgroundErrorResponse(sendResponse))
+      return true
+    }
+    case "getChains": {
+      storage
+        .getChains()
+        .then((chains) => {
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "getChainsResponse",
+            chains,
+          })
+        })
+        .catch(handleBackgroundErrorResponse(sendResponse))
+      return true
+    }
+    case "getActiveConnections": {
+      lightClientPageHelper
+        .getActiveConnections()
+        .then((connections) =>
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "getActiveConnectionsResponse",
+            connections,
+          }),
+        )
+        .catch(handleBackgroundErrorResponse(sendResponse))
+      return true
+    }
+    case "disconnect": {
+      Object.entries(activeChains[msg.tabId] ?? {})
+        // TODO: Should options-tab/popup connections connections be disconnectable?
+        .filter(([_, { genesisHash }]) => genesisHash === msg.genesisHash)
+        .forEach(([chainId]) => {
+          removeChain(msg.tabId, chainId)
+          chrome.tabs.sendMessage(msg.tabId, {
+            origin: "substrate-connect-extension",
+            type: "error",
+            chainId,
+            errorMessage: "Disconnected",
+          } as ToPage)
+        })
+      // TODO: this might not be needed
+      sendBackgroundResponse(sendResponse, {
+        origin: CONTEXT.BACKGROUND,
+        type: "disconnectResponse",
+      })
+      break
+    }
+    case "setBootNodes": {
+      lightClientPageHelper
+        .setBootNodes(msg.genesisHash, msg.bootNodes)
+        .then(() =>
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "setBootNodesResponse",
+          }),
+        )
+        .catch(handleBackgroundErrorResponse(sendResponse))
+      return true
+    }
+    default: {
+      const unrecognizedMsg: never = msg
+      console.warn("Unrecognized message", unrecognizedMsg)
+      break
+    }
+  }
+  return
+})
 
 const removeChain = (tabId: number, chainId: string) => {
   const chain = activeChains?.[tabId]?.[chainId]?.chain
@@ -695,6 +702,7 @@ const sendBackgroundErrorResponse = (
   error: Error | string | unknown,
 ) =>
   sendBackgroundResponse(sendResponse, {
+    origin: CONTEXT.BACKGROUND,
     type: "error",
     error:
       error instanceof Error

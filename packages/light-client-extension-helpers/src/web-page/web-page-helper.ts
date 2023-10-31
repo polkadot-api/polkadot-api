@@ -13,9 +13,13 @@ export * from "./types"
 const postToExtension = (message: PostMessage<ToExtension>) =>
   window.postMessage(message, window.origin)
 
-const validOrigins = [CONTEXT.CONTENT_SCRIPT, "substrate-connect-extension"]
+const validOrigins = [
+  CONTEXT.CONTENT_SCRIPT,
+  CONTEXT.BACKGROUND,
+  "substrate-connect-extension",
+]
 
-const checkMessage = (msg: any): msg is ToPage => {
+const isHelperMessage = (msg: any): msg is ToPage => {
   if (!msg) return false
   if (!validOrigins.includes(msg?.origin)) return false
   if (!msg?.type && !msg?.id) return false
@@ -36,18 +40,17 @@ export const getLightClientProvider = async (
 
   const pendingRequests: Record<
     string,
-    { resolve(result: any): void; reject(error: any): void }
+    { resolve(result: any): void; reject(error: string): void }
   > = {}
 
   window.addEventListener("message", ({ data, source }) => {
-    if (source !== window) return
+    if (source !== window || !data) return
     const { channelId: messageChannelId, msg } = data
     if (messageChannelId !== channelId) return
-    if (!validOrigins.includes(msg?.origin)) return
-    if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
+    if (!isHelperMessage(msg)) return
     if (msg.origin === "substrate-connect-extension")
       return rawChainCallbacks.forEach((cb) => cb(msg))
-    if (msg.id !== undefined) {
+    if (msg.origin === CONTEXT.CONTENT_SCRIPT && msg.id !== undefined) {
       const pendingRequest = pendingRequests[msg.id]
       if (!pendingRequest) return console.warn("Unhandled response", msg)
       msg.error
@@ -56,7 +59,7 @@ export const getLightClientProvider = async (
       delete pendingRequests[msg.id]
       return
     }
-    if (msg.type === "onAddChains")
+    if (msg.origin === CONTEXT.BACKGROUND && msg.type === "onAddChains")
       return chainsChangeCallbacks.forEach((cb) =>
         cb(
           Object.fromEntries(
