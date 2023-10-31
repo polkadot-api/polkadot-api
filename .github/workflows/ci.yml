@@ -65,6 +65,7 @@ jobs:
           pnpm pack --dir packages/json-rpc-provider
           pnpm pack --dir packages/json-rpc-provider-proxy
           pnpm pack --dir packages/legacy-polkadot-provider
+          pnpm pack --dir packages/light-client-extension-helpers
           pnpm pack --dir packages/sc-provider
           pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
@@ -91,6 +92,10 @@ jobs:
         with:
           name: package
           path: ./packages/legacy-polkadot-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/light-client-extension-helpers/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package

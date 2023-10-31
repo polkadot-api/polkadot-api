@@ -1,0 +1,45 @@
+{
+  "name": "@polkadot-api/light-client-extension-helpers",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paritytech/polkadot-api.git"
+  },
+  "license": "MIT",
+  "exports": {
+    "./background": "./dist/background/background-helper.mjs",
+    "./content-script": "./dist/content-script/content-script-helper.mjs",
+    "./extension-page": "./dist/extension-page/extension-page-helper.mjs",
+    "./web-page": "./dist/web-page/web-page-helper.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --noEmit && tsup-node src/background/background-helper.ts src/content-script/content-script-helper.ts src/extension-page/extension-page-helper.ts src/web-page/web-page-helper.ts --clean --sourcemap --platform neutral --target=es2020 --format esm --dts",
+    "dev": "pnpm build --watch",
+    "test": "echo 'no tests'",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "devDependencies": {
+    "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/substrate-codegen": "workspace:*",
+    "@types/chrome": "^0.0.246"
+  },
+  "peerDependencies": {
+    "smoldot": "2.0.3"
+  },
+  "dependencies": {
+    "@substrate/connect-extension-protocol": "^1.0.1"
+  }
+}
