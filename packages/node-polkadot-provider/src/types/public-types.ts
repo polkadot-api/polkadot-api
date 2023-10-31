@@ -29,14 +29,12 @@ export type CustomizeTxResult<T extends Array<UserSignedExtensionName>> = {
 }
 
 export type GetChainArgs = {
-  chainId: string
-  name: string
   keyring: Keyring
-  chainProvider: ConnectProvider
+  provider: ConnectProvider
   txCustomizations?:
     | Partial<UserSignedExtensions>
     | (<T extends Array<UserSignedExtensionName>>(
         ctx: CreateTxContext,
       ) => Promise<Partial<CustomizeTxResult<T>>>)
-  onCreateTxError?: (ctx: CreateTxContext, err: Error) => unknown
+  onCreateTxError?: (ctx: CreateTxContext, err: Error) => void
 }

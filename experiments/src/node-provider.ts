@@ -43,15 +43,10 @@ const createKeyring = (): Keyring => {
 const provider = createProvider(WellKnownChain.westend2)
 const client = getObservableClient(createClient(provider))
 
-const chain = getChain({
-  chainId: "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
-  name: "Westend",
-  chainProvider: provider,
+const chain = await getChain({
+  provider,
   keyring: createKeyring(),
-  userSignedExtensionDefaults: {
-    ChargeTransactionPayment: 1n,
-  },
-  customizeTx: async (ctx) => {
+  txCustomizations: async (ctx) => {
     const nonce = BigInt(await getNonce(client)(ctx.from))
     console.log("nonce", nonce)
     if (nonce % 2n === 0n) {
@@ -68,6 +63,8 @@ const chain = getChain({
     console.error("create tx error", err)
   },
 })
+
+console.log(`Chain id: ${chain.chainId},  Chain Name: ${chain.name}`)
 
 const accounts = await chain.getAccounts()
 console.log("accounts", accounts)

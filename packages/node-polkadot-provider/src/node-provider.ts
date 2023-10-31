@@ -11,6 +11,7 @@ import {
 } from "@polkadot-api/tx-helper"
 import { equals } from "./bytes"
 import { toHex } from "@polkadot-api/utils"
+import { getChainProps } from "./get-chain-props"
 
 const defaultUserSignedExtensions: UserSignedExtensions = {
   CheckMortality: {
@@ -22,14 +23,12 @@ const defaultUserSignedExtensions: UserSignedExtensions = {
   },
 }
 
-export const getChain = ({
-  chainId,
-  name,
-  chainProvider,
+export const getChain = async ({
+  provider: getProvider,
   keyring,
   txCustomizations = defaultUserSignedExtensions,
   onCreateTxError = () => {},
-}: GetChainArgs): Chain => {
+}: GetChainArgs): Promise<Chain> => {
   const getAccounts: Chain["getAccounts"] = async () =>
     keyring.getPairs().map((kp) => ({
       address: kp.address,
@@ -64,8 +63,8 @@ export const getChain = ({
   }
 
   const connect: Chain["connect"] = (onMessage) => {
-    const provider = chainProvider(onMessage)
-    const txCreator = getTxCreator(chainProvider, async (ctx, cb) => {
+    const provider = getProvider(onMessage)
+    const txCreator = getTxCreator(getProvider, async (ctx, cb) => {
       try {
         const customizeTx = await getCustomizeTx()(ctx)
         const userSignedExtensionDefaults = getUserSignedExtensionDefaults()
@@ -115,6 +114,8 @@ export const getChain = ({
       },
     }
   }
+
+  const { chainId, name } = await getChainProps(getProvider)
 
   return {
     chainId,
