@@ -88,7 +88,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   )
 })
 
-chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (
     reason !== chrome.runtime.OnInstalledReason.INSTALL &&
     reason !== chrome.runtime.OnInstalledReason.UPDATE
@@ -99,11 +99,9 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     periodInMinutes: 2,
   })
 
-  Promise.all(
-    wellKnownChainGenesisHashes.map(async (genesisHash) =>
-      lightClientPageHelper.persistChain(
-        (await getWellKnownChainSpec(genesisHash))!,
-      ),
+  wellKnownChainGenesisHashes.map(async (genesisHash) =>
+    lightClientPageHelper.persistChain(
+      (await getWellKnownChainSpec(genesisHash))!,
     ),
   )
 })
@@ -117,29 +115,21 @@ export const lightClientPageHelper: LightClientPageHelper = {
     )
       throw new Error("Cannot delete well-known-chain")
 
-    // TODO: check, Should it disconnect any activeChain?
     // TODO: batch storage.remove
     await Promise.all([
       storage.remove({ type: "chain", genesisHash }),
       storage.remove({ type: "bootNodes", genesisHash }),
       storage.remove({ type: "databaseContent", genesisHash }),
+      Object.keys(activeChains).map((tabId) =>
+        this.disconnect(+tabId, genesisHash),
+      ),
     ])
     for (const {
       genesisHash: parachainGenesisHash,
       relayChainGenesisHash,
     } of Object.values(await storage.getChains())) {
       if (relayChainGenesisHash !== genesisHash) continue
-      await Promise.all([
-        storage.remove({ type: "chain", genesisHash: parachainGenesisHash }),
-        storage.remove({
-          type: "bootNodes",
-          genesisHash: parachainGenesisHash,
-        }),
-        storage.remove({
-          type: "databaseContent",
-          genesisHash: parachainGenesisHash,
-        }),
-      ])
+      await this.deleteChain(parachainGenesisHash)
     }
   },
   async persistChain(chainSpec, relayChainGenesisHash) {
@@ -216,7 +206,6 @@ export const lightClientPageHelper: LightClientPageHelper = {
   },
   async disconnect(tabId: number, genesisHash: string) {
     Object.entries(activeChains[tabId] ?? {})
-      // TODO: Should options-tab/popup connections connections be disconnectable?
       .filter(
         ([_, { genesisHash: activeGenesisHash }]) =>
           activeGenesisHash === genesisHash,
@@ -571,24 +560,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       return true
     }
     case "disconnect": {
-      Object.entries(activeChains[msg.tabId] ?? {})
-        // TODO: Should options-tab/popup connections connections be disconnectable?
-        .filter(([_, { genesisHash }]) => genesisHash === msg.genesisHash)
-        .forEach(([chainId]) => {
-          removeChain(msg.tabId, chainId)
-          chrome.tabs.sendMessage(msg.tabId, {
-            origin: "substrate-connect-extension",
-            type: "error",
-            chainId,
-            errorMessage: "Disconnected",
-          } as ToPage)
-        })
-      // TODO: this might not be needed
-      sendBackgroundResponse(sendResponse, {
-        origin: CONTEXT.BACKGROUND,
-        type: "disconnectResponse",
-      })
-      break
+      lightClientPageHelper
+        .disconnect(msg.tabId, msg.genesisHash)
+        .then(() =>
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "disconnectResponse",
+          }),
+        )
+        .catch(handleBackgroundErrorResponse(sendResponse))
+      return true
     }
     case "setBootNodes": {
       lightClientPageHelper
