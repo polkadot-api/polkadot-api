@@ -603,7 +603,7 @@ const removeChain = (tabId: number, chainId: string) => {
 }
 
 const withClient =
-  <T>(fn: (client: SubstrateClient) => T | PromiseLike<T>) =>
+  <T>(fn: (client: SubstrateClient) => T | Promise<T>) =>
   async (chainSpec: string, relayChainGenesisHash?: string) => {
     const client = createClient(
       await smoldotProvider({
@@ -722,15 +722,9 @@ const substrateClientRequest = <T>(
 ) =>
   new Promise<T>((resolve, reject) => {
     try {
-      const unsub = client._request(method, params, {
-        onSuccess(result: any) {
-          unsub()
-          resolve(result)
-        },
-        onError(error: any) {
-          unsub()
-          reject(error)
-        },
+      client._request(method, params, {
+        onSuccess: resolve,
+        onError: reject,
       })
     } catch (error) {
       reject(error)
