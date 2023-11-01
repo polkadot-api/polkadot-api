@@ -13,10 +13,13 @@ import {
   BytesComponent,
   BytesDecoded,
   Decoded,
+  EnumComponent,
+  EnumDecoded,
   NumberComponent,
   NumberDecoded,
   SequenceComponent,
   SequenceDecoded,
+  Shape,
   StringComponent,
   StringDecoded,
   TupleComponent,
@@ -76,7 +79,6 @@ const MockDecoded = {
     value,
     input: Hex(1).dec(char.enc(value)),
   }),
-
   array: (values: Decoded[]): ArrayDecoded => {
     if (values.length === 0)
       throw new Error("Array must have at least one value")
@@ -99,6 +101,22 @@ const MockDecoded = {
     codec: "Tuple",
     value: values,
     inner: values,
+    input: "0xdummy" as scale.HexString,
+  }),
+  enum: <
+    I extends scale.StringRecord<Decoded>,
+    K extends keyof I extends string ? keyof I : never,
+  >(
+    inner: I,
+    tag: K,
+    value: I[K],
+  ): EnumDecoded => ({
+    codec: "Enum",
+    value: {
+      tag,
+      value,
+    },
+    inner,
     input: "0xdummy" as scale.HexString,
   }),
 }
@@ -179,6 +197,22 @@ describe("view-builder-components", () => {
       ])
 
       const rendered = TupleComponent(decoded)
+
+      console.log(JSON.stringify(rendered))
+    })
+
+    it("EnumComponent", () => {
+      const decoded = MockDecoded.enum(
+        {
+          A: MockDecoded.str("Hello"),
+          B: MockDecoded.int(123),
+          C: MockDecoded.bigInt(BigInt(1234567890)),
+        },
+        "A",
+        MockDecoded.str("Hello"),
+      )
+
+      const rendered = EnumComponent(decoded)
 
       console.log(JSON.stringify(rendered))
     })

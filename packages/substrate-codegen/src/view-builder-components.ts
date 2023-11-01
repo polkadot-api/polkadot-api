@@ -198,9 +198,9 @@ const BytesComponent: React.FC<BytesDecoded> = (props) => {
  */
 
 const ArrayComponent: React.FC<ArrayDecoded> = (props) => {
-  return `${props.codec}([\n${props.value
+  return `${props.codec}([${props.value
     .map((v) => DecodedComponent(v))
-    .join("\n")}])`
+    .join(", ")}])`
 }
 
 const SequenceComponent: React.FC<SequenceDecoded> = (props) => {
@@ -213,6 +213,12 @@ const TupleComponent: React.FC<TupleDecoded> = (props) => {
   return `${props.codec}([${props.value
     .map((v) => DecodedComponent(v))
     .join(", ")}])`
+}
+
+const EnumComponent: React.FC<EnumDecoded> = (props) => {
+  return `${props.codec}.${props.value.tag}(${DecodedComponent(
+    props.value.value,
+  )})`
 }
 
 type MinimalComponentSet = {
@@ -266,6 +272,8 @@ const DecodedComponent: React.FC<Decoded> = (props) => {
       return SequenceComponent(props)
     case "Tuple":
       return TupleComponent(props)
+    case "Enum":
+      return EnumComponent(props)
     default:
       throw `Not Implemented ${props.codec}`
   }
@@ -277,6 +285,7 @@ export {
   BigNumberComponent,
   BoolComponent,
   BytesComponent,
+  EnumComponent,
   NumberComponent,
   SequenceComponent,
   StringComponent,
