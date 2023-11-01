@@ -256,8 +256,8 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       scale-ts:
-        specifier: ^1.4.0
-        version: 1.4.1
+        specifier: ^1.4.2
+        version: 1.4.2
       tsc-prog:
         specifier: ^2.3.0
         version: 2.3.0(typescript@5.2.2)
@@ -410,8 +410,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.3
       scale-ts:
-        specifier: ^1.4.0
-        version: 1.4.1
+        specifier: ^1.4.2
+        version: 1.4.2
     devDependencies:
       bigint-conversion:
         specifier: ^2.4.1
@@ -5795,8 +5795,8 @@ packages:
     resolution: {integrity: sha512-0s+oAmw9zLl1V1cS9BtZN7JAd0cW5e0QH4W3LWEK6a4LaLEA2OTpGYWDY+6XasBLtz6wkm3u1xRw95mRuJ59WA==}
     dev: true
 
-  /scale-ts@1.4.1:
-    resolution: {integrity: sha512-tu09erdJm1+dRqtXUmuJLlbksWkrquQqtVjTgBNsCrc8O7YUVDcXLnuMBUJ7EXQ4KyTA7MsK2KaaX9DM8lfYDw==}
+  /scale-ts@1.4.2:
+    resolution: {integrity: sha512-WTS1myYKhrNKzGCmQ434LkDGfgppcGUHCdpl1baH2jEu2Ow8al+llw5vOKO4Tk1/Y58+TfriReMtGV/07VMGmg==}
     dev: false
 
   /scheduler@0.23.0:
