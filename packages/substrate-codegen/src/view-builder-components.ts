@@ -183,27 +183,27 @@ const BigNumberComponent: React.FC<BigNumberDecoded> = (props) => {
   return `${props.codec}(${props.value})`
 }
 
-const AccountIdComponent: React.FC<AccountIdDecoded> = (props) => {
-  return `${props.codec}(${props.value.address})`
-}
-
 const BytesComponent: React.FC<BytesDecoded> = (props) => {
   const hex = Buffer.from(props.value).toString("hex")
 
   return `${props.codec}(0x${hex})`
 }
 
+const AccountIdComponent: React.FC<AccountIdDecoded> = (props) => {
+  return `${props.codec}(${props.value.address})`
+}
+
 /**
  * Complex Components
  */
 
-const ArrayComponent: React.FC<ArrayDecoded> = (props) => {
+const SequenceComponent: React.FC<SequenceDecoded> = (props) => {
   return `${props.codec}([${props.value
     .map((v) => DecodedComponent(v))
     .join(", ")}])`
 }
 
-const SequenceComponent: React.FC<SequenceDecoded> = (props) => {
+const ArrayComponent: React.FC<ArrayDecoded> = (props) => {
   return `${props.codec}([${props.value
     .map((v) => DecodedComponent(v))
     .join(", ")}])`
@@ -215,16 +215,16 @@ const TupleComponent: React.FC<TupleDecoded> = (props) => {
     .join(", ")}])`
 }
 
-const EnumComponent: React.FC<EnumDecoded> = (props) => {
-  return `${props.codec}.${props.value.tag}(${DecodedComponent(
-    props.value.value,
-  )})`
-}
-
 const StructComponent: React.FC<StructDecoded> = (props) => {
   return `${props.codec}({${Object.entries(props.value)
     .map(([k, v]) => `${k}: ${DecodedComponent(v)}`)
     .join(", ")}})`
+}
+
+const EnumComponent: React.FC<EnumDecoded> = (props) => {
+  return `${props.codec}.${props.value.tag}(${DecodedComponent(
+    props.value.value,
+  )})`
 }
 
 type MinimalComponentSet = {
@@ -247,15 +247,14 @@ const DecodedComponent: React.FC<Decoded> = (props) => {
   switch (props.codec) {
     case "_void":
       return VoidComponent(props)
+
     case "bool":
       return BoolComponent(props)
+
     case "str":
     case "char":
       return StringComponent(props)
-    case "AccountId":
-      return AccountIdComponent(props)
-    case "Bytes":
-      return BytesComponent(props)
+
     case "u8":
     case "u16":
     case "u32":
@@ -272,16 +271,23 @@ const DecodedComponent: React.FC<Decoded> = (props) => {
     case "i256":
     case "compactBn":
       return BigNumberComponent(props)
-    case "Array":
-      return ArrayComponent(props)
+
+    case "Bytes":
+      return BytesComponent(props)
+    case "AccountId":
+      return AccountIdComponent(props)
+
     case "Sequence":
       return SequenceComponent(props)
+    case "Array":
+      return ArrayComponent(props)
     case "Tuple":
       return TupleComponent(props)
-    case "Enum":
-      return EnumComponent(props)
     case "Struct":
       return StructComponent(props)
+    case "Enum":
+      return EnumComponent(props)
+
     default:
       throw `Not Implemented ${props.codec}`
   }
