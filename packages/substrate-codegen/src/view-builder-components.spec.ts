@@ -18,7 +18,6 @@ import {
   EnumShape,
   NumberComponent,
   NumberDecoded,
-  PrimitiveDecoded,
   SequenceComponent,
   SequenceDecoded,
   Shape,
@@ -31,14 +30,38 @@ import {
   VoidDecoded,
 } from "./view-builder-components"
 
-const MockShape = {
-  primitive: (codec: PrimitiveDecoded["codec"]): Shape => ({
-    codec,
-  }),
-  enum: (inner: scale.StringRecord<Shape>): EnumShape => ({
-    codec: "Enum",
-    inner,
-  }),
+const toShape = (decoded: Decoded): Shape => {
+  switch (decoded.codec) {
+    case "Enum":
+      const shape: EnumShape = {
+        codec: decoded.codec,
+        inner: decoded.inner,
+      }
+      return shape
+    case "Struct":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+      }
+    case "Array":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+        len: decoded.len,
+      }
+    case "Sequence":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+      }
+    case "Tuple":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+      }
+    default:
+      return { codec: decoded.codec }
+  }
 }
 
 const MockDecoded = {
@@ -100,21 +123,21 @@ const MockDecoded = {
     return {
       codec: "Array",
       len: values.length,
-      inner: values[0],
+      inner: toShape(values[0]),
       value: values,
       input: "0xdummy" as scale.HexString, // probably need to reconstruct it from the inputs of the values
     }
   },
   sequence: (values: Decoded[]): SequenceDecoded => ({
     codec: "Sequence",
-    inner: values[0],
+    inner: toShape(values[0]),
     value: values,
     input: "0xdummy" as scale.HexString, // probably need to reconstruct it from the inputs of the values
   }),
   tuple: (values: Decoded[]): TupleDecoded => ({
     codec: "Tuple",
     value: values,
-    inner: values,
+    inner: values.map((value) => toShape(value)),
     input: "0xdummy" as scale.HexString,
   }),
   enum: <
