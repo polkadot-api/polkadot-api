@@ -9,7 +9,6 @@
     "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
     "nominators": "tsup-node src/all-nominators.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\"",
     "tx": "tsup-node src/tx.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/tx.js\"",
-    "node-provider": "tsup-node src/node-provider.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/node-provider.js\"",
     "client": "tsup-node src/client.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/client.js\""
   },
   "keywords": [],
@@ -23,15 +22,12 @@
     "@noble/curves": "^1.2.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/client": "workspace:*",
-    "@polkadot-api/node-polkadot-provider": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
     "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "@polkadot/api": "^10.3.4",
-    "@polkadot/util-crypto": "^12.5.1",
     "rxjs": "^7.8.1"
   },
   "prettier": {
