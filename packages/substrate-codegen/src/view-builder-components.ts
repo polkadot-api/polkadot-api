@@ -1,8 +1,8 @@
-import type {
-  Decoder,
-  HexString,
-  StringRecord,
-  V14,
+import {
+  type Decoder,
+  type HexString,
+  type StringRecord,
+  type V14,
 } from "@polkadot-api/substrate-bindings"
 
 export type GetViewBuilder = (metadata: V14) => {
@@ -221,6 +221,12 @@ const EnumComponent: React.FC<EnumDecoded> = (props) => {
   )})`
 }
 
+const StructComponent: React.FC<StructDecoded> = (props) => {
+  return `${props.codec}({${Object.entries(props.value)
+    .map(([k, v]) => `${k}: ${DecodedComponent(v)}`)
+    .join(", ")}})`
+}
+
 type MinimalComponentSet = {
   bool: React.FC<BoolDecoded>
   string: React.FC<StringDecoded>
@@ -274,6 +280,8 @@ const DecodedComponent: React.FC<Decoded> = (props) => {
       return TupleComponent(props)
     case "Enum":
       return EnumComponent(props)
+    case "Struct":
+      return StructComponent(props)
     default:
       throw `Not Implemented ${props.codec}`
   }
@@ -289,6 +297,7 @@ export {
   NumberComponent,
   SequenceComponent,
   StringComponent,
+  StructComponent,
   TupleComponent,
   VoidComponent,
 }

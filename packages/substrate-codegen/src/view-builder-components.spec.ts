@@ -15,17 +15,31 @@ import {
   Decoded,
   EnumComponent,
   EnumDecoded,
+  EnumShape,
   NumberComponent,
   NumberDecoded,
+  PrimitiveDecoded,
   SequenceComponent,
   SequenceDecoded,
   Shape,
   StringComponent,
   StringDecoded,
+  StructComponent,
+  StructDecoded,
   TupleComponent,
   TupleDecoded,
   VoidDecoded,
 } from "./view-builder-components"
+
+const MockShape = {
+  primitive: (codec: PrimitiveDecoded["codec"]): Shape => ({
+    codec,
+  }),
+  enum: (inner: scale.StringRecord<Shape>): EnumShape => ({
+    codec: "Enum",
+    inner,
+  }),
+}
 
 const MockDecoded = {
   _void: (): VoidDecoded => ({
@@ -117,6 +131,12 @@ const MockDecoded = {
       value,
     },
     inner,
+    input: "0xdummy" as scale.HexString,
+  }),
+  struct: (value: scale.StringRecord<Decoded>): StructDecoded => ({
+    codec: "Struct",
+    value,
+    inner: value,
     input: "0xdummy" as scale.HexString,
   }),
 }
@@ -216,10 +236,22 @@ describe("view-builder-components", () => {
 
       console.log(JSON.stringify(rendered))
     })
+
+    it("StructComponent", () => {
+      const decoded = MockDecoded.struct({
+        A: MockDecoded.str("Hello"),
+        B: MockDecoded.int(123),
+        C: MockDecoded.bigInt(BigInt(1234567890)),
+      })
+
+      const rendered = StructComponent(decoded)
+
+      console.log(JSON.stringify(rendered))
+    })
   })
 
   describe("Nested", () => {
-    it("ArrayComponent", () => {
+    it("Array", () => {
       const decoded = MockDecoded.array([
         MockDecoded.array([1, 2].map((v) => MockDecoded.int(v))),
         MockDecoded.array([3, 4].map((v) => MockDecoded.int(v))),
@@ -247,6 +279,48 @@ describe("view-builder-components", () => {
       ])
 
       const rendered = TupleComponent(decoded)
+
+      console.log(JSON.stringify(rendered))
+    })
+
+    it("Enum", () => {
+      const innerEnumDecoded = MockDecoded.enum(
+        {
+          One: MockDecoded.str("Hello"),
+          Two: MockDecoded.int(123),
+          Three: MockDecoded.bigInt(BigInt(1234567890)),
+        },
+        "One",
+        MockDecoded.str("Hello from One"),
+      )
+      const decoded = MockDecoded.enum(
+        {
+          A: innerEnumDecoded,
+          B: MockDecoded.int(123),
+          C: MockDecoded.bigInt(BigInt(1234567890)),
+        },
+        "A",
+        innerEnumDecoded,
+      )
+
+      const rendered = EnumComponent(decoded)
+
+      console.log(JSON.stringify(rendered))
+    })
+
+    it("Struct", () => {
+      const innerStruct = MockDecoded.struct({
+        One: MockDecoded.str("Hello"),
+        Two: MockDecoded.int(123),
+        Three: MockDecoded.bigInt(BigInt(1234567890)),
+      })
+      const decoded = MockDecoded.struct({
+        A: innerStruct,
+        B: innerStruct,
+        C: innerStruct,
+      })
+
+      const rendered = StructComponent(decoded)
 
       console.log(JSON.stringify(rendered))
     })
