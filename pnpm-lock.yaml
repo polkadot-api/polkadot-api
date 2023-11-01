@@ -534,6 +534,9 @@ importers:
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../packages/client
+      '@polkadot-api/node-polkadot-provider':
+        specifier: workspace:^
+        version: link:../packages/node-polkadot-provider
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../packages/sc-provider

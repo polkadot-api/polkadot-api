@@ -27,7 +27,6 @@ export const getChain = async ({
   provider: getProvider,
   keyring,
   txCustomizations = defaultUserSignedExtensions,
-  onCreateTxError = () => {},
 }: GetChainArgs): Promise<Chain> => {
   const getAccounts: Chain["getAccounts"] = async () =>
     keyring.getPairs().map((kp) => ({
@@ -54,7 +53,7 @@ export const getChain = async ({
 
   const getCustomizeTx = (): (<T extends Array<UserSignedExtensionName>>(
     ctx: CreateTxContext,
-  ) => Promise<Partial<CustomizeTxResult<T>>>) => {
+  ) => Promise<Partial<CustomizeTxResult<T>> | null>) => {
     if (typeof txCustomizations === "function") {
       return txCustomizations
     }
@@ -65,42 +64,39 @@ export const getChain = async ({
   const connect: Chain["connect"] = (onMessage) => {
     const provider = getProvider(onMessage)
     const txCreator = getTxCreator(getProvider, async (ctx, cb) => {
-      try {
-        const customizeTx = await getCustomizeTx()(ctx)
-        const userSignedExtensionDefaults = getUserSignedExtensionDefaults()
-        const userSignedExtensionsData = Object.fromEntries(
-          ctx.userSingedExtensionsName.map((x) => [
-            x,
-            userSignedExtensionDefaults[x] ?? defaultUserSignedExtensions[x],
-          ]),
-        ) as any
-
-        const keypair = keyring
-          .getPairs()
-          .find((kp) => equals(kp.publicKey, ctx.from))
-        if (keypair) {
-          cb({
-            overrides: {
-              ...(customizeTx.overrides ?? {}),
-            },
-            userSignedExtensionsData: {
-              ...userSignedExtensionsData,
-              ...((customizeTx.userSignedExtensionsData as any) ?? {}),
-            },
-            signingType: keypair.signingType,
-            signer: keypair.sign,
-          })
-        } else {
-          onCreateTxError(
-            ctx,
-            new Error(`${toHex(ctx.from)} doesn't exist in keyring`),
-          )
-          cb(null)
-        }
-      } catch (err) {
-        onCreateTxError(ctx, err as Error)
+      const customizeTx = await getCustomizeTx()(ctx)
+      if (!customizeTx) {
         cb(null)
+        return
       }
+
+      const userSignedExtensionDefaults = getUserSignedExtensionDefaults()
+      const userSignedExtensionsData = Object.fromEntries(
+        ctx.userSingedExtensionsName.map((x) => [
+          x,
+          userSignedExtensionDefaults[x] ?? defaultUserSignedExtensions[x],
+        ]),
+      ) as any
+
+      const keypair = keyring
+        .getPairs()
+        .find((kp) => equals(kp.publicKey, ctx.from))
+
+      if (!keypair) {
+        throw new Error(`${toHex(ctx.from)} doesn't exist in keyring`)
+      }
+
+      cb({
+        overrides: {
+          ...(customizeTx.overrides ?? {}),
+        },
+        userSignedExtensionsData: {
+          ...userSignedExtensionsData,
+          ...((customizeTx.userSignedExtensionsData as any) ?? {}),
+        },
+        signingType: keypair.signingType,
+        signer: keypair.sign,
+      })
     })
 
     const createTx: JsonRpcProvider["createTx"] = async (from, callData) =>

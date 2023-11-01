@@ -35,6 +35,5 @@ export type GetChainArgs = {
     | Partial<UserSignedExtensions>
     | (<T extends Array<UserSignedExtensionName>>(
         ctx: CreateTxContext,
-      ) => Promise<Partial<CustomizeTxResult<T>>>)
-  onCreateTxError?: (ctx: CreateTxContext, err: Error) => void
+      ) => Promise<Partial<CustomizeTxResult<T> | null>>)
 }
