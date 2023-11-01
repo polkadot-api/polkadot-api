@@ -16,7 +16,6 @@ import {
   Decoded,
   EnumComponent,
   EnumDecoded,
-  EnumShape,
   NumberComponent,
   NumberDecoded,
   SequenceComponent,
@@ -30,40 +29,6 @@ import {
   TupleDecoded,
   VoidDecoded,
 } from "./view-builder-components"
-
-const toShape = (decoded: Decoded): Shape => {
-  switch (decoded.codec) {
-    case "Enum":
-      const shape: EnumShape = {
-        codec: decoded.codec,
-        inner: decoded.inner,
-      }
-      return shape
-    case "Struct":
-      return {
-        codec: decoded.codec,
-        inner: decoded.inner,
-      }
-    case "Array":
-      return {
-        codec: decoded.codec,
-        inner: decoded.inner,
-        len: decoded.len,
-      }
-    case "Sequence":
-      return {
-        codec: decoded.codec,
-        inner: decoded.inner,
-      }
-    case "Tuple":
-      return {
-        codec: decoded.codec,
-        inner: decoded.inner,
-      }
-    default:
-      return { codec: decoded.codec }
-  }
-}
 
 const MockDecoded = {
   // Primitives
@@ -183,6 +148,35 @@ const MockDecoded = {
     inner,
     input: "0xdummy" as scale.HexString,
   }),
+}
+
+const toShape = (decoded: Decoded): Shape => {
+  switch (decoded.codec) {
+    case "Tuple":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+      }
+    case "Enum":
+    case "Struct":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+      }
+    case "Sequence":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+      }
+    case "Array":
+      return {
+        codec: decoded.codec,
+        inner: decoded.inner,
+        len: decoded.len,
+      }
+    default:
+      return { codec: decoded.codec }
+  }
 }
 
 describe("view-builder-components", () => {
