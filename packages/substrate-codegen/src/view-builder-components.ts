@@ -159,6 +159,78 @@ declare namespace React {
   type FC<T> = (props: T) => ReactNode
 }
 
+/**
+ * Primitive Components
+ */
+
+const VoidComponent: React.FC<VoidDecoded> = (props) => {
+  return `${props.codec}(${props.value})`
+}
+
+const BoolComponent: React.FC<BoolDecoded> = (props) => {
+  return `${props.codec}(${props.value})`
+}
+
+const StringComponent: React.FC<StringDecoded> = (props) => {
+  return `${props.codec}(${props.value})`
+}
+
+const NumberComponent: React.FC<NumberDecoded> = (props) => {
+  return `${props.codec}(${props.value})`
+}
+
+const BigNumberComponent: React.FC<BigNumberDecoded> = (props) => {
+  return `${props.codec}(${props.value})`
+}
+
+const AccountIdComponent: React.FC<AccountIdDecoded> = (props) => {
+  return `${props.codec}(${props.value.address})`
+}
+
+const BytesComponent: React.FC<BytesDecoded> = (props) => {
+  const hex = Buffer.from(props.value).toString("hex")
+
+  return `${props.codec}(0x${hex})`
+}
+
+/**
+ * Complex Components
+ */
+
+const ArrayComponent: React.FC<ArrayDecoded> = (props) => {
+  return `${props.codec}([\n${props.value
+    .map((v) => DecodedComponent(v))
+    .join("\n")}])`
+}
+
+const SequenceComponent: React.FC<SequenceDecoded> = (props) => {
+  return `${props.codec}([${props.value
+    .map((v) => DecodedComponent(v))
+    .join(", ")}])`
+}
+
+const TupleComponent: React.FC<TupleDecoded> = (props) => {
+  return `${props.codec}([${props.value
+    .map((v) => DecodedComponent(v))
+    .join(", ")}])`
+}
+
+type MinimalComponentSet = {
+  bool: React.FC<BoolDecoded>
+  string: React.FC<StringDecoded>
+  number: React.FC<NumberDecoded>
+  bigNumber: React.FC<BigNumberDecoded>
+}
+
+type CompleteComponentSet = Record<Shape["codec"], boolean>
+
+const defaultComponentSet: MinimalComponentSet = {
+  bool: BoolComponent,
+  string: StringComponent,
+  number: NumberComponent,
+  bigNumber: BigNumberComponent,
+}
+
 const DecodedComponent: React.FC<Decoded> = (props) => {
   switch (props.codec) {
     case "_void":
@@ -168,6 +240,10 @@ const DecodedComponent: React.FC<Decoded> = (props) => {
     case "str":
     case "char":
       return StringComponent(props)
+    case "AccountId":
+      return AccountIdComponent(props)
+    case "Bytes":
+      return BytesComponent(props)
     case "u8":
     case "u16":
     case "u32":
@@ -195,59 +271,15 @@ const DecodedComponent: React.FC<Decoded> = (props) => {
   }
 }
 
-/**
- * Primitive Components
- */
-
-const VoidComponent: React.FC<VoidDecoded> = (props) => {
-  return `${props.codec}(${props.value})`
-}
-
-const BoolComponent: React.FC<BoolDecoded> = (props) => {
-  return `${props.codec}(${props.value})`
-}
-
-const StringComponent: React.FC<StringDecoded> = (props) => {
-  return `${props.codec}(${props.value})`
-}
-
-const NumberComponent: React.FC<NumberDecoded> = (props) => {
-  return `${props.codec}(${props.value})`
-}
-
-const BigNumberComponent: React.FC<BigNumberDecoded> = (props) => {
-  return `${props.codec}(${props.value})`
-}
-
-/**
- * Complex Components
- */
-
-const ArrayComponent: React.FC<ArrayDecoded> = (props) => {
-  return `${props.codec}([${props.value
-    .map((v) => DecodedComponent(v))
-    .join(", ")}])`
-}
-
-const SequenceComponent: React.FC<SequenceDecoded> = (props) => {
-  return `${props.codec}([${props.value
-    .map((v) => DecodedComponent(v))
-    .join(", ")}])`
-}
-
-const TupleComponent: React.FC<TupleDecoded> = (props) => {
-  return `${props.codec}([${props.value
-    .map((v) => DecodedComponent(v))
-    .join(", ")}])`
-}
-
 export {
+  AccountIdComponent,
   ArrayComponent,
   BigNumberComponent,
   BoolComponent,
+  BytesComponent,
   NumberComponent,
-  StringComponent,
-  VoidComponent,
   SequenceComponent,
+  StringComponent,
   TupleComponent,
+  VoidComponent,
 }
