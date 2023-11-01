@@ -186,8 +186,12 @@ const DecodedComponent: React.FC<Decoded> = (props) => {
       return BigNumberComponent(props)
     case "Array":
       return ArrayComponent(props)
+    case "Sequence":
+      return SequenceComponent(props)
+    case "Tuple":
+      return TupleComponent(props)
     default:
-      return `Not Implemented: ${props.codec}`
+      throw `Not Implemented ${props.codec}`
   }
 }
 
@@ -225,6 +229,18 @@ const ArrayComponent: React.FC<ArrayDecoded> = (props) => {
     .join(", ")}])`
 }
 
+const SequenceComponent: React.FC<SequenceDecoded> = (props) => {
+  return `${props.codec}([${props.value
+    .map((v) => DecodedComponent(v))
+    .join(", ")}])`
+}
+
+const TupleComponent: React.FC<TupleDecoded> = (props) => {
+  return `${props.codec}([${props.value
+    .map((v) => DecodedComponent(v))
+    .join(", ")}])`
+}
+
 export {
   ArrayComponent,
   BigNumberComponent,
@@ -232,4 +248,6 @@ export {
   NumberComponent,
   StringComponent,
   VoidComponent,
+  SequenceComponent,
+  TupleComponent,
 }
