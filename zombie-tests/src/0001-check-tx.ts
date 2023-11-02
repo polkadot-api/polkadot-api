@@ -1,155 +1,208 @@
-import {
-  Callback,
-  ConsumerCallback,
-  OnCreateTxCtx,
-  SigningType,
-  UserSignedExtensionName,
-  UserSignedExtensions,
-  getTxCreator,
-} from "@polkadot-api/tx-helper"
+import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { ScProvider } from "@polkadot-api/sc-provider"
 import {
   AccountId,
-  Blake2256,
   Enum,
   SS58String,
   Struct,
   compact,
   u8,
 } from "@polkadot-api/substrate-bindings"
-import { fromHex, toHex } from "@polkadot-api/utils"
+import { toHex } from "@polkadot-api/utils"
+import { lastValueFrom, tap } from "rxjs"
 import { createClient } from "@polkadot-api/substrate-client"
+import { getObservableClient } from "@polkadot-api/client"
+import { Keyring } from "@polkadot-api/node-polkadot-provider"
+import { Blake2256 } from "@polkadot-api/substrate-bindings"
+import { fromHex } from "@polkadot-api/utils"
+import { Sr25519Account } from "@unique-nft/sr25519"
 import { ed25519 } from "@noble/curves/ed25519"
 import { secp256k1 } from "@noble/curves/secp256k1"
-import { Sr25519Account } from "@unique-nft/sr25519"
-import { getObservableClient } from "@polkadot-api/client"
-import { tap, lastValueFrom } from "rxjs"
+import { u16, u32, u64 } from "@polkadot-api/substrate-bindings"
+import { firstValueFrom, map } from "rxjs"
 
-/**
- * Public and Private keys were pulled from subkey:
- * substrate key inspect --scheme sr25519 //Alice
- * substrate key inspect --scheme ed25519 //Alice
- * substrate key inspect --scheme ecdsa //Alice
- *
- * substrate key inspect --scheme sr25519 //Bob
- * substrate key inspect --scheme ed25519 //Bob
- * substrate key inspect --scheme ecdsa //Bob
- */
+/// keypairs start
 
-const ALICE_SR25519_PUB_KEY = fromHex(
-  "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
-)
-const ALICE_ED25519_PUB_KEY = fromHex(
-  "0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee",
-)
-const ALICE_ECDSA_PUB_KEY = fromHex(
-  "0x020a1091341fe5664bfa1782d5e04779689068c916b04cb365ec3153755684d9a1",
-)
+const Sr25519Keyring = (): Keyring => {
+  const keyring = [
+    [Sr25519Account.fromUri("//Alice"), "alice"],
+    [Sr25519Account.fromUri("//Bob"), "bob"],
+  ] as const
 
-const BOB_SR25519_SS58_ADDR =
-  "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty" as SS58String
-const BOB_ED25519_SS58_ADDR =
-  "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E" as SS58String
-const BOB_ECDSA_SS58_ADDR =
-  "5DVskgSC9ncWQpxFMeUn45NU43RUq93ByEge6ApbnLk6BR9N" as SS58String
-
-const TEST_ARGS: [
-  signingType: SigningType,
-  from: Uint8Array,
-  to: SS58String,
-][] = [
-  ["Sr25519", ALICE_SR25519_PUB_KEY, BOB_SR25519_SS58_ADDR],
-  ["Ed25519", ALICE_ED25519_PUB_KEY, BOB_ED25519_SS58_ADDR],
-  ["Ecdsa", Blake2256(ALICE_ECDSA_PUB_KEY), BOB_ECDSA_SS58_ADDR],
-]
-type UserCb = <UserSignedExtensionsName extends Array<UserSignedExtensionName>>(
-  context: OnCreateTxCtx<UserSignedExtensionsName>,
-  callback: Callback<null | ConsumerCallback<UserSignedExtensionsName>>,
-) => void
-
-const getSigner = (
-  signingType: SigningType,
-): ((value: Uint8Array) => Promise<Uint8Array>) => {
-  switch (signingType) {
-    case "Sr25519": {
-      const alice = Sr25519Account.fromUri("//Alice")
-      return async (value) => alice.sign(value)
-    }
-
-    case "Ed25519": {
-      const priv = fromHex(
-        "0xabf8e5bdbe30c65656c0a3cbd181ff8a56294a69dfedd27982aace4a76909115",
-      )
-      return async (value) => ed25519.sign(value, priv)
-    }
-
-    case "Ecdsa": {
-      const priv = fromHex(
-        "0xcb6df9de1efca7a3998a8ead4e02159d5fa99c3e0d4fd6432667390bb4726854",
-      )
-      return async (value) => {
-        const signature = secp256k1.sign(Blake2256(value), priv)
-        const signedBytes = signature.toCompactRawBytes()
-
-        const result = new Uint8Array(signedBytes.length + 1)
-        result.set(signedBytes)
-        result[signedBytes.length] = signature.recovery
-
-        return result
-      }
-    }
+  return {
+    getPairs() {
+      return keyring.map(([kp, name]) => ({
+        address: kp.address,
+        publicKey: kp.publicKey,
+        signingType: "Sr25519",
+        sign: async (input) => kp.sign(input),
+        name: name,
+      }))
+    },
+    onKeyPairsChanged() {
+      return () => {}
+    },
   }
 }
 
-const getCreatTxCb =
-  (isMortal: boolean, signingType: SigningType): UserCb =>
-  ({ userSingedExtensionsName }, callback) => {
-    const userSignedExtensionsData = Object.fromEntries(
-      userSingedExtensionsName.map((x) => {
-        if (x === "CheckMortality") {
-          const result: UserSignedExtensions["CheckMortality"] = isMortal
-            ? {
-                mortal: true,
-                period: 128,
-              }
-            : {
-                mortal: false,
-              }
+const Ed25519Keyring = (): Keyring => {
+  const alicePrivKey = fromHex(
+    "0xabf8e5bdbe30c65656c0a3cbd181ff8a56294a69dfedd27982aace4a76909115",
+  )
+  const bobPrivKey = fromHex(
+    "0x3b7b60af2abcd57ba401ab398f84f4ca54bd6b2140d2503fbcf3286535fe3ff1",
+  )
 
-          return [x, result]
-        }
-
-        if (x === "ChargeTransactionPayment") return [x, 0n]
-        return [x, { tip: 0n }]
-      }),
-    )
-
-    callback({
-      overrides: {},
-      userSignedExtensionsData,
-      signingType,
-      signer: getSigner(signingType),
-    })
+  return {
+    getPairs() {
+      return [
+        {
+          address: "5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu",
+          publicKey: ed25519.getPublicKey(alicePrivKey),
+          signingType: "Ed25519",
+          sign: async (input) => ed25519.sign(input, alicePrivKey),
+          name: "alice",
+        },
+        {
+          address: "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E",
+          publicKey: ed25519.getPublicKey(bobPrivKey),
+          signingType: "Ed25519",
+          sign: async (input) => ed25519.sign(input, bobPrivKey),
+          name: "bob",
+        },
+      ]
+    },
+    onKeyPairsChanged() {
+      return () => {}
+    },
   }
+}
+
+const EcdsaKeyring = (): Keyring => {
+  const alicePrivKey = fromHex(
+    "0xcb6df9de1efca7a3998a8ead4e02159d5fa99c3e0d4fd6432667390bb4726854",
+  )
+  const bobPrivKey = fromHex(
+    "0x79c3b7fc0b7697b9414cb87adcb37317d1cab32818ae18c0e97ad76395d1fdcf",
+  )
+
+  const signEcdsa = (value: Uint8Array, priv: Uint8Array) => {
+    const signature = secp256k1.sign(Blake2256(value), priv)
+    const signedBytes = signature.toCompactRawBytes()
+
+    const result = new Uint8Array(signedBytes.length + 1)
+    result.set(signedBytes)
+    result[signedBytes.length] = signature.recovery
+
+    return result
+  }
+
+  return {
+    getPairs() {
+      return [
+        {
+          address: "5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu",
+          publicKey: Blake2256(secp256k1.getPublicKey(alicePrivKey)),
+          signingType: "Ecdsa",
+          sign: async (input) => signEcdsa(input, alicePrivKey),
+          name: "alice",
+        },
+        {
+          address: "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E",
+          publicKey: Blake2256(secp256k1.getPublicKey(bobPrivKey)),
+          signingType: "Ecdsa",
+          sign: async (input) => signEcdsa(input, bobPrivKey),
+          name: "bob",
+        },
+      ]
+    },
+    onKeyPairsChanged() {
+      return () => {}
+    },
+  }
+}
+
+/// keypairs end
+
+//// utils start
+
+const getNonce =
+  (client: ReturnType<typeof getObservableClient>) =>
+  async (from: Uint8Array) => {
+    const lenToDecoder = {
+      2: u16.dec,
+      4: u32.dec,
+      8: u64.dec,
+    }
+
+    const chainHead = client.chainHead$()
+    const at = await firstValueFrom(chainHead.finalized$)
+    return firstValueFrom(
+      chainHead
+        .call$(at, "AccountNonceApi_account_nonce", toHex(from.subarray(0, 32)))
+        .pipe(
+          map((result) => {
+            const bytes = fromHex(result)
+            const decoder = lenToDecoder[bytes.length as 2 | 4 | 8]
+            if (!decoder)
+              throw new Error(
+                "AccountNonceApi_account_nonce retrieved wrong data",
+              )
+
+            return decoder(bytes)
+          }),
+        ),
+    )
+  }
+
+//// utils end
+
+/// test start
+
+const TEST_ARGS = [Sr25519Keyring(), Ed25519Keyring(), EcdsaKeyring()]
 
 export async function run(_nodeName: string, networkInfo: any) {
   try {
-    const customChainSpec = require(networkInfo.chainSpecPath)
-    const provider = ScProvider(JSON.stringify(customChainSpec))
-    const client = getObservableClient(createClient(provider))
-
     const getPromises = (isMortal: boolean) =>
-      TEST_ARGS.map(async ([signingType, from, to]) => {
+      TEST_ARGS.map(async (keyring) => {
+        const customChainSpec = require(networkInfo.chainSpecPath)
+        const provider = ScProvider(JSON.stringify(customChainSpec))
+        const client = getObservableClient(createClient(provider))
+
+        const chain = await getChain({
+          provider,
+          keyring,
+          txCustomizations: async (ctx) => {
+            const nonce = BigInt(await getNonce(client)(ctx.from))
+
+            return {
+              userSignedExtensionsData: {
+                CheckMortality: isMortal
+                  ? {
+                      mortal: true,
+                      period: 128,
+                    }
+                  : {
+                      mortal: false,
+                    },
+                ChargeTransactionPayment: nonce % 2n === 0n ? 10n : 0n,
+              },
+            } as any
+          },
+        })
+
+        const accounts = await chain.getAccounts()
+
+        const alice = accounts.find((acct) => acct.displayName === "alice")!
+        const bob = accounts.find((acct) => acct.displayName === "bob")!
+        const signingType = keyring.getPairs().find((kp) => kp.name === "alice")
+          ?.signingType!
+
         console.log(
-          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${toHex(
-            from,
-          )}, To: ${to}`,
+          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${alice.address}, To: ${bob.address}}`,
         )
 
-        const { createTx } = getTxCreator(
-          provider,
-          getCreatTxCb(isMortal, signingType),
-        )
+        const { createTx } = chain.connect(console.log)
 
         const call = Struct({
           module: u8,
@@ -161,6 +214,9 @@ export async function run(_nodeName: string, networkInfo: any) {
             value: compact,
           }),
         })
+
+        const from = alice.publicKey
+        const to = bob.address as SS58String
 
         const transaction = toHex(
           await createTx(
@@ -180,7 +236,7 @@ export async function run(_nodeName: string, networkInfo: any) {
         )
 
         console.log(
-          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, Transaction`,
+          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${alice.address}, To: ${bob.address}}, Transaction`,
           transaction,
         )
 
@@ -210,6 +266,9 @@ export async function run(_nodeName: string, networkInfo: any) {
           }),
         )
         await lastValueFrom(tx$)
+
+        client.chainHead$().unfollow()
+        client.destroy()
       })
 
     await Promise.all(getPromises(true))
@@ -220,3 +279,5 @@ export async function run(_nodeName: string, networkInfo: any) {
     throw err
   }
 }
+
+/// test end

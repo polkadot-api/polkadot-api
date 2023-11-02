@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -342,6 +342,46 @@ importers:
         specifier: ^0.0.246
         version: 0.0.246
 
+  packages/node-polkadot-provider:
+    dependencies:
+      '@noble/hashes':
+        specifier: ^1.3.1
+        version: 1.3.2
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../client
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/sc-provider':
+        specifier: workspace:*
+        version: link:../sc-provider
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../substrate-client
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../substrate-codegen
+      '@polkadot-api/tx-helper':
+        specifier: workspace:*
+        version: link:../tx-helper
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+      '@substrate/connect':
+        specifier: ^0.7.32
+        version: 0.7.32
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^0.34.3
+        version: 0.34.4(vitest@0.34.4)
+
   packages/sc-provider:
     dependencies:
       '@polkadot-api/json-rpc-provider-proxy':
@@ -485,6 +525,9 @@ importers:
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../packages/client
+      '@polkadot-api/node-polkadot-provider':
+        specifier: workspace:^
+        version: link:../packages/node-polkadot-provider
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../packages/sc-provider
@@ -497,9 +540,6 @@ importers:
       '@polkadot-api/substrate-codegen':
         specifier: workspace:*
         version: link:../packages/substrate-codegen
-      '@polkadot-api/tx-helper':
-        specifier: workspace:*
-        version: link:../packages/tx-helper
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../packages/utils
