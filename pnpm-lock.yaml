@@ -540,9 +540,6 @@ importers:
       '@polkadot-api/substrate-codegen':
         specifier: workspace:*
         version: link:../packages/substrate-codegen
-      '@polkadot-api/tx-helper':
-        specifier: workspace:*
-        version: link:../packages/tx-helper
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../packages/utils
