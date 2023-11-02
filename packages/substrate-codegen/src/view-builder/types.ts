@@ -12,53 +12,55 @@ export type GetViewBuilder = (metadata: V14) => {
     shape: Shape
     decoder: Decoder<Decoded>
   }
-  callDecoder: Decoder<{
-    pallet: {
-      value: {
-        name: string
-        idx: number
-      }
-      input: HexString
-    }
-    call: {
-      value: {
-        name: string
-        idx: number
-      }
-      input: HexString
-    }
-    args: StructDecoded
-  }>
+  callDecoder: Decoder<DecodedCall>
 }
 
-type WithInput<T> = T & { input: HexString }
+export interface DecodedCall {
+  pallet: {
+    value: {
+      name: string
+      idx: number
+    }
+    input: HexString
+  }
+  call: {
+    value: {
+      name: string
+      idx: number
+    }
+    input: HexString
+  }
+  args: StructDecoded
+}
 
-export type VoidDecoded = WithInput<{
+type WithInputAndPath<T> = T & { input: HexString; path: string[] }
+
+export type VoidDecoded = WithInputAndPath<{
   codec: "_void"
   value: undefined
 }>
 
-export type BoolDecoded = WithInput<{
+export type BoolDecoded = WithInputAndPath<{
   codec: "bool"
   value: boolean
 }>
 
-export type StringDecoded = WithInput<{
+export type StringDecoded = WithInputAndPath<{
   codec: "str" | "char"
   value: string
 }>
 
-export type NumberDecoded = WithInput<{
+export type NumberDecoded = WithInputAndPath<{
   codec: "u8" | "u16" | "u32" | "i8" | "i16" | "i32" | "compactNumber"
   value: number
 }>
 
-export type BigNumberDecoded = WithInput<{
+export type BigNumberDecoded = WithInputAndPath<{
   codec: "u64" | "u128" | "u256" | "i64" | "i128" | "i256" | "compactBn"
   value: bigint
 }>
 
-export type BitSequenceDecoded = WithInput<{
+export type BitSequenceDecoded = WithInputAndPath<{
   codec: "bitSequence"
   value: {
     bitsLen: number
@@ -66,12 +68,12 @@ export type BitSequenceDecoded = WithInput<{
   }
 }>
 
-export type BytesDecoded = WithInput<{
+export type BytesDecoded = WithInputAndPath<{
   codec: "Bytes"
   value: Uint8Array
 }>
 
-export type AccountIdDecoded = WithInput<{
+export type AccountIdDecoded = WithInputAndPath<{
   codec: "AccountId"
   value: {
     ss58Prefix: number
@@ -124,23 +126,23 @@ export type ComplexShape =
 
 export type Shape = { codec: PrimitiveDecoded["codec"] } | ComplexShape
 
-export interface SequenceDecoded extends WithInput<SequenceShape> {
+export interface SequenceDecoded extends WithInputAndPath<SequenceShape> {
   value: Array<Decoded>
 }
 
-export interface ArrayDecoded extends WithInput<ArrayShape> {
+export interface ArrayDecoded extends WithInputAndPath<ArrayShape> {
   value: Array<Decoded>
 }
 
-export interface TupleDecoded extends WithInput<TupleShape> {
+export interface TupleDecoded extends WithInputAndPath<TupleShape> {
   value: Array<Decoded>
 }
 
-export interface StructDecoded extends WithInput<StructShape> {
+export interface StructDecoded extends WithInputAndPath<StructShape> {
   value: StringRecord<Decoded>
 }
 
-export interface EnumDecoded extends WithInput<EnumShape> {
+export interface EnumDecoded extends WithInputAndPath<EnumShape> {
   value: {
     tag: string
     value: Decoded
