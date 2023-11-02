@@ -6,26 +6,59 @@ import {
   u8,
   toHex as _toHex,
   HexString,
+  enhanceDecoder,
 } from "@polkadot-api/substrate-bindings"
 import type { LookupEntry } from "@/lookups"
 import { getLookupFn } from "@/lookups"
 import {
   primitives,
   complex,
-  WithShape,
+  WithShapeWithoutPath,
   ShapedDecoder,
   selfDecoder,
   AccountIdShaped,
 } from "./shaped-decoders"
-import { AccountIdDecoded, Decoded, GetViewBuilder, Shape } from "./types"
+import {
+  AccountIdDecoded,
+  Decoded,
+  DecodedCall,
+  GetViewBuilder,
+  Shape,
+} from "./types"
 
 const toHex = _toHex as (input: Uint8Array) => HexString
+
+type WithPath<T extends Decoder<any> & { shape: any }> = T extends Decoder<
+  infer D
+> & { shape: infer S }
+  ? Decoder<D & { path: string[] }> & { shape: S }
+  : T
+
+const withPath = (
+  input: ShapedDecoder,
+  path: string[],
+): WithPath<ShapedDecoder> => {
+  const decoder = enhanceDecoder(input as Decoder<{}>, (x) => ({
+    ...x,
+    path,
+  })) as WithPath<ShapedDecoder>
+  decoder.shape = input.shape
+  return decoder
+}
+
+const addPath =
+  <Other extends Array<any>>(
+    lookupData: V14["lookup"],
+    fn: (input: LookupEntry, ...rest: Other) => ShapedDecoder,
+  ): ((input: LookupEntry, ...rest: Other) => WithPath<ShapedDecoder>) =>
+  (input, ...rest) =>
+    withPath(fn(input, ...rest), lookupData[input.id].path)
 
 const _buildShapedDecoder = (
   input: LookupEntry,
   stack: Set<LookupEntry>,
   circularOnes: Map<LookupEntry, ShapedDecoder>,
-  _accountId: WithShape<AccountIdDecoded>,
+  _accountId: WithShapeWithoutPath<AccountIdDecoded>,
 ): ShapedDecoder => {
   if (input.type === "primitive") return primitives[input.value]
   if (input.type === "compact")
@@ -118,16 +151,17 @@ const _buildShapedDecoder = (
 
 export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
+  const buildShapedDecoder = addPath(lookupData, _buildShapedDecoder)
   const getLookupEntryDef = getLookupFn(lookupData)
 
-  let _accountId: WithShape<AccountIdDecoded> = primitives.AccountId
+  let _accountId: WithShapeWithoutPath<AccountIdDecoded> = primitives.AccountId
 
   const prefix = metadata.pallets
     .find((x) => x.name === "System")
     ?.constants.find((x) => x.name === "SS58Prefix")
   if (prefix) {
     try {
-      const prefixVal = _buildShapedDecoder(
+      const prefixVal = buildShapedDecoder(
         getLookupEntryDef(prefix.type),
         new Set(),
         new Map(),
@@ -140,7 +174,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   const buildDefinition = (
     id: number,
   ): { shape: Shape; decoder: Decoder<Decoded> } => {
-    const shapedDecoder = _buildShapedDecoder(
+    const shapedDecoder = buildShapedDecoder(
       getLookupEntryDef(id),
       new Set(),
       new Map(),
@@ -152,7 +186,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
     }
   }
 
-  const callDecoder = createDecoder((bytes) => {
+  const callDecoder: Decoder<DecodedCall> = createDecoder((bytes) => {
     const palletIdx = u8.dec(bytes)
     const callIdx = u8.dec(bytes)
 
@@ -189,7 +223,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
         ? {}
         : Object.fromEntries(
             Object.entries(callLookup.value).map(([key, val]) => {
-              const shapedDecoder = _buildShapedDecoder(
+              const shapedDecoder = buildShapedDecoder(
                 getLookupEntryDef(val.id),
                 new Set(),
                 new Map(),
@@ -197,12 +231,16 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
               )
               return [key, shapedDecoder]
             }),
-          )) as StringRecord<ShapedDecoder>,
+          )) as StringRecord<WithPath<ShapedDecoder>>,
     )
 
     const args = argsDecoder(bytes)
 
-    return { pallet, call, args }
+    return {
+      pallet,
+      call,
+      args: { ...args, path: lookupData[callLookup.idx].path },
+    }
   })
 
   return { buildDefinition, callDecoder }
