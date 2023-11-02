@@ -38,7 +38,8 @@ import {
   BigNumberDecoded,
   BitSequenceDecoded,
   BoolDecoded,
-  BytesDecoded,
+  BytesArrayDecoded,
+  BytesSequenceDecoded,
   EnumDecoded,
   EnumShape,
   NumberDecoded,
@@ -73,7 +74,8 @@ type PrimitiveShapeDecoder =
   | WithShapeWithoutPath<BigNumberDecoded>
   | WithShapeWithoutPath<BitSequenceDecoded>
   | WithShapeWithoutPath<AccountIdDecoded>
-  | WithShapeWithoutPath<BytesDecoded>
+  | WithShapeWithoutPath<BytesSequenceDecoded>
+  | WithShapeWithoutPath<BytesArrayDecoded>
 
 type SequenceShapedDecoder = Decoder<WithoutPath<SequenceDecoded>> & {
   shape: SequenceShape
@@ -137,6 +139,29 @@ export const AccountIdShaped = (ss58Prefix = 42) => {
   )
 
   const result: WithShapeWithoutPath<AccountIdDecoded> = Object.assign(
+    shapedDecoder,
+    {
+      shape: { codec },
+    },
+  )
+
+  return result
+}
+
+export const BytesArray = (len: number) => {
+  const { dec } = Bytes(len)
+  const codec = "BytesArray" as const
+
+  const shapedDecoder: Decoder<WithoutPath<BytesArrayDecoded>> = createDecoder(
+    (bytes, tHex) => ({
+      value: dec(bytes),
+      input: tHex(),
+      len,
+      codec,
+    }),
+  )
+
+  const result: WithShapeWithoutPath<BytesArrayDecoded> = Object.assign(
     shapedDecoder,
     {
       shape: { codec },
