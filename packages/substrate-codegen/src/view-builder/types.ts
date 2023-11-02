@@ -68,9 +68,15 @@ export type BitSequenceDecoded = WithInputAndPath<{
   }
 }>
 
-export type BytesDecoded = WithInputAndPath<{
+export type BytesSequenceDecoded = WithInputAndPath<{
   codec: "Bytes"
   value: Uint8Array
+}>
+
+export type BytesArrayDecoded = WithInputAndPath<{
+  codec: "BytesArray"
+  value: Uint8Array
+  len: number
 }>
 
 export type AccountIdDecoded = WithInputAndPath<{
@@ -88,7 +94,8 @@ export type PrimitiveDecoded =
   | NumberDecoded
   | BigNumberDecoded
   | BitSequenceDecoded
-  | BytesDecoded
+  | BytesSequenceDecoded
+  | BytesArrayDecoded
   | AccountIdDecoded
 
 export interface SequenceShape {

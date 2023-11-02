@@ -17,6 +17,7 @@ import {
   ShapedDecoder,
   selfDecoder,
   AccountIdShaped,
+  BytesArray,
 } from "./shaped-decoders"
 import {
   AccountIdDecoded,
@@ -116,7 +117,7 @@ const _buildShapedDecoder = (
     if (input.value.type === "primitive" && input.value.value === "u8") {
       return input.len === 32 && (input.id === 0 || input.id === 1)
         ? _accountId
-        : primitives.Bytes
+        : BytesArray(input.len)
     }
 
     return buildVector(input.value, input.len)
