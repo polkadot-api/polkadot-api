@@ -20,7 +20,7 @@ import {
   bitSequence,
   Codec,
   Decoder,
-  Bytes,
+  Hex,
   AccountId,
   Vector,
   HexString,
@@ -149,7 +149,7 @@ export const AccountIdShaped = (ss58Prefix = 42) => {
 }
 
 export const BytesArray = (len: number) => {
-  const { dec } = Bytes(len)
+  const { dec } = Hex(len)
   const codec = "BytesArray" as const
 
   const shapedDecoder: Decoder<WithoutPath<BytesArrayDecoded>> = createDecoder(
@@ -191,7 +191,7 @@ const _primitives = {
   i256,
   compactBn,
   bitSequence,
-  Bytes: Bytes(),
+  Bytes: Hex(),
   AccountId: AccountIdShaped(),
 }
 
