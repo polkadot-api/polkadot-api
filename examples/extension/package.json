@@ -3,9 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build2": "rollup --config",
-    "build": "mkdir -p dist && cp assets/* ./dist && tsup src/background.ts src/content.ts src/inpage.ts src/options.ts --clean --out-dir dist/js --platform neutral --target=es2020 --format iife",
-    "dev": "pnpm build --sourcemap inline --watch",
+    "copy-assets": "mkdir -p dist && cp assets/* ./dist",
+    "build": "pnpm copy-assets && concurrently \"pnpm:build-*\"",
+    "build-background-script": "tsup src/background.ts src/background-helper.code-split.ts src/background-smoldot.code-split.ts --clean --out-dir dist/js/background --platform neutral --target=es2020 --format esm",
+    "build-extension-scripts": "tsup src/content.ts src/inpage.ts src/options.ts --clean --out-dir dist/js --platform neutral --target=es2020 --format iife",
+    "dev": "pnpm copy-assets && concurrently \"pnpm:build-* --sourcemap inline --watch\"",
     "start": "web-ext run --source-dir ./dist -t chromium --start-url http://localhost:5173"
   },
   "dependencies": {
@@ -14,10 +16,8 @@
     "smoldot": "2.0.3"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/chrome": "^0.0.246",
-    "rollup": "^4.2.0",
-    "rollup-plugin-esbuild": "^6.1.0",
+    "concurrently": "^8.2.2",
     "web-ext": "^7.7.0"
   }
 }
