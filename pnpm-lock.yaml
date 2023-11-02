@@ -36,6 +36,49 @@ importers:
         specifier: ^0.34.1
         version: 0.34.4
 
+  examples/decode-viewer:
+    dependencies:
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
+    devDependencies:
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../packages/substrate-bindings
+      '@types/react':
+        specifier: ^18.2.15
+        version: 18.2.23
+      '@types/react-dom':
+        specifier: ^18.2.7
+        version: 18.2.8
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.0.0
+        version: 6.7.2(@typescript-eslint/parser@6.7.2)(eslint@8.49.0)(typescript@5.2.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.0.0
+        version: 6.7.2(eslint@8.49.0)(typescript@5.2.2)
+      '@vitejs/plugin-react-swc':
+        specifier: ^3.3.2
+        version: 3.4.0(vite@4.4.9)
+      eslint:
+        specifier: ^8.45.0
+        version: 8.49.0
+      eslint-plugin-react-hooks:
+        specifier: ^4.6.0
+        version: 4.6.0(eslint@8.49.0)
+      eslint-plugin-react-refresh:
+        specifier: ^0.4.3
+        version: 0.4.3(eslint@8.49.0)
+      typescript:
+        specifier: ^5.0.2
+        version: 5.2.2
+      vite:
+        specifier: ^4.4.5
+        version: 4.4.9(@types/node@20.6.0)
+
   examples/extension:
     dependencies:
       '@polkadot-api/light-client-extension-helpers':
