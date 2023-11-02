@@ -1,4 +1,4 @@
-import { getWellKnownChainSpec } from "./wellKnownChain"
+import { WellKnownChainGenesisHash, wellKnownChainSpecs } from "@/chain-specs"
 
 type StorageConfig = {
   chain: [entry: { type: "chain"; genesisHash: string }, value: ChainInfo]
@@ -67,7 +67,9 @@ export const getChains = async (): Promise<Record<string, ChainInfo>> =>
         )
         .map(async ([_, { chainSpec, ...chain }]) => {
           const chainSpecJson = JSON.parse(
-            (await getWellKnownChainSpec(chain.genesisHash)) ?? chainSpec,
+            wellKnownChainSpecs[
+              chain.genesisHash as WellKnownChainGenesisHash
+            ] ?? chainSpec,
           )
           chainSpecJson.bootNodes = await get({
             type: "bootNodes",

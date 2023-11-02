@@ -13,16 +13,11 @@ import type {
   ToExtension,
   ToPage,
 } from "@/protocol"
+import { ALARM, CONTEXT, PORT, createIsHelperMessage, storage } from "@/shared"
 import {
-  ALARM,
-  CONTEXT,
-  PORT,
-  createIsHelperMessage,
-  storage,
-  wellKnownChainGenesisHashes,
-  getWellKnownChainSpec,
-  WellKnownChainGenesisHash,
-} from "@/shared"
+  type WellKnownChainGenesisHash,
+  wellKnownChainSpecs,
+} from "@/chain-specs"
 
 export * from "./types"
 
@@ -99,20 +94,14 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
     periodInMinutes: 2,
   })
 
-  wellKnownChainGenesisHashes.map(async (genesisHash) =>
-    lightClientPageHelper.persistChain(
-      (await getWellKnownChainSpec(genesisHash))!,
-    ),
+  Object.values(wellKnownChainSpecs).forEach((chainSpec) =>
+    lightClientPageHelper.persistChain(chainSpec),
   )
 })
 
 export const lightClientPageHelper: LightClientPageHelper = {
   async deleteChain(genesisHash) {
-    if (
-      wellKnownChainGenesisHashes.includes(
-        genesisHash as WellKnownChainGenesisHash,
-      )
-    )
+    if (wellKnownChainSpecs[genesisHash as WellKnownChainGenesisHash])
       throw new Error("Cannot delete well-known-chain")
 
     // TODO: batch storage.remove
@@ -142,7 +131,9 @@ export const lightClientPageHelper: LightClientPageHelper = {
     const chainSpecJson = JSON.parse(chainSpec)
     const bootNodes = chainSpecJson.bootNodes
     let minimalChainSpec: string = ""
-    if (!(await getWellKnownChainSpec(chainData.genesisHash))) {
+    if (
+      !wellKnownChainSpecs[chainData.genesisHash as WellKnownChainGenesisHash]
+    ) {
       delete chainSpecJson.bootNodes
       delete chainSpecJson.protocolId
       delete chainSpecJson.telemetryEndpoints
@@ -350,7 +341,10 @@ chrome.runtime.onConnect.addListener((port) => {
             }
           }
 
-          const smoldotChain = await smoldotClient.addChain(addChainOptions)
+          const [smoldotChain] = await Promise.all([
+            smoldotClient.addChain(addChainOptions),
+            Promise.resolve(), // resolves on 1st finalized
+          ])
           const genesisHash = await getGenesisHash(smoldotChain)
 
           ;(async () => {
