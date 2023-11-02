@@ -1,3 +1,4 @@
+import { toHex as _toHex, mapStringRecord } from "@polkadot-api/utils"
 import * as scale from "@polkadot-api/substrate-bindings"
 import type {
   Decoder,
@@ -22,7 +23,7 @@ import {
   TupleShape,
 } from "./types"
 
-const toHex = scale.toHex as (input: Uint8Array) => HexString
+const toHex = _toHex as (input: Uint8Array) => HexString
 
 export type WithoutMeta<T extends { meta?: any }> = Omit<T, "meta">
 type PrimitiveCodec = PrimitiveDecoded["codec"]
@@ -206,14 +207,6 @@ const TupleDec = (...input: Array<ShapedDecoder>): TupleShapedDecoder =>
     { codec: "Tuple", shape: input.map((x) => x.shape) },
     scale.Tuple.dec(...(input as Array<Decoder<any>>)),
   )
-
-const mapStringRecord = <I, O>(
-  input: StringRecord<I>,
-  mapper: (value: I, key: string) => O,
-): StringRecord<O> =>
-  Object.fromEntries(
-    Object.entries(input).map(([key, value]) => [key, mapper(value, key)]),
-  ) as StringRecord<O>
 
 const StructDec = (input: StringRecord<ShapedDecoder>): StructShapedDecoder =>
   complexShapedDecoder(

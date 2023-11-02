@@ -1,5 +1,4 @@
 export * from "scale-ts"
-export { toHex, fromHex } from "@polkadot-api/utils"
 export * from "./codecs"
 export * from "./hashes"
 export * from "./storage"
