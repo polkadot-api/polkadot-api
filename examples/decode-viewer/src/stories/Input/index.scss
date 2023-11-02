@@ -1,0 +1,91 @@
+$background-color: #e7e7e7;
+$label-color: #424242;
+$input-color: #344054;
+$placeholder-color: #667085;
+$disabled-color: #3f3f3f;
+$error-color: #db4437;
+$color: #5c5c5c;
+
+.show-button {
+  margin: 0 0 0 1rem;
+  border-radius: 0.2rem;
+  padding: 0.2rem 1rem;
+  background-color: $label-color;
+  color: $background-color;
+  cursor: pointer;
+}
+
+.custom-input-wrapper {
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+  padding: 0.2rem;
+  border-radius: 0.3rem;
+  background-color: $background-color;
+  color: $color;
+
+  border: 1px solid #d0d5dd;
+  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
+  width: auto;
+  flex-grow: 1;
+
+  &.smaller {
+    padding: 0.2rem;
+
+    .label {
+      font-weight: 800;
+      color: $input-color;
+      font-size: 0.6rem;
+      margin-bottom: 0;
+    }
+
+    input {
+      font-size: 0.7rem;
+    }
+  }
+
+  .label {
+    font-weight: 700;
+    font-size: 0.7rem;
+    color: $label-color;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+  /* Input field */
+  input {
+    width: 100%;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: $input-color;
+    border: 0rem;
+    &::placeholder {
+      font-size: 16px;
+      font-weight: 400;
+      color: $placeholder-color;
+    }
+
+    /* Input field focus */
+    &:focus {
+      border: 0;
+      outline: none;
+    }
+
+    &:disabled {
+      background-color: $background-color;
+      color: $disabled-color;
+    }
+  }
+
+  .error {
+    color: $error-color;
+    font-size: 14px;
+    font-weight: 400;
+    margin-left: 12px;
+    margin-top: 4px;
+  }
+}
+
+.multiple {
+  display: flex;
+  background-color: $background-color;
+  color: $color;
+}
