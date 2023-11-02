@@ -70,12 +70,12 @@ export type BitSequenceDecoded = WithInputAndPath<{
 
 export type BytesSequenceDecoded = WithInputAndPath<{
   codec: "Bytes"
-  value: Uint8Array
+  value: HexString
 }>
 
 export type BytesArrayDecoded = WithInputAndPath<{
   codec: "BytesArray"
-  value: Uint8Array
+  value: HexString
   len: number
 }>
 
