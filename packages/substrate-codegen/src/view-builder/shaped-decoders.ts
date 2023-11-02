@@ -1,81 +1,37 @@
-import {
-  _void,
-  bool,
-  char,
-  str,
-  u8,
-  u16,
-  u32,
-  u64,
-  u128,
-  u256,
-  i8,
-  i16,
-  i32,
-  i64,
-  i128,
-  i256,
-  compactNumber,
-  compactBn,
-  bitSequence,
-  Codec,
+import * as scale from "@polkadot-api/substrate-bindings"
+import type {
   Decoder,
-  Hex,
-  AccountId,
-  Vector,
   HexString,
-  createDecoder as _createDecoder,
-  Tuple,
   StringRecord,
-  Struct,
-  Enum,
-  toHex as _toHex,
 } from "@polkadot-api/substrate-bindings"
 import {
-  AccountIdDecoded,
   ArrayDecoded,
   ArrayShape,
-  BigNumberDecoded,
-  BitSequenceDecoded,
-  BoolDecoded,
   BytesArrayDecoded,
-  BytesSequenceDecoded,
+  ComplexDecoded,
+  Decoded,
   EnumDecoded,
   EnumShape,
-  NumberDecoded,
   PrimitiveDecoded,
   SequenceDecoded,
   SequenceShape,
-  StringDecoded,
   StructDecoded,
   StructShape,
   TupleDecoded,
   TupleShape,
-  VoidDecoded,
 } from "./types"
 
-const toHex = _toHex as (input: Uint8Array) => HexString
+const toHex = scale.toHex as (input: Uint8Array) => HexString
 
-type WithoutPath<T extends { path: string[] }> = Omit<T, "path">
+export type WithoutPath<T extends { path: string[] }> = Omit<T, "path">
 type PrimitiveCodec = PrimitiveDecoded["codec"]
+type ComplexCodec = ComplexDecoded["codec"]
 export type WithShapeWithoutPath<T extends PrimitiveDecoded> = Decoder<
   WithoutPath<T>
 > & {
   shape: { codec: T["codec"] }
 }
-
-type PrimitiveShapeDecoder =
-  | WithShapeWithoutPath<VoidDecoded>
-  | WithShapeWithoutPath<BoolDecoded>
-  | WithShapeWithoutPath<StringDecoded>
-  | WithShapeWithoutPath<NumberDecoded>
-  | WithShapeWithoutPath<StringDecoded>
-  | WithShapeWithoutPath<NumberDecoded>
-  | WithShapeWithoutPath<BigNumberDecoded>
-  | WithShapeWithoutPath<BitSequenceDecoded>
-  | WithShapeWithoutPath<AccountIdDecoded>
-  | WithShapeWithoutPath<BytesSequenceDecoded>
-  | WithShapeWithoutPath<BytesArrayDecoded>
+type PrimitiveShapeDecoder = WithShapeWithoutPath<PrimitiveDecoded>
 
 type SequenceShapedDecoder = Decoder<WithoutPath<SequenceDecoded>> & {
   shape: SequenceShape
@@ -101,164 +57,164 @@ type ComplexShapedDecoder =
 
 export type ShapedDecoder = PrimitiveShapeDecoder | ComplexShapedDecoder
 
-const createDecoder = <T>(
-  cb: (bytes: Uint8Array, toHex: () => HexString) => T,
-): Decoder<T> => {
-  return _createDecoder((_bytes) => {
+type PrimitiveDecodedValue<C extends PrimitiveCodec> = (PrimitiveDecoded & {
+  codec: C
+})["value"]
+type PrimitiveDecodedRest<C extends PrimitiveCodec> = Omit<
+  PrimitiveDecoded & { codec: C },
+  "value" | "input" | "codec" | "path"
+>
+
+type ComplexDecodedValue<C extends ComplexCodec> = (ComplexDecoded & {
+  codec: C
+})["value"]
+type ComplexDecodedShape<C extends ComplexCodec> = (ComplexDecoded & {
+  codec: C
+})["shape"]
+type ComplexDecodedRest<C extends ComplexCodec> = Omit<
+  ComplexDecoded & { codec: C },
+  "value" | "input" | "codec" | "path" | "shape"
+>
+
+const createInputValueDecoder = <T, Rest extends { codec: Decoded["codec"] }>(
+  dec: Decoder<T>,
+  rest: Rest,
+): Decoder<
+  Rest & {
+    input: HexString
+    value: T
+  }
+> =>
+  scale.createDecoder((_bytes) => {
     const bytes = _bytes as Uint8Array & { i: number; v: DataView }
     const start = bytes.i
-    const tHex = () => toHex(new Uint8Array(bytes.buffer.slice(start, bytes.i)))
-    return cb(bytes, tHex)
+    const value = dec(bytes)
+    const input = toHex(new Uint8Array(bytes.buffer.slice(start, bytes.i)))
+    return { ...rest, value, input }
   })
+
+const primitiveShapedDecoder = <C extends PrimitiveCodec>(
+  codec: C,
+  input: Decoder<PrimitiveDecodedValue<C>>,
+  rest?: PrimitiveDecodedRest<C>,
+): WithShapeWithoutPath<
+  PrimitiveDecoded & {
+    codec: C
+  }
+> => {
+  const decoder: Decoder<WithoutPath<PrimitiveDecoded>> =
+    createInputValueDecoder(input, { codec, ...rest })
+
+  return Object.assign(decoder, {
+    shape: { codec },
+  }) as any
 }
 
-const withPrimitiveShape = <S extends PrimitiveCodec>(
-  input: Codec<(PrimitiveDecoded & { codec: S })["value"]>,
-  codec: S,
-): PrimitiveShapeDecoder => {
-  const result = createDecoder((bytes, tHex) => ({
-    value: input.dec(bytes),
-    input: tHex(),
-    codec,
-  })) as unknown as PrimitiveShapeDecoder
-  result.shape = { codec: codec as any }
+const complexShapedDecoder = <C extends ComplexCodec>(
+  codec: C,
+  input: Decoder<ComplexDecodedValue<C>>,
+  innerShape: ComplexDecodedShape<C>,
+  rest?: ComplexDecodedRest<C>,
+): Decoder<
+  WithoutPath<
+    ComplexDecoded & {
+      codec: C
+    }
+  >
+> & {
+  shape: { codec: C; shape: ComplexDecodedShape<C> } & ComplexDecodedRest<C>
+} => {
+  const decoder: Decoder<WithoutPath<ComplexDecoded>> = createInputValueDecoder(
+    input,
+    { codec, shape: innerShape, ...rest },
+  )
 
-  return result
+  return Object.assign(decoder, {
+    shape: {
+      codec,
+      shape: innerShape,
+      ...rest,
+    },
+  }) as any
 }
 
 export const AccountIdShaped = (ss58Prefix = 42) => {
-  const { dec } = AccountId(ss58Prefix)
-  const codec = "AccountId" as const
-
-  const shapedDecoder: Decoder<WithoutPath<AccountIdDecoded>> = createDecoder(
-    (bytes, tHex) => ({
-      value: { address: dec(bytes), ss58Prefix },
-      input: tHex(),
-      codec,
+  const enhanced = scale.enhanceDecoder(
+    scale.AccountId(ss58Prefix).dec,
+    (address) => ({
+      address,
+      ss58Prefix,
     }),
   )
 
-  const result: WithShapeWithoutPath<AccountIdDecoded> = Object.assign(
-    shapedDecoder,
-    {
-      shape: { codec },
-    },
-  )
-
-  return result
+  return primitiveShapedDecoder("AccountId", enhanced, {})
 }
 
-export const BytesArray = (len: number) => {
-  const { dec } = Hex(len)
-  const codec = "BytesArray" as const
+const BytesArray = (len: number): WithShapeWithoutPath<BytesArrayDecoded> =>
+  primitiveShapedDecoder("BytesArray", scale.Hex.dec(len), { len })
 
-  const shapedDecoder: Decoder<WithoutPath<BytesArrayDecoded>> = createDecoder(
-    (bytes, tHex) => ({
-      value: dec(bytes),
-      input: tHex(),
-      len,
-      codec,
-    }),
-  )
+const _primitives = [
+  "_void",
+  "bool",
+  "char",
+  "str",
+  "u8",
+  "u16",
+  "u32",
+  "i8",
+  "i16",
+  "i32",
+  "u64",
+  "u128",
+  "u256",
+  "i64",
+  "i128",
+  "i256",
+  "compactNumber",
+  "compactBn",
+  "bitSequence",
+] as const
 
-  const result: WithShapeWithoutPath<BytesArrayDecoded> = Object.assign(
-    shapedDecoder,
-    {
-      shape: { codec },
-    },
-  )
+type PrimitivesList = typeof _primitives
+type PrimitivesKeys = PrimitivesList[number]
 
-  return result
-}
+const corePrimitives: {
+  [P in PrimitivesKeys]: WithShapeWithoutPath<
+    PrimitiveDecoded & {
+      codec: P
+    }
+  >
+} = Object.fromEntries(
+  _primitives.map((x) => [x, primitiveShapedDecoder(x, scale[x].dec)]),
+) as any
 
-const _primitives = {
-  _void,
-  bool,
-  char,
-  str,
-  u8,
-  u16,
-  u32,
-  i8,
-  i16,
-  i32,
-  compactNumber,
-  u64,
-  u128,
-  u256,
-  i64,
-  i128,
-  i256,
-  compactBn,
-  bitSequence,
-  Bytes: Hex(),
+export const primitives = {
+  ...corePrimitives,
+  Bytes: primitiveShapedDecoder("Bytes", scale.Hex.dec()),
+  BytesArray,
   AccountId: AccountIdShaped(),
 }
 
-type PrimitiveCodecs = typeof _primitives
+const Sequence = (input: ShapedDecoder): SequenceShapedDecoder =>
+  complexShapedDecoder("Sequence", scale.Vector.dec(input as any), input.shape)
 
-export const primitives: {
-  [K in keyof PrimitiveCodecs]: Decoder<PrimitiveDecoded & { codec: K }> & {
-    shape: { codec: K }
-  }
-} = Object.fromEntries(
-  Object.entries(_primitives).map(([key, value]) => [
-    key,
-    withPrimitiveShape(value as any, key as any),
-  ]),
-) as any
+const ArrayDec = (input: ShapedDecoder, len: number): ArrayShapedDecoder =>
+  complexShapedDecoder(
+    "Array",
+    scale.Vector.dec(input as any, len),
+    input.shape,
+    {
+      len,
+    },
+  )
 
-const Sequence = (input: ShapedDecoder): SequenceShapedDecoder => {
-  const shape: SequenceShape = {
-    codec: "Sequence",
-    shape: input.shape,
-  }
-  const vectorDecoder = Vector.dec(input as Decoder<any>)
-
-  const result = createDecoder((bytes, tHex) => ({
-    value: vectorDecoder(bytes),
-    input: tHex(),
-    ...shape,
-  })) as SequenceShapedDecoder
-  result.shape = shape
-
-  return result
-}
-
-const ArrayDec = (input: ShapedDecoder, len: number): ArrayShapedDecoder => {
-  const shape: ArrayShape = {
-    codec: "Array",
-    shape: input.shape,
-    len,
-  }
-  const vectorDecoder = Vector.dec(input as Decoder<any>, len)
-
-  const result = createDecoder((bytes, tHex) => ({
-    value: vectorDecoder(bytes),
-    input: tHex(),
-    ...shape,
-  })) as ArrayShapedDecoder
-  result.shape = shape
-
-  return result
-}
-
-const TupleDec = (...input: Array<ShapedDecoder>): TupleShapedDecoder => {
-  const shape: TupleShape = {
-    codec: "Tuple",
-    shape: input.map((x) => x.shape),
-  }
-  const decoder = Tuple.dec(...input)
-
-  const result = createDecoder((bytes, tHex) => ({
-    value: decoder(bytes),
-    input: tHex(),
-    ...shape,
-  })) as TupleShapedDecoder
-  result.shape = shape
-
-  return result
-}
+const TupleDec = (...input: Array<ShapedDecoder>): TupleShapedDecoder =>
+  complexShapedDecoder(
+    "Tuple",
+    scale.Tuple.dec(...(input as Array<Decoder<any>>)),
+    input.map((x) => x.shape),
+    {},
+  )
 
 const mapStringRecord = <I, O>(
   input: StringRecord<I>,
@@ -268,44 +224,24 @@ const mapStringRecord = <I, O>(
     Object.entries(input).map(([key, value]) => [key, mapper(value, key)]),
   ) as StringRecord<O>
 
-const StructDec = (input: StringRecord<ShapedDecoder>): StructShapedDecoder => {
-  const shape: StructShape = {
-    codec: "Struct",
-    shape: mapStringRecord(input, (x) => x.shape),
-  }
-  const decoder = Struct.dec(input)
-
-  const result = createDecoder((bytes, tHex) => ({
-    value: decoder(bytes),
-    input: tHex(),
-    ...shape,
-  })) as StructShapedDecoder
-  result.shape = shape
-
-  return result
-}
+const StructDec = (input: StringRecord<ShapedDecoder>): StructShapedDecoder =>
+  complexShapedDecoder(
+    "Struct",
+    scale.Struct.dec(input as {}),
+    mapStringRecord(input, (x) => x.shape),
+  )
 
 const EnumDec = (
   input: StringRecord<ShapedDecoder>,
   args?: number[],
-): EnumShapedDecoder => {
-  const shape: EnumShape = {
-    codec: "Enum",
-    shape: mapStringRecord(input, (x) => x.shape),
-  }
-  const decoder = Enum.dec(input, args as any)
+): EnumShapedDecoder =>
+  complexShapedDecoder(
+    "Enum",
+    scale.Enum.dec(input as {}, args as any),
+    mapStringRecord(input, (x) => x.shape),
+  )
 
-  const result = createDecoder((bytes, tHex) => ({
-    value: decoder(bytes),
-    input: tHex(),
-    ...shape,
-  })) as EnumShapedDecoder
-  result.shape = shape
-
-  return result
-}
-
-export const selfDecoder = (value: () => Decoder<any>): ShapedDecoder => {
+export const selfDecoder = (value: () => ShapedDecoder): ShapedDecoder => {
   let cache: Decoder<any> = (x) => {
     const decoder = value()
     const result = decoder

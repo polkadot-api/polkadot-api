@@ -17,13 +17,14 @@ import {
   ShapedDecoder,
   selfDecoder,
   AccountIdShaped,
-  BytesArray,
+  WithoutPath,
 } from "./shaped-decoders"
 import {
   AccountIdDecoded,
   Decoded,
   DecodedCall,
   GetViewBuilder,
+  PrimitiveDecoded,
   Shape,
 } from "./types"
 
@@ -32,7 +33,11 @@ const toHex = _toHex as (input: Uint8Array) => HexString
 type WithPath<T extends Decoder<any> & { shape: any }> = T extends Decoder<
   infer D
 > & { shape: infer S }
-  ? Decoder<D & { path: string[] }> & { shape: S }
+  ? Decoder<
+      D extends WithoutPath<PrimitiveDecoded>
+        ? PrimitiveDecoded
+        : D & { path: string[] }
+    > & { shape: S }
   : T
 
 const withPath = (
@@ -117,7 +122,7 @@ const _buildShapedDecoder = (
     if (input.value.type === "primitive" && input.value.value === "u8") {
       return input.len === 32 && (input.id === 0 || input.id === 1)
         ? _accountId
-        : BytesArray(input.len)
+        : primitives.BytesArray(input.len)
     }
 
     return buildVector(input.value, input.len)
@@ -181,6 +186,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
       new Map(),
       _accountId,
     )
+
     return {
       shape: shapedDecoder.shape,
       decoder: shapedDecoder,
@@ -240,7 +246,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
     return {
       pallet,
       call,
-      args: { ...args, path: lookupData[callLookup.idx].path },
+      args: { ...args, path: lookupData[callsLookup.id].path },
     }
   })
 
