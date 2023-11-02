@@ -1,10 +1,10 @@
+import { toHex as _toHex, mapStringRecord } from "@polkadot-api/utils"
 import {
   Decoder,
   type StringRecord,
   type V14,
   createDecoder,
   u8,
-  toHex as _toHex,
   HexString,
   enhanceDecoder,
 } from "@polkadot-api/substrate-bindings"
@@ -113,12 +113,8 @@ const _buildShapedDecoder = (
   const buildTuple = (value: LookupEntry[]) =>
     complex.Tuple(...value.map(buildNext))
 
-  const buildStruct = (value: StringRecord<LookupEntry>) => {
-    const inner = Object.fromEntries(
-      Object.entries(value).map(([key, value]) => [key, buildNext(value)]),
-    ) as StringRecord<ShapedDecoder>
-    return complex.Struct(inner)
-  }
+  const buildStruct = (value: StringRecord<LookupEntry>) =>
+    complex.Struct(mapStringRecord(value, buildNext))
 
   if (input.type === "array") {
     // Bytes case
@@ -230,13 +226,12 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
     }
 
     const argsDecoder = complex.Struct(
-      (callLookup.value === "_void"
+      callLookup.value === "_void"
         ? {}
-        : Object.fromEntries(
-            Object.entries(callLookup.value).map(([key, val]) => {
-              return [key, buildDefinition(val.id).decoder]
-            }),
-          )) as StringRecord<WithMeta<ShapedDecoder>>,
+        : mapStringRecord(
+            callLookup.value as StringRecord<LookupEntry>,
+            (val) => buildDefinition(val.id).decoder as WithMeta<ShapedDecoder>,
+          ),
     )
 
     return {

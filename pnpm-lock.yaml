@@ -394,6 +394,9 @@ importers:
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/tx-helper:
     dependencies:
