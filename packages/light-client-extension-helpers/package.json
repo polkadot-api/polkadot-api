@@ -10,13 +10,14 @@
     "./background": "./dist/background/background-helper.mjs",
     "./content-script": "./dist/content-script/content-script-helper.mjs",
     "./extension-page": "./dist/extension-page/extension-page-helper.mjs",
-    "./web-page": "./dist/web-page/web-page-helper.mjs"
+    "./web-page": "./dist/web-page/web-page-helper.mjs",
+    "./chain-specs": "./dist/chain-specs/index.mjs"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc --noEmit && tsup-node src/background/background-helper.ts src/content-script/content-script-helper.ts src/extension-page/extension-page-helper.ts src/web-page/web-page-helper.ts --clean --sourcemap --platform neutral --target=es2020 --format esm --dts",
+    "build": "tsc --noEmit && tsup-node src/background/background-helper.ts src/content-script/content-script-helper.ts src/extension-page/extension-page-helper.ts src/web-page/web-page-helper.ts src/chain-specs/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm --dts",
     "dev": "pnpm build --watch",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
