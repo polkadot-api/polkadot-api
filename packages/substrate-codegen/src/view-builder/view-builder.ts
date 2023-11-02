@@ -13,11 +13,11 @@ import { getLookupFn } from "@/lookups"
 import {
   primitives,
   complex,
-  WithShapeWithoutPath,
+  WithShapeWithoutMeta,
   ShapedDecoder,
   selfDecoder,
   AccountIdShaped,
-  WithoutPath,
+  WithoutMeta,
 } from "./shaped-decoders"
 import {
   AccountIdDecoded,
@@ -30,41 +30,44 @@ import {
 
 const toHex = _toHex as (input: Uint8Array) => HexString
 
-type WithPath<T extends Decoder<any> & { shape: any }> = T extends Decoder<
+type WithMeta<T extends Decoder<any> & { shape: any }> = T extends Decoder<
   infer D
 > & { shape: infer S }
   ? Decoder<
-      D extends WithoutPath<PrimitiveDecoded>
+      D extends WithoutMeta<PrimitiveDecoded>
         ? PrimitiveDecoded
-        : D & { path: string[] }
+        : D & { meta: { path: string[]; docs: string } }
     > & { shape: S }
   : T
 
-const withPath = (
+const withMeta = (
   input: ShapedDecoder,
   path: string[],
-): WithPath<ShapedDecoder> => {
+  docs: string,
+): WithMeta<ShapedDecoder> => {
   const decoder = enhanceDecoder(input as Decoder<{}>, (x) => ({
     ...x,
-    path,
-  })) as WithPath<ShapedDecoder>
+    meta: { path, docs },
+  })) as WithMeta<ShapedDecoder>
   decoder.shape = input.shape
   return decoder
 }
 
-const addPath =
+const addMeta =
   <Other extends Array<any>>(
     lookupData: V14["lookup"],
     fn: (input: LookupEntry, ...rest: Other) => ShapedDecoder,
-  ): ((input: LookupEntry, ...rest: Other) => WithPath<ShapedDecoder>) =>
-  (input, ...rest) =>
-    withPath(fn(input, ...rest), lookupData[input.id].path)
+  ): ((input: LookupEntry, ...rest: Other) => WithMeta<ShapedDecoder>) =>
+  (input, ...rest) => {
+    const { path, docs } = lookupData[input.id]
+    return withMeta(fn(input, ...rest), path, docs.join("\n"))
+  }
 
 const _buildShapedDecoder = (
   input: LookupEntry,
   stack: Set<LookupEntry>,
   circularOnes: Map<LookupEntry, ShapedDecoder>,
-  _accountId: WithShapeWithoutPath<AccountIdDecoded>,
+  _accountId: WithShapeWithoutMeta<AccountIdDecoded>,
 ): ShapedDecoder => {
   if (input.type === "primitive") return primitives[input.value]
   if (input.type === "compact")
@@ -157,10 +160,10 @@ const _buildShapedDecoder = (
 
 export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
-  const buildShapedDecoder = addPath(lookupData, _buildShapedDecoder)
+  const buildShapedDecoder = addMeta(lookupData, _buildShapedDecoder)
   const getLookupEntryDef = getLookupFn(lookupData)
 
-  let _accountId: WithShapeWithoutPath<AccountIdDecoded> = primitives.AccountId
+  let _accountId: WithShapeWithoutMeta<AccountIdDecoded> = primitives.AccountId
 
   const prefix = metadata.pallets
     .find((x) => x.name === "System")
@@ -173,6 +176,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
         new Map(),
         _accountId,
       )(prefix.value).value
+
       if (typeof prefixVal === "number") _accountId = AccountIdShaped(prefixVal)
     } catch (_) {}
   }
@@ -230,23 +234,15 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
         ? {}
         : Object.fromEntries(
             Object.entries(callLookup.value).map(([key, val]) => {
-              const shapedDecoder = buildShapedDecoder(
-                getLookupEntryDef(val.id),
-                new Set(),
-                new Map(),
-                _accountId,
-              )
-              return [key, shapedDecoder]
+              return [key, buildDefinition(val.id).decoder]
             }),
-          )) as StringRecord<WithPath<ShapedDecoder>>,
+          )) as StringRecord<WithMeta<ShapedDecoder>>,
     )
-
-    const args = argsDecoder(bytes)
 
     return {
       pallet,
       call,
-      args: { ...args, path: lookupData[callsLookup.id].path },
+      args: { value: argsDecoder(bytes), shape: argsDecoder.shape },
     }
   })
 

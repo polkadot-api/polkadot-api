@@ -9,6 +9,7 @@ import {
   ArrayShape,
   BytesArrayDecoded,
   ComplexDecoded,
+  ComplexShape,
   Decoded,
   EnumDecoded,
   EnumShape,
@@ -23,29 +24,30 @@ import {
 
 const toHex = scale.toHex as (input: Uint8Array) => HexString
 
-export type WithoutPath<T extends { path: string[] }> = Omit<T, "path">
+export type WithoutMeta<T extends { meta?: any }> = Omit<T, "meta">
 type PrimitiveCodec = PrimitiveDecoded["codec"]
 type ComplexCodec = ComplexDecoded["codec"]
-export type WithShapeWithoutPath<T extends PrimitiveDecoded> = Decoder<
-  WithoutPath<T>
+
+export type WithShapeWithoutMeta<T extends PrimitiveDecoded> = Decoder<
+  WithoutMeta<T>
 > & {
   shape: { codec: T["codec"] }
 }
-type PrimitiveShapeDecoder = WithShapeWithoutPath<PrimitiveDecoded>
+type PrimitiveShapeDecoder = WithShapeWithoutMeta<PrimitiveDecoded>
 
-type SequenceShapedDecoder = Decoder<WithoutPath<SequenceDecoded>> & {
+type SequenceShapedDecoder = Decoder<WithoutMeta<SequenceDecoded>> & {
   shape: SequenceShape
 }
-type ArrayShapedDecoder = Decoder<WithoutPath<ArrayDecoded>> & {
+type ArrayShapedDecoder = Decoder<WithoutMeta<ArrayDecoded>> & {
   shape: ArrayShape
 }
-type TupleShapedDecoder = Decoder<WithoutPath<TupleDecoded>> & {
+type TupleShapedDecoder = Decoder<WithoutMeta<TupleDecoded>> & {
   shape: TupleShape
 }
-type StructShapedDecoder = Decoder<WithoutPath<StructDecoded>> & {
+type StructShapedDecoder = Decoder<WithoutMeta<StructDecoded>> & {
   shape: StructShape
 }
-type EnumShapedDecoder = Decoder<WithoutPath<EnumDecoded>> & {
+type EnumShapedDecoder = Decoder<WithoutMeta<EnumDecoded>> & {
   shape: EnumShape
 }
 type ComplexShapedDecoder =
@@ -62,18 +64,15 @@ type PrimitiveDecodedValue<C extends PrimitiveCodec> = (PrimitiveDecoded & {
 })["value"]
 type PrimitiveDecodedRest<C extends PrimitiveCodec> = Omit<
   PrimitiveDecoded & { codec: C },
-  "value" | "input" | "codec" | "path"
+  "value" | "input" | "codec" | "meta"
 >
 
 type ComplexDecodedValue<C extends ComplexCodec> = (ComplexDecoded & {
   codec: C
 })["value"]
-type ComplexDecodedShape<C extends ComplexCodec> = (ComplexDecoded & {
-  codec: C
-})["shape"]
 type ComplexDecodedRest<C extends ComplexCodec> = Omit<
   ComplexDecoded & { codec: C },
-  "value" | "input" | "codec" | "path" | "shape"
+  "value" | "input" | "codec" | "meta"
 >
 
 const createInputValueDecoder = <T, Rest extends { codec: Decoded["codec"] }>(
@@ -97,12 +96,12 @@ const primitiveShapedDecoder = <C extends PrimitiveCodec>(
   codec: C,
   input: Decoder<PrimitiveDecodedValue<C>>,
   rest?: PrimitiveDecodedRest<C>,
-): WithShapeWithoutPath<
+): WithShapeWithoutMeta<
   PrimitiveDecoded & {
     codec: C
   }
 > => {
-  const decoder: Decoder<WithoutPath<PrimitiveDecoded>> =
+  const decoder: Decoder<WithoutMeta<PrimitiveDecoded>> =
     createInputValueDecoder(input, { codec, ...rest })
 
   return Object.assign(decoder, {
@@ -110,32 +109,27 @@ const primitiveShapedDecoder = <C extends PrimitiveCodec>(
   }) as any
 }
 
-const complexShapedDecoder = <C extends ComplexCodec>(
-  codec: C,
-  input: Decoder<ComplexDecodedValue<C>>,
-  innerShape: ComplexDecodedShape<C>,
-  rest?: ComplexDecodedRest<C>,
+const complexShapedDecoder = <Shape extends ComplexShape>(
+  shape: Shape,
+  input: Decoder<ComplexDecodedValue<Shape["codec"]>>,
+  rest?: ComplexDecodedRest<Shape["codec"]>,
 ): Decoder<
-  WithoutPath<
+  WithoutMeta<
     ComplexDecoded & {
-      codec: C
+      codec: Shape["codec"]
     }
   >
 > & {
-  shape: { codec: C; shape: ComplexDecodedShape<C> } & ComplexDecodedRest<C>
+  shape: Shape
 } => {
-  const decoder: Decoder<WithoutPath<ComplexDecoded>> = createInputValueDecoder(
+  const decoder: Decoder<WithoutMeta<ComplexDecoded>> = createInputValueDecoder(
     input,
-    { codec, shape: innerShape, ...rest },
+    { codec: shape.codec, ...rest },
   )
 
   return Object.assign(decoder, {
-    shape: {
-      codec,
-      shape: innerShape,
-      ...rest,
-    },
-  }) as any
+    shape,
+  })
 }
 
 export const AccountIdShaped = (ss58Prefix = 42) => {
@@ -150,7 +144,7 @@ export const AccountIdShaped = (ss58Prefix = 42) => {
   return primitiveShapedDecoder("AccountId", enhanced, {})
 }
 
-const BytesArray = (len: number): WithShapeWithoutPath<BytesArrayDecoded> =>
+const BytesArray = (len: number): WithShapeWithoutMeta<BytesArrayDecoded> =>
   primitiveShapedDecoder("BytesArray", scale.Hex.dec(len), { len })
 
 const _primitives = [
@@ -179,7 +173,7 @@ type PrimitivesList = typeof _primitives
 type PrimitivesKeys = PrimitivesList[number]
 
 const corePrimitives: {
-  [P in PrimitivesKeys]: WithShapeWithoutPath<
+  [P in PrimitivesKeys]: WithShapeWithoutMeta<
     PrimitiveDecoded & {
       codec: P
     }
@@ -196,24 +190,21 @@ export const primitives = {
 }
 
 const Sequence = (input: ShapedDecoder): SequenceShapedDecoder =>
-  complexShapedDecoder("Sequence", scale.Vector.dec(input as any), input.shape)
+  complexShapedDecoder(
+    { codec: "Sequence", shape: input.shape },
+    scale.Vector.dec(input as any),
+  )
 
 const ArrayDec = (input: ShapedDecoder, len: number): ArrayShapedDecoder =>
   complexShapedDecoder(
-    "Array",
+    { codec: "Array", shape: input.shape, len },
     scale.Vector.dec(input as any, len),
-    input.shape,
-    {
-      len,
-    },
   )
 
 const TupleDec = (...input: Array<ShapedDecoder>): TupleShapedDecoder =>
   complexShapedDecoder(
-    "Tuple",
+    { codec: "Tuple", shape: input.map((x) => x.shape) },
     scale.Tuple.dec(...(input as Array<Decoder<any>>)),
-    input.map((x) => x.shape),
-    {},
   )
 
 const mapStringRecord = <I, O>(
@@ -226,9 +217,8 @@ const mapStringRecord = <I, O>(
 
 const StructDec = (input: StringRecord<ShapedDecoder>): StructShapedDecoder =>
   complexShapedDecoder(
-    "Struct",
+    { codec: "Struct", shape: mapStringRecord(input, (x) => x.shape) },
     scale.Struct.dec(input as {}),
-    mapStringRecord(input, (x) => x.shape),
   )
 
 const EnumDec = (
@@ -236,9 +226,8 @@ const EnumDec = (
   args?: number[],
 ): EnumShapedDecoder =>
   complexShapedDecoder(
-    "Enum",
+    { codec: "Enum", shape: mapStringRecord(input, (x) => x.shape) },
     scale.Enum.dec(input as {}, args as any),
-    mapStringRecord(input, (x) => x.shape),
   )
 
 export const selfDecoder = (value: () => ShapedDecoder): ShapedDecoder => {
