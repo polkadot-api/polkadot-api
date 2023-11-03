@@ -5,9 +5,18 @@ import { v14 } from "@polkadot-api/substrate-bindings"
 const metadataBytes = await readFile("./ksm.scale")
 const metadata = v14.dec(metadataBytes)
 
+// await writeFile("./ksm.json", JSON.stringify(metadata, null, 2), "utf8")
+
 const { callDecoder } = getViewBuilder(metadata)
 const result = callDecoder(
-  "0x17002b0f01590100004901415050524f56455f52464328303030352c39636261626661383035393864323933353833306330396331386530613065346564383232376238633866373434663166346134316438353937626236643434290101000000",
+  "0x180008040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a30306050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+  // "0x040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0f00c0652095e59d",
 )
 
-console.log(JSON.stringify(result.args.value, null, 2))
+console.log(
+  JSON.stringify(
+    result,
+    (_, v) => (typeof v === "bigint" ? v.toString() : v),
+    2,
+  ),
+)
