@@ -25,30 +25,31 @@ import {
 
 const toHex = _toHex as (input: Uint8Array) => HexString
 
-export type WithoutMeta<T extends { meta?: any }> = Omit<T, "meta">
+type Extras = "docs" | "path" | "innerDocs"
+export type WithoutExtra<T extends {}> = Omit<T, Extras>
 type PrimitiveCodec = PrimitiveDecoded["codec"]
 type ComplexCodec = ComplexDecoded["codec"]
 
-export type WithShapeWithoutMeta<T extends PrimitiveDecoded> = Decoder<
-  WithoutMeta<T>
+export type WithShapeWithoutExtra<T extends PrimitiveDecoded> = Decoder<
+  WithoutExtra<T>
 > & {
   shape: { codec: T["codec"] }
 }
-type PrimitiveShapeDecoder = WithShapeWithoutMeta<PrimitiveDecoded>
+type PrimitiveShapeDecoder = WithShapeWithoutExtra<PrimitiveDecoded>
 
-type SequenceShapedDecoder = Decoder<WithoutMeta<SequenceDecoded>> & {
+type SequenceShapedDecoder = Decoder<WithoutExtra<SequenceDecoded>> & {
   shape: SequenceShape
 }
-type ArrayShapedDecoder = Decoder<WithoutMeta<ArrayDecoded>> & {
+type ArrayShapedDecoder = Decoder<WithoutExtra<ArrayDecoded>> & {
   shape: ArrayShape
 }
-type TupleShapedDecoder = Decoder<WithoutMeta<TupleDecoded>> & {
+type TupleShapedDecoder = Decoder<WithoutExtra<TupleDecoded>> & {
   shape: TupleShape
 }
-type StructShapedDecoder = Decoder<WithoutMeta<StructDecoded>> & {
+type StructShapedDecoder = Decoder<WithoutExtra<StructDecoded>> & {
   shape: StructShape
 }
-type EnumShapedDecoder = Decoder<WithoutMeta<EnumDecoded>> & {
+type EnumShapedDecoder = Decoder<WithoutExtra<EnumDecoded>> & {
   shape: EnumShape
 }
 type ComplexShapedDecoder =
@@ -65,7 +66,7 @@ type PrimitiveDecodedValue<C extends PrimitiveCodec> = (PrimitiveDecoded & {
 })["value"]
 type PrimitiveDecodedRest<C extends PrimitiveCodec> = Omit<
   PrimitiveDecoded & { codec: C },
-  "value" | "input" | "codec" | "meta"
+  "value" | "input" | "codec" | Extras
 >
 
 type ComplexDecodedValue<C extends ComplexCodec> = (ComplexDecoded & {
@@ -73,7 +74,7 @@ type ComplexDecodedValue<C extends ComplexCodec> = (ComplexDecoded & {
 })["value"]
 type ComplexDecodedRest<C extends ComplexCodec> = Omit<
   ComplexDecoded & { codec: C },
-  "value" | "input" | "codec" | "meta"
+  "value" | "input" | "codec" | Extras
 >
 
 const createInputValueDecoder = <T, Rest extends { codec: Decoded["codec"] }>(
@@ -97,12 +98,12 @@ const primitiveShapedDecoder = <C extends PrimitiveCodec>(
   codec: C,
   input: Decoder<PrimitiveDecodedValue<C>>,
   rest?: PrimitiveDecodedRest<C>,
-): WithShapeWithoutMeta<
+): WithShapeWithoutExtra<
   PrimitiveDecoded & {
     codec: C
   }
 > => {
-  const decoder: Decoder<WithoutMeta<PrimitiveDecoded>> =
+  const decoder: Decoder<WithoutExtra<PrimitiveDecoded>> =
     createInputValueDecoder(input, { codec, ...rest })
 
   return Object.assign(decoder, {
@@ -115,7 +116,7 @@ const complexShapedDecoder = <Shape extends ComplexShape>(
   input: Decoder<ComplexDecodedValue<Shape["codec"]>>,
   rest?: ComplexDecodedRest<Shape["codec"]>,
 ): Decoder<
-  WithoutMeta<
+  WithoutExtra<
     ComplexDecoded & {
       codec: Shape["codec"]
     }
@@ -123,10 +124,8 @@ const complexShapedDecoder = <Shape extends ComplexShape>(
 > & {
   shape: Shape
 } => {
-  const decoder: Decoder<WithoutMeta<ComplexDecoded>> = createInputValueDecoder(
-    input,
-    { codec: shape.codec, ...rest },
-  )
+  const decoder: Decoder<WithoutExtra<ComplexDecoded>> =
+    createInputValueDecoder(input, { codec: shape.codec, ...rest })
 
   return Object.assign(decoder, {
     shape,
@@ -145,7 +144,7 @@ export const AccountIdShaped = (ss58Prefix = 42) => {
   return primitiveShapedDecoder("AccountId", enhanced, {})
 }
 
-const BytesArray = (len: number): WithShapeWithoutMeta<BytesArrayDecoded> =>
+const BytesArray = (len: number): WithShapeWithoutExtra<BytesArrayDecoded> =>
   primitiveShapedDecoder("BytesArray", scale.Hex.dec(len), { len })
 
 const _primitives = [
@@ -174,7 +173,7 @@ type PrimitivesList = typeof _primitives
 type PrimitivesKeys = PrimitivesList[number]
 
 const corePrimitives: {
-  [P in PrimitivesKeys]: WithShapeWithoutMeta<
+  [P in PrimitivesKeys]: WithShapeWithoutExtra<
     PrimitiveDecoded & {
       codec: P
     }

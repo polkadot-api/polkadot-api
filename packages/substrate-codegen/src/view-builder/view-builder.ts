@@ -1,4 +1,4 @@
-import { toHex as _toHex, mapStringRecord } from "@polkadot-api/utils"
+import { mapStringRecord } from "@polkadot-api/utils"
 import {
   Decoder,
   type StringRecord,
@@ -13,11 +13,11 @@ import { getLookupFn } from "@/lookups"
 import {
   primitives,
   complex,
-  WithShapeWithoutMeta,
+  WithShapeWithoutExtra,
   ShapedDecoder,
   selfDecoder,
   AccountIdShaped,
-  WithoutMeta,
+  WithoutExtra,
 } from "./shaped-decoders"
 import {
   AccountIdDecoded,
@@ -28,164 +28,202 @@ import {
   Shape,
 } from "./types"
 
-const toHex = _toHex as (input: Uint8Array) => HexString
-
-type WithMeta<T extends Decoder<any> & { shape: any }> = T extends Decoder<
-  infer D
-> & { shape: infer S }
+type WithProp<
+  T extends Decoder<any> & { shape: any },
+  PropName extends string,
+  PropValue,
+> = T extends Decoder<infer D> & { shape: infer S }
   ? Decoder<
-      D extends WithoutMeta<PrimitiveDecoded>
+      D extends WithoutExtra<PrimitiveDecoded>
         ? PrimitiveDecoded
-        : D & { meta?: { path: string[]; docs: string } }
+        : D & { [P in PropName]: PropValue }
     > & { shape: S }
   : T
 
-const withMeta = (
+const withProp = <PropName extends string, PropValue>(
   input: ShapedDecoder,
-  path: string[],
-  docs: string,
-): WithMeta<ShapedDecoder> => {
-  if (!docs && !path.length) return input as any
-
+  propName: PropName,
+  propValue: PropValue,
+): WithProp<ShapedDecoder, PropName, PropValue> => {
   const decoder = enhanceDecoder(input as Decoder<{}>, (x) => ({
     ...x,
-    meta: { path, docs },
-  })) as WithMeta<ShapedDecoder>
+    [propName]: propValue,
+  })) as WithProp<ShapedDecoder, PropName, PropValue>
   decoder.shape = input.shape
   return decoder
 }
 
-const addMeta =
+const addPath =
   <Other extends Array<any>>(
     fn: (
       input: LookupEntry,
+      cache: Map<number, ShapedDecoder>,
       lookupData: V14["lookup"],
       ...rest: Other
     ) => ShapedDecoder,
   ): ((
     input: LookupEntry,
+    cache: Map<number, ShapedDecoder>,
     lookupData: V14["lookup"],
     ...rest: Other
-  ) => WithMeta<ShapedDecoder>) =>
-  (input, lookupData, ...rest) => {
-    const { path, docs } = lookupData[input.id]
-    return withMeta(fn(input, lookupData, ...rest), path, docs.join("\n"))
+  ) => ShapedDecoder | WithProp<ShapedDecoder, "path", string[]>) =>
+  (input, cache, lookupData, ...rest) => {
+    const { path } = lookupData[input.id]
+    const base = fn(input, cache, lookupData, ...rest)
+    return path.length ? withProp(base, "path", path) : base
   }
 
-const _buildShapedDecoder = addMeta(
-  (
-    input: LookupEntry,
-    lookupData: V14["lookup"],
-    stack: Set<LookupEntry>,
-    circularOnes: Map<LookupEntry, ShapedDecoder>,
-    _accountId: WithShapeWithoutMeta<AccountIdDecoded>,
-  ): ShapedDecoder => {
-    if (input.type === "primitive") return primitives[input.value]
-    if (input.type === "compact")
-      return input.isBig ? primitives.compactBn : primitives.compactNumber
-    if (input.type === "bitSequence") return primitives.bitSequence
+const withCache =
+  <Other extends Array<any>, T>(
+    fn: (input: LookupEntry, cache: Map<number, T>, ...rest: Other) => T,
+  ): ((input: LookupEntry, cache: Map<number, T>, ...rest: Other) => T) =>
+  (input, cache, ...rest) => {
+    const { id } = input
+    if (cache.has(id)) return cache.get(id)!
+    const result = fn(input, cache, ...rest)
+    cache.set(id, result)
+    return result
+  }
 
-    if (
-      input.type === "sequence" &&
-      input.value.type === "primitive" &&
-      input.value.value === "u8"
-    ) {
-      return primitives.Bytes
-    }
+const _buildShapedDecoder = (
+  input: LookupEntry,
+  cache: Map<number, ShapedDecoder>,
+  lookupData: V14["lookup"],
+  stack: Set<number>,
+  _accountId: WithShapeWithoutExtra<AccountIdDecoded>,
+): ShapedDecoder => {
+  if (input.type === "primitive") return primitives[input.value]
+  if (input.type === "compact")
+    return input.isBig ? primitives.compactBn : primitives.compactNumber
+  if (input.type === "bitSequence") return primitives.bitSequence
 
-    const buildNext = (nextInput: LookupEntry): ShapedDecoder => {
-      if (!stack.has(nextInput)) {
-        const nextStack = new Set(stack)
-        nextStack.add(input)
-        const result = _buildShapedDecoder(
-          nextInput,
-          lookupData,
-          nextStack,
-          circularOnes,
-          _accountId,
-        )
-        if (circularOnes.has(input)) {
-          circularOnes.get(input)!.shape = result.shape
-          circularOnes.set(input, result)
-        }
-        return result
-      }
+  if (
+    input.type === "sequence" &&
+    input.value.type === "primitive" &&
+    input.value.value === "u8"
+  ) {
+    return primitives.Bytes
+  }
 
-      const result = selfDecoder(() => circularOnes.get(input)!)
-      circularOnes.set(input, result)
+  const buildNext = (nextInput: LookupEntry): ShapedDecoder => {
+    const { id } = nextInput
 
+    if (stack.has(id)) {
+      const result = selfDecoder(() => cache.get(id)!)
+      cache.set(id, result)
       return result
     }
 
-    const buildVector = (inner: LookupEntry, len?: number) => {
-      const _inner = buildNext(inner)
-      return len ? complex.Array(_inner, len) : complex.Sequence(_inner)
+    stack.add(id)
+    const result = buildShapedDecoder(
+      nextInput,
+      cache,
+      lookupData,
+      stack,
+      _accountId,
+    )
+    stack.delete(id)
+
+    if (cache.has(id)) {
+      cache.get(id)!.shape = result.shape
+      cache.set(id, result)
+    }
+    return result
+  }
+
+  const buildVector = (inner: LookupEntry, len?: number) => {
+    const _inner = buildNext(inner)
+    return len ? complex.Array(_inner, len) : complex.Sequence(_inner)
+  }
+
+  const buildTuple = (value: LookupEntry[], innerDocs: string[][]) =>
+    withProp(complex.Tuple(...value.map(buildNext)), "innerDocs", innerDocs)
+
+  const buildStruct = (
+    value: StringRecord<LookupEntry>,
+    innerDocs: StringRecord<string[]>,
+  ) =>
+    withProp(
+      complex.Struct(mapStringRecord(value, buildNext)),
+      "innerDocs",
+      innerDocs,
+    )
+
+  if (input.type === "array") {
+    // Bytes case
+    if (input.value.type === "primitive" && input.value.value === "u8") {
+      return input.len === 32 && (input.id === 0 || input.id === 1)
+        ? _accountId
+        : primitives.BytesArray(input.len)
     }
 
-    const buildTuple = (value: LookupEntry[]) =>
-      complex.Tuple(...value.map(buildNext))
+    return buildVector(input.value, input.len)
+  }
 
-    const buildStruct = (value: StringRecord<LookupEntry>) =>
-      complex.Struct(mapStringRecord(value, buildNext))
+  if (input.type === "sequence") return buildVector(input.value)
+  if (input.type === "tuple") return buildTuple(input.value, input.innerDocs)
+  if (input.type === "struct") return buildStruct(input.value, input.innerDocs)
 
-    if (input.type === "array") {
-      // Bytes case
-      if (input.value.type === "primitive" && input.value.value === "u8") {
-        return input.len === 32 && (input.id === 0 || input.id === 1)
-          ? _accountId
-          : primitives.BytesArray(input.len)
-      }
-
-      return buildVector(input.value, input.len)
+  // it has to be an enum by now
+  const dependencies = Object.values(input.value).map((v) => {
+    if (v.type === "primitive") return primitives._void
+    if (v.type === "tuple" && v.value.length === 1) {
+      return buildNext(v.value[0])
     }
+    return v.type === "tuple"
+      ? buildTuple(v.value, v.innerDocs)
+      : buildStruct(v.value, v.innerDocs)
+  })
 
-    if (input.type === "sequence") return buildVector(input.value)
-    if (input.type === "tuple") return buildTuple(input.value)
-    if (input.type === "struct") return buildStruct(input.value)
+  const inner = Object.fromEntries(
+    Object.keys(input.value).map((key, idx) => [key, dependencies[idx]]),
+  ) as StringRecord<ShapedDecoder>
 
-    // it has to be an enum by now
-    const dependencies = Object.values(input.value).map((v) => {
-      if (v.type === "primitive") return primitives._void
-      if (v.type === "tuple" && v.value.length === 1) {
-        return buildNext(v.value[0])
-      }
-      return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
-    })
+  const indexes = Object.values(input.value).map((x) => x.idx)
+  const areIndexesSorted = indexes.every((idx, i) => idx === i)
 
-    const inner = Object.fromEntries(
-      Object.keys(input.value).map((key, idx) => [key, dependencies[idx]]),
-    ) as StringRecord<ShapedDecoder>
+  const withoutDocs = areIndexesSorted
+    ? complex.Enum(inner)
+    : complex.Enum(inner, indexes as any)
 
-    const indexes = Object.values(input.value).map((x) => x.idx)
-    const areIndexesSorted = indexes.every((idx, i) => idx === i)
+  const withDocs = enhanceDecoder(withoutDocs, (val) => {
+    const docs = input.innerDocs[val.value.tag]
+    return {
+      ...val,
+      docs,
+    }
+  }) as unknown as typeof withoutDocs
+  withDocs.shape = withoutDocs.shape
+  return withDocs
+}
+const buildShapedDecoder = withCache(addPath(_buildShapedDecoder))
 
-    return areIndexesSorted
-      ? complex.Enum(inner)
-      : complex.Enum(inner, indexes as any)
-  },
-)
+const hexStrFromByte = (input: number) =>
+  `0x${input.toString(16).padEnd(2, "0")}` as HexString
 
 export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
-  const buildShapedDecoder = (id: number) =>
-    _buildShapedDecoder(
+  const cache = new Map<number, ShapedDecoder>()
+
+  const getDecoder = (id: number) =>
+    buildShapedDecoder(
       getLookupEntryDef(id),
+      cache,
       lookupData,
-      new Set(),
-      new Map(),
+      new Set([id]),
       _accountId,
     )
 
   const getLookupEntryDef = getLookupFn(lookupData)
 
-  let _accountId: WithShapeWithoutMeta<AccountIdDecoded> = primitives.AccountId
+  let _accountId: WithShapeWithoutExtra<AccountIdDecoded> = primitives.AccountId
 
   const prefix = metadata.pallets
     .find((x) => x.name === "System")
     ?.constants.find((x) => x.name === "SS58Prefix")
   if (prefix) {
     try {
-      const prefixVal = buildShapedDecoder(prefix.type)(prefix.value).value
+      const prefixVal = getDecoder(prefix.type)(prefix.value).value
 
       if (typeof prefixVal === "number") _accountId = AccountIdShaped(prefixVal)
     } catch (_) {}
@@ -194,17 +232,16 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   const buildDefinition = (
     id: number,
   ): { shape: Shape; decoder: Decoder<Decoded> } => {
-    const shapedDecoder = buildShapedDecoder(id)
+    const shapedDecoder = getDecoder(id)
 
     return {
       shape: shapedDecoder.shape,
-      decoder: shapedDecoder,
+      decoder: shapedDecoder as any,
     }
   }
 
   const callDecoder: Decoder<DecodedCall> = createDecoder((bytes) => {
     const palletIdx = u8.dec(bytes)
-    const callIdx = u8.dec(bytes)
 
     const palletEntry = metadata.pallets.find((x) => x.index === palletIdx)
     if (!palletEntry) throw new Error("Invalid Pallet")
@@ -214,39 +251,28 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
         name: palletEntry.name,
         idx: palletIdx,
       },
-      input: toHex(new Uint8Array([bytes[0]])),
+      input: hexStrFromByte(bytes[0]),
     }
 
-    const callsLookup = getLookupEntryDef(palletEntry.calls!)
-    if (callsLookup.type !== "enum") throw null
+    const callsDecoder = getDecoder(palletEntry.calls!)
 
-    const callEntry = Object.entries(callsLookup.value).find(
-      ([, val]) => val.idx === callIdx,
-    )
-    if (!callEntry) throw new Error("Invalid Call")
+    const decoded = callsDecoder(bytes)
 
-    const [callName, callLookup] = callEntry
+    if (decoded.codec !== "Enum") throw null
+
     const call = {
       value: {
-        name: callName,
-        idx: callIdx,
+        name: decoded.value.tag,
+        idx: bytes[1],
       },
-      input: toHex(new Uint8Array([bytes[1]])),
+      input: hexStrFromByte(bytes[1]),
+      docs: (decoded as any).docs as string[],
     }
-
-    const argsDecoder = complex.Struct(
-      callLookup.value === "_void"
-        ? {}
-        : mapStringRecord(
-            callLookup.value as StringRecord<LookupEntry>,
-            (val) => buildShapedDecoder(val.id),
-          ),
-    )
 
     return {
       pallet,
       call,
-      args: { value: argsDecoder(bytes), shape: argsDecoder.shape },
+      args: { value: decoded.value.value as any, shape: callsDecoder.shape },
     }
   })
 
