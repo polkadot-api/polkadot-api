@@ -54,8 +54,8 @@ export interface ErrorDescriptor<
 export interface TxDescriptor<
   Common extends DescriptorCommon<string, string>,
   Codecs extends ArgsWithoutPayloadCodec<any>,
-  Events extends Tuple<EventDescriptor<any, any>>,
-  Errors extends Tuple<ErrorDescriptor<any, any>>,
+  Events extends Array<EventDescriptor<any, any>>,
+  Errors extends Array<ErrorDescriptor<any, any>>,
 > {
   type: "tx"
   props: Common
@@ -143,8 +143,8 @@ export const getPalletCreator = <Pallet extends string>(pallet: Pallet) => {
   const getTxDescriptor = <
     Name extends string,
     Codecs extends ArgsWithoutPayloadCodec<any>,
-    Events extends Tuple<EventDescriptor<any, any>>,
-    Errors extends Tuple<ErrorDescriptor<any, any>>,
+    Events extends Array<EventDescriptor<any, any>>,
+    Errors extends Array<ErrorDescriptor<any, any>>,
   >(
     checksum: bigint,
     name: Name,
