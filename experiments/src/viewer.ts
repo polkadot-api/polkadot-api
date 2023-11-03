@@ -5,8 +5,6 @@ import { v14 } from "@polkadot-api/substrate-bindings"
 const metadataBytes = await readFile("./ksm.scale")
 const metadata = v14.dec(metadataBytes)
 
-// await writeFile("./ksm.json", JSON.stringify(metadata, null, 2), "utf8")
-
 const { callDecoder } = getViewBuilder(metadata)
 const start = Date.now()
 const result = callDecoder(
@@ -15,6 +13,17 @@ const result = callDecoder(
 )
 const end = Date.now()
 
-console.log(result)
+const shape = result.args.shape
+if (shape.codec !== "Struct") throw null
+
+delete (result.args as any).shape
+
+console.log(
+  JSON.stringify(
+    result,
+    (_, v) => (typeof v === "bigint" ? v.toString() : v),
+    2,
+  ),
+)
 
 console.log(end - start)
