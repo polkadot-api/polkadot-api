@@ -29,41 +29,42 @@ export interface DecodedCall {
       idx: number
     }
     input: HexString
+    docs: string[]
   }
   args: { value: StructDecoded; shape: Shape }
 }
 
-type WithInputAndMeta<T> = T & {
+type WithInputAndPath<T> = T & {
   input: HexString
-  meta?: { path: string[]; docs: string }
+  path?: string[]
 }
 
-export type VoidDecoded = WithInputAndMeta<{
+export type VoidDecoded = WithInputAndPath<{
   codec: "_void"
   value: undefined
 }>
 
-export type BoolDecoded = WithInputAndMeta<{
+export type BoolDecoded = WithInputAndPath<{
   codec: "bool"
   value: boolean
 }>
 
-export type StringDecoded = WithInputAndMeta<{
+export type StringDecoded = WithInputAndPath<{
   codec: "str" | "char"
   value: string
 }>
 
-export type NumberDecoded = WithInputAndMeta<{
+export type NumberDecoded = WithInputAndPath<{
   codec: "u8" | "u16" | "u32" | "i8" | "i16" | "i32" | "compactNumber"
   value: number
 }>
 
-export type BigNumberDecoded = WithInputAndMeta<{
+export type BigNumberDecoded = WithInputAndPath<{
   codec: "u64" | "u128" | "u256" | "i64" | "i128" | "i256" | "compactBn"
   value: bigint
 }>
 
-export type BitSequenceDecoded = WithInputAndMeta<{
+export type BitSequenceDecoded = WithInputAndPath<{
   codec: "bitSequence"
   value: {
     bitsLen: number
@@ -71,18 +72,18 @@ export type BitSequenceDecoded = WithInputAndMeta<{
   }
 }>
 
-export type BytesSequenceDecoded = WithInputAndMeta<{
+export type BytesSequenceDecoded = WithInputAndPath<{
   codec: "Bytes"
   value: HexString
 }>
 
-export type BytesArrayDecoded = WithInputAndMeta<{
+export type BytesArrayDecoded = WithInputAndPath<{
   codec: "BytesArray"
   value: HexString
   len: number
 }>
 
-export type AccountIdDecoded = WithInputAndMeta<{
+export type AccountIdDecoded = WithInputAndPath<{
   codec: "AccountId"
   value: {
     ss58Prefix: number
@@ -101,32 +102,35 @@ export type PrimitiveDecoded =
   | BytesArrayDecoded
   | AccountIdDecoded
 
-export type SequenceDecoded = WithInputAndMeta<{
+export type SequenceDecoded = WithInputAndPath<{
   codec: "Sequence"
   value: Array<Decoded>
 }>
 
-export type ArrayDecoded = WithInputAndMeta<{
+export type ArrayDecoded = WithInputAndPath<{
   codec: "Array"
   value: Array<Decoded>
 }>
 
-export type TupleDecoded = WithInputAndMeta<{
+export type TupleDecoded = WithInputAndPath<{
   codec: "Tuple"
   value: Array<Decoded>
+  innerDocs: Array<string[]>
 }>
 
-export type StructDecoded = WithInputAndMeta<{
+export type StructDecoded = WithInputAndPath<{
   codec: "Struct"
   value: StringRecord<Decoded>
+  innerDocs: StringRecord<string[]>
 }>
 
-export type EnumDecoded = WithInputAndMeta<{
+export type EnumDecoded = WithInputAndPath<{
   codec: "Enum"
   value: {
     tag: string
     value: Decoded
   }
+  docs: string[]
 }>
 
 export type ComplexDecoded =
