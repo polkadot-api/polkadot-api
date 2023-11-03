@@ -13,3 +13,17 @@ export function mapObject<K extends string | number | symbol, I, O>(
     ),
   ) as any
 }
+
+export type StringRecord<T> = {
+  [Sym: symbol]: never
+  [Num: number]: never
+  [Str: string]: T
+}
+
+export const mapStringRecord = <I, O>(
+  input: StringRecord<I>,
+  mapper: (value: I, key: string) => O,
+): StringRecord<O> =>
+  Object.fromEntries(
+    Object.entries(input).map(([key, value]) => [key, mapper(value, key)]),
+  ) as StringRecord<O>
