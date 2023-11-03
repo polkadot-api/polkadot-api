@@ -2,7 +2,9 @@ import {
   type SubstrateClient,
   createClient,
 } from "@polkadot-api/substrate-client"
+import { getObservableClient } from "@polkadot-api/client"
 import type { AddChainOptions, Chain, Client } from "smoldot"
+import { firstValueFrom } from "rxjs"
 import type {
   AddOnAddChainByUserListener,
   LightClientPageHelper,
@@ -29,64 +31,57 @@ export const register = (smoldotClient: Client) => {
   if (isRegistered) throw new Error("helper already registered")
   isRegistered = true
 
+  // FIXME: observe persisted/deleted chains
+  storage.getChains().then((chains) => {
+    Object.values(chains).forEach(
+      async ({ chainSpec, genesisHash, relayChainGenesisHash }) => {
+        const client = getObservableClient(
+          createClient(
+            await smoldotProvider({
+              smoldotClient,
+              chainSpec,
+              relayChainSpec: relayChainGenesisHash
+                ? chains[relayChainGenesisHash].chainSpec
+                : undefined,
+              databaseContent: await storage.get({
+                type: "databaseContent",
+                genesisHash,
+              }),
+              relayChainDatabaseContent: relayChainGenesisHash
+                ? await storage.get({
+                    type: "databaseContent",
+                    genesisHash: relayChainGenesisHash,
+                  })
+                : undefined,
+            }),
+          ),
+        )
+        client.chainHead$().finalized$.subscribe(() => {})
+      },
+    )
+  })
+
   chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name !== ALARM.DATABASE_UPDATE) return
-    const chains = await storage.getChains()
-    Object.values(chains).forEach(
+    Object.values(await storage.getChains()).forEach(
       async ({ genesisHash, chainSpec, relayChainGenesisHash }) => {
-        const client = createClient(
-          await smoldotProvider({
+        try {
+          const finalizedDatabase = await getFinalizedDatabase({
             smoldotClient,
             chainSpec,
-            relayChainSpec: relayChainGenesisHash
-              ? chains[relayChainGenesisHash].chainSpec
-              : undefined,
             databaseContent: await storage.get({
               type: "databaseContent",
               genesisHash,
             }),
-            relayChainDatabaseContent: relayChainGenesisHash
-              ? await storage.get({
-                  type: "databaseContent",
-                  genesisHash: relayChainGenesisHash,
-                })
-              : undefined,
-          }),
-        )
-        const chainHeadFollower = client.chainHead(
-          true,
-          async (event) => {
-            if (event.type === "newBlock") {
-              chainHeadFollower.unpin([event.blockHash])
-              return
-            } else if (event.type !== "initialized") return
-            try {
-              await storage.set(
-                { type: "databaseContent", genesisHash },
-                await substrateClientRequest(
-                  client,
-                  "chainHead_unstable_finalizedDatabase",
-                  (await chrome.permissions.contains({
-                    permissions: ["unlimitedStorage"],
-                  }))
-                    ? []
-                    : // 1mb will strip the runtime code
-                      // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
-                      [1024 * 1024],
-                ),
-              )
-            } catch (error) {
-              console.error("Error updating DB", error)
-            }
-            chainHeadFollower.unfollow()
-            client.destroy()
-          },
-          (error) => {
-            console.error("Error updating DB", error)
-            chainHeadFollower.unfollow()
-            client.destroy()
-          },
-        )
+            relayChainGenesisHash,
+          })
+          await storage.set(
+            { type: "databaseContent", genesisHash },
+            finalizedDatabase,
+          )
+        } catch (error) {
+          console.error("Error updating DB", error)
+        }
       },
     )
   })
@@ -130,11 +125,11 @@ export const register = (smoldotClient: Client) => {
       }
     },
     async persistChain(chainSpec, relayChainGenesisHash) {
-      const chainData = await getChainData(
+      const chainData = await getChainData({
         smoldotClient,
         chainSpec,
         relayChainGenesisHash,
-      )
+      })
       if (
         await storage.get({ type: "chain", genesisHash: chainData.genesisHash })
       )
@@ -151,17 +146,18 @@ export const register = (smoldotClient: Client) => {
         delete chainSpecJson.telemetryEndpoints
 
         if (!chainSpecJson.genesis.stateRootHash) {
-          chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot(
+          chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot({
             smoldotClient,
             chainSpec,
             relayChainGenesisHash,
-          )
+          })
         }
 
         // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
 
         minimalChainSpec = JSON.stringify(chainSpecJson)
       }
+
       await Promise.all([
         storage.set(
           { type: "chain", genesisHash: chainData.genesisHash },
@@ -340,7 +336,8 @@ export const register = (smoldotClient: Client) => {
 
             const [smoldotChain] = await Promise.all([
               smoldotClient.addChain(addChainOptions),
-              Promise.resolve(), // resolves on 1st finalized
+              // FIXME: resolves on 1st finalized
+              Promise.resolve(),
             ])
             const genesisHash = await getGenesisHash(smoldotChain)
 
@@ -478,11 +475,11 @@ export const register = (smoldotClient: Client) => {
               throw new Error(
                 `Unknown relayChainGenesisHash ${relayChainGenesisHash}`,
               )
-            const { genesisHash, name } = await getChainData(
+            const { genesisHash, name } = await getChainData({
               smoldotClient,
               chainSpec,
               relayChainGenesisHash,
-            )
+            })
 
             if (chains[genesisHash]) {
               return sendBackgroundResponse(sendResponse, {
@@ -622,15 +619,22 @@ storage.onChainsChanged(async (chains) => {
 
 const withClient =
   <T>(fn: (client: SubstrateClient) => T | Promise<T>) =>
-  async (
-    smoldotClient: Client,
-    chainSpec: string,
-    relayChainGenesisHash?: string,
-  ) => {
+  async ({
+    smoldotClient,
+    chainSpec,
+    databaseContent,
+    relayChainGenesisHash,
+  }: {
+    smoldotClient: Client
+    chainSpec: string
+    databaseContent?: string
+    relayChainGenesisHash?: string
+  }) => {
     const client = createClient(
       await smoldotProvider({
         smoldotClient,
         chainSpec,
+        databaseContent,
         relayChainSpec: relayChainGenesisHash
           ? (await storage.getChains())[relayChainGenesisHash].chainSpec
           : undefined,
@@ -667,36 +671,37 @@ const getChainData = withClient(async (client) => {
 // TODO: update this implementation when these issues are implemented
 // https://github.com/paritytech/json-rpc-interface-spec/issues/110
 // https://github.com/smol-dot/smoldot/issues/1186
-const getGenesisStateRoot = withClient(
-  (client) =>
-    new Promise<string>((resolve, reject) => {
-      const chainHeadFollower = client.chainHead(
-        true,
-        async (event) => {
-          if (event.type === "newBlock") {
-            chainHeadFollower.unpin([event.blockHash])
-            return
-          } else if (event.type !== "initialized") return
-          try {
-            const { stateRoot } = await substrateClientRequest<{
-              stateRoot: string
-            }>(client, "chain_getHeader", [
-              await substrateClientRequest<string>(
-                client,
-                "chainSpec_v1_genesisHash",
-              ),
-            ])
-            resolve(stateRoot)
-          } catch (error) {
-            reject(error)
-          } finally {
-            chainHeadFollower.unfollow()
-          }
-        },
-        reject,
-      )
-    }),
-)
+const getGenesisStateRoot = withClient(async (client) => {
+  const chainHead = getObservableClient(client).chainHead$()
+  await firstValueFrom(chainHead.runtime$)
+  const genesisHash = await substrateClientRequest<string>(
+    client,
+    "chainSpec_v1_genesisHash",
+  )
+  const { stateRoot } = await substrateClientRequest<{
+    stateRoot: string
+  }>(client, "chain_getHeader", [genesisHash])
+  chainHead.unfollow()
+  return stateRoot
+})
+
+const getFinalizedDatabase = withClient(async (client) => {
+  const chainHead = getObservableClient(client).chainHead$()
+  await firstValueFrom(chainHead.runtime$)
+  const finalizedDatabase = await substrateClientRequest<string>(
+    client,
+    "chainHead_unstable_finalizedDatabase",
+    (await chrome.permissions.contains({
+      permissions: ["unlimitedStorage"],
+    }))
+      ? []
+      : // 1mb will strip the runtime code
+        // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
+        [1024 * 1024],
+  )
+  chainHead.unfollow()
+  return finalizedDatabase
+})
 
 // FIXME: merge with getChainData
 const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {

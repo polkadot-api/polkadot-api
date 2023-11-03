@@ -322,13 +322,9 @@ importers:
 
   packages/light-client-extension-helpers:
     dependencies:
-      '@substrate/connect-extension-protocol':
-        specifier: ^1.0.1
-        version: 1.0.1
-      smoldot:
-        specifier: 2.0.3
-        version: 2.0.3
-    devDependencies:
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../client
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
@@ -338,6 +334,16 @@ importers:
       '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../substrate-client
+      '@substrate/connect-extension-protocol':
+        specifier: ^1.0.1
+        version: 1.0.1
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
+      smoldot:
+        specifier: 2.0.3
+        version: 2.0.3
+    devDependencies:
       '@types/chrome':
         specifier: ^0.0.246
         version: 0.0.246
