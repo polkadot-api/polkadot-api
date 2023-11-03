@@ -50,28 +50,25 @@ $color: #5c5c5c;
     display: block;
     margin-bottom: 0.2rem;
   }
-  /* Input field */
+  /* DecInput field */
   input {
     width: 100%;
     font-size: 0.7rem;
     font-weight: 400;
-    color: $input-color;
     border: 0rem;
+    background-color: $background-color;
+    color: $disabled-color;
+
     &::placeholder {
       font-size: 16px;
       font-weight: 400;
       color: $placeholder-color;
     }
 
-    /* Input field focus */
+    /* DecInput field focus */
     &:focus {
       border: 0;
       outline: none;
-    }
-
-    &:disabled {
-      background-color: $background-color;
-      color: $disabled-color;
     }
   }
 

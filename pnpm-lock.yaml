@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -41,6 +41,9 @@ importers:
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
+      '@polkadot-api/substrate-codegen':
+        specifier: workspace:*
+        version: link:../../packages/substrate-codegen
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -178,7 +181,7 @@ importers:
         version: 0.4.3(eslint@8.49.0)
       vite:
         specifier: ^4.4.5
-        version: 4.4.9(@types/node@20.6.0)
+        version: 4.4.9(sass@1.69.5)
 
   experiments:
     dependencies:

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useState } from "react"
 import {
   AccountIdDecoded,
@@ -35,6 +36,8 @@ interface SimpleInputProps {
   value: any
   len?: number
   smaller?: boolean
+  disabled?: boolean
+  onChange?: (e: any) => void
 }
 
 interface CommonProps {
@@ -76,10 +79,21 @@ const extraInput = ({ input, meta }: CommonProps) => {
   )
 }
 
-const SimpleInput = ({ label, value, smaller }: SimpleInputProps) => (
+export const SimpleInput = ({
+  label,
+  value,
+  smaller,
+  disabled,
+  onChange,
+}: SimpleInputProps) => (
   <div className={`custom-input-wrapper${smaller ? " smaller" : ""}`}>
     {label && <div className="label">{label}</div>}
-    <input disabled id={Math.random().toString()} value={value} />
+    <input
+      disabled={disabled}
+      id={Math.random().toString()}
+      value={value}
+      onChange={onChange}
+    />
   </div>
 )
 
@@ -92,7 +106,6 @@ export const Input: FC<FullProps> = ({
   label,
 }: FullProps) => {
   let inputValue = value
-  console.log(input, meta)
 
   switch (codec) {
     // Here are Simple components that needs more than one input
@@ -143,7 +156,7 @@ export const Input: FC<FullProps> = ({
     case "i128":
     case "i256":
     case "compactBn":
-      inputValue = value.toString()
+      inputValue = value?.toString()
       break
   }
 
