@@ -13,9 +13,6 @@ const result = callDecoder(
 )
 const end = Date.now()
 
-const shape = result.args.shape
-if (shape.codec !== "Struct") throw null
-
 delete (result.args as any).shape
 
 console.log(
