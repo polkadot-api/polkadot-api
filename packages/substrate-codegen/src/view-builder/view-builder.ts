@@ -36,7 +36,7 @@ type WithMeta<T extends Decoder<any> & { shape: any }> = T extends Decoder<
   ? Decoder<
       D extends WithoutMeta<PrimitiveDecoded>
         ? PrimitiveDecoded
-        : D & { meta: { path: string[]; docs: string } }
+        : D & { meta?: { path: string[]; docs: string } }
     > & { shape: S }
   : T
 
@@ -45,6 +45,8 @@ const withMeta = (
   path: string[],
   docs: string,
 ): WithMeta<ShapedDecoder> => {
+  if (!docs && !path.length) return input as any
+
   const decoder = enhanceDecoder(input as Decoder<{}>, (x) => ({
     ...x,
     meta: { path, docs },
@@ -55,108 +57,125 @@ const withMeta = (
 
 const addMeta =
   <Other extends Array<any>>(
+    fn: (
+      input: LookupEntry,
+      lookupData: V14["lookup"],
+      ...rest: Other
+    ) => ShapedDecoder,
+  ): ((
+    input: LookupEntry,
     lookupData: V14["lookup"],
-    fn: (input: LookupEntry, ...rest: Other) => ShapedDecoder,
-  ): ((input: LookupEntry, ...rest: Other) => WithMeta<ShapedDecoder>) =>
-  (input, ...rest) => {
+    ...rest: Other
+  ) => WithMeta<ShapedDecoder>) =>
+  (input, lookupData, ...rest) => {
     const { path, docs } = lookupData[input.id]
-    return withMeta(fn(input, ...rest), path, docs.join("\n"))
+    return withMeta(fn(input, lookupData, ...rest), path, docs.join("\n"))
   }
 
-const _buildShapedDecoder = (
-  input: LookupEntry,
-  stack: Set<LookupEntry>,
-  circularOnes: Map<LookupEntry, ShapedDecoder>,
-  _accountId: WithShapeWithoutMeta<AccountIdDecoded>,
-): ShapedDecoder => {
-  if (input.type === "primitive") return primitives[input.value]
-  if (input.type === "compact")
-    return input.isBig ? primitives.compactBn : primitives.compactNumber
-  if (input.type === "bitSequence") return primitives.bitSequence
+const _buildShapedDecoder = addMeta(
+  (
+    input: LookupEntry,
+    lookupData: V14["lookup"],
+    stack: Set<LookupEntry>,
+    circularOnes: Map<LookupEntry, ShapedDecoder>,
+    _accountId: WithShapeWithoutMeta<AccountIdDecoded>,
+  ): ShapedDecoder => {
+    if (input.type === "primitive") return primitives[input.value]
+    if (input.type === "compact")
+      return input.isBig ? primitives.compactBn : primitives.compactNumber
+    if (input.type === "bitSequence") return primitives.bitSequence
 
-  if (
-    input.type === "sequence" &&
-    input.value.type === "primitive" &&
-    input.value.value === "u8"
-  ) {
-    return primitives.Bytes
-  }
+    if (
+      input.type === "sequence" &&
+      input.value.type === "primitive" &&
+      input.value.value === "u8"
+    ) {
+      return primitives.Bytes
+    }
 
-  const buildNext = (nextInput: LookupEntry): ShapedDecoder => {
-    if (!stack.has(nextInput)) {
-      const nextStack = new Set(stack)
-      nextStack.add(input)
-      const result = _buildShapedDecoder(
-        nextInput,
-        nextStack,
-        circularOnes,
-        _accountId,
-      )
-      if (circularOnes.has(input)) {
-        circularOnes.get(input)!.shape = result.shape
-        circularOnes.set(input, result)
+    const buildNext = (nextInput: LookupEntry): ShapedDecoder => {
+      if (!stack.has(nextInput)) {
+        const nextStack = new Set(stack)
+        nextStack.add(input)
+        const result = _buildShapedDecoder(
+          nextInput,
+          lookupData,
+          nextStack,
+          circularOnes,
+          _accountId,
+        )
+        if (circularOnes.has(input)) {
+          circularOnes.get(input)!.shape = result.shape
+          circularOnes.set(input, result)
+        }
+        return result
       }
+
+      const result = selfDecoder(() => circularOnes.get(input)!)
+      circularOnes.set(input, result)
+
       return result
     }
 
-    const result = selfDecoder(() => circularOnes.get(input)!)
-    circularOnes.set(input, result)
-
-    return result
-  }
-
-  const buildVector = (inner: LookupEntry, len?: number) => {
-    const _inner = buildNext(inner)
-    return len ? complex.Array(_inner, len) : complex.Sequence(_inner)
-  }
-
-  const buildTuple = (value: LookupEntry[]) =>
-    complex.Tuple(...value.map(buildNext))
-
-  const buildStruct = (value: StringRecord<LookupEntry>) =>
-    complex.Struct(mapStringRecord(value, buildNext))
-
-  if (input.type === "array") {
-    // Bytes case
-    if (input.value.type === "primitive" && input.value.value === "u8") {
-      return input.len === 32 && (input.id === 0 || input.id === 1)
-        ? _accountId
-        : primitives.BytesArray(input.len)
+    const buildVector = (inner: LookupEntry, len?: number) => {
+      const _inner = buildNext(inner)
+      return len ? complex.Array(_inner, len) : complex.Sequence(_inner)
     }
 
-    return buildVector(input.value, input.len)
-  }
+    const buildTuple = (value: LookupEntry[]) =>
+      complex.Tuple(...value.map(buildNext))
 
-  if (input.type === "sequence") return buildVector(input.value)
-  if (input.type === "tuple") return buildTuple(input.value)
-  if (input.type === "struct") return buildStruct(input.value)
+    const buildStruct = (value: StringRecord<LookupEntry>) =>
+      complex.Struct(mapStringRecord(value, buildNext))
 
-  // it has to be an enum by now
-  const dependencies = Object.values(input.value).map((v) => {
-    if (v.type === "primitive") return primitives._void
-    if (v.type === "tuple" && v.value.length === 1) {
-      return buildNext(v.value[0])
+    if (input.type === "array") {
+      // Bytes case
+      if (input.value.type === "primitive" && input.value.value === "u8") {
+        return input.len === 32 && (input.id === 0 || input.id === 1)
+          ? _accountId
+          : primitives.BytesArray(input.len)
+      }
+
+      return buildVector(input.value, input.len)
     }
-    return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
-  })
 
-  const inner = Object.fromEntries(
-    Object.keys(input.value).map((key, idx) => {
-      return [key, dependencies[idx]]
-    }),
-  ) as StringRecord<ShapedDecoder>
+    if (input.type === "sequence") return buildVector(input.value)
+    if (input.type === "tuple") return buildTuple(input.value)
+    if (input.type === "struct") return buildStruct(input.value)
 
-  const indexes = Object.values(input.value).map((x) => x.idx)
-  const areIndexesSorted = indexes.every((idx, i) => idx === i)
+    // it has to be an enum by now
+    const dependencies = Object.values(input.value).map((v) => {
+      if (v.type === "primitive") return primitives._void
+      if (v.type === "tuple" && v.value.length === 1) {
+        return buildNext(v.value[0])
+      }
+      return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
+    })
 
-  return areIndexesSorted
-    ? complex.Enum(inner)
-    : complex.Enum(inner, indexes as any)
-}
+    const inner = Object.fromEntries(
+      Object.keys(input.value).map((key, idx) => [key, dependencies[idx]]),
+    ) as StringRecord<ShapedDecoder>
+
+    const indexes = Object.values(input.value).map((x) => x.idx)
+    const areIndexesSorted = indexes.every((idx, i) => idx === i)
+
+    return areIndexesSorted
+      ? complex.Enum(inner)
+      : complex.Enum(inner, indexes as any)
+  },
+)
 
 export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
-  const buildShapedDecoder = addMeta(lookupData, _buildShapedDecoder)
+  const buildShapedDecoder = (id: number) =>
+    _buildShapedDecoder(
+      getLookupEntryDef(id),
+      lookupData,
+      new Set(),
+      new Map(),
+      _accountId,
+    )
+
   const getLookupEntryDef = getLookupFn(lookupData)
 
   let _accountId: WithShapeWithoutMeta<AccountIdDecoded> = primitives.AccountId
@@ -166,12 +185,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
     ?.constants.find((x) => x.name === "SS58Prefix")
   if (prefix) {
     try {
-      const prefixVal = buildShapedDecoder(
-        getLookupEntryDef(prefix.type),
-        new Set(),
-        new Map(),
-        _accountId,
-      )(prefix.value).value
+      const prefixVal = buildShapedDecoder(prefix.type)(prefix.value).value
 
       if (typeof prefixVal === "number") _accountId = AccountIdShaped(prefixVal)
     } catch (_) {}
@@ -180,12 +194,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   const buildDefinition = (
     id: number,
   ): { shape: Shape; decoder: Decoder<Decoded> } => {
-    const shapedDecoder = buildShapedDecoder(
-      getLookupEntryDef(id),
-      new Set(),
-      new Map(),
-      _accountId,
-    )
+    const shapedDecoder = buildShapedDecoder(id)
 
     return {
       shape: shapedDecoder.shape,
@@ -230,7 +239,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
         ? {}
         : mapStringRecord(
             callLookup.value as StringRecord<LookupEntry>,
-            (val) => buildDefinition(val.id).decoder as WithMeta<ShapedDecoder>,
+            (val) => buildShapedDecoder(val.id),
           ),
     )
 
