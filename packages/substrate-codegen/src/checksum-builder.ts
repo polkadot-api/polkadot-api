@@ -6,6 +6,7 @@ import {
   MetadataPrimitives,
   getLookupFn,
 } from "./lookups"
+import { withCache } from "./with-cache"
 
 const textEncoder = new TextEncoder()
 const encodeText = textEncoder.encode.bind(textEncoder)
@@ -62,47 +63,26 @@ const bytesChecksum = 14n
 
 const _buildChecksum = (
   input: LookupEntry,
-  stack: Set<LookupEntry>,
-  circularChecksums: Map<LookupEntry, bigint>,
   cache: Map<number, bigint>,
+  stack: Set<number>,
 ): bigint => {
   if (cache.has(input.id)) return cache.get(input.id)!
-  const cached = (result: bigint) => {
-    cache.set(input.id, result)
-    return result
-  }
 
-  if (input.type === "primitive") return cached(primitiveChecksums[input.value])
+  if (input.type === "primitive") return primitiveChecksums[input.value]
   if (input.type === "compact")
-    return cached(primitiveChecksums[input.isBig ? "compactb" : "compacts"])
-  if (input.type === "bitSequence")
-    return cached(primitiveChecksums.bitSequence)
+    return primitiveChecksums[input.isBig ? "compactb" : "compacts"]
+  if (input.type === "bitSequence") return primitiveChecksums.bitSequence
 
   if (
     input.type === "sequence" &&
     input.value.type === "primitive" &&
     input.value.value === "u8"
   ) {
-    return cached(bytesChecksum)
+    return bytesChecksum
   }
 
-  const buildNextChecksum = (nextInput: LookupEntry): bigint => {
-    if (!stack.has(nextInput)) {
-      const nextStack = new Set(stack)
-      nextStack.add(input)
-      const result = _buildChecksum(
-        nextInput,
-        nextStack,
-        circularChecksums,
-        cache,
-      )
-      if (circularChecksums.has(input)) circularChecksums.set(input, result)
-      return result
-    }
-
-    circularChecksums.set(input, 0n)
-    return 0n
-  }
+  const buildNextChecksum = (nextInput: LookupEntry): bigint =>
+    buildChecksum(nextInput, cache, stack)
 
   const buildVector = (inner: LookupEntry, len?: number) => {
     const innerChecksum = buildNextChecksum(inner)
@@ -121,10 +101,10 @@ const _buildChecksum = (
     )
   }
 
-  if (input.type === "array") return cached(buildVector(input.value, input.len))
-  if (input.type === "sequence") return cached(buildVector(input.value))
-  if (input.type === "tuple") return cached(buildTuple(input.value))
-  if (input.type === "struct") return cached(buildStruct(input.value))
+  if (input.type === "array") return buildVector(input.value, input.len)
+  if (input.type === "sequence") return buildVector(input.value)
+  if (input.type === "tuple") return buildTuple(input.value)
+  if (input.type === "struct") return buildStruct(input.value)
 
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
@@ -133,8 +113,13 @@ const _buildChecksum = (
   })
   const keys = Object.keys(input.value)
   keys.push("Enum")
-  return cached(getChecksum(dependencies, JSON.stringify({ Enum: keys })))
+  return getChecksum(dependencies, JSON.stringify({ Enum: keys }))
 }
+const buildChecksum = withCache(
+  _buildChecksum,
+  () => 0n,
+  (result) => result,
+)
 
 export const getChecksumBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
@@ -143,7 +128,7 @@ export const getChecksumBuilder = (metadata: V14) => {
   const cache = new Map<number, bigint>()
 
   const buildDefinition = (id: number): bigint =>
-    _buildChecksum(getLookupEntryDef(id), new Set(), new Map(), cache)
+    buildChecksum(getLookupEntryDef(id), cache, new Set())
 
   const buildStorage = (pallet: string, entry: string): bigint | null => {
     try {
