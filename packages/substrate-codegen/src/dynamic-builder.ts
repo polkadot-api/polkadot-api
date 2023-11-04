@@ -172,5 +172,33 @@ export const getDynamicBuilder = (metadata: V14) => {
     return buildDefinition(storageEntry.type as number)
   }
 
-  return { buildDefinition, buildStorage, buildCall, buildConstant }
+  const buildVariant =
+    (type: "errors" | "events") =>
+    (
+      pallet: string,
+      name: string,
+    ): {
+      codec: Codec<any>
+      location: [number, number]
+    } => {
+      const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
+      const lookup = getLookupEntryDef(palletEntry[type]!)
+      if (lookup.type !== "enum") throw null
+      const event = lookup.value[name]
+
+      return {
+        location: [palletEntry.index, event.idx],
+        codec:
+          event.type === "primitive" ? scale._void : buildDefinition(lookup.id),
+      }
+    }
+
+  return {
+    buildDefinition,
+    buildStorage,
+    buildEvent: buildVariant("events"),
+    buildError: buildVariant("errors"),
+    buildCall,
+    buildConstant,
+  }
 }
