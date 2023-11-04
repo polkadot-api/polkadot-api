@@ -27,6 +27,7 @@ import {
   PrimitiveDecoded,
   Shape,
 } from "./types"
+import { withCache } from "@/with-cache"
 
 type WithProp<
   T extends Decoder<any> & { shape: any },
@@ -58,38 +59,28 @@ const addPath =
     fn: (
       input: LookupEntry,
       cache: Map<number, ShapedDecoder>,
+      stack: Set<number>,
       lookupData: V14["lookup"],
       ...rest: Other
     ) => ShapedDecoder,
   ): ((
     input: LookupEntry,
     cache: Map<number, ShapedDecoder>,
+    stack: Set<number>,
     lookupData: V14["lookup"],
     ...rest: Other
   ) => ShapedDecoder | WithProp<ShapedDecoder, "path", string[]>) =>
-  (input, cache, lookupData, ...rest) => {
+  (input, cache, stack, lookupData, ...rest) => {
     const { path } = lookupData[input.id]
-    const base = fn(input, cache, lookupData, ...rest)
+    const base = fn(input, cache, stack, lookupData, ...rest)
     return path.length ? withProp(base, "path", path) : base
-  }
-
-const withCache =
-  <Other extends Array<any>, T>(
-    fn: (input: LookupEntry, cache: Map<number, T>, ...rest: Other) => T,
-  ): ((input: LookupEntry, cache: Map<number, T>, ...rest: Other) => T) =>
-  (input, cache, ...rest) => {
-    const { id } = input
-    if (cache.has(id)) return cache.get(id)!
-    const result = fn(input, cache, ...rest)
-    cache.set(id, result)
-    return result
   }
 
 const _buildShapedDecoder = (
   input: LookupEntry,
   cache: Map<number, ShapedDecoder>,
-  lookupData: V14["lookup"],
   stack: Set<number>,
+  lookupData: V14["lookup"],
   _accountId: WithShapeWithoutExtra<AccountIdDecoded>,
 ): ShapedDecoder => {
   if (input.type === "primitive") return primitives[input.value]
@@ -105,31 +96,8 @@ const _buildShapedDecoder = (
     return primitives.Bytes
   }
 
-  const buildNext = (nextInput: LookupEntry): ShapedDecoder => {
-    const { id } = nextInput
-
-    if (stack.has(id)) {
-      const result = selfDecoder(() => cache.get(id)!)
-      cache.set(id, result)
-      return result
-    }
-
-    stack.add(id)
-    const result = buildShapedDecoder(
-      nextInput,
-      cache,
-      lookupData,
-      stack,
-      _accountId,
-    )
-    stack.delete(id)
-
-    if (cache.has(id)) {
-      cache.get(id)!.shape = result.shape
-      cache.set(id, result)
-    }
-    return result
-  }
+  const buildNext = (nextInput: LookupEntry): ShapedDecoder =>
+    buildShapedDecoder(nextInput, cache, stack, lookupData, _accountId)
 
   const buildVector = (inner: LookupEntry, len?: number) => {
     const _inner = buildNext(inner)
@@ -196,7 +164,14 @@ const _buildShapedDecoder = (
   withDocs.shape = withoutDocs.shape
   return withDocs
 }
-const buildShapedDecoder = withCache(addPath(_buildShapedDecoder))
+const buildShapedDecoder = withCache(
+  addPath(_buildShapedDecoder),
+  selfDecoder,
+  (outter, inner) => {
+    inner.shape = outter.shape
+    return outter
+  },
+)
 
 const hexStrFromByte = (input: number) =>
   `0x${input.toString(16).padEnd(2, "0")}` as HexString
@@ -209,8 +184,8 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
     buildShapedDecoder(
       getLookupEntryDef(id),
       cache,
+      new Set(),
       lookupData,
-      new Set([id]),
       _accountId,
     )
 
