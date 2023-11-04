@@ -2,6 +2,7 @@ import type { Codec, StringRecord, V14 } from "@polkadot-api/substrate-bindings"
 import type { LookupEntry, TupleVar } from "./lookups"
 import { getLookupFn } from "./lookups"
 import * as scale from "@polkadot-api/substrate-bindings"
+import { withCache } from "./with-cache"
 
 const _bytes = scale.Hex()
 
@@ -10,8 +11,8 @@ const isBytes = (input: LookupEntry) =>
 
 const _buildCodec = (
   input: LookupEntry,
-  stack: Set<LookupEntry>,
-  circularCodecs: Map<LookupEntry, Codec<any>>,
+  cache: Map<number, Codec<any>>,
+  stack: Set<number>,
   _accountId: Codec<scale.SS58String>,
 ): Codec<any> => {
   if (input.type === "primitive") return scale[input.value]
@@ -26,24 +27,8 @@ const _buildCodec = (
     return _bytes
   }
 
-  const buildNextCodec = (nextInput: LookupEntry): Codec<any> => {
-    if (!stack.has(nextInput)) {
-      const nextStack = new Set(stack)
-      nextStack.add(input)
-      const result = _buildCodec(
-        nextInput,
-        nextStack,
-        circularCodecs,
-        _accountId,
-      )
-      if (circularCodecs.has(input)) circularCodecs.set(input, result)
-      return result
-    }
-
-    circularCodecs.set(input, scale._void)
-
-    return scale.Self(() => circularCodecs.get(input)!)
-  }
+  const buildNextCodec = (nextInput: LookupEntry): Codec<any> =>
+    buildCodec(nextInput, cache, stack, _accountId)
 
   const buildVector = (inner: LookupEntry, len?: number) => {
     const innerCodec = buildNextCodec(inner)
@@ -102,32 +87,27 @@ const _buildCodec = (
     ? scale.Enum(inner)
     : scale.Enum(inner, indexes as any)
 }
+const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
 const emptyTuple = scale.Tuple()
 
 export const getDynamicBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
-
   let _accountId = scale.AccountId()
+
+  const buildDefinition = (id: number): Codec<any> =>
+    buildCodec(getLookupEntryDef(id), new Map(), new Set(), _accountId)
 
   const prefix = metadata.pallets
     .find((x) => x.name === "System")
     ?.constants.find((x) => x.name === "SS58Prefix")
   if (prefix) {
     try {
-      const prefixVal = _buildCodec(
-        getLookupEntryDef(prefix.type),
-        new Set(),
-        new Map(),
-        _accountId,
-      ).dec(prefix.value)
+      const prefixVal = buildDefinition(prefix.type).dec(prefix.value)
       if (typeof prefixVal === "number") _accountId = scale.AccountId(prefixVal)
     } catch (_) {}
   }
-
-  const buildDefinition = (id: number): Codec<any> =>
-    _buildCodec(getLookupEntryDef(id), new Set(), new Map(), _accountId)
 
   const storagePallets = new Map<string, ReturnType<typeof scale.Storage>>()
 

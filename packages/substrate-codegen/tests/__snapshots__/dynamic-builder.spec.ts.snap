@@ -1,0 +1,55 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getDynamicBuilder > batched call 1`] = `
+[
+  [
+    {
+      "tag": "Balances",
+      "value": {
+        "tag": "transfer",
+        "value": {
+          "dest": {
+            "tag": "Id",
+            "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
+          },
+          "value": 4000000000000n,
+        },
+      },
+    },
+    {
+      "tag": "Staking",
+      "value": {
+        "tag": "nominate",
+        "value": {
+          "targets": [
+            {
+              "tag": "Id",
+              "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
+            },
+          ],
+        },
+      },
+    },
+  ],
+]
+`;
+
+exports[`getDynamicBuilder > felloship referenda submit 1`] = `
+[
+  {
+    "tag": "Origins",
+    "value": {
+      "tag": "Fellows",
+      "value": undefined,
+    },
+  },
+  {
+    "tag": "Inline",
+    "value": "0x00004901415050524f56455f52464328303030352c3963626162666138303539386432393335383330633039633138653061306534656438323237623863386637343466316634613431643835393762623664343429",
+  },
+  {
+    "tag": "After",
+    "value": 1,
+  },
+]
+`;
