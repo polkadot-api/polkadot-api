@@ -1,0 +1,308 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getViewBuilder > batched call 1`] = `
+{
+  "args": {
+    "value": {
+      "codec": "Struct",
+      "innerDocs": {
+        "calls": [],
+      },
+      "input": "0x08040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a30306050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+      "value": {
+        "calls": {
+          "codec": "Sequence",
+          "input": "0x08040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a30306050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+          "value": [
+            {
+              "codec": "Enum",
+              "docs": [],
+              "input": "0x040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a303",
+              "path": [
+                "kusama_runtime",
+                "RuntimeCall",
+              ],
+              "value": {
+                "tag": "Balances",
+                "value": {
+                  "codec": "Enum",
+                  "docs": [
+                    "Alias for \`transfer_allow_death\`, provided only for name-wise compatibility.",
+                    "",
+                    "WARNING: DEPRECATED! Will be released in approximately 3 months.",
+                  ],
+                  "input": "0x0700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a303",
+                  "path": [
+                    "pallet_balances",
+                    "pallet",
+                    "Call",
+                  ],
+                  "value": {
+                    "tag": "transfer",
+                    "value": {
+                      "codec": "Struct",
+                      "innerDocs": {
+                        "dest": [],
+                        "value": [],
+                      },
+                      "input": "0x00dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a303",
+                      "value": {
+                        "dest": {
+                          "codec": "Enum",
+                          "docs": [],
+                          "input": "0x00dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                          "path": [
+                            "sp_runtime",
+                            "multiaddress",
+                            "MultiAddress",
+                          ],
+                          "value": {
+                            "tag": "Id",
+                            "value": {
+                              "codec": "AccountId",
+                              "input": "0xdc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                              "value": {
+                                "address": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
+                                "ss58Prefix": 2,
+                              },
+                            },
+                          },
+                        },
+                        "value": {
+                          "codec": "compactBn",
+                          "input": "0x0b00409452a303",
+                          "value": 4000000000000n,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            {
+              "codec": "Enum",
+              "docs": [],
+              "input": "0x06050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+              "path": [
+                "kusama_runtime",
+                "RuntimeCall",
+              ],
+              "value": {
+                "tag": "Staking",
+                "value": {
+                  "codec": "Enum",
+                  "docs": [
+                    "Declare the desire to nominate \`targets\` for the origin controller.",
+                    "",
+                    "Effects will be felt at the beginning of the next era.",
+                    "",
+                    "The dispatch origin for this call must be _Signed_ by the controller, not the stash.",
+                    "",
+                    "## Complexity",
+                    "- The transaction's complexity is proportional to the size of \`targets\` (N)",
+                    "which is capped at CompactAssignments::LIMIT (T::MaxNominations).",
+                    "- Both the reads and writes follow a similar pattern.",
+                  ],
+                  "input": "0x050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                  "path": [
+                    "pallet_staking",
+                    "pallet",
+                    "pallet",
+                    "Call",
+                  ],
+                  "value": {
+                    "tag": "nominate",
+                    "value": {
+                      "codec": "Struct",
+                      "innerDocs": {
+                        "targets": [],
+                      },
+                      "input": "0x0400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                      "value": {
+                        "targets": {
+                          "codec": "Sequence",
+                          "input": "0x0400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                          "value": [
+                            {
+                              "codec": "Enum",
+                              "docs": [],
+                              "input": "0x00dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                              "path": [
+                                "sp_runtime",
+                                "multiaddress",
+                                "MultiAddress",
+                              ],
+                              "value": {
+                                "tag": "Id",
+                                "value": {
+                                  "codec": "AccountId",
+                                  "input": "0xdc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                                  "value": {
+                                    "address": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
+                                    "ss58Prefix": 2,
+                                  },
+                                },
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+  "call": {
+    "docs": [
+      "Send a batch of dispatch calls.",
+      "",
+      "May be called from any origin except \`None\`.",
+      "",
+      "- \`calls\`: The calls to be dispatched from the same origin. The number of call must not",
+      "  exceed the constant: \`batched_calls_limit\` (available in constant metadata).",
+      "",
+      "If origin is root then the calls are dispatched without checking origin filter. (This",
+      "includes bypassing \`frame_system::Config::BaseCallFilter\`).",
+      "",
+      "## Complexity",
+      "- O(C) where C is the number of calls to be batched.",
+      "",
+      "This will return \`Ok\` in all circumstances. To determine the success of the batch, an",
+      "event is deposited. If a call failed and the batch was interrupted, then the",
+      "\`BatchInterrupted\` event is deposited, along with the number of successful calls made",
+      "and the error of the failed call. If all were successful, then the \`BatchCompleted\`",
+      "event is deposited.",
+    ],
+    "input": "0x00",
+    "value": {
+      "idx": 0,
+      "name": "batch",
+    },
+  },
+  "pallet": {
+    "input": "0x18",
+    "value": {
+      "idx": 24,
+      "name": "Utility",
+    },
+  },
+}
+`;
+
+exports[`getViewBuilder > felloship referenda submit 1`] = `
+{
+  "args": {
+    "value": {
+      "codec": "Struct",
+      "innerDocs": {
+        "enactment_moment": [],
+        "proposal": [],
+        "proposal_origin": [],
+      },
+      "input": "0x2b0f01590100004901415050524f56455f52464328303030352c39636261626661383035393864323933353833306330396331386530613065346564383232376238633866373434663166346134316438353937626236643434290101000000",
+      "value": {
+        "enactment_moment": {
+          "codec": "Enum",
+          "docs": [],
+          "input": "0x0101000000",
+          "path": [
+            "frame_support",
+            "traits",
+            "schedule",
+            "DispatchTime",
+          ],
+          "value": {
+            "tag": "After",
+            "value": {
+              "codec": "u32",
+              "input": "0x01000000",
+              "value": 1,
+            },
+          },
+        },
+        "proposal": {
+          "codec": "Enum",
+          "docs": [],
+          "input": "0x01590100004901415050524f56455f52464328303030352c3963626162666138303539386432393335383330633039633138653061306534656438323237623863386637343466316634613431643835393762623664343429",
+          "path": [
+            "frame_support",
+            "traits",
+            "preimages",
+            "Bounded",
+          ],
+          "value": {
+            "tag": "Inline",
+            "value": {
+              "codec": "Bytes",
+              "input": "0x590100004901415050524f56455f52464328303030352c3963626162666138303539386432393335383330633039633138653061306534656438323237623863386637343466316634613431643835393762623664343429",
+              "value": "0x00004901415050524f56455f52464328303030352c3963626162666138303539386432393335383330633039633138653061306534656438323237623863386637343466316634613431643835393762623664343429",
+            },
+          },
+        },
+        "proposal_origin": {
+          "codec": "Enum",
+          "docs": [],
+          "input": "0x2b0f",
+          "path": [
+            "kusama_runtime",
+            "OriginCaller",
+          ],
+          "value": {
+            "tag": "Origins",
+            "value": {
+              "codec": "Enum",
+              "docs": [],
+              "input": "0x0f",
+              "path": [
+                "kusama_runtime",
+                "governance",
+                "origins",
+                "pallet_custom_origins",
+                "Origin",
+              ],
+              "value": {
+                "tag": "Fellows",
+                "value": {
+                  "codec": "_void",
+                  "input": "0x",
+                  "value": undefined,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  "call": {
+    "docs": [
+      "Propose a referendum on a privileged action.",
+      "",
+      "- \`origin\`: must be \`SubmitOrigin\` and the account must have \`SubmissionDeposit\` funds",
+      "  available.",
+      "- \`proposal_origin\`: The origin from which the proposal should be executed.",
+      "- \`proposal\`: The proposal.",
+      "- \`enactment_moment\`: The moment that the proposal should be enacted.",
+      "",
+      "Emits \`Submitted\`.",
+    ],
+    "input": "0x00",
+    "value": {
+      "idx": 0,
+      "name": "submit",
+    },
+  },
+  "pallet": {
+    "input": "0x17",
+    "value": {
+      "idx": 23,
+      "name": "FellowshipReferenda",
+    },
+  },
+}
+`;

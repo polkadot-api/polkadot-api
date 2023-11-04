@@ -36,7 +36,7 @@
   ],
   "scripts": {
     "build": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
-    "test": "echo 'No tests'",
+    "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
@@ -47,6 +47,7 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "@polkadot-api/substrate-bindings": "workspace:*"
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/utils": "workspace:*"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/substrate-bindings",
+  "name": "@polkadot-api/node-polkadot-provider",
   "version": "0.0.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
@@ -36,8 +36,8 @@
   ],
   "scripts": {
     "build": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
-    "test": "vitest",
-    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "test": "echo 'no tests'",
+    "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
   },
@@ -48,12 +48,18 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.3.1",
-    "@scure/base": "^1.1.1",
+    "@polkadot-api/client": "workspace:*",
+    "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/sc-provider": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/substrate-codegen": "workspace:*",
+    "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "scale-ts": "^1.4.2"
+    "@substrate/connect": "^0.7.32",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "bigint-conversion": "^2.4.1",
-    "hash-wasm": "^4.9.0"
+    "@vitest/coverage-v8": "^0.34.3"
   }
 }

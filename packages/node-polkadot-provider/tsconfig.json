@@ -3,9 +3,9 @@
   "include": ["src", "tests"],
   "compilerOptions": {
     "baseUrl": "src",
-    "resolveJsonModule": true,
     "paths": {
       "@/*": ["*"]
-    }
+    },
+    "skipLibCheck": true
   }
 }
