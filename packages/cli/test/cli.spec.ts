@@ -51,13 +51,20 @@ describe("cli", async () => {
             fsExists(path.join(outputFolder, `${key}.d.ts`)),
           ).resolves.toEqual(false)
 
-          const descriptors: Descriptor[] = (
-            await import(path.join(outputFolder, `${key}.ts`))
-          ).default
-          const actualDescriptors = descriptors.map((d) => ({
-            type: d.type,
-            ...d.props,
-          }))
+          const descriptors: [
+            constants: Descriptor[],
+            storage: Descriptor[],
+            events: Descriptor[],
+            errors: Descriptor[],
+            calls: Descriptor[],
+          ] = (await import(path.join(outputFolder, `${key}.ts`))).default
+
+          const actualDescriptors = descriptors.map((arr) =>
+            arr.map((d) => ({
+              type: d.type,
+              ...d.props,
+            })),
+          )
 
           expect(actualDescriptors).toStrictEqual(expectedDescriptors)
         },
@@ -74,13 +81,18 @@ describe("cli", async () => {
       pallet: string
       checksum: bigint
     }
-    const output: MappedDescriptor[] = []
+    const constantsDescriptors: MappedDescriptor[] = []
+    const storageDescriptors: MappedDescriptor[] = []
+    const eventDescriptors: MappedDescriptor[] = []
+    const errorDescriptors: MappedDescriptor[] = []
+    const callDescriptors: MappedDescriptor[] = []
+
     for (const [
       pallet,
       { constants, storage, events, errors, extrinsics },
     ] of Object.entries(records)) {
       for (const [name, checksum] of Object.entries(constants ?? {})) {
-        output.push({
+        constantsDescriptors.push({
           type: "const",
           name,
           pallet,
@@ -88,7 +100,7 @@ describe("cli", async () => {
         })
       }
       for (const [name, checksum] of Object.entries(storage ?? {})) {
-        output.push({
+        storageDescriptors.push({
           type: "storage",
           name,
           pallet,
@@ -96,7 +108,7 @@ describe("cli", async () => {
         })
       }
       for (const [name, checksum] of Object.entries(events ?? {})) {
-        output.push({
+        eventDescriptors.push({
           type: "event",
           name,
           pallet,
@@ -104,7 +116,7 @@ describe("cli", async () => {
         })
       }
       for (const [name, checksum] of Object.entries(errors ?? {})) {
-        output.push({
+        errorDescriptors.push({
           type: "error",
           name,
           pallet,
@@ -112,7 +124,7 @@ describe("cli", async () => {
         })
       }
       for (const [name, { checksum }] of Object.entries(extrinsics ?? {})) {
-        output.push({
+        callDescriptors.push({
           type: "tx",
           name,
           pallet,
@@ -121,6 +133,12 @@ describe("cli", async () => {
       }
     }
 
-    return output
+    return [
+      constantsDescriptors,
+      storageDescriptors,
+      eventDescriptors,
+      errorDescriptors,
+      callDescriptors,
+    ]
   }
 })
