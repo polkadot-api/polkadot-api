@@ -27,26 +27,34 @@ parentPort.on("message", (msg) => {
 })
 `
 
-export const createProvider =
-  (chain: WellKnownChain): ConnectProvider =>
-  (onMsg) => {
+const providers: Record<string, ConnectProvider> = {}
+
+export const createProvider = (chain: WellKnownChain): ConnectProvider => {
+  if (!providers[chain]) {
     let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
       eval: true,
       workerData: chain,
       stderr: true,
       stdout: true,
     })
-    worker.on("message", onMsg)
+    providers[chain] = (onMsg) => {
+      if (worker) {
+        worker.on("message", onMsg)
+      }
 
-    return {
-      send: (msg) => worker?.postMessage({ type: "send", value: msg }),
-      disconnect: () => {
-        if (!worker) return
+      return {
+        send: (msg) => worker?.postMessage({ type: "send", value: msg }),
+        disconnect: () => {
+          if (!worker) return
 
-        worker.postMessage({ type: "disconnect" })
-        worker.removeAllListeners()
-        worker.terminate()
-        worker = null
-      },
+          worker.postMessage({ type: "disconnect" })
+          worker.removeAllListeners()
+          worker.terminate()
+          worker = null
+        },
+      }
     }
   }
+
+  return providers[chain]
+}

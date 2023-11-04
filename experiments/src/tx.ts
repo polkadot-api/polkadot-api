@@ -11,15 +11,20 @@ import {
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { ed25519 } from "@noble/curves/ed25519"
 import { createClient } from "@polkadot-api/substrate-client"
+import { createProvider } from "./smolldot-worker"
+import { getObservableClient } from "@polkadot-api/client"
+import { lastValueFrom, tap } from "rxjs"
 
-const client = createClient(ScProvider(WellKnownChain.westend2))
+const provider = createProvider(WellKnownChain.westend2)
+const client = getObservableClient(createClient(provider))
+
 const priv = fromHex(
   "0xb18290bac66576e4067e0c47eb23b2eb40dc2a5906fe9af94063dc163367a1f0",
 )
 const from = ed25519.getPublicKey(priv)
 
-const { createTx } = getTxCreator(
-  ScProvider(WellKnownChain.westend2),
+const txCreator = getTxCreator(
+  provider,
   ({ userSingedExtensionsName }, callback) => {
     const userSignedExtensionsData = Object.fromEntries(
       userSingedExtensionsName.map((x) => {
@@ -57,7 +62,7 @@ const call = Struct({
 })
 
 const transaction = toHex(
-  await createTx(
+  await txCreator.createTx(
     from,
     call.enc({
       module: 4,
@@ -74,12 +79,26 @@ const transaction = toHex(
   ),
 )
 
-client.transaction(
-  transaction,
-  (e) => {
-    console.log(e)
-  },
-  (e) => {
-    console.error("there was an error ", e)
-  },
+const tx$ = client.tx$(transaction).pipe(
+  tap({
+    next: (e) => {
+      console.log(`event:`, e)
+      switch (e.type) {
+        case "finalized":
+          break
+        case "invalid":
+          process.exit(1)
+        default:
+          break
+      }
+    },
+    error: (e) => {
+      console.error(`ERROR:`, e)
+      process.exit(1)
+    },
+  }),
 )
+await lastValueFrom(tx$)
+
+client.chainHead$().unfollow()
+client.destroy()

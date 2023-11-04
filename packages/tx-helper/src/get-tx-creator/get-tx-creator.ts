@@ -57,6 +57,7 @@ export const getTxCreator: GetTxCreator = (chainProvider, onCreateTx) => {
 
   const destroy = () => {
     chainHead.unfollow()
+    client.destroy()
   }
 
   return { createTx, destroy }
