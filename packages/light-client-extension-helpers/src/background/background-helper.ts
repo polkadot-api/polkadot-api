@@ -108,11 +108,12 @@ export const register = (smoldotClient: Client) => {
       if (wellKnownChainSpecs[genesisHash as WellKnownChainGenesisHash])
         throw new Error("Cannot delete well-known-chain")
 
-      // TODO: batch storage.remove
       await Promise.all([
-        storage.remove({ type: "chain", genesisHash }),
-        storage.remove({ type: "bootNodes", genesisHash }),
-        storage.remove({ type: "databaseContent", genesisHash }),
+        storage.remove([
+          { type: "chain", genesisHash },
+          { type: "bootNodes", genesisHash },
+          { type: "databaseContent", genesisHash },
+        ]),
         Object.keys(activeChains).map((tabId) =>
           this.disconnect(+tabId, genesisHash),
         ),
@@ -335,12 +336,11 @@ export const register = (smoldotClient: Client) => {
               }
             }
 
-            const [smoldotChain] = await Promise.all([
+            const [smoldotChain, { genesisHash }] = await Promise.all([
               smoldotClient.addChain(addChainOptions),
-              // FIXME: resolves on 1st finalized
-              Promise.resolve(),
+              getChainData({ smoldotClient, addChainOptions }),
+              awaitFinalized({ smoldotClient, addChainOptions }),
             ])
-            const genesisHash = await getGenesisHash(smoldotChain)
 
             ;(async () => {
               while (true) {
@@ -620,32 +620,36 @@ storage.onChainsChanged(async (chains) => {
 
 const withClient =
   <T>(fn: (client: SubstrateClient) => T | Promise<T>) =>
-  async ({
-    smoldotClient,
-    chainSpec,
-    databaseContent,
-    relayChainGenesisHash,
-  }: {
-    smoldotClient: Client
-    chainSpec: string
-    databaseContent?: string
-    relayChainGenesisHash?: string
-  }) => {
+  async (
+    options:
+      | { smoldotClient: Client; addChainOptions: AddChainOptions }
+      | {
+          smoldotClient: Client
+          chainSpec: string
+          databaseContent?: string
+          relayChainGenesisHash?: string
+        },
+  ) => {
     const client = createClient(
-      await smoldotProvider({
-        smoldotClient,
-        chainSpec,
-        databaseContent,
-        relayChainSpec: relayChainGenesisHash
-          ? (await storage.getChains())[relayChainGenesisHash].chainSpec
-          : undefined,
-        relayChainDatabaseContent: relayChainGenesisHash
-          ? await storage.get({
-              type: "databaseContent",
-              genesisHash: relayChainGenesisHash,
-            })
-          : undefined,
-      }),
+      await smoldotProvider(
+        "addChainOptions" in options
+          ? options
+          : {
+              smoldotClient: options.smoldotClient,
+              chainSpec: options.chainSpec,
+              databaseContent: options.databaseContent,
+              relayChainSpec: options.relayChainGenesisHash
+                ? (await storage.getChains())[options.relayChainGenesisHash]
+                    .chainSpec
+                : undefined,
+              relayChainDatabaseContent: options.relayChainGenesisHash
+                ? await storage.get({
+                    type: "databaseContent",
+                    genesisHash: options.relayChainGenesisHash,
+                  })
+                : undefined,
+            },
+      ),
     )
     try {
       return await fn(client)
@@ -675,6 +679,7 @@ const getChainData = withClient(async (client) => {
 const getGenesisStateRoot = withClient(async (client) => {
   const chainHead = getObservableClient(client).chainHead$()
   await firstValueFrom(chainHead.runtime$)
+  chainHead.unfollow()
   const genesisHash = await substrateClientRequest<string>(
     client,
     "chainSpec_v1_genesisHash",
@@ -682,13 +687,13 @@ const getGenesisStateRoot = withClient(async (client) => {
   const { stateRoot } = await substrateClientRequest<{
     stateRoot: string
   }>(client, "chain_getHeader", [genesisHash])
-  chainHead.unfollow()
   return stateRoot
 })
 
 const getFinalizedDatabase = withClient(async (client) => {
   const chainHead = getObservableClient(client).chainHead$()
   await firstValueFrom(chainHead.runtime$)
+  chainHead.unfollow()
   const finalizedDatabase = await substrateClientRequest<string>(
     client,
     "chainHead_unstable_finalizedDatabase",
@@ -700,22 +705,14 @@ const getFinalizedDatabase = withClient(async (client) => {
         // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
         [1024 * 1024],
   )
-  chainHead.unfollow()
   return finalizedDatabase
 })
 
-// FIXME: merge with getChainData
-const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {
-  smoldotChain.sendJsonRpc(
-    JSON.stringify({
-      jsonrpc: "2.0",
-      id: "chainSpec_v1_genesisHash",
-      method: "chainSpec_v1_genesisHash",
-      params: [],
-    }),
-  )
-  return JSON.parse(await smoldotChain.nextJsonRpcResponse()).result
-}
+const awaitFinalized = withClient(async (client) => {
+  const chainHead = getObservableClient(client).chainHead$()
+  await firstValueFrom(chainHead.finalized$)
+  chainHead.unfollow()
+})
 
 const sendBackgroundResponse = <
   T extends BackgroundResponse | BackgroundResponseError,
