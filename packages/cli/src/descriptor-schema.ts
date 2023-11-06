@@ -7,10 +7,10 @@ export default z.record(
     outputFolder: z.string(),
     descriptors: z.record(
       z.object({
-        constants: z.record(z.coerce.bigint()).optional(),
-        storage: z.record(z.coerce.bigint()).optional(),
-        events: z.record(z.coerce.bigint()).optional(),
-        errors: z.record(z.coerce.bigint()).optional(),
+        constants: z.record(z.coerce.bigint()).default({}),
+        storage: z.record(z.coerce.bigint()).default({}),
+        events: z.record(z.coerce.bigint()).default({}),
+        errors: z.record(z.coerce.bigint()).default({}),
         extrinsics: z
           .record(
             z.object({
@@ -23,7 +23,7 @@ export default z.record(
               ),
             }),
           )
-          .optional(),
+          .default({}),
       }),
     ),
   }),
