@@ -42,8 +42,12 @@ export const get = async <E extends StorageEntry>(
 export const set = <E extends StorageEntry>(entry: E, value: StorageValue<E>) =>
   chrome.storage.local.set({ [keyOf(entry)]: value })
 
-export const remove = (entry: StorageEntry) =>
-  chrome.storage.local.remove(keyOf(entry))
+export const remove = (entryOrEntries: StorageEntry | StorageEntry[]) =>
+  chrome.storage.local.remove(
+    Array.isArray(entryOrEntries)
+      ? entryOrEntries.map(keyOf)
+      : keyOf(entryOrEntries),
+  )
 
 export const onChainsChanged = (
   callback: (chains: Record<string, ChainInfo>) => void,
