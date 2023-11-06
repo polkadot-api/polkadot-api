@@ -11,22 +11,19 @@ export type GetViewBuilder = (metadata: V14) => {
     decoder: Decoder<Decoded>
   }
   callDecoder: Decoder<{
-    pallet: {
-      value: {
-        name: string
-        idx: number
-      }
-      input: HexString
-    }
-    call: {
-      value: {
-        name: string
-        idx: number
-      }
-      input: HexString
-    }
+    pallet: InitStruct
+    call: InitStruct
     args: StructDecoded
   }>
+}
+
+export type InitStruct = {
+  value: {
+    name: string
+    idx: number
+  }
+  input: HexString
+  docs?: string[]
 }
 
 type WithInput<T> = T & { input: HexString }

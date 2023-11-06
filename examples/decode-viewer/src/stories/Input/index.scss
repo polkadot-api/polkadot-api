@@ -28,6 +28,10 @@ $color: #5c5c5c;
   width: auto;
   flex-grow: 1;
 
+  &.view {
+    border-radius: 0rem;
+  }
+
   &.smaller {
     padding: 0.2rem;
 

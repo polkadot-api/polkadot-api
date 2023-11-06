@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SimpleInput, Input as PerInput } from "./stories/Input"
+import { SimpleInput, Input as MainInput } from "./stories/Input"
 import "./App.css"
-import {
-  useEffect,
-  useState,
-  // useState
-} from "react"
+import { useEffect, useState } from "react"
 import metadata from "./metadata.json"
-import { getViewBuilder } from "@polkadot-api/substrate-codegen"
+import { V14, getViewBuilder } from "@polkadot-api/substrate-codegen"
+import { InitStruct } from "./types"
+
+import "@polkadot-cloud/core/accent/kusama-relay.css"
+import "@polkadot-cloud/core/theme/default/index.css"
+import { Button, Grid } from "@polkadot-cloud/react"
 
 // const doSomething = (result: object) => {
 //   if (key === "codec") {
@@ -22,32 +23,102 @@ import { getViewBuilder } from "@polkadot-api/substrate-codegen"
 //   }
 // }
 
-const Structure = ({ input }: any) => {
-  const value = input[1]
-  console.log("value", value)
-  if (input.tag) {
-    return <SimpleInput label={input.tag} value={input.value} />
-  } else {
-    console.log("k", input[1])
-    return (
-      <PerInput label={input.tag} value={input.value} codec={"u8"} input={""} />
-    )
-  }
+const buttonStyle = {
+  background: "black",
+  padding: "0.5rem 1rem",
+  width: "15rem",
+}
+
+const separatorStyle = {
+  border: "0.1rem dashed #999",
+  padding: "0.5rem",
+  TextAlign: "center",
+}
+
+const isInitStruct = (obj: any): obj is InitStruct => {
+  return (
+    !!Object.keys(obj).length &&
+    !!Object.keys(obj.value).length &&
+    typeof obj.value == "object" &&
+    !!obj.value.idx &&
+    typeof obj.value.idx === "number" &&
+    !!obj.input &&
+    typeof obj.input === "string"
+  )
+}
+
+interface StructureProps {
+  pallet: InitStruct
+  call: InitStruct
+}
+
+const ArgsStructure = ({ args }: any) => {
+  console.log("args", args)
+  return (
+    <Grid row style={separatorStyle}>
+      <Grid column md={12} style={separatorStyle}>
+        Something
+      </Grid>
+    </Grid>
+  )
+}
+
+const Structure = ({ pallet, call }: StructureProps) => {
+  return (
+    <Grid row style={Object.assign({}, separatorStyle, { marginTop: "1rem" })}>
+      <Grid column md={12} style={separatorStyle}>
+        <SimpleInput
+          style={{ borderRadius: "0" }}
+          label={"Decoded call"}
+          value={pallet.value.name}
+          disabled
+        />
+        <SimpleInput
+          style={{ borderRadius: "0" }}
+          label={"Call"}
+          value={call.value.name}
+          disabled
+        />
+        {call?.docs ? (
+          <div className="help_tooltip">
+            <Button type="help" />
+            <span className="help_tooltiptext">
+              {call?.docs?.map((d) => <span>{d}</span>)}
+            </span>
+          </div>
+        ) : null}
+      </Grid>
+    </Grid>
+  )
 }
 
 export const App = () => {
   const [result, setResult] = useState<any>()
-  const [inputValue, setInputValue] = useState<string>("")
+  const [inputValue, setInputValue] = useState<string>(
+    "0x17002b0f01590100004901415050524f56455f52464328303030352c39636261626661383035393864323933353833306330396331386530613065346564383232376238633866373434663166346134316438353937626236643434290101000000",
+  )
   const [err, setErr] = useState<string | null>()
   const [firstLevel, setFirstLevel] = useState<any>()
 
+  const [pallet, setPallet] = useState<InitStruct>()
+  const [call, setCall] = useState<InitStruct>()
+  const [argsValue, setArgsValue] = useState<any>()
+
   const decode = (hex: string) => {
     try {
-      const { callDecoder } = getViewBuilder(metadata)
+      const { callDecoder } = getViewBuilder(metadata as V14)
       const result = callDecoder(hex)
-      console.log("STRING", result)
-      setResult(result.args.value)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // Print all the text
+      // console.log(JSON.stringify(result))
+      const {
+        pallet,
+        call,
+        args: { value },
+      } = result
+      setPallet(pallet)
+      setCall(call)
+      setArgsValue(value)
+      console.log("value", value)
     } catch (e: any) {
       console.log("error ", e)
       setErr(e.message)
@@ -68,34 +139,27 @@ export const App = () => {
   return (
     <>
       <div className="top-stuff"></div>
-      <h3>Something</h3>
+      <h3>Decoder View</h3>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <SimpleInput
           label={"hex-encoded call"}
           value={inputValue}
           onChange={(e: any) => setInputValue(e.target.value)}
         />
-        <button
-          className="hex-button"
+        <Button
+          lg
+          style={buttonStyle}
+          text="Decode stuff"
           onClick={() => {
             setErr(null)
             decode(inputValue)
           }}
-        >
-          Decode stuff
-        </button>
+        />
       </div>
       <div className="bottom-stuff">
         <div className="error">{err}</div>
-        {firstLevel &&
-          Object.entries(firstLevel).map((val) => {
-            console.log("firstLevel", val)
-            if (val) {
-              return <Structure input={val} />
-            } else {
-              return null
-            }
-          })}
+        {pallet && call ? <Structure pallet={pallet} call={call} /> : null}
+        {argsValue ? <ArgsStructure args={argsValue} /> : null}
       </div>
     </>
   )

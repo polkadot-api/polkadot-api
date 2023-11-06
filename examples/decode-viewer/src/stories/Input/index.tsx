@@ -35,6 +35,7 @@ interface SimpleInputProps {
   label: string
   value: any
   len?: number
+  style?: object
   smaller?: boolean
   disabled?: boolean
   onChange?: (e: any) => void
@@ -42,20 +43,16 @@ interface SimpleInputProps {
 
 interface CommonProps {
   input: string
-  meta?: MetaProps
-}
-
-interface MetaProps {
-  path: string[]
-  docs: string
+  path?: string[]
+  docs?: string
 }
 
 type FullProps = InputProps & SimpleInputProps & CommonProps
 
-const extraInput = ({ input, meta }: CommonProps) => {
+const extraInput = ({ input, path, docs }: CommonProps) => {
   const [show, setShow] = useState<boolean>(false)
   return (
-    (input || meta?.docs || meta?.path) && (
+    (input || docs || path) && (
       <>
         <div
           style={{
@@ -64,12 +61,10 @@ const extraInput = ({ input, meta }: CommonProps) => {
           }}
         >
           {input && <SimpleInput value={input} label={"Input"} smaller />}
-          {meta?.path?.length && (
-            <SimpleInput value={meta?.path?.join("/")} label={"Path"} smaller />
+          {path?.length && (
+            <SimpleInput value={path?.join("/")} label={"Path"} smaller />
           )}
-          {meta?.docs?.length && (
-            <SimpleInput value={meta?.docs} label={"Docs"} smaller />
-          )}
+          {docs?.length && <SimpleInput value={docs} label={"Docs"} smaller />}
         </div>
         <button className="show-button" onClick={() => setShow(!show)}>
           {show ? "Hide" : "Show"}
@@ -83,10 +78,14 @@ export const SimpleInput = ({
   label,
   value,
   smaller,
+  style,
   disabled,
   onChange,
 }: SimpleInputProps) => (
-  <div className={`custom-input-wrapper${smaller ? " smaller" : ""}`}>
+  <div
+    style={style}
+    className={`custom-input-wrapper${smaller ? " smaller" : ""}`}
+  >
     {label && <div className="label">{label}</div>}
     <input
       disabled={disabled}
@@ -102,10 +101,13 @@ export const Input: FC<FullProps> = ({
   value,
   len,
   input,
-  meta,
+  path,
+  docs,
   label,
 }: FullProps) => {
   let inputValue = value
+
+  const group = { input, path, docs }
 
   switch (codec) {
     // Here are Simple components that needs more than one input
@@ -116,14 +118,10 @@ export const Input: FC<FullProps> = ({
         <>
           <div className="multiple">
             {entries?.map((entry) => (
-              <SimpleInput
-                label={entry[0]}
-                value={entry[1]}
-                {...{ input, meta }}
-              />
+              <SimpleInput label={entry[0]} value={entry[1]} {...group} />
             ))}
           </div>
-          {extraInput({ input, meta })}
+          {extraInput(group)}
         </>
       )
     }
@@ -135,9 +133,9 @@ export const Input: FC<FullProps> = ({
     case "BytesArray": {
       return (
         <div className="multiple">
-          <SimpleInput label={label} value={inputValue} {...{ input, meta }} />
-          <SimpleInput label={"len"} value={len} {...{ input, meta }} />
-          {extraInput({ input, meta })}
+          <SimpleInput label={label} value={inputValue} {...group} />
+          <SimpleInput label={"len"} value={len} {...group} />
+          {extraInput(group)}
         </div>
       )
     }
@@ -162,8 +160,8 @@ export const Input: FC<FullProps> = ({
 
   return (
     <>
-      <SimpleInput label={label} value={inputValue} {...{ input, meta }} />
-      {extraInput({ input, meta })}
+      <SimpleInput label={label} value={inputValue} {...group} />
+      {extraInput(group)}
     </>
   )
 }
