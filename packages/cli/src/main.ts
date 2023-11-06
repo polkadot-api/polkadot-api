@@ -158,9 +158,12 @@ while (!exit) {
         choices: pallets.map((p) => ({ name: p.name, value: p })),
       })
 
-      const events = getLookupEntry(lookup, Number(pallet.events))
-      const errors = getLookupEntry(lookup, Number(pallet.errors))
-      const extrinsics = getLookupEntry(lookup, Number(pallet.calls))
+      const events =
+        pallet.events !== undefined ? getLookupEntry(lookup, pallet.events) : []
+      const errors =
+        pallet.errors !== undefined ? getLookupEntry(lookup, pallet.errors) : []
+      const extrinsics =
+        pallet.calls !== undefined ? getLookupEntry(lookup, pallet.calls) : []
 
       let exitDescriptorSelection = false
       while (!exitDescriptorSelection) {
