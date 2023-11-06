@@ -1,34 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useState } from "react"
-import {
-  AccountIdDecoded,
-  BigNumberDecoded,
-  BitSequenceDecoded,
-  BoolDecoded,
-  BytesArrayDecoded,
-  BytesSequenceDecoded,
-  NumberDecoded,
-  StringDecoded,
-  VoidDecoded,
-} from "./types"
 
 import "./index.scss"
 
-type SimpleType =
-  | VoidDecoded["codec"]
-  | BoolDecoded["codec"]
-  | StringDecoded["codec"]
-  | NumberDecoded["codec"]
-  | BigNumberDecoded["codec"]
-
-type NotSoSimpleType =
-  | BitSequenceDecoded["codec"]
-  | BytesSequenceDecoded["codec"]
-  | BytesArrayDecoded["codec"]
-  | AccountIdDecoded["codec"]
+// export type SimpleTypeCodecs =
+//   | VoidDecoded["codec"]
+//   | BoolDecoded["codec"]
+//   | StringDecoded["codec"]
+//   | NumberDecoded["codec"]
+//   | BigNumberDecoded["codec"]
+//   | BitSequenceDecoded["codec"]
+//   | BytesSequenceDecoded["codec"]
+//   | BytesArrayDecoded["codec"]
+//   | AccountIdDecoded["codec"]
 
 interface InputProps {
-  codec: SimpleType | NotSoSimpleType
+  codec: any
 }
 
 interface SimpleInputProps {
@@ -43,16 +30,14 @@ interface SimpleInputProps {
 
 interface CommonProps {
   input: string
-  path?: string[]
-  docs?: string
 }
 
 type FullProps = InputProps & SimpleInputProps & CommonProps
 
-const extraInput = ({ input, path, docs }: CommonProps) => {
+const ExtraInput = ({ input }: CommonProps) => {
   const [show, setShow] = useState<boolean>(false)
   return (
-    (input || docs || path) && (
+    input && (
       <>
         <div
           style={{
@@ -61,12 +46,12 @@ const extraInput = ({ input, path, docs }: CommonProps) => {
           }}
         >
           {input && <SimpleInput value={input} label={"Input"} smaller />}
-          {path?.length && (
-            <SimpleInput value={path?.join("/")} label={"Path"} smaller />
-          )}
-          {docs?.length && <SimpleInput value={docs} label={"Docs"} smaller />}
         </div>
-        <button className="show-button" onClick={() => setShow(!show)}>
+        <button
+          className="show-button"
+          style={{ fontSize: "0.7rem" }}
+          onClick={() => setShow(!show)}
+        >
           {show ? "Hide" : "Show"}
         </button>
       </>
@@ -101,13 +86,13 @@ export const Input: FC<FullProps> = ({
   value,
   len,
   input,
+  disabled,
   path,
-  docs,
   label,
 }: FullProps) => {
   let inputValue = value
 
-  const group = { input, path, docs }
+  const group = { input, path, disabled }
 
   switch (codec) {
     // Here are Simple components that needs more than one input
@@ -121,13 +106,15 @@ export const Input: FC<FullProps> = ({
               <SimpleInput label={entry[0]} value={entry[1]} {...group} />
             ))}
           </div>
-          {extraInput(group)}
+          {ExtraInput(group)}
         </>
       )
     }
     // Here are Simple components
     case "Bytes": {
-      inputValue = "[" + Uint8Array.from(Object.values(value)) + "]"
+      inputValue = value
+        ? "[" + Uint8Array.from(Object.values(value)) + "]"
+        : ""
       break
     }
     case "BytesArray": {
@@ -135,7 +122,7 @@ export const Input: FC<FullProps> = ({
         <div className="multiple">
           <SimpleInput label={label} value={inputValue} {...group} />
           <SimpleInput label={"len"} value={len} {...group} />
-          {extraInput(group)}
+          {ExtraInput(group)}
         </div>
       )
     }
@@ -161,7 +148,7 @@ export const Input: FC<FullProps> = ({
   return (
     <>
       <SimpleInput label={label} value={inputValue} {...group} />
-      {extraInput(group)}
+      {ExtraInput(group)}
     </>
   )
 }
