@@ -3,8 +3,9 @@ import {
   createClient,
 } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
+import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 import type { AddChainOptions, Chain, Client } from "smoldot"
-import { firstValueFrom } from "rxjs"
+import { Observable, firstValueFrom, retry } from "rxjs"
 import type {
   AddOnAddChainByUserListener,
   LightClientPageHelper,
@@ -31,32 +32,32 @@ export const register = (smoldotClient: Client) => {
   if (isRegistered) throw new Error("helper already registered")
   isRegistered = true
 
-  // FIXME: observe persisted/deleted chains
   storage.getChains().then((chains) => {
     Object.values(chains).forEach(
-      async ({ chainSpec, genesisHash, relayChainGenesisHash }) => {
-        const client = getObservableClient(
-          createClient(
-            await smoldotProvider({
-              smoldotClient,
-              chainSpec,
-              relayChainSpec: relayChainGenesisHash
-                ? chains[relayChainGenesisHash].chainSpec
-                : undefined,
-              databaseContent: await storage.get({
-                type: "databaseContent",
-                genesisHash,
-              }),
-              relayChainDatabaseContent: relayChainGenesisHash
-                ? await storage.get({
-                    type: "databaseContent",
-                    genesisHash: relayChainGenesisHash,
-                  })
-                : undefined,
-            }),
-          ),
-        )
-        client.chainHead$().finalized$.subscribe(() => {})
+      ({ chainSpec, genesisHash, relayChainGenesisHash }) =>
+        followChain({
+          smoldotClient,
+          chainSpec,
+          genesisHash,
+          relayChainGenesisHash,
+        }),
+    )
+  })
+
+  storage.onChainsChanged((chains) => {
+    for (const [genesisHash] of followedChains) {
+      if (chains[genesisHash]) continue
+      unfollowChain(genesisHash)
+    }
+    Object.values(chains).forEach(
+      ({ genesisHash, chainSpec, relayChainGenesisHash }) => {
+        if (followedChains.has(genesisHash)) return
+        followChain({
+          smoldotClient,
+          chainSpec,
+          genesisHash,
+          relayChainGenesisHash,
+        })
       },
     )
   })
@@ -757,3 +758,80 @@ const substrateClientRequest = <T>(
       reject(error)
     }
   })
+
+const followedChains = new Map<string, () => void>()
+const followChain = ({
+  smoldotClient,
+  chainSpec,
+  genesisHash,
+  relayChainGenesisHash,
+}: {
+  smoldotClient: Client
+  chainSpec: string
+  genesisHash: string
+  relayChainGenesisHash?: string
+}) => {
+  const subscription = new Observable<boolean>((observer) => {
+    observer.next(false)
+    const client = getObservableClient(
+      createClient(
+        getSyncProvider(
+          async () =>
+            await smoldotProvider({
+              smoldotClient,
+              chainSpec,
+              relayChainSpec: relayChainGenesisHash
+                ? (await storage.getChains())[relayChainGenesisHash].chainSpec
+                : undefined,
+              databaseContent: await storage.get({
+                type: "databaseContent",
+                genesisHash,
+              }),
+              relayChainDatabaseContent: relayChainGenesisHash
+                ? await storage.get({
+                    type: "databaseContent",
+                    genesisHash: relayChainGenesisHash,
+                  })
+                : undefined,
+            }),
+        ),
+      ),
+    )
+    const chainHead = client.chainHead$()
+    let unfollow = chainHead.unfollow
+    chainHead.finalized$
+      .pipe(
+        retry({
+          count: 3,
+          resetOnSuccess: true,
+          delay() {
+            observer.next(false)
+            unfollow()
+            const chainHead = client.chainHead$()
+            unfollow = chainHead.unfollow
+            return chainHead.finalized$
+          },
+        }),
+      )
+      .subscribe({
+        next() {
+          observer.next(true)
+        },
+        error: observer.error,
+        complete: observer.complete,
+      })
+
+    return () => {
+      unfollow()
+      client.destroy()
+    }
+  }).subscribe()
+  followedChains.set(genesisHash, () => {
+    followedChains.delete(genesisHash)
+    subscription.unsubscribe()
+  })
+}
+
+const unfollowChain = (genesisHash: string) => {
+  followedChains.get(genesisHash)?.()
+}
