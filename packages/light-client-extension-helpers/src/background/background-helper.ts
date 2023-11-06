@@ -198,7 +198,6 @@ export const register = (smoldotClient: Client) => {
         (acc, [tabIdStr, tabChains]) => {
           const tabId = parseInt(tabIdStr)
           Object.values(tabChains).forEach(({ genesisHash }) =>
-            // TODO: Should options-tab/popup connections be filtered from activeConnectionså?
             acc.push({ tabId, genesisHash }),
           )
           return acc
@@ -658,6 +657,21 @@ const withClient =
     }
   }
 
+const withClientChainHead$ = <T>(
+  fn: (
+    chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+    client: SubstrateClient,
+  ) => T | Promise<T>,
+) =>
+  withClient(async (client) => {
+    const chainHead = getObservableClient(client).chainHead$()
+    try {
+      return await fn(chainHead, client)
+    } finally {
+      chainHead.unfollow()
+    }
+  })
+
 const getChainData = withClient(async (client) => {
   const [genesisHash, name, { ss58Format }] = (await Promise.all(
     [
@@ -676,43 +690,41 @@ const getChainData = withClient(async (client) => {
 // TODO: update this implementation when these issues are implemented
 // https://github.com/paritytech/json-rpc-interface-spec/issues/110
 // https://github.com/smol-dot/smoldot/issues/1186
-const getGenesisStateRoot = withClient(async (client) => {
-  const chainHead = getObservableClient(client).chainHead$()
-  await firstValueFrom(chainHead.runtime$)
-  chainHead.unfollow()
-  const genesisHash = await substrateClientRequest<string>(
-    client,
-    "chainSpec_v1_genesisHash",
-  )
-  const { stateRoot } = await substrateClientRequest<{
-    stateRoot: string
-  }>(client, "chain_getHeader", [genesisHash])
-  return stateRoot
-})
+const getGenesisStateRoot = withClientChainHead$(
+  async ({ runtime$ }, client) => {
+    await firstValueFrom(runtime$)
+    const genesisHash = await substrateClientRequest<string>(
+      client,
+      "chainSpec_v1_genesisHash",
+    )
+    const { stateRoot } = await substrateClientRequest<{
+      stateRoot: string
+    }>(client, "chain_getHeader", [genesisHash])
+    return stateRoot
+  },
+)
 
-const getFinalizedDatabase = withClient(async (client) => {
-  const chainHead = getObservableClient(client).chainHead$()
-  await firstValueFrom(chainHead.runtime$)
-  chainHead.unfollow()
-  const finalizedDatabase = await substrateClientRequest<string>(
-    client,
-    "chainHead_unstable_finalizedDatabase",
-    (await chrome.permissions.contains({
-      permissions: ["unlimitedStorage"],
-    }))
-      ? []
-      : // 1mb will strip the runtime code
-        // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
-        [1024 * 1024],
-  )
-  return finalizedDatabase
-})
+const getFinalizedDatabase = withClientChainHead$(
+  async ({ runtime$ }, client) => {
+    await firstValueFrom(runtime$)
+    const finalizedDatabase = await substrateClientRequest<string>(
+      client,
+      "chainHead_unstable_finalizedDatabase",
+      (await chrome.permissions.contains({
+        permissions: ["unlimitedStorage"],
+      }))
+        ? []
+        : // 1mb will strip the runtime code
+          // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
+          [1024 * 1024],
+    )
+    return finalizedDatabase
+  },
+)
 
-const awaitFinalized = withClient(async (client) => {
-  const chainHead = getObservableClient(client).chainHead$()
-  await firstValueFrom(chainHead.finalized$)
-  chainHead.unfollow()
-})
+const awaitFinalized = withClientChainHead$(({ finalized$ }) =>
+  firstValueFrom(finalized$),
+)
 
 const sendBackgroundResponse = <
   T extends BackgroundResponse | BackgroundResponseError,
