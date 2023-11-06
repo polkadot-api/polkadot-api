@@ -1,20 +1,37 @@
 import { getMetadata } from "./metadata"
 import { metadata } from "@polkadot-api/substrate-bindings"
 import type { CodecType } from "scale-ts"
-import fsExists from "fs.promises.exists"
-import fs from "fs/promises"
 import { z } from "zod"
 import descriptorSchema from "./descriptor-schema"
 import { checkbox, select, confirm } from "@inquirer/prompts"
-import util from "util"
 
 type Metadata = CodecType<typeof metadata>["metadata"]
 type V14Metadata = Metadata & { tag: "v14" }
 
-type FromSavedDescriptorsArgs = {
-  key: string
-  pkgJSONKey: string
-  fileName?: string
+type DescriptorData = Record<
+  string,
+  {
+    constants: Record<string, bigint>
+    storage: Record<string, bigint>
+    events: Record<string, bigint>
+    errors: Record<string, bigint>
+    extrinsics: Record<
+      string,
+      {
+        checksum: bigint
+        events: Record<string, Set<string>>
+        errors: Record<string, Set<string>>
+      }
+    >
+  }
+>
+
+const defaultDescriptorDataRecord: DescriptorData[string] = {
+  constants: {},
+  storage: {},
+  events: {},
+  errors: {},
+  extrinsics: {},
 }
 
 export class Data {
@@ -24,23 +41,7 @@ export class Data {
 
   outputFolder?: string
 
-  descriptorData: Record<
-    string,
-    {
-      constants: Record<string, bigint>
-      storage: Record<string, bigint>
-      events: Record<string, bigint>
-      errors: Record<string, bigint>
-      extrinsics: Record<
-        string,
-        {
-          checksum: bigint
-          events: Record<string, Set<string>>
-          errors: Record<string, Set<string>>
-        }
-      >
-    }
-  >
+  descriptorData: DescriptorData
 
   constructor() {
     this.descriptorData = {}
@@ -81,9 +82,9 @@ export class Data {
     events: ReadonlyArray<readonly [pallet: string, event: string]>,
     errors: ReadonlyArray<readonly [pallet: string, event: string]>,
   ) {
-    this.descriptorData[pallet] = this.descriptorData[pallet] ?? {}
-    this.descriptorData[pallet].extrinsics =
-      this.descriptorData[pallet].extrinsics ?? {}
+    this.descriptorData[pallet] = this.descriptorData[pallet]
+      ? this.descriptorData[pallet]
+      : defaultDescriptorDataRecord
     const data = this.descriptorData[pallet].extrinsics
 
     const [ext, checksum] = await select({
@@ -135,17 +136,26 @@ export class Data {
       })),
     })
 
-    for (const [pallet, _] of newSelectedEvents) {
-      data[ext].events[pallet].clear()
+    const newSelectedPalletEvents = newSelectedEvents.reduce(
+      (cur, [pallet, event]) => ({
+        ...cur,
+        [pallet]: [...(cur[pallet] ?? []), event],
+      }),
+      {} as Record<string, string[]>,
+    )
+    for (const [pallet, events] of Object.entries(newSelectedPalletEvents)) {
+      data[ext].events[pallet] = new Set(events)
     }
-    for (const [pallet, _] of newSelectedErrors) {
-      data[ext].errors[pallet].clear()
-    }
-    for (const [pallet, event] of newSelectedEvents) {
-      data[ext].events[pallet].add(event)
-    }
-    for (const [pallet, error] of newSelectedErrors) {
-      data[ext].errors[pallet].add(error)
+
+    const newSelectedPalletErrors = newSelectedErrors.reduce(
+      (cur, [pallet, error]) => ({
+        ...cur,
+        [pallet]: [...(cur[pallet] ?? []), error],
+      }),
+      {} as Record<string, string[]>,
+    )
+    for (const [pallet, errors] of Object.entries(newSelectedPalletErrors)) {
+      data[ext].errors[pallet] = new Set(errors)
     }
   }
 
@@ -162,17 +172,7 @@ export class Data {
     data.outputFolder = descriptorMetadata.outputFolder
     data.setMetadata(magicNumber, metadata)
 
-    const { descriptors } = descriptorMetadata
-    for (const pallet of Object.keys(descriptors)) {
-      const palletDescriptors = descriptors[pallet]
-      data.descriptorData[pallet] = data.descriptorData[pallet] ?? {}
-      data.descriptorData[pallet].constants = palletDescriptors.constants ?? {}
-      data.descriptorData[pallet].storage = palletDescriptors.storage ?? {}
-      data.descriptorData[pallet].events = palletDescriptors.events ?? {}
-      data.descriptorData[pallet].errors = palletDescriptors.errors ?? {}
-      data.descriptorData[pallet].extrinsics =
-        palletDescriptors.extrinsics ?? {}
-    }
+    data.descriptorData = descriptorMetadata.descriptors
 
     return data
   }
