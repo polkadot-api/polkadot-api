@@ -15,6 +15,8 @@ import type {
   BackgroundRequest,
   BackgroundResponse,
   BackgroundResponseError,
+  ToBackground,
+  ToContent,
   ToExtension,
   ToPage,
 } from "@/protocol"
@@ -231,15 +233,18 @@ export const register = (smoldotClient: Client) => {
     number,
     Record<string, { chain: Chain; genesisHash: string }>
   > = {}
-  const isSubstrateConnectMessage = createIsHelperMessage<
-    ToExtension & { origin: "substrate-connect-client" }
-  >(["substrate-connect-client"])
+  const isSubstrateConnectOrContentMessage = createIsHelperMessage<
+    | (ToExtension & {
+        origin: "substrate-connect-client"
+      })
+    | ToBackground
+  >(["substrate-connect-client", CONTEXT.CONTENT_SCRIPT])
   const helperPortNames: string[] = [PORT.CONTENT_SCRIPT, PORT.EXTENSION_PAGE]
   chrome.runtime.onConnect.addListener((port) => {
     if (!helperPortNames.includes(port.name)) return
 
     const postMessage = (
-      message: ToPage & { origin: "substrate-connect-extension" },
+      message: (ToPage & { origin: "substrate-connect-extension" }) | ToContent,
     ) => port.postMessage(message)
 
     let isPortDisconnected = false
@@ -263,8 +268,14 @@ export const register = (smoldotClient: Client) => {
     port.onMessage.addListener(async (msg, port) => {
       const tabId = port.sender?.tab?.id
       if (!tabId) return
-      if (!isSubstrateConnectMessage(msg)) return
+      if (!isSubstrateConnectOrContentMessage(msg)) return
       switch (msg.type) {
+        case "keep-alive": {
+          return postMessage({
+            origin: CONTEXT.BACKGROUND,
+            type: "keep-alive-ack",
+          })
+        }
         case "add-well-known-chain":
         case "add-chain": {
           const tabId = port.sender?.tab?.id!

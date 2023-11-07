@@ -21,7 +21,18 @@ export type ToExtensionRequest = Message<
   } & (BackgroundRequestGetChain | BackgroundRequestGetChains)
 >
 
+export type ToBackground = ToBackgroundKeepAlive
+
+type ToBackgroundKeepAlive = Message<
+  "@polkadot-api/light-client-extension-helper-context-content-script",
+  {
+    type: "keep-alive"
+  }
+>
+
 export type ToPage = ToPageResponse | ToPageNotification | ConnectToApplication
+
+export type ToContent = ToContentKeepAlive
 
 export type ToPageResponse = Message<
   "@polkadot-api/light-client-extension-helper-context-content-script",
@@ -45,6 +56,13 @@ type ToPageNotificationOnAddChains = Message<
 >
 
 type ToPageNotification = ToPageNotificationOnAddChains
+
+type ToContentKeepAlive = Message<
+  "@polkadot-api/light-client-extension-helper-context-background",
+  {
+    type: "keep-alive-ack"
+  }
+>
 
 export type BackgroundRequest =
   | Message<
