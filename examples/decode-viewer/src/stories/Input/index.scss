@@ -3,7 +3,6 @@ $label-color: #424242;
 $input-color: #344054;
 $placeholder-color: #667085;
 $disabled-color: #3f3f3f;
-$error-color: #db4437;
 $color: #5c5c5c;
 
 .show-button {
@@ -74,14 +73,6 @@ $color: #5c5c5c;
       border: 0;
       outline: none;
     }
-  }
-
-  .error {
-    color: $error-color;
-    font-size: 0.7rem;
-    font-weight: 400;
-    margin-left: 12px;
-    margin-top: 4px;
   }
 }
 

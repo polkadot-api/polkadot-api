@@ -36,8 +36,6 @@ export const App = () => {
     try {
       const { callDecoder } = getViewBuilder(metadata as V14)
       const result = callDecoder(hex)
-      // Print all the text
-      // // console.log(result)
 
       const {
         pallet,
@@ -47,9 +45,7 @@ export const App = () => {
       setPallet(pallet)
       setCall(call)
       setArgsValue(value)
-      // console.log("value", value)
     } catch (e: any) {
-      // console.log("error ", e)
       setErr(e.message)
     }
   }
@@ -65,7 +61,7 @@ export const App = () => {
   return (
     <>
       <div className="top-stuff"></div>
-      <h3>Decoder View</h3>
+      <h3>Decode View</h3>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <Input
           isSimple
@@ -84,7 +80,7 @@ export const App = () => {
         />
       </div>
       <div className="bottom-stuff">
-        <div className="error">{err}</div>
+        {err && <div className="error">{err}</div>}
         {pallet && call ? <Structure pallet={pallet} call={call} /> : null}
         {argsValue ? (
           <ArgsStructure

@@ -11,7 +11,7 @@ const separatorStyle = {
 }
 
 interface ArgsProps {
-  value: any // TODO: StringRecord<Decoded> | Decodeds
+  value: any
   codec: PrimitiveDecoded["codec"] | ComplexShape["codec"]
   innerDocs?: object
   docs?: [string]
@@ -28,7 +28,6 @@ export const ArgsStructure = (args: ArgsProps) => {
       const some = []
       for (const [k, v] of Object.entries(args?.value as KeyValueType)) {
         const { codec, value, input, docs, path } = v as ArgsProps
-        // console.log("Struct: codec ===> ", snakeToCamel(k))
         switch (codec) {
           case "Sequence": {
             some.push(
@@ -144,11 +143,8 @@ export const ArgsStructure = (args: ArgsProps) => {
     }
 
     default: {
-      // console.log("args", args)
       if (args.tag) {
-        // Here all the possibilities must be checked
         const { input, path, codec, value } = args.value
-        // console.log("=-=-=-=-=-=-> ", args.value.codec)
         switch (codec) {
           case "AccountId":
             return (
@@ -184,7 +180,6 @@ export const ArgsStructure = (args: ArgsProps) => {
           case "bool":
           case "bitSequence":
           case "Bytes":
-            // console.log("jere?")
             return (
               <Input codec={codec} label={codec} value={value} input={input} />
             )
@@ -195,7 +190,6 @@ export const ArgsStructure = (args: ArgsProps) => {
             ? value?.tag || value?.codec
             : value
 
-        // console.log("jere2", value, typeof value?.value)
         return typeof value?.value !== "string" ? (
           <>
             <Input
@@ -221,20 +215,6 @@ export const ArgsStructure = (args: ArgsProps) => {
             input={input}
           />
         )
-        // TODO: Check if this else is needed
-        // } else {
-        //   // console.log("value={args.value?.value?.tag", args)
-        //   // TODO: Fix docs and path if needed
-        //   const { codec, value, input, docs, path } = args
-        //   return (
-        //     <Input
-        //       label={codec}
-        //       codec={codec}
-        //       value={value}
-        //       input={input || ""}
-        //       docs={docs}
-        //     />
-        //   )
       }
     }
   }
