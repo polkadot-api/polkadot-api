@@ -3,7 +3,7 @@ import type { RawChain } from "@polkadot-api/light-client-extension-helpers/web-
 import { createClient } from "@polkadot-api/substrate-client"
 import { fromHex } from "@polkadot-api/utils"
 import { useEffect, useState } from "react"
-import { concatMap, zip } from "rxjs"
+import { exhaustMap, filter, map } from "rxjs"
 import { compact } from "scale-ts"
 
 export const useChain = (chain: RawChain) => {
@@ -15,15 +15,21 @@ export const useChain = (chain: RawChain) => {
   useEffect(() => {
     const client = getObservableClient(createClient(chain.connect))
     const { finalized$, unfollow, header$ } = client.chainHead$()
-    const subscription = zip(
-      finalized$,
-      finalized$.pipe(concatMap(header$)),
-    ).subscribe(([finalized, header]) => {
-      setState({
-        finalized,
-        blockHeight: compact.dec(fromHex(header).slice(32)) as number,
-      })
-    })
+    const subscription = finalized$
+      .pipe(
+        exhaustMap((finalized) =>
+          header$(finalized).pipe(
+            filter(Boolean),
+            map((header) => [finalized, header] as const),
+          ),
+        ),
+      )
+      .subscribe(([finalized, header]) =>
+        setState({
+          finalized,
+          blockHeight: compact.dec(fromHex(header).slice(32)) as number,
+        }),
+      )
 
     return () => {
       subscription.unsubscribe()
