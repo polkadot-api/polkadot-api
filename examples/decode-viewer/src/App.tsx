@@ -57,51 +57,76 @@ const ArgsStructure = (args: ArgsProps) => {
       const some = []
       for (const [k, v] of Object.entries(args?.value as KeyValueType)) {
         const { codec, value, input, docs, path } = v as ArgsProps
-        console.log("Struct: codec ===> ", snakeToCamel(k))
-        if (codec === "Sequence") {
-          some.push(
-            <div style={separatorStyle}>
-              <div className="struct_title">{snakeToCamel(k)}</div>
-              <ArgsStructure
-                codec={codec}
-                value={value}
-                input={input}
-                docs={docs}
-                path={path}
-              />
-            </div>,
-          )
-        } else if (codec === "compactBn") {
-          // console.log("compactBn => V:", args?.value)
-          some.push(
-            <div style={separatorStyle}>
-              <Input
-                label={k + " : " + codec}
-                value={value}
-                input={input}
-                codec={codec}
-                docs={docs}
-                disabled
-              />
-            </div>,
-          )
-        } else {
-          some.push(
-            <div style={separatorStyle}>
-              <SimpleInput
-                label={snakeToCamel(k) + " : " + (path ? path?.join("/") : "")}
-                value={value.tag}
-                disabled
-              />
-              <ArgsStructure
-                codec={codec}
-                value={value}
-                input={input}
-                docs={docs}
-                path={path}
-              />
-            </div>,
-          )
+        // console.log("Struct: codec ===> ", snakeToCamel(k))
+        switch (codec) {
+          case "Sequence": {
+            some.push(
+              <div style={separatorStyle}>
+                <div className="struct_title">{snakeToCamel(k)}</div>
+                <ArgsStructure
+                  codec={codec}
+                  value={value}
+                  input={input}
+                  docs={docs}
+                  path={path}
+                />
+              </div>,
+            )
+            break
+          }
+          case "u8":
+          case "u16":
+          case "u32":
+          case "i8":
+          case "i16":
+          case "i32":
+          case "compactNumber":
+          case "u64":
+          case "u128":
+          case "u256":
+          case "i64":
+          case "i128":
+          case "i256":
+          case "str":
+          case "char":
+          case "bool":
+          case "bitSequence":
+          case "Bytes":
+          case "compactBn": {
+            some.push(
+              <div style={separatorStyle}>
+                <Input
+                  label={k + " : " + codec}
+                  value={value}
+                  input={input}
+                  codec={codec}
+                  docs={docs}
+                  disabled
+                />
+              </div>,
+            )
+            break
+          }
+          default: {
+            some.push(
+              <div style={separatorStyle}>
+                <SimpleInput
+                  label={
+                    snakeToCamel(k) + " : " + (path ? path?.join("/") : "")
+                  }
+                  value={value.tag}
+                  disabled
+                />
+                <ArgsStructure
+                  codec={codec}
+                  value={value}
+                  input={input}
+                  docs={docs}
+                  path={path}
+                />
+              </div>,
+            )
+          }
         }
       }
       return <>{some}</>
@@ -122,6 +147,7 @@ const ArgsStructure = (args: ArgsProps) => {
         </div>
       )
     }
+
     case "Sequence": {
       return (
         <div>
@@ -243,7 +269,7 @@ const Structure = ({ pallet, call }: StructureProps) => (
     <Grid column md={12} style={separatorStyle}>
       <SimpleInput label={"Decoded call"} value={pallet.value.name} disabled />
       <SimpleInput label={"Call"} value={call.value.name} disabled />
-      {call.docs ? (
+      {call.docs.length > 0 ? (
         <>
           <div className="help_tooltip">
             <Button type="help" outline />

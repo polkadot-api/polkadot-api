@@ -44,6 +44,9 @@ importers:
       '@polkadot-api/substrate-codegen':
         specifier: workspace:*
         version: link:../../packages/substrate-codegen
+      '@polkadot-cloud/utils':
+        specifier: ^0.0.25
+        version: 0.0.25(@polkadot/util-crypto@12.5.1)
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -187,7 +190,7 @@ importers:
         version: 0.4.3(eslint@8.49.0)
       vite:
         specifier: ^4.4.5
-        version: 4.4.9(sass@1.69.5)
+        version: 4.4.9(@types/node@20.6.0)
 
   experiments:
     dependencies:
@@ -2874,7 +2877,6 @@ packages:
       bignumber.js: 9.1.2
     transitivePeerDependencies:
       - '@polkadot/util-crypto'
-    dev: true
 
   /@polkadot/api-augment@10.10.1:
     resolution: {integrity: sha512-J0r1DT1M5y75iO1iwcpUBokKD3q6b22kWlPfiHEDNFydVw5vm7OTRBk9Njjl8rOnlSzcW/Ya8qWfV/wkrqHxUQ==}
@@ -6309,7 +6311,6 @@ packages:
 
   /bignumber.js@9.1.2:
     resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==}
-    dev: true
 
   /binary-extensions@2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}

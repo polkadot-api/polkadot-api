@@ -149,13 +149,6 @@ export const Input: FC<FullProps> = ({
         </>
       )
     }
-    // Here are Simple components
-    case "Bytes": {
-      inputValue = value
-        ? "[" + Uint8Array.from(Object.values(value)) + "]"
-        : ""
-      break
-    }
     case "BytesArray": {
       return (
         <div>
@@ -186,6 +179,7 @@ export const Input: FC<FullProps> = ({
     case "i128":
     case "i256":
     case "compactBn":
+    case "Bytes":
       inputValue = value?.toString()
       break
   }
