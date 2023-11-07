@@ -1,6 +1,13 @@
-import type { PostMessage, ToExtension, ToPage } from "@/protocol"
+import type {
+  PostMessage,
+  ToBackground,
+  ToContent,
+  ToExtension,
+  ToPage,
+} from "@/protocol"
 import {
   CONTEXT,
+  KEEP_ALIVE_INTERVAL,
   PORT,
   createIsHelperMessage,
   sendBackgroundRequest,
@@ -35,8 +42,10 @@ export const register = (channelId: string) => {
     return true
   }
 
-  const portPostMessage = (port: chrome.runtime.Port, msg: ToExtension) =>
-    port.postMessage(msg)
+  const portPostMessage = (
+    port: chrome.runtime.Port,
+    msg: ToExtension | ToBackground,
+  ) => port.postMessage(msg)
 
   const chainIds = new Set<string>()
   const handleExtensionError = (errorMessage: string, origin: string) => {
@@ -110,17 +119,31 @@ export const register = (channelId: string) => {
         handleExtensionError("Cannot connect to extension", origin)
         return
       }
-      port.onMessage.addListener((msg: ToPage) => {
+      port.onMessage.addListener((msg: ToPage | ToContent) => {
         if (
           msg.origin === "substrate-connect-extension" &&
           msg.type === "error"
         )
           chainIds.delete(msg.chainId)
+        else if (
+          msg.origin === CONTEXT.BACKGROUND &&
+          msg.type === "keep-alive-ack"
+        )
+          return
         postToPage(msg, origin)
       })
-
+      const keepAliveInterval = setInterval(
+        () =>
+          port &&
+          portPostMessage(port, {
+            origin: CONTEXT.CONTENT_SCRIPT,
+            type: "keep-alive",
+          }),
+        KEEP_ALIVE_INTERVAL,
+      )
       port.onDisconnect.addListener(() => {
         port = undefined
+        clearInterval(keepAliveInterval)
         handleExtensionError("Disconnected from extension", origin)
       })
     }

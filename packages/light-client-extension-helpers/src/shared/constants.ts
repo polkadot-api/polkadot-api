@@ -18,3 +18,5 @@ const alarmPrefix = `${extensionPrefix}-alarm`
 export const ALARM = {
   DATABASE_UPDATE: `${alarmPrefix}-database-update`,
 } as const
+
+export const KEEP_ALIVE_INTERVAL = 20_000
