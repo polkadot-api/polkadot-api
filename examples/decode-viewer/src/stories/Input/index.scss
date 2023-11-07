@@ -19,7 +19,7 @@ $color: #5c5c5c;
   font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
     "Lucida Sans", Arial, sans-serif;
   padding: 0.2rem;
-  border-radius: 0.3rem;
+  border-radius: 0rem;
   background-color: $background-color;
   color: $color;
 
@@ -38,18 +38,18 @@ $color: #5c5c5c;
     .label {
       font-weight: 800;
       color: $input-color;
-      font-size: 0.6rem;
+      font-size: 0.8rem;
       margin-bottom: 0;
     }
 
     input {
-      font-size: 0.7rem;
+      font-size: 0.9rem;
     }
   }
 
   .label {
     font-weight: 700;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     color: $label-color;
     display: block;
     margin-bottom: 0.2rem;
@@ -57,14 +57,14 @@ $color: #5c5c5c;
   /* DecInput field */
   input {
     width: 100%;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
     font-weight: 400;
     border: 0rem;
     background-color: $background-color;
     color: $disabled-color;
 
     &::placeholder {
-      font-size: 16px;
+      font-size: 0.9rem;
       font-weight: 400;
       color: $placeholder-color;
     }
@@ -78,7 +78,7 @@ $color: #5c5c5c;
 
   .error {
     color: $error-color;
-    font-size: 14px;
+    font-size: 0.7rem;
     font-weight: 400;
     margin-left: 12px;
     margin-top: 4px;

@@ -1,14 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SimpleInput, Input as IInput } from "./stories/Input"
-import "./App.css"
 import { useEffect, useState } from "react"
+import {
+  ComplexShape,
+  PrimitiveDecoded,
+  V14,
+  getViewBuilder,
+} from "@polkadot-api/substrate-codegen"
+
+import { Button, Grid } from "@polkadot-cloud/react"
+import { snakeToCamel } from "@polkadot-cloud/utils"
+import { InitStruct, InitStructWithDocs } from "./types"
+import { SimpleInput, Input } from "./stories/Input"
 import metadata from "./metadata.json"
-import { V14, getViewBuilder } from "@polkadot-api/substrate-codegen"
-import { InitStruct } from "./types"
 
 import "@polkadot-cloud/core/accent/kusama-relay.css"
 import "@polkadot-cloud/core/theme/default/index.css"
-import { Button, Grid } from "@polkadot-cloud/react"
+
+import "./App.css"
 
 const buttonStyle = {
   background: "#424242",
@@ -22,27 +30,14 @@ const separatorStyle = {
   TextAlign: "center",
 }
 
-// TypeGuard just in case
-// const isInitStruct = (obj: any): obj is InitStruct => {
-//   return (
-//     !!Object.keys(obj).length &&
-//     !!Object.keys(obj.value).length &&
-//     typeof obj.value == "object" &&
-//     !!obj.value.idx &&
-//     typeof obj.value.idx === "number" &&
-//     !!obj.input &&
-//     typeof obj.input === "string"
-//   )
-// }
-
 interface StructureProps {
   pallet: InitStruct
-  call: InitStruct
+  call: InitStructWithDocs
 }
 
 interface ArgsProps {
-  value: any // StringRecord<Decoded> | Decodeds
-  codec: any
+  value: any // TODO: StringRecord<Decoded> | Decodeds
+  codec: PrimitiveDecoded["codec"] | ComplexShape["codec"]
   innerDocs?: object
   docs?: [string]
   input?: string
@@ -54,123 +49,213 @@ type KeyValueType = {
   [key: string]: object
 }
 
-let count = 1
-
 const ArgsStructure = (args: ArgsProps) => {
-  console.log("count", count++)
-  if (args?.codec === "Struct") {
-    const some = []
-    for (const [k, v] of Object.entries(args?.value as KeyValueType)) {
-      const { codec, value, input, docs, path } = v as ArgsProps
-      some.push(
-        <div style={separatorStyle}>
-          <SimpleInput
-            style={{ borderRadius: "0" }}
-            label={k + ":" + path?.join("/")}
-            value={value.tag}
-            disabled
-          />
+  switch (args?.codec) {
+    case "Struct": {
+      // TODO: Fix the innerDocs
+      const { innerDocs } = args
+      const some = []
+      for (const [k, v] of Object.entries(args?.value as KeyValueType)) {
+        const { codec, value, input, docs, path } = v as ArgsProps
+        console.log("Struct: codec ===> ", snakeToCamel(k))
+        if (codec === "Sequence") {
+          some.push(
+            <div style={separatorStyle}>
+              <div className="struct_title">{snakeToCamel(k)}</div>
+              <ArgsStructure
+                codec={codec}
+                value={value}
+                input={input}
+                docs={docs}
+                path={path}
+              />
+            </div>,
+          )
+        } else if (codec === "compactBn") {
+          // console.log("compactBn => V:", args?.value)
+          some.push(
+            <div style={separatorStyle}>
+              <Input
+                label={k + " : " + codec}
+                value={value}
+                input={input}
+                codec={codec}
+                docs={docs}
+                disabled
+              />
+            </div>,
+          )
+        } else {
+          some.push(
+            <div style={separatorStyle}>
+              <SimpleInput
+                label={snakeToCamel(k) + " : " + (path ? path?.join("/") : "")}
+                value={value.tag}
+                disabled
+              />
+              <ArgsStructure
+                codec={codec}
+                value={value}
+                input={input}
+                docs={docs}
+                path={path}
+              />
+            </div>,
+          )
+        }
+      }
+      return <>{some}</>
+    }
+    case "Enum": {
+      const nextContent = args.value.value
+      const { input, docs, path, codec, tag } = args.value
+      return (
+        <div style={{ marginLeft: "1rem" }}>
           <ArgsStructure
+            tag={tag}
             codec={codec}
-            value={value}
+            value={nextContent}
             input={input}
             docs={docs}
             path={path}
           />
-        </div>,
-      )
-    }
-    return <>{some}</>
-  } else if (args?.codec === "Enum") {
-    const nextContent = args.value.value
-    const { input, docs, path, codec, tag } = args.value
-    return (
-      <div style={{ marginLeft: "1rem" }}>
-        <ArgsStructure
-          tag={tag}
-          codec={codec}
-          value={nextContent}
-          input={input}
-          docs={docs}
-          path={path}
-        />
-      </div>
-    )
-  } else if (args.tag) {
-    // check
-    const { input, path, codec, value } = args.value
-
-    console.log("args :--- :-- : ", args)
-    let v = ""
-    if (typeof args.value?.value === "object") {
-      v = value?.tag || value?.codec
-    } else {
-      v = value
-    }
-    return (
-      <IInput
-        codec={codec}
-        label={args?.tag + ":" + path?.join("/")}
-        value={v}
-        input={input}
-      />
-    )
-  } else {
-    if (typeof args.value === "object" && args.value.length > 0) {
-      return args.value.map((a) => (
-        <div style={{ marginLeft: "1rem" }}>
-          <ArgsStructure
-            tag={a.tag}
-            codec={a.codec}
-            value={a.value}
-            input={a.input}
-            docs={a.docs}
-            path={a.path}
-          />
         </div>
-      ))
-    } else {
-      console.log("value={args.value?.value?.tag", args.value)
-      return (
-        <IInput
-          codec={args.value?.codec}
-          label={args?.value?.codec}
-          value={args.value?.value?.tag}
-          input={args.value?.input}
-        />
       )
+    }
+    case "Sequence": {
+      return (
+        <div>
+          {args.value.map((a: any) => (
+            <div style={{ marginLeft: "1rem" }}>
+              <ArgsStructure
+                tag={a.tag}
+                codec={a.codec}
+                value={a.value}
+                input={a.input}
+                docs={a.docs}
+                path={a.path}
+              />
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    default: {
+      // console.log("args", args)
+      if (args.tag) {
+        // Here all the possibilities must be checked
+        const { input, path, codec, value } = args.value
+        // console.log("=-=-=-=-=-=-> ", args.value.codec)
+        switch (codec) {
+          case "AccountId":
+            return (
+              <Input codec={codec} label={codec} value={value} input={input} />
+            )
+          case "BytesArray":
+            return (
+              <Input
+                codec={codec}
+                label={codec}
+                len={args.value.len}
+                value={value}
+                input={input}
+              />
+            )
+
+          case "u8":
+          case "u16":
+          case "u32":
+          case "i8":
+          case "i16":
+          case "i32":
+          case "compactNumber":
+          case "u64":
+          case "u128":
+          case "u256":
+          case "i64":
+          case "i128":
+          case "i256":
+          case "compactBn":
+          case "str":
+          case "char":
+          case "bool":
+          case "bitSequence":
+          case "Bytes":
+            // console.log("jere?")
+            return (
+              <Input codec={codec} label={codec} value={value} input={input} />
+            )
+        }
+
+        const v =
+          typeof args.value?.value === "object"
+            ? value?.tag || value?.codec
+            : value
+
+        // console.log("jere2", value, typeof value?.value)
+        return typeof value?.value !== "string" ? (
+          <>
+            <Input
+              codec={codec}
+              label={args?.tag + " : " + path?.join("/")}
+              value={v}
+              input={input}
+            />
+            <ArgsStructure
+              tag={value?.value?.tag}
+              codec={value?.value?.codec}
+              value={value?.value?.value}
+              input={value?.value?.input}
+              docs={value?.value?.docs}
+              path={value?.value?.path}
+            />
+          </>
+        ) : (
+          <Input
+            codec={codec}
+            label={args?.tag + " : " + path?.join("/")}
+            value={v}
+            input={input}
+          />
+        )
+        // TODO: Check if this else is needed
+        // } else {
+        //   // console.log("value={args.value?.value?.tag", args)
+        //   // TODO: Fix docs and path if needed
+        //   const { codec, value, input, docs, path } = args
+        //   return (
+        //     <Input
+        //       label={codec}
+        //       codec={codec}
+        //       value={value}
+        //       input={input || ""}
+        //       docs={docs}
+        //     />
+        //   )
+      }
     }
   }
 }
 
-const Structure = ({ pallet, call }: StructureProps) => {
-  return (
-    <Grid row style={Object.assign({}, separatorStyle, { marginTop: "1rem" })}>
-      <Grid column md={12} style={separatorStyle}>
-        <SimpleInput
-          style={{ borderRadius: "0" }}
-          label={"Decoded call"}
-          value={pallet.value.name}
-          disabled
-        />
-        <SimpleInput
-          style={{ borderRadius: "0" }}
-          label={"Call"}
-          value={call.value.name}
-          disabled
-        />
-        {call?.docs ? (
+const Structure = ({ pallet, call }: StructureProps) => (
+  <Grid row style={Object.assign({}, separatorStyle, { marginTop: "1rem" })}>
+    <Grid column md={12} style={separatorStyle}>
+      <SimpleInput label={"Decoded call"} value={pallet.value.name} disabled />
+      <SimpleInput label={"Call"} value={call.value.name} disabled />
+      {call.docs ? (
+        <>
           <div className="help_tooltip">
-            <Button type="help" />
+            <Button type="help" outline />
             <span className="help_tooltiptext">
-              {call?.docs?.map((d) => <span>{d}</span>)}
+              {call.docs?.map((d) => <span>{d}</span>)}
             </span>
           </div>
-        ) : null}
-      </Grid>
+        </>
+      ) : null}
     </Grid>
-  )
-}
+  </Grid>
+)
 
 export const App = () => {
   const [inputValue, setInputValue] = useState<string>(
@@ -180,7 +265,7 @@ export const App = () => {
   const [err, setErr] = useState<string | null>()
 
   const [pallet, setPallet] = useState<InitStruct>()
-  const [call, setCall] = useState<InitStruct>()
+  const [call, setCall] = useState<InitStructWithDocs>()
   const [argsValue, setArgsValue] = useState<any>()
 
   const decode = (hex: string) => {
@@ -188,7 +273,7 @@ export const App = () => {
       const { callDecoder } = getViewBuilder(metadata as V14)
       const result = callDecoder(hex)
       // Print all the text
-      // console.log(JSON.stringify(result))
+      // // console.log(result)
 
       const {
         pallet,
@@ -198,9 +283,9 @@ export const App = () => {
       setPallet(pallet)
       setCall(call)
       setArgsValue(value)
-      console.log("value", value)
+      // console.log("value", value)
     } catch (e: any) {
-      console.log("error ", e)
+      // console.log("error ", e)
       setErr(e.message)
     }
   }

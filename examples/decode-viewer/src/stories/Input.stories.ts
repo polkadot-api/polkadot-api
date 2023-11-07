@@ -19,16 +19,12 @@ export const Primary: Story = {
   args: {
     label: "AccountId",
     value: {
-      ss58Prefix: 0,
       address: "5DX6YxwfzPugSxrZ84aTdqycAccLCVhUffroAnGT9yHyhUch",
+      ss58Prefix: 0,
     },
     codec: "AccountId",
     input:
       "0x01590100004901415050524f56455f52464328303030352c3963626162666138303539386432393335383330633039633138653061306534656438323237623863386637343466316634613431643835393762623664343429",
-    meta: {
-      path: ["path", "some"],
-      docs: "here are some docs that need to be docs but its not docs its just some text",
-    },
     disabled: true,
   },
 }
@@ -51,6 +47,16 @@ export const U16: Story = {
     codec: "u16",
     input:
       "0x01590100004901415050524f56455f52464328303030352c3963626162666138303539386432393335383330633039633138653061306534656438323237623863386637343466316634613431643835393762623664343429",
+    disabled: true,
+  },
+}
+
+export const CompactBn: Story = {
+  args: {
+    label: "compactBn",
+    value: "4000000000000n",
+    codec: "compactBn",
+    input: "0x0b00409452a303",
     disabled: true,
   },
 }
@@ -169,8 +175,8 @@ export const AccountId: Story = {
   args: {
     label: "AccountId",
     value: {
-      ss58Prefix: 0,
       address: "5DX6YxwfzPugSxrZ84aTdqycAccLCVhUffroAnGT9yHyhUch",
+      ss58Prefix: 0,
     },
     codec: "AccountId",
     input:

@@ -1,26 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, useState } from "react"
-
+import { Polkicon } from "@polkadot-cloud/react"
 import "./index.scss"
-
-// export type SimpleTypeCodecs =
-//   | VoidDecoded["codec"]
-//   | BoolDecoded["codec"]
-//   | StringDecoded["codec"]
-//   | NumberDecoded["codec"]
-//   | BigNumberDecoded["codec"]
-//   | BitSequenceDecoded["codec"]
-//   | BytesSequenceDecoded["codec"]
-//   | BytesArrayDecoded["codec"]
-//   | AccountIdDecoded["codec"]
+import { isValidAddress, snakeToCamel } from "@polkadot-cloud/utils"
 
 interface InputProps {
-  codec: any
-}
-
-interface SimpleInputProps {
   label: string
   value: any
+  codec?: any
+  docs?: any
   len?: number
   style?: object
   smaller?: boolean
@@ -29,10 +17,10 @@ interface SimpleInputProps {
 }
 
 interface CommonProps {
-  input: string
+  input?: string
 }
 
-type FullProps = InputProps & SimpleInputProps & CommonProps
+type FullProps = InputProps & CommonProps
 
 const ExtraInput = ({ input }: CommonProps) => {
   const [show, setShow] = useState<boolean>(false)
@@ -66,44 +54,95 @@ export const SimpleInput = ({
   style,
   disabled,
   onChange,
-}: SimpleInputProps) => (
-  <div
-    style={style}
-    className={`custom-input-wrapper${smaller ? " smaller" : ""}`}
-  >
-    {label && <div className="label">{label}</div>}
-    <input
-      disabled={disabled}
-      id={Math.random().toString()}
-      value={value}
-      onChange={onChange}
-    />
-  </div>
-)
+}: InputProps) => {
+  return (
+    <div
+      style={style}
+      className={`custom-input-wrapper${smaller ? " smaller" : ""}`}
+    >
+      {label && <div className="label">{snakeToCamel(label)}</div>}
+      <input
+        disabled={disabled}
+        id={Math.random().toString()}
+        defaultValue={value}
+        value={value}
+        onChange={onChange}
+      />
+    </div>
+  )
+}
 
 export const Input: FC<FullProps> = ({
+  label,
   codec,
   value,
   len,
   input,
   disabled,
-  path,
-  label,
 }: FullProps) => {
   let inputValue = value
 
-  const group = { input, path, disabled }
+  const group = { input, disabled }
 
   switch (codec) {
     // Here are Simple components that needs more than one input
-    case "AccountId":
+    case "AccountId": {
+      const entries = Object.entries(inputValue)
+      return (
+        <>
+          <div className="multiple">
+            {entries?.map((entry) => {
+              const entry_zero = snakeToCamel(entry[0])
+              const entry_one = entry[1] as string
+              if (
+                isValidAddress(entry_one as string) &&
+                entry[0] === "address"
+              ) {
+                return (
+                  <div style={{ display: "flex", flexGrow: "3" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        height: "100%",
+                        position: "relative",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Polkicon copy address={entry_one as string} />
+                    </div>
+                    <SimpleInput
+                      label={entry_zero}
+                      value={entry_one}
+                      {...group}
+                    />
+                  </div>
+                )
+              } else {
+                return (
+                  <SimpleInput
+                    label={entry_zero}
+                    value={entry_one}
+                    {...group}
+                  />
+                )
+              }
+            })}
+          </div>
+          {ExtraInput(group)}
+        </>
+      )
+    }
     case "bitSequence": {
       const entries = Object.entries(inputValue)
       return (
         <>
           <div className="multiple">
             {entries?.map((entry) => (
-              <SimpleInput label={entry[0]} value={entry[1]} {...group} />
+              <SimpleInput
+                label={snakeToCamel(entry[0])}
+                value={entry[1]}
+                {...group}
+              />
             ))}
           </div>
           {ExtraInput(group)}
@@ -119,9 +158,15 @@ export const Input: FC<FullProps> = ({
     }
     case "BytesArray": {
       return (
-        <div className="multiple">
-          <SimpleInput label={label} value={inputValue} {...group} />
-          <SimpleInput label={"len"} value={len} {...group} />
+        <div>
+          <div className="multiple">
+            <SimpleInput
+              label={snakeToCamel(label)}
+              value={inputValue}
+              {...group}
+            />
+            <SimpleInput label={"Length"} value={len} {...group} />
+          </div>
           {ExtraInput(group)}
         </div>
       )
@@ -147,7 +192,7 @@ export const Input: FC<FullProps> = ({
 
   return (
     <>
-      <SimpleInput label={label} value={inputValue} {...group} />
+      <SimpleInput label={snakeToCamel(label)} value={inputValue} {...group} />
       {ExtraInput(group)}
     </>
   )
