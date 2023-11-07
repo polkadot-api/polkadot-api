@@ -24,7 +24,7 @@ export const ArgsStructure = (args: ArgsProps) => {
   switch (args?.codec) {
     case "Struct": {
       // TODO: Fix the innerDocs
-      const { innerDocs } = args
+      // const { innerDocs } = args
       const some = []
       for (const [k, v] of Object.entries(args?.value as KeyValueType)) {
         const { codec, value, input, docs, path } = v as ArgsProps
