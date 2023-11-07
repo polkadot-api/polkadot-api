@@ -13,6 +13,7 @@ interface InputProps {
   style?: object
   smaller?: boolean
   disabled?: boolean
+  isSimple?: boolean
   onChange?: (e: any) => void
 }
 
@@ -33,7 +34,7 @@ const ExtraInput = ({ input }: CommonProps) => {
             margin: "0.5rem 0 0 1rem",
           }}
         >
-          {input && <SimpleInput value={input} label={"Input"} smaller />}
+          {input && <Input value={input} label={"Input"} smaller isSimple />}
         </div>
         <button
           className="show-button"
@@ -47,39 +48,35 @@ const ExtraInput = ({ input }: CommonProps) => {
   )
 }
 
-export const SimpleInput = ({
-  label,
-  value,
-  smaller,
-  style,
-  disabled,
-  onChange,
-}: InputProps) => {
-  return (
-    <div
-      style={style}
-      className={`custom-input-wrapper${smaller ? " smaller" : ""}`}
-    >
-      {label && <div className="label">{snakeToCamel(label)}</div>}
-      <input
-        disabled={disabled}
-        id={Math.random().toString()}
-        defaultValue={value}
-        value={value}
-        onChange={onChange}
-      />
-    </div>
-  )
-}
-
 export const Input: FC<FullProps> = ({
   label,
   codec,
   value,
+  style,
   len,
   input,
   disabled,
-}: FullProps) => {
+  onChange,
+  smaller,
+  isSimple,
+}: FullProps & InputProps) => {
+  if (isSimple) {
+    return (
+      <div
+        style={style}
+        className={`custom-input-wrapper${smaller ? " smaller" : ""}`}
+      >
+        {label && <div className="label">{snakeToCamel(label)}</div>}
+        <input
+          disabled={disabled}
+          id={Math.random().toString()}
+          value={value}
+          placeholder={!value ? "0x.." : undefined}
+          onChange={onChange}
+        />
+      </div>
+    )
+  }
   let inputValue = value
 
   const group = { input, disabled }
@@ -110,7 +107,8 @@ export const Input: FC<FullProps> = ({
                     >
                       <Polkicon copy address={entry_one as string} />
                     </div>
-                    <SimpleInput
+                    <Input
+                      isSimple
                       label={entry_zero}
                       value={entry_one}
                       {...group}
@@ -119,7 +117,8 @@ export const Input: FC<FullProps> = ({
                 )
               } else {
                 return (
-                  <SimpleInput
+                  <Input
+                    isSimple
                     label={entry_zero}
                     value={entry_one}
                     {...group}
@@ -138,7 +137,8 @@ export const Input: FC<FullProps> = ({
         <>
           <div className="multiple">
             {entries?.map((entry) => (
-              <SimpleInput
+              <Input
+                isSimple
                 label={snakeToCamel(entry[0])}
                 value={entry[1]}
                 {...group}
@@ -153,12 +153,13 @@ export const Input: FC<FullProps> = ({
       return (
         <div>
           <div className="multiple">
-            <SimpleInput
+            <Input
+              isSimple
               label={snakeToCamel(label)}
               value={inputValue}
               {...group}
             />
-            <SimpleInput label={"Length"} value={len} {...group} />
+            <Input isSimple label={"Length"} value={len} {...group} />
           </div>
           {ExtraInput(group)}
         </div>
@@ -186,7 +187,12 @@ export const Input: FC<FullProps> = ({
 
   return (
     <>
-      <SimpleInput label={snakeToCamel(label)} value={inputValue} {...group} />
+      <Input
+        isSimple
+        label={snakeToCamel(label)}
+        value={inputValue}
+        {...group}
+      />
       {ExtraInput(group)}
     </>
   )
