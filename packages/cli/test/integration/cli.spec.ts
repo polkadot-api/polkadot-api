@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest"
 import { runner } from "clet"
 import fsExists from "fs.promises.exists"
 import path from "path"
-import descriptorSchema from "../src/descriptor-schema"
+import descriptorSchema from "../../src/descriptor-schema"
 import {
   ConstantDescriptor,
   DescriptorCommon,
