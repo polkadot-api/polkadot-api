@@ -15,7 +15,8 @@
     "build": "tsc --noEmit && tsup-node src/main.ts --clean --out-dir bin --sourcemap --platform node --format esm",
     "start": "pnpm build && node --enable-source-maps bin/main.js",
     "start:interactive": "pnpm start -- -i",
-    "test:ci": "vitest",
+    "test": "vitest",
+    "test:ci": "vitest --mode CI",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
