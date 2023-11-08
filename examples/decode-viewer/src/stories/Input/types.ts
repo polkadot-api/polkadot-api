@@ -172,17 +172,3 @@ export type ComplexShape =
   | EnumShape
 
 export type Shape = { codec: PrimitiveDecoded["codec"] } | ComplexShape
-
-// export declare const DecodedViewer = React.FC<Decoded>
-
-// export declare const CallDecodedViewer = React.FC<{
-//   pallet: {
-//     value: { name: string; idx: number }
-//     input: HexString
-//   }
-//   call: {
-//     value: { name: string; idx: number }
-//     input: HexString
-//   }
-//   args: StructDecoded
-// }>
