@@ -2,26 +2,20 @@ import type {
   RawChain,
   LightClientProvider,
 } from "@polkadot-api/light-client-extension-helpers/web-page"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
+import { useIsMounted } from "./useIsMounted"
 
 export const useChains = (provider: LightClientProvider) => {
   const [chains, setChains] = useState<Record<string, RawChain>>({})
-  const isMounted = useRef(false)
-
-  useEffect(() => {
-    isMounted.current = true
-    return () => {
-      isMounted.current = false
-    }
-  }, [])
+  const isMounted = useIsMounted()
 
   useEffect(() => {
     ;(async () => {
       const chains = await provider.getChains()
-      if (!isMounted.current) return
+      if (!isMounted()) return
       setChains(chains)
     })()
-  }, [provider])
+  }, [provider, isMounted])
 
   useEffect(
     () => provider.addChainsChangeListener((chains) => setChains(chains)),
