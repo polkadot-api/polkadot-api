@@ -1,7 +1,7 @@
 import { chainSpec as polkadotChainSpec } from "./polkadot"
 import { chainSpec as kusamaChainSpec } from "./ksmcc3"
 import { chainSpec as westendChainSpec } from "./westend2"
-import { chainSpec as rococoChainSpec } from "./rococo_v2_2"
+// import { chainSpec as rococoChainSpec } from "./rococo_v2_2"
 
 export type WellKnownChainGenesisHash = keyof typeof wellKnownChainSpecs
 
@@ -12,6 +12,6 @@ export const wellKnownChainSpecs = {
     kusamaChainSpec,
   "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e":
     westendChainSpec,
-  "0x6408de7737c59c238890533af25896a2c20608d8b380bb01029acb392781063e":
-    rococoChainSpec,
+  // "0x6408de7737c59c238890533af25896a2c20608d8b380bb01029acb392781063e":
+  //   rococoChainSpec,
 }
