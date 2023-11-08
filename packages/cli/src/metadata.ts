@@ -1,67 +1,33 @@
 import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
-import { deferred } from "./deferred"
-import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
 import {
   metadata as $metadata,
   CodecType,
   OpaqueCodec,
 } from "@polkadot-api/substrate-bindings"
-import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
-import { Worker } from "node:worker_threads"
+import { getObservableClient } from "@polkadot-api/client"
+import { firstValueFrom, map, switchMap } from "rxjs"
+import { fromHex } from "@polkadot-api/utils"
+import { createProvider } from "./smolldot-worker"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
 async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
-  const provider: ConnectProvider = (onMsg) => {
-    let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
-      eval: true,
-      workerData: chain,
-      stderr: true,
-      stdout: true,
-    })
-    worker.on("message", onMsg)
+  const provider = createProvider(chain)
+  const { chainHead$, destroy } = getObservableClient(createClient(provider))
 
-    return {
-      send: (msg) => worker?.postMessage({ type: "send", value: msg }),
-      disconnect: () => {
-        if (!worker) return
+  const chainHead = chainHead$()
 
-        worker.postMessage({ type: "disconnect" })
-        worker.removeAllListeners()
-        worker.terminate()
-        worker = null
-      },
-    }
-  }
-
-  const { chainHead, destroy } = createClient(provider)
-
-  const blockHashDeferred = deferred<string>()
-  const chainHeadFollower = chainHead(
-    true,
-    (event) => {
-      switch (event.type) {
-        case "finalized":
-          blockHashDeferred.resolve(
-            event.finalizedBlockHashes[event.finalizedBlockHashes.length - 1],
-          )
-          break
-        default:
-          break
-      }
-    },
-    console.error,
+  const metadata = await firstValueFrom(
+    chainHead.finalized$.pipe(
+      switchMap((hash) => chainHead.call$(hash, "Metadata_metadata", "")),
+      map(fromHex),
+    ),
   )
 
-  const blockHash = await blockHashDeferred
-
-  const metadata = fromHex(
-    await chainHeadFollower.call(blockHash, "Metadata_metadata", ""),
-  )
-  chainHeadFollower.unfollow()
+  chainHead.unfollow()
   destroy()
 
   return metadata
