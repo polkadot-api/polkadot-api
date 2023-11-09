@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base",
+  "include": ["src"],
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}
