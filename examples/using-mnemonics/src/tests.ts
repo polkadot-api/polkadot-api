@@ -3,8 +3,7 @@ import { generateMnemonic } from "bip39"
 import { ed25519 } from "@noble/curves/ed25519"
 import { secp256k1 } from "@noble/curves/secp256k1"
 import sha256 from "sha256"
-// TODO: find alternative function.
-import { encodeAddress } from "@polkadot/util-crypto"
+import { AccountId } from "@polkadot-api/substrate-bindings"
 
 // Tests pertaining to deriving key pairs and ss58 formatted addresses from mnemonics.
 //
@@ -27,8 +26,7 @@ export async function run() {
       console.log("polkadot address: ", account.prefixedAddress(0))
 
       // get prefixed address
-      const ss58Prefix = 2
-      const kusamaAddress = account.prefixedAddress(ss58Prefix)
+      const kusamaAddress = account.prefixedAddress(2)
       console.log("kusama address: ", kusamaAddress)
     }
 
@@ -54,9 +52,11 @@ export async function run() {
       const pubKey = ed25519.getPublicKey(seed)
 
       // generate a westend address.
-      const ss58Prefix = 42
-      const address = encodeAddress(pubKey, ss58Prefix)
-      console.log("westend address: ", address)
+      const kusamaAddressDecoder = AccountId(2).dec
+      const address = kusamaAddressDecoder(pubKey)
+
+      // const address = encodeAddress(pubKey, ss58Prefix)
+      console.log("kusama address: ", address)
     }
 
     // ecdsa
@@ -73,10 +73,10 @@ export async function run() {
       // generate private key from mnemonic.
       const pubKey = secp256k1.getPublicKey(seed)
 
-      // generate a kusama address.
-      const ss58Prefix = 2
-      const address = encodeAddress(pubKey, ss58Prefix)
-      console.log("kusama address: ", address)
+      // generate a generic address.
+      const genericAddressDecoder = AccountId().dec
+      const address = genericAddressDecoder(pubKey)
+      console.log("generic address: ", address)
     }
 
     console.log("\nDone")
