@@ -1,7 +1,4 @@
-import { Worker } from "node:worker_threads"
-import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
-
-const PROVIDER_WORKER_CODE = `
+export const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
 const { ScProvider } = require("@polkadot-api/sc-provider")
 
@@ -26,35 +23,3 @@ parentPort.on("message", (msg) => {
   }
 })
 `
-
-const providers: Record<string, ConnectProvider> = {}
-
-export const createProvider = (chain: WellKnownChain): ConnectProvider => {
-  if (!providers[chain]) {
-    let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
-      eval: true,
-      workerData: chain,
-      stderr: true,
-      stdout: true,
-    })
-    providers[chain] = (onMsg) => {
-      if (worker) {
-        worker.on("message", onMsg)
-      }
-
-      return {
-        send: (msg) => worker?.postMessage({ type: "send", value: msg }),
-        disconnect: () => {
-          if (!worker) return
-
-          worker.postMessage({ type: "disconnect" })
-          worker.removeAllListeners()
-          worker.terminate()
-          worker = null
-        },
-      }
-    }
-  }
-
-  return providers[chain]
-}
