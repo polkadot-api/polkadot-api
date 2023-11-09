@@ -9,12 +9,15 @@ type Props = {
 export const Chain: FC<Props> = ({ chain }) => {
   const { finalized, blockHeight } = useChain(chain)
   return (
-    <article>
+    <article data-testid={`chain${chain.name}`}>
       <header>{chain.name}</header>
       {finalized && blockHeight ? (
         <>
           <div>
-            Latest Finalized Block <strong>{formatNumber(blockHeight)}</strong>
+            Latest Finalized Block{" "}
+            <strong data-testid={"blockHeight"} data-blockheight={blockHeight}>
+              {formatNumber(blockHeight)}
+            </strong>
           </div>
           <pre>{finalized}</pre>
         </>
