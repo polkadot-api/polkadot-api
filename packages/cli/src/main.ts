@@ -65,6 +65,8 @@ const descriptorMetadata = await readDescriptors({
   fileName: options.file,
 })
 
+let areThereDescriptorDependencies = false
+
 if (descriptorMetadata && !options.interactive) {
   for (const key of Object.keys(descriptorMetadata)) {
     const data = await Data.fromSavedDescriptors(descriptorMetadata[key])
@@ -75,14 +77,20 @@ if (descriptorMetadata && !options.interactive) {
       if (options.sync) {
         synchronizeDescriptors(data, discrepancies)
       } else if (discrepancies.length > 0) {
+        console.log(`-------- ${key} Discrepancies Start --------`)
         showDiscrepancies(discrepancies)
-        process.exit(1)
+        console.log(`-------- ${key} Discrepancies End --------`)
+        areThereDescriptorDependencies = true
       }
-      if (!options.interactive) {
+      if (!options.interactive && !areThereDescriptorDependencies) {
         await outputCodegen(data, data.outputFolder, key)
       }
     }
   }
+}
+
+if (areThereDescriptorDependencies) {
+  process.exit(1)
 }
 
 if (!options.interactive) {

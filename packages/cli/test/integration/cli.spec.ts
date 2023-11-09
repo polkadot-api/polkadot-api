@@ -24,7 +24,7 @@ type Descriptor =
 const cmd = "./bin/main.js"
 
 describe("cli", async () => {
-  describe("happy paths", async () => {
+  describe.concurrent("happy paths", async () => {
     const descriptorJSON = await descriptorSchema.parseAsync(
       JSON.parse(
         await fs.readFile("test/artifacts/test_descriptors.json", {
@@ -76,11 +76,19 @@ describe("cli", async () => {
         ),
     )
   })
-  describe("unhappy paths", () => {
+  describe("unhappy paths", async () => {
+    const descriptorJSON = await descriptorSchema.parseAsync(
+      JSON.parse(
+        await fs.readFile("test/artifacts/test_descriptors-altered.json", {
+          encoding: "utf-8",
+        }),
+      ),
+    )
+
     it.concurrent(
       "should crash if there are descriptor discrepancies",
       async () => {
-        await runner()
+        let testRunner = runner()
           .file("package.json", { bin: { "polkadot-api": cmd } })
           .spawn(
             cmd,
@@ -88,8 +96,22 @@ describe("cli", async () => {
             {},
           )
           .code(1)
-          .end()
+
+        const keys = Object.keys(descriptorJSON)
+        for (const key of keys) {
+          testRunner = testRunner
+            .stdout(new RegExp(descriptorStartPrompt(key)))
+            .stdout(new RegExp(descriptorEndPrompt(key)))
+        }
+
+        await testRunner.end()
       },
     )
   })
 })
+
+const descriptorStartPrompt = (key: string) =>
+  `-------- ${key} Discrepancies Start --------`
+
+const descriptorEndPrompt = (key: string) =>
+  `-------- ${key} Discrepancies End --------`
