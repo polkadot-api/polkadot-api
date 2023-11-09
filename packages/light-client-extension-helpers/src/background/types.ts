@@ -1,6 +1,6 @@
 import { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 
-export type BackgroundHelper = (
+export type AddOnAddChainByUserListener = (
   // A callback invoked when a dApp developer tries to add a new Chain.
   // The returned promise either rejects if the user denies or resolves if the user agrees.
   onAddChainByUser: (input: InputChain, tabId: number) => Promise<void>,

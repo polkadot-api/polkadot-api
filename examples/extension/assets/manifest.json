@@ -5,7 +5,8 @@
   "description": "Test Extension for @polkadot-api/light-client-extension-helpers",
   "permissions": ["storage", "alarms", "tabs", "unlimitedStorage"],
   "background": {
-    "service_worker": "js/background.global.js"
+    "service_worker": "js/background/background.mjs",
+    "type": "module"
   },
   "content_scripts": [
     {

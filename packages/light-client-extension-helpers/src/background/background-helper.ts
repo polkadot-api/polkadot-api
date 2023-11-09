@@ -2,258 +2,251 @@ import {
   type SubstrateClient,
   createClient,
 } from "@polkadot-api/substrate-client"
-import {
-  Tuple,
-  compact,
-  metadata as metadataCodec,
-} from "@polkadot-api/substrate-bindings"
-import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
-import type { AddChainOptions, Chain } from "smoldot"
-import type { BackgroundHelper, LightClientPageHelper } from "./types"
+import { getObservableClient } from "@polkadot-api/client"
+import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
+import type { AddChainOptions, Chain, Client } from "smoldot"
+import { Observable, firstValueFrom, retry } from "rxjs"
+import type {
+  AddOnAddChainByUserListener,
+  LightClientPageHelper,
+} from "./types"
 import { smoldotProvider } from "./smoldot-provider"
-import { smoldotClient } from "./smoldot-client"
 import type {
   BackgroundRequest,
   BackgroundResponse,
   BackgroundResponseError,
+  ToBackground,
+  ToContent,
   ToExtension,
   ToPage,
 } from "@/protocol"
-import { ALARM, CONTEXT, PORT, storage } from "@/shared"
+import { ALARM, CONTEXT, PORT, createIsHelperMessage, storage } from "@/shared"
+import {
+  type WellKnownChainGenesisHash,
+  wellKnownChainSpecs,
+} from "@/chain-specs"
 
 export * from "./types"
 
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name !== ALARM.DATABASE_UPDATE) return
-  const chains = await storage.getChains()
-  Object.values(chains).forEach(
-    async ({ genesisHash, chainSpec, relayChainGenesisHash }) => {
-      const client = createClient(
-        await smoldotProvider({
+let isRegistered = false
+
+export const register = (smoldotClient: Client) => {
+  if (isRegistered) throw new Error("helper already registered")
+  isRegistered = true
+
+  storage.getChains().then((chains) => {
+    Object.values(chains).forEach(
+      ({ chainSpec, genesisHash, relayChainGenesisHash }) =>
+        followChain({
           smoldotClient,
           chainSpec,
-          relayChainSpec: relayChainGenesisHash
-            ? chains[relayChainGenesisHash].chainSpec
-            : undefined,
-          databaseContent: await storage.get({
-            type: "databaseContent",
-            genesisHash,
-          }),
+          genesisHash,
+          relayChainGenesisHash,
         }),
-      )
-      const chainHeadFollower = client.chainHead(
-        true,
-        async (event) => {
-          if (event.type === "newBlock") {
-            chainHeadFollower.unpin([event.blockHash])
-            return
-          } else if (event.type !== "initialized") return
-          try {
-            await storage.set(
-              { type: "databaseContent", genesisHash },
-              await substrateClientRequest(
-                client,
-                "chainHead_unstable_finalizedDatabase",
-                (await chrome.permissions.contains({
-                  permissions: ["unlimitedStorage"],
-                }))
-                  ? []
-                  : // 1mb will strip the runtime code
-                    // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
-                    [1024 * 1024],
-              ),
-            )
-          } catch (error) {
-            console.error("Error updating DB", error)
-          }
-          chainHeadFollower.unfollow()
-          client.destroy()
-        },
-        (error) => {
-          console.error("Error updating DB", error)
-          chainHeadFollower.unfollow()
-          client.destroy()
-        },
-      )
-    },
-  )
-})
-
-chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-  if (
-    reason !== chrome.runtime.OnInstalledReason.INSTALL &&
-    reason !== chrome.runtime.OnInstalledReason.UPDATE
-  )
-    return
-
-  chrome.alarms.create(ALARM.DATABASE_UPDATE, {
-    periodInMinutes: 2,
+    )
   })
 
-  Promise.all([
-    lightClientPageHelper.persistChain(
-      (await import("./specs/polkadot")).chainSpec,
-    ),
-    lightClientPageHelper.persistChain(
-      (await import("./specs/ksmcc3")).chainSpec,
-    ),
-    lightClientPageHelper.persistChain(
-      (await import("./specs/rococo_v2_2")).chainSpec,
-    ),
-    lightClientPageHelper.persistChain(
-      (await import("./specs/westend2")).chainSpec,
-    ),
-  ])
-})
-
-export const lightClientPageHelper: LightClientPageHelper = {
-  async deleteChain(genesisHash) {
-    // TODO: check, Should it disconnect any activeChain?
-    // TODO: batch storage.remove
-    await Promise.all([
-      storage.remove({ type: "chain", genesisHash }),
-      storage.remove({ type: "bootNodes", genesisHash }),
-      storage.remove({ type: "databaseContent", genesisHash }),
-    ])
-    for (const {
-      genesisHash: parachainGenesisHash,
-      relayChainGenesisHash,
-    } of Object.values(await storage.getChains())) {
-      if (relayChainGenesisHash !== genesisHash) continue
-      await Promise.all([
-        storage.remove({ type: "chain", genesisHash: parachainGenesisHash }),
-        storage.remove({
-          type: "bootNodes",
-          genesisHash: parachainGenesisHash,
-        }),
-        storage.remove({
-          type: "databaseContent",
-          genesisHash: parachainGenesisHash,
-        }),
-      ])
+  storage.onChainsChanged((chains) => {
+    for (const [genesisHash] of followedChains) {
+      if (chains[genesisHash]) continue
+      unfollowChain(genesisHash)
     }
-  },
-  async persistChain(chainSpec, relayChainGenesisHash) {
-    const relayChainSpec = relayChainGenesisHash
-      ? (await storage.getChains())[relayChainGenesisHash].chainSpec
-      : undefined
-    const chainData = await getChainData(chainSpec, relayChainSpec)
+    Object.values(chains).forEach(
+      ({ genesisHash, chainSpec, relayChainGenesisHash }) => {
+        if (followedChains.has(genesisHash)) return
+        followChain({
+          smoldotClient,
+          chainSpec,
+          genesisHash,
+          relayChainGenesisHash,
+        })
+      },
+    )
+  })
+
+  chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name !== ALARM.DATABASE_UPDATE) return
+    Object.values(await storage.getChains()).forEach(
+      async ({ genesisHash, chainSpec, relayChainGenesisHash }) => {
+        try {
+          const finalizedDatabase = await getFinalizedDatabase({
+            smoldotClient,
+            chainSpec,
+            databaseContent: await storage.get({
+              type: "databaseContent",
+              genesisHash,
+            }),
+            relayChainGenesisHash,
+          })
+          await storage.set(
+            { type: "databaseContent", genesisHash },
+            finalizedDatabase,
+          )
+        } catch (error) {
+          console.error("Error updating DB", error)
+        }
+      },
+    )
+  })
+
+  chrome.runtime.onInstalled.addListener(({ reason }) => {
     if (
-      await storage.get({ type: "chain", genesisHash: chainData.genesisHash })
+      reason !== chrome.runtime.OnInstalledReason.INSTALL &&
+      reason !== chrome.runtime.OnInstalledReason.UPDATE
     )
       return
 
-    const chainSpecJson = JSON.parse(chainSpec)
-    const bootNodes = chainSpecJson.bootNodes
-    delete chainSpecJson.bootNodes
-    delete chainSpecJson.protocolId
-    delete chainSpecJson.telemetryEndpoints
+    chrome.alarms.create(ALARM.DATABASE_UPDATE, {
+      periodInMinutes: 2,
+    })
 
-    // FIXME: set stateRootHash if !chainSpecJson.genesis.stateRootHash
-    // Note: RPC chain_getHeader is legacy JSON-RPC API
-
-    // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
-
-    await Promise.all([
-      storage.set(
-        { type: "chain", genesisHash: chainData.genesisHash },
-        {
-          ...chainData,
-          ss58Format: await getSs58Format(chainSpec, relayChainSpec),
-          chainSpec: JSON.stringify(chainSpecJson),
-          relayChainGenesisHash,
-        },
-      ),
-      storage.set(
-        { type: "bootNodes", genesisHash: chainData.genesisHash },
-        bootNodes,
-      ),
-    ])
-  },
-  async getChains() {
-    const chains = await storage.getChains()
-    return Promise.all(
-      Object.entries(chains).map(async ([genesisHash, chain]) => ({
-        ...chain,
-        bootNodes:
-          (await storage.get({ type: "bootNodes", genesisHash })) ??
-          (JSON.parse(chain.chainSpec).bootNodes as string[]),
-        provider: await smoldotProvider({
-          smoldotClient,
-          chainSpec: chain.chainSpec,
-          relayChainSpec: chain.relayChainGenesisHash
-            ? chains[chain.relayChainGenesisHash].chainSpec
-            : undefined,
-        }),
-      })),
+    Object.values(wellKnownChainSpecs).forEach((chainSpec) =>
+      lightClientPageHelper.persistChain(chainSpec),
     )
-  },
-  async getActiveConnections() {
-    return Object.entries(activeChains).reduce(
-      (acc, [tabIdStr, tabChains]) => {
-        const tabId = parseInt(tabIdStr)
-        Object.values(tabChains).forEach(({ genesisHash }) =>
-          // TODO: Should options-tab/popup connections be filtered from activeConnectionså?
-          acc.push({ tabId, genesisHash }),
-        )
-        return acc
-      },
-      [] as { tabId: number; genesisHash: string }[],
-    )
-  },
-  async disconnect(tabId: number, genesisHash: string) {
-    Object.entries(activeChains[tabId] ?? {})
-      // TODO: Should options-tab/popup connections connections be disconnectable?
-      .filter(
-        ([_, { genesisHash: activeGenesisHash }]) =>
-          activeGenesisHash === genesisHash,
-      )
-      .forEach(([chainId]) => {
-        removeChain(tabId, chainId)
-        chrome.tabs.sendMessage(tabId, {
-          origin: "substrate-connect-extension",
-          type: "error",
-          chainId,
-          errorMessage: "Disconnected",
-        } as ToPage)
+  })
+
+  const lightClientPageHelper: LightClientPageHelper = {
+    async deleteChain(genesisHash) {
+      if (wellKnownChainSpecs[genesisHash as WellKnownChainGenesisHash])
+        throw new Error("Cannot delete well-known-chain")
+
+      await Promise.all([
+        storage.remove([
+          { type: "chain", genesisHash },
+          { type: "bootNodes", genesisHash },
+          { type: "databaseContent", genesisHash },
+        ]),
+        Object.keys(activeChains).map((tabId) =>
+          this.disconnect(+tabId, genesisHash),
+        ),
+      ])
+      for (const {
+        genesisHash: parachainGenesisHash,
+        relayChainGenesisHash,
+      } of Object.values(await storage.getChains())) {
+        if (relayChainGenesisHash !== genesisHash) continue
+        await this.deleteChain(parachainGenesisHash)
+      }
+    },
+    async persistChain(chainSpec, relayChainGenesisHash) {
+      const chainData = await getChainData({
+        smoldotClient,
+        chainSpec,
+        relayChainGenesisHash,
       })
-  },
-  setBootNodes(genesisHash, bootNodes) {
-    return storage.set({ type: "bootNodes", genesisHash }, bootNodes)
-  },
-}
+      if (
+        await storage.get({ type: "chain", genesisHash: chainData.genesisHash })
+      )
+        return
 
-let addChainByUserCallback: Parameters<BackgroundHelper>[0] | undefined =
-  undefined
+      const chainSpecJson = JSON.parse(chainSpec)
+      const bootNodes = chainSpecJson.bootNodes
+      let minimalChainSpec: string = ""
+      if (
+        !wellKnownChainSpecs[chainData.genesisHash as WellKnownChainGenesisHash]
+      ) {
+        delete chainSpecJson.bootNodes
+        delete chainSpecJson.protocolId
+        delete chainSpecJson.telemetryEndpoints
 
-export const backgroundHelper: BackgroundHelper = async (onAddChainByUser) => {
-  if (addChainByUserCallback)
-    throw new Error("addChainByUserCallback is already set")
-  addChainByUserCallback = onAddChainByUser
-}
+        if (!chainSpecJson.genesis.stateRootHash) {
+          chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot({
+            smoldotClient,
+            chainSpec,
+            relayChainGenesisHash,
+          })
+        }
 
-storage.onChainsChanged(async (chains) => {
-  ;(await chrome.tabs.query({ url: ["https://*/*", "http://*/*"] })).forEach(
-    ({ id }) =>
-      chrome.tabs.sendMessage(id!, {
-        origin: CONTEXT.CONTENT_SCRIPT,
-        type: "onAddChains",
-        chains,
-      } as ToPage),
-  )
-})
+        // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
 
-const postMessage = (port: chrome.runtime.Port, message: ToPage) =>
-  port.postMessage(message)
+        minimalChainSpec = JSON.stringify(chainSpecJson)
+      }
 
-// Chains by TabId
-const activeChains: Record<
-  number,
-  Record<string, { chain: Chain; genesisHash: string }>
-> = {}
+      await Promise.all([
+        storage.set(
+          { type: "chain", genesisHash: chainData.genesisHash },
+          {
+            ...chainData,
+            chainSpec: minimalChainSpec,
+            relayChainGenesisHash,
+          },
+        ),
+        storage.set(
+          { type: "bootNodes", genesisHash: chainData.genesisHash },
+          bootNodes,
+        ),
+      ])
+    },
+    async getChains() {
+      const chains = await storage.getChains()
+      return Promise.all(
+        Object.entries(chains).map(async ([genesisHash, chain]) => ({
+          ...chain,
+          bootNodes:
+            (await storage.get({ type: "bootNodes", genesisHash })) ??
+            (JSON.parse(chain.chainSpec).bootNodes as string[]),
+          provider: await smoldotProvider({
+            smoldotClient,
+            chainSpec: chain.chainSpec,
+            relayChainSpec: chain.relayChainGenesisHash
+              ? chains[chain.relayChainGenesisHash].chainSpec
+              : undefined,
+          }),
+        })),
+      )
+    },
+    async getActiveConnections() {
+      return Object.entries(activeChains).reduce(
+        (acc, [tabIdStr, tabChains]) => {
+          const tabId = parseInt(tabIdStr)
+          Object.values(tabChains).forEach(({ genesisHash }) =>
+            acc.push({ tabId, genesisHash }),
+          )
+          return acc
+        },
+        [] as { tabId: number; genesisHash: string }[],
+      )
+    },
+    async disconnect(tabId: number, genesisHash: string) {
+      Object.entries(activeChains[tabId] ?? {})
+        .filter(
+          ([_, { genesisHash: activeGenesisHash }]) =>
+            activeGenesisHash === genesisHash,
+        )
+        .forEach(([chainId]) => {
+          removeChain(tabId, chainId)
+          chrome.tabs.sendMessage(tabId, {
+            origin: "substrate-connect-extension",
+            type: "error",
+            chainId,
+            errorMessage: "Disconnected",
+          } as ToPage)
+        })
+    },
+    setBootNodes(genesisHash, bootNodes) {
+      return storage.set({ type: "bootNodes", genesisHash }, bootNodes)
+    },
+  }
 
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === PORT.CONTENT_SCRIPT || port.name === PORT.EXTENSION_PAGE) {
+  // Chains by TabId
+  const activeChains: Record<
+    number,
+    Record<string, { chain: Chain; genesisHash: string }>
+  > = {}
+  const isSubstrateConnectOrContentMessage = createIsHelperMessage<
+    | (ToExtension & {
+        origin: "substrate-connect-client"
+      })
+    | ToBackground
+  >(["substrate-connect-client", CONTEXT.CONTENT_SCRIPT])
+  const helperPortNames: string[] = [PORT.CONTENT_SCRIPT, PORT.EXTENSION_PAGE]
+  chrome.runtime.onConnect.addListener((port) => {
+    if (!helperPortNames.includes(port.name)) return
+
+    const postMessage = (
+      message: (ToPage & { origin: "substrate-connect-extension" }) | ToContent,
+    ) => port.postMessage(message)
+
     let isPortDisconnected = false
     port.onDisconnect.addListener((port) => {
       isPortDisconnected = true
@@ -270,199 +263,217 @@ chrome.runtime.onConnect.addListener((port) => {
       }
       delete activeChains[tabId]
     })
+
     const pendingAddChains: Record<string, boolean> = {}
-    port.onMessage.addListener(
-      async (
-        // FIXME: use @substrate/connect types
-        msg: ToExtension & { origin: "substrate-connect-client" },
-        port,
-      ) => {
-        const tabId = port.sender?.tab?.id
-        if (!tabId) return
-        switch (msg.type) {
-          case "add-well-known-chain":
-          case "add-chain": {
-            const tabId = port.sender?.tab?.id!
-            if (!tabId) return
-            activeChains[tabId] ??= {}
-            try {
-              if (
-                activeChains[tabId][msg.chainId] ||
-                pendingAddChains[msg.chainId]
-              )
-                throw new Error("Requested chainId already in use")
+    port.onMessage.addListener(async (msg, port) => {
+      const tabId = port.sender?.tab?.id
+      if (!tabId) return
+      if (!isSubstrateConnectOrContentMessage(msg)) return
+      switch (msg.type) {
+        case "keep-alive": {
+          return postMessage({
+            origin: CONTEXT.BACKGROUND,
+            type: "keep-alive-ack",
+          })
+        }
+        case "add-well-known-chain":
+        case "add-chain": {
+          const tabId = port.sender?.tab?.id!
+          if (!tabId) return
+          activeChains[tabId] ??= {}
+          try {
+            if (
+              activeChains[tabId][msg.chainId] ||
+              pendingAddChains[msg.chainId]
+            )
+              throw new Error("Requested chainId already in use")
 
-              pendingAddChains[msg.chainId] = true
-              const chains = await storage.getChains()
+            pendingAddChains[msg.chainId] = true
+            const chains = await storage.getChains()
 
-              let addChainOptions: AddChainOptions
-              if (msg.type === "add-well-known-chain") {
-                const chain =
-                  Object.values(chains).find(
-                    (chain) => chain.genesisHash === msg.chainName,
-                  ) ??
-                  Object.values(chains).find(
-                    (chain) => chain.name === msg.chainName,
-                  )
-                if (!chain) throw new Error("Unknown well-known chain")
-                addChainOptions = {
-                  chainSpec: chain.chainSpec,
-                  disableJsonRpc: false,
-                  potentialRelayChains: chain.relayChainGenesisHash
-                    ? [
-                        await smoldotClient.addChain({
-                          chainSpec:
-                            chains[chain.relayChainGenesisHash].chainSpec,
-                          disableJsonRpc: true,
-                          databaseContent: await storage.get({
-                            type: "databaseContent",
-                            genesisHash: chain.relayChainGenesisHash,
-                          }),
+            let addChainOptions: AddChainOptions
+            if (msg.type === "add-well-known-chain") {
+              const chain =
+                Object.values(chains).find(
+                  (chain) => chain.genesisHash === msg.chainName,
+                ) ??
+                Object.values(chains).find(
+                  (chain) => chain.name === msg.chainName,
+                )
+              if (!chain) throw new Error("Unknown well-known chain")
+              addChainOptions = {
+                chainSpec: chain.chainSpec,
+                disableJsonRpc: false,
+                potentialRelayChains: chain.relayChainGenesisHash
+                  ? [
+                      await smoldotClient.addChain({
+                        chainSpec:
+                          chains[chain.relayChainGenesisHash].chainSpec,
+                        disableJsonRpc: true,
+                        databaseContent: await storage.get({
+                          type: "databaseContent",
+                          genesisHash: chain.relayChainGenesisHash,
                         }),
-                      ]
-                    : [],
-                  databaseContent: await storage.get({
-                    type: "databaseContent",
-                    genesisHash: chain.genesisHash,
-                  }),
-                }
-              } else {
-                const relayChainGenesisHashOrChainId =
-                  msg.potentialRelayChainIds[0]
-                addChainOptions = {
-                  chainSpec: msg.chainSpec,
-                  disableJsonRpc: false,
-                  potentialRelayChains: chains[relayChainGenesisHashOrChainId]
-                    ? [
-                        await smoldotClient.addChain({
-                          chainSpec:
-                            chains[relayChainGenesisHashOrChainId].chainSpec,
-                          disableJsonRpc: true,
-                          databaseContent: await storage.get({
-                            type: "databaseContent",
-                            genesisHash: relayChainGenesisHashOrChainId,
-                          }),
+                      }),
+                    ]
+                  : [],
+                databaseContent: await storage.get({
+                  type: "databaseContent",
+                  genesisHash: chain.genesisHash,
+                }),
+              }
+            } else {
+              const relayChainGenesisHashOrChainId =
+                msg.potentialRelayChainIds[0]
+              addChainOptions = {
+                chainSpec: msg.chainSpec,
+                disableJsonRpc: false,
+                potentialRelayChains: chains[relayChainGenesisHashOrChainId]
+                  ? [
+                      await smoldotClient.addChain({
+                        chainSpec:
+                          chains[relayChainGenesisHashOrChainId].chainSpec,
+                        disableJsonRpc: true,
+                        databaseContent: await storage.get({
+                          type: "databaseContent",
+                          genesisHash: relayChainGenesisHashOrChainId,
                         }),
-                      ]
-                    : msg.potentialRelayChainIds
-                        .filter((chainId) => activeChains[tabId][chainId])
-                        .map((chainId) => activeChains[tabId][chainId].chain),
-                }
+                      }),
+                    ]
+                  : msg.potentialRelayChainIds
+                      .filter((chainId) => activeChains[tabId][chainId])
+                      .map((chainId) => activeChains[tabId][chainId].chain),
               }
-
-              const smoldotChain = await smoldotClient.addChain(addChainOptions)
-              const genesisHash = await getGenesisHash(smoldotChain)
-
-              ;(async () => {
-                while (true) {
-                  let jsonRpcMessage: string | undefined
-                  try {
-                    jsonRpcMessage = await smoldotChain.nextJsonRpcResponse()
-                  } catch (_) {
-                    break
-                  }
-
-                  if (isPortDisconnected) break
-
-                  // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
-                  // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
-                  // this code is never reachable if `jsonRpcCallback` is undefined.
-                  try {
-                    postMessage(port, {
-                      origin: "substrate-connect-extension",
-                      type: "rpc",
-                      chainId: msg.chainId,
-                      jsonRpcMessage,
-                    })
-                  } catch (error) {
-                    console.error(
-                      "JSON-RPC callback has thrown an exception:",
-                      error,
-                    )
-                  }
-                }
-              })()
-
-              if (!pendingAddChains[msg.chainId]) {
-                smoldotChain.remove()
-                return
-              }
-              delete pendingAddChains[msg.chainId]
-
-              activeChains[tabId][msg.chainId] = {
-                chain: smoldotChain,
-                genesisHash,
-              }
-
-              postMessage(port, {
-                origin: "substrate-connect-extension",
-                type: "chain-ready",
-                chainId: msg.chainId,
-              })
-            } catch (error) {
-              delete pendingAddChains[msg.chainId]
-              postMessage(port, {
-                origin: "substrate-connect-extension",
-                type: "error",
-                chainId: msg.chainId,
-                errorMessage:
-                  error instanceof Error
-                    ? error.toString()
-                    : "Unknown error when adding chain",
-              })
             }
 
-            break
-          }
-          case "remove-chain": {
-            const tabId = port.sender?.tab?.id!
-            if (!tabId) return
+            const [smoldotChain, { genesisHash }] = await Promise.all([
+              smoldotClient.addChain(addChainOptions),
+              getChainData({ smoldotClient, addChainOptions }),
+              awaitFinalized({ smoldotClient, addChainOptions }),
+            ])
 
+            ;(async () => {
+              while (true) {
+                let jsonRpcMessage: string | undefined
+                try {
+                  jsonRpcMessage = await smoldotChain.nextJsonRpcResponse()
+                } catch (_) {
+                  break
+                }
+
+                if (isPortDisconnected) break
+
+                // `nextJsonRpcResponse` throws an exception if we pass `disableJsonRpc: true` in the
+                // config. We pass `disableJsonRpc: true` if `jsonRpcCallback` is undefined. Therefore,
+                // this code is never reachable if `jsonRpcCallback` is undefined.
+                try {
+                  postMessage({
+                    origin: "substrate-connect-extension",
+                    type: "rpc",
+                    chainId: msg.chainId,
+                    jsonRpcMessage,
+                  })
+                } catch (error) {
+                  console.error(
+                    "JSON-RPC callback has thrown an exception:",
+                    error,
+                  )
+                }
+              }
+            })()
+
+            if (!pendingAddChains[msg.chainId]) {
+              smoldotChain.remove()
+              return
+            }
             delete pendingAddChains[msg.chainId]
 
-            removeChain(tabId, msg.chainId)
-
-            break
-          }
-          case "rpc": {
-            const tabId = port.sender?.tab?.id
-            if (!tabId) return
-
-            const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
-            if (!chain) return
-
-            try {
-              chain.sendJsonRpc(msg.jsonRpcMessage)
-            } catch (error) {
-              removeChain(tabId, msg.chainId)
-              postMessage(port, {
-                origin: "substrate-connect-extension",
-                type: "error",
-                chainId: msg.chainId,
-                errorMessage:
-                  error instanceof Error
-                    ? error.toString()
-                    : "Unknown error when sending RPC message",
-              })
+            activeChains[tabId][msg.chainId] = {
+              chain: smoldotChain,
+              genesisHash,
             }
 
-            break
+            postMessage({
+              origin: "substrate-connect-extension",
+              type: "chain-ready",
+              chainId: msg.chainId,
+            })
+          } catch (error) {
+            delete pendingAddChains[msg.chainId]
+            postMessage({
+              origin: "substrate-connect-extension",
+              type: "error",
+              chainId: msg.chainId,
+              errorMessage:
+                error instanceof Error
+                  ? error.toString()
+                  : "Unknown error when adding chain",
+            })
           }
 
-          default: {
-            const unrecognizedMsg: never = msg
-            console.warn("Unrecognized message", unrecognizedMsg)
-            break
-          }
+          break
         }
-      },
-    )
-  }
-})
+        case "remove-chain": {
+          const tabId = port.sender?.tab?.id!
+          if (!tabId) return
 
-chrome.runtime.onMessage.addListener(
-  (msg: BackgroundRequest, sender, sendResponse) => {
-    // FIXME: check msg.origin to any BackgroundRequest
+          delete pendingAddChains[msg.chainId]
+
+          removeChain(tabId, msg.chainId)
+
+          break
+        }
+        case "rpc": {
+          const tabId = port.sender?.tab?.id
+          if (!tabId) return
+
+          const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
+          if (!chain) return
+
+          try {
+            chain.sendJsonRpc(msg.jsonRpcMessage)
+          } catch (error) {
+            removeChain(tabId, msg.chainId)
+            postMessage({
+              origin: "substrate-connect-extension",
+              type: "error",
+              chainId: msg.chainId,
+              errorMessage:
+                error instanceof Error
+                  ? error.toString()
+                  : "Unknown error when sending RPC message",
+            })
+          }
+
+          break
+        }
+        default: {
+          const unrecognizedMsg: never = msg
+          console.warn("Unrecognized message", unrecognizedMsg)
+          break
+        }
+      }
+    })
+  })
+
+  let addChainByUserListener:
+    | Parameters<AddOnAddChainByUserListener>[0]
+    | undefined = undefined
+
+  const addOnAddChainByUserListener: AddOnAddChainByUserListener = async (
+    onAddChainByUser,
+  ) => {
+    if (addChainByUserListener)
+      throw new Error("addChainByUserCallback is already set")
+    addChainByUserListener = onAddChainByUser
+  }
+
+  const isHelperMessage = createIsHelperMessage<BackgroundRequest>([
+    CONTEXT.CONTENT_SCRIPT,
+    CONTEXT.EXTENSION_PAGE,
+  ])
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (!isHelperMessage(msg)) return
     switch (msg.type) {
       case "getChain": {
         ;(async () => {
@@ -475,15 +486,15 @@ chrome.runtime.onMessage.addListener(
               throw new Error(
                 `Unknown relayChainGenesisHash ${relayChainGenesisHash}`,
               )
-            const { genesisHash, name } = await getChainData(
+            const { genesisHash, name } = await getChainData({
+              smoldotClient,
               chainSpec,
-              relayChainGenesisHash
-                ? chains[relayChainGenesisHash].chainSpec
-                : undefined,
-            )
+              relayChainGenesisHash,
+            })
 
             if (chains[genesisHash]) {
               return sendBackgroundResponse(sendResponse, {
+                origin: CONTEXT.BACKGROUND,
                 type: "getChainResponse",
                 chain: chains[genesisHash],
               })
@@ -496,9 +507,10 @@ chrome.runtime.onMessage.addListener(
               relayChainGenesisHash,
             }
 
-            await addChainByUserCallback?.(chain, tabId)
+            await addChainByUserListener?.(chain, tabId)
 
             sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
               type: "getChainResponse",
               chain,
             })
@@ -514,6 +526,7 @@ chrome.runtime.onMessage.addListener(
           .deleteChain(msg.genesisHash)
           .then(() =>
             sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
               type: "deleteChainResponse",
             }),
           )
@@ -525,6 +538,7 @@ chrome.runtime.onMessage.addListener(
           .persistChain(msg.chainSpec, msg.relayChainGenesisHash)
           .then(() =>
             sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
               type: "persistChainResponse",
             }),
           )
@@ -536,6 +550,7 @@ chrome.runtime.onMessage.addListener(
           .getChains()
           .then((chains) => {
             sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
               type: "getChainsResponse",
               chains,
             })
@@ -548,6 +563,7 @@ chrome.runtime.onMessage.addListener(
           .getActiveConnections()
           .then((connections) =>
             sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
               type: "getActiveConnectionsResponse",
               connections,
             }),
@@ -556,29 +572,23 @@ chrome.runtime.onMessage.addListener(
         return true
       }
       case "disconnect": {
-        Object.entries(activeChains[msg.tabId] ?? {})
-          // TODO: Should options-tab/popup connections connections be disconnectable?
-          .filter(([_, { genesisHash }]) => genesisHash === msg.genesisHash)
-          .forEach(([chainId]) => {
-            removeChain(msg.tabId, chainId)
-            chrome.tabs.sendMessage(msg.tabId, {
-              origin: "substrate-connect-extension",
-              type: "error",
-              chainId,
-              errorMessage: "Disconnected",
-            } as ToPage)
-          })
-        // TODO: this might not be needed
-        sendBackgroundResponse(sendResponse, {
-          type: "disconnectResponse",
-        })
-        break
+        lightClientPageHelper
+          .disconnect(msg.tabId, msg.genesisHash)
+          .then(() =>
+            sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
+              type: "disconnectResponse",
+            }),
+          )
+          .catch(handleBackgroundErrorResponse(sendResponse))
+        return true
       }
       case "setBootNodes": {
         lightClientPageHelper
           .setBootNodes(msg.genesisHash, msg.bootNodes)
           .then(() =>
             sendBackgroundResponse(sendResponse, {
+              origin: CONTEXT.BACKGROUND,
               type: "setBootNodesResponse",
             }),
           )
@@ -592,24 +602,64 @@ chrome.runtime.onMessage.addListener(
       }
     }
     return
-  },
-)
+  })
 
-const removeChain = (tabId: number, chainId: string) => {
-  const chain = activeChains?.[tabId]?.[chainId]?.chain
-  delete activeChains?.[tabId]?.[chainId]
-  try {
-    chain?.remove()
-  } catch (error) {
-    console.error("error removing chain", error)
+  const removeChain = (tabId: number, chainId: string) => {
+    const chain = activeChains?.[tabId]?.[chainId]?.chain
+    delete activeChains?.[tabId]?.[chainId]
+    try {
+      chain?.remove()
+    } catch (error) {
+      console.error("error removing chain", error)
+    }
   }
+
+  return { lightClientPageHelper, addOnAddChainByUserListener }
 }
 
+storage.onChainsChanged(async (chains) => {
+  ;(await chrome.tabs.query({ url: ["https://*/*", "http://*/*"] })).forEach(
+    ({ id }) =>
+      chrome.tabs.sendMessage(id!, {
+        origin: CONTEXT.BACKGROUND,
+        type: "onAddChains",
+        chains,
+      } as ToPage),
+  )
+})
+
 const withClient =
-  <T>(fn: (client: SubstrateClient) => T | PromiseLike<T>) =>
-  async (chainSpec: string, relayChainSpec?: string) => {
+  <T>(fn: (client: SubstrateClient) => T | Promise<T>) =>
+  async (
+    options:
+      | { smoldotClient: Client; addChainOptions: AddChainOptions }
+      | {
+          smoldotClient: Client
+          chainSpec: string
+          databaseContent?: string
+          relayChainGenesisHash?: string
+        },
+  ) => {
     const client = createClient(
-      await smoldotProvider({ smoldotClient, chainSpec, relayChainSpec }),
+      await smoldotProvider(
+        "addChainOptions" in options
+          ? options
+          : {
+              smoldotClient: options.smoldotClient,
+              chainSpec: options.chainSpec,
+              databaseContent: options.databaseContent,
+              relayChainSpec: options.relayChainGenesisHash
+                ? (await storage.getChains())[options.relayChainGenesisHash]
+                    .chainSpec
+                : undefined,
+              relayChainDatabaseContent: options.relayChainGenesisHash
+                ? await storage.get({
+                    type: "databaseContent",
+                    genesisHash: options.relayChainGenesisHash,
+                  })
+                : undefined,
+            },
+      ),
     )
     try {
       return await fn(client)
@@ -618,70 +668,74 @@ const withClient =
     }
   }
 
+const withClientChainHead$ = <T>(
+  fn: (
+    chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+    client: SubstrateClient,
+  ) => T | Promise<T>,
+) =>
+  withClient(async (client) => {
+    const chainHead = getObservableClient(client).chainHead$()
+    try {
+      return await fn(chainHead, client)
+    } finally {
+      chainHead.unfollow()
+    }
+  })
+
 const getChainData = withClient(async (client) => {
-  const [genesisHash, name] = await Promise.all(
-    ["chainSpec_v1_genesisHash", "chainSpec_v1_chainName"].map((method) =>
-      substrateClientRequest<string>(client, method),
-    ),
-  )
+  const [genesisHash, name, { ss58Format }] = (await Promise.all(
+    [
+      "chainSpec_v1_genesisHash",
+      "chainSpec_v1_chainName",
+      "chainSpec_v1_properties",
+    ].map((method) => substrateClientRequest(client, method)),
+  )) as [string, string, { ss58Format: number }]
   return {
     genesisHash,
     name,
+    ss58Format,
   }
 })
 
-const getSs58Format = withClient(
-  (client) =>
-    new Promise<number>(async (resolve, reject) => {
-      const chainHeadFollower = client.chainHead(
-        true,
-        async (event) => {
-          try {
-            if (event.type === "newBlock") {
-              chainHeadFollower.unpin([event.blockHash])
-              return
-            }
-            if (event.type !== "initialized") return
-            const [, { metadata }] = Tuple(compact, metadataCodec).dec(
-              await chainHeadFollower.call(
-                event.finalizedBlockHash,
-                "Metadata_metadata",
-                "",
-              ),
-            )
-            if (metadata.tag !== "v14")
-              throw new Error("Wrong metadata version")
-            const prefix = metadata.value.pallets
-              .find((x) => x.name === "System")
-              ?.constants.find((x) => x.name === "SS58Prefix")
-            chainHeadFollower.unfollow()
-            if (!prefix) throw new Error("unable to get SS58Prefix")
-            resolve(
-              getDynamicBuilder(metadata.value)
-                .buildConstant("System", "SS58Prefix")
-                .dec(prefix.value),
-            )
-          } catch (error) {
-            reject(error)
-          }
-        },
-        reject,
-      )
-    }),
+// TODO: update this implementation when these issues are implemented
+// https://github.com/paritytech/json-rpc-interface-spec/issues/110
+// https://github.com/smol-dot/smoldot/issues/1186
+const getGenesisStateRoot = withClientChainHead$(
+  async ({ runtime$ }, client) => {
+    await firstValueFrom(runtime$)
+    const genesisHash = await substrateClientRequest<string>(
+      client,
+      "chainSpec_v1_genesisHash",
+    )
+    const { stateRoot } = await substrateClientRequest<{
+      stateRoot: string
+    }>(client, "chain_getHeader", [genesisHash])
+    return stateRoot
+  },
 )
 
-// FIXME: merge with getChainData
-const getGenesisHash = async (smoldotChain: Chain): Promise<string> => {
-  smoldotChain.sendJsonRpc(
-    JSON.stringify({
-      jsonrpc: "2.0",
-      id: "chainSpec_v1_genesisHash",
-      method: "chainSpec_v1_genesisHash",
-      params: [],
-    }),
-  )
-  return JSON.parse(await smoldotChain.nextJsonRpcResponse()).result
-}
+const getFinalizedDatabase = withClientChainHead$(
+  async ({ runtime$ }, client) => {
+    await firstValueFrom(runtime$)
+    const finalizedDatabase = await substrateClientRequest<string>(
+      client,
+      "chainHead_unstable_finalizedDatabase",
+      (await chrome.permissions.contains({
+        permissions: ["unlimitedStorage"],
+      }))
+        ? []
+        : // 1mb will strip the runtime code
+          // See https://github.com/smol-dot/smoldot/blob/0a9e9cd802169bc07dd681e55278fd67c6f8f9bc/light-base/src/database.rs#L134-L140
+          [1024 * 1024],
+    )
+    return finalizedDatabase
+  },
+)
+
+const awaitFinalized = withClientChainHead$(({ finalized$ }) =>
+  firstValueFrom(finalized$),
+)
 
 const sendBackgroundResponse = <
   T extends BackgroundResponse | BackgroundResponseError,
@@ -695,6 +749,7 @@ const sendBackgroundErrorResponse = (
   error: Error | string | unknown,
 ) =>
   sendBackgroundResponse(sendResponse, {
+    origin: CONTEXT.BACKGROUND,
     type: "error",
     error:
       error instanceof Error
@@ -715,17 +770,88 @@ const substrateClientRequest = <T>(
 ) =>
   new Promise<T>((resolve, reject) => {
     try {
-      const unsub = client._request(method, params, {
-        onSuccess(result: any) {
-          unsub()
-          resolve(result)
-        },
-        onError(error: any) {
-          unsub()
-          reject(error)
-        },
+      client._request(method, params, {
+        onSuccess: resolve,
+        onError: reject,
       })
     } catch (error) {
       reject(error)
     }
   })
+
+const followedChains = new Map<string, () => void>()
+const followChain = ({
+  smoldotClient,
+  chainSpec,
+  genesisHash,
+  relayChainGenesisHash,
+}: {
+  smoldotClient: Client
+  chainSpec: string
+  genesisHash: string
+  relayChainGenesisHash?: string
+}) => {
+  const subscription = new Observable<boolean>((observer) => {
+    observer.next(false)
+    const client = getObservableClient(
+      createClient(
+        getSyncProvider(
+          async () =>
+            await smoldotProvider({
+              smoldotClient,
+              chainSpec,
+              relayChainSpec: relayChainGenesisHash
+                ? (await storage.getChains())[relayChainGenesisHash].chainSpec
+                : undefined,
+              databaseContent: await storage.get({
+                type: "databaseContent",
+                genesisHash,
+              }),
+              relayChainDatabaseContent: relayChainGenesisHash
+                ? await storage.get({
+                    type: "databaseContent",
+                    genesisHash: relayChainGenesisHash,
+                  })
+                : undefined,
+            }),
+        ),
+      ),
+    )
+    const chainHead = client.chainHead$()
+    let unfollow = chainHead.unfollow
+    chainHead.finalized$
+      .pipe(
+        retry({
+          count: 3,
+          resetOnSuccess: true,
+          delay() {
+            observer.next(false)
+            unfollow()
+            const chainHead = client.chainHead$()
+            unfollow = chainHead.unfollow
+            return chainHead.finalized$
+          },
+        }),
+      )
+      .subscribe({
+        next() {
+          observer.next(true)
+        },
+        error: observer.error,
+        complete: observer.complete,
+      })
+
+    return () => {
+      unfollow()
+      client.destroy()
+    }
+  }).subscribe()
+  followedChains.set(genesisHash, () => {
+    followedChains.delete(genesisHash)
+    subscription.unsubscribe()
+  })
+}
+
+const unfollowChain = (genesisHash: string) => {
+  followedChains.get(genesisHash)?.()
+}
