@@ -1,3 +1,5 @@
+import { WellKnownChainGenesisHash, wellKnownChainSpecs } from "@/chain-specs"
+
 type StorageConfig = {
   chain: [entry: { type: "chain"; genesisHash: string }, value: ChainInfo]
   bootNodes: [
@@ -40,8 +42,12 @@ export const get = async <E extends StorageEntry>(
 export const set = <E extends StorageEntry>(entry: E, value: StorageValue<E>) =>
   chrome.storage.local.set({ [keyOf(entry)]: value })
 
-export const remove = (entry: StorageEntry) =>
-  chrome.storage.local.remove(keyOf(entry))
+export const remove = (entryOrEntries: StorageEntry | StorageEntry[]) =>
+  chrome.storage.local.remove(
+    Array.isArray(entryOrEntries)
+      ? entryOrEntries.map(keyOf)
+      : keyOf(entryOrEntries),
+  )
 
 export const onChainsChanged = (
   callback: (chains: Record<string, ChainInfo>) => void,
@@ -64,7 +70,11 @@ export const getChains = async (): Promise<Record<string, ChainInfo>> =>
           entry[0].startsWith("chain_"),
         )
         .map(async ([_, { chainSpec, ...chain }]) => {
-          const chainSpecJson = JSON.parse(chainSpec)
+          const chainSpecJson = JSON.parse(
+            wellKnownChainSpecs[
+              chain.genesisHash as WellKnownChainGenesisHash
+            ] ?? chainSpec,
+          )
           chainSpecJson.bootNodes = await get({
             type: "bootNodes",
             genesisHash: chain.genesisHash,

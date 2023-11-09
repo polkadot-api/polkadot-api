@@ -1,10 +1,11 @@
-import {
-  backgroundHelper,
-  lightClientPageHelper,
-} from "@polkadot-api/light-client-extension-helpers/background"
+import { register } from "@polkadot-api/light-client-extension-helpers/background"
 import type { ToContent } from "./protocol"
+import { smoldotClient } from "./background-smoldot.code-split"
 
-backgroundHelper(async (inputChain, tabId) => {
+const { lightClientPageHelper, addOnAddChainByUserListener } =
+  register(smoldotClient)
+
+addOnAddChainByUserListener(async (inputChain, tabId) => {
   if (
     !(await chrome.tabs.sendMessage(tabId, {
       origin: "my-extension-background",

@@ -1,32 +1,39 @@
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
-import type { Client } from "smoldot"
+import type { AddChainOptions, Client } from "smoldot"
 
-type SmoldotProviderOptions = {
-  smoldotClient: Client
-  chainSpec: string
-  relayChainSpec?: string
-  databaseContent?: string
-}
+type SmoldotProviderOptions =
+  | { smoldotClient: Client; addChainOptions: AddChainOptions }
+  | {
+      smoldotClient: Client
+      chainSpec: string
+      relayChainSpec?: string
+      databaseContent?: string
+      relayChainDatabaseContent?: string
+    }
+
 // TODO: check if this needs to use getSyncProvider
 export const smoldotProvider = async ({
   smoldotClient,
-  chainSpec,
-  relayChainSpec,
-  databaseContent,
+  ...options
 }: SmoldotProviderOptions): Promise<ConnectProvider> => {
-  const chain = await smoldotClient.addChain({
-    chainSpec,
-    disableJsonRpc: false,
-    potentialRelayChains: relayChainSpec
-      ? [
-          await smoldotClient.addChain({
-            chainSpec: relayChainSpec,
-            disableJsonRpc: true,
-          }),
-        ]
-      : [],
-    databaseContent,
-  })
+  const chain = await smoldotClient.addChain(
+    "addChainOptions" in options
+      ? options.addChainOptions
+      : {
+          chainSpec: options.chainSpec,
+          disableJsonRpc: false,
+          potentialRelayChains: options.relayChainSpec
+            ? [
+                await smoldotClient.addChain({
+                  chainSpec: options.relayChainSpec,
+                  disableJsonRpc: true,
+                  databaseContent: options.relayChainDatabaseContent,
+                }),
+              ]
+            : [],
+          databaseContent: options.databaseContent,
+        },
+  )
   return (onMessage) => {
     let initialized = false
     return {
