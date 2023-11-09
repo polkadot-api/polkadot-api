@@ -149,6 +149,9 @@ importers:
       '@inquirer/prompts':
         specifier: ^3.0.2
         version: 3.1.1
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../client
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
