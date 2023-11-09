@@ -316,7 +316,7 @@ while (!exit) {
         const fileName = await input({
           message: "descriptor json file name",
           validate: (value) =>
-            value !== outputFolder ||
+            (!!value && value !== outputFolder) ||
             "descriptor json file name cannot be equal to codegen output directory",
         })
 
