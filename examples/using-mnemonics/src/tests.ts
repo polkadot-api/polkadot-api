@@ -25,9 +25,12 @@ export async function run() {
       const account = Sr25519Account.fromUri(mnemonic)
       console.log("polkadot address: ", account.prefixedAddress(0))
 
-      // get prefixed address
       const kusamaAddress = account.prefixedAddress(2)
       console.log("kusama address: ", kusamaAddress)
+
+      // derive account with `//Polkadot` derivation path
+      const derived = Sr25519Account.fromUri(`${mnemonic}//Polkadot`)
+      console.log("derived polkadot address:", derived.prefixedAddress(0))
     }
 
     // ed25519
@@ -57,6 +60,12 @@ export async function run() {
 
       // const address = encodeAddress(pubKey, ss58Prefix)
       console.log("kusama address: ", address)
+
+      // derive account with `//Polkadot` derivation path
+      const derivedSeed = sha256(`${mnemonic}//Polkadot`)
+      const derivedPubKey = ed25519.getPublicKey(derivedSeed)
+      const derivedAddress = kusamaAddressDecoder(derivedPubKey)
+      console.log("derived kusama address:", derivedAddress)
     }
 
     // ecdsa
