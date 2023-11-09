@@ -159,8 +159,8 @@ jobs:
       - name: Run Playwright tests
         run: pnpm exec playwright test --project=chromium
         working-directory: ./examples/extension
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: examples/extension/playwright-report/
+      # - uses: actions/upload-artifact@v3
+      #   if: always()
+      #   with:
+      #     name: playwright-report
+      #     path: examples/extension/playwright-report/
