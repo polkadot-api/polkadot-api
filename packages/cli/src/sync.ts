@@ -1,5 +1,7 @@
 import { getChecksumBuilder } from "@polkadot-api/substrate-codegen"
 import { Data } from "./data"
+import asTable from "as-table"
+import chalk from "chalk"
 
 type Discrepancy = {
   pallet: string
@@ -176,4 +178,60 @@ export function synchronizeDescriptors(
         break
     }
   }
+}
+
+export const showDiscrepancies = (discrepancies: Discrepancy[]) => {
+  const mapDiscrepancy = ({
+    pallet,
+    name,
+    oldChecksum,
+    newChecksum,
+  }: (typeof discrepancies)[number]) => ({
+    Pallet: pallet,
+    Name: name,
+    "Old Checksum": oldChecksum === null ? chalk.red(oldChecksum) : oldChecksum,
+    "New Checksum": newChecksum === null ? chalk.red(newChecksum) : newChecksum,
+  })
+
+  console.log("-------- Constant Discrepancies --------")
+  console.log(
+    asTable(
+      discrepancies
+        .filter(({ type }) => type === "constant")
+        .map(mapDiscrepancy),
+    ),
+  )
+  console.log("")
+  console.log("-------- Storage Discrepancies --------")
+  console.log(
+    asTable(
+      discrepancies
+        .filter(({ type }) => type === "storage")
+        .map(mapDiscrepancy),
+    ),
+  )
+  console.log("")
+  console.log("-------- Event Discrepancies --------")
+  console.log(
+    asTable(
+      discrepancies.filter(({ type }) => type === "event").map(mapDiscrepancy),
+    ),
+  )
+  console.log("")
+  console.log("-------- Error Discrepancies --------")
+  console.log(
+    asTable(
+      discrepancies.filter(({ type }) => type === "error").map(mapDiscrepancy),
+    ),
+  )
+  console.log("")
+  console.log("-------- Extrinsic Discrepancies --------")
+  console.log(
+    asTable(
+      discrepancies
+        .filter(({ type }) => type === "extrinsic")
+        .map(mapDiscrepancy),
+    ),
+  )
+  console.log("")
 }
