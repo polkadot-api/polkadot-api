@@ -60,12 +60,6 @@ export async function run() {
 
       // const address = encodeAddress(pubKey, ss58Prefix)
       console.log("kusama address: ", address)
-
-      // derive account with `//Polkadot` derivation path
-      const derivedSeed = sha256(`${mnemonic}//Polkadot`)
-      const derivedPubKey = ed25519.getPublicKey(derivedSeed)
-      const derivedAddress = kusamaAddressDecoder(derivedPubKey)
-      console.log("derived kusama address:", derivedAddress)
     }
 
     // ecdsa
