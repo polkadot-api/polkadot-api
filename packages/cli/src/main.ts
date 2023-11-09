@@ -277,11 +277,13 @@ while (!exit) {
         ? options.key
         : await input({
             message: "descriptor key",
+            validate: (key) => !!key || "descriptor key cannot be empty",
           })
 
       const metadataFilePath = await input({
         message: "metadata file path",
         default: `${key}-metadata.scale`,
+        validate: (path) => !!path || "metadata filepath cannot be empty",
       })
 
       const writeToPkgJSON = await confirm({
@@ -291,6 +293,8 @@ while (!exit) {
 
       const outputFolder = await input({
         message: "codegen output directory",
+        default: process.cwd(),
+        validate: (dir) => !!dir || "directory cannot be empty",
       })
 
       await writeMetadataToDisk(data, metadataFilePath)
@@ -312,7 +316,7 @@ while (!exit) {
         const fileName = await input({
           message: "descriptor json file name",
           validate: (value) =>
-            value !== outputFolder ||
+            (!!value && value !== outputFolder) ||
             "descriptor json file name cannot be equal to codegen output directory",
         })
 
