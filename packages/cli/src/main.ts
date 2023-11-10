@@ -258,7 +258,7 @@ while (!exit) {
                 ),
               )
               selectExtrinsics = await confirm({
-                message: "Continue?",
+                message: "Continue selecting extrinsics from the same pallet?",
                 default: true,
               })
             }
