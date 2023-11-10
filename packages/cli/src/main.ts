@@ -282,7 +282,7 @@ while (!exit) {
 
       const metadataFilePath = await input({
         message: "metadata file path",
-        default: `${key}-metadata.scale`,
+        default: descriptorMetadata?.[key].metadata ?? `${key}-metadata.scale`,
         validate: (path) => !!path || "metadata filepath cannot be empty",
       })
 
@@ -293,7 +293,7 @@ while (!exit) {
 
       const outputFolder = await input({
         message: "codegen output directory",
-        default: process.cwd(),
+        default: descriptorMetadata?.[key].outputFolder ?? process.cwd(),
         validate: (dir) => !!dir || "directory cannot be empty",
       })
 
