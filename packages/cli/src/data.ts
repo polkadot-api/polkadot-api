@@ -6,7 +6,6 @@ import descriptorSchema from "./descriptor-schema"
 import { checkbox, select, confirm } from "@inquirer/prompts"
 import chalk from "chalk"
 import { runWithEscapeKeyHandler } from "./keyboard"
-import { Subscription } from "rxjs"
 
 type Metadata = CodecType<typeof metadata>["metadata"]
 type V14Metadata = Metadata & { tag: "v14" }
