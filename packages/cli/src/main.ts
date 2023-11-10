@@ -293,7 +293,7 @@ while (!exit) {
 
       const outputFolder = await input({
         message: "codegen output directory",
-        default: process.cwd(),
+        default: descriptorMetadata?.[key].outputFolder ?? process.cwd(),
         validate: (dir) => !!dir || "directory cannot be empty",
       })
 
