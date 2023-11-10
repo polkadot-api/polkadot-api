@@ -4,9 +4,9 @@ import {
   StorageDescriptor,
 } from "@polkadot-api/substrate-bindings"
 import { Observable, filter, map, mergeMap, take } from "rxjs"
+import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { RuntimeDescriptors } from "./codecs"
-import { firstValueFromWithSignal } from "./utils/firstValueFromWithSignal"
 
 type CallOptions = Partial<{
   at: string

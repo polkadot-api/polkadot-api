@@ -1,3 +1,4 @@
+import { shareLatest } from "@/utils"
 import { FollowEventWithRuntime, Runtime } from "@polkadot-api/substrate-client"
 import { Observable, distinctUntilChanged, map, scan } from "rxjs"
 
@@ -30,4 +31,5 @@ export const getRuntime$ = (follow$: Observable<FollowEventWithRuntime>) =>
     ),
     map((x) => x.current),
     distinctUntilChanged(),
+    shareLatest,
   )
