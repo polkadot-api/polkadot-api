@@ -24,10 +24,9 @@ import {
 } from "./io"
 import {
   checkDescriptorsForDiscrepancies,
+  showDiscrepancies,
   synchronizeDescriptors,
 } from "./sync"
-import chalk from "chalk"
-import asTable from "as-table"
 import { blowupMetadata } from "./testing"
 
 const ProgramArgs = z.object({
@@ -66,20 +65,32 @@ const descriptorMetadata = await readDescriptors({
   fileName: options.file,
 })
 
+let areThereDescriptorDependencies = false
+
 if (descriptorMetadata && !options.interactive) {
   for (const key of Object.keys(descriptorMetadata)) {
     const data = await Data.fromSavedDescriptors(descriptorMetadata[key])
-    if (data.isInitialized && data.outputFolder) {
-      if (options.sync) {
-        const discrepancies = checkDescriptorsForDiscrepancies(data)
-        synchronizeDescriptors(data, discrepancies)
-      }
 
-      if (!options.interactive) {
+    if (data.isInitialized && data.outputFolder) {
+      const discrepancies = checkDescriptorsForDiscrepancies(data)
+
+      if (options.sync) {
+        synchronizeDescriptors(data, discrepancies)
+      } else if (discrepancies.length > 0) {
+        console.log(`-------- ${key} Discrepancies Start --------`)
+        showDiscrepancies(discrepancies)
+        console.log(`-------- ${key} Discrepancies End --------`)
+        areThereDescriptorDependencies = true
+      }
+      if (!options.interactive && !areThereDescriptorDependencies) {
         await outputCodegen(data, data.outputFolder, key)
       }
     }
   }
+}
+
+if (areThereDescriptorDependencies) {
+  process.exit(1)
 }
 
 if (!options.interactive) {
@@ -333,65 +344,7 @@ while (!exit) {
     case SYNC: {
       const discrepancies = checkDescriptorsForDiscrepancies(data)
 
-      const mapDiscrepancy = ({
-        pallet,
-        name,
-        oldChecksum,
-        newChecksum,
-      }: (typeof discrepancies)[number]) => ({
-        Pallet: pallet,
-        Name: name,
-        "Old Checksum":
-          oldChecksum === null ? chalk.red(oldChecksum) : oldChecksum,
-        "New Checksum":
-          newChecksum === null ? chalk.red(newChecksum) : newChecksum,
-      })
-
-      console.log("-------- Constant Discrepancies --------")
-      console.log(
-        asTable(
-          discrepancies
-            .filter(({ type }) => type === "constant")
-            .map(mapDiscrepancy),
-        ),
-      )
-      console.log("")
-      console.log("-------- Storage Discrepancies --------")
-      console.log(
-        asTable(
-          discrepancies
-            .filter(({ type }) => type === "storage")
-            .map(mapDiscrepancy),
-        ),
-      )
-      console.log("")
-      console.log("-------- Event Discrepancies --------")
-      console.log(
-        asTable(
-          discrepancies
-            .filter(({ type }) => type === "event")
-            .map(mapDiscrepancy),
-        ),
-      )
-      console.log("")
-      console.log("-------- Error Discrepancies --------")
-      console.log(
-        asTable(
-          discrepancies
-            .filter(({ type }) => type === "error")
-            .map(mapDiscrepancy),
-        ),
-      )
-      console.log("")
-      console.log("-------- Extrinsic Discrepancies --------")
-      console.log(
-        asTable(
-          discrepancies
-            .filter(({ type }) => type === "extrinsic")
-            .map(mapDiscrepancy),
-        ),
-      )
-      console.log("")
+      showDiscrepancies(discrepancies)
 
       if (discrepancies.length > 0) {
         const accept = await confirm({ message: "Accept changes" })

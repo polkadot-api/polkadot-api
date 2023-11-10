@@ -1,7 +1,7 @@
 {
   "polkadot": {
-    "metadata": "polkadot-metadata.scale",
-    "outputFolder": "artifacts/descriptors",
+    "metadata": "test/artifacts/polkadot-metadata.scale",
+    "outputFolder": "out",
     "descriptors": {
       "System": {
         "constants": {
