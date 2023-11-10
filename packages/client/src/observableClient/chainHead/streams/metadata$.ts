@@ -1,7 +1,7 @@
 import { Tuple, compact, metadata } from "@polkadot-api/substrate-bindings"
 import { Runtime } from "@polkadot-api/substrate-client"
-import { Observable, map, startWith, switchMap, withLatestFrom } from "rxjs"
-import { shareLatest } from "@/utils"
+import { Observable, map, startWith, withLatestFrom } from "rxjs"
+import { switchMapComplete, shareLatest } from "@/utils"
 
 const opaqueMeta = Tuple(compact, metadata)
 
@@ -23,7 +23,7 @@ export const getMetadata$ = (
 
   return runtime$.pipe(
     withLatestFrom(finalized$),
-    switchMap(_getMetadata$),
+    switchMapComplete(_getMetadata$),
     shareLatest,
   )
 }
