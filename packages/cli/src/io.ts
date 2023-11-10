@@ -104,9 +104,11 @@ export async function outputDescriptors({
       let output: z.TypeOf<typeof descriptorSchema> = {}
 
       if (await fsExists(rest.fileName)) {
-        const existingFile = await fs.readFile(rest.fileName, {
-          encoding: "utf-8",
-        })
+        const existingFile = JSON.parse(
+          await fs.readFile(rest.fileName, {
+            encoding: "utf-8",
+          }),
+        )
         output = await descriptorSchema.parseAsync(existingFile)
       }
 
