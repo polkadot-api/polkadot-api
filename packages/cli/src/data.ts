@@ -4,6 +4,7 @@ import type { CodecType } from "scale-ts"
 import { z } from "zod"
 import descriptorSchema from "./descriptor-schema"
 import { checkbox, select, confirm } from "@inquirer/prompts"
+import chalk from "chalk"
 
 type Metadata = CodecType<typeof metadata>["metadata"]
 type V14Metadata = Metadata & { tag: "v14" }
@@ -90,7 +91,7 @@ export class Data {
     const [ext, checksum] = await select({
       message: "Select an extrinsic",
       choices: extrinsics.map(([s, checksum]) => ({
-        name: s,
+        name: s in data ? chalk.green(s) : s,
         value: [s, checksum],
       })),
     })
