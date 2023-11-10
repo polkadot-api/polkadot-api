@@ -5,6 +5,7 @@ import { z } from "zod"
 import descriptorSchema from "./descriptor-schema"
 import { checkbox, select, confirm } from "@inquirer/prompts"
 import chalk from "chalk"
+import { runWithEscapeKeyHandler } from "./keyboard"
 
 type Metadata = CodecType<typeof metadata>["metadata"]
 type V14Metadata = Metadata & { tag: "v14" }
@@ -63,18 +64,29 @@ export class Data {
     }
     const data = this.descriptorData[pallet][type]
 
-    const selected = await checkbox({
-      message,
-      choices: items.map(([s, checksum]) => ({
-        name: s,
-        value: [s, checksum] as const,
-        checked: s in data,
-      })),
-    })
+    await runWithEscapeKeyHandler(async (subscriptions, subscribe) => {
+      try {
+        const selectedPromise = checkbox({
+          message,
+          choices: items.map(([s, checksum]) => ({
+            name: s,
+            value: [s, checksum] as const,
+            checked: s in data,
+          })),
+        })
+        subscriptions.push(subscribe(() => selectedPromise.cancel()))
+        const selected = await selectedPromise
 
-    for (const [s, checksum] of selected) {
-      data[s] = checksum
-    }
+        for (const [s, checksum] of selected) {
+          data[s] = checksum
+        }
+      } catch (err) {
+        if (err instanceof Error && err.message === "Prompt was canceled") {
+          return
+        }
+        throw err
+      }
+    })
   }
 
   async promptExtrinsicData(
@@ -83,81 +95,106 @@ export class Data {
     events: ReadonlyArray<readonly [pallet: string, event: string]>,
     errors: ReadonlyArray<readonly [pallet: string, event: string]>,
   ) {
-    this.descriptorData[pallet] = this.descriptorData[pallet]
-      ? this.descriptorData[pallet]
-      : defaultDescriptorDataRecord
-    const data = this.descriptorData[pallet].extrinsics
+    await runWithEscapeKeyHandler(async (subscriptions, subscribe) => {
+      try {
+        this.descriptorData[pallet] = this.descriptorData[pallet]
+          ? this.descriptorData[pallet]
+          : defaultDescriptorDataRecord
 
-    const [ext, checksum] = await select({
-      message: "Select an extrinsic",
-      choices: extrinsics.map(([s, checksum]) => ({
-        name: s in data ? chalk.green(s) : s,
-        value: [s, checksum],
-      })),
-    })
+        const data = this.descriptorData[pallet].extrinsics
 
-    if (ext in data) {
-      const deleteExt = await confirm({ message: "Delete extrinsic?" })
-      if (deleteExt) {
-        delete data[ext]
-        return
+        const selectExtPromise = select({
+          message: "Select an extrinsic",
+          choices: extrinsics.map(([s, checksum]) => ({
+            name: s in data ? chalk.green(s) : s,
+            value: [s, checksum] as [string, bigint],
+          })),
+        })
+        subscriptions.push(subscribe(() => selectExtPromise.cancel()))
+
+        const [ext, checksum] = await selectExtPromise
+
+        if (ext in data) {
+          const deleteExtPromise = confirm({ message: "Delete extrinsic?" })
+          subscriptions.push(subscribe(() => deleteExtPromise.cancel()))
+          const deleteExt = await deleteExtPromise
+          if (deleteExt) {
+            delete data[ext]
+            return
+          }
+        }
+
+        if (!data[ext]) {
+          data[ext] = { events: {}, errors: {}, checksum }
+        }
+        for (const [pallet, _] of events) {
+          if (!data[ext].events[pallet]) {
+            data[ext].events[pallet] = new Set()
+          }
+        }
+        for (const [pallet, _] of errors) {
+          if (!data[ext].errors[pallet]) {
+            data[ext].errors[pallet] = new Set()
+          }
+        }
+        const selectedEvents = data[ext].events
+        const selectedErrors = data[ext].errors
+
+        const newSelectedEventsPromise = checkbox({
+          message: "Select Events for this extrinsic",
+          choices: events.map(([pallet, event]) => ({
+            name: `${pallet} - ${event}`,
+            value: [pallet, event] as [pallet: string, event: string],
+            checked: selectedEvents[pallet].has(event),
+          })),
+        })
+
+        subscriptions.push(subscribe(() => newSelectedEventsPromise.cancel()))
+        const newSelectedEvents = await newSelectedEventsPromise
+
+        const newSelectedErrorsPromise = checkbox({
+          message: "Select Errors for this extrinsic",
+          choices: errors.map(([pallet, error]) => ({
+            name: `${pallet} - ${error}`,
+            value: [pallet, error] as [pallet: string, event: string],
+            checked: selectedErrors[pallet].has(error),
+          })),
+        })
+        subscriptions.push(subscribe(() => newSelectedErrorsPromise.cancel()))
+        const newSelectedErrors = await newSelectedErrorsPromise
+
+        const newSelectedPalletEvents = newSelectedEvents.reduce(
+          (cur, [pallet, event]) => ({
+            ...cur,
+            [pallet]: [...(cur[pallet] ?? []), event],
+          }),
+          {} as Record<string, string[]>,
+        )
+        for (const [pallet, events] of Object.entries(
+          newSelectedPalletEvents,
+        )) {
+          data[ext].events[pallet] = new Set(events)
+        }
+
+        const newSelectedPalletErrors = newSelectedErrors.reduce(
+          (cur, [pallet, error]) => ({
+            ...cur,
+            [pallet]: [...(cur[pallet] ?? []), error],
+          }),
+          {} as Record<string, string[]>,
+        )
+        for (const [pallet, errors] of Object.entries(
+          newSelectedPalletErrors,
+        )) {
+          data[ext].errors[pallet] = new Set(errors)
+        }
+      } catch (err) {
+        if (err instanceof Error && err.message === "Prompt was canceled") {
+          return
+        }
+        throw err
       }
-    }
-
-    if (!data[ext]) {
-      data[ext] = { events: {}, errors: {}, checksum }
-    }
-    for (const [pallet, _] of events) {
-      if (!data[ext].events[pallet]) {
-        data[ext].events[pallet] = new Set()
-      }
-    }
-    for (const [pallet, _] of errors) {
-      if (!data[ext].errors[pallet]) {
-        data[ext].errors[pallet] = new Set()
-      }
-    }
-    const selectedEvents = data[ext].events
-    const selectedErrors = data[ext].errors
-
-    const newSelectedEvents = await checkbox({
-      message: "Select Events for this extrinsic",
-      choices: events.map(([pallet, event]) => ({
-        name: `${pallet} - ${event}`,
-        value: [pallet, event] as [pallet: string, event: string],
-        checked: selectedEvents[pallet].has(event),
-      })),
     })
-    const newSelectedErrors = await checkbox({
-      message: "Select Errors for this extrinsic",
-      choices: errors.map(([pallet, error]) => ({
-        name: `${pallet} - ${error}`,
-        value: [pallet, error] as [pallet: string, event: string],
-        checked: selectedErrors[pallet].has(error),
-      })),
-    })
-
-    const newSelectedPalletEvents = newSelectedEvents.reduce(
-      (cur, [pallet, event]) => ({
-        ...cur,
-        [pallet]: [...(cur[pallet] ?? []), event],
-      }),
-      {} as Record<string, string[]>,
-    )
-    for (const [pallet, events] of Object.entries(newSelectedPalletEvents)) {
-      data[ext].events[pallet] = new Set(events)
-    }
-
-    const newSelectedPalletErrors = newSelectedErrors.reduce(
-      (cur, [pallet, error]) => ({
-        ...cur,
-        [pallet]: [...(cur[pallet] ?? []), error],
-      }),
-      {} as Record<string, string[]>,
-    )
-    for (const [pallet, errors] of Object.entries(newSelectedPalletErrors)) {
-      data[ext].errors[pallet] = new Set(errors)
-    }
   }
 
   static async fromSavedDescriptors(
