@@ -16,14 +16,10 @@
   },
   "dependencies": {
     "@polkadot-api/legacy-polkadot-provider": "workspace:*",
-    "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "@polkadot/api": "^10.3.4",
-    "@polkadot/extension-dapp": "^0.45.5",
-    "@polkadot/extension-inject": "^0.46.5",
-    "ansi-to-html": "^0.7.2",
+    "@substrate/connect": "^0.7.35",
     "rxjs": "^7.8.1"
   }
 }

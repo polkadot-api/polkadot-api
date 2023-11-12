@@ -1,4 +1,4 @@
-import { V14 } from "@polkadot-api/substrate-bindings"
+import type { V14 } from "@polkadot-api/substrate-bindings"
 import { getObservableClient } from "@polkadot-api/client"
 import { Observable } from "rxjs"
 import type { ConnectProvider, Provider } from "@polkadot-api/json-rpc-provider"
