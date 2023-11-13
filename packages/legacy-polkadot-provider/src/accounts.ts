@@ -1,13 +1,4 @@
 import type { Signer } from "@polkadot/api/types"
-import type {
-  InjectedAccount,
-  InjectedAccountWithMeta,
-} from "@polkadot/extension-inject/types"
-import {
-  web3AccountsSubscribe,
-  web3Enable,
-  web3FromSource,
-} from "@polkadot/extension-dapp"
 import {
   Observable,
   catchError,
@@ -22,56 +13,56 @@ import { Callback } from "./types/polkadot-provider"
 import { UnsubscribeFn } from "@polkadot-api/substrate-client"
 import { AccountId } from "@polkadot-api/substrate-bindings"
 
+declare global {
+  interface Window {
+    injectedWeb3?: InjectedWeb3
+  }
+}
+
+export interface InjectedExtension {
+  signer: Signer
+  accounts: {
+    get: () => Array<InjectedAccount>
+    subscribe: (cb: (accounts: InjectedAccount[]) => void) => () => void
+  }
+}
+
+export type InjectedWeb3 = Record<
+  string,
+  | {
+      enable: () => Promise<InjectedExtension>
+    }
+  | undefined
+>
+
 const noSigner = (() => {
   throw new Error("No signer detected")
 }) as unknown as NonNullable<Signer["signPayload"]>
 
-const web3 = web3Enable("legacy-polkadot-provider")
-
-export const getSigner = (
-  name: string,
+export const getSigner = async (
+  injected: Promise<InjectedExtension | undefined>,
 ): Promise<NonNullable<Signer["signPayload"]>> =>
-  web3.then((options) => {
-    const result = options.find((o) => o.name === name)
-    if (!result) return noSigner
+  (await injected)?.signer?.signPayload ?? noSigner
 
-    web3FromSource(name)
-    return result.signer.signPayload ?? noSigner
-  })
+export type KeypairType = "ed25519" | "sr25519" | "ecdsa"
+export interface InjectedAccount {
+  address: string
+  genesisHash?: string | null
+  name?: string
+  type?: KeypairType
+}
 
-export const getAllAccounts$ = (name: string) => {
-  const accountsSubsribe = (
-    cb: (accounts: InjectedAccountWithMeta[]) => void,
-  ) => {
+export const getAllAccounts$ = (
+  injected: Promise<InjectedExtension | undefined>,
+) => {
+  const accountsSubsribe = (cb: (accounts: InjectedAccount[]) => void) => {
     let onDone = noop
     let isRunning = true
 
-    web3
-      .then((options) => {
-        return options.find((o) => o.name === name)
-      })
-      .then((x) => {
-        if (!x) {
-          if (!isRunning) return
-          cb([])
-          return
-        }
-
-        web3AccountsSubscribe(cb).then(
-          (x) => {
-            if (isRunning) {
-              onDone = x
-            } else {
-              onDone()
-            }
-          },
-          () => {
-            if (!isRunning) return
-            cb([])
-            return
-          },
-        )
-      })
+    injected.then((web3) => {
+      if (!isRunning || !web3) return
+      onDone = web3.accounts.subscribe(cb)
+    })
 
     return () => {
       isRunning = false
@@ -98,7 +89,7 @@ export interface Account {
 export const getAccountsChainFns = (
   genesisHash: string,
   ss58format: number,
-  allAccounts$: Observable<InjectedAccountWithMeta[]>,
+  allAccounts$: Observable<InjectedAccount[]>,
 ) => {
   const encoder = AccountId().enc
   const decoder = AccountId(ss58format).dec
@@ -111,15 +102,15 @@ export const getAccountsChainFns = (
       map((innerAccounts) =>
         innerAccounts
           .filter(
-            ({ meta }) => !meta.genesisHash || meta.genesisHash === genesisHash,
+            (data) => !data.genesisHash || data.genesisHash === genesisHash,
           )
-          .map(({ address: addressRaw, meta }) => {
+          .map(({ address: addressRaw, name }) => {
             const publicKey = encoder(addressRaw as any)
             const address = decoder(publicKey)
             return {
               publicKey,
               address,
-              displayName: meta.name,
+              displayName: name,
             }
           }),
       ),
