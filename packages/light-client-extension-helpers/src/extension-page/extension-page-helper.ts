@@ -7,6 +7,8 @@ import {
 import * as storage from "@/storage"
 import type { LightClientPageHelper } from "./types"
 
+export type * from "./types"
+
 // FIXME: re-connect?
 const port = chrome.runtime.connect({ name: PORT.EXTENSION_PAGE })
 
