@@ -1,10 +1,10 @@
 import {
-  storage,
   sendBackgroundRequest,
   PORT,
   createBackgroundClientConnectProvider,
   CONTEXT,
 } from "@/shared"
+import * as storage from "@/storage"
 import type { LightClientPageHelper } from "./types"
 
 // FIXME: re-connect?

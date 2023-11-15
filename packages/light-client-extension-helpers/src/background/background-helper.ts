@@ -20,7 +20,8 @@ import type {
   ToExtension,
   ToPage,
 } from "@/protocol"
-import { ALARM, CONTEXT, PORT, createIsHelperMessage, storage } from "@/shared"
+import { ALARM, CONTEXT, PORT, createIsHelperMessage } from "@/shared"
+import * as storage from "@/storage"
 import {
   type WellKnownChainGenesisHash,
   wellKnownChainSpecs,

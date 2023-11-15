@@ -1,4 +1,7 @@
 import { WellKnownChainGenesisHash, wellKnownChainSpecs } from "@/chain-specs"
+import { STORAGE_PREFIX } from "@/shared"
+
+const chainStoragePrefix = `${STORAGE_PREFIX}_chain_`
 
 type StorageConfig = {
   chain: [entry: { type: "chain"; genesisHash: string }, value: ChainInfo]
@@ -28,7 +31,7 @@ type ChainInfo = {
 const keyOf = ({ type, genesisHash }: StorageEntry) => {
   if (!type.length || !genesisHash.length) throw new Error("Invalid entry")
 
-  return `${type}_${genesisHash}`
+  return `${STORAGE_PREFIX}_${type}_${genesisHash}`
 }
 
 export const get = async <E extends StorageEntry>(
@@ -55,7 +58,8 @@ export const onChainsChanged = (
   const listener = async (changes: {
     [key: string]: chrome.storage.StorageChange
   }) => {
-    if (!Object.keys(changes).some((key) => key.startsWith("chain_"))) return
+    if (!Object.keys(changes).some((key) => key.startsWith(chainStoragePrefix)))
+      return
     callback(await getChains())
   }
   chrome.storage.onChanged.addListener(listener)
@@ -67,7 +71,7 @@ export const getChains = async (): Promise<Record<string, ChainInfo>> =>
     await Promise.all(
       Object.entries(await chrome.storage.local.get())
         .filter((entry): entry is [string, ChainInfo] =>
-          entry[0].startsWith("chain_"),
+          entry[0].startsWith(chainStoragePrefix),
         )
         .map(async ([_, { chainSpec, ...chain }]) => {
           const chainSpecJson = JSON.parse(
