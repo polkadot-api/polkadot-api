@@ -12,7 +12,7 @@ import {
 } from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
 
-export * from "./types"
+export type * from "./types"
 
 const postToExtension = (message: PostMessage<ToExtension>) =>
   window.postMessage(message, window.origin)

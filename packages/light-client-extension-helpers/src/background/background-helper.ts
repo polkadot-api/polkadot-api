@@ -27,7 +27,7 @@ import {
   wellKnownChainSpecs,
 } from "@/chain-specs"
 
-export * from "./types"
+export type * from "./types"
 
 let isRegistered = false
 
