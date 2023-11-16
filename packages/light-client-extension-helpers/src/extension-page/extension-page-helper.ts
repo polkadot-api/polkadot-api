@@ -59,7 +59,28 @@ export const helper: LightClientPageHelper = {
       origin: CONTEXT.EXTENSION_PAGE,
       type: "getActiveConnections",
     })
-    return connections
+    return connections.map(({ tabId, chain }) => ({
+      tabId,
+      chain: {
+        ...chain,
+        provider: createBackgroundClientConnectProvider({
+          genesisHash: chain.genesisHash,
+          chainSpec: chain.chainSpec,
+          relayChainGenesisHash: chain.relayChainGenesisHash,
+          postMessage(msg) {
+            port.postMessage(msg)
+          },
+          addOnMessageListener(cb) {
+            port.onMessage.addListener(cb)
+            return () => port.onMessage.removeListener(cb)
+          },
+          addOnDisconnectListener(cb) {
+            port.onDisconnect.addListener(cb)
+            return () => port.onDisconnect.removeListener(cb)
+          },
+        }),
+      },
+    }))
   },
   async disconnect(tabId: number, genesisHash: string) {
     await sendBackgroundRequest({
