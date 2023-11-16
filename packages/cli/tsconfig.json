@@ -3,6 +3,7 @@
   "include": ["src", "tests", "out"],
   "compilerOptions": {
     "baseUrl": "src",
+    "resolveJsonModule": true,
     "noUnusedLocals": false,
     "noFallthroughCasesInSwitch": true,
     "paths": {

@@ -84,7 +84,12 @@ if (descriptorMetadata && !options.interactive) {
         areThereDescriptorDependencies = true
       }
       if (!options.interactive && !areThereDescriptorDependencies) {
-        await outputCodegen(data, data.outputFolder, key)
+        await outputCodegen(
+          data.descriptorData,
+          data.metadata.value,
+          data.outputFolder,
+          key,
+        )
       }
     }
   }
@@ -378,7 +383,12 @@ while (!exit) {
             })
           }
 
-          await outputCodegen(data, outputFolder, key)
+          await outputCodegen(
+            data.descriptorData,
+            data.metadata.value,
+            outputFolder,
+            key,
+          )
         } catch (err) {
           if (err instanceof Error && err.message === "Prompt was canceled") {
             return
