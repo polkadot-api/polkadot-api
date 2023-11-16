@@ -175,6 +175,7 @@ const _buildSyntax = (
     const varName = toCamelCase(varId, key)
     if (value.type === "tuple") {
       if (value.value.length === 1) {
+        let result: string
         const innerVal = value.value[0]
         if (
           key.startsWith("Raw") &&
@@ -182,6 +183,7 @@ const _buildSyntax = (
           isBytes(innerVal.value)
         ) {
           const id = `_fixedStr${innerVal.len}`
+          result = id
           if (!declarations.variables.has(id)) {
             declarations.imports.add("fixedStr")
             declarations.variables.set(id, {
@@ -190,10 +192,15 @@ const _buildSyntax = (
               directDependencies: new Set(),
             })
           }
-          return id
+        } else {
+          result = buildNextSyntax(value.value[0])
         }
-
-        return buildNextSyntax(value.value[0])
+        declarations.variables.set(varName, {
+          id: varName,
+          value: result,
+          directDependencies: new Set([result]),
+        })
+        return varName
       }
       return buildTuple(varName, value.value)
     } else {
