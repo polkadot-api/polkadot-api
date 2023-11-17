@@ -14,8 +14,10 @@ export const getCodegenInfo = (
 ) => {
   const declarations: CodeDeclarations = {
     imports: new Set<string>(),
+    typeImports: new Set<string>(),
     variables: new Map(),
   }
+  const exported = new Set<string>()
 
   const descriptorsData: Record<string, PalletData> = {}
   const getLookup = getLookupFn(metadata.lookup)
@@ -47,6 +49,8 @@ export const getCodegenInfo = (
       if (!inputPallet.storage[stg.name]) continue
 
       const { key, val } = staticBuilder.buildStorage(pallet.name, stg.name)
+      exported.add(key)
+      exported.add(val)
       result.storage[stg.name] = {
         checksum: checksumBuilder.buildStorage(pallet.name, stg.name)!,
         payload: val,
@@ -59,39 +63,47 @@ export const getCodegenInfo = (
     for (const callName of getEnumEntry(pallet.calls)) {
       if (!inputPallet.extrinsics[callName]) continue
 
+      const payload = staticBuilder.buildCall(pallet.name, callName)
       result.tx[callName] = {
         checksum: checksumBuilder.buildCall(pallet.name, callName)!,
-        payload: staticBuilder.buildCall(pallet.name, callName),
+        payload,
       }
+      exported.add(payload)
     }
 
     for (const errName of getEnumEntry(pallet.errors)) {
       if (!inputPallet.errors[errName]) continue
 
+      const payload = staticBuilder.buildError(pallet.name, errName)
       result.errors[errName] = {
         checksum: checksumBuilder.buildError(pallet.name, errName)!,
-        payload: staticBuilder.buildError(pallet.name, errName),
+        payload,
       }
+      exported.add(payload)
     }
 
     for (const evName of getEnumEntry(pallet.events)) {
       if (!inputPallet.events[evName]) continue
 
+      const payload = staticBuilder.buildEvent(pallet.name, evName)
       result.events[evName] = {
         checksum: checksumBuilder.buildEvent(pallet.name, evName)!,
-        payload: staticBuilder.buildEvent(pallet.name, evName),
+        payload,
       }
+      exported.add(payload)
     }
 
     for (const { name: constName } of pallet.constants) {
       if (!inputPallet.constants[constName]) continue
 
+      const payload = staticBuilder.buildConstant(pallet.name, constName)
       result.constants[constName] = {
         checksum: checksumBuilder.buildConstant(pallet.name, constName)!,
-        payload: staticBuilder.buildConstant(pallet.name, constName),
+        payload,
       }
+      exported.add(payload)
     }
   }
 
-  return { descriptorsData, declarations }
+  return { descriptorsData, declarations, exported }
 }
