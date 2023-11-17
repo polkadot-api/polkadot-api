@@ -7,8 +7,8 @@ type Discrepancy = {
   pallet: string
   type: "constant" | "storage" | "event" | "error" | "extrinsic"
   name: string
-  oldChecksum: bigint | null
-  newChecksum: bigint | null
+  oldChecksum: string | null
+  newChecksum: string | null
 }
 
 export function checkDescriptorsForDiscrepancies(data: Data) {

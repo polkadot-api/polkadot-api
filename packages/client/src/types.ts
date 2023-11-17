@@ -1,20 +1,9 @@
 import {
   ArgsWithPayloadCodec,
-  ConstantDescriptor,
   DescriptorCommon,
-  ErrorDescriptor,
-  EventDescriptor,
   StorageDescriptor,
-  TxDescriptor,
 } from "@polkadot-api/substrate-bindings"
 import { StorageEntry } from "./storage"
-
-export type Descriptor<T extends DescriptorCommon<any, any>> =
-  | ConstantDescriptor<T, any>
-  | EventDescriptor<T, any>
-  | StorageDescriptor<T, any>
-  | ErrorDescriptor<T, any>
-  | TxDescriptor<T, any, any, any>
 
 export type TupleToIntersection<T extends Array<any>> = T extends [
   infer V,

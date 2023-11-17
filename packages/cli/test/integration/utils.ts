@@ -7,10 +7,9 @@ type Descriptors = AsyncReturnType<
 
 export const mapDescriptorRecords = (records: Descriptors) => {
   type MappedDescriptor = {
-    type: string
     name: string
     pallet: string
-    checksum: bigint
+    checksum: string
   }
   const constantsDescriptors: MappedDescriptor[] = []
   const storageDescriptors: MappedDescriptor[] = []
@@ -24,7 +23,6 @@ export const mapDescriptorRecords = (records: Descriptors) => {
   ] of Object.entries(records)) {
     for (const [name, checksum] of Object.entries(constants ?? {})) {
       constantsDescriptors.push({
-        type: "const",
         name,
         pallet,
         checksum,
@@ -32,7 +30,6 @@ export const mapDescriptorRecords = (records: Descriptors) => {
     }
     for (const [name, checksum] of Object.entries(storage ?? {})) {
       storageDescriptors.push({
-        type: "storage",
         name,
         pallet,
         checksum,
@@ -40,7 +37,6 @@ export const mapDescriptorRecords = (records: Descriptors) => {
     }
     for (const [name, checksum] of Object.entries(events ?? {})) {
       eventDescriptors.push({
-        type: "event",
         name,
         pallet,
         checksum,
@@ -48,7 +44,6 @@ export const mapDescriptorRecords = (records: Descriptors) => {
     }
     for (const [name, checksum] of Object.entries(errors ?? {})) {
       errorDescriptors.push({
-        type: "error",
         name,
         pallet,
         checksum,
@@ -56,7 +51,6 @@ export const mapDescriptorRecords = (records: Descriptors) => {
     }
     for (const [name, { checksum }] of Object.entries(extrinsics ?? {})) {
       callDescriptors.push({
-        type: "tx",
         name,
         pallet,
         checksum,

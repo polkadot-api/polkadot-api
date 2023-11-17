@@ -13,14 +13,14 @@ type V14Metadata = Metadata & { tag: "v14" }
 type DescriptorData = Record<
   string,
   {
-    constants: Record<string, bigint>
-    storage: Record<string, bigint>
-    events: Record<string, bigint>
-    errors: Record<string, bigint>
+    constants: Record<string, string>
+    storage: Record<string, string>
+    events: Record<string, string>
+    errors: Record<string, string>
     extrinsics: Record<
       string,
       {
-        checksum: bigint
+        checksum: string
         events: Record<string, Set<string>>
         errors: Record<string, Set<string>>
       }
@@ -53,7 +53,7 @@ export class Data {
     type: "constants" | "storage" | "events" | "errors",
     pallet: string,
     message: string,
-    items: [string, bigint][],
+    items: [string, string][],
   ) {
     this.descriptorData[pallet] = this.descriptorData[pallet] ?? {
       constants: {},
@@ -91,7 +91,7 @@ export class Data {
 
   async promptExtrinsicData(
     pallet: string,
-    extrinsics: [name: string, checksum: bigint][],
+    extrinsics: [name: string, checksum: string][],
     events: ReadonlyArray<readonly [pallet: string, event: string]>,
     errors: ReadonlyArray<readonly [pallet: string, event: string]>,
   ) {
@@ -107,7 +107,7 @@ export class Data {
           message: "Select an extrinsic",
           choices: extrinsics.map(([s, checksum]) => ({
             name: s in data ? chalk.green(s) : s,
-            value: [s, checksum] as [string, bigint],
+            value: [s, checksum] as [string, string],
           })),
         })
         subscriptions.push(subscribe(() => selectExtPromise.cancel()))

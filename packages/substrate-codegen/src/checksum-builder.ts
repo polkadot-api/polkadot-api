@@ -11,7 +11,7 @@ import { withCache } from "./with-cache"
 const textEncoder = new TextEncoder()
 const encodeText = textEncoder.encode.bind(textEncoder)
 
-export const getChecksum = (values: Array<bigint>, shape?: string) => {
+const getChecksum = (values: Array<bigint>, shape?: string) => {
   const hasShape = typeof shape === "string"
   const res = new Uint8Array((values.length + (hasShape ? 1 : 0)) * 8)
   const dv = new DataView(res.buffer)
@@ -206,12 +206,20 @@ export const getChecksumBuilder = (metadata: V14) => {
     }
   }
 
+  const toStringEnhancer =
+    <Args extends Array<any>>(
+      fn: (...args: Args) => bigint | null,
+    ): ((...args: Args) => string | null) =>
+    (...args) =>
+      fn(...args)?.toString(32) ?? null
+
   return {
-    buildDefinition,
-    buildStorage,
-    buildCall,
-    buildEvent: buildVariant("events"),
-    buildError: buildVariant("errors"),
-    buildConstant,
+    buildDefinition: toStringEnhancer(buildDefinition),
+
+    buildStorage: toStringEnhancer(buildStorage),
+    buildCall: toStringEnhancer(buildCall),
+    buildEvent: toStringEnhancer(buildVariant("events")),
+    buildError: toStringEnhancer(buildVariant("errors")),
+    buildConstant: toStringEnhancer(buildConstant),
   }
 }
