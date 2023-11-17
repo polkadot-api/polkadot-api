@@ -1,15 +1,64 @@
 import { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
 import { LookupEntry, getLookupFn } from "./lookups"
 
+type MetadataPrimitives =
+  | "bool"
+  | "char"
+  | "str"
+  | "u8"
+  | "u16"
+  | "u32"
+  | "u64"
+  | "u128"
+  | "u256"
+  | "i8"
+  | "i16"
+  | "i32"
+  | "i64"
+  | "i128"
+  | "i256"
+
+export const primitiveTypes: Record<
+  | MetadataPrimitives
+  | "_void"
+  | "compactNumber"
+  | "compactBn"
+  | "bitSequence"
+  | "historicMetaCompat",
+  string
+> = {
+  _void: "undefined",
+  bool: "boolean",
+  char: "string",
+  str: "string",
+  u8: "number",
+  u16: "number",
+  u32: "number",
+  u64: "bigint",
+  u128: "bigint",
+  u256: "bigint",
+  i8: "number",
+  i16: "number",
+  i32: "number",
+  i64: "bigint",
+  i128: "bigint",
+  i256: "bigint",
+  compactNumber: "number",
+  compactBn: "bigint",
+  bitSequence: "{bitsLen: number, bytes: Uint8Array}",
+  historicMetaCompat: "any",
+}
+
 export interface Variable {
   id: string
-  types?: string
+  types: string
   value: string
   directDependencies: Set<string>
 }
 
 export interface CodeDeclarations {
   imports: Set<string>
+  typeImports: Set<string>
   variables: Map<string, Variable>
 }
 
@@ -22,6 +71,9 @@ const toCamelCase = (...parts: string[]): string =>
 
 const isBytes = (input: LookupEntry) =>
   input.type === "primitive" && input.value === "u8"
+
+const getTypes = (varName: string) =>
+  primitiveTypes[varName as keyof typeof primitiveTypes] ?? `I${varName}`
 
 const _buildSyntax = (
   input: LookupEntry,
@@ -51,9 +103,11 @@ const _buildSyntax = (
     input.value.value === "u8"
   ) {
     declarations.imports.add("Hex")
+    declarations.typeImports.add("HexString")
     const variable = {
       id: "_bytesSeq",
       value: "Hex()",
+      types: "HexString",
       directDependencies: new Set<string>(),
     }
 
@@ -80,13 +134,11 @@ const _buildSyntax = (
     const nonCircular = getVarName(input.id)
     const variable: Variable = {
       id: getVarName(input.id, "circular"),
-      types: `Codec<{ self: CodecType<typeof ${nonCircular}> }>`,
+      types: `{ self: I${nonCircular} }`,
       value: `Self(() => ${nonCircular})`,
       directDependencies: new Set([nonCircular]),
     }
 
-    declarations.imports.add("Codec")
-    declarations.imports.add("CodecType")
     declarations.imports.add("Self")
     declarations.variables.set(variable.id, variable)
     return variable.id
@@ -99,6 +151,7 @@ const _buildSyntax = (
     const variable = {
       id,
       value: `Vector(${args.join(", ")})`,
+      types: `Array<${getTypes(dependsVar)}>`,
       directDependencies: new Set<string>([dependsVar]),
     }
     declarations.variables.set(id, variable)
@@ -111,6 +164,7 @@ const _buildSyntax = (
     const variable = {
       id,
       value: `Tuple(${deps.join(", ")})`,
+      types: `[${deps.map(getTypes).join(", ")}]`,
       directDependencies: new Set(deps),
     }
     declarations.variables.set(id, variable)
@@ -125,7 +179,9 @@ const _buildSyntax = (
       value: `Struct({${Object.keys(value)
         .map((key, idx) => `${key}: ${deps[idx]}`)
         .join(", ")}})`,
-
+      types: `{${Object.keys(value)
+        .map((key, idx) => `${key}: ${getTypes(deps[idx])}`)
+        .join(", ")}}`,
       directDependencies: new Set(deps),
     }
     declarations.variables.set(id, variable)
@@ -142,8 +198,10 @@ const _buildSyntax = (
         declarations.variables.set(id, {
           id,
           value: `AccountId()`,
+          types: "SS58String",
           directDependencies: new Set<string>(),
         })
+        declarations.typeImports.add("SS58String")
         return id
       }
 
@@ -151,8 +209,10 @@ const _buildSyntax = (
       declarations.variables.set(varId, {
         id: varId,
         value: `Hex(${input.len})`,
+        types: "HexString",
         directDependencies: new Set<string>(),
       })
+      declarations.typeImports.add("HexString")
       return varId
     }
 
@@ -189,15 +249,18 @@ const _buildSyntax = (
             declarations.variables.set(id, {
               id,
               value: `fixedStr(${innerVal.len})`,
+              types: "string",
               directDependencies: new Set(),
             })
           }
         } else {
           result = buildNextSyntax(value.value[0])
         }
+
         declarations.variables.set(varName, {
           id: varName,
           value: result,
+          types: getTypes(result),
           directDependencies: new Set([result]),
         })
         return varName
@@ -219,6 +282,11 @@ const _buildSyntax = (
   declarations.variables.set(varId, {
     id: varId,
     value: `Enum(${innerEnum})`,
+    types: Object.keys(input.value)
+      .map(
+        (key, idx) => `{tag: '${key}', value: ${getTypes(dependencies[idx])}}`,
+      )
+      .join(" | "),
     directDependencies: new Set<string>(dependencies),
   })
   return varId
@@ -252,14 +320,12 @@ export const getStaticBuilder = (
     const args = params.map((p) => p.type).map(buildDefinition)
     const names = params.map((p) => p.name)
     declarations.imports.add("Tuple")
-    declarations.imports.add("Codec")
-    declarations.imports.add("CodecType")
 
     const variable: Variable = {
       id: varName,
-      types: `Codec<[${names
-        .map((name, pIdx) => `${name}: CodecType<typeof ${args[pIdx]}>`)
-        .join(", ")}]>`,
+      types: `[${names
+        .map((name, pIdx) => `${name}Arg: ${getTypes(args[pIdx])}`)
+        .join(", ")}]`,
       value: `Tuple(${args.join(", ")})`,
       directDependencies: new Set(args),
     }
@@ -272,11 +338,10 @@ export const getStaticBuilder = (
   const getEmptyTuple = () => {
     if (!declarations.variables.has(EMPTY_TUPLE_VAR_NAME)) {
       declarations.imports.add("Tuple")
-      declarations.imports.add("Codec")
 
       declarations.variables.set(EMPTY_TUPLE_VAR_NAME, {
         id: EMPTY_TUPLE_VAR_NAME,
-        types: `Codec<[]>`,
+        types: `[]`,
         value: `Tuple()`,
         directDependencies: new Set(),
       })
@@ -325,6 +390,7 @@ export const getStaticBuilder = (
         declarations.variables.set(returnVar, {
           id: returnVar,
           value: "_void",
+          types: "undefined",
           directDependencies: new Set(),
         })
       }
