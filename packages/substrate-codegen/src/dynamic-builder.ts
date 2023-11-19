@@ -102,10 +102,15 @@ export const getDynamicBuilder = (metadata: V14) => {
   const prefix = metadata.pallets
     .find((x) => x.name === "System")
     ?.constants.find((x) => x.name === "SS58Prefix")
+
+  let ss58Prefix: number | undefined
   if (prefix) {
     try {
       const prefixVal = buildDefinition(prefix.type).dec(prefix.value)
-      if (typeof prefixVal === "number") _accountId = scale.AccountId(prefixVal)
+      if (typeof prefixVal === "number") {
+        ss58Prefix = prefixVal
+        _accountId = scale.AccountId(prefixVal)
+      }
     } catch (_) {}
   }
 
@@ -200,5 +205,6 @@ export const getDynamicBuilder = (metadata: V14) => {
     buildError: buildVariant("errors"),
     buildCall,
     buildConstant,
+    ss58Prefix,
   }
 }
