@@ -37,54 +37,27 @@
     "trailingComma": "all"
   },
   "polkadot-api": {
-    "polkadot": {
-      "metadata": "polkadot-metadata.scale",
-      "chainSpec": "polkadot",
-      "outputFolder": "src/descriptors/",
+    "ksm": {
+      "metadata": "ksm-metadata.scale",
+      "outputFolder": "./src/descriptors/",
       "descriptors": {
-        "System": {
-          "constants": {
-            "BlockWeights": "9041406347359269990",
-            "BlockLength": "14166842245465713493",
-            "BlockHashCount": "6",
-            "DbWeight": "3357309396456286329",
-            "Version": "4019503174538417892",
-            "SS58Prefix": "5"
-          },
+        "FellowshipCollective": {
+          "constants": {},
           "storage": {
-            "Account": "8784467665714374359",
-            "ExtrinsicCount": "2571917859619161382",
-            "BlockWeight": "15402635091331367352",
-            "AllExtrinsicsLen": "2571917859619161382",
-            "BlockHash": "535885597421715197",
-            "ExtrinsicData": "7527234083247090220",
-            "Number": "2571917859619161382",
-            "ParentHash": "6799637561483078943",
-            "Digest": "3657688499452367579",
-            "Events": "2863101223185493143",
-            "EventCount": "2571917859619161382",
-            "EventTopics": "1009630212849999899",
-            "LastRuntimeUpgrade": "5028591118551952176",
-            "UpgradedToU32RefCount": "11466160773928732634",
-            "UpgradedToTripleRefCount": "11466160773928732634",
-            "ExecutionPhase": "17727573351706468196"
+            "Members": "bvc8f0qvh5ljj"
           },
-          "events": {
-            "ExtrinsicSuccess": "13099765670732146383",
-            "ExtrinsicFailed": "7304797062966333508",
-            "CodeUpdated": "0",
-            "NewAccount": "13750556108658342245",
-            "KilledAccount": "13750556108658342245",
-            "Remarked": "12673843241648213214"
+          "events": {},
+          "errors": {},
+          "extrinsics": {}
+        },
+        "Identity": {
+          "constants": {},
+          "storage": {
+            "IdentityOf": "4uovu2fu29da6"
           },
-          "errors": {
-            "InvalidSpecName": "0",
-            "SpecVersionNeedsToIncrease": "0",
-            "FailedToExtractRuntimeVersion": "0",
-            "NonDefaultComposite": "0",
-            "NonZeroRefCount": "0",
-            "CallFiltered": "0"
-          }
+          "events": {},
+          "errors": {},
+          "extrinsics": {}
         }
       }
     }

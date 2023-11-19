@@ -1,12 +1,12 @@
 import { createPullClient, WellKnownChain } from "@polkadot-api/client"
-import polkadotInfo, { IdentityIdentityOfStorage } from "./chain-info/polkadot"
-import collectivesInfo from "./chain-info/collectives"
-import collectivesChainSpec from "./collectives-polkadot"
+import ksm, { Queries } from "./descriptors/ksm"
 
-const relayChain = createPullClient(WellKnownChain.polkadot, polkadotInfo)
-const collectives = createPullClient(collectivesChainSpec, collectivesInfo)
+const relayChain = createPullClient(WellKnownChain.ksmcc3, ksm)
+const collectives = relayChain
 
-function mapRawIdentity(rawIdentity?: IdentityIdentityOfStorage["value"]) {
+function mapRawIdentity(
+  rawIdentity?: Queries["Identity"]["IdentityOf"]["Value"],
+) {
   if (!rawIdentity) return rawIdentity
 
   const {

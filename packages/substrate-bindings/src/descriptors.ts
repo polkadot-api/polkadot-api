@@ -1,83 +1,133 @@
-export interface DescriptorCommon<Pallet extends string, Name extends string> {
-  checksum: string
-  pallet: Pallet
-  name: Name
-}
-
 // @ts-ignore
-export interface ArgsWithPayloadCodec<Args extends Array<any>, O> {
-  len: Args["length"]
-}
-
-export interface PlainDescriptor<
-  Common extends DescriptorCommon<string, string>,
-  Codecs,
-> {
-  props: Common
-  codecs: Codecs
+export interface PlainDescriptor<T> {
+  checksum: string
 }
 
 export interface StorageDescriptor<
-  Common extends DescriptorCommon<string, string>,
-  Codecs extends ArgsWithPayloadCodec<any, any>,
+  Args extends Array<any>,
+  // @ts-ignore
+  T,
+  Optional extends 0 | 1,
 > {
-  props: Common
-  codecs: Codecs
-  optional: 0 | 1
+  checksum: string
+  len: Args["length"]
+  optional: Optional
 }
 
-export interface TxDescriptor<
-  Common extends DescriptorCommon<string, string>,
-  Codecs extends Array<any>,
-> {
-  props: Common
-  codecs: Codecs
+// @ts-ignore
+export interface TxDescriptor<Args extends Array<any>> {
+  checksum: string
 }
 
-export type Descriptor =
-  | PlainDescriptor<any, any>
-  | StorageDescriptor<any, any>
-  | TxDescriptor<any, any>
+export const getPlainDescriptor = <T>(
+  checksum: string,
+): PlainDescriptor<T> => ({
+  checksum,
+})
 
-export const getPalletCreator = <Pallet extends string>(pallet: Pallet) => {
-  const getPayloadDescriptor = <Name extends string, Codecs>(
-    checksum: string,
-    name: Name,
-    codecs: Codecs,
-  ): PlainDescriptor<DescriptorCommon<Pallet, Name>, Codecs> =>
-    ({
-      props: { checksum, pallet, name },
-      codecs,
-    }) as any
+export const getStorageDescriptor = <
+  Args extends Array<any>,
+  T,
+  Optional extends 0 | 1,
+>(
+  checksum: string,
+  len: Args["length"],
+  optional: Optional,
+): StorageDescriptor<Args, T, Optional> => ({
+  checksum,
+  len,
+  optional,
+})
 
-  const getStorageDescriptor = <
-    Name extends string,
-    KeyCodecs extends Array<any>,
-    Codecs,
-  >(
-    checksum: string,
-    name: Name,
-    _: KeyCodecs,
-    __: Codecs,
-    len: KeyCodecs["length"],
-    optional: 0 | 1,
-  ): StorageDescriptor<
-    DescriptorCommon<Pallet, Name>,
-    ArgsWithPayloadCodec<KeyCodecs, Codecs>
-  > => ({
-    props: { checksum, pallet, name },
-    codecs: { len },
-    optional,
-  })
+export const getTxDescriptor = <Args extends Array<any>>(
+  checksum: string,
+): TxDescriptor<Args> => ({
+  checksum,
+})
 
-  const getTxDescriptor = <Name extends string, Codecs extends Array<any>>(
-    checksum: string,
-    name: Name,
-    codecs: Codecs,
-  ): TxDescriptor<DescriptorCommon<Pallet, Name>, Codecs> => ({
-    props: { checksum, pallet, name },
-    codecs,
-  })
+export type Descriptors = Record<
+  string,
+  [
+    Record<string, StorageDescriptor<any, any, any>>,
+    Record<string, TxDescriptor<any>>,
+    Record<string, PlainDescriptor<any>>,
+    Record<string, PlainDescriptor<any>>,
+    Record<string, PlainDescriptor<any>>,
+  ]
+>
 
-  return [getPayloadDescriptor, getStorageDescriptor, getTxDescriptor] as const
+type PickDescriptors<Idx extends 0 | 1 | 2 | 3 | 4, T extends Descriptors> = {
+  [K in keyof T]: T[K][Idx]
 }
+
+type Anonymize<T> = T extends
+  | string
+  | number
+  | bigint
+  | boolean
+  | void
+  | undefined
+  | null
+  | symbol
+  ? T
+  : T extends (...args: infer Args) => infer R
+  ? (...args: Anonymize<Args>) => Anonymize<R>
+  : {
+      [K in keyof T]: Anonymize<T[K]>
+    }
+
+type ExtractStorage<
+  T extends Record<string, Record<string, StorageDescriptor<any, any, any>>>,
+> = {
+  [K in keyof T]: {
+    [KK in keyof T[K]]: T[K][KK] extends StorageDescriptor<
+      infer Key,
+      infer Value,
+      infer Optional
+    >
+      ? {
+          KeyArgs: Anonymize<Key>
+          Value: Anonymize<Value>
+          IsOptional: Optional extends 1 ? false : true
+        }
+      : unknown
+  }
+}
+
+type ExtractTx<T extends Record<string, Record<string, TxDescriptor<any>>>> = {
+  [K in keyof T]: {
+    [KK in keyof T[K]]: T[K][KK] extends TxDescriptor<infer Args>
+      ? Anonymize<Args>
+      : unknown
+  }
+}
+
+type ExtractPlain<
+  T extends Record<string, Record<string, PlainDescriptor<any>>>,
+> = {
+  [K in keyof T]: {
+    [KK in keyof T[K]]: T[K][KK] extends PlainDescriptor<infer Value>
+      ? Anonymize<Value>
+      : unknown
+  }
+}
+
+export type QueryFromDescriptors<T extends Descriptors> = ExtractStorage<
+  PickDescriptors<0, T>
+>
+
+export type TxFromDescriptors<T extends Descriptors> = ExtractTx<
+  PickDescriptors<1, T>
+>
+
+export type EventsFromDescriptors<T extends Descriptors> = ExtractPlain<
+  PickDescriptors<2, T>
+>
+
+export type ErrorsFromDescriptors<T extends Descriptors> = ExtractPlain<
+  PickDescriptors<3, T>
+>
+
+export type ConstFromDescriptors<T extends Descriptors> = ExtractPlain<
+  PickDescriptors<4, T>
+>

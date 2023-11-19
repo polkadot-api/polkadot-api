@@ -1,147 +1,167 @@
 import { PalletData } from "./types"
 import fs from "fs/promises"
 import { ESLint } from "eslint"
-import { primitiveTypes } from "@polkadot-api/substrate-codegen"
 import fsExists from "fs.promises.exists"
 import tsc from "tsc-prog"
 import path from "path"
+import { mapObject } from "@polkadot-api/utils"
+
+const customStringifyObject = (
+  input: string | Record<string, any> | Array<any>,
+): string => {
+  if (typeof input === "string") return input
+
+  if (Array.isArray(input))
+    return `[${input.map(customStringifyObject).join(", ")}]`
+
+  return `{${Object.entries(mapObject(input, customStringifyObject))
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(", ")}}`
+}
 
 export const createDescriptorsFile = async (
   key: string,
   outputFolder: string,
   pallets: Record<string, PalletData>,
-  exports: Set<string>,
 ) => {
-  let descriptorCodegen = ""
+  const knownImports: Array<string> = [
+    `import type { PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/substrate-bindings"\n`,
+    `import {getPlainDescriptor, getStorageDescriptor, getTxDescriptor} from "@polkadot-api/substrate-bindings"\n`,
+  ]
+  const keyTypesImports: Array<string> = []
+  const addTypeImport = (type: string) => {
+    keyTypesImports.push(type)
+  }
 
-  descriptorCodegen += `import type { ArgsWithPayloadCodec, PlainDescriptor, TxDescriptor, StorageDescriptor, DescriptorCommon } from "@polkadot-api/substrate-bindings"\n`
-  descriptorCodegen += `import {getPalletCreator} from "@polkadot-api/substrate-bindings"\n`
+  const code: Array<string> = []
+  const addLine = (line: string) => {
+    code.push(line)
+  }
+  addLine(
+    `const pDesc = getPlainDescriptor; const sDesc = getStorageDescriptor; const tDesc = getTxDescriptor;\n`,
+  )
 
-  descriptorCodegen += `import type {${[...exports]
-    .filter((x) => !primitiveTypes[x as keyof typeof primitiveTypes])
-    .map((v) => `I${v}`)
-    .join(", ")}} from "./${key}-types.ts"\n\n`
+  type Descriptors = Record<
+    string,
+    Record<
+      string,
+      {
+        varName: string
+        types: string
+      }
+    >
+  >
+  const stgDescriptors: Descriptors = {}
+  const txDescriptors: Descriptors = {}
+  const evDescriptors: Descriptors = {}
+  const errDescriptors: Descriptors = {}
+  const constDescriptors: Descriptors = {}
 
-  descriptorCodegen += `let NOTIN: any\n\n`
-
-  const getPayloadType = (payload: string) =>
-    primitiveTypes[payload as keyof typeof primitiveTypes] ?? `I${payload}`
-
-  const errorDescriptors: [string, string][] = []
-  const eventDescriptors: [string, string][] = []
-  const constDescriptors: [string, string][] = []
-  const stgDescriptors: [string, string][] = []
-  const txDescriptors: [string, string][] = []
   for (const [
     pallet,
     { errors, events, constants, storage, tx },
   ] of Object.entries(pallets)) {
-    descriptorCodegen += `const [_${pallet}P, _${pallet}S, _${pallet}T] = getPalletCreator(\"${pallet}\")\n\n`
-
+    errDescriptors[pallet] = {}
     for (const [errorName, { checksum, payload }] of Object.entries(errors)) {
-      const errType = getPayloadType(payload)
-      const types = `PlainDescriptor<DescriptorCommon<"${pallet}", "${errorName}">, ${errType}>`
+      const types = `PlainDescriptor<${payload}>`
       const varName = `Err${pallet}${errorName}`
-      descriptorCodegen += `const ${varName}: ${types} = _${pallet}P("${checksum}", "${errorName}", NOTIN as ${errType})\n`
-      errorDescriptors.push([varName, types])
+      errDescriptors[pallet][errorName] = { types, varName }
+      addTypeImport(payload)
+      addLine(`const ${varName}: ${types} = pDesc<${payload}>("${checksum}");`)
     }
-    descriptorCodegen += `\n`
 
+    evDescriptors[pallet] = {}
     for (const [evName, { checksum, payload }] of Object.entries(events)) {
-      const evType = getPayloadType(payload)
-      const types = `PlainDescriptor<DescriptorCommon<"${pallet}", "${evName}">, ${evType}>`
+      const types = `PlainDescriptor<${payload}>`
       const varName = `Ev${pallet}${evName}`
-      descriptorCodegen += `const ${varName}: ${types} = _${pallet}P("${checksum}", "${evName}", NOTIN as ${evType})\n`
-      eventDescriptors.push([varName, types])
+      evDescriptors[pallet][evName] = { types, varName }
+      addTypeImport(payload)
+      addLine(`const ${varName}: ${types} = pDesc<${payload}>("${checksum}")`)
     }
-    descriptorCodegen += `\n`
 
+    constDescriptors[pallet] = {}
     for (const [constName, { checksum, payload }] of Object.entries(
       constants,
     )) {
-      const constType = getPayloadType(payload)
-      const types = `PlainDescriptor<DescriptorCommon<"${pallet}", "${constName}">, ${constType}>`
+      const types = `PlainDescriptor<${payload}>`
       const varName = `Const${pallet}${constName}`
-      descriptorCodegen += `const ${varName}: ${types} = _${pallet}P("${checksum}", "${constName}", NOTIN as ${constType})\n`
-      constDescriptors.push([varName, types])
+      constDescriptors[pallet][constName] = { types, varName }
+      addTypeImport(payload)
+      addLine(`const ${varName}: ${types} = pDesc<${payload}>("${checksum}")`)
     }
-    descriptorCodegen += `\n`
 
+    txDescriptors[pallet] = {}
     for (const [txName, { checksum, payload }] of Object.entries(tx)) {
-      const txType = getPayloadType(payload)
-      const types = `TxDescriptor<DescriptorCommon<"${pallet}", "${txName}">, ${txType}>`
+      const types = `TxDescriptor<${payload}>`
       const varName = `Tx${pallet}${txName}`
-      descriptorCodegen += `const ${varName}: ${types} = _${pallet}T("${checksum}", "${txName}", NOTIN as ${txType})\n`
-      txDescriptors.push([varName, types])
+      txDescriptors[pallet][varName] = { types, varName }
+      addTypeImport(payload)
+      addLine(`const ${varName}: ${types} = tDesc<${payload}>("${checksum}")`)
     }
-    descriptorCodegen += `\n`
 
+    stgDescriptors[pallet] = {}
     for (const [
       stgName,
       { checksum, payload, key, isOptional, len },
     ] of Object.entries(storage)) {
-      const keyType = getPayloadType(key)
-      const valueType = getPayloadType(payload)
-      const types = `StorageDescriptor<
-DescriptorCommon<"${pallet}", "${stgName}">,
-ArgsWithPayloadCodec<${keyType}, ${valueType}>
->`
+      const optionalType = isOptional ? 0 : 1
+      const types = `StorageDescriptor<${key}, ${payload}, ${optionalType}>`
       const varName = `Stg${pallet}${stgName}`
-      descriptorCodegen += `const ${varName}: ${types} = _${pallet}S("${checksum}", "${stgName}", NOTIN as ${keyType}, NOTIN as ${valueType}, ${len}, ${
-        isOptional ? 0 : 1
-      })\n`
-      stgDescriptors.push([varName, types])
+      stgDescriptors[pallet][stgName] = { types, varName }
+      addTypeImport(key)
+      addTypeImport(payload)
+      addLine(
+        `const ${varName}: ${types} = sDesc<${key}, ${payload}, ${optionalType}>("${checksum}",${len}, ${optionalType})`,
+      )
     }
-    descriptorCodegen += `\n\n`
   }
-  descriptorCodegen += `\n\n`
 
-  descriptorCodegen += `type ITxDescriptors = [${txDescriptors
-    .map(([, x]) => x)
-    .join(", ")}];
-const _allTxDescriptors: ITxDescriptors = [${txDescriptors
-    .map(([x]) => x)
-    .join(", ")}]\n`
+  addLine("")
+  addLine("")
 
-  descriptorCodegen += `type IStgDescriptors = [${stgDescriptors
-    .map(([, x]) => x)
-    .join(", ")}];
-const _allStgDescriptors: IStgDescriptors = [${stgDescriptors
-    .map(([x]) => x)
-    .join(", ")}]\n`
+  addLine(
+    `type I${key}Descriptors = ${customStringifyObject(
+      mapObject(pallets, (_, key) =>
+        [
+          stgDescriptors,
+          txDescriptors,
+          evDescriptors,
+          errDescriptors,
+          constDescriptors,
+        ].map((x) => mapObject(x[key], (v) => v.types)),
+      ),
+    )};\n`,
+  )
 
-  descriptorCodegen += `type IConstDescriptors = [${constDescriptors
-    .map(([, x]) => x)
-    .join(", ")}];
-const _allConstDescriptors: IConstDescriptors = [${constDescriptors
-    .map(([x]) => x)
-    .join(", ")}]\n`
+  addLine(
+    `const _allDescriptors: I${key}Descriptors = ${customStringifyObject(
+      mapObject(pallets, (_, key) =>
+        [
+          stgDescriptors,
+          txDescriptors,
+          evDescriptors,
+          errDescriptors,
+          constDescriptors,
+        ].map((x) => mapObject(x[key], (v) => v.varName)),
+      ),
+    )};\n`,
+  )
 
-  descriptorCodegen += `type IEvtDescriptors = [${eventDescriptors
-    .map(([, x]) => x)
-    .join(", ")}];
-const _allEvtDescriptors: IEvtDescriptors = [${eventDescriptors
-    .map(([x]) => x)
-    .join(", ")}]\n`
+  addLine(`export default _allDescriptors`)
+  addLine(`export type Queries = QueryFromDescriptors<I${key}Descriptors>`)
+  addLine(`export type Calls = TxFromDescriptors<I${key}Descriptors>`)
+  addLine(`export type Events = EventsFromDescriptors<I${key}Descriptors>`)
+  addLine(`export type Errors = ErrorsFromDescriptors<I${key}Descriptors>`)
+  addLine(`export type Constants = ConstFromDescriptors<I${key}Descriptors>`)
 
-  descriptorCodegen += `type IErrDescriptors = [${errorDescriptors
-    .map(([, x]) => x)
-    .join(", ")}];
-const _allErrDescriptors: IErrDescriptors = [${errorDescriptors
-    .map(([x]) => x)
-    .join(", ")}]\n`
-
-  descriptorCodegen += `type IAllDescriptors = [IStgDescriptors, ITxDescriptors, IEvtDescriptors, IErrDescriptors, IConstDescriptors];
-const _allDescriptors: IAllDescriptors = [
-    _allStgDescriptors,
-    _allTxDescriptors,
-    _allEvtDescriptors,
-    _allErrDescriptors,
-    _allConstDescriptors
-  ]\n`
-  descriptorCodegen += `export default _allDescriptors`
-
-  descriptorCodegen = "// Generated by @polkadot-api/cli\n" + descriptorCodegen
+  const descriptorCodegen =
+    knownImports
+      .concat(
+        `import type {${keyTypesImports.join(", ")}} from "./${key}-types.ts"`,
+      )
+      .join(";\n") +
+    "\n\n" +
+    code.join("\n")
 
   await fs.writeFile(`${outputFolder}/${key}.ts`, descriptorCodegen)
 
@@ -182,9 +202,5 @@ const _allDescriptors: IAllDescriptors = [
       },
       include: [`${key}.ts`],
     })
-
-    if (await fsExists(`${tscFileName}.d.ts`)) {
-      await fs.rm(`${tscFileName}.d.ts`)
-    }
   }
 }

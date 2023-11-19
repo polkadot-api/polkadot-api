@@ -96,8 +96,9 @@ export const getDynamicBuilder = (metadata: V14) => {
   const getLookupEntryDef = getLookupFn(lookupData)
   let _accountId = scale.AccountId()
 
+  const cache = new Map()
   const buildDefinition = (id: number): Codec<any> =>
-    buildCodec(getLookupEntryDef(id), new Map(), new Set(), _accountId)
+    buildCodec(getLookupEntryDef(id), cache, new Set(), _accountId)
 
   const prefix = metadata.pallets
     .find((x) => x.name === "System")
