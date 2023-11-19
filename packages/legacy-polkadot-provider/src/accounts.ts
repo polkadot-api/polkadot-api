@@ -11,7 +11,7 @@ import {
 } from "rxjs"
 import { Callback } from "./types/polkadot-provider"
 import { UnsubscribeFn } from "@polkadot-api/substrate-client"
-import { AccountId } from "@polkadot-api/substrate-bindings"
+import { AccountId, SS58String } from "@polkadot-api/substrate-bindings"
 
 declare global {
   interface Window {
@@ -46,7 +46,7 @@ export const getSigner = async (
 
 export type KeypairType = "ed25519" | "sr25519" | "ecdsa"
 export interface InjectedAccount {
-  address: string
+  address: SS58String
   genesisHash?: string | null
   name?: string
   type?: KeypairType
@@ -81,7 +81,7 @@ export const getAllAccounts$ = (
 }
 
 export interface Account {
-  address: string
+  address: SS58String
   publicKey: Uint8Array
   displayName?: string
 }
@@ -130,7 +130,7 @@ export const getAccountsChainFns = (
   const onAccountsChange = (
     onAccounts: Callback<
       Array<{
-        address: string
+        address: SS58String
         publicKey: Uint8Array
         displayName?: string
       }>

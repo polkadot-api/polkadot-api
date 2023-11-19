@@ -1,3 +1,5 @@
+import type { SS58String } from "@polkadot-api/substrate-bindings"
+
 export type Callback<T> = (value: T) => void
 type UnsubscribeFn = () => void
 
@@ -66,7 +68,7 @@ export interface JsonRpcProvider {
 
 export interface Account {
   // SS58 formated public key
-  address: string
+  address: SS58String
 
   // public key of the account
   publicKey: Uint8Array

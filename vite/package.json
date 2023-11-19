@@ -15,11 +15,127 @@
     "vite": "^4.4.4"
   },
   "dependencies": {
+    "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/client": "workspace:*",
     "@polkadot-api/legacy-polkadot-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
     "@substrate/connect": "^0.7.35",
     "rxjs": "^7.8.1"
+  },
+  "polkadot-api": {
+    "westend": {
+      "metadata": "polkadot-metadata.scale",
+      "outputFolder": "./src/codegen/",
+      "descriptors": {
+        "Balances": {
+          "constants": {},
+          "storage": {},
+          "events": {
+            "Transfer": "10361351692762254388",
+            "Deposit": "6307645739519015793",
+            "Withdraw": "6307645739519015793"
+          },
+          "errors": {},
+          "extrinsics": {
+            "transfer_keep_alive": {
+              "events": {},
+              "errors": {},
+              "checksum": "10049767239352345970"
+            }
+          }
+        }
+      }
+    },
+    "liam": {
+      "metadata": "liam-metadata.scale",
+      "outputFolder": "./liam-codegen/",
+      "descriptors": {
+        "Balances": {
+          "constants": {},
+          "storage": {},
+          "events": {
+            "Transfer": "10361351692762254388"
+          },
+          "errors": {},
+          "extrinsics": {
+            "transfer_keep_alive": {
+              "events": {},
+              "errors": {},
+              "checksum": "10049767239352345970"
+            }
+          }
+        },
+        "Identity": {
+          "constants": {},
+          "storage": {
+            "IdentityOf": "5720695313478759750"
+          },
+          "events": {},
+          "errors": {},
+          "extrinsics": {}
+        },
+        "Staking": {
+          "constants": {},
+          "storage": {
+            "Validators": "8147000766871272840",
+            "Nominators": "17320999426850333572",
+            "CurrentEra": "2571917859619161382",
+            "ActiveEra": "7808466309214672184"
+          },
+          "events": {},
+          "errors": {},
+          "extrinsics": {}
+        },
+        "FastUnstake": {
+          "constants": {
+            "Deposit": "8"
+          },
+          "storage": {
+            "Head": "12860428304212954817",
+            "Queue": "15114892854581203845",
+            "CounterForQueue": "2571917859619161382",
+            "ErasToCheckPerBlock": "2571917859619161382"
+          },
+          "events": {
+            "Unstaked": "6883498820213655781",
+            "BatchFinished": "172591022925105655",
+            "Slashed": "4006539432991274642",
+            "InternalError": "0",
+            "BatchChecked": "14725655963590528340"
+          },
+          "errors": {
+            "NotController": "0",
+            "AlreadyQueued": "0",
+            "NotFullyBonded": "0",
+            "NotQueued": "0",
+            "AlreadyHead": "0",
+            "CallNotAllowed": "0"
+          },
+          "extrinsics": {
+            "register_fast_unstake": {
+              "events": {
+                "Balances": []
+              },
+              "errors": {},
+              "checksum": "0"
+            },
+            "deregister": {
+              "events": {
+                "Balances": []
+              },
+              "errors": {},
+              "checksum": "0"
+            },
+            "control": {
+              "events": {
+                "Balances": []
+              },
+              "errors": {},
+              "checksum": "16204279980253246140"
+            }
+          }
+        }
+      }
+    }
   }
 }

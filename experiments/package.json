@@ -17,19 +17,23 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.4.7",
+    "@types/ws": "^8.5.9",
     "prettier": "^2.6.2"
   },
   "dependencies": {
     "@noble/curves": "^1.2.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/client": "workspace:*",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
+    "@polkadot-api/node-polkadot-provider": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
     "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "ws": "^8.14.2"
   },
   "prettier": {
     "printWidth": 80,
@@ -39,54 +43,57 @@
   "polkadot-api": {
     "polkadot": {
       "metadata": "polkadot-metadata.scale",
-      "chainSpec": "polkadot",
-      "outputFolder": "src/descriptors/",
+      "outputFolder": "./src/chain-data/",
       "descriptors": {
-        "System": {
-          "constants": {
-            "BlockWeights": "9041406347359269990",
-            "BlockLength": "14166842245465713493",
-            "BlockHashCount": "6",
-            "DbWeight": "3357309396456286329",
-            "Version": "4019503174538417892",
-            "SS58Prefix": "5"
-          },
+        "Identity": {
+          "constants": {},
           "storage": {
-            "Account": "8784467665714374359",
-            "ExtrinsicCount": "2571917859619161382",
-            "BlockWeight": "15402635091331367352",
-            "AllExtrinsicsLen": "2571917859619161382",
-            "BlockHash": "535885597421715197",
-            "ExtrinsicData": "7527234083247090220",
-            "Number": "2571917859619161382",
-            "ParentHash": "6799637561483078943",
-            "Digest": "3657688499452367579",
-            "Events": "2863101223185493143",
-            "EventCount": "2571917859619161382",
-            "EventTopics": "1009630212849999899",
-            "LastRuntimeUpgrade": "5028591118551952176",
-            "UpgradedToU32RefCount": "11466160773928732634",
-            "UpgradedToTripleRefCount": "11466160773928732634",
-            "ExecutionPhase": "17727573351706468196"
+            "IdentityOf": "5720695313478759750"
           },
-          "events": {
-            "ExtrinsicSuccess": "13099765670732146383",
-            "ExtrinsicFailed": "7304797062966333508",
-            "CodeUpdated": "0",
-            "NewAccount": "13750556108658342245",
-            "KilledAccount": "13750556108658342245",
-            "Remarked": "12673843241648213214"
-          },
-          "errors": {
-            "InvalidSpecName": "0",
-            "SpecVersionNeedsToIncrease": "0",
-            "FailedToExtractRuntimeVersion": "0",
-            "NonDefaultComposite": "0",
-            "NonZeroRefCount": "0",
-            "CallFiltered": "0"
+          "events": {},
+          "errors": {},
+          "extrinsics": {}
+        },
+        "Balances": {
+          "constants": {},
+          "storage": {},
+          "events": {},
+          "errors": {},
+          "extrinsics": {
+            "transfer_keep_alive": {
+              "events": {},
+              "errors": {},
+              "checksum": "10049767239352345970"
+            },
+            "transfer": {
+              "events": {},
+              "errors": {},
+              "checksum": "10049767239352345970"
+            }
           }
         }
       }
+    },
+    "collectives": {
+      "metadata": "collectives-metadata.scale",
+      "outputFolder": "./src/chain-data/",
+      "descriptors": {
+        "FellowshipCollective": {
+          "constants": {},
+          "storage": {
+            "MemberCount": "204877425938459878",
+            "Members": "13812838053771925107"
+          },
+          "events": {},
+          "errors": {},
+          "extrinsics": {}
+        }
+      }
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "smoldot": "^2.0.7"
     }
   }
 }

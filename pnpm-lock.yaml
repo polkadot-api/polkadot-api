@@ -133,6 +133,12 @@ importers:
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../packages/client
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../packages/json-rpc-provider-proxy
+      '@polkadot-api/node-polkadot-provider':
+        specifier: workspace:*
+        version: link:../packages/node-polkadot-provider
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../packages/sc-provider
@@ -154,10 +160,16 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+      ws:
+        specifier: ^8.14.2
+        version: 8.14.2
     devDependencies:
       '@types/node':
         specifier: ^20.4.7
         version: 20.9.0
+      '@types/ws':
+        specifier: ^8.5.9
+        version: 8.5.9
       prettier:
         specifier: ^2.6.2
         version: 2.8.8
@@ -273,6 +285,9 @@ importers:
       '@polkadot-api/substrate-codegen':
         specifier: workspace:*
         version: link:../substrate-codegen
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^0.34.3
@@ -494,18 +509,18 @@ importers:
 
   vite:
     dependencies:
+      '@polkadot-api/cli':
+        specifier: workspace:*
+        version: link:../packages/cli
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../packages/client
       '@polkadot-api/legacy-polkadot-provider':
         specifier: workspace:*
         version: link:../packages/legacy-polkadot-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../packages/substrate-bindings
-      '@polkadot-api/substrate-client':
-        specifier: workspace:*
-        version: link:../packages/substrate-client
-      '@polkadot-api/utils':
-        specifier: workspace:*
-        version: link:../packages/utils
       '@substrate/connect':
         specifier: ^0.7.35
         version: 0.7.35
@@ -1906,6 +1921,12 @@ packages:
   /@types/wrap-ansi@3.0.0:
     resolution: {integrity: sha512-ltIpx+kM7g/MLRZfkbL7EsCEjfzCcScLpkg37eXEtx5kmrAKBkTJwd1GIAjDSL8wTpM6Hzn5YO4pSb91BEwu1g==}
     dev: false
+
+  /@types/ws@8.5.9:
+    resolution: {integrity: sha512-jbdrY0a8lxfdTp/+r7Z4CkycbOFN8WX+IOchLJr3juT/xzbJ8URyTVSJ/hvNdadTgM1mnedb47n+Y31GsFnQlg==}
+    dependencies:
+      '@types/node': 20.9.0
+    dev: true
 
   /@types/yauzl@2.10.0:
     resolution: {integrity: sha512-Cn6WYCm0tXv8p6k+A8PvbDG763EDpBoTzHdA+Q/MF6H3sapGjCm9NzoaJncJS9tUKSuCoDs9XHxYYsQDgxR6kw==}
@@ -6843,6 +6864,19 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+
+  /ws@8.14.2:
+    resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    dev: false
 
   /xdg-basedir@4.0.0:
     resolution: {integrity: sha512-PSNhEJDejZYV7h50BohL09Er9VaIefr2LMAf3OEmpCkjOi34eYyQYAXUTjEQtZJTKcF0E2UKTh+osDLsgNim9Q==}

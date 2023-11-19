@@ -41,7 +41,7 @@ export type StorageEntry<Args extends Array<any>, Payload> = Args extends []
   ? StorageEntryWithoutKeys<Payload>
   : StorageEntryWithKeys<Args, Payload>
 
-type Storage$ = <Type extends StorageItemInput["type"]>(
+export type Storage$ = <Type extends StorageItemInput["type"]>(
   hash: string | null,
   type: Type,
   key: string,
@@ -101,8 +101,11 @@ export const createStorageEntry = <
       at ?? null,
       (descriptors) => {
         const codecs = descriptors.storage[pallet]?.[name]
-        if (!codecs)
+        if (!codecs) {
+          console.log("WAIT WHAT!")
+          console.log(descriptors.storage)
           throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
+        }
 
         const key = codecs.enc(...actualArgs)
         return [
@@ -153,8 +156,11 @@ export const createStorageEntry = <
       at ?? null,
       (descriptors) => {
         const codecs = descriptors.storage[pallet]?.[name]
-        if (!codecs)
+        if (!codecs) {
+          console.log("WAIT WHAT!")
+          console.log(descriptors.storage)
           throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
+        }
 
         const key = codecs.enc(...actualArgs)
         return [

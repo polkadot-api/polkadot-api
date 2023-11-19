@@ -1,3 +1,4 @@
+import WebSocket from "ws"
 import {
   ScProvider,
   WellKnownChain,
@@ -10,6 +11,7 @@ import {
   CodecType,
   Tuple,
 } from "@polkadot-api/substrate-bindings"
+import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 const smProvider = ScProvider(
   WellKnownChain.polkadot /*, {
@@ -36,7 +38,50 @@ const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
   }
 }
 
-export const { chainHead } = createClient(withLogsProvider(smProvider))
+export const WebSocketProvider = (uri: string, protocols?: string | string[]) =>
+  getSyncProvider(async () => {
+    const socket = new WebSocket(uri, protocols)
+
+    await new Promise<void>((resolve, reject) => {
+      const onOpen = () => {
+        resolve()
+        socket.removeEventListener("error", onError)
+      }
+      socket.addEventListener("open", onOpen, { once: true })
+
+      const onError = (e: WebSocket.ErrorEvent) => {
+        reject(e)
+        socket.removeEventListener("open", onOpen)
+      }
+      socket.addEventListener("error", onError, { once: true })
+    })
+
+    return (onMessage, onHalt) => {
+      const _onMessage = (e: WebSocket.MessageEvent) => {
+        onMessage(e.data as string)
+      }
+
+      socket.addEventListener("message", _onMessage)
+      socket.addEventListener("error", onHalt)
+      socket.addEventListener("close", onHalt)
+
+      return {
+        send(msg) {
+          socket.send(msg)
+        },
+        disconnect() {
+          socket.removeEventListener("message", _onMessage)
+          socket.removeEventListener("error", onHalt)
+          socket.removeEventListener("close", onHalt)
+          socket.close()
+        },
+      }
+    }
+  })
+
+export const { chainHead } = createClient(
+  withLogsProvider(WebSocketProvider("wss://rpc.polkadot.io")),
+)
 
 type Metadata = CodecType<typeof metadata>
 
