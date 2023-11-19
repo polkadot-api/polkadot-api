@@ -1,7 +1,7 @@
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { Bytes, Codec, Decoder, Encoder, createCodec } from "scale-ts"
 
-export type HexString = string & { __hexString: unknown }
+export type HexString = string & { __hexString?: unknown }
 
 const enc = (nBytes?: number): Encoder<HexString> => {
   const _enc = Bytes.enc(nBytes)

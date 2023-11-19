@@ -6,7 +6,7 @@ const SS58_PREFIX = new TextEncoder().encode("SS58PRE")
 
 const CHECKSUM_LENGTH = 2
 
-export type SS58String = string & { __SS58String: unknown }
+export type SS58String = string & { __SS58String?: unknown }
 
 const fromBufferToBase58 = (ss58Format: number) => {
   const prefixBytes =
@@ -25,7 +25,7 @@ const fromBufferToBase58 = (ss58Format: number) => {
     ).subarray(0, CHECKSUM_LENGTH)
     return base58.encode(
       Uint8Array.of(...prefixBytes, ...publicKey, ...checksum),
-    ) as SS58String
+    )
   }
 }
 

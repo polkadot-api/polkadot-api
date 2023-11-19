@@ -138,12 +138,12 @@ export async function outputCodegen(
   outputFolder: string,
   key: string,
 ) {
-  console.log("geting descriptor data")
-  const { declarations, descriptorsData, exported } = getCodegenInfo(
+  const { code, descriptorsData } = getCodegenInfo(
     metadata,
+    key,
     descriptorData,
   )
   await fs.mkdir(outputFolder, { recursive: true })
-  await createDtsFile(key, outputFolder, declarations, exported)
-  await createDescriptorsFile(key, outputFolder, descriptorsData, exported)
+  await createDtsFile(key, outputFolder, code)
+  await createDescriptorsFile(key, outputFolder, descriptorsData)
 }

@@ -1,5 +1,6 @@
 import { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
 import { LookupEntry, getLookupFn } from "./lookups"
+import { withCache } from "./with-cache"
 
 type MetadataPrimitives =
   | "bool"
@@ -77,8 +78,9 @@ const getTypes = (varName: string) =>
 
 const _buildSyntax = (
   input: LookupEntry,
+  cache: Map<number, string>,
+  stack: Set<number>,
   declarations: CodeDeclarations,
-  stack: Set<LookupEntry>,
   getVarName: (id: number, ...post: string[]) => string,
 ): string => {
   if (input.type === "primitive") {
@@ -124,25 +126,8 @@ const _buildSyntax = (
   if (declarations.variables.has(getVarName(input.id)))
     return getVarName(input.id)
 
-  const buildNextSyntax = (nextInput: LookupEntry): string => {
-    if (!stack.has(nextInput)) {
-      const nextStack = new Set(stack)
-      nextStack.add(input)
-      return _buildSyntax(nextInput, declarations, nextStack, getVarName)
-    }
-
-    const nonCircular = getVarName(input.id)
-    const variable: Variable = {
-      id: getVarName(input.id, "circular"),
-      types: `{ self: I${nonCircular} }`,
-      value: `Self(() => ${nonCircular})`,
-      directDependencies: new Set([nonCircular]),
-    }
-
-    declarations.imports.add("Self")
-    declarations.variables.set(variable.id, variable)
-    return variable.id
-  }
+  const buildNextSyntax = (nextInput: LookupEntry): string =>
+    buildSyntax(nextInput, cache, stack, declarations, getVarName)
 
   const buildVector = (id: string, inner: LookupEntry, len?: number) => {
     declarations.imports.add("Vector")
@@ -292,10 +277,31 @@ const _buildSyntax = (
   return varId
 }
 
-export const getStaticBuilder = (
-  metadata: V14,
-  declarations: CodeDeclarations,
-) => {
+const buildSyntax = withCache(
+  _buildSyntax,
+  (_getter, entry, declarations, getVarName) => {
+    declarations.imports.add("Self")
+
+    const nonCircular = getVarName(entry.id)
+    const variable: Variable = {
+      id: getVarName(entry.id, "circular"),
+      types: `I${nonCircular}`,
+      value: `Self(() => ${nonCircular})`,
+      directDependencies: new Set([nonCircular]),
+    }
+    declarations.variables.set(variable.id, variable)
+    return variable.id
+  },
+  (x) => x,
+)
+
+export const getStaticBuilder = (metadata: V14) => {
+  const declarations: CodeDeclarations = {
+    imports: new Set<string>(),
+    typeImports: new Set<string>(["Codec"]),
+    variables: new Map(),
+  }
+
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
 
@@ -308,8 +314,15 @@ export const getStaticBuilder = (
     return toCamelCase(...parts)
   }
 
+  const cache = new Map()
   const buildDefinition = (id: number) =>
-    _buildSyntax(getLookupEntryDef(id), declarations, new Set(), getVarName)
+    buildSyntax(
+      getLookupEntryDef(id),
+      cache,
+      new Set(),
+      declarations,
+      getVarName,
+    )
 
   const buildNamedTuple = (
     params: Array<{ name: string; type: number }>,
@@ -324,7 +337,10 @@ export const getStaticBuilder = (
     const variable: Variable = {
       id: varName,
       types: `[${names
-        .map((name, pIdx) => `${name}Arg: ${getTypes(args[pIdx])}`)
+        .map(
+          (name, pIdx) =>
+            `${name[0].toUpperCase() + name.slice(1)}: ${getTypes(args[pIdx])}`,
+        )
         .join(", ")}]`,
       value: `Tuple(${args.join(", ")})`,
       directDependencies: new Set(args),
@@ -429,6 +445,30 @@ export const getStaticBuilder = (
     return buildDefinition(storageEntry.type as number)
   }
 
+  const getCode = (): string => {
+    const typeImports = `import type {${[...declarations.typeImports].join(
+      ", ",
+    )}} from "@polkadot-api/substrate-bindings";\n`
+
+    const varImports = `import {${[...declarations.imports].join(
+      ", ",
+    )}} from "@polkadot-api/substrate-bindings";\n\n`
+
+    const code = [...declarations.variables.values()]
+      .map((variable) => {
+        return `type I${variable.id} = ${variable.types};
+const ${variable.id}: Codec<I${variable.id}> = ${variable.value};`
+      })
+      .join("\n\n")
+
+    return `${typeImports}${varImports}${code}`
+  }
+
+  const getTypeFromVarName = (varName: string) =>
+    primitiveTypes[varName as keyof typeof primitiveTypes] ??
+    declarations.variables.get(varName)?.types ??
+    `I${varName}`
+
   return {
     buildDefinition,
     buildStorage,
@@ -436,5 +476,7 @@ export const getStaticBuilder = (
     buildError: buildVariant("errors"),
     buildCall,
     buildConstant,
+    getTypeFromVarName,
+    getCode,
   }
 }
