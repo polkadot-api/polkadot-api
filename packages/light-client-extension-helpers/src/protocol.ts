@@ -3,65 +3,100 @@ import type {
   ToApplication as ConnectToApplication,
 } from "@substrate/connect-extension-protocol"
 
-export type ToExtensionRequest = {
-  origin: "@polkadot-api/light-client-extension-helper-context-web-page"
-  id: string
-  request: BackgroundRequestGetChain | BackgroundRequestGetChains
+export type PostMessage<T> = {
+  channelId: string
+  msg: T
 }
+
+type Message<TOrigin, TRest extends { type: string }> = {
+  origin: TOrigin
+} & TRest
 
 export type ToExtension = ToExtensionRequest | ConnectToExtension
 
-export type ToPageResponse = {
-  origin: "@polkadot-api/light-client-extension-helper-context-content-script"
-  id: string
-  result?: any
-  error?: any
-}
+export type ToExtensionRequest = Message<
+  "@polkadot-api/light-client-extension-helper-context-web-page",
+  {
+    id: string
+  } & (BackgroundRequestGetChain | BackgroundRequestGetChains)
+>
 
-type ToPageNotificationOnAddChains = {
-  origin: "@polkadot-api/light-client-extension-helper-context-content-script"
-  id?: undefined
-  type: "onAddChains"
-  chains: Record<
-    string,
-    {
-      genesisHash: string
-      name: string
-    }
-  >
-}
+export type ToBackground = ToBackgroundKeepAlive
 
-type ToPageNotification = ToPageNotificationOnAddChains
+type ToBackgroundKeepAlive = Message<
+  "@polkadot-api/light-client-extension-helper-context-content-script",
+  {
+    type: "keep-alive"
+  }
+>
 
 export type ToPage = ToPageResponse | ToPageNotification | ConnectToApplication
 
+export type ToContent = ToContentKeepAlive
+
+export type ToPageResponse = Message<
+  "@polkadot-api/light-client-extension-helper-context-content-script",
+  {
+    id: string
+  } & (BackgroundResponseGetChain | BackgroundResponseGetChains | ErrorResponse)
+>
+
+type ToPageNotificationOnAddChains = Message<
+  "@polkadot-api/light-client-extension-helper-context-background",
+  {
+    type: "onAddChains"
+    chains: Record<
+      string,
+      {
+        genesisHash: string
+        name: string
+      }
+    >
+  }
+>
+
+type ToPageNotification = ToPageNotificationOnAddChains
+
+type ToContentKeepAlive = Message<
+  "@polkadot-api/light-client-extension-helper-context-background",
+  {
+    type: "keep-alive-ack"
+  }
+>
+
+export type BackgroundRequest =
+  | Message<
+      "@polkadot-api/light-client-extension-helper-context-content-script",
+      BackgroundRequestGetChain | BackgroundRequestGetChains
+    >
+  | Message<
+      "@polkadot-api/light-client-extension-helper-context-extension-page",
+      | BackgroundRequestDeleteChain
+      | BackgroundRequestPersistChain
+      | BackgroundRequestGetActiveConnections
+      | BackgroundRequestDisconnect
+      | BackgroundRequestSetBootNodes
+    >
+
 // FIXME: merge BackgroundRequest/BackgroundResponse/ToExtensionRequest/ToPageResponse
 type BackgroundRequestGetChain = {
-  // FIXME: add origin
-  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   type: "getChain"
   chainSpec: string
   relayChainGenesisHash?: string
 }
 
 type BackgroundRequestDeleteChain = {
-  // FIXME: add origin
-  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   type: "deleteChain"
   genesisHash: string
 }
 
 type BackgroundRequestPersistChain = {
-  // FIXME: add origin
-  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   type: "persistChain"
   chainSpec: string
   relayChainGenesisHash?: string
 }
 
 type BackgroundRequestGetChains = {
-  // FIXME: add origin
-  // origin: "@polkadot-api/light-client-extension-helper-context-web-page"
   type: "getChains"
 }
 
@@ -81,15 +116,16 @@ type BackgroundRequestSetBootNodes = {
   bootNodes: string[]
 }
 
-// FIXME: add origin to any request
-export type BackgroundRequest =
-  | BackgroundRequestGetChain
-  | BackgroundRequestDeleteChain
-  | BackgroundRequestPersistChain
-  | BackgroundRequestGetChains
-  | BackgroundRequestGetActiveConnections
-  | BackgroundRequestDisconnect
-  | BackgroundRequestSetBootNodes
+export type BackgroundResponse = Message<
+  "@polkadot-api/light-client-extension-helper-context-background",
+  | BackgroundResponseGetChain
+  | BackgroundResponseDeleteChain
+  | BackgroundResponsePersistChain
+  | BackgroundResponseGetChains
+  | BackgroundResponseGetActiveConnections
+  | BackgroundResponseDisconnect
+  | BackgroundResponseSetBootNodes
+>
 
 type BackgroundResponseGetChain = {
   type: "getChainResponse"
@@ -125,22 +161,12 @@ type BackgroundResponseSetBootNodes = {
   type: "setBootNodesResponse"
 }
 
-export type BackgroundResponseError = {
+export type BackgroundResponseError = Message<
+  "@polkadot-api/light-client-extension-helper-context-background",
+  ErrorResponse
+>
+
+type ErrorResponse = {
   type: "error"
   error: string
-}
-
-// FIXME: add origin to any response
-export type BackgroundResponse =
-  | BackgroundResponseGetChain
-  | BackgroundResponseDeleteChain
-  | BackgroundResponsePersistChain
-  | BackgroundResponseGetChains
-  | BackgroundResponseGetActiveConnections
-  | BackgroundResponseDisconnect
-  | BackgroundResponseSetBootNodes
-
-export type PostMessage<T> = {
-  channelId: string
-  msg: T
 }

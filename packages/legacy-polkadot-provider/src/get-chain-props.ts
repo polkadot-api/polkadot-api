@@ -1,5 +1,8 @@
-import { ScProvider } from "@polkadot-api/sc-provider"
-import { SubstrateClient, createClient } from "@polkadot-api/substrate-client"
+import {
+  ConnectProvider,
+  SubstrateClient,
+  createClient,
+} from "@polkadot-api/substrate-client"
 
 const clientRequest =
   (client: SubstrateClient) =>
@@ -11,8 +14,11 @@ const clientRequest =
       }),
     )
 
-export const getChainProps = async (chain: string) => {
-  const client = createClient(ScProvider(chain))
+export const getChainProps = async (
+  chain: string,
+  getProvider: (chain: string) => ConnectProvider,
+) => {
+  const client = createClient(getProvider(chain))
   const request = clientRequest(client)
 
   const [{ ss58Format }, chainId, name] = await Promise.all([

@@ -1,27 +1,27 @@
 import type {
-  BackgroundResponse,
   PostMessage,
   ToExtension,
   ToExtensionRequest,
   ToPage,
+  ToPageResponse,
 } from "@/protocol"
-import { CONTEXT, getRandomChainId } from "@/shared"
+import {
+  CONTEXT,
+  createBackgroundClientConnectProvider,
+  createIsHelperMessage,
+} from "@/shared"
 import type { LightClientProvider, RawChain } from "./types"
-import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
-export * from "./types"
+export type * from "./types"
 
 const postToExtension = (message: PostMessage<ToExtension>) =>
   window.postMessage(message, window.origin)
 
-const validOrigins = [CONTEXT.CONTENT_SCRIPT, "substrate-connect-extension"]
-
-const checkMessage = (msg: any): msg is ToPage => {
-  if (!msg) return false
-  if (!validOrigins.includes(msg?.origin)) return false
-  if (!msg?.type && !msg?.id) return false
-  return true
-}
+const isHelperMessage = createIsHelperMessage<ToPage>([
+  CONTEXT.CONTENT_SCRIPT,
+  CONTEXT.BACKGROUND,
+  "substrate-connect-extension",
+])
 
 const channelIds = new Set<string>()
 
@@ -37,27 +37,26 @@ export const getLightClientProvider = async (
 
   const pendingRequests: Record<
     string,
-    { resolve(result: any): void; reject(error: any): void }
+    { resolve(result: any): void; reject(error: string): void }
   > = {}
 
   window.addEventListener("message", ({ data, source }) => {
-    if (source !== window) return
+    if (source !== window || !data) return
     const { channelId: messageChannelId, msg } = data
     if (messageChannelId !== channelId) return
-    if (!validOrigins.includes(msg?.origin)) return
-    if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
+    if (!isHelperMessage(msg)) return
     if (msg.origin === "substrate-connect-extension")
-      return rawChainCallbacks[msg.chainId]?.(msg)
-    if (msg.id !== undefined) {
+      return rawChainCallbacks.forEach((cb) => cb(msg))
+    if (msg.origin === CONTEXT.CONTENT_SCRIPT) {
       const pendingRequest = pendingRequests[msg.id]
       if (!pendingRequest) return console.warn("Unhandled response", msg)
-      msg.error
+      msg.type === "error"
         ? pendingRequest.reject(msg.error)
-        : pendingRequest.resolve(msg.result)
+        : pendingRequest.resolve(msg)
       delete pendingRequests[msg.id]
       return
     }
-    if (msg.type === "onAddChains")
+    if (msg.origin === CONTEXT.BACKGROUND && msg.type === "onAddChains")
       return chainsChangeCallbacks.forEach((cb) =>
         cb(
           Object.fromEntries(
@@ -74,8 +73,8 @@ export const getLightClientProvider = async (
 
   const requestReply = <
     TReq extends ToExtensionRequest,
-    TRes extends BackgroundResponse & {
-      type: `${TReq["request"]["type"]}Response`
+    TRes extends ToPageResponse & {
+      type: `${TReq["type"]}Response`
     },
   >(
     channelId: string,
@@ -97,9 +96,7 @@ export const getLightClientProvider = async (
   let { chains } = await requestReply(channelId, {
     origin: CONTEXT.WEB_PAGE,
     id: nextId(),
-    request: {
-      type: "getChains",
-    },
+    type: "getChains",
   })
   chainsChangeCallbacks.push((chains_) => (chains = chains_))
   return {
@@ -107,11 +104,9 @@ export const getLightClientProvider = async (
       const { chain: chainInfo } = await requestReply(channelId, {
         origin: CONTEXT.WEB_PAGE,
         id: nextId(),
-        request: {
-          type: "getChain",
-          chainSpec,
-          relayChainGenesisHash,
-        },
+        type: "getChain",
+        chainSpec,
+        relayChainGenesisHash,
       })
       return createRawChain(
         channelId,
@@ -136,10 +131,9 @@ export const getLightClientProvider = async (
   }
 }
 
-const rawChainCallbacks: Record<
-  string,
-  (msg: ToPage & { origin: "substrate-connect-extension" }) => void
-> = {}
+const rawChainCallbacks: ((
+  msg: ToPage & { origin: "substrate-connect-extension" },
+) => void)[] = []
 
 const createRawChain = (
   channelId: string,
@@ -158,88 +152,17 @@ const createRawChain = (
   return {
     name,
     genesisHash,
-    connect: getSyncProvider(async () => {
-      const chainId = getRandomChainId()
-      await new Promise<void>((resolve, reject) => {
-        rawChainCallbacks[chainId] = (msg) => {
-          switch (msg.type) {
-            case "chain-ready": {
-              resolve()
-              break
-            }
-            case "error": {
-              reject(new Error(msg.errorMessage))
-              break
-            }
-            default:
-              reject(new Error(`Unrecognized message ${JSON.stringify(msg)}`))
-              break
-          }
-          delete rawChainCallbacks[chainId]
-        }
-        postToExtension({
-          channelId,
-          msg: chainSpec
-            ? {
-                origin: "substrate-connect-client",
-                type: "add-chain",
-                chainId,
-                chainSpec,
-                potentialRelayChainIds: relayChainGenesisHash
-                  ? [relayChainGenesisHash]
-                  : [],
-              }
-            : {
-                origin: "substrate-connect-client",
-                type: "add-well-known-chain",
-                chainId,
-                chainName: genesisHash,
-              },
-        })
-      })
-      return (onMessage, onHalt) => {
-        rawChainCallbacks[chainId] = (msg) => {
-          switch (msg.type) {
-            case "rpc": {
-              onMessage(msg.jsonRpcMessage)
-              break
-            }
-            case "error": {
-              console.error(msg.errorMessage)
-              delete rawChainCallbacks[chainId]
-              onHalt()
-              break
-            }
-            default:
-              console.warn(`Unrecognized message ${JSON.stringify(msg)}`)
-              break
-          }
-        }
-        return {
-          send(jsonRpcMessage) {
-            postToExtension({
-              channelId,
-              msg: {
-                origin: "substrate-connect-client",
-                type: "rpc",
-                chainId,
-                jsonRpcMessage,
-              },
-            })
-          },
-          disconnect() {
-            delete rawChainCallbacks[chainId]
-            postToExtension({
-              channelId,
-              msg: {
-                origin: "substrate-connect-client",
-                type: "remove-chain",
-                chainId,
-              },
-            })
-          },
-        }
-      }
+    connect: createBackgroundClientConnectProvider({
+      genesisHash,
+      chainSpec,
+      relayChainGenesisHash,
+      postMessage(msg) {
+        postToExtension({ channelId, msg })
+      },
+      addOnMessageListener(cb) {
+        rawChainCallbacks.push(cb)
+        return () => removeArrayItem(rawChainCallbacks, cb)
+      },
     }),
   }
 }

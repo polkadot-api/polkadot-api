@@ -22,8 +22,8 @@ export const getFollow$ = (chainHead: ChainHead) => {
       },
     )
     unfollow = () => {
-      follower.unfollow()
       observer.complete()
+      follower.unfollow()
     }
   }).pipe(share())
 

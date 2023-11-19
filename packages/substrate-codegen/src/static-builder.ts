@@ -1,15 +1,65 @@
 import { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
 import { LookupEntry, getLookupFn } from "./lookups"
+import { withCache } from "./with-cache"
+
+type MetadataPrimitives =
+  | "bool"
+  | "char"
+  | "str"
+  | "u8"
+  | "u16"
+  | "u32"
+  | "u64"
+  | "u128"
+  | "u256"
+  | "i8"
+  | "i16"
+  | "i32"
+  | "i64"
+  | "i128"
+  | "i256"
+
+export const primitiveTypes: Record<
+  | MetadataPrimitives
+  | "_void"
+  | "compactNumber"
+  | "compactBn"
+  | "bitSequence"
+  | "historicMetaCompat",
+  string
+> = {
+  _void: "undefined",
+  bool: "boolean",
+  char: "string",
+  str: "string",
+  u8: "number",
+  u16: "number",
+  u32: "number",
+  u64: "bigint",
+  u128: "bigint",
+  u256: "bigint",
+  i8: "number",
+  i16: "number",
+  i32: "number",
+  i64: "bigint",
+  i128: "bigint",
+  i256: "bigint",
+  compactNumber: "number",
+  compactBn: "bigint",
+  bitSequence: "{bitsLen: number, bytes: Uint8Array}",
+  historicMetaCompat: "any",
+}
 
 export interface Variable {
   id: string
-  types?: string
+  types: string
   value: string
   directDependencies: Set<string>
 }
 
 export interface CodeDeclarations {
   imports: Set<string>
+  typeImports: Set<string>
   variables: Map<string, Variable>
 }
 
@@ -23,10 +73,14 @@ const toCamelCase = (...parts: string[]): string =>
 const isBytes = (input: LookupEntry) =>
   input.type === "primitive" && input.value === "u8"
 
+const getTypes = (varName: string) =>
+  primitiveTypes[varName as keyof typeof primitiveTypes] ?? `I${varName}`
+
 const _buildSyntax = (
   input: LookupEntry,
+  cache: Map<number, string>,
+  stack: Set<number>,
   declarations: CodeDeclarations,
-  stack: Set<LookupEntry>,
   getVarName: (id: number, ...post: string[]) => string,
 ): string => {
   if (input.type === "primitive") {
@@ -51,9 +105,11 @@ const _buildSyntax = (
     input.value.value === "u8"
   ) {
     declarations.imports.add("Hex")
+    declarations.typeImports.add("HexString")
     const variable = {
       id: "_bytesSeq",
       value: "Hex()",
+      types: "HexString",
       directDependencies: new Set<string>(),
     }
 
@@ -70,27 +126,8 @@ const _buildSyntax = (
   if (declarations.variables.has(getVarName(input.id)))
     return getVarName(input.id)
 
-  const buildNextSyntax = (nextInput: LookupEntry): string => {
-    if (!stack.has(nextInput)) {
-      const nextStack = new Set(stack)
-      nextStack.add(input)
-      return _buildSyntax(nextInput, declarations, nextStack, getVarName)
-    }
-
-    const nonCircular = getVarName(input.id)
-    const variable: Variable = {
-      id: getVarName(input.id, "circular"),
-      types: `Codec<{ self: CodecType<typeof ${nonCircular}> }>`,
-      value: `Self(() => ${nonCircular})`,
-      directDependencies: new Set([nonCircular]),
-    }
-
-    declarations.imports.add("Codec")
-    declarations.imports.add("CodecType")
-    declarations.imports.add("Self")
-    declarations.variables.set(variable.id, variable)
-    return variable.id
-  }
+  const buildNextSyntax = (nextInput: LookupEntry): string =>
+    buildSyntax(nextInput, cache, stack, declarations, getVarName)
 
   const buildVector = (id: string, inner: LookupEntry, len?: number) => {
     declarations.imports.add("Vector")
@@ -99,6 +136,7 @@ const _buildSyntax = (
     const variable = {
       id,
       value: `Vector(${args.join(", ")})`,
+      types: `Array<${getTypes(dependsVar)}>`,
       directDependencies: new Set<string>([dependsVar]),
     }
     declarations.variables.set(id, variable)
@@ -111,6 +149,7 @@ const _buildSyntax = (
     const variable = {
       id,
       value: `Tuple(${deps.join(", ")})`,
+      types: `[${deps.map(getTypes).join(", ")}]`,
       directDependencies: new Set(deps),
     }
     declarations.variables.set(id, variable)
@@ -125,7 +164,9 @@ const _buildSyntax = (
       value: `Struct({${Object.keys(value)
         .map((key, idx) => `${key}: ${deps[idx]}`)
         .join(", ")}})`,
-
+      types: `{${Object.keys(value)
+        .map((key, idx) => `${key}: ${getTypes(deps[idx])}`)
+        .join(", ")}}`,
       directDependencies: new Set(deps),
     }
     declarations.variables.set(id, variable)
@@ -142,8 +183,10 @@ const _buildSyntax = (
         declarations.variables.set(id, {
           id,
           value: `AccountId()`,
+          types: "SS58String",
           directDependencies: new Set<string>(),
         })
+        declarations.typeImports.add("SS58String")
         return id
       }
 
@@ -151,8 +194,10 @@ const _buildSyntax = (
       declarations.variables.set(varId, {
         id: varId,
         value: `Hex(${input.len})`,
+        types: "HexString",
         directDependencies: new Set<string>(),
       })
+      declarations.typeImports.add("HexString")
       return varId
     }
 
@@ -175,6 +220,7 @@ const _buildSyntax = (
     const varName = toCamelCase(varId, key)
     if (value.type === "tuple") {
       if (value.value.length === 1) {
+        let result: string
         const innerVal = value.value[0]
         if (
           key.startsWith("Raw") &&
@@ -182,18 +228,27 @@ const _buildSyntax = (
           isBytes(innerVal.value)
         ) {
           const id = `_fixedStr${innerVal.len}`
+          result = id
           if (!declarations.variables.has(id)) {
             declarations.imports.add("fixedStr")
             declarations.variables.set(id, {
               id,
               value: `fixedStr(${innerVal.len})`,
+              types: "string",
               directDependencies: new Set(),
             })
           }
-          return id
+        } else {
+          result = buildNextSyntax(value.value[0])
         }
 
-        return buildNextSyntax(value.value[0])
+        declarations.variables.set(varName, {
+          id: varName,
+          value: result,
+          types: getTypes(result),
+          directDependencies: new Set([result]),
+        })
+        return varName
       }
       return buildTuple(varName, value.value)
     } else {
@@ -212,15 +267,41 @@ const _buildSyntax = (
   declarations.variables.set(varId, {
     id: varId,
     value: `Enum(${innerEnum})`,
+    types: Object.keys(input.value)
+      .map(
+        (key, idx) => `{tag: '${key}', value: ${getTypes(dependencies[idx])}}`,
+      )
+      .join(" | "),
     directDependencies: new Set<string>(dependencies),
   })
   return varId
 }
 
-export const getStaticBuilder = (
-  metadata: V14,
-  declarations: CodeDeclarations,
-) => {
+const buildSyntax = withCache(
+  _buildSyntax,
+  (_getter, entry, declarations, getVarName) => {
+    declarations.imports.add("Self")
+
+    const nonCircular = getVarName(entry.id)
+    const variable: Variable = {
+      id: getVarName(entry.id, "circular"),
+      types: `I${nonCircular}`,
+      value: `Self(() => ${nonCircular})`,
+      directDependencies: new Set([nonCircular]),
+    }
+    declarations.variables.set(variable.id, variable)
+    return variable.id
+  },
+  (x) => x,
+)
+
+export const getStaticBuilder = (metadata: V14) => {
+  const declarations: CodeDeclarations = {
+    imports: new Set<string>(),
+    typeImports: new Set<string>(["Codec"]),
+    variables: new Map(),
+  }
+
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
 
@@ -233,8 +314,15 @@ export const getStaticBuilder = (
     return toCamelCase(...parts)
   }
 
+  const cache = new Map()
   const buildDefinition = (id: number) =>
-    _buildSyntax(getLookupEntryDef(id), declarations, new Set(), getVarName)
+    buildSyntax(
+      getLookupEntryDef(id),
+      cache,
+      new Set(),
+      declarations,
+      getVarName,
+    )
 
   const buildNamedTuple = (
     params: Array<{ name: string; type: number }>,
@@ -245,14 +333,15 @@ export const getStaticBuilder = (
     const args = params.map((p) => p.type).map(buildDefinition)
     const names = params.map((p) => p.name)
     declarations.imports.add("Tuple")
-    declarations.imports.add("Codec")
-    declarations.imports.add("CodecType")
 
     const variable: Variable = {
       id: varName,
-      types: `Codec<[${names
-        .map((name, pIdx) => `${name}: CodecType<typeof ${args[pIdx]}>`)
-        .join(", ")}]>`,
+      types: `[${names
+        .map(
+          (name, pIdx) =>
+            `${name[0].toUpperCase() + name.slice(1)}: ${getTypes(args[pIdx])}`,
+        )
+        .join(", ")}]`,
       value: `Tuple(${args.join(", ")})`,
       directDependencies: new Set(args),
     }
@@ -265,11 +354,10 @@ export const getStaticBuilder = (
   const getEmptyTuple = () => {
     if (!declarations.variables.has(EMPTY_TUPLE_VAR_NAME)) {
       declarations.imports.add("Tuple")
-      declarations.imports.add("Codec")
 
       declarations.variables.set(EMPTY_TUPLE_VAR_NAME, {
         id: EMPTY_TUPLE_VAR_NAME,
-        types: `Codec<[]>`,
+        types: `[]`,
         value: `Tuple()`,
         directDependencies: new Set(),
       })
@@ -318,6 +406,7 @@ export const getStaticBuilder = (
         declarations.variables.set(returnVar, {
           id: returnVar,
           value: "_void",
+          types: "undefined",
           directDependencies: new Set(),
         })
       }
@@ -356,6 +445,30 @@ export const getStaticBuilder = (
     return buildDefinition(storageEntry.type as number)
   }
 
+  const getCode = (): string => {
+    const typeImports = `import type {${[...declarations.typeImports].join(
+      ", ",
+    )}} from "@polkadot-api/substrate-bindings";\n`
+
+    const varImports = `import {${[...declarations.imports].join(
+      ", ",
+    )}} from "@polkadot-api/substrate-bindings";\n\n`
+
+    const code = [...declarations.variables.values()]
+      .map((variable) => {
+        return `type I${variable.id} = ${variable.types};
+const ${variable.id}: Codec<I${variable.id}> = ${variable.value};`
+      })
+      .join("\n\n")
+
+    return `${typeImports}${varImports}${code}`
+  }
+
+  const getTypeFromVarName = (varName: string) =>
+    primitiveTypes[varName as keyof typeof primitiveTypes] ??
+    declarations.variables.get(varName)?.types ??
+    `I${varName}`
+
   return {
     buildDefinition,
     buildStorage,
@@ -363,5 +476,7 @@ export const getStaticBuilder = (
     buildError: buildVariant("errors"),
     buildCall,
     buildConstant,
+    getTypeFromVarName,
+    getCode,
   }
 }

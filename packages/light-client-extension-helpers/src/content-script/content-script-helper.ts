@@ -1,5 +1,17 @@
-import type { PostMessage, ToExtension, ToPage } from "@/protocol"
-import { CONTEXT, PORT, sendBackgroundRequest } from "@/shared"
+import type {
+  PostMessage,
+  ToBackground,
+  ToContent,
+  ToExtension,
+  ToPage,
+} from "@/protocol"
+import {
+  CONTEXT,
+  KEEP_ALIVE_INTERVAL,
+  PORT,
+  createIsHelperMessage,
+  sendBackgroundRequest,
+} from "@/shared"
 
 let isRegistered = false
 export const register = (channelId: string) => {
@@ -22,16 +34,18 @@ export const register = (channelId: string) => {
     window.postMessage({ channelId, msg } as PostMessage<ToPage>, targetOrigin)
   }
 
-  const validOrigins = [CONTEXT.WEB_PAGE, "substrate-connect-client"]
-  const checkMessage = (msg: any): msg is ToExtension => {
+  const validWebPageOrigins = [CONTEXT.WEB_PAGE, "substrate-connect-client"]
+  const isWebPageHelperMessage = (msg: any): msg is ToExtension => {
     if (!msg) return false
-    if (!validOrigins.includes(msg?.origin)) return false
+    if (!validWebPageOrigins.includes(msg?.origin)) return false
     if (!msg?.type && !msg?.id) return false
     return true
   }
 
-  const portPostMessage = (port: chrome.runtime.Port, msg: ToExtension) =>
-    port.postMessage(msg)
+  const portPostMessage = (
+    port: chrome.runtime.Port,
+    msg: ToExtension | ToBackground,
+  ) => port.postMessage(msg)
 
   const chainIds = new Set<string>()
   const handleExtensionError = (errorMessage: string, origin: string) => {
@@ -52,46 +66,43 @@ export const register = (channelId: string) => {
 
   let port: chrome.runtime.Port | undefined
   window.addEventListener("message", async ({ data, source, origin }) => {
-    if (source !== window) return
+    if (source !== window || !data) return
     const { channelId: msgChannelId, msg } = data
     if (channelId !== msgChannelId) return
-    if (!validOrigins.includes(msg?.origin)) return
-    if (!checkMessage(msg)) return console.warn("Unrecognized message", msg)
+    if (!isWebPageHelperMessage(msg)) return
 
     await whenActivated
 
     if (msg.origin === CONTEXT.WEB_PAGE) {
-      // TODO: re-write more elegantly
-      const { request } = msg
       try {
-        let result: any
-        switch (request.type) {
+        switch (msg.type) {
           case "getChain":
           case "getChains": {
-            result = await sendBackgroundRequest(request)
+            postToPage(
+              {
+                ...(await sendBackgroundRequest({
+                  ...msg,
+                  origin: CONTEXT.CONTENT_SCRIPT,
+                })),
+                origin: CONTEXT.CONTENT_SCRIPT,
+                id: msg.id,
+              },
+              origin,
+            )
             break
           }
           default: {
-            const unrecognizedMsg: never = request
+            const unrecognizedMsg: never = msg
             console.warn("Unrecognized message", unrecognizedMsg)
-            return
+            break
           }
         }
-        postToPage(
-          {
-            id: msg.id,
-            origin:
-              "@polkadot-api/light-client-extension-helper-context-content-script",
-            result,
-          },
-          origin,
-        )
       } catch (error) {
         postToPage(
           {
+            origin: CONTEXT.CONTENT_SCRIPT,
+            type: "error",
             id: msg.id,
-            origin:
-              "@polkadot-api/light-client-extension-helper-context-content-script",
             error: error instanceof Error ? error.toString() : "Unknown error",
           },
           origin,
@@ -108,17 +119,31 @@ export const register = (channelId: string) => {
         handleExtensionError("Cannot connect to extension", origin)
         return
       }
-      port.onMessage.addListener((msg: ToPage) => {
+      port.onMessage.addListener((msg: ToPage | ToContent) => {
         if (
           msg.origin === "substrate-connect-extension" &&
           msg.type === "error"
         )
           chainIds.delete(msg.chainId)
+        else if (
+          msg.origin === CONTEXT.BACKGROUND &&
+          msg.type === "keep-alive-ack"
+        )
+          return
         postToPage(msg, origin)
       })
-
+      const keepAliveInterval = setInterval(
+        () =>
+          port &&
+          portPostMessage(port, {
+            origin: CONTEXT.CONTENT_SCRIPT,
+            type: "keep-alive",
+          }),
+        KEEP_ALIVE_INTERVAL,
+      )
       port.onDisconnect.addListener(() => {
         port = undefined
+        clearInterval(keepAliveInterval)
         handleExtensionError("Disconnected from extension", origin)
       })
     }
@@ -141,10 +166,14 @@ export const register = (channelId: string) => {
     }
   })
 
-  chrome.runtime.onMessage.addListener((msg: ToPage) => {
+  const isBackgroundHelperMessage = createIsHelperMessage<ToPage>([
+    CONTEXT.BACKGROUND,
+    "substrate-connect-extension",
+  ])
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (!isBackgroundHelperMessage(msg)) return
     if (msg.origin === "substrate-connect-extension" && msg.type === "error")
       chainIds.delete(msg.chainId)
-    // FIXME: filter background-helper messages
     postToPage(msg, window.origin)
   })
 }

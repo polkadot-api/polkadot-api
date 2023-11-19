@@ -1,0 +1,36 @@
+{
+  "polkadot-0": {
+    "metadata": "test/artifacts/polkadot-metadata-altered.scale",
+    "outputFolder": "out",
+    "descriptors": {
+      "System": {
+        "storage": {
+          "Events": "2863101223185493143",
+          "LastRuntimeUpgrade": "5028591118551952176"
+        }
+      }
+    }
+  },
+  "polkadot-1": {
+    "metadata": "test/artifacts/polkadot-metadata-altered.scale",
+    "outputFolder": "out",
+    "descriptors": {
+      "System": {
+        "errors": {
+          "InvalidSpecName": "0"
+        }
+      }
+    }
+  },
+  "polkadot-2": {
+    "metadata": "test/artifacts/polkadot-metadata-altered.scale",
+    "outputFolder": "out",
+    "descriptors": {
+      "System": {
+        "events": {
+          "CodeUpdated": "0"
+        }
+      }
+    }
+  }
+}

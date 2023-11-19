@@ -164,14 +164,12 @@ const _buildShapedDecoder = (
   withDocs.shape = withoutDocs.shape
   return withDocs
 }
-const buildShapedDecoder = withCache(
-  addPath(_buildShapedDecoder),
-  selfDecoder,
-  (outter, inner) => {
-    inner.shape = outter.shape
-    return outter
-  },
-)
+
+const withPath = addPath(_buildShapedDecoder)
+const buildShapedDecoder = withCache(withPath, selfDecoder, (outter, inner) => {
+  inner.shape = outter.shape
+  return outter
+})
 
 const hexStrFromByte = (input: number) =>
   `0x${input.toString(16).padEnd(2, "0")}` as HexString
