@@ -1,7 +1,15 @@
-import { createPullClient, WellKnownChain } from "@polkadot-api/client"
+import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 import ksm, { Queries } from "./descriptors/ksm"
+import { noop } from "@polkadot-api/utils"
+import { getChain } from "@polkadot-api/node-polkadot-provider"
+import { createClient } from "@polkadot-api/client"
 
-const relayChain = createPullClient(WellKnownChain.ksmcc3, ksm)
+const polkadotChain = await getChain({
+  provider: ScProvider(WellKnownChain.ksmcc3),
+  keyring: { getPairs: () => [], onKeyPairsChanged: () => noop },
+})
+
+const relayChain = createClient(polkadotChain.connect, ksm)
 const collectives = relayChain
 
 function mapRawIdentity(
@@ -29,10 +37,10 @@ function mapRawIdentity(
 }
 
 const relevantIdentities =
-  await collectives.FellowshipCollective.Members.getEntries()
+  await collectives.query.FellowshipCollective.Members.getEntries()
     .then((allMembers) => allMembers.filter(({ value }) => value >= 4))
     .then((members) =>
-      relayChain.Identity.IdentityOf.getValues(
+      relayChain.query.Identity.IdentityOf.getValues(
         members.map((m) => m.keyArgs),
       ).then((identities) =>
         identities.map((identity, idx) => ({

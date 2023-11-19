@@ -1,14 +1,5 @@
-import { SubstrateClient, createClient } from "@polkadot-api/substrate-client"
-import {
-  Codec,
-  Descriptors,
-  QueryFromDescriptors,
-  V14,
-} from "@polkadot-api/substrate-bindings"
-import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
-import type { PullClientStorage } from "./types"
-import { createStorageEntry, type StorageEntry } from "./storage"
-import { getObservableClient } from "./observableClient"
+import { Codec, V14 } from "@polkadot-api/substrate-bindings"
+import { Observable } from "rxjs"
 import { map } from "rxjs"
 import { shareLatest } from "./utils"
 import {
@@ -81,38 +72,8 @@ const getCodecsAndChecksumCreator = (metadata: V14) => {
   return getCodecsAndChecksum
 }
 
-export function createPullClient<T extends Descriptors>(
-  substrateClient: WellKnownChain | string | SubstrateClient,
-  descriptors: T,
-): PullClientStorage<QueryFromDescriptors<T>> {
-  const rawClient: SubstrateClient =
-    typeof substrateClient === "string"
-      ? createClient(ScProvider(substrateClient))
-      : substrateClient
-  const client = getObservableClient(rawClient)
-  const chainHead = client.chainHead$()
-
-  const codecs$ = chainHead.metadata$.pipe(
+export const getCodecs$ = (metadata$: Observable<V14 | null>) =>
+  metadata$.pipe(
     map((value) => (value ? getCodecsAndChecksumCreator(value) : value)),
     shareLatest,
   )
-  codecs$.subscribe()
-
-  const result = {} as Record<string, Record<string, StorageEntry<any, any>>>
-
-  for (const pallet in descriptors) {
-    result[pallet] ||= {}
-    const [stgEntries] = descriptors[pallet]
-    for (const name in stgEntries) {
-      result[pallet][name] = createStorageEntry(
-        stgEntries[name],
-        pallet,
-        name,
-        codecs$,
-        chainHead.storage$,
-      )
-    }
-  }
-
-  return result as any
-}
