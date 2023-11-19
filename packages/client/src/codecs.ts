@@ -1,4 +1,4 @@
-import { Codec, V14 } from "@polkadot-api/substrate-bindings"
+import { AccountId, V14 } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 import { map } from "rxjs"
 import { shareLatest } from "./utils"
@@ -26,9 +26,18 @@ const getCodecsAndChecksumCreator = (metadata: V14) => {
     type: Type,
     pallet: string,
     name: string,
-  ): Type extends "stg"
-    ? [string | null, ReturnType<typeof dynamicBuilder.buildStorage>]
-    : [string | null, Codec<any>] => {
+  ): [
+    string | null,
+    Type extends "stg"
+      ? ReturnType<typeof dynamicBuilder.buildStorage>
+      : Type extends "tx"
+      ? ReturnType<typeof dynamicBuilder.buildCall>
+      : Type extends "ev"
+      ? ReturnType<typeof dynamicBuilder.buildEvent>
+      : Type extends "err"
+      ? ReturnType<typeof dynamicBuilder.buildError>
+      : ReturnType<typeof dynamicBuilder.buildConstant>,
+  ] => {
     const cached = cache[pallet]?.[type]?.[name]
     if (cached) return cached
 
@@ -69,6 +78,8 @@ const getCodecsAndChecksumCreator = (metadata: V14) => {
     }
   }
 
+  getCodecsAndChecksum.accountId = AccountId(dynamicBuilder.ss58Prefix)
+
   return getCodecsAndChecksum
 }
 
@@ -77,3 +88,5 @@ export const getCodecs$ = (metadata$: Observable<V14 | null>) =>
     map((value) => (value ? getCodecsAndChecksumCreator(value) : value)),
     shareLatest,
   )
+
+export type Codecs$ = ReturnType<typeof getCodecs$>

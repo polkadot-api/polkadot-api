@@ -1,8 +1,9 @@
-import { Codec, StorageDescriptor } from "@polkadot-api/substrate-bindings"
+import { StorageDescriptor } from "@polkadot-api/substrate-bindings"
 import { Observable, filter, map, mergeMap, take } from "rxjs"
 import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
+import { Codecs$ } from "./codecs"
 
 type CallOptions = Partial<{
   at: string
@@ -39,23 +40,12 @@ export type StorageEntry<Args extends Array<any>, Payload> = Args extends []
   ? StorageEntryWithoutKeys<Payload>
   : StorageEntryWithKeys<Args, Payload>
 
-type Storage$ = <Type extends StorageItemInput["type"]>(
+export type Storage$ = <Type extends StorageItemInput["type"]>(
   hash: string | null,
   type: Type,
   key: string,
   childTrie: string | null,
 ) => Observable<StorageResult<Type>>
-
-type GetCodecsAndChecksum = <Type extends "stg" | "tx" | "ev" | "err" | "cons">(
-  type: Type,
-  pallet: string,
-  name: string,
-) => Type extends "stg"
-  ? [
-      string | null,
-      ReturnType<ReturnType<typeof getDynamicBuilder>["buildStorage"]>,
-    ]
-  : [string | null, Codec<any>]
 
 export const createStorageEntry = <
   Descriptor extends StorageDescriptor<any, any, any>,
@@ -63,7 +53,7 @@ export const createStorageEntry = <
   descriptor: Descriptor,
   pallet: string,
   name: string,
-  codecs$: Observable<GetCodecsAndChecksum | null>,
+  codecs$: Codecs$,
   storage$: Storage$,
 ) => {
   const storageCall = <T, Type extends StorageItemInput["type"]>(

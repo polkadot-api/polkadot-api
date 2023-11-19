@@ -1,8 +1,10 @@
 import {
   Descriptors,
   QueryFromDescriptors,
+  TxFromDescriptors,
 } from "@polkadot-api/substrate-bindings"
 import { StorageEntry } from "./storage"
+import { TxClient } from "./tx"
 
 export type CreateTx = (
   publicKey: Uint8Array,
@@ -14,7 +16,7 @@ interface JsonRpcProvider {
   disconnect: () => void
 }
 
-type Connect = (onMessage: (value: string) => void) => JsonRpcProvider
+export type Connect = (onMessage: (value: string) => void) => JsonRpcProvider
 
 type StorageApi<
   A extends Record<
@@ -41,9 +43,18 @@ type StorageApi<
   }
 }
 
+type TxApi<A extends Record<string, Record<string, Array<any> | unknown>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends Array<any>
+      ? TxClient<A[K][KK]>
+      : unknown
+  }
+}
+
 export type CreateClient = <T extends Descriptors>(
   connect: Connect,
   descriptors: T,
 ) => {
   query: StorageApi<QueryFromDescriptors<T>>
+  tx: TxApi<TxFromDescriptors<T>>
 }

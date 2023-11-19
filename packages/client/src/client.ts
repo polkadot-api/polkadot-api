@@ -4,11 +4,18 @@ import {
 } from "@polkadot-api/substrate-client"
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { getObservableClient } from "./observableClient"
-import { CreateClient } from "./types"
+import { CreateClient, CreateTx } from "./types"
 import { getCodecs$ } from "./codecs"
+import { TxClient, createTxEntry } from "./tx"
+import { filter, firstValueFrom } from "rxjs"
 
 export const createClient: CreateClient = (connect, descriptors) => {
-  const rawClient: SubstrateClient = createRawClient(connect)
+  let createTx: CreateTx
+  const rawClient: SubstrateClient = createRawClient((onMsg) => {
+    const result = connect(onMsg)
+    createTx = result.createTx
+    return result
+  })
   const client = getObservableClient(rawClient)
   const chainHead = client.chainHead$()
 
@@ -30,5 +37,27 @@ export const createClient: CreateClient = (connect, descriptors) => {
     }
   }
 
-  return { query: query as any }
+  const createTxFromAddress = async (address: string, callData: Uint8Array) => {
+    const { accountId } = await firstValueFrom(codecs$.pipe(filter(Boolean)))
+    return createTx(accountId.enc(address), callData)
+  }
+
+  const tx = {} as Record<string, Record<string, TxClient<any>>>
+  for (const pallet in descriptors) {
+    tx[pallet] ||= {}
+    const [, txEntries] = descriptors[pallet]
+    for (const name in txEntries) {
+      tx[pallet][name] = createTxEntry(
+        txEntries[name],
+        pallet,
+        name,
+        codecs$,
+        client,
+        chainHead.storage$,
+        createTxFromAddress,
+      )
+    }
+  }
+
+  return { query: query as any, tx: tx as any }
 }

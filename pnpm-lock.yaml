@@ -273,6 +273,9 @@ importers:
       '@polkadot-api/substrate-codegen':
         specifier: workspace:*
         version: link:../substrate-codegen
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^0.34.3
