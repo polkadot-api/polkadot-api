@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "tsc && vite build",
+    "build": "pnpm i && polkadot-api && tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
@@ -15,11 +15,34 @@
     "vite": "^4.4.4"
   },
   "dependencies": {
+    "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/client": "workspace:*",
     "@polkadot-api/legacy-polkadot-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@substrate/connect": "^0.7.35",
     "rxjs": "^7.8.1"
+  },
+  "polkadot-api": {
+    "test": {
+      "metadata": "test-metadata.scale",
+      "outputFolder": "./src/codegen/",
+      "descriptors": {
+        "Balances": {
+          "constants": {},
+          "storage": {},
+          "events": {},
+          "errors": {},
+          "extrinsics": {
+            "transfer_keep_alive": {
+              "events": {},
+              "errors": {},
+              "checksum": "8mtvi1rkf8pbi"
+            }
+          }
+        }
+      }
+    }
   }
 }

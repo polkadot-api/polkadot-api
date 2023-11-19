@@ -497,6 +497,12 @@ importers:
 
   vite:
     dependencies:
+      '@polkadot-api/cli':
+        specifier: workspace:*
+        version: link:../packages/cli
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../packages/client
       '@polkadot-api/legacy-polkadot-provider':
         specifier: workspace:*
         version: link:../packages/legacy-polkadot-provider
