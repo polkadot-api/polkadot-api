@@ -94,7 +94,7 @@ export const createDescriptorsFile = async (
     for (const [txName, { checksum, payload }] of Object.entries(tx)) {
       const types = `TxDescriptor<${payload}>`
       const varName = `Tx${pallet}${txName}`
-      txDescriptors[pallet][varName] = { types, varName }
+      txDescriptors[pallet][txName] = { types, varName }
       addTypeImport(payload)
       addLine(`const ${varName}: ${types} = tDesc<${payload}>("${checksum}")`)
     }
