@@ -73,8 +73,8 @@ export type StorageResult<Input extends StorageItemInput["type"]> =
   Input extends "descendantsHashes"
     ? Array<{ key: string; hash: string }>
     : Input extends "descendantsValues"
-    ? Array<{ key: string; value: string }>
-    : string | null
+      ? Array<{ key: string; value: string }>
+      : string | null
 
 export interface FollowResponse {
   unfollow: UnsubscribeFn
