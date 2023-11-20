@@ -96,7 +96,7 @@ export const createTxEntry = <Args extends Array<any>>(
       take(1),
       map((getCodecs) => {
         const [checksum, { location, args }] = getCodecs("tx", pallet, name)
-        if (checksum !== descriptor.checksum) throw null
+        if (checksum !== descriptor) throw null
 
         const [, evCodecs] = getCodecs("stg", "System", "Events")
         return {

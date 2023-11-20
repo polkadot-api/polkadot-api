@@ -1,49 +1,13 @@
-// @ts-ignore
-export interface PlainDescriptor<T> {
-  checksum: string
-}
-
-export interface StorageDescriptor<
-  Args extends Array<any>,
-  // @ts-ignore
-  T,
-  Optional extends 0 | 1,
-> {
-  checksum: string
-  len: Args["length"]
-  optional: Optional
-}
-
-// @ts-ignore
-export interface TxDescriptor<Args extends Array<any>> {
-  checksum: string
-}
-
-export const getPlainDescriptor = <T>(
-  checksum: string,
-): PlainDescriptor<T> => ({
-  checksum,
-})
-
-export const getStorageDescriptor = <
+export type PlainDescriptor<T> = string & { _type?: T }
+export type StorageDescriptor<
   Args extends Array<any>,
   T,
-  Optional extends 0 | 1,
->(
-  checksum: string,
-  len: Args["length"],
-  optional: Optional,
-): StorageDescriptor<Args, T, Optional> => ({
-  checksum,
-  len,
-  optional,
-})
+  Optional extends true | false,
+> = string & { _type: T; _args: Args; _optional: Optional }
 
-export const getTxDescriptor = <Args extends Array<any>>(
-  checksum: string,
-): TxDescriptor<Args> => ({
-  checksum,
-})
+export type TxDescriptor<Args extends Array<any>> = string & {
+  _args: Args
+}
 
 export type Descriptors = Record<
   string,

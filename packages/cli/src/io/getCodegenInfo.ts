@@ -60,7 +60,6 @@ export const getCodegenInfo = (
         payload: addExportedType(pallet.name, "Storage", stg.name, val),
         key: addExportedType(pallet.name, "Storage", stg.name + "_Args", key),
         isOptional: !stg.modifier,
-        len: stg.type.tag === "plain" ? 0 : stg.type.value.hashers.length,
       }
     }
 

@@ -126,8 +126,27 @@ export const getDynamicBuilder = (metadata: V14) => {
       .find((x) => x.name === pallet)!
       .storage!.items.find((s) => s.name === entry)!
 
+    const storageWithFallback = (
+      len: number,
+      ...args: Parameters<ReturnType<typeof scale.Storage>>
+    ) => {
+      const result = storagePallet!(...args)
+      return {
+        ...result,
+        len,
+        fallback:
+          storageEntry.modifier === 1
+            ? result.dec(storageEntry.fallback)
+            : undefined,
+      }
+    }
+
     if (storageEntry.type.tag === "plain")
-      return storagePallet(entry, buildDefinition(storageEntry.type.value).dec)
+      return storageWithFallback(
+        0,
+        entry,
+        buildDefinition(storageEntry.type.value).dec,
+      )
 
     const { key, value, hashers } = storageEntry.type.value
     const val = buildDefinition(value)
@@ -142,7 +161,7 @@ export const getDynamicBuilder = (metadata: V14) => {
               hashes[idx],
             ],
           )
-    return storagePallet(entry, val.dec, ...hashArgs)
+    return storageWithFallback(hashes.length, entry, val.dec, ...hashArgs)
   }
 
   const buildCall = (

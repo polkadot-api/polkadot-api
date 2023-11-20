@@ -38,7 +38,12 @@ type StorageApi<
       Value: any
       IsOptional: false | true
     }
-      ? StorageEntry<A[K][KK]["KeyArgs"], A[K][KK]["Value"]>
+      ? StorageEntry<
+          A[K][KK]["KeyArgs"],
+          A[K][KK]["IsOptional"] extends true
+            ? A[K][KK]["Value"] | undefined
+            : A[K][KK]["Value"]
+        >
       : unknown
   }
 }
