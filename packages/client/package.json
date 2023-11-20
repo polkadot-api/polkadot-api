@@ -53,7 +53,7 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-codegen": "workspace:*",
-    "@polkadot-api/sc-provider": "workspace:*"
+    "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^0.34.3",
