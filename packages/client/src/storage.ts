@@ -1,4 +1,3 @@
-import { StorageDescriptor } from "@polkadot-api/substrate-bindings"
 import { Observable, filter, map, mergeMap, take } from "rxjs"
 import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
@@ -24,16 +23,14 @@ type StorageEntryWithoutKeys<Payload> = {
 }
 
 type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
-  getValue: (
-    ...args: [...WithCallOptions<Args>]
-  ) => Promise<Payload | undefined>
+  getValue: (...args: [...WithCallOptions<Args>]) => Promise<Payload>
   getValues: (
     keys: Array<[...Args]>,
     options?: CallOptions,
-  ) => Promise<Array<Payload | undefined>>
+  ) => Promise<Array<Payload>>
   getEntries: (
     ...args: WithCallOptions<PossibleParents<Args>>
-  ) => Promise<Array<{ keyArgs: Args; value: Payload }>>
+  ) => Promise<Array<{ keyArgs: Args; value: NonNullable<Payload> }>>
 }
 
 export type StorageEntry<Args extends Array<any>, Payload> = Args extends []
@@ -47,22 +44,30 @@ export type Storage$ = <Type extends StorageItemInput["type"]>(
   childTrie: string | null,
 ) => Observable<StorageResult<Type>>
 
-export const createStorageEntry = <
-  Descriptor extends StorageDescriptor<any, any, any>,
->(
-  descriptor: Descriptor,
+const isOptionalArg = (lastArg: any) => {
+  if (typeof lastArg !== "object") return false
+
+  return Object.keys(lastArg).every(
+    (k) =>
+      (k === "at" && typeof lastArg.at === "string") ||
+      (k === "signal" && lastArg.signal instanceof AbortSignal),
+  )
+}
+
+export const createStorageEntry = (
+  checksum: string,
   pallet: string,
   name: string,
   codecs$: Codecs$,
   storage$: Storage$,
 ) => {
   const storageCall = <T, Type extends StorageItemInput["type"]>(
-    block: string | null,
     mapper: (
       codecs: ReturnType<ReturnType<typeof getDynamicBuilder>["buildStorage"]>,
     ) => [
-      [type: Type, key: string, childTrie: string | null],
-      (input: StorageResult<Type>) => T,
+      block: string | null,
+      args: [type: Type, key: string, childTrie: string | null],
+      decoder: (input: StorageResult<Type>) => T,
     ],
     signal?: AbortSignal,
   ): Promise<T> => {
@@ -70,11 +75,11 @@ export const createStorageEntry = <
     const request$ = descriptors$.pipe(
       take(1),
       mergeMap((descriptors) => {
-        const [checksum, codecs] = descriptors("stg", pallet, name)
-        if (checksum !== descriptor.checksum)
+        const [actualChecksum, codecs] = descriptors("stg", pallet, name)
+        if (checksum !== actualChecksum)
           throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
 
-        const [args, decoder] = mapper(codecs)
+        const [block, args, decoder] = mapper(codecs)
         return storage$(block, ...args).pipe(map(decoder))
       }),
     )
@@ -84,80 +89,71 @@ export const createStorageEntry = <
   const getValue = (...args: Array<any>) => {
     const invalidArgs = () =>
       new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
-    if (args.length < descriptor.len || args.length > descriptor.len + 1)
-      throw invalidArgs()
 
-    const [actualArgs, options] =
-      args.length === descriptor.len
-        ? [args, {} as CallOptions]
-        : [args.slice(0, -1), args[args.length - 1] as CallOptions]
+    const lastArg = args[args.length - 1]
+    const signal: AbortSignal | undefined =
+      typeof lastArg === "object" && lastArg.signal instanceof AbortSignal
+        ? lastArg.signal
+        : undefined
 
-    if (typeof options !== "object") throw invalidArgs()
-    const { signal, at } = options
+    return storageCall((codecs) => {
+      const [actualArgs, options] =
+        args.length === codecs.len
+          ? [args, {} as CallOptions]
+          : [args.slice(0, -1), args[args.length - 1] as CallOptions]
 
-    return storageCall(
-      at ?? null,
-      (codecs) => {
-        const key = codecs.enc(...actualArgs)
-        return [
-          ["value", key, null],
-          (response: StorageResult<"value">) =>
-            response && codecs.dec(response as string),
-        ]
-      },
-      signal,
-    )
+      if (args !== actualArgs && !isOptionalArg(options)) {
+        console.log({ cLen: codecs.len, aLen: args.length, args })
+        throw invalidArgs()
+      }
+
+      const key = codecs.enc(...actualArgs)
+      return [
+        options.at ?? null,
+        ["value", key, null],
+        (response: StorageResult<"value">) =>
+          response && codecs.dec(response as string),
+      ]
+    }, signal)
   }
-
-  if (descriptor.len === 0) return { getValue }
 
   const getEntries = (...args: Array<any>) => {
     const invalidArgs = () =>
       new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
-    if (args.length > descriptor.len) throw invalidArgs()
+    const lastArg = args[args.length - 1]
+    const signal: AbortSignal | undefined =
+      typeof lastArg === "object" && lastArg.signal instanceof AbortSignal
+        ? lastArg.signal
+        : undefined
 
-    let options: CallOptions = {}
-    let actualArgs = args
+    return storageCall((codecs) => {
+      if (args.length > codecs.len) throw invalidArgs()
 
-    if (args.length > 0) {
-      const lastArg = args[args.length - 1]
-      if (typeof lastArg === "object") {
-        const keys = Object.keys(lastArg)
-        if (
-          keys.every(
-            (k) =>
-              (k === "at" && typeof lastArg.at === "string") ||
-              (k === "signal" && lastArg.signal instanceof AbortSignal),
-          )
-        ) {
+      let options: CallOptions = {}
+      let actualArgs = args
+
+      if (args.length > 0) {
+        const lastArg = args[args.length - 1]
+        if (isOptionalArg(lastArg)) {
           options = lastArg
           actualArgs = args.slice(0, -1)
         }
       }
-    }
 
-    if (args.length === descriptor.len && actualArgs === args)
-      throw invalidArgs()
+      if (args.length === codecs.len && actualArgs === args) throw invalidArgs()
 
-    const { signal, at } = options
-
-    return storageCall(
-      at ?? null,
-      (codecs) => {
-        const key = codecs.enc(...actualArgs)
-        return [
-          ["descendantsValues", key, null],
-          (x: StorageResult<"descendantsValues">) => {
-            return x.map(({ key, value }) => ({
-              keyArgs: codecs.keyDecoder(key),
-              value: codecs.dec(value),
-            }))
-          },
-        ]
-      },
-      signal,
-    )
+      return [
+        options.at ?? null,
+        ["descendantsValues", codecs.enc(...actualArgs), null],
+        (x: StorageResult<"descendantsValues">) => {
+          return x.map(({ key, value }) => ({
+            keyArgs: codecs.keyDecoder(key),
+            value: codecs.dec(value),
+          }))
+        },
+      ]
+    }, signal)
   }
 
   const getValues = (keyArgs: Array<Array<any>>, options?: CallOptions) =>

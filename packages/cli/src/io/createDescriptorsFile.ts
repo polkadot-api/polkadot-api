@@ -26,7 +26,6 @@ export const createDescriptorsFile = async (
 ) => {
   const knownImports: Array<string> = [
     `import type { PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/substrate-bindings"\n`,
-    `import {getPlainDescriptor, getStorageDescriptor, getTxDescriptor} from "@polkadot-api/substrate-bindings"\n`,
   ]
   const keyTypesImports: Array<string> = []
   const addTypeImport = (type: string) => {
@@ -37,9 +36,6 @@ export const createDescriptorsFile = async (
   const addLine = (line: string) => {
     code.push(line)
   }
-  addLine(
-    `const pDesc = getPlainDescriptor; const sDesc = getStorageDescriptor; const tDesc = getTxDescriptor;\n`,
-  )
 
   type Descriptors = Record<
     string,
@@ -67,7 +63,7 @@ export const createDescriptorsFile = async (
       const varName = `Err${pallet}${errorName}`
       errDescriptors[pallet][errorName] = { types, varName }
       addTypeImport(payload)
-      addLine(`const ${varName}: ${types} = pDesc<${payload}>("${checksum}");`)
+      addLine(`const ${varName}: ${types} = "${checksum}" as ${types};`)
     }
 
     evDescriptors[pallet] = {}
@@ -76,7 +72,7 @@ export const createDescriptorsFile = async (
       const varName = `Ev${pallet}${evName}`
       evDescriptors[pallet][evName] = { types, varName }
       addTypeImport(payload)
-      addLine(`const ${varName}: ${types} = pDesc<${payload}>("${checksum}")`)
+      addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
     }
 
     constDescriptors[pallet] = {}
@@ -87,7 +83,7 @@ export const createDescriptorsFile = async (
       const varName = `Const${pallet}${constName}`
       constDescriptors[pallet][constName] = { types, varName }
       addTypeImport(payload)
-      addLine(`const ${varName}: ${types} = pDesc<${payload}>("${checksum}")`)
+      addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
     }
 
     txDescriptors[pallet] = {}
@@ -96,23 +92,20 @@ export const createDescriptorsFile = async (
       const varName = `Tx${pallet}${txName}`
       txDescriptors[pallet][txName] = { types, varName }
       addTypeImport(payload)
-      addLine(`const ${varName}: ${types} = tDesc<${payload}>("${checksum}")`)
+      addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
     }
 
     stgDescriptors[pallet] = {}
     for (const [
       stgName,
-      { checksum, payload, key, isOptional, len },
+      { checksum, payload, key, isOptional },
     ] of Object.entries(storage)) {
-      const optionalType = isOptional ? 0 : 1
-      const types = `StorageDescriptor<${key}, ${payload}, ${optionalType}>`
+      const types = `StorageDescriptor<${key}, ${payload}, ${isOptional}>`
       const varName = `Stg${pallet}${stgName}`
       stgDescriptors[pallet][stgName] = { types, varName }
       addTypeImport(key)
       addTypeImport(payload)
-      addLine(
-        `const ${varName}: ${types} = sDesc<${key}, ${payload}, ${optionalType}>("${checksum}",${len}, ${optionalType})`,
-      )
+      addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
     }
   }
 
