@@ -112,7 +112,7 @@ export const createStorageEntry = (
         options.at ?? null,
         ["value", key, null],
         (response: StorageResult<"value">) =>
-          response && codecs.dec(response as string),
+          response === null ? codecs.fallback : codecs.dec(response as string),
       ]
     }, signal)
   }

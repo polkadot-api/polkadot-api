@@ -134,6 +134,10 @@ export const getDynamicBuilder = (metadata: V14) => {
       return {
         ...result,
         len,
+        fallback:
+          storageEntry.modifier === 1
+            ? result.dec(storageEntry.fallback)
+            : undefined,
       }
     }
 
