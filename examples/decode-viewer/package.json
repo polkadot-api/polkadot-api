@@ -40,10 +40,8 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react-swc": "^3.3.2",
-    "prettier": "^2.6.2",
     "sass": "^1.69.5",
     "storybook": "^7.5.2",
-    "typescript": "^5.0.2",
     "vite": "^4.4.5"
   }
 }
