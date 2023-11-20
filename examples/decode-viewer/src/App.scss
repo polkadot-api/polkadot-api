@@ -1,0 +1,43 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  top: 10rem;
+  width: 80%;
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.struct_title {
+  font-weight: bold;
+}
+
+.hex-input {
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+}
+
+.hex-button {
+  margin-top: 1rem;
+  width: 13rem;
+}
+
+.help_tooltip:hover .help_tooltiptext {
+  visibility: visible;
+}
+
+.error {
+  border: 0.2rem solid #db4437;
+  font-weight: bold;
+  padding: 0.5rem 2rem;
+  margin-top: 1rem;
+  color: #db4437;
+  font-size: 0.9rem;
+  font-weight: bold;
+}

@@ -1,0 +1,112 @@
+$background-color: #e7e7e7;
+$label-color: #424242;
+$input-color: #344054;
+$placeholder-color: #667085;
+$disabled-color: #3f3f3f;
+$color: #5c5c5c;
+
+.show-button {
+  margin: 0 0 0 1rem;
+  border-radius: 0.2rem;
+  padding: 0.2rem 1rem;
+  background-color: $label-color;
+  color: $background-color;
+  cursor: pointer;
+  font-size: 0.7rem;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 999;
+}
+
+.custom-input-wrapper {
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+  padding: 0.2rem;
+  border-radius: 0rem;
+  background-color: $background-color;
+  color: $color;
+
+  border: 1px solid #d0d5dd;
+  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
+  width: auto;
+  flex-grow: 1;
+
+  &.view {
+    border-radius: 0rem;
+  }
+
+  &.smaller {
+    padding: 0.2rem;
+    background-color: $background-color;
+    color: $disabled-color;
+
+    .label {
+      font-weight: 800;
+      color: $input-color;
+      font-size: 0.7rem;
+      margin-bottom: 0;
+    }
+
+    input {
+      font-size: 0.7rem;
+    }
+  }
+
+  .label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: $label-color;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+
+  input {
+    width: 100%;
+    font-size: 0.9rem;
+    font-weight: 400;
+    border: 0rem;
+    background-color: $background-color;
+    color: $disabled-color;
+
+    &::placeholder {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: $placeholder-color;
+    }
+
+    /* DecInput field focus */
+    &:focus {
+      border: 0;
+      outline: none;
+    }
+  }
+}
+
+.multiple {
+  display: flex;
+  background-color: $background-color;
+  color: $color;
+
+  .acc-wrapper {
+    display: flex;
+    flex-grow: 3;
+
+    .account-id {
+      display: flex;
+      height: 100%;
+      position: relative;
+      // align-items: center;
+      background: #fff;
+      padding: 0.5rem;
+    }
+  }
+}
+
+.xtra-wrapper {
+  position: relative;
+
+  .xtra-input {
+    padding: 0.5rem 0 0 1rem;
+  }
+}
