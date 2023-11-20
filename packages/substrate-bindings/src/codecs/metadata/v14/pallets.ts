@@ -1,5 +1,4 @@
-import { Hex } from "@/codecs/Hex"
-import { compactNumber } from "../../compact"
+import { Hex, compactNumber } from "@/codecs"
 import {
   Struct,
   Option,
@@ -36,7 +35,7 @@ const storageItem = Struct({
     plain: compactNumber,
     map: storageMap,
   }),
-  fallback: Vector(u8),
+  fallback: Hex(),
   docs: Vector(str),
 })
 
