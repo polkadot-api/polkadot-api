@@ -14,8 +14,11 @@
     "@polkadot-api/client": "workspace:*",
     "@polkadot-api/light-client-extension-helpers": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/utils": "workspace:*",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "rxjs": "^7.8.1",
+    "scale-ts": "^1.4.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

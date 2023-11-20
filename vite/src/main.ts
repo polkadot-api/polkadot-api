@@ -1,31 +1,19 @@
+import { createClient } from "@polkadot-api/client"
 import "./style.css"
-import "./console.js"
 
-import {
-  AccountId,
-  Enum,
-  Struct,
-  compact,
-  u8,
-} from "@polkadot-api/substrate-bindings"
-import { toHex } from "@polkadot-api/utils"
 import {
   Account,
   getLegacyProvider,
   knownChainsData,
 } from "@polkadot-api/legacy-polkadot-provider"
-import { createClient } from "@polkadot-api/substrate-client"
+import { createScClient } from "@substrate/connect"
+import testDescriptors from "./codegen/test"
 
-const provider = getLegacyProvider()
+const provider = getLegacyProvider(createScClient())
+const chain = provider.getChains()[knownChainsData.westend2.chainId]
+const client = createClient(chain.connect, testDescriptors)
 
-const westend = provider.getChains()[knownChainsData.westend2.chainId]
-
-await new Promise((res) => setTimeout(res, 500))
-
-const accounts = await westend.getAccounts()
-const jsonRPCProvider = westend.connect(() => {})
-
-console.log("westend accounts", accounts)
+const accounts = await chain.getAccounts()
 
 const alexaDropdown = document.getElementById("alexa") as HTMLSelectElement
 const billyDropdown = document.getElementById("billy") as HTMLSelectElement
@@ -53,51 +41,20 @@ function populateUserDropdown(select: Element) {
   return select
 }
 
-async function transfer(alexa: Account, billy: Account, amount: bigint) {
-  const prefix = 42
-  const codec = AccountId(prefix)
-
-  const call = Struct({
-    module: u8,
-    method: u8,
-    args: Struct({
-      dest: Enum({
-        Id: codec,
-      }),
-      value: compact,
-    }),
-  })
-
-  const rawTx = await jsonRPCProvider.createTx(
-    alexa.publicKey,
-    call.enc({
-      module: 4,
-      method: 3,
-      args: {
-        dest: {
-          tag: "Id",
-          value: codec.dec(billy.publicKey),
-        },
-        value: amount,
+function transfer(alexa: Account, billy: Account, amount: bigint) {
+  client.tx.Balances.transfer_keep_alive
+    .submit$(
+      alexa.address,
+      {
+        tag: "Id",
+        value: billy.address,
       },
-    }),
-  )
-
-  console.log("rawTx")
-  console.log(toHex(rawTx))
-
-  const transaction = toHex(rawTx)
-  console.log("transaction", transaction)
-
-  const client = createClient(westend.connect)
-
-  client.transaction(
-    transaction,
-    (e) => {
-      console.log("tx event:", e)
-    },
-    (e) => {
-      console.error("there was an error ", e)
-    },
-  )
+      amount,
+    )
+    .subscribe({
+      next: (event) => {
+        console.log(event)
+      },
+      error: console.error,
+    })
 }

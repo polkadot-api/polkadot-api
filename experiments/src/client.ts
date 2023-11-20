@@ -1,12 +1,20 @@
-import { createPullClient, WellKnownChain } from "@polkadot-api/client"
-import polkadotInfo, { IdentityIdentityOfStorage } from "./chain-info/polkadot"
-import collectivesInfo from "./chain-info/collectives"
-import collectivesChainSpec from "./collectives-polkadot"
+import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import ksm, { Queries } from "./descriptors/ksm"
+import { noop } from "@polkadot-api/utils"
+import { getChain } from "@polkadot-api/node-polkadot-provider"
+import { createClient } from "@polkadot-api/client"
 
-const relayChain = createPullClient(WellKnownChain.polkadot, polkadotInfo)
-const collectives = createPullClient(collectivesChainSpec, collectivesInfo)
+const polkadotChain = await getChain({
+  provider: ScProvider(WellKnownChain.ksmcc3),
+  keyring: { getPairs: () => [], onKeyPairsChanged: () => noop },
+})
 
-function mapRawIdentity(rawIdentity?: IdentityIdentityOfStorage["value"]) {
+const relayChain = createClient(polkadotChain.connect, ksm)
+const collectives = relayChain
+
+function mapRawIdentity(
+  rawIdentity?: Queries["Identity"]["IdentityOf"]["Value"],
+) {
   if (!rawIdentity) return rawIdentity
 
   const {
@@ -29,10 +37,10 @@ function mapRawIdentity(rawIdentity?: IdentityIdentityOfStorage["value"]) {
 }
 
 const relevantIdentities =
-  await collectives.FellowshipCollective.Members.getEntries()
+  await collectives.query.FellowshipCollective.Members.getEntries()
     .then((allMembers) => allMembers.filter(({ value }) => value >= 4))
     .then((members) =>
-      relayChain.Identity.IdentityOf.getValues(
+      relayChain.query.Identity.IdentityOf.getValues(
         members.map((m) => m.keyArgs),
       ).then((identities) =>
         identities.map((identity, idx) => ({

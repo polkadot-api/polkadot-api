@@ -14,7 +14,11 @@ export const PORT = {
   EXTENSION_PAGE: `${portPrefix}-extension-page`,
 } as const
 
+export const STORAGE_PREFIX = extensionPrefix
+
 const alarmPrefix = `${extensionPrefix}-alarm`
 export const ALARM = {
   DATABASE_UPDATE: `${alarmPrefix}-database-update`,
-}
+} as const
+
+export const KEEP_ALIVE_INTERVAL = 20_000

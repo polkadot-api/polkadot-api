@@ -10,15 +10,24 @@ type FnWithStack<Other extends Array<any>, T> = (
 export const withCache =
   <Other extends Array<any>, T>(
     fn: FnWithStack<Other, T>,
-    onEnterCircular: (cacheGetter: () => T, circular: LookupEntry) => T,
-    onExitCircular: (outter: T, inner: T, circular: LookupEntry) => T,
+    onEnterCircular: (
+      cacheGetter: () => T,
+      circular: LookupEntry,
+      ...rest: Other
+    ) => T,
+    onExitCircular: (
+      outter: T,
+      inner: T,
+      circular: LookupEntry,
+      ...rest: Other
+    ) => T,
   ): FnWithStack<Other, T> =>
   (input, cache, stack, ...rest) => {
     const { id } = input
     if (cache.has(id)) return cache.get(id)!
 
     if (stack.has(id)) {
-      const res = onEnterCircular(() => cache.get(id)!, input)
+      const res = onEnterCircular(() => cache.get(id)!, input, ...rest)
       cache.set(id, res)
       return res
     }
@@ -27,7 +36,8 @@ export const withCache =
     let result = fn(input, cache, stack, ...rest)
     stack.delete(id)
 
-    if (cache.has(id)) result = onExitCircular(result, cache.get(id)!, input)
+    if (cache.has(id))
+      result = onExitCircular(result, cache.get(id)!, input, ...rest)
 
     cache.set(id, result)
     return result

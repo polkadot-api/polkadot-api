@@ -133,3 +133,34 @@ jobs:
           inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}", "npm_tag": "{2}" }}'', github.repository, github.run_id, github.ref_name == ''main'' && ''next'' || format(''pr-{0}'', github.event.number)) }}'
         env:
           GITHUB_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
+
+  playwright:
+    needs: build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Install deps
+        run: pnpm install
+      - name: Build
+        run: pnpm build
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps chromium
+        working-directory: ./examples/extension
+      - name: Run Playwright tests
+        run: pnpm exec playwright test --project=chromium
+        working-directory: ./examples/extension
+      # - uses: actions/upload-artifact@v3
+      #   if: always()
+      #   with:
+      #     name: playwright-report
+      #     path: examples/extension/playwright-report/

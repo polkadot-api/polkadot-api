@@ -7,14 +7,14 @@ export default z.record(
     outputFolder: z.string(),
     descriptors: z.record(
       z.object({
-        constants: z.record(z.coerce.bigint()).default({}),
-        storage: z.record(z.coerce.bigint()).default({}),
-        events: z.record(z.coerce.bigint()).default({}),
-        errors: z.record(z.coerce.bigint()).default({}),
+        constants: z.record(z.coerce.string()).default({}),
+        storage: z.record(z.coerce.string()).default({}),
+        events: z.record(z.coerce.string()).default({}),
+        errors: z.record(z.coerce.string()).default({}),
         extrinsics: z
           .record(
             z.object({
-              checksum: z.coerce.bigint(),
+              checksum: z.coerce.string(),
               events: z.record(
                 z.array(z.string()).transform((s) => new Set(s)),
               ),

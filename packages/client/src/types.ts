@@ -1,69 +1,60 @@
 import {
-  ArgsWithPayloadCodec,
-  ConstantDescriptor,
-  DescriptorCommon,
-  ErrorDescriptor,
-  EventDescriptor,
-  StorageDescriptor,
-  TxDescriptor,
+  Descriptors,
+  QueryFromDescriptors,
+  TxFromDescriptors,
 } from "@polkadot-api/substrate-bindings"
 import { StorageEntry } from "./storage"
+import { TxClient } from "./tx"
 
-export type Descriptor<T extends DescriptorCommon<any, any>> =
-  | ConstantDescriptor<T, any>
-  | EventDescriptor<T, any>
-  | StorageDescriptor<T, any>
-  | ErrorDescriptor<T, any>
-  | TxDescriptor<T, any, any, any>
-
-export type TupleToIntersection<T extends Array<any>> = T extends [
-  infer V,
-  ...infer Rest,
-]
-  ? V & TupleToIntersection<Rest>
-  : unknown
-
-type MapStorageDescriptor<A extends Array<StorageDescriptor<any, any>>> = {
-  [K in keyof A]: A[K] extends StorageDescriptor<
-    DescriptorCommon<infer P, infer N>,
-    ArgsWithPayloadCodec<infer Args, infer Payload>
-  >
-    ? { [K in P]: { [KK in N]: StorageEntry<Args, Payload> } }
-    : unknown
+export type CreateTx = (
+  publicKey: Uint8Array,
+  callData: Uint8Array,
+) => Promise<Uint8Array>
+interface JsonRpcProvider {
+  send: (message: string) => void
+  createTx: CreateTx
+  disconnect: () => void
 }
 
-type Flatten<T> = T extends {}
-  ? {
-      [K in keyof T]: T[K] extends {} ? { [KK in keyof T[K]]: T[K][KK] } : T[K]
+export type Connect = (onMessage: (value: string) => void) => JsonRpcProvider
+
+type StorageApi<
+  A extends Record<
+    string,
+    Record<
+      string,
+      | {
+          KeyArgs: Array<any>
+          Value: any
+          IsOptional: false | true
+        }
+      | unknown
+    >
+  >,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends {
+      KeyArgs: Array<any>
+      Value: any
+      IsOptional: false | true
     }
-  : T
-
-export type PullClientStorage<A extends Array<StorageDescriptor<any, any>>> =
-  Flatten<TupleToIntersection<MapStorageDescriptor<A>>>
-
-/*
-function foo<A extends Array<StorageDescriptor<any, any>>>(
-  ..._: A
-): PullClientStorage<A> {
-  return null as any
+      ? StorageEntry<A[K][KK]["KeyArgs"], A[K][KK]["Value"]>
+      : unknown
+  }
 }
 
-const fooPallet = getPalletCreator("foo")
-export const fooStorageS = fooPallet.getStorageDescriptor(1n, "fooNameFirst", {
-  len: 2,
-} as ArgsWithPayloadCodec<[foo: string, bar: number], boolean>)
-export const fooStorageT = fooPallet.getStorageDescriptor(1n, "fooNameSecond", {
-  len: 2,
-} as ArgsWithPayloadCodec<[foos: string, bas: number], bigint>)
+type TxApi<A extends Record<string, Record<string, Array<any> | unknown>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends Array<any>
+      ? TxClient<A[K][KK]>
+      : unknown
+  }
+}
 
-const barPallet = getPalletCreator("bar")
-export const barStorageS = barPallet.getStorageDescriptor(1n, "barNameFirst", {
-  len: 0,
-} as ArgsWithPayloadCodec<[], string>)
-export const barStorageT = barPallet.getStorageDescriptor(1n, "barNameSecond", {
-  len: 1,
-} as ArgsWithPayloadCodec<[sdf: string], number>)
-
- const test = foo(fooStorageS, fooStorageT, barStorageS, barStorageT)
- test.foo.fooNameFirst.getValue()
-*/
+export type CreateClient = <T extends Descriptors>(
+  connect: Connect,
+  descriptors: T,
+) => {
+  query: StorageApi<QueryFromDescriptors<T>>
+  tx: TxApi<TxFromDescriptors<T>>
+}

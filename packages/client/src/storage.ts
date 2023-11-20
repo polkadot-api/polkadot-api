@@ -1,12 +1,9 @@
-import {
-  ArgsWithPayloadCodec,
-  DescriptorCommon,
-  StorageDescriptor,
-} from "@polkadot-api/substrate-bindings"
+import { StorageDescriptor } from "@polkadot-api/substrate-bindings"
 import { Observable, filter, map, mergeMap, take } from "rxjs"
+import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
-import { RuntimeDescriptors } from "./codecs"
-import { firstValueFromWithSignal } from "./utils/firstValueFromWithSignal"
+import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
+import { Codecs$ } from "./codecs"
 
 type CallOptions = Partial<{
   at: string
@@ -27,9 +24,11 @@ type StorageEntryWithoutKeys<Payload> = {
 }
 
 type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
-  getValue: (...args: WithCallOptions<Args>) => Promise<Payload | undefined>
+  getValue: (
+    ...args: [...WithCallOptions<Args>]
+  ) => Promise<Payload | undefined>
   getValues: (
-    keyArgs: Array<Args>,
+    keys: Array<[...Args]>,
     options?: CallOptions,
   ) => Promise<Array<Payload | undefined>>
   getEntries: (
@@ -41,7 +40,7 @@ export type StorageEntry<Args extends Array<any>, Payload> = Args extends []
   ? StorageEntryWithoutKeys<Payload>
   : StorageEntryWithKeys<Args, Payload>
 
-type Storage$ = <Type extends StorageItemInput["type"]>(
+export type Storage$ = <Type extends StorageItemInput["type"]>(
   hash: string | null,
   type: Type,
   key: string,
@@ -49,19 +48,18 @@ type Storage$ = <Type extends StorageItemInput["type"]>(
 ) => Observable<StorageResult<Type>>
 
 export const createStorageEntry = <
-  Descriptor extends StorageDescriptor<
-    DescriptorCommon<string, string>,
-    ArgsWithPayloadCodec<any, any>
-  >,
+  Descriptor extends StorageDescriptor<any, any, any>,
 >(
   descriptor: Descriptor,
-  codecs$: Observable<RuntimeDescriptors | null>,
+  pallet: string,
+  name: string,
+  codecs$: Codecs$,
   storage$: Storage$,
 ) => {
   const storageCall = <T, Type extends StorageItemInput["type"]>(
     block: string | null,
     mapper: (
-      descriptors: RuntimeDescriptors,
+      codecs: ReturnType<ReturnType<typeof getDynamicBuilder>["buildStorage"]>,
     ) => [
       [type: Type, key: string, childTrie: string | null],
       (input: StorageResult<Type>) => T,
@@ -72,7 +70,11 @@ export const createStorageEntry = <
     const request$ = descriptors$.pipe(
       take(1),
       mergeMap((descriptors) => {
-        const [args, decoder] = mapper(descriptors)
+        const [checksum, codecs] = descriptors("stg", pallet, name)
+        if (checksum !== descriptor.checksum)
+          throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
+
+        const [args, decoder] = mapper(codecs)
         return storage$(block, ...args).pipe(map(decoder))
       }),
     )
@@ -80,17 +82,13 @@ export const createStorageEntry = <
   }
 
   const getValue = (...args: Array<any>) => {
-    const { pallet, name } = descriptor.props
     const invalidArgs = () =>
       new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
-    if (
-      args.length < descriptor.codecs.len ||
-      args.length > descriptor.codecs.len + 1
-    )
+    if (args.length < descriptor.len || args.length > descriptor.len + 1)
       throw invalidArgs()
 
     const [actualArgs, options] =
-      args.length === descriptor.codecs.len
+      args.length === descriptor.len
         ? [args, {} as CallOptions]
         : [args.slice(0, -1), args[args.length - 1] as CallOptions]
 
@@ -99,11 +97,7 @@ export const createStorageEntry = <
 
     return storageCall(
       at ?? null,
-      (descriptors) => {
-        const codecs = descriptors.storage[pallet]?.[name]
-        if (!codecs)
-          throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
-
+      (codecs) => {
         const key = codecs.enc(...actualArgs)
         return [
           ["value", key, null],
@@ -115,14 +109,13 @@ export const createStorageEntry = <
     )
   }
 
-  if (descriptor.codecs.len === 0) return { getValue }
+  if (descriptor.len === 0) return { getValue }
 
   const getEntries = (...args: Array<any>) => {
-    const { pallet, name } = descriptor.props
     const invalidArgs = () =>
       new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
-    if (args.length > descriptor.codecs.len) throw invalidArgs()
+    if (args.length > descriptor.len) throw invalidArgs()
 
     let options: CallOptions = {}
     let actualArgs = args
@@ -144,18 +137,14 @@ export const createStorageEntry = <
       }
     }
 
-    if (args.length === descriptor.codecs.len && actualArgs === args)
+    if (args.length === descriptor.len && actualArgs === args)
       throw invalidArgs()
 
     const { signal, at } = options
 
     return storageCall(
       at ?? null,
-      (descriptors) => {
-        const codecs = descriptors.storage[pallet]?.[name]
-        if (!codecs)
-          throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
-
+      (codecs) => {
         const key = codecs.enc(...actualArgs)
         return [
           ["descendantsValues", key, null],
