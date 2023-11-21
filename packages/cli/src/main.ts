@@ -254,33 +254,15 @@ while (!exit) {
                 )
                 break
               case EXTRINSICS: {
-                let selectExtrinsics = true
-                while (selectExtrinsics) {
-                  await data.promptExtrinsicData(
-                    pallet.name,
-                    extrinsics.map((e) => [
-                      e,
-                      checksumBuilder.buildCall(pallet.name, e)!,
-                    ]),
-                    Object.entries(data.descriptorData).flatMap(
-                      ([pallet, { events }]) =>
-                        Array.from(Object.keys(events)).map(
-                          (event) => [pallet, event] as [string, string],
-                        ),
-                    ),
-                    Object.entries(data.descriptorData).flatMap(
-                      ([pallet, { errors }]) =>
-                        Array.from(Object.keys(errors)).map(
-                          (errors) => [pallet, errors] as [string, string],
-                        ),
-                    ),
-                  )
-                  selectExtrinsics = await confirm({
-                    message:
-                      "Continue selecting extrinsics from the same pallet?",
-                    default: true,
-                  })
-                }
+                await data.promptCheckboxData(
+                  "extrinsics",
+                  pallet.name,
+                  "Select Extrinsics",
+                  extrinsics.map((e) => [
+                    e,
+                    checksumBuilder.buildCall(pallet.name, e)!,
+                  ]),
+                )
                 break
               }
               case EXIT:

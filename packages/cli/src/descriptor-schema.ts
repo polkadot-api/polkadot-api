@@ -11,19 +11,7 @@ export default z.record(
         storage: z.record(z.coerce.string()).default({}),
         events: z.record(z.coerce.string()).default({}),
         errors: z.record(z.coerce.string()).default({}),
-        extrinsics: z
-          .record(
-            z.object({
-              checksum: z.coerce.string(),
-              events: z.record(
-                z.array(z.string()).transform((s) => new Set(s)),
-              ),
-              errors: z.record(
-                z.array(z.string()).transform((s) => new Set(s)),
-              ),
-            }),
-          )
-          .default({}),
+        extrinsics: z.record(z.coerce.string()).default({}),
       }),
     ),
   }),

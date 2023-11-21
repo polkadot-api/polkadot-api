@@ -35,11 +35,7 @@
           "events": {},
           "errors": {},
           "extrinsics": {
-            "transfer_keep_alive": {
-              "events": {},
-              "errors": {},
-              "checksum": "8mtvi1rkf8pbi"
-            }
+            "transfer_keep_alive": "8mtvi1rkf8pbi"
           }
         }
       }

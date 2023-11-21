@@ -68,7 +68,7 @@ export function checkDescriptorsForDiscrepancies(data: Data) {
         })
       }
     }
-    for (const [callName, { checksum }] of Object.entries(extrinsics ?? {})) {
+    for (const [callName, checksum] of Object.entries(extrinsics ?? {})) {
       const newChecksum = checksumBuilder.buildCall(pallet, callName)
       if (checksum != newChecksum) {
         discrepancies.push({
@@ -147,30 +147,7 @@ export function synchronizeDescriptors(
         if (discrepancy.newChecksum === null) {
           delete extrinsics[discrepancy.name]
         } else {
-          const newEvents: Record<string, Set<string>> = extrinsics[
-            discrepancy.name
-          ].events
-          for (const d of discrepancies.filter((d) => d.type === "event")) {
-            newEvents[d.pallet] = newEvents[d.pallet] ?? {}
-            if (d.newChecksum === null) {
-              newEvents[d.pallet].delete(d.name)
-            }
-          }
-          const newErrors: Record<string, Set<string>> = extrinsics[
-            discrepancy.name
-          ].errors
-          for (const d of discrepancies.filter((d) => d.type === "error")) {
-            newErrors[d.pallet] = newErrors[d.pallet] ?? {}
-            if (d.newChecksum === null) {
-              newErrors[d.pallet].delete(d.name)
-            }
-          }
-
-          extrinsics[discrepancy.name] = {
-            events: newEvents,
-            errors: newErrors,
-            checksum: discrepancy.newChecksum,
-          }
+          extrinsics[discrepancy.name] = discrepancy.newChecksum
         }
         break
       }
