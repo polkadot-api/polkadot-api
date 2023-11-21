@@ -96,7 +96,8 @@ export const createTxEntry = <Args extends Array<any>>(
       take(1),
       map((getCodecs) => {
         const [checksum, { location, args }] = getCodecs("tx", pallet, name)
-        if (checksum !== descriptor) throw null
+        if (checksum !== descriptor)
+          throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
         const [, evCodecs] = getCodecs("stg", "System", "Events")
         return {

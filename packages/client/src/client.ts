@@ -8,6 +8,7 @@ import { CreateClient, CreateTx } from "./types"
 import { getCodecs$ } from "./codecs"
 import { TxClient, createTxEntry } from "./tx"
 import { filter, firstValueFrom } from "rxjs"
+import { EvClient, createEventEntry } from "./event"
 
 export const createClient: CreateClient = (connect, descriptors) => {
   let createTx: CreateTx
@@ -59,5 +60,21 @@ export const createClient: CreateClient = (connect, descriptors) => {
     }
   }
 
-  return { query: query as any, tx: tx as any }
+  const events = {} as Record<string, Record<string, EvClient<any>>>
+  for (const pallet in descriptors) {
+    events[pallet] ||= {}
+    const [, , evEntries] = descriptors[pallet]
+    for (const name in evEntries) {
+      events[pallet][name] = createEventEntry(
+        evEntries[name],
+        pallet,
+        name,
+        codecs$,
+        chainHead.finalized$,
+        chainHead.storage$,
+      )
+    }
+  }
+
+  return { query: query as any, tx: tx as any, event: events as any }
 }
