@@ -45,25 +45,6 @@ pallets and for each pallet you can select `Constants`, `Storage`, `Events`,
 
 ![Select Descriptor Types](./img/select-descriptor-types.png)
 
-When selecting an extrinsic, ensure you have selected all the associated events
-and errors that you care about for that extrinsic. For example, you may want
-to select `ExtrinsicSuccess` and `ExtrinsicFailed` events from the System pallet
-and `InsufficientBalance` error from the Balances pallet before selecting a
-`transfer_allow_death` extrinsic.
-
-![Select Events](./img/select-events.png)
-
-![Select Errors](./img/select-errors.png)
-
-![Select Extrinsic](./img/select-extrinsic.png)
-
-The `Continue` prompt is for whether you want to select another extrinsic from
-the same pallet or to exit and return to the main menu.
-
-If you select the same extrinsic again, you can choose to delete it.
-
-![Delete Extrinsic](./img/delete-extrinsic.png)
-
 Once you've selected your descriptors you can select `Show Descriptors` to see
 a preview out the output.
 
@@ -101,7 +82,7 @@ The the last thing you will be asked is what direct to output the codegen in.
 
 ![Save Descriptors](./img/save-descriptors.png)
 
-The saved descriptors file will look something like this.
+An example saved descriptors file will look something like this.
 
 ```json
 {
@@ -110,32 +91,35 @@ The saved descriptors file will look something like this.
     "outputFolder": "artifacts/descriptors",
     "descriptors": {
       "System": {
-        "constants": {},
+        "constants": {
+          "Version": "3fi14qt5ulln4"
+        },
         "storage": {},
         "events": {
-          "ExtrinsicSuccess": "13099765670732146383",
-          "ExtrinsicFailed": "7304797062966333508"
+          "ExtrinsicSuccess": "bbitnf3adh9mf",
+          "ExtrinsicFailed": "6anuq77n6pk24"
         },
-        "errors": {},
-        "extrinsics": {}
-      },
-      "Balances": {
-        "constants": {},
-        "storage": {},
-        "events": {},
         "errors": {
           "InsufficientBalance": "0"
         },
         "extrinsics": {
-          "transfer_allow_death": {
-            "events": {
-              "System": ["ExtrinsicSuccess", "ExtrinsicFailed"]
-            },
-            "errors": {
-              "Balances": ["InsufficientBalance"]
-            },
-            "checksum": "10049767239352345970"
-          }
+          "transfer_allow_death": "8mtvi1rkf8pbi"
+        }
+      },
+      "Balances": {
+        "constants": {
+          "Version": "3fi14qt5ulln4"
+        },
+        "storage": {},
+        "events": {
+          "ExtrinsicSuccess": "bbitnf3adh9mf",
+          "ExtrinsicFailed": "6anuq77n6pk24"
+        },
+        "errors": {
+          "InsufficientBalance": "0"
+        },
+        "extrinsics": {
+          "transfer_allow_death": "8mtvi1rkf8pbi"
         }
       }
     }
