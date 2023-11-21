@@ -150,7 +150,17 @@ type BackgroundResponseGetChains = {
 
 type BackgroundResponseGetActiveConnections = {
   type: "getActiveConnectionsResponse"
-  connections: { tabId: number; genesisHash: string }[]
+  connections: {
+    tabId: number
+    chain: {
+      genesisHash: string
+      chainSpec: string
+      relayChainGenesisHash?: string
+      name: string
+      ss58Format: number
+      bootNodes: Array<string>
+    }
+  }[]
 }
 
 type BackgroundResponseDisconnect = {

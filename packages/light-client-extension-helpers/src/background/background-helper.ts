@@ -9,6 +9,7 @@ import { Observable, firstValueFrom, retry } from "rxjs"
 import type {
   AddOnAddChainByUserListener,
   LightClientPageHelper,
+  PageChain,
 } from "./types"
 import { smoldotProvider } from "./smoldot-provider"
 import type {
@@ -186,12 +187,11 @@ export const register = (smoldotClient: Client) => {
           bootNodes:
             (await storage.get({ type: "bootNodes", genesisHash })) ??
             (JSON.parse(chain.chainSpec).bootNodes as string[]),
-          provider: await smoldotProvider({
+          provider: await createSmoldotProvider({
             smoldotClient,
             chainSpec: chain.chainSpec,
-            relayChainSpec: chain.relayChainGenesisHash
-              ? chains[chain.relayChainGenesisHash].chainSpec
-              : undefined,
+            genesisHash: chain.genesisHash,
+            relayChainGenesisHash: chain.relayChainGenesisHash,
           }),
         })),
       )
@@ -200,12 +200,36 @@ export const register = (smoldotClient: Client) => {
       return Object.entries(activeChains).reduce(
         (acc, [tabIdStr, tabChains]) => {
           const tabId = parseInt(tabIdStr)
-          Object.values(tabChains).forEach(({ genesisHash }) =>
-            acc.push({ tabId, genesisHash }),
+          Object.values(tabChains).forEach(
+            ({
+              genesisHash,
+              name,
+              ss58Format,
+              bootNodes,
+              chainSpec,
+              relayChainGenesisHash,
+            }) =>
+              acc.push({
+                tabId,
+                chain: {
+                  genesisHash,
+                  chainSpec,
+                  relayChainGenesisHash,
+                  name,
+                  ss58Format,
+                  bootNodes,
+                  provider: createSmoldotSyncProvider({
+                    smoldotClient,
+                    chainSpec,
+                    genesisHash,
+                    relayChainGenesisHash,
+                  }),
+                },
+              }),
           )
           return acc
         },
-        [] as { tabId: number; genesisHash: string }[],
+        [] as { tabId: number; chain: PageChain }[],
       )
     },
     async disconnect(tabId: number, genesisHash: string) {
@@ -232,7 +256,18 @@ export const register = (smoldotClient: Client) => {
   // Chains by TabId
   const activeChains: Record<
     number,
-    Record<string, { chain: Chain; genesisHash: string }>
+    Record<
+      string,
+      {
+        chain: Chain
+        genesisHash: string
+        chainSpec: string
+        relayChainGenesisHash?: string
+        name: string
+        ss58Format: number
+        bootNodes: Array<string>
+      }
+    >
   > = {}
   const isSubstrateConnectOrContentMessage = createIsHelperMessage<
     | (ToExtension & {
@@ -347,11 +382,12 @@ export const register = (smoldotClient: Client) => {
               }
             }
 
-            const [smoldotChain, { genesisHash }] = await Promise.all([
-              smoldotClient.addChain(addChainOptions),
-              getChainData({ smoldotClient, addChainOptions }),
-              awaitFinalized({ smoldotClient, addChainOptions }),
-            ])
+            const [smoldotChain, { genesisHash, name, ss58Format }] =
+              await Promise.all([
+                smoldotClient.addChain(addChainOptions),
+                getChainData({ smoldotClient, addChainOptions }),
+                awaitFinalized({ smoldotClient, addChainOptions }),
+              ])
 
             ;(async () => {
               while (true) {
@@ -389,9 +425,28 @@ export const register = (smoldotClient: Client) => {
             }
             delete pendingAddChains[msg.chainId]
 
+            // FIXME: double check this and dedupe from above
+            let relayChainGenesisHash: string | undefined = undefined
+            if (msg.type === "add-chain") {
+              const relayChainGenesisHashOrChainId =
+                msg.potentialRelayChainIds[0]
+              relayChainGenesisHash = chains[relayChainGenesisHashOrChainId]
+                ? chains[relayChainGenesisHashOrChainId].genesisHash
+                : msg.potentialRelayChainIds
+                    .filter((chainId) => activeChains[tabId][chainId])
+                    .map(
+                      (chainId) => activeChains[tabId][chainId].genesisHash,
+                    )[0]
+            }
+
             activeChains[tabId][msg.chainId] = {
               chain: smoldotChain,
               genesisHash,
+              relayChainGenesisHash,
+              chainSpec: addChainOptions.chainSpec,
+              name,
+              ss58Format,
+              bootNodes: JSON.parse(addChainOptions.chainSpec)?.bootNodes ?? [],
             }
 
             postMessage({
@@ -566,7 +621,12 @@ export const register = (smoldotClient: Client) => {
             sendBackgroundResponse(sendResponse, {
               origin: CONTEXT.BACKGROUND,
               type: "getActiveConnectionsResponse",
-              connections,
+              connections: connections.map(
+                ({ tabId, chain: { provider, ...chain } }) => ({
+                  tabId,
+                  chain,
+                }),
+              ),
             }),
           )
           .catch(handleBackgroundErrorResponse(sendResponse))
@@ -796,26 +856,12 @@ const followChain = ({
     observer.next(false)
     const client = getObservableClient(
       createClient(
-        getSyncProvider(
-          async () =>
-            await smoldotProvider({
-              smoldotClient,
-              chainSpec,
-              relayChainSpec: relayChainGenesisHash
-                ? (await storage.getChains())[relayChainGenesisHash].chainSpec
-                : undefined,
-              databaseContent: await storage.get({
-                type: "databaseContent",
-                genesisHash,
-              }),
-              relayChainDatabaseContent: relayChainGenesisHash
-                ? await storage.get({
-                    type: "databaseContent",
-                    genesisHash: relayChainGenesisHash,
-                  })
-                : undefined,
-            }),
-        ),
+        createSmoldotSyncProvider({
+          smoldotClient,
+          chainSpec,
+          genesisHash,
+          relayChainGenesisHash,
+        }),
       ),
     )
     const chainHead = client.chainHead$()
@@ -856,3 +902,36 @@ const followChain = ({
 const unfollowChain = (genesisHash: string) => {
   followedChains.get(genesisHash)?.()
 }
+
+type CreateSmoldotProviderOptions = {
+  smoldotClient: Client
+  chainSpec: string
+  genesisHash: string
+  relayChainGenesisHash?: string
+}
+const createSmoldotProvider = async ({
+  smoldotClient,
+  chainSpec,
+  genesisHash,
+  relayChainGenesisHash,
+}: CreateSmoldotProviderOptions) =>
+  smoldotProvider({
+    smoldotClient,
+    chainSpec,
+    relayChainSpec: relayChainGenesisHash
+      ? (await storage.getChains())[relayChainGenesisHash].chainSpec
+      : undefined,
+    databaseContent: await storage.get({
+      type: "databaseContent",
+      genesisHash,
+    }),
+    relayChainDatabaseContent: relayChainGenesisHash
+      ? await storage.get({
+          type: "databaseContent",
+          genesisHash: relayChainGenesisHash,
+        })
+      : undefined,
+  })
+
+const createSmoldotSyncProvider = (options: CreateSmoldotProviderOptions) =>
+  getSyncProvider(() => createSmoldotProvider(options))

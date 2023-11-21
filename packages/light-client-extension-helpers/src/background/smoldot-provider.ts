@@ -11,7 +11,6 @@ type SmoldotProviderOptions =
       relayChainDatabaseContent?: string
     }
 
-// TODO: check if this needs to use getSyncProvider
 export const smoldotProvider = async ({
   smoldotClient,
   ...options
