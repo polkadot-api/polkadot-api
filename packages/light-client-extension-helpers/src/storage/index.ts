@@ -1,4 +1,3 @@
-import { WellKnownChainGenesisHash, wellKnownChainSpecs } from "@/chain-specs"
 import { STORAGE_PREFIX } from "@/shared"
 
 const chainStoragePrefix = `${STORAGE_PREFIX}_chain_`
@@ -74,11 +73,7 @@ export const getChains = async (): Promise<Record<string, ChainInfo>> =>
           entry[0].startsWith(chainStoragePrefix),
         )
         .map(async ([_, { chainSpec, ...chain }]) => {
-          const chainSpecJson = JSON.parse(
-            wellKnownChainSpecs[
-              chain.genesisHash as WellKnownChainGenesisHash
-            ] ?? chainSpec,
-          )
+          const chainSpecJson = JSON.parse(chainSpec)
           chainSpecJson.bootNodes = await get({
             type: "bootNodes",
             genesisHash: chain.genesisHash,
