@@ -279,15 +279,16 @@ export const register = (smoldotClient: Client) => {
   chrome.runtime.onConnect.addListener((port) => {
     if (!helperPortNames.includes(port.name)) return
 
+    // use chrome.tabs.TAB_ID_NONE for popup port
+    const tabId = port.sender?.tab?.id ?? chrome.tabs.TAB_ID_NONE
+
     const postMessage = (
       message: (ToPage & { origin: "substrate-connect-extension" }) | ToContent,
     ) => port.postMessage(message)
 
     let isPortDisconnected = false
-    port.onDisconnect.addListener((port) => {
+    port.onDisconnect.addListener(() => {
       isPortDisconnected = true
-      const tabId = port.sender?.tab?.id
-      if (!tabId) return
       if (!activeChains[tabId]) return
       for (const [chainId, { chain }] of Object.entries(activeChains[tabId])) {
         try {
@@ -301,9 +302,7 @@ export const register = (smoldotClient: Client) => {
     })
 
     const pendingAddChains: Record<string, boolean> = {}
-    port.onMessage.addListener(async (msg, port) => {
-      const tabId = port.sender?.tab?.id
-      if (!tabId) return
+    port.onMessage.addListener(async (msg) => {
       if (!isSubstrateConnectOrContentMessage(msg)) return
       switch (msg.type) {
         case "keep-alive": {
@@ -314,8 +313,6 @@ export const register = (smoldotClient: Client) => {
         }
         case "add-well-known-chain":
         case "add-chain": {
-          const tabId = port.sender?.tab?.id!
-          if (!tabId) return
           activeChains[tabId] ??= {}
           try {
             if (
@@ -470,9 +467,6 @@ export const register = (smoldotClient: Client) => {
           break
         }
         case "remove-chain": {
-          const tabId = port.sender?.tab?.id!
-          if (!tabId) return
-
           delete pendingAddChains[msg.chainId]
 
           removeChain(tabId, msg.chainId)
@@ -480,9 +474,6 @@ export const register = (smoldotClient: Client) => {
           break
         }
         case "rpc": {
-          const tabId = port.sender?.tab?.id
-          if (!tabId) return
-
           const chain = activeChains?.[tabId]?.[msg.chainId]?.chain
           if (!chain) return
 
