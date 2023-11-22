@@ -4,10 +4,14 @@
     "outputFolder": "out",
     "descriptors": {
       "System": {
+        "constants": {},
         "storage": {
-          "Events": "2863101223185493143",
-          "LastRuntimeUpgrade": "5028591118551952176"
-        }
+          "Events": "2feu7cihvab4n",
+          "LastRuntimeUpgrade": "4bi94vb6viapg"
+        },
+        "events": {},
+        "errors": {},
+        "extrinsics": {}
       }
     }
   },
@@ -16,9 +20,13 @@
     "outputFolder": "out",
     "descriptors": {
       "System": {
+        "constants": {},
+        "storage": {},
+        "events": {},
         "errors": {
           "InvalidSpecName": "0"
-        }
+        },
+        "extrinsics": {}
       }
     }
   },
@@ -27,9 +35,13 @@
     "outputFolder": "out",
     "descriptors": {
       "System": {
+        "constants": {},
+        "storage": {},
         "events": {
           "CodeUpdated": "0"
-        }
+        },
+        "errors": {},
+        "extrinsics": {}
       }
     }
   }

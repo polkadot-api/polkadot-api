@@ -4,7 +4,6 @@ import fsExists from "fs.promises.exists"
 import path from "path"
 import descriptorSchema from "../../src/descriptor-schema"
 import {
-  DescriptorCommon,
   StorageDescriptor,
   TxDescriptor,
   PlainDescriptor,
@@ -12,14 +11,9 @@ import {
 import fs from "fs/promises"
 import { mapDescriptorRecords } from "./utils"
 
-type Descriptor =
-  | StorageDescriptor<DescriptorCommon<string, string>, any>
-  | TxDescriptor<DescriptorCommon<string, string>, any>
-  | PlainDescriptor<DescriptorCommon<string, string>, any>
-
 const cmd = "./bin/main.js"
 
-describe.skip("cli", async () => {
+describe("cli", async () => {
   describe.concurrent("happy paths", async () => {
     const descriptorJSON = await descriptorSchema.parseAsync(
       JSON.parse(
@@ -49,21 +43,18 @@ describe.skip("cli", async () => {
             ).resolves.toEqual(true)
             await expect(
               fsExists(path.join(outputFolder, `${key}.d.ts`)),
-            ).resolves.toEqual(false)
+            ).resolves.toEqual(true)
 
-            const descriptors: [
-              constants: Descriptor[],
-              storage: Descriptor[],
-              events: Descriptor[],
-              errors: Descriptor[],
-              calls: Descriptor[],
-            ] = (await import(path.join(outputFolder, `${key}.ts`))).default
-
-            const actualDescriptors = descriptors.map((arr) =>
-              arr.map((d) => ({
-                ...d.props,
-              })),
-            )
+            const actualDescriptors: Record<
+              string,
+              [
+                Record<string, string>,
+                Record<string, string>,
+                Record<string, string>,
+                Record<string, string>,
+                Record<string, string>,
+              ]
+            > = (await import(path.join(outputFolder, `${key}.ts`))).default
 
             expect(actualDescriptors).toStrictEqual(expectedDescriptors)
           },

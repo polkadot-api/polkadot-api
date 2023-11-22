@@ -6,63 +6,23 @@ type Descriptors = AsyncReturnType<
 >[string]["descriptors"]
 
 export const mapDescriptorRecords = (records: Descriptors) => {
-  type MappedDescriptor = {
-    name: string
-    pallet: string
-    checksum: string
-  }
-  const constantsDescriptors: MappedDescriptor[] = []
-  const storageDescriptors: MappedDescriptor[] = []
-  const eventDescriptors: MappedDescriptor[] = []
-  const errorDescriptors: MappedDescriptor[] = []
-  const callDescriptors: MappedDescriptor[] = []
+  const descriptors: Record<
+    string,
+    [
+      Record<string, string>,
+      Record<string, string>,
+      Record<string, string>,
+      Record<string, string>,
+      Record<string, string>,
+    ]
+  > = {}
 
   for (const [
     pallet,
-    { constants, storage, events, errors, extrinsics },
+    { storage, extrinsics, events, errors, constants },
   ] of Object.entries(records)) {
-    for (const [name, checksum] of Object.entries(constants ?? {})) {
-      constantsDescriptors.push({
-        name,
-        pallet,
-        checksum,
-      })
-    }
-    for (const [name, checksum] of Object.entries(storage ?? {})) {
-      storageDescriptors.push({
-        name,
-        pallet,
-        checksum,
-      })
-    }
-    for (const [name, checksum] of Object.entries(events ?? {})) {
-      eventDescriptors.push({
-        name,
-        pallet,
-        checksum,
-      })
-    }
-    for (const [name, checksum] of Object.entries(errors ?? {})) {
-      errorDescriptors.push({
-        name,
-        pallet,
-        checksum,
-      })
-    }
-    for (const [name, { checksum }] of Object.entries(extrinsics ?? {})) {
-      callDescriptors.push({
-        name,
-        pallet,
-        checksum,
-      })
-    }
+    descriptors[pallet] = [storage, extrinsics, events, errors, constants]
   }
 
-  return [
-    constantsDescriptors,
-    storageDescriptors,
-    eventDescriptors,
-    errorDescriptors,
-    callDescriptors,
-  ]
+  return descriptors
 }
