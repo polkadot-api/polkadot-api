@@ -77,7 +77,9 @@ export const createStorageEntry = (
       mergeMap((descriptors) => {
         const [actualChecksum, codecs] = descriptors("stg", pallet, name)
         if (checksum !== actualChecksum)
-          throw new Error(`Incompatible runtime entry (${pallet}.${name})`)
+          throw new Error(
+            `Incompatible runtime entry Storage(${pallet}.${name})`,
+          )
 
         const [block, args, decoder] = mapper(codecs)
         return storage$(block, ...args).pipe(map(decoder))

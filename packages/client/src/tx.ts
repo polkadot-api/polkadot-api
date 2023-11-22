@@ -24,17 +24,6 @@ import {
 import { mergeUint8, toHex } from "@polkadot-api/utils"
 import { getObservableClient } from "./observableClient"
 
-type TxFunction<Args extends Array<any>> = (
-  from: SS58String,
-  ...args: Args
-) => Promise<
-  | {
-      ok: true
-      events: Array<any>
-    }
-  | { ok: false; events: Array<any> }
->
-
 type SystemEvent = {
   phase:
     | { tag: "ApplyExtrinsic"; value: number }
@@ -50,6 +39,16 @@ type SystemEvent = {
   topics: Array<any>
 }
 
+type TxSuccess = {
+  ok: boolean
+  events: Array<SystemEvent["event"]>
+}
+
+type TxFunction<Args extends Array<any>> = (
+  from: SS58String,
+  ...args: Args
+) => Promise<TxSuccess>
+
 type TxObservable<Args extends Array<any>> = (
   from: SS58String,
   ...args: Args
@@ -57,14 +56,7 @@ type TxObservable<Args extends Array<any>> = (
   | TxValidated
   | TxBroadcasted
   | TxBestChainBlockIncluded
-  | (TxFinalized &
-      (
-        | {
-            ok: true
-            events: Array<any>
-          }
-        | { ok: false; events: Array<any> }
-      ))
+  | (TxFinalized & TxSuccess)
 >
 
 type TxCall<Args extends Array<any>> = (...args: Args) => Promise<string>
@@ -79,6 +71,21 @@ export type TxClient<Args extends Array<any>> = {
   getTx: TxSigned<Args>
   submit: TxFunction<Args>
   submit$: TxObservable<Args>
+}
+
+const getTxSuccessFromSystemEvents = (
+  systemEvents: Array<SystemEvent>,
+  txIdx: number,
+): TxSuccess => {
+  const events = systemEvents
+    .filter((x) => x.phase.tag === "ApplyExtrinsic" && x.phase.value === txIdx)
+    .map((x) => x.event)
+
+  const lastEvent = events[events.length - 1]
+  const ok =
+    lastEvent.tag === "System" && lastEvent.value.tag === "ExtrinsicSuccess"
+
+  return { ok, events }
 }
 
 export const createTxEntry = <Args extends Array<any>>(
@@ -96,7 +103,8 @@ export const createTxEntry = <Args extends Array<any>>(
       take(1),
       map((getCodecs) => {
         const [checksum, { location, args }] = getCodecs("tx", pallet, name)
-        if (checksum !== descriptor) throw null
+        if (checksum !== descriptor)
+          throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
         const [, evCodecs] = getCodecs("stg", "System", "Events")
         return {
@@ -143,21 +151,16 @@ export const createTxEntry = <Args extends Array<any>>(
       case "dropped":
         throw new Error("Dropped")
       case "finalized": {
-        const events = await firstValueFrom(
+        const systemEvents = await firstValueFrom(
           storage$(result.block.hash, "value", key, null).pipe(
             map((x) => decoder(x!)),
           ),
         )
-        return {
-          ok: true,
-          events: events
-            .filter(
-              (x) =>
-                x.phase.tag === "ApplyExtrinsic" &&
-                x.phase.value === Number(result.block.index),
-            )
-            .map((x) => x.event) as any[],
-        }
+
+        return getTxSuccessFromSystemEvents(
+          systemEvents,
+          Number(result.block.index),
+        )
       }
       default:
         return { ok: true, events: [] }
@@ -186,14 +189,10 @@ export const createTxEntry = <Args extends Array<any>>(
                   map((x) => decoder(x!)),
                   map((events) => ({
                     ...result,
-                    ok: true as true,
-                    events: events
-                      .filter(
-                        (x) =>
-                          x.phase.tag === "ApplyExtrinsic" &&
-                          x.phase.value === Number(result.block.index),
-                      )
-                      .map((x) => x.event) as any[],
+                    ...getTxSuccessFromSystemEvents(
+                      events,
+                      Number(result.block.index),
+                    ),
                   })),
                 )
               }
