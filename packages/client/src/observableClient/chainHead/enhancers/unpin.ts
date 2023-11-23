@@ -5,18 +5,15 @@ import {
 import {
   Observable,
   Subject,
-  concat,
   filter,
-  ignoreElements,
   map,
   merge,
   mergeMap,
   pairwise,
-  scan,
   skip,
   startWith,
-  takeUntil,
 } from "rxjs"
+import { lazyScan } from "@/utils"
 
 export const getWithUnpinning$ = (
   finalized$: Observable<string>,
@@ -33,37 +30,74 @@ export const getWithUnpinning$ = (
     startWith(""),
     pairwise(),
     mergeMap(([prev, current]) => [
-      { type: "release" as "release", hash: prev },
-      { type: "hold" as "hold", hash: current },
+      { type: "release" as "release", hash: prev, isUser: false },
+      { type: "hold" as "hold", hash: current, isUser: false },
     ]),
     skip(1),
   )
 
-  const userUsage$ = userUsageInput$.pipe(
-    // we need to ensure that it completes when finalized$ completes
-    takeUntil(concat(finalized$.pipe(ignoreElements()), [null])),
-  )
+  const userUsage$ = new Observable<{
+    type: "hold" | "release"
+    hash: string
+    isUser: true
+  }>((observer) => {
+    const userSub = userUsageInput$.subscribe((value) => {
+      observer.next({ ...value, isUser: true })
+    })
 
-  const unpinFromUsage$ = merge(userUsage$, internalUsage$).pipe(
-    scan(
-      (acc, usage) => {
-        const newAcc = Object.fromEntries(
-          Object.entries(acc).filter(([, value]) => value),
-        )
+    const finSub = finalized$.subscribe({
+      error(e) {
+        observer.error(e)
+      },
+      complete() {
+        observer.complete()
+      },
+    })
 
-        if (usage.type === "release") {
-          newAcc[usage.hash]--
-        } else {
-          newAcc[usage.hash] ||= 0
-          newAcc[usage.hash]++
+    return () => {
+      userSub.unsubscribe()
+      finSub.unsubscribe()
+    }
+  })
+
+  const unpinFromUsage$ = merge(internalUsage$, userUsage$).pipe(
+    lazyScan(
+      (acc, { isUser, type, hash }) => {
+        const { counters, bestBlocks } = acc
+
+        if (isUser && type === "hold" && !counters[hash]) {
+          bestBlocks[hash] ||= 0
+          bestBlocks[hash]++
+          return acc
         }
 
-        return newAcc
+        if (isUser && type === "release" && bestBlocks[hash]) {
+          if (!--bestBlocks[hash]) delete bestBlocks[hash]
+          return acc
+        }
+
+        for (const hash in counters) if (!counters[hash]) delete counters[hash]
+
+        if (type === "release") {
+          counters[hash]--
+        } else {
+          counters[hash] ||= 0
+          counters[hash]++
+          if (!isUser && bestBlocks[hash]) {
+            counters[hash] += bestBlocks[hash]
+            delete bestBlocks[hash]
+          }
+        }
+
+        return acc
       },
-      {} as Record<string, number>,
+      () => ({
+        counters: {} as Record<string, number>,
+        bestBlocks: {} as Record<string, number>,
+      }),
     ),
     map((acc) =>
-      Object.entries(acc)
+      Object.entries(acc.counters)
         .filter(([, value]) => value === 0)
         .map(([key]) => key),
     ),
