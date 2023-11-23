@@ -409,8 +409,8 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
       '@substrate/connect':
-        specifier: ^0.7.32
-        version: 0.7.33
+        specifier: ^0.7.35
+        version: 0.7.35
     devDependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
