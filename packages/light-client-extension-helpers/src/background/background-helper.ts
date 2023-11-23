@@ -9,9 +9,9 @@ import {
   Observable,
   firstValueFrom,
   catchError,
-  timer,
   defer,
-  concatMap,
+  EMPTY,
+  repeat,
 } from "rxjs"
 import type {
   AddOnAddChainByUserListener,
@@ -882,22 +882,18 @@ const followChain = ({
         }),
       ),
     )
-    const chainHead = client.chainHead$()
-    let unfollow = chainHead.unfollow
-    chainHead.finalized$
+    let unfollow: ReturnType<(typeof client)["chainHead$"]>["unfollow"]
+    const finalizedSubscription = defer(() => {
+      const chainHead = client.chainHead$()
+      unfollow = chainHead.unfollow
+      return chainHead.finalized$
+    })
       .pipe(
-        catchError(() =>
-          timer(0).pipe(
-            concatMap(() =>
-              defer(() => {
-                observer.next(false)
-                const chainHead = client.chainHead$()
-                unfollow = chainHead.unfollow
-                return chainHead.finalized$
-              }),
-            ),
-          ),
-        ),
+        catchError(() => {
+          observer.next(false)
+          return EMPTY
+        }),
+        repeat({ delay: 1 }),
       )
       .subscribe({
         next() {
@@ -908,6 +904,7 @@ const followChain = ({
       })
 
     return () => {
+      finalizedSubscription.unsubscribe()
       unfollow()
       client.destroy()
     }
