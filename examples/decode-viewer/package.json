@@ -1,0 +1,47 @@
+{
+  "name": "decode-viewer",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node prepare.mjs && vite",
+    "build": "tsc && vite build",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-codegen": "workspace:*",
+    "@polkadot-cloud/core": "^1.0.43",
+    "@polkadot-cloud/react": "^0.1.121",
+    "@polkadot-cloud/utils": "^0.0.25",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@polkadot-cloud/core": "^1.0.43",
+    "@polkadot-cloud/react": "^0.1.127",
+    "@storybook/addon-essentials": "^7.5.2",
+    "@storybook/addon-interactions": "^7.5.2",
+    "@storybook/addon-links": "^7.5.2",
+    "@storybook/addon-onboarding": "^1.0.8",
+    "@storybook/blocks": "^7.5.2",
+    "@storybook/react": "^7.5.2",
+    "@storybook/react-vite": "^7.5.2",
+    "@storybook/testing-library": "^0.2.2",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react-swc": "^3.3.2",
+    "sass": "^1.69.5",
+    "storybook": "^7.5.2",
+    "vite": "^4.4.5"
+  }
+}
