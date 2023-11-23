@@ -99,15 +99,6 @@ export async function getMetadata(args: GetMetadataArgs) {
   return { magicNumber, metadata }
 }
 
-export function encodeMetadata(metadata: CodecType<typeof $metadata>) {
-  const encodedMetadata = $metadata.enc(metadata)
-
-  return OpaqueCodec($metadata).enc({
-    length: encodedMetadata.length,
-    inner: () => metadata,
-  })
-}
-
 function assertIsv14(
   metadata: Metadata,
 ): asserts metadata is Metadata & { tag: "v14" } {

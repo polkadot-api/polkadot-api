@@ -1,4 +1,3 @@
-import { Data } from "@/data"
 import { V14 } from "@polkadot-api/substrate-bindings"
 import {
   getChecksumBuilder,
@@ -7,11 +6,7 @@ import {
 } from "@polkadot-api/substrate-codegen"
 import { PalletData } from "./types"
 
-export const getCodegenInfo = (
-  metadata: V14,
-  keyName: string,
-  input: Data["descriptorData"],
-) => {
+export const getCodegenInfo = (metadata: V14, keyName: string) => {
   const descriptorsData: Record<string, PalletData> = {}
   const getLookup = getLookupFn(metadata.lookup)
 
@@ -39,9 +34,6 @@ export const getCodegenInfo = (
   }
 
   for (const pallet of metadata.pallets) {
-    const inputPallet = input[pallet.name]
-    if (!inputPallet) continue
-
     const result: PalletData = {
       constants: {},
       errors: {},
@@ -52,8 +44,6 @@ export const getCodegenInfo = (
     descriptorsData[pallet.name] = result
 
     for (const stg of pallet.storage?.items ?? []) {
-      if (!inputPallet.storage[stg.name]) continue
-
       const { key, val } = staticBuilder.buildStorage(pallet.name, stg.name)
       result.storage[stg.name] = {
         checksum: checksumBuilder.buildStorage(pallet.name, stg.name)!,
@@ -64,8 +54,6 @@ export const getCodegenInfo = (
     }
 
     for (const callName of getEnumEntry(pallet.calls)) {
-      if (!inputPallet.extrinsics[callName]) continue
-
       const payload = staticBuilder.buildCall(pallet.name, callName)
       result.tx[callName] = {
         checksum: checksumBuilder.buildCall(pallet.name, callName)!,
@@ -74,8 +62,6 @@ export const getCodegenInfo = (
     }
 
     for (const errName of getEnumEntry(pallet.errors)) {
-      if (!inputPallet.errors[errName]) continue
-
       const payload = staticBuilder.buildError(pallet.name, errName)
       result.errors[errName] = {
         checksum: checksumBuilder.buildError(pallet.name, errName)!,
@@ -84,8 +70,6 @@ export const getCodegenInfo = (
     }
 
     for (const evName of getEnumEntry(pallet.events)) {
-      if (!inputPallet.events[evName]) continue
-
       const payload = staticBuilder.buildEvent(pallet.name, evName)
       result.events[evName] = {
         checksum: checksumBuilder.buildEvent(pallet.name, evName)!,
@@ -94,8 +78,6 @@ export const getCodegenInfo = (
     }
 
     for (const { name: constName } of pallet.constants) {
-      if (!inputPallet.constants[constName]) continue
-
       const payload = staticBuilder.buildConstant(pallet.name, constName)
       result.constants[constName] = {
         checksum: checksumBuilder.buildConstant(pallet.name, constName)!,

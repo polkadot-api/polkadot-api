@@ -1,16 +1,19 @@
 import { V14 } from "@polkadot-api/substrate-codegen"
 import fs from "fs/promises"
-import { Data } from "@/data"
 import * as readPkg from "read-pkg"
 import * as writePkg from "write-pkg"
 import * as z from "zod"
 import descriptorSchema from "@/descriptor-schema"
-import { encodeMetadata } from "@/metadata"
 import { dirname } from "path"
 import fsExists from "fs.promises.exists"
 import { getCodegenInfo } from "./getCodegenInfo"
 import { createDtsFile } from "./createDtsFile"
 import { createDescriptorsFile } from "./createDescriptorsFile"
+import {
+  metadata as $metadata,
+  CodecType,
+  OpaqueCodec,
+} from "@polkadot-api/substrate-bindings"
 
 type ReadDescriptorsArgs = {
   pkgJSONKey: string
@@ -55,14 +58,12 @@ type OutputDescriptorsArgs = (
       fileName: string
     }
 ) & {
-  data: Data
   key: string
   metadataFile: string
   outputFolder: string
 }
 
 export async function outputDescriptors({
-  data,
   key,
   metadataFile,
   outputFolder,
@@ -86,7 +87,6 @@ export async function outputDescriptors({
         [key]: {
           metadata: metadataFile,
           outputFolder: outputFolder,
-          descriptors: data.descriptorData,
         },
       }
 
@@ -112,7 +112,6 @@ export async function outputDescriptors({
         [key]: {
           metadata: metadataFile,
           outputFolder: outputFolder,
-          descriptors: data.descriptorData,
         },
       }
 
@@ -123,26 +122,26 @@ export async function outputDescriptors({
   }
 }
 
-export async function writeMetadataToDisk(data: Data, outFile: string) {
-  const encoded = encodeMetadata({
-    magicNumber: data.magicNumber,
-    metadata: data.metadata,
+export async function writeMetadataToDisk(
+  metadata: CodecType<typeof $metadata>,
+  outFile: string,
+) {
+  const encodedMetadata = $metadata.enc(metadata)
+  const encoded = OpaqueCodec($metadata).enc({
+    length: encodedMetadata.length,
+    inner: () => metadata,
   })
+
   await fs.mkdir(dirname(outFile), { recursive: true })
   await fs.writeFile(outFile, encoded)
 }
 
 export async function outputCodegen(
-  descriptorData: Data["descriptorData"],
   metadata: V14,
   outputFolder: string,
   key: string,
 ) {
-  const { code, descriptorsData } = getCodegenInfo(
-    metadata,
-    key,
-    descriptorData,
-  )
+  const { code, descriptorsData } = getCodegenInfo(metadata, key)
   await fs.mkdir(outputFolder, { recursive: true })
   await createDtsFile(key, outputFolder, code)
   await createDescriptorsFile(key, outputFolder, descriptorsData)
