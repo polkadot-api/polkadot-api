@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
-    "@substrate/connect": "^0.7.32"
+    "@substrate/connect": "^0.7.35"
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*"
