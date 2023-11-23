@@ -5,7 +5,14 @@ import {
 import { getObservableClient } from "@polkadot-api/client"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 import type { AddChainOptions, Chain, Client } from "smoldot"
-import { Observable, firstValueFrom, retry } from "rxjs"
+import {
+  Observable,
+  firstValueFrom,
+  catchError,
+  timer,
+  defer,
+  concatMap,
+} from "rxjs"
 import type {
   AddOnAddChainByUserListener,
   LightClientPageHelper,
@@ -879,17 +886,18 @@ const followChain = ({
     let unfollow = chainHead.unfollow
     chainHead.finalized$
       .pipe(
-        retry({
-          count: 3,
-          resetOnSuccess: true,
-          delay() {
-            observer.next(false)
-            unfollow()
-            const chainHead = client.chainHead$()
-            unfollow = chainHead.unfollow
-            return chainHead.finalized$
-          },
-        }),
+        catchError(() =>
+          timer(0).pipe(
+            concatMap(() =>
+              defer(() => {
+                observer.next(false)
+                const chainHead = client.chainHead$()
+                unfollow = chainHead.unfollow
+                return chainHead.finalized$
+              }),
+            ),
+          ),
+        ),
       )
       .subscribe({
         next() {
