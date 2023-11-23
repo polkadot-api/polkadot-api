@@ -9,7 +9,6 @@
 //       dir: "dist/js/background",
 //       manualChunks: {
 //         smoldot: ["smoldot"],
-//         helpers: ["@polkadot-api/light-client-extension-helpers/chain-specs"],
 //       },
 //     },
 //     plugins: [pluginNodeResolve(), pluginEsbuild()],

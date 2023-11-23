@@ -23,18 +23,38 @@ import type {
 } from "@/protocol"
 import { ALARM, CONTEXT, PORT, createIsHelperMessage } from "@/shared"
 import * as storage from "@/storage"
-import {
-  type WellKnownChainGenesisHash,
-  wellKnownChainSpecs,
-} from "@/chain-specs"
 
 export type * from "./types"
 
 let isRegistered = false
 
-export const register = (smoldotClient: Client) => {
+type RegisterOptions = {
+  smoldotClient: Client
+  getWellKnownChainSpecs: () => Promise<string[] | Record<string, string>>
+}
+export const register = ({
+  smoldotClient,
+  getWellKnownChainSpecs,
+}: RegisterOptions) => {
   if (isRegistered) throw new Error("helper already registered")
   isRegistered = true
+
+  const wellKnownChainSpecsPromise: Promise<Record<string, string>> =
+    getWellKnownChainSpecs().then(async (chainSpecs) =>
+      chainSpecs instanceof Array
+        ? Object.fromEntries(
+            await Promise.all(
+              chainSpecs.map(async (chainSpec) => {
+                const { genesisHash } = await getChainData({
+                  smoldotClient,
+                  chainSpec,
+                })
+                return [genesisHash, chainSpec] as const
+              }),
+            ),
+          )
+        : chainSpecs,
+    )
 
   storage.getChains().then((chains) => {
     Object.values(chains).forEach(
@@ -102,14 +122,18 @@ export const register = (smoldotClient: Client) => {
       periodInMinutes: 2,
     })
 
-    Object.values(wellKnownChainSpecs).forEach((chainSpec) =>
-      lightClientPageHelper.persistChain(chainSpec),
+    wellKnownChainSpecsPromise.then((wellKnownChainSpecs) =>
+      Promise.all(
+        Object.values(wellKnownChainSpecs).map((chainSpec) =>
+          lightClientPageHelper.persistChain(chainSpec),
+        ),
+      ),
     )
   })
 
   const lightClientPageHelper: LightClientPageHelper = {
     async deleteChain(genesisHash) {
-      if (wellKnownChainSpecs[genesisHash as WellKnownChainGenesisHash])
+      if ((await wellKnownChainSpecsPromise)[genesisHash])
         throw new Error("Cannot delete well-known-chain")
 
       await Promise.all([
@@ -144,25 +168,21 @@ export const register = (smoldotClient: Client) => {
       const chainSpecJson = JSON.parse(chainSpec)
       const bootNodes = chainSpecJson.bootNodes
       let minimalChainSpec: string = ""
-      if (
-        !wellKnownChainSpecs[chainData.genesisHash as WellKnownChainGenesisHash]
-      ) {
-        delete chainSpecJson.bootNodes
-        delete chainSpecJson.protocolId
-        delete chainSpecJson.telemetryEndpoints
+      delete chainSpecJson.bootNodes
+      delete chainSpecJson.protocolId
+      delete chainSpecJson.telemetryEndpoints
 
-        if (!chainSpecJson.genesis.stateRootHash) {
-          chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot({
-            smoldotClient,
-            chainSpec,
-            relayChainGenesisHash,
-          })
-        }
-
-        // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
-
-        minimalChainSpec = JSON.stringify(chainSpecJson)
+      if (!chainSpecJson.genesis.stateRootHash) {
+        chainSpecJson.genesis.stateRootHash = await getGenesisStateRoot({
+          smoldotClient,
+          chainSpec,
+          relayChainGenesisHash,
+        })
       }
+
+      // TODO: check if .lightSyncState could be removed and use chainHead_unstable_finalizedDatabase
+
+      minimalChainSpec = JSON.stringify(chainSpecJson)
 
       await Promise.all([
         storage.set(
