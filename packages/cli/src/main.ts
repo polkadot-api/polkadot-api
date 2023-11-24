@@ -19,6 +19,12 @@ import {
   writeMetadataToDisk,
 } from "./io"
 import { runWithEscapeKeyHandler } from "./keyboard"
+import recast from "recast"
+import { glob } from "glob"
+import fs from "fs/promises"
+import * as TSParser from "./parsers/typescript"
+import { visit, namedTypes } from "ast-types"
+import { doIt } from "./entrypoints"
 
 const ProgramArgs = z.object({
   metadataFile: z.string().optional(),
@@ -26,6 +32,7 @@ const ProgramArgs = z.object({
   key: z.string().optional(),
   file: z.string().optional(),
   interactive: z.boolean(),
+  entrypoints: z.string().optional(),
 })
 
 type ProgramArgs = z.infer<typeof ProgramArgs>
@@ -38,9 +45,10 @@ program
     "key in package json for descriptor metadata",
     "polkadot-api",
   )
-  .option("k --key <key>", "first key in descriptor metadata")
+  .option("-k --key <key>", "first key in descriptor metadata")
+  .option("-e --entrypoints <entrypoints>")
   .option(
-    "f --file <file>",
+    "-f --file <file>",
     "path to descriptor metadata file; alternative to package json",
   )
   .option("-i, --interactive", "whether to run in interactive mode", false)
@@ -48,6 +56,13 @@ program
 program.parse()
 
 const options = ProgramArgs.parse(program.opts())
+
+if (options.entrypoints) {
+  await doIt(options.entrypoints)
+}
+if (1 == 1) {
+  process.exit(0)
+}
 
 const descriptorMetadata = await readDescriptors({
   pkgJSONKey: options.pkgJSONKey,
