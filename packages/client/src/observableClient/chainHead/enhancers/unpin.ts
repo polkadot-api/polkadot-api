@@ -64,6 +64,7 @@ export const getWithUnpinning$ = (
     lazyScan(
       (acc, { isUser, type, hash }) => {
         const { counters, bestBlocks } = acc
+        for (const hash in counters) if (!counters[hash]) delete counters[hash]
 
         if (isUser && type === "hold" && !counters[hash]) {
           bestBlocks[hash] ||= 0
@@ -75,8 +76,6 @@ export const getWithUnpinning$ = (
           if (!--bestBlocks[hash]) delete bestBlocks[hash]
           return acc
         }
-
-        for (const hash in counters) if (!counters[hash]) delete counters[hash]
 
         if (type === "release") {
           counters[hash]--
