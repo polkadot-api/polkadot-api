@@ -5,9 +5,8 @@ import {
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { getObservableClient } from "./observableClient"
 import { CreateClient, CreateTx } from "./types"
-import { getCodecs$ } from "./codecs"
 import { TxClient, createTxEntry } from "./tx"
-import { filter, firstValueFrom } from "rxjs"
+import { firstValueFrom } from "rxjs"
 import { EvClient, createEventEntry } from "./event"
 
 export const createClient: CreateClient = (connect, descriptors) => {
@@ -20,9 +19,6 @@ export const createClient: CreateClient = (connect, descriptors) => {
   const client = getObservableClient(rawClient)
   const chainHead = client.chainHead$()
 
-  const codecs$ = getCodecs$(chainHead.metadata$)
-  codecs$.subscribe()
-
   const query = {} as Record<string, Record<string, StorageEntry<any, any>>>
   for (const pallet in descriptors) {
     query[pallet] ||= {}
@@ -32,14 +28,16 @@ export const createClient: CreateClient = (connect, descriptors) => {
         stgEntries[name],
         pallet,
         name,
-        codecs$,
+        chainHead.getRuntimeContext$,
         chainHead.storage$,
       )
     }
   }
 
   const createTxFromAddress = async (address: string, callData: Uint8Array) => {
-    const { accountId } = await firstValueFrom(codecs$.pipe(filter(Boolean)))
+    const { accountId } = await firstValueFrom(
+      chainHead.getRuntimeContext$(null),
+    )
     return createTx(accountId.enc(address), callData)
   }
 
@@ -52,7 +50,7 @@ export const createClient: CreateClient = (connect, descriptors) => {
         txEntries[name],
         pallet,
         name,
-        codecs$,
+        chainHead.getRuntimeContext$,
         client,
         chainHead.storage$,
         createTxFromAddress,
@@ -69,7 +67,7 @@ export const createClient: CreateClient = (connect, descriptors) => {
         evEntries[name],
         pallet,
         name,
-        codecs$,
+        chainHead.getRuntimeContext$,
         chainHead.finalized$,
         chainHead.storage$,
       )
