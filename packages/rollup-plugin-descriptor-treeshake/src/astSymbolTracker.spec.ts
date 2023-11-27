@@ -1,4 +1,4 @@
-import { describe, expect, test, it } from "vitest"
+import { describe, expect, it } from "vitest"
 import { Hooks, astSymbolTracker } from "./astSymbolTracker"
 import { parse } from "@typescript-eslint/typescript-estree"
 
@@ -182,7 +182,7 @@ describe("astSymbolTracker", () => {
     )
   })
 
-  it("can handle simple destructuring", () => {
+  it("can handle destructuring", () => {
     testTrackerFromCode(
       `
       import { tracked } from 'moduleA';
@@ -190,6 +190,7 @@ describe("astSymbolTracker", () => {
       const { memberA: renamed, ...rest } = tracked;
       const { notHappening } = { notHappening: tracked };
       const [ first ] = renamed;
+      const { nested: { property }} = rest;
       `,
       {
         importSymbol: [
@@ -198,6 +199,8 @@ describe("astSymbolTracker", () => {
         memberAccess: [
           ["imported", "memberA", "renamed"],
           ["renamed", "0"],
+          ["imported", "nested", "nested"],
+          ["nested", "property"],
         ],
       },
     )

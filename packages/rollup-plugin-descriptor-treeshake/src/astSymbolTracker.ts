@@ -9,6 +9,7 @@ import type {
   ImportDeclaration,
   MemberExpression,
   Node,
+  Pattern,
   VariableDeclaration,
 } from "estree"
 
@@ -114,60 +115,74 @@ export function astSymbolTracker<T>(rootAst: Node, hooks: Hooks<T>) {
   const readVariableDeclaration = (
     root: VariableDeclaration,
   ): Record<string, T | null> => {
+    const resolvePatternKeyExpression = <P extends Pattern>(
+      patternKey: P,
+      value: T | null,
+    ): Array<[string, T | null]> => {
+      switch (patternKey.type) {
+        case "Identifier":
+          // e.g. const name = value
+          // We set the scope even if value is null, as it might be shadowing another with the same name.
+          scope.set(patternKey.name, value)
+          return value ? [[patternKey.name, value]] : []
+        case "ObjectPattern":
+          // e.g. const { property } = value;
+          return patternKey.properties
+            .map((property): Array<[string, T | null]> => {
+              if (property.type === "RestElement") {
+                // As a rest element, we treat it as if it was a copy.
+                // Argument can only be an identifier, but estree spec has other types which are not valid JS.
+                if (property.argument.type === "Identifier") {
+                  scope.set(property.argument.name, value)
+                  return [[property.argument.name, value]]
+                }
+                return []
+              }
+
+              // If key is an expression, it is computed, not supported.
+              // This is usually used to exclude a key before a spread
+              // e.g. const { [key]: _, ...rest } = value;
+              if (property.key.type !== "Identifier") return []
+
+              if (value) {
+                const tracked =
+                  hooks.memberAccess?.(value, property.key.name) ?? null
+                return resolvePatternKeyExpression(property.value, tracked)
+              } else {
+                // We still need to resolve the key pattern, as it may do some variable shadowing.
+                return resolvePatternKeyExpression(property.value, null)
+              }
+            })
+            .flat()
+        case "ArrayPattern":
+          // e.g. const [a,b,c] = value;
+          return patternKey.elements
+            .map((element, idx): Array<[string, T | null]> => {
+              if (element === null) return []
+
+              if (value) {
+                const tracked = hooks.memberAccess?.(value, String(idx)) ?? null
+                return resolvePatternKeyExpression(element, tracked)
+              }
+              return resolvePatternKeyExpression(element, null)
+            })
+            .flat()
+      }
+      return []
+    }
+
     // We're returning an object with all the variables we have detected
     return Object.fromEntries(
       root.declarations
-        .map((declarator) => {
+        .map((declarator): Array<[string, T | null]> => {
           // `init` is the expression on the right-hand-side: We grab that value.
           const value = declarator.init
             ? resolveExpression(declarator.init)
             : null
 
-          // Declarator is left-hand-side. Simplest case is an identifier
-          if (declarator.id.type === "Identifier") {
-            scope.set(declarator.id.name, value)
-            return [declarator.id.name, value]
-          }
-
-          // Going for simple case of `const { property } = tracked`
-          // TODO nested access `const { property: { subproperty }} = tracked`;
-          if (declarator.id.type === "ObjectPattern") {
-            return declarator.id.properties.map((property) => {
-              if (
-                property.type === "Property" &&
-                property.key.type === "Identifier" &&
-                property.value.type === "Identifier"
-              ) {
-                if (value) {
-                  const tracked =
-                    hooks.memberAccess?.(value, property.key.name) ?? null
-                  scope.set(property.value.name, tracked)
-                  return [property.value.name, tracked]
-                }
-                scope.set(property.value.name, null)
-              }
-              return null
-            })
-          }
-          if (declarator.id.type === "ArrayPattern") {
-            return declarator.id.elements.map((element, idx) => {
-              if (element?.type === "Identifier") {
-                if (value) {
-                  const tracked =
-                    hooks.memberAccess?.(value, String(idx)) ?? null
-                  scope.set(element.name, tracked)
-                }
-                scope.set(element.name, null)
-              }
-              return null
-            })
-          }
-          // TODO other pattern assignment
-
-          // As we don't have a name on left-hand-side, we have to discard it: return null and filter out.
-          return null!
+          return resolvePatternKeyExpression(declarator.id, value)
         })
-        .filter(Boolean),
+        .flat(),
     )
   }
   const readExportNamedDeclaration = (root: ExportNamedDeclaration) => {
