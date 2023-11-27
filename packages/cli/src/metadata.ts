@@ -6,15 +6,35 @@ import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
 import {
   metadata as $metadata,
-  CodecType,
   OpaqueCodec,
 } from "@polkadot-api/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
+import { WebSocketProvider } from "./websocket-provider"
+import { getObservableClient } from "@polkadot-api/client"
+import { firstValueFrom, map, switchMap, take, withLatestFrom } from "rxjs"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
-async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
+const getMetadataCall = async (provider: ConnectProvider) => {
+  const client = getObservableClient(createClient(provider))
+  const chainHead = client.chainHead$()
+  const metadata = await firstValueFrom(
+    chainHead.runtime$.pipe(
+      withLatestFrom(chainHead.finalized$),
+      take(1),
+      switchMap(([, hash]) => chainHead.call$(hash, "Metadata_metadata", "")),
+      map(fromHex),
+    ),
+  )
+
+  chainHead.unfollow()
+  client.destroy()
+
+  return metadata
+}
+
+const getMetadataFromWellKnownChain = async (chain: WellKnownChain) => {
   const provider: ConnectProvider = (onMsg) => {
     let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
       eval: true,
@@ -37,40 +57,23 @@ async function getChainMetadata(chain: WellKnownChain): Promise<Uint8Array> {
     }
   }
 
-  const { chainHead, destroy } = createClient(provider)
+  return getMetadataCall(provider)
+}
 
-  const blockHashDeferred = deferred<string>()
-  const chainHeadFollower = chainHead(
-    true,
-    (event) => {
-      switch (event.type) {
-        case "finalized":
-          blockHashDeferred.resolve(
-            event.finalizedBlockHashes[event.finalizedBlockHashes.length - 1],
-          )
-          break
-        default:
-          break
-      }
-    },
-    console.error,
-  )
+const getMetadataFromWsURL = async (wsURL: string) => {
+  const provider: ConnectProvider = WebSocketProvider(wsURL)
 
-  const blockHash = await blockHashDeferred
-
-  const metadata = fromHex(
-    await chainHeadFollower.call(blockHash, "Metadata_metadata", ""),
-  )
-  chainHeadFollower.unfollow()
-  destroy()
-
-  return metadata
+  return getMetadataCall(provider)
 }
 
 export type GetMetadataArgs =
   | {
       source: "chain"
       chain: WellKnownChain
+    }
+  | {
+      source: "ws"
+      url: string
     }
   | {
       source: "file"
@@ -80,7 +83,10 @@ export type GetMetadataArgs =
 async function getRawMetadata(args: GetMetadataArgs): Promise<Uint8Array> {
   switch (args.source) {
     case "chain": {
-      return getChainMetadata(args.chain)
+      return getMetadataFromWellKnownChain(args.chain)
+    }
+    case "ws": {
+      return getMetadataFromWsURL(args.url)
     }
     case "file": {
       return fs.readFile(args.file)
