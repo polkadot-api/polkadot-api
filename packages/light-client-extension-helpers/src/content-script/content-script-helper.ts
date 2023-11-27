@@ -72,6 +72,10 @@ export const register = (channelId: string) => {
     if (!isWebPageHelperMessage(msg)) return
 
     await whenActivated
+    await sendBackgroundRequest({
+      origin: CONTEXT.CONTENT_SCRIPT,
+      type: "isBackgroundScriptReady",
+    })
 
     if (msg.origin === CONTEXT.WEB_PAGE) {
       try {

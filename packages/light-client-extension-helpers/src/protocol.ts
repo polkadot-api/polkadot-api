@@ -67,7 +67,9 @@ type ToContentKeepAlive = Message<
 export type BackgroundRequest =
   | Message<
       "@polkadot-api/light-client-extension-helper-context-content-script",
-      BackgroundRequestGetChain | BackgroundRequestGetChains
+      | BackgroundRequestGetChain
+      | BackgroundRequestGetChains
+      | BackgroundRequestIsBackgroundScriptReady
     >
   | Message<
       "@polkadot-api/light-client-extension-helper-context-extension-page",
@@ -100,6 +102,10 @@ type BackgroundRequestGetChains = {
   type: "getChains"
 }
 
+type BackgroundRequestIsBackgroundScriptReady = {
+  type: "isBackgroundScriptReady"
+}
+
 type BackgroundRequestGetActiveConnections = {
   type: "getActiveConnections"
 }
@@ -125,6 +131,7 @@ export type BackgroundResponse = Message<
   | BackgroundResponseGetActiveConnections
   | BackgroundResponseDisconnect
   | BackgroundResponseSetBootNodes
+  | BackgroundResponseIsBackgroundScriptReady
 >
 
 type BackgroundResponseGetChain = {
@@ -169,6 +176,10 @@ type BackgroundResponseDisconnect = {
 
 type BackgroundResponseSetBootNodes = {
   type: "setBootNodesResponse"
+}
+
+type BackgroundResponseIsBackgroundScriptReady = {
+  type: "isBackgroundScriptReadyResponse"
 }
 
 export type BackgroundResponseError = Message<
