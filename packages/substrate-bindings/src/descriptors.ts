@@ -52,7 +52,7 @@ type ExtractStorage<
       ? {
           KeyArgs: Anonymize<Key>
           Value: Anonymize<Value>
-          IsOptional: Optional extends 1 ? false : true
+          IsOptional: Optional
         }
       : unknown
   }

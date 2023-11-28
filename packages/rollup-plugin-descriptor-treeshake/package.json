@@ -1,0 +1,55 @@
+{
+  "name": "@polkadot-api/rollup-plugin-descriptor-treeshake",
+  "version": "0.0.0",
+  "author": "Víctor Oliva (https://github.com/voliva/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paritytech/polkadot-api.git"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "node": {
+        "production": {
+          "import": "./dist/index.mjs",
+          "require": "./dist/min/index.js",
+          "default": "./dist/index.js"
+        },
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "prebuild": "rimraf -rf dist/*",
+    "build": "rollup -c",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/escodegen": "^0.0.10",
+    "@types/estree": "1.0.1",
+    "@types/node": "^20.9.0",
+    "@typescript-eslint/typescript-estree": "^6.12.0",
+    "rollup": "3.29.4",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.1.6",
+    "vitest": "^0.34.6"
+  },
+  "dependencies": {
+    "estree-walker": "^3.0.3",
+    "magic-string": "^0.30.5",
+    "recast": "^0.23.4"
+  }
+}

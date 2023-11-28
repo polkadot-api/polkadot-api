@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base",
+  "include": ["src"],
+  "exclude": ["**/*.spec.ts"],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "types": ["node"]
+  }
+}

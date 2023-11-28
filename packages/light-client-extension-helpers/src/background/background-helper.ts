@@ -63,6 +63,18 @@ export const register = ({
         : chainSpecs,
     )
 
+  const initialized = wellKnownChainSpecsPromise
+    .then((wellKnownChainSpecs) =>
+      Promise.all(
+        Object.values(wellKnownChainSpecs).map((chainSpec) =>
+          lightClientPageHelper.persistChain(chainSpec),
+        ),
+      ),
+    )
+    .catch((error) =>
+      console.error("Error persisting well-known chainspecs", error),
+    )
+
   storage.getChains().then((chains) => {
     Object.values(chains).forEach(
       ({ chainSpec, genesisHash, relayChainGenesisHash }) =>
@@ -128,14 +140,6 @@ export const register = ({
     chrome.alarms.create(ALARM.DATABASE_UPDATE, {
       periodInMinutes: 2,
     })
-
-    wellKnownChainSpecsPromise.then((wellKnownChainSpecs) =>
-      Promise.all(
-        Object.values(wellKnownChainSpecs).map((chainSpec) =>
-          lightClientPageHelper.persistChain(chainSpec),
-        ),
-      ),
-    )
   })
 
   const lightClientPageHelper: LightClientPageHelper = {
@@ -549,6 +553,14 @@ export const register = ({
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (!isHelperMessage(msg)) return
     switch (msg.type) {
+      case "isBackgroundScriptReady":
+        initialized.finally(() =>
+          sendBackgroundResponse(sendResponse, {
+            origin: CONTEXT.BACKGROUND,
+            type: "isBackgroundScriptReadyResponse",
+          }),
+        )
+        return true
       case "getChain": {
         ;(async () => {
           const tabId = sender?.tab?.id
