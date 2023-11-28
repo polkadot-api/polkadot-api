@@ -15,7 +15,7 @@ Options:
   -j, --pkgJSONKey <key>  key in package json for descriptor metadata (default: "polkadot-api")
   k --key <key>           first key in descriptor metadata
   f --file <file>         path to descriptor metadata file; alternative to package json
-  s --sync                synchronize (default: false)
+  w --wsURL <wsURL>       websocket url to fetch metadata
   -i, --interactive       whether to run in interactive mode (default: false)
   -h, --help              display help for command
 ```
@@ -60,6 +60,14 @@ An example saved descriptors file will look something like this.
 ```
 
 To use the codegen, refer to the [client.ts example](../../experiments/src/client.ts).
+
+If you want to get fetch the metadata using a websocket url you can use the `--wsURL` flag
+
+i.e.
+
+```sh
+./bin/main.js --interactive --wsURL "<YOUR WS URL>"
+```
 
 ## Non-Interactive Usage
 
