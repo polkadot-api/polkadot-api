@@ -242,12 +242,15 @@ const _buildSyntax = (
           result = buildNextSyntax(value.value[0])
         }
 
-        declarations.variables.set(varName, {
-          id: varName,
-          value: result,
-          types: getTypes(result),
-          directDependencies: new Set([result]),
-        })
+        if (!declarations.variables.has(varName)) {
+          declarations.variables.set(varName, {
+            id: varName,
+            value: result,
+            types: getTypes(result),
+            directDependencies: new Set([result]),
+          })
+        }
+
         return varName
       }
       return buildTuple(varName, value.value)
