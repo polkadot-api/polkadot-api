@@ -61,12 +61,12 @@ An example saved descriptors file will look something like this.
 
 To use the codegen, refer to the [client.ts example](../../experiments/src/client.ts).
 
-If you want to get fetch the metadata using a websocket url you can use the `--wsURL` flag
+---
 
-i.e.
+If you want to fetch the metadata using a websocket url you can use the `--wsURL` flag
 
 ```sh
-./bin/main.js --interactive --wsURL "<YOUR WS URL>"
+polkadot-api --interactive --wsURL "<YOUR WS URL>"
 ```
 
 ## Non-Interactive Usage
