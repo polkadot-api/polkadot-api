@@ -261,9 +261,6 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
-      '@substrate/connect':
-        specifier: ^0.7.32
-        version: 0.7.33
       '@types/node':
         specifier: ^20.9.0
         version: 20.9.0
@@ -385,6 +382,9 @@ importers:
       '@polkadot-api/json-rpc-provider-proxy':
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
+      '@polkadot-api/sc-provider':
+        specifier: workspace:*
+        version: link:../sc-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
@@ -407,9 +407,6 @@ importers:
       '@polkadot/extension-inject':
         specifier: ^0.46.5
         version: 0.46.5(@polkadot/api@10.10.1)(@polkadot/util@12.5.1)
-      '@substrate/connect':
-        specifier: ^0.7.32
-        version: 0.7.33
       '@vitest/coverage-v8':
         specifier: ^0.34.3
         version: 0.34.4(vitest@0.34.6)
@@ -471,9 +468,6 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
-      '@substrate/connect':
-        specifier: ^0.7.32
-        version: 0.7.33
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -528,8 +522,8 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
       '@substrate/connect':
-        specifier: ^0.7.35
-        version: 0.7.35
+        specifier: ^0.8.0
+        version: 0.8.0
     devDependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
@@ -635,8 +629,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/utils
       '@substrate/connect':
-        specifier: ^0.7.35
-        version: 0.7.35
+        specifier: ^0.8.0
+        version: 0.8.0
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -3278,7 +3272,7 @@ packages:
     dependencies:
       '@polkadot/x-global': 12.5.1
       tslib: 2.6.2
-      ws: 8.14.1
+      ws: 8.14.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -4534,7 +4528,7 @@ packages:
       util: 0.12.5
       util-deprecate: 1.0.2
       watchpack: 2.4.0
-      ws: 8.14.1
+      ws: 8.14.2
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -4823,13 +4817,14 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
-  /@substrate/connect@0.7.35:
-    resolution: {integrity: sha512-Io8vkalbwaye+7yXfG1Nj52tOOoJln2bMlc7Q9Yy3vEWqZEVkgKmcPVzbwV0CWL3QD+KMPDA2Dnw/X7EdwgoLw==}
+  /@substrate/connect@0.8.0:
+    resolution: {integrity: sha512-p+LaqBuBWO+FbTEL0SgAo7/ASZzWYG54yF3ZAzNkmEz+52NjpNLLHM1u+8msF0LeHP+6FjDxLVbKpE2GBZP1Eg==}
     requiresBuild: true
     dependencies:
       '@substrate/connect-extension-protocol': 1.0.1
-      smoldot: 2.0.7
+      smoldot: 2.0.13
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -11453,23 +11448,25 @@ packages:
 
   /smoldot@2.0.1:
     resolution: {integrity: sha512-Wqw2fL/sELQByLSeeTX1Z/d0H4McmphPMx8vh6UZS/bIIDx81oU7s/drmx2iL/ME36uk++YxpRuJey8/MOyfOA==}
+    requiresBuild: true
     dependencies:
       ws: 8.14.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    optional: true
 
-  /smoldot@2.0.3:
-    resolution: {integrity: sha512-kmT+V2gB+tpWR/W6TSa/xzKfEJ2uMJQIaBsg2eKycaCH6uDLOEWPWEJDHtVVX/vfIfPrOVERznpHvReM6BVaaw==}
+  /smoldot@2.0.13:
+    resolution: {integrity: sha512-B+hqMuMbvsEBC7zBdlD7jCmui3eMIWVOK3gDAyHT+qQdO3mm5kUNgl5z3hjGJ97w47ZnILkaPFI/gu4p9Yttzw==}
     dependencies:
-      ws: 8.14.1
+      ws: 8.14.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
     dev: false
 
-  /smoldot@2.0.7:
-    resolution: {integrity: sha512-VAOBqEen6vises36/zgrmAT1GWk2qE3X8AGnO7lmQFdskbKx8EovnwS22rtPAG+Y1Rk23/S22kDJUdPANyPkBA==}
+  /smoldot@2.0.3:
+    resolution: {integrity: sha512-kmT+V2gB+tpWR/W6TSa/xzKfEJ2uMJQIaBsg2eKycaCH6uDLOEWPWEJDHtVVX/vfIfPrOVERznpHvReM6BVaaw==}
     dependencies:
       ws: 8.14.1
     transitivePeerDependencies:
@@ -12932,6 +12929,7 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
+    dev: false
 
   /ws@8.14.2:
     resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}

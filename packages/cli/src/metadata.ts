@@ -1,4 +1,3 @@
-import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import { fromHex } from "@polkadot-api/utils"
@@ -12,6 +11,7 @@ import { Worker } from "node:worker_threads"
 import { WebSocketProvider } from "./websocket-provider"
 import { getObservableClient } from "@polkadot-api/client"
 import { firstValueFrom, map, switchMap, take, withLatestFrom } from "rxjs"
+import { WellKnownChain } from "@polkadot-api/sc-provider"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 

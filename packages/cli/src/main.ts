@@ -10,7 +10,6 @@ import { confirm, input, select } from "@inquirer/prompts"
 import { z } from "zod"
 import { program } from "commander"
 import { getMetadata } from "./metadata"
-import { WellKnownChain } from "@substrate/connect"
 import ora from "ora"
 import {
   outputCodegen,
@@ -19,6 +18,7 @@ import {
   writeMetadataToDisk,
 } from "./io"
 import { runWithEscapeKeyHandler } from "./keyboard"
+import { WellKnownChain } from "@polkadot-api/sc-provider"
 
 const ProgramArgs = z.object({
   metadataFile: z.string().optional(),

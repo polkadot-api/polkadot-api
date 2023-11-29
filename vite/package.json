@@ -22,7 +22,7 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "@substrate/connect": "^0.7.35",
+    "@substrate/connect": "^0.8.0",
     "rxjs": "^7.8.1"
   },
   "polkadot-api": {

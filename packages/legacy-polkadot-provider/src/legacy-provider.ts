@@ -13,8 +13,8 @@ import { knownChainsData } from "./known-chain-data"
 import { getChainProps } from "./get-chain-props"
 import { Observable } from "rxjs"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
-import type { ScClient } from "@substrate/connect"
-import { getScProvider, WellKnownChain } from "./ScProvider"
+import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import type { ScClient } from "@polkadot-api/sc-provider"
 
 const createChain =
   (
@@ -95,7 +95,8 @@ export const getLegacyProvider = (
   const signPayload = (payload: SignerPayloadJSON) =>
     signer.then((s) => s(payload as any))
 
-  const getProvider = getScProvider(scClient)
+  const getProvider: Parameters<typeof createChain>[0] = (chain) =>
+    ScProvider(chain, { client: scClient })
   const chainCreator = createChain(
     getProvider,
     onCreateTx,
