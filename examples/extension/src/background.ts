@@ -1,5 +1,5 @@
 import { register } from "@polkadot-api/light-client-extension-helpers/background"
-import { wellKnownChainSpecs } from "@polkadot-api/light-client-extension-helpers/chain-specs"
+import { wellKnownChainSpecs } from "@polkadot-api/light-client-extension-helpers/known-chain-specs"
 import type { ToContent } from "./protocol"
 import { smoldotClient } from "./background-smoldot.code-split"
 
