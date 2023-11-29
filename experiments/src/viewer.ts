@@ -12,7 +12,7 @@ const metadataBytes = await readFile("./ksm-metadata.scale")
 const { inner } = OpaqueCodec($metadata).dec(metadataBytes)
 const { metadata } = inner()
 
-assertIsv14(metadata)
+assertIsV14(metadata)
 
 const { callDecoder } = getViewBuilder(metadata.value)
 const start = Date.now()
@@ -34,7 +34,7 @@ console.log(
 
 console.log(end - start)
 
-function assertIsv14(
+function assertIsV14(
   metadata: Metadata,
 ): asserts metadata is Metadata & { tag: "v14" } {
   if (metadata.tag !== "v14") {
