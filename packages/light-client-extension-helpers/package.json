@@ -11,14 +11,18 @@
     "./content-script": "./dist/content-script/content-script-helper.mjs",
     "./extension-page": "./dist/extension-page/extension-page-helper.mjs",
     "./web-page": "./dist/web-page/web-page-helper.mjs",
-    "./chain-specs": "./dist/chain-specs/index.mjs",
+    "./known-chain-specs": "./dist/known-chain-specs/index.mjs",
+    "./known-chain-specs/polkadot": "./dist/known-chain-specs/polkadot.mjs",
+    "./known-chain-specs/ksmcc3": "./dist/known-chain-specs/ksmcc3.mjs",
+    "./known-chain-specs/westend2": "./dist/known-chain-specs/westend2.mjs",
+    "./known-chain-specs/rococo_v2_2": "./dist/known-chain-specs/rococo_v2_2.mjs",
     "./smoldot": "./dist/smoldot/smoldot.mjs"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc --noEmit && tsup-node src/background/background-helper.ts src/content-script/content-script-helper.ts src/extension-page/extension-page-helper.ts src/web-page/web-page-helper.ts src/chain-specs/index.ts src/smoldot/smoldot.ts --clean --sourcemap --platform neutral --target=es2020 --format esm --dts",
+    "build": "tsc --noEmit && tsup-node src/background/background-helper.ts src/content-script/content-script-helper.ts src/extension-page/extension-page-helper.ts src/web-page/web-page-helper.ts src/known-chain-specs/index.ts src/known-chain-specs/polkadot.ts src/known-chain-specs/ksmcc3.ts src/known-chain-specs/westend2.ts src/known-chain-specs/rococo_v2_2.ts src/smoldot/smoldot.ts --clean --sourcemap --platform neutral --target=es2020 --format esm --dts",
     "dev": "pnpm build --watch",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -42,6 +46,7 @@
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@substrate/connect-extension-protocol": "^1.0.1",
+    "@substrate/connect-known-chains": "^1.0.1",
     "rxjs": "^7.8.1"
   }
 }
