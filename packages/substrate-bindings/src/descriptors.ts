@@ -35,10 +35,10 @@ type Anonymize<T> = T extends
   | symbol
   ? T
   : T extends (...args: infer Args) => infer R
-  ? (...args: Anonymize<Args>) => Anonymize<R>
-  : {
-      [K in keyof T]: Anonymize<T[K]>
-    }
+    ? (...args: Anonymize<Args>) => Anonymize<R>
+    : {
+        [K in keyof T]: Anonymize<T[K]>
+      }
 
 type ExtractStorage<
   T extends Record<string, Record<string, StorageDescriptor<any, any, any>>>,
