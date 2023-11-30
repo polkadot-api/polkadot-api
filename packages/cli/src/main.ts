@@ -86,19 +86,19 @@ if (!metadata) {
         file: options.metadataFile,
       }
     : options.wsURL
-    ? { source: "ws" as const, url: options.wsURL }
-    : {
-        source: "chain" as const,
-        chain: await select({
-          message: "Select a chain to pull metadata from",
-          choices: [
-            { name: "polkadot", value: WellKnownChain.polkadot },
-            { name: "westend", value: WellKnownChain.westend2 },
-            { name: "ksm", value: WellKnownChain.ksmcc3 },
-            { name: "rococo", value: WellKnownChain.rococo_v2_2 },
-          ],
-        }),
-      }
+      ? { source: "ws" as const, url: options.wsURL }
+      : {
+          source: "chain" as const,
+          chain: await select({
+            message: "Select a chain to pull metadata from",
+            choices: [
+              { name: "polkadot", value: WellKnownChain.polkadot },
+              { name: "westend", value: WellKnownChain.westend2 },
+              { name: "ksm", value: WellKnownChain.ksmcc3 },
+              { name: "rococo", value: WellKnownChain.rococo_v2_2 },
+            ],
+          }),
+        }
 
   const spinner = ora(`Loading Metadata`).start()
   metadata = await getMetadata(metadataArgs)

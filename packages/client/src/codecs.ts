@@ -31,12 +31,12 @@ const getCodecsAndChecksumCreator = (metadata: V14) => {
     Type extends "stg"
       ? ReturnType<typeof dynamicBuilder.buildStorage>
       : Type extends "tx"
-      ? ReturnType<typeof dynamicBuilder.buildCall>
-      : Type extends "ev"
-      ? ReturnType<typeof dynamicBuilder.buildEvent>
-      : Type extends "err"
-      ? ReturnType<typeof dynamicBuilder.buildError>
-      : ReturnType<typeof dynamicBuilder.buildConstant>,
+        ? ReturnType<typeof dynamicBuilder.buildCall>
+        : Type extends "ev"
+          ? ReturnType<typeof dynamicBuilder.buildEvent>
+          : Type extends "err"
+            ? ReturnType<typeof dynamicBuilder.buildError>
+            : ReturnType<typeof dynamicBuilder.buildConstant>,
   ] => {
     const cached = cache[pallet]?.[type]?.[name]
     if (cached) return cached

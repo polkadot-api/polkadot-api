@@ -846,8 +846,8 @@ const sendBackgroundErrorResponse = (
       error instanceof Error
         ? error.toString()
         : typeof error === "string"
-        ? error
-        : "Unknown error getting chain data",
+          ? error
+          : "Unknown error getting chain data",
   })
 
 const handleBackgroundErrorResponse =
