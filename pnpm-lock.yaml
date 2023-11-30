@@ -438,7 +438,7 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       smoldot:
-        specifier: 2.0.3
+        specifier: 2.x
         version: 2.0.3
     devDependencies:
       '@types/chrome':
