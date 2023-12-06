@@ -2,8 +2,8 @@ import { shareLatest } from "@/utils"
 import { FollowEventWithRuntime, Runtime } from "@polkadot-api/substrate-client"
 import { Observable, distinctUntilChanged, map, scan } from "rxjs"
 
-export const getRuntime$ = (follow$: Observable<FollowEventWithRuntime>) =>
-  follow$.pipe(
+export const getRuntime$ = (follow$: Observable<FollowEventWithRuntime>) => {
+  const shared = follow$.pipe(
     scan(
       (acc, event) => {
         if (event.type === "initialized") {
@@ -29,7 +29,16 @@ export const getRuntime$ = (follow$: Observable<FollowEventWithRuntime>) =>
         current: {} as Runtime,
       },
     ),
+    shareLatest,
+  )
+
+  const candidates$ = shared.pipe(map((x) => x.candidates))
+
+  const runtime$ = shared.pipe(
     map((x) => x.current),
     distinctUntilChanged(),
     shareLatest,
   )
+
+  return { runtime$, candidates$ }
+}

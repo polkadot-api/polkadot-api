@@ -10,6 +10,7 @@ import {
   merge,
   mergeMap,
   pairwise,
+  share,
   skip,
   startWith,
 } from "rxjs"
@@ -24,17 +25,6 @@ export const getWithUnpinning$ = (
     type: "hold" | "release"
     hash: string
   }>()
-
-  // We ensure that the latest finalized block always stays pinned
-  const internalUsage$ = finalized$.pipe(
-    startWith(""),
-    pairwise(),
-    mergeMap(([prev, current]) => [
-      { type: "release" as "release", hash: prev, isUser: false },
-      { type: "hold" as "hold", hash: current, isUser: false },
-    ]),
-    skip(1),
-  )
 
   const userUsage$ = new Observable<{
     type: "hold" | "release"
@@ -59,6 +49,17 @@ export const getWithUnpinning$ = (
       finSub.unsubscribe()
     }
   })
+
+  // We ensure that the latest finalized block always stays pinned
+  const internalUsage$ = finalized$.pipe(
+    startWith(""),
+    pairwise(),
+    mergeMap(([prev, current]) => [
+      { type: "release" as "release", hash: prev, isUser: false },
+      { type: "hold" as "hold", hash: current, isUser: false },
+    ]),
+    skip(1),
+  )
 
   const unpinFromUsage$ = merge(internalUsage$, userUsage$).pipe(
     lazyScan(
@@ -100,7 +101,8 @@ export const getWithUnpinning$ = (
         .filter(([, value]) => value === 0)
         .map(([key]) => key),
     ),
-    filter((arr) => arr.length > 0),
+    filter((x) => x.length > 0),
+    share(),
   )
 
   const unpinFromPrunned$ = follow$.pipe(
@@ -108,9 +110,11 @@ export const getWithUnpinning$ = (
     map((e) => e.prunedBlockHashes),
   )
 
-  merge(unpinFromUsage$, unpinFromPrunned$).subscribe((hashes) => {
-    unpin(hashes)
-  })
+  merge(unpinFromUsage$, unpinFromPrunned$)
+    .pipe(filter((x) => x.length > 0))
+    .subscribe((hashes) => {
+      unpin(hashes)
+    })
 
   const onHold = (hash: string) => {
     userUsageInput$.next({ type: "hold", hash })
@@ -137,5 +141,5 @@ export const getWithUnpinning$ = (
       })
     }
 
-  return withUnpinning$
+  return { withUnpinning$, unpinFromUsage$ }
 }

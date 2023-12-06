@@ -1,8 +1,8 @@
-import { Observable, filter, map, mergeMap, take } from "rxjs"
+import { Observable, map, mergeMap } from "rxjs"
 import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
-import { Codecs$ } from "./codecs"
+import { RuntimeContext } from "./observableClient/chainHead/chainHead"
 
 type CallOptions = Partial<{
   at: string
@@ -58,10 +58,11 @@ export const createStorageEntry = (
   checksum: string,
   pallet: string,
   name: string,
-  codecs$: Codecs$,
+  getRuntimeContext$: (hash: string | null) => Observable<RuntimeContext>,
   storage$: Storage$,
 ) => {
   const storageCall = <T, Type extends StorageItemInput["type"]>(
+    at: string | null,
     mapper: (
       codecs: ReturnType<ReturnType<typeof getDynamicBuilder>["buildStorage"]>,
     ) => [
@@ -71,11 +72,13 @@ export const createStorageEntry = (
     ],
     signal?: AbortSignal,
   ): Promise<T> => {
-    const descriptors$ = codecs$.pipe(filter(Boolean))
-    const request$ = descriptors$.pipe(
-      take(1),
+    const request$ = getRuntimeContext$(at).pipe(
       mergeMap((descriptors) => {
-        const [actualChecksum, codecs] = descriptors("stg", pallet, name)
+        const actualChecksum = descriptors.checksumBuilder.buildStorage(
+          pallet,
+          name,
+        )
+        const codecs = descriptors.dynamicBuilder.buildStorage(pallet, name)
         if (checksum !== actualChecksum)
           throw new Error(
             `Incompatible runtime entry Storage(${pallet}.${name})`,
@@ -93,30 +96,29 @@ export const createStorageEntry = (
       new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
     const lastArg = args[args.length - 1]
-    const signal: AbortSignal | undefined =
-      typeof lastArg === "object" && lastArg.signal instanceof AbortSignal
-        ? lastArg.signal
-        : undefined
+    const isLastArgOptional = isOptionalArg(lastArg)
+    const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
+    const at = _at ?? null
 
-    return storageCall((codecs) => {
-      const [actualArgs, options] =
-        args.length === codecs.len
-          ? [args, {} as CallOptions]
-          : [args.slice(0, -1), args[args.length - 1] as CallOptions]
+    return storageCall(
+      at ?? null,
+      (codecs) => {
+        const actualArgs = args.length === codecs.len ? args : args.slice(0, -1)
 
-      if (args !== actualArgs && !isOptionalArg(options)) {
-        console.log({ cLen: codecs.len, aLen: args.length, args })
-        throw invalidArgs()
-      }
+        if (args !== actualArgs && !isLastArgOptional) throw invalidArgs()
 
-      const key = codecs.enc(...actualArgs)
-      return [
-        options.at ?? null,
-        ["value", key, null],
-        (response: StorageResult<"value">) =>
-          response === null ? codecs.fallback : codecs.dec(response as string),
-      ]
-    }, signal)
+        const key = codecs.enc(...actualArgs)
+        return [
+          at,
+          ["value", key, null],
+          (response: StorageResult<"value">) =>
+            response === null
+              ? codecs.fallback
+              : codecs.dec(response as string),
+        ]
+      },
+      signal,
+    )
   }
 
   const getEntries = (...args: Array<any>) => {
@@ -124,38 +126,34 @@ export const createStorageEntry = (
       new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
     const lastArg = args[args.length - 1]
-    const signal: AbortSignal | undefined =
-      typeof lastArg === "object" && lastArg.signal instanceof AbortSignal
-        ? lastArg.signal
-        : undefined
+    const isLastArgOptional = isOptionalArg(lastArg)
+    const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
+    const at = _at ?? null
 
-    return storageCall((codecs) => {
-      if (args.length > codecs.len) throw invalidArgs()
+    return storageCall(
+      at,
+      (codecs) => {
+        if (args.length > codecs.len) throw invalidArgs()
 
-      let options: CallOptions = {}
-      let actualArgs = args
+        const actualArgs =
+          args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
 
-      if (args.length > 0) {
-        const lastArg = args[args.length - 1]
-        if (isOptionalArg(lastArg)) {
-          options = lastArg
-          actualArgs = args.slice(0, -1)
-        }
-      }
+        if (args.length === codecs.len && actualArgs === args)
+          throw invalidArgs()
 
-      if (args.length === codecs.len && actualArgs === args) throw invalidArgs()
-
-      return [
-        options.at ?? null,
-        ["descendantsValues", codecs.enc(...actualArgs), null],
-        (x: StorageResult<"descendantsValues">) => {
-          return x.map(({ key, value }) => ({
-            keyArgs: codecs.keyDecoder(key),
-            value: codecs.dec(value),
-          }))
-        },
-      ]
-    }, signal)
+        return [
+          at,
+          ["descendantsValues", codecs.enc(...actualArgs), null],
+          (x: StorageResult<"descendantsValues">) => {
+            return x.map(({ key, value }) => ({
+              keyArgs: codecs.keyDecoder(key),
+              value: codecs.dec(value),
+            }))
+          },
+        ]
+      },
+      signal,
+    )
   }
 
   const getValues = (keyArgs: Array<Array<any>>, options?: CallOptions) =>
