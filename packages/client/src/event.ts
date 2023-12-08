@@ -4,19 +4,24 @@ import { Storage$ } from "./storage"
 import { concatMapEager, shareLatest } from "./utils"
 import { RuntimeContext } from "./observableClient/chainHead/chainHead"
 
-type EvWatch<T> = (filter?: (value: T) => boolean) => Observable<{
+export type EventPhase =
+  | { tag: "ApplyExtrinsic"; value: number }
+  | { tag: "Finalization" }
+  | { tag: "Initialization" }
+
+export type EvWatch<T> = (filter?: (value: T) => boolean) => Observable<{
   meta: {
     blockHash: string
-    txIdx: number
+    phase: EventPhase
   }
   payload: T
 }>
 
-type EvPull<T> = () => Promise<
+export type EvPull<T> = () => Promise<
   Array<{
     meta: {
       blockHash: string
-      txIdx: number
+      phase: EventPhase
     }
     payload: T
   }>
@@ -28,10 +33,7 @@ export type EvClient<T> = {
 }
 
 type SystemEvent = {
-  phase:
-    | { tag: "ApplyExtrinsic"; value: number }
-    | { tag: "Finalization" }
-    | { tag: "Initialization" }
+  phase: EventPhase
   event: {
     tag: string
     value: {
@@ -71,17 +73,12 @@ export const createEventEntry = <T>(
           map((x) => {
             const events = dec(x!) as Array<SystemEvent>
             const winners = events.filter(
-              (e) =>
-                e.phase.tag === "ApplyExtrinsic" &&
-                e.event.tag === pallet &&
-                e.event.value.tag === name,
+              (e) => e.event.tag === pallet && e.event.value.tag === name,
             )
             return winners.map((x) => {
-              const txIdx = (x.phase as unknown as { value: number }).value
-
               return {
                 meta: {
-                  txIdx,
+                  phase: x.phase,
                   blockHash: block,
                 },
                 payload: x.event.value.value,
