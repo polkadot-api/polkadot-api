@@ -27,9 +27,12 @@ export type EvPull<T> = () => Promise<
   }>
 >
 
+export type EvFilter<T> = (collection: SystemEvent["event"][]) => Array<T>
+
 export type EvClient<T> = {
   watch: EvWatch<T>
   pull: EvPull<T>
+  filter: EvFilter<T>
 }
 
 type SystemEvent = {
@@ -96,5 +99,10 @@ export const createEventEntry = <T>(
 
   const pull: EvPull<T> = () => firstValueFrom(shared$)
 
-  return { watch, pull }
+  const filter: EvFilter<T> = (events) =>
+    events
+      .filter((e) => e.tag === pallet && e.value.tag === name)
+      .map((x) => x.value.value)
+
+  return { watch, pull, filter }
 }
