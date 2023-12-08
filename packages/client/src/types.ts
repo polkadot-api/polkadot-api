@@ -7,6 +7,7 @@ import {
 import { StorageEntry } from "./storage"
 import { TxClient } from "./tx"
 import { EvClient } from "./event"
+import { Observable } from "rxjs"
 
 export type CreateTx = (
   publicKey: Uint8Array,
@@ -71,4 +72,5 @@ export type CreateClient = <T extends Descriptors>(
   query: StorageApi<QueryFromDescriptors<T>>
   tx: TxApi<TxFromDescriptors<T>>
   event: EvApi<EventsFromDescriptors<T>>
+  finalized$: Observable<string>
 }

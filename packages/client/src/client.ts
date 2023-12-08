@@ -74,5 +74,10 @@ export const createClient: CreateClient = (connect, descriptors) => {
     }
   }
 
-  return { query: query as any, tx: tx as any, event: events as any }
+  return {
+    query: query as any,
+    tx: tx as any,
+    event: events as any,
+    finalized$: chainHead.finalized$,
+  }
 }
