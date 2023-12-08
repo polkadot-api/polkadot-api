@@ -1,3 +1,4 @@
+import { withoutComplete } from "@/utils"
 import {
   Observable,
   ReplaySubject,
@@ -25,6 +26,7 @@ const delayUnsubscription = <T>(source$: Observable<T>) =>
 export const getWithOptionalhash$ = (finalized$: Observable<string>) => {
   const current$ = finalized$.pipe(
     take(1),
+    withoutComplete,
     share({
       connector: () => new ReplaySubject(1),
       resetOnError: true,
