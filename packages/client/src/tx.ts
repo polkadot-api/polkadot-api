@@ -96,10 +96,10 @@ export const createTxEntry = <Args extends Array<any>>(
     getRuntimeContext$(null).pipe(
       map(({ events, checksumBuilder, dynamicBuilder }) => {
         const checksum = checksumBuilder.buildCall(pallet, name)
-        const { location, args } = dynamicBuilder.buildCall(pallet, name)
         if (checksum !== descriptor)
           throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
+        const { location, args } = dynamicBuilder.buildCall(pallet, name)
         return {
           callData: mergeUint8(new Uint8Array(location), args.enc(decodedArgs)),
           events,
