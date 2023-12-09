@@ -30,6 +30,9 @@ type Chains = Record<string, Chain>
 export interface Chain {
   chainId: string
   name: string
+  symbol: string
+  decimals: number
+  ss58Format: number
 
   // it pulls the current list of available accounts for this Chain
   getAccounts: () => Promise<Array<Account>>

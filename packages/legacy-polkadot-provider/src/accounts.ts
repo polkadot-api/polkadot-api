@@ -2,12 +2,15 @@ import type { Signer } from "@polkadot/api/types"
 import {
   Observable,
   catchError,
+  distinctUntilChanged,
   firstValueFrom,
   map,
   noop,
   of,
   share,
   shareReplay,
+  startWith,
+  switchMap,
 } from "rxjs"
 import { Callback } from "./types/polkadot-provider"
 import { UnsubscribeFn } from "@polkadot-api/substrate-client"
@@ -52,32 +55,40 @@ export interface InjectedAccount {
   type?: KeypairType
 }
 
+const emptyList: InjectedAccount[] = []
+
 export const getAllAccounts$ = (
-  injected: Promise<InjectedExtension | undefined>,
+  injected$: Observable<Promise<InjectedExtension | undefined> | undefined>,
 ) => {
-  const accountsSubsribe = (cb: (accounts: InjectedAccount[]) => void) => {
-    let onDone = noop
-    let isRunning = true
+  const result = injected$.pipe(
+    switchMap((x) => {
+      if (!x) return of(emptyList)
+      return new Observable<InjectedAccount[]>((observer) => {
+        observer.next(emptyList)
+        let onDone = noop
+        let isRunning = true
 
-    injected.then((web3) => {
-      if (!isRunning || !web3) return
-      onDone = web3.accounts.subscribe(cb)
-    })
+        x.then((web3) => {
+          if (!isRunning) return
+          if (!web3?.accounts?.subscribe) return observer.next([])
 
-    return () => {
-      isRunning = false
-      onDone()
-    }
-  }
+          onDone = web3.accounts.subscribe((x) => {
+            observer.next(x)
+          })
+        })
 
-  const allAccounts$ = new Observable<InjectedAccount[]>((observer) => {
-    return accountsSubsribe((x) => {
-      observer.next(x)
-    })
-  }).pipe(shareReplay(1))
-  allAccounts$.subscribe()
-
-  return allAccounts$
+        return () => {
+          isRunning = false
+          onDone()
+        }
+      })
+    }),
+    startWith(emptyList),
+    distinctUntilChanged(),
+    shareReplay(1),
+  )
+  result.subscribe()
+  return result
 }
 
 export interface Account {

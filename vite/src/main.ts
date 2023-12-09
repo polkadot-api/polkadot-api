@@ -9,7 +9,9 @@ import {
 import { createScClient } from "@substrate/connect"
 import testDescriptors from "./codegen/test"
 
-const provider = getLegacyProvider(createScClient())
+const { provider, connectAccounts } = getLegacyProvider(createScClient())
+connectAccounts("polkadot-js")
+
 const chain = provider.getChains()[knownChainsData.westend2.chainId]
 const client = createClient(chain.connect, testDescriptors)
 

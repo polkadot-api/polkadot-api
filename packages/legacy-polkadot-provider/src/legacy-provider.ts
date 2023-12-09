@@ -11,10 +11,11 @@ import { getTxCreator } from "./get-tx-creator"
 import { CreateTxCallback, UserSignedExtensions } from "./types/public-types"
 import { knownChainsData } from "./known-chain-data"
 import { getChainProps } from "./get-chain-props"
-import { Observable } from "rxjs"
+import { Observable, Subject } from "rxjs"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import type { ScClient } from "@substrate/connect"
 import { getScProvider, WellKnownChain } from "./ScProvider"
+import { Signer } from "@polkadot/api/types"
 
 const createChain =
   (
@@ -28,18 +29,25 @@ const createChain =
     chainId,
     name,
     ss58Format,
+    decimals,
+    symbol,
   }: {
     chain: WellKnownChain | string
     chainId: string
     name: string
     ss58Format: number
+    decimals: number
+    symbol: string
   }): Chain => {
     const connect = getTxCreator(getProvider(chain), onCreateTx, signPayload)
 
     return {
       chainId,
       name,
+      ss58Format,
       connect,
+      decimals,
+      symbol,
       ...getAccountsChainFns(chainId, ss58Format, allAccounts$),
     }
   }
@@ -66,34 +74,69 @@ const defaultOnCreateTx: CreateTxCallback = (
   callback(userSignedExtensionsData)
 }
 
+const _getInjectedExtensions = async (nTries = 0): Promise<string[]> => {
+  const { injectedWeb3 } = window
+  if (injectedWeb3) return Object.keys(injectedWeb3)
+  if (nTries > 3) return []
+
+  await new Promise((res) => {
+    setTimeout(res, 250 * nTries)
+  })
+  return _getInjectedExtensions(nTries + 1)
+}
+
 const getInjectedExtension = async (
   name: string,
 ): Promise<InjectedExtension | undefined> => {
-  if (!window.injectedWeb3) {
-    await new Promise((res) => {
-      setTimeout(res, 0)
-    })
-    return getInjectedExtension(name)
-  }
+  let entry = window.injectedWeb3?.[name]
 
-  const entry = window.injectedWeb3[name]
-  if (!entry) return undefined
+  if (!entry) {
+    await _getInjectedExtensions()
+    entry = window.injectedWeb3?.[name]
+    if (!entry) return undefined
+  }
 
   return entry.enable()
 }
 
+export const getInjectedExtensions = () => _getInjectedExtensions()
+
 export const getLegacyProvider = (
   scClient: ScClient,
   onCreateTx: CreateTxCallback = defaultOnCreateTx,
-  name: string = "polkadot-js",
-): PolkadotProvider => {
-  const injectedExtension = getInjectedExtension(name)
+): {
+  connectAccounts: (extensionName: string | null) => Promise<boolean>
+  provider: PolkadotProvider
+} => {
+  let signer: Promise<NonNullable<Signer["signPayload"]>> | null = null
 
-  const allAccounts$ = getAllAccounts$(injectedExtension)
+  const injectedExtensions$ = new Subject<
+    Promise<InjectedExtension | undefined> | undefined
+  >()
 
-  const signer = getSigner(injectedExtension)
-  const signPayload = (payload: SignerPayloadJSON) =>
-    signer.then((s) => s(payload as any))
+  const connectAccounts = async (name: string | null): Promise<boolean> => {
+    if (name === null) {
+      signer = null
+      injectedExtensions$.next(undefined)
+      return true
+    }
+
+    const injectedExtension = getInjectedExtension(name)
+    signer = getSigner(injectedExtension)
+    injectedExtensions$.next(injectedExtension)
+
+    const result = await injectedExtension
+    return !!result
+  }
+
+  const allAccounts$ = getAllAccounts$(injectedExtensions$)
+
+  const signPayload = async (payload: SignerPayloadJSON) => {
+    if (!signer) throw new Error("Missing signer")
+
+    const s = await signer
+    return s(payload as any)
+  }
 
   const getProvider = getScProvider(scClient)
   const chainCreator = createChain(
@@ -106,8 +149,11 @@ export const getLegacyProvider = (
   const chains = Object.fromEntries(chainsArray.map((c) => [c.chainId, c]))
 
   return {
-    getChains: () => chains,
-    getChain: async (chainSpec: string) =>
-      chainCreator(await getChainProps(chainSpec, getProvider)),
+    connectAccounts,
+    provider: {
+      getChains: () => chains,
+      getChain: async (chainSpec: string) =>
+        chainCreator(await getChainProps(chainSpec, getProvider)),
+    },
   }
 }
