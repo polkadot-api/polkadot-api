@@ -1,4 +1,12 @@
-import { Observable, map, mergeMap } from "rxjs"
+import {
+  Observable,
+  debounceTime,
+  distinctUntilChanged,
+  exhaustMap,
+  map,
+  mergeMap,
+  withLatestFrom,
+} from "rxjs"
 import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
@@ -20,10 +28,12 @@ type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
 
 type StorageEntryWithoutKeys<Payload> = {
   getValue: (options?: CallOptions) => Promise<Payload>
+  watchValue: () => Observable<Payload>
 }
 
 type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
   getValue: (...args: [...WithCallOptions<Args>]) => Promise<Payload>
+  watchValue: (...args: Args) => Observable<Payload>
   getValues: (
     keys: Array<[...Args]>,
     options?: CallOptions,
@@ -60,6 +70,7 @@ export const createStorageEntry = (
   name: string,
   getRuntimeContext$: (hash: string | null) => Observable<RuntimeContext>,
   storage$: Storage$,
+  finalized$: Observable<string>,
 ) => {
   const storageCall = <T, Type extends StorageItemInput["type"]>(
     at: string | null,
@@ -89,6 +100,30 @@ export const createStorageEntry = (
       }),
     )
     return firstValueFromWithSignal(request$, signal)
+  }
+
+  const watchValue = (...args: Array<any>) => {
+    const descriptors$ = finalized$.pipe(
+      mergeMap(getRuntimeContext$),
+      distinctUntilChanged(),
+      map((descriptors) =>
+        descriptors.dynamicBuilder.buildStorage(pallet, name),
+      ),
+    )
+
+    return finalized$.pipe(
+      debounceTime(0),
+      withLatestFrom(descriptors$),
+      exhaustMap(([latest, codecs]) =>
+        storage$(latest, "value", codecs.enc(...args), null).pipe(
+          map((val) => ({ val, codecs })),
+        ),
+      ),
+      distinctUntilChanged((a, b) => a.val === b.val),
+      map(({ codecs, val }) =>
+        val === null ? codecs.fallback : codecs.dec(val),
+      ),
+    )
   }
 
   const getValue = (...args: Array<any>) => {
@@ -161,5 +196,5 @@ export const createStorageEntry = (
       keyArgs.map((args) => getValue(...(options ? [...args, options] : args))),
     )
 
-  return { getValue, getValues, getEntries }
+  return { getValue, getValues, getEntries, watchValue }
 }

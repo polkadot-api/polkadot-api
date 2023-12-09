@@ -30,6 +30,7 @@ export const createClient: CreateClient = (connect, descriptors) => {
         name,
         chainHead.getRuntimeContext$,
         chainHead.storage$,
+        chainHead.finalized$,
       )
     }
   }
