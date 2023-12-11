@@ -7,13 +7,13 @@ import {
   knownChainsData,
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
-import testDescriptors from "./codegen/test"
+import test from "./codegen/test"
 
 const { provider, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
 
 const chain = provider.getChains()[knownChainsData.westend2.chainId]
-const client = createClient(chain.connect, testDescriptors)
+const client = createClient(chain.connect, { test })
 
 const accounts = await chain.getAccounts()
 
@@ -44,7 +44,7 @@ function populateUserDropdown(select: Element) {
 }
 
 function transfer(alexa: Account, billy: Account, amount: bigint) {
-  client.tx.Balances.transfer_keep_alive
+  client.test.tx.Balances.transfer_keep_alive
     .submit$(
       alexa.address,
       {

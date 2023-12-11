@@ -21,7 +21,7 @@ interface JsonRpcProvider {
 
 export type Connect = (onMessage: (value: string) => void) => JsonRpcProvider
 
-type StorageApi<
+export type StorageApi<
   A extends Record<
     string,
     Record<
@@ -51,7 +51,9 @@ type StorageApi<
   }
 }
 
-type TxApi<A extends Record<string, Record<string, Array<any> | unknown>>> = {
+export type TxApi<
+  A extends Record<string, Record<string, Array<any> | unknown>>,
+> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends Array<any>
       ? TxClient<A[K][KK]>
@@ -59,18 +61,21 @@ type TxApi<A extends Record<string, Record<string, Array<any> | unknown>>> = {
   }
 }
 
-type EvApi<A extends Record<string, Record<string, any>>> = {
+export type EvApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: EvClient<A[K][KK]>
   }
 }
 
-export type CreateClient = <T extends Descriptors>(
+export type CreateClient = <T extends Record<string, Descriptors>>(
   connect: Connect,
   descriptors: T,
 ) => {
-  query: StorageApi<QueryFromDescriptors<T>>
-  tx: TxApi<TxFromDescriptors<T>>
-  event: EvApi<EventsFromDescriptors<T>>
   finalized$: Observable<string>
+} & {
+  [K in keyof T]: {
+    query: StorageApi<QueryFromDescriptors<T[K]>>
+    tx: TxApi<TxFromDescriptors<T[K]>>
+    event: EvApi<EventsFromDescriptors<T[K]>>
+  }
 }

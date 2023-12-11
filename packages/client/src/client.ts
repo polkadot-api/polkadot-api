@@ -4,21 +4,31 @@ import {
 } from "@polkadot-api/substrate-client"
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { getObservableClient } from "./observableClient"
-import { CreateClient, CreateTx } from "./types"
+import { CreateClient, CreateTx, EvApi, StorageApi, TxApi } from "./types"
 import { TxClient, createTxEntry } from "./tx"
 import { firstValueFrom } from "rxjs"
 import { EvClient, createEventEntry } from "./event"
+import {
+  Descriptors,
+  EventsFromDescriptors,
+  QueryFromDescriptors,
+  TxFromDescriptors,
+} from "@polkadot-api/substrate-bindings"
+import { mapObject } from "@polkadot-api/utils"
 
-export const createClient: CreateClient = (connect, descriptors) => {
-  let createTx: CreateTx
-  const rawClient: SubstrateClient = createRawClient((onMsg) => {
-    const result = connect(onMsg)
-    createTx = result.createTx
-    return result
-  })
-  const client = getObservableClient(rawClient)
-  const chainHead = client.chainHead$()
-
+const createNamespace = (
+  descriptors: Descriptors,
+  createTxFromAddress: (
+    address: string,
+    callData: Uint8Array,
+  ) => Promise<Uint8Array>,
+  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  client: ReturnType<typeof getObservableClient>,
+): {
+  query: StorageApi<QueryFromDescriptors<Descriptors>>
+  tx: TxApi<TxFromDescriptors<Descriptors>>
+  event: EvApi<EventsFromDescriptors<Descriptors>>
+} => {
   const query = {} as Record<string, Record<string, StorageEntry<any, any>>>
   for (const pallet in descriptors) {
     query[pallet] ||= {}
@@ -33,13 +43,6 @@ export const createClient: CreateClient = (connect, descriptors) => {
         chainHead.finalized$,
       )
     }
-  }
-
-  const createTxFromAddress = async (address: string, callData: Uint8Array) => {
-    const { accountId } = await firstValueFrom(
-      chainHead.getRuntimeContext$(null),
-    )
-    return createTx(accountId.enc(address), callData)
   }
 
   const tx = {} as Record<string, Record<string, TxClient<any>>>
@@ -79,6 +82,30 @@ export const createClient: CreateClient = (connect, descriptors) => {
     query: query as any,
     tx: tx as any,
     event: events as any,
-    finalized$: chainHead.finalized$,
   }
+}
+
+export const createClient: CreateClient = (connect, descriptors) => {
+  let createTx: CreateTx
+  const rawClient: SubstrateClient = createRawClient((onMsg) => {
+    const result = connect(onMsg)
+    createTx = result.createTx
+    return result
+  })
+  const client = getObservableClient(rawClient)
+  const chainHead = client.chainHead$()
+
+  const createTxFromAddress = async (address: string, callData: Uint8Array) => {
+    const { accountId } = await firstValueFrom(
+      chainHead.getRuntimeContext$(null),
+    )
+    return createTx(accountId.enc(address), callData)
+  }
+
+  return {
+    finalized$: chainHead.finalized$,
+    ...mapObject(descriptors, (des) =>
+      createNamespace(des, createTxFromAddress, chainHead, client),
+    ),
+  } as any
 }

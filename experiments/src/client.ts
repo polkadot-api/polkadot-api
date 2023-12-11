@@ -9,7 +9,7 @@ const polkadotChain = await getChain({
   keyring: { getPairs: () => [], onKeyPairsChanged: () => noop },
 })
 
-const relayChain = createClient(polkadotChain.connect, ksm)
+const relayChain = createClient(polkadotChain.connect, { ksm })
 const collectives = relayChain
 
 function mapRawIdentity(
@@ -37,10 +37,10 @@ function mapRawIdentity(
 }
 
 const relevantIdentities =
-  await collectives.query.FellowshipCollective.Members.getEntries()
+  await collectives.ksm.query.FellowshipCollective.Members.getEntries()
     .then((allMembers) => allMembers.filter(({ value }) => value >= 4))
     .then((members) =>
-      relayChain.query.Identity.IdentityOf.getValues(
+      relayChain.ksm.query.Identity.IdentityOf.getValues(
         members.map((m) => m.keyArgs),
       ).then((identities) =>
         identities.map((identity, idx) => ({
