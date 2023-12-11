@@ -73,6 +73,7 @@ if (descriptorMetadata) {
         metadata!.metadata.value,
         descriptorData.outputFolder,
         key,
+        descriptorData.selectOnly,
       )
       process.exit(0)
     }

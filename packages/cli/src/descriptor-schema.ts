@@ -5,5 +5,6 @@ export default z.record(
     metadata: z.string(),
     chainSpec: z.string().optional(),
     outputFolder: z.string(),
+    selectOnly: z.array(z.string()).optional(),
   }),
 )
