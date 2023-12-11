@@ -50,7 +50,8 @@ export const getCodegenInfo = (
     descriptorsData[pallet.name] = result
 
     for (const stg of pallet.storage?.items ?? []) {
-      if (whiteList && !whiteList.has(`${pallet}.query.${stg.name}`)) continue
+      if (whiteList && !whiteList.has(`${pallet.name}.query.${stg.name}`))
+        continue
 
       const { key, val } = staticBuilder.buildStorage(pallet.name, stg.name)
       result.storage[stg.name] = {
@@ -62,7 +63,8 @@ export const getCodegenInfo = (
     }
 
     for (const callName of getEnumEntry(pallet.calls)) {
-      if (whiteList && !whiteList.has(`${pallet}.call.${callName}`)) continue
+      if (whiteList && !whiteList.has(`${pallet.name}.call.${callName}`))
+        continue
 
       const payload = staticBuilder.buildCall(pallet.name, callName)
       result.tx[callName] = {
@@ -72,7 +74,8 @@ export const getCodegenInfo = (
     }
 
     for (const errName of getEnumEntry(pallet.errors)) {
-      if (whiteList && !whiteList.has(`${pallet}.error.${errName}`)) continue
+      if (whiteList && !whiteList.has(`${pallet.name}.error.${errName}`))
+        continue
 
       const payload = staticBuilder.buildError(pallet.name, errName)
       result.errors[errName] = {
@@ -82,7 +85,8 @@ export const getCodegenInfo = (
     }
 
     for (const evName of getEnumEntry(pallet.events)) {
-      if (whiteList && !whiteList.has(`${pallet}.event.${evName}`)) continue
+      if (whiteList && !whiteList.has(`${pallet.name}.event.${evName}`))
+        continue
 
       const payload = staticBuilder.buildEvent(pallet.name, evName)
       result.events[evName] = {
@@ -92,7 +96,8 @@ export const getCodegenInfo = (
     }
 
     for (const { name: constName } of pallet.constants) {
-      if (whiteList && !whiteList.has(`${pallet}.const.${constName}`)) continue
+      if (whiteList && !whiteList.has(`${pallet.name}.const.${constName}`))
+        continue
 
       const payload = staticBuilder.buildConstant(pallet.name, constName)
       result.constants[constName] = {
