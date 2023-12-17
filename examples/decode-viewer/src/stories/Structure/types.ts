@@ -2,7 +2,7 @@ import {
   HexString,
   Shape,
   StructDecoded,
-} from "@polkadot-api/substrate-codegen"
+} from "@polkadot-api/metadata-builders"
 
 export interface DecodedCall {
   pallet: InitStruct

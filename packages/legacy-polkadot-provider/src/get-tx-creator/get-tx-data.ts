@@ -13,7 +13,7 @@ import {
   chainSignedExtensions,
   userSignedExtensions,
 } from "@/get-tx-creator/signed-extensions"
-import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
+import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
 
 interface Ctx {
   metadata: V14

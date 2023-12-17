@@ -3,7 +3,7 @@ import {
   ComplexShape,
   PrimitiveDecoded,
   StringRecord,
-} from "@polkadot-api/substrate-codegen"
+} from "@polkadot-api/metadata-builders"
 import { KeyValueType } from "./types"
 import { snakeToCamel } from "@polkadot-cloud/utils"
 import { Input } from "../Input"

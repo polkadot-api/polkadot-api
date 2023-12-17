@@ -2,7 +2,7 @@ import { V14, _void } from "@polkadot-api/substrate-bindings"
 import {
   getChecksumBuilder,
   getDynamicBuilder,
-} from "@polkadot-api/substrate-codegen"
+} from "@polkadot-api/metadata-builders"
 import {
   chainSignedExtensions,
   userSignedExtensions,

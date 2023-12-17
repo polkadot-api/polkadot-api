@@ -1,5 +1,5 @@
 import { Tuple, compact, metadata } from "@polkadot-api/substrate-bindings"
-import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
+import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
 import { createClient } from "@polkadot-api/substrate-client"
 import { ScProvider } from "@polkadot-api/sc-provider"
 
