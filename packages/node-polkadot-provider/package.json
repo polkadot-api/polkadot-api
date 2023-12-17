@@ -53,7 +53,7 @@
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/substrate-codegen": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@substrate/connect": "^0.7.32",

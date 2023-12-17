@@ -1,1 +1,0 @@
-# @polkadot-api/substrate-codegen

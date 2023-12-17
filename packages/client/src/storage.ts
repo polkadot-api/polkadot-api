@@ -9,7 +9,7 @@ import {
 } from "rxjs"
 import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
-import { getDynamicBuilder } from "@polkadot-api/substrate-codegen"
+import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
 import { RuntimeContext } from "./observableClient/chainHead/chainHead"
 
 type CallOptions = Partial<{
