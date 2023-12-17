@@ -1,6 +1,7 @@
 {
   "name": "@polkadot-api/light-client-extension-helpers",
   "version": "0.0.0",
+  "author": "Matias Volpe (https://github.com/kratico)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paritytech/polkadot-api.git"

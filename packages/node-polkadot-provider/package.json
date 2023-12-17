@@ -1,7 +1,10 @@
 {
   "name": "@polkadot-api/node-polkadot-provider",
   "version": "0.0.0",
-  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "authors": [
+    "Ryan Lee (https://github.com/ryanleecode)",
+    "Josep M Sobrepere (https://github.com/josepot)"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paritytech/polkadot-api.git"
