@@ -1,4 +1,3 @@
-import { blake2b } from "@noble/hashes/blake2b"
 import { createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
 import {
@@ -9,7 +8,7 @@ import {
   take,
   withLatestFrom,
 } from "rxjs"
-import { _void, compact } from "@polkadot-api/substrate-bindings"
+import { Blake2256, _void, compact } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 
 import type { CreateTx, GetTxCreator } from "@/."
@@ -42,7 +41,7 @@ export const getTxCreator: GetTxCreator = (chainProvider, onCreateTx) => {
 
     const toSign = mergeUint8(callData, extra, additionalSigned)
     const signed = await signer.signer(
-      toSign.length > 256 ? blake2b(toSign) : toSign,
+      toSign.length > 256 ? Blake2256(toSign) : toSign,
     )
 
     const preResult = mergeUint8(
