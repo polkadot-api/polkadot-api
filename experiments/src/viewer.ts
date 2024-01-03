@@ -1,4 +1,4 @@
-import { getViewBuilder } from "@polkadot-api/substrate-codegen"
+import { getViewBuilder } from "@polkadot-api/metadata-builders"
 import { readFile } from "node:fs/promises"
 import {
   metadata as $metadata,

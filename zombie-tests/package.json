@@ -11,7 +11,7 @@
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/substrate-codegen": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@unique-nft/sr25519": "^0.0.1",
     "rxjs": "^7.8.1"

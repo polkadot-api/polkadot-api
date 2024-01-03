@@ -5,7 +5,7 @@ import {
   Twox64Concat,
   u32,
 } from "@polkadot-api/substrate-bindings"
-import { getDynamicBuilder, getLookupFn } from "@polkadot-api/substrate-codegen"
+import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import { fromHex } from "@polkadot-api/utils"
 import type { ChainExtensionCtx } from "@/internal-types"
 

@@ -3,7 +3,7 @@ import {
   getChecksumBuilder,
   getLookupFn,
   getStaticBuilder,
-} from "@polkadot-api/substrate-codegen"
+} from "@polkadot-api/metadata-builders"
 import { PalletData } from "./types"
 
 export const getCodegenInfo = (

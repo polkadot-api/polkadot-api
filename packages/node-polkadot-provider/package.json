@@ -1,7 +1,10 @@
 {
   "name": "@polkadot-api/node-polkadot-provider",
   "version": "0.0.0",
-  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "authors": [
+    "Ryan Lee (https://github.com/ryanleecode)",
+    "Josep M Sobrepere (https://github.com/josepot)"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paritytech/polkadot-api.git"
@@ -53,7 +56,7 @@
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/substrate-codegen": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@substrate/connect": "^0.7.32",

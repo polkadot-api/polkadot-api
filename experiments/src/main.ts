@@ -2,7 +2,7 @@ import {
   CodeDeclarations,
   getChecksumBuilder,
   getStaticBuilder,
-} from "@polkadot-api/substrate-codegen"
+} from "@polkadot-api/metadata-builders"
 import { getMetadata } from "./getMetadata"
 import { writeFile } from "fs"
 import * as fs from "node:fs/promises"

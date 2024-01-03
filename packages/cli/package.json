@@ -1,6 +1,7 @@
 {
   "name": "@polkadot-api/cli",
   "version": "0.0.0",
+  "author": "Ryan Lee (https://github.com/ryanleecode)",
   "license": "MIT",
   "sideEffects": true,
   "type": "module",
@@ -33,7 +34,7 @@
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/substrate-codegen": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@substrate/connect": "^0.7.32",
     "@types/node": "^20.9.0",

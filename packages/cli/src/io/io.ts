@@ -1,4 +1,4 @@
-import { V14 } from "@polkadot-api/substrate-codegen"
+import { V14 } from "@polkadot-api/metadata-builders"
 import fs from "fs/promises"
 import * as readPkg from "read-pkg"
 import * as writePkg from "write-pkg"

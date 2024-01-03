@@ -29,7 +29,7 @@ import {
   Decoder,
   getChecksumBuilder,
   getDynamicBuilder,
-} from "@polkadot-api/substrate-codegen"
+} from "@polkadot-api/metadata-builders"
 import { shareLatest } from "@/utils"
 import { AccountId, Codec, SS58String } from "@polkadot-api/substrate-bindings"
 
