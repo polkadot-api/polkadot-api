@@ -15,11 +15,18 @@ export const getChainProps = async (provider: ConnectProvider) => {
   const client = createClient(provider)
   const request = clientRequest(client)
 
-  const [chainId, name] = await Promise.all([
+  const [
+    { ss58Format, tokenDecimals: decimals, tokenSymbol: symbol },
+    chainId,
+    name,
+  ] = await Promise.all([
+    request<{ ss58Format: number; tokenDecimals: number; tokenSymbol: string }>(
+      "chainSpec_v1_properties",
+    ),
     request<string>("chainSpec_v1_genesisHash"),
     request<string>("chainSpec_v1_chainName"),
   ])
 
   client.destroy()
-  return { chainId, name }
+  return { ss58Format, chainId, name, decimals, symbol }
 }

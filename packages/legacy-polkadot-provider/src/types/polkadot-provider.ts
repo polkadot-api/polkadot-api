@@ -1,19 +1,6 @@
 export type Callback<T> = (value: T) => void
 type UnsubscribeFn = () => void
 
-export interface PolkadotProvider {
-  // Retrieves the current list of available Chains
-  // that the dApp can connect to
-  getChains: () => Chains
-
-  // Allows the dApp to request the Provider access to
-  // a Chain not present in the list of available Chains
-  getChain: (chainspec: string) => Promise<Chain>
-}
-
-// The key is the "chainId" of the chain.
-type Chains = Record<string, Chain>
-
 // `chainId` explanation:
 // (hash_of_forked_block, block_number_of_forked_block)
 // is the proper way of uniquely identifying a chain.
@@ -50,6 +37,10 @@ export interface Chain {
     // will be sending messages to
     onMessage: Callback<string>,
   ) => JsonRpcProvider
+}
+
+export interface RelayChain extends Chain {
+  getParachain: (chainspec: string) => Promise<Chain>
 }
 
 export interface JsonRpcProvider {
