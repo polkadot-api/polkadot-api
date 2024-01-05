@@ -64,7 +64,6 @@ jobs:
           pnpm pack --dir packages/json-rpc-provider
           pnpm pack --dir packages/json-rpc-provider-proxy
           pnpm pack --dir packages/legacy-polkadot-provider
-          pnpm pack --dir packages/light-client-extension-helpers
           pnpm pack --dir packages/node-polkadot-provider
           pnpm pack --dir packages/sc-provider
           pnpm pack --dir packages/substrate-bindings
@@ -93,10 +92,6 @@ jobs:
         with:
           name: package
           path: ./packages/legacy-polkadot-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/light-client-extension-helpers/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
@@ -130,40 +125,9 @@ jobs:
           name: package
           path: ./packages/rollup-plugin-descriptor-treeshake/*.tgz
 
-  playwright:
-    needs: build
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.5.3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
-      - name: Install deps
-        run: pnpm install
-      - name: Build
-        run: pnpm build
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps chromium
-        working-directory: ./examples/extension
-      - name: Run Playwright tests
-        run: pnpm exec playwright test --project=chromium
-        working-directory: ./examples/extension
-      # - uses: actions/upload-artifact@v3
-      #   if: always()
-      #   with:
-      #     name: playwright-report
-      #     path: examples/extension/playwright-report/
-
   publish:
     if: contains(fromJSON('["push", "pull_request"]'), github.event_name)
-    needs: [build, pack, playwright]
+    needs: [build, pack]
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
