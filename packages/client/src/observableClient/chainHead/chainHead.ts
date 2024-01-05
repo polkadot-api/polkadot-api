@@ -9,6 +9,7 @@ import {
   getWithOptionalhash$,
   fromAbortControllerFn,
   withLazyFollower,
+  withOperationInaccessibleRecovery,
 } from "./enhancers"
 import { getRuntime$, getFollow$, getFinalized$, getMetadata$ } from "./streams"
 import {
@@ -69,7 +70,9 @@ export default (chainHead: ChainHead) => () => {
 
   const call$ = commonEnhancer(lazyFollower("call"))
   const body$ = commonEnhancer(lazyFollower("body"))
-  const storage$ = commonEnhancer(lazyFollower("storage"))
+  const storage$ = withOperationInaccessibleRecovery(
+    commonEnhancer(lazyFollower("storage")),
+  )
 
   const lazyHeader = lazyFollower("header")
   const header$ = withOptionalHash$(
@@ -110,10 +113,12 @@ export default (chainHead: ChainHead) => () => {
         ),
     ).pipe(mergeAll(), withRecovery(isHighPriority))
 
-  const storageQueries$ = withOptionalHash$(
-    withUnpinning$(
-      (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
-        recoveralStorage$(hash, queries, childTrie ?? null, false),
+  const storageQueries$ = withOperationInaccessibleRecovery(
+    withOptionalHash$(
+      withUnpinning$(
+        (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
+          recoveralStorage$(hash, queries, childTrie ?? null, false),
+      ),
     ),
   )
 
