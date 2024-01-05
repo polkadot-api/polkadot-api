@@ -1,5 +1,5 @@
 import {
-  ScProvider,
+  getScProvider,
   WellKnownChain,
   ConnectProvider,
 } from "@polkadot-api/sc-provider"
@@ -11,13 +11,15 @@ import {
   Tuple,
 } from "@polkadot-api/substrate-bindings"
 
-const smProvider = ScProvider(
+const scProvider = getScProvider()
+
+const smProvider = scProvider(
   WellKnownChain.polkadot /*, {
   embeddedNodeConfig: {
     maxLogLevel: 9,
   },
 }*/,
-)
+).relayChain
 
 const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
   return (onMsg) => {
