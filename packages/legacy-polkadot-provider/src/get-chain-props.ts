@@ -14,11 +14,8 @@ const clientRequest =
       }),
     )
 
-export const getChainProps = async (
-  chain: string,
-  getProvider: (chain: string) => ConnectProvider,
-) => {
-  const client = createClient(getProvider(chain))
+export const getChainProps = async (provider: ConnectProvider) => {
+  const client = createClient(provider)
   const request = clientRequest(client)
 
   const [
@@ -34,5 +31,5 @@ export const getChainProps = async (
   ])
 
   client.destroy()
-  return { ss58Format, chainId, name, chain, decimals, symbol }
+  return { ss58Format, chainId, name, decimals, symbol }
 }

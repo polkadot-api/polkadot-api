@@ -1,57 +1,30 @@
 import type { ConnectProvider, Provider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
-import type { ScClient, Config, Chain } from "@substrate/connect"
+import type { Config, Chain } from "@substrate/connect"
 import { WellKnownChain, createScClient } from "@substrate/connect"
 
 export { WellKnownChain }
 export type { ConnectProvider, Provider }
 
 export const wellKnownChains = new Set(Object.values(WellKnownChain))
-
-const customCreateScClient = (...args: Parameters<typeof createScClient>) => {
-  const client = createScClient(...args)
-
-  let pending: Promise<any> | null = null
-  const addWellKnownChain = async (
-    ...args: Parameters<(typeof client)["addWellKnownChain"]>
-  ) => {
-    if (pending) await pending
-    const result = client.addWellKnownChain(...args)
-    pending = result
-    return result
-  }
-
-  const addChain = async (...args: Parameters<(typeof client)["addChain"]>) => {
-    if (pending) await pending
-    const result = client.addChain(...args)
-    pending = result
-    return result
-  }
-
-  return { addChain, addWellKnownChain }
+const noop = () => {}
+type AddChain = (input: WellKnownChain | string) => {
+  relayChain: ConnectProvider
+  addParachain: (input: string) => ConnectProvider
 }
 
-let client: ScClient
-
-const noop = () => {}
-
-export const ScProvider = (
-  input: WellKnownChain | string,
-  config?: Config,
-): ConnectProvider => {
-  client ??= customCreateScClient(config)
-  return getSyncProvider(async () => {
+const getProvider = (
+  getAddChain: (onMessage: (msg: string) => void) => Promise<Chain>,
+  input: string,
+) =>
+  getSyncProvider(async () => {
     let listener: (message: string) => void = noop
     const onMessage = (msg: string) => {
       listener(msg)
     }
-
     let chain: Chain
-
     try {
-      chain = await (wellKnownChains.has(input as any)
-        ? client.addWellKnownChain(input as WellKnownChain, onMessage)
-        : client.addChain(input, onMessage))
+      chain = await getAddChain(onMessage)
     } catch (e) {
       console.warn(`couldn't create chain with: ${input}`)
       console.error(e)
@@ -66,9 +39,35 @@ export const ScProvider = (
         },
         disconnect() {
           listener = noop
-          chain.remove()
+          chain?.remove()
         },
       }
     }
   })
+
+export const getScProvider = (config?: Config): AddChain => {
+  const client = createScClient(config)
+
+  return (input: WellKnownChain | string) => {
+    const getRelayChain = (onMessage?: (data: string) => void) =>
+      wellKnownChains.has(input as any)
+        ? client.addWellKnownChain(input as WellKnownChain, onMessage)
+        : client.addChain(input, onMessage)
+
+    const relayChain = getProvider(getRelayChain, input)
+
+    const addParachain = (input: string) =>
+      getProvider(async (onMessage) => {
+        const relayChain = await getRelayChain()
+        const chain = await relayChain.addChain(input, onMessage)
+        const originalRemove = chain.remove.bind(chain)
+        chain.remove = () => {
+          originalRemove()
+          relayChain.remove
+        }
+        return chain
+      }, input)
+
+    return { relayChain, addParachain }
+  }
 }

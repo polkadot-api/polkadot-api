@@ -17,6 +17,9 @@ type UnsubscribeFn = () => void
 export interface Chain {
   chainId: string
   name: string
+  symbol: string
+  decimals: number
+  ss58Format: number
 
   // it pulls the current list of available accounts for this Chain
   getAccounts: () => Promise<Array<Account>>
@@ -34,6 +37,10 @@ export interface Chain {
     // will be sending messages to
     onMessage: Callback<string>,
   ) => JsonRpcProvider
+}
+
+export interface RelayChain extends Chain {
+  getParachain: (chainspec: string) => Promise<Chain>
 }
 
 export interface JsonRpcProvider {

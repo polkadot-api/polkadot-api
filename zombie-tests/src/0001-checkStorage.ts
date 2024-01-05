@@ -1,14 +1,15 @@
 import { Tuple, compact, metadata } from "@polkadot-api/substrate-bindings"
 import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
 import { createClient } from "@polkadot-api/substrate-client"
-import { ScProvider } from "@polkadot-api/sc-provider"
+import { getScProvider } from "@polkadot-api/sc-provider"
 
 const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 
+const scProvider = getScProvider()
 export async function run(_nodeName: string, networkInfo: any) {
   const customChainSpec = require(networkInfo.chainSpecPath)
-  let provider = ScProvider(JSON.stringify(customChainSpec))
-  const { chainHead } = await createClient(provider)
+  let provider = scProvider(JSON.stringify(customChainSpec)).relayChain
+  const { chainHead } = createClient(provider)
 
   const opaqueMeta = Tuple(compact, metadata)
 
@@ -47,7 +48,7 @@ export async function run(_nodeName: string, networkInfo: any) {
             storageAccount.enc(ALICE),
             null,
           )
-          let res = storageAccount.dec(result as string)
+          let res: any = storageAccount.dec(result as string)
           aliceBalance = res?.data?.free?.toString()
           resolve(chainHeadFollower.unfollow())
         }

@@ -1,13 +1,14 @@
-import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { getScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 import { noop } from "@polkadot-api/utils"
 import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { createClient } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
 import ksm, { Queries } from "./descriptors/ksm"
+const scProvider = getScProvider()
 
 const polkadotChain = await getChain({
-  provider: ScProvider(WellKnownChain.ksmcc3),
+  provider: scProvider(WellKnownChain.ksmcc3).relayChain,
   keyring: { getPairs: () => [], onKeyPairsChanged: () => noop },
 })
 

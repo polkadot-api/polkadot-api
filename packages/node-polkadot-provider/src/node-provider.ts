@@ -111,11 +111,8 @@ export const getChain = async ({
     }
   }
 
-  const { chainId, name } = await getChainProps(getProvider)
-
   return {
-    chainId,
-    name,
+    ...(await getChainProps(getProvider)),
     getAccounts,
     onAccountsChange,
     connect,

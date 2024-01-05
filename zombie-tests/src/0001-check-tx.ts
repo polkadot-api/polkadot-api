@@ -1,5 +1,5 @@
 import { getChain } from "@polkadot-api/node-polkadot-provider"
-import { ScProvider } from "@polkadot-api/sc-provider"
+import { getScProvider } from "@polkadot-api/sc-provider"
 import {
   AccountId,
   Enum,
@@ -161,12 +161,13 @@ const getNonce =
 
 const TEST_ARGS = [Sr25519Keyring(), Ed25519Keyring(), EcdsaKeyring()]
 
+const scProvider = getScProvider()
 export async function run(_nodeName: string, networkInfo: any) {
   try {
     const getPromises = (isMortal: boolean) =>
       TEST_ARGS.map(async (keyring) => {
         const customChainSpec = require(networkInfo.chainSpecPath)
-        const provider = ScProvider(JSON.stringify(customChainSpec))
+        const provider = scProvider(JSON.stringify(customChainSpec)).relayChain
         const client = getObservableClient(createClient(provider))
 
         const chain = await getChain({

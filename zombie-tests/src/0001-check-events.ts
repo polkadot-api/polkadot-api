@@ -1,10 +1,12 @@
 import { createClient } from "@polkadot-api/substrate-client"
-import { ScProvider } from "@polkadot-api/sc-provider"
+import { getScProvider } from "@polkadot-api/sc-provider"
+
+const scProvider = getScProvider()
 
 export async function run(_nodeName: string, networkInfo: any) {
   const customChainSpec = require(networkInfo.chainSpecPath)
-  let provider = ScProvider(JSON.stringify(customChainSpec))
-  const { chainHead } = await createClient(provider)
+  let provider = scProvider(JSON.stringify(customChainSpec)).relayChain
+  const { chainHead } = createClient(provider)
 
   let initialized = false
 
@@ -18,7 +20,6 @@ export async function run(_nodeName: string, networkInfo: any) {
   let bestBlock = false
 
   await new Promise((resolve, reject) => {
-    let requested = false
     const chainHeadFollower = chainHead(
       true,
       (event) => {

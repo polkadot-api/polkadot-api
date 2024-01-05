@@ -4,15 +4,14 @@ import "./style.css"
 import {
   Account,
   getLegacyProvider,
-  knownChainsData,
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
 import test from "./codegen/test"
 
-const { provider, connectAccounts } = getLegacyProvider(createScClient())
+const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
 
-const chain = provider.getChains()[knownChainsData.westend2.chainId]
+const chain = relayChains.westend2
 const client = createClient(chain.connect, { test })
 
 const accounts = await chain.getAccounts()

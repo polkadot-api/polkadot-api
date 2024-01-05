@@ -1,56 +1,21 @@
 import {
-  InjectedAccount,
   InjectedExtension,
   getAccountsChainFns,
   getAllAccounts$,
   getSigner,
 } from "./accounts"
-import { Chain, PolkadotProvider } from "./types/polkadot-provider"
+import { Chain, RelayChain } from "./types/polkadot-provider"
 import { SignerPayloadJSON } from "./types/internal-types"
 import { getTxCreator } from "./get-tx-creator"
 import { CreateTxCallback, UserSignedExtensions } from "./types/public-types"
 import { knownChainsData } from "./known-chain-data"
 import { getChainProps } from "./get-chain-props"
-import { Observable, Subject } from "rxjs"
+import { Subject } from "rxjs"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import type { ScClient } from "@substrate/connect"
 import { getScProvider, WellKnownChain } from "./ScProvider"
 import { Signer } from "@polkadot/api/types"
-
-const createChain =
-  (
-    getProvider: (chain: WellKnownChain | string) => ConnectProvider,
-    onCreateTx: CreateTxCallback,
-    signPayload: (payload: SignerPayloadJSON) => Promise<{ signature: string }>,
-    allAccounts$: Observable<InjectedAccount[]>,
-  ) =>
-  ({
-    chain,
-    chainId,
-    name,
-    ss58Format,
-    decimals,
-    symbol,
-  }: {
-    chain: WellKnownChain | string
-    chainId: string
-    name: string
-    ss58Format: number
-    decimals: number
-    symbol: string
-  }): Chain => {
-    const connect = getTxCreator(getProvider(chain), onCreateTx, signPayload)
-
-    return {
-      chainId,
-      name,
-      ss58Format,
-      connect,
-      decimals,
-      symbol,
-      ...getAccountsChainFns(chainId, ss58Format, allAccounts$),
-    }
-  }
+import { mapObject } from "@polkadot-api/utils"
 
 const defaultOnCreateTx: CreateTxCallback = (
   { userSingedExtensionsName },
@@ -106,7 +71,8 @@ export const getLegacyProvider = (
   onCreateTx: CreateTxCallback = defaultOnCreateTx,
 ): {
   connectAccounts: (extensionName: string | null) => Promise<boolean>
-  provider: PolkadotProvider
+  relayChains: Record<WellKnownChain, RelayChain>
+  getSoloChain: (chainSpec: string) => Promise<RelayChain>
 } => {
   let signer: Promise<NonNullable<Signer["signPayload"]>> | null = null
 
@@ -139,21 +105,69 @@ export const getLegacyProvider = (
   }
 
   const getProvider = getScProvider(scClient)
-  const chainCreator = createChain(
-    getProvider,
-    onCreateTx,
-    signPayload,
-    allAccounts$ as any,
+
+  const chainCreator = (
+    provider: ConnectProvider,
+    chainData: {
+      chainId: string
+      name: string
+      ss58Format: number
+      decimals: number
+      symbol: string
+    },
+  ): Chain => {
+    const connect = getTxCreator(provider, onCreateTx, signPayload)
+
+    return {
+      connect,
+      ...getAccountsChainFns(
+        chainData.chainId,
+        chainData.ss58Format,
+        allAccounts$,
+      ),
+      ...chainData,
+    }
+  }
+
+  const relayChainCreator = (
+    chainData: {
+      chainId: string
+      name: string
+      ss58Format: number
+      decimals: number
+      symbol: string
+    },
+    provider: ConnectProvider,
+    addParachain: (input: string) => ConnectProvider,
+  ) => {
+    return {
+      ...chainCreator(provider, chainData),
+      getParachain: async (chainspec: string) => {
+        const provider = addParachain(chainspec)
+        return chainCreator(provider, await getChainProps(provider))
+      },
+    }
+  }
+
+  const relayChains: Record<WellKnownChain, RelayChain> = mapObject(
+    WellKnownChain,
+    (id: WellKnownChain) => {
+      const chainData = knownChainsData[id]
+      const { provider, addParachain } = getProvider(chainData.chain)
+      return relayChainCreator(chainData, provider, addParachain)
+    },
   )
-  const chainsArray = Object.values(knownChainsData).map(chainCreator)
-  const chains = Object.fromEntries(chainsArray.map((c) => [c.chainId, c]))
 
   return {
     connectAccounts,
-    provider: {
-      getChains: () => chains,
-      getChain: async (chainSpec: string) =>
-        chainCreator(await getChainProps(chainSpec, getProvider)),
+    relayChains,
+    getSoloChain: async (chainSpec: string) => {
+      const { provider, addParachain } = getProvider(chainSpec)
+      return relayChainCreator(
+        await getChainProps(provider),
+        provider,
+        addParachain,
+      )
     },
   }
 }
