@@ -23,21 +23,21 @@ export const getBestBlock$ = (follow$: Observable<FollowEventWithRuntime>) =>
     shareLatest,
   )
 
-export type BlockHeaderWithHash = BlockHeader & { hash: string }
+export type BlockHeaderWithHash = { hash: string; header: BlockHeader }
 
 export const getBestBlocks$ = (
   best$: Observable<string>,
   finalized$: Observable<string>,
-  getHeader$: (hash: string) => Observable<BlockHeaderWithHash>,
+  getHeader$: (hash: string) => Observable<BlockHeader>,
 ): Observable<Array<BlockHeaderWithHash>> => {
-  const _current$ = new Subject<Map<string, BlockHeaderWithHash>>()
+  const _current$ = new Subject<Map<string, BlockHeader>>()
   const getBlocks$ = (
     best: string,
     finalized: string,
-    current: Map<string, BlockHeaderWithHash>,
-  ): Observable<Map<string, BlockHeaderWithHash>> =>
+    current: Map<string, BlockHeader>,
+  ): Observable<Map<string, BlockHeader>> =>
     new Observable((observer) => {
-      const result = new Map<string, BlockHeaderWithHash>()
+      const result = new Map<string, BlockHeader>()
       let sub: Subscription
 
       const process = (hash: string) => {
@@ -81,11 +81,11 @@ export const getBestBlocks$ = (
         }),
         map((state) => {
           const result: Array<BlockHeaderWithHash> = []
-          let current = best
-          while (current !== finalized) {
-            const value = state.get(current)!
-            result.push(value)
-            current = value.parentHash
+          let hash = best
+          while (hash !== finalized) {
+            const header = state.get(hash)!
+            result.push({ hash, header })
+            hash = header.parentHash
           }
           return result
         }),
