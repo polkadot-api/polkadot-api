@@ -7,6 +7,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
+    "best-blocks": "tsup-node src/best-blocks.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/best-blocks.js\"",
     "nominators": "tsup-node src/all-nominators.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\"",
     "viewer": "tsup-node src/viewer.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/viewer.js\"",
     "tx": "tsup-node src/tx.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/tx.js\"",

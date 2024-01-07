@@ -1,4 +1,12 @@
-import { Bytes, Enum, Struct, Vector, _void, enhanceCodec } from "scale-ts"
+import {
+  Bytes,
+  CodecType,
+  Enum,
+  Struct,
+  Vector,
+  _void,
+  enhanceCodec,
+} from "scale-ts"
 import { Hex } from "./Hex"
 import { compactNumber } from "./compact"
 
@@ -34,3 +42,5 @@ export const blockHeader = Struct({
   extrinsicRoot: hex32,
   digests: Vector(diggest),
 })
+
+export type BlockHeader = CodecType<typeof blockHeader>
