@@ -22,6 +22,7 @@ import {
   mergeAll,
   mergeMap,
   observeOn,
+  pipe,
   shareReplay,
   take,
   withLatestFrom,
@@ -31,7 +32,7 @@ import {
   getChecksumBuilder,
   getDynamicBuilder,
 } from "@polkadot-api/metadata-builders"
-import { shareLatest } from "@/utils"
+import { concatMapEager, shareLatest } from "@/utils"
 import {
   AccountId,
   Codec,
@@ -58,16 +59,16 @@ export default (chainHead: ChainHead) => () => {
   const lazyFollower = withLazyFollower(getFollower)
 
   const { runtime$, candidates$: runtimeCandidates$ } = getRuntime$(follow$)
-  const finalized$ = getFinalized$(follow$)
+  const _finalized$ = getFinalized$(follow$)
   const bestBlock$ = getBestBlock$(follow$)
 
   const { withUnpinning$, unpinFromUsage$ } = getWithUnpinning$(
-    finalized$,
+    _finalized$,
     follow$,
     lazyFollower("unpin"),
   )
 
-  const withOptionalHash$ = getWithOptionalhash$(finalized$)
+  const withOptionalHash$ = getWithOptionalhash$(_finalized$)
   const { withRecovery, withRecoveryFn } = getWithRecovery()
   const commonEnhancer = <A extends Array<any>, T>(
     fn: (
@@ -84,8 +85,9 @@ export default (chainHead: ChainHead) => () => {
   )
 
   const lazyHeader = lazyFollower("header")
-  const header$ = withOptionalHash$(
+  const header$ = pipe(
     withUnpinning$((hash: string) => from(lazyHeader(hash))),
+    map(blockHeader.dec),
   )
 
   const recoveralStorage$ = (
@@ -131,7 +133,7 @@ export default (chainHead: ChainHead) => () => {
     ),
   )
 
-  const metadata$ = getMetadata$(call$, runtime$, finalized$)
+  const metadata$ = getMetadata$(call$, runtime$, _finalized$)
   const runtimeContext$ = runtime$.pipe(
     map(() => {
       const result = metadata$.pipe(
@@ -192,7 +194,7 @@ export default (chainHead: ChainHead) => () => {
       },
     })
 
-    const sub3 = finalized$.pipe(observeOn(asapScheduler)).subscribe({
+    const sub3 = _finalized$.pipe(observeOn(asapScheduler)).subscribe({
       next(v) {
         if (toRemove.has(v)) toRemove.delete(v)
         else result[v] = latestRuntimeCtx
@@ -229,19 +231,25 @@ export default (chainHead: ChainHead) => () => {
   )
   currentFinalized$.subscribe()
 
-  const withHeader = (hash: string) =>
-    header$(hash).pipe(map((data) => ({ ...blockHeader.dec(data), hash })))
+  const bestBlocks$ = getBestBlocks$(bestBlock$, _finalized$, header$)
 
-  const bestBlocks$ = getBestBlocks$(bestBlock$, finalized$, withHeader)
+  const finalizedHeader$ = _finalized$.pipe(
+    concatMapEager((hash) =>
+      header$(hash).pipe(map((header) => ({ hash, header }))),
+    ),
+    shareLatest,
+  )
+  finalizedHeader$.subscribe()
+  const finalized$ = finalizedHeader$.pipe(map((x) => x.hash))
 
   return {
     finalized$,
+    finalizedHeader$,
     bestBlock$,
     bestBlocks$,
     follow$,
     runtime$,
     metadata$,
-    header$,
     body$,
     call$,
     storage$,
