@@ -32,7 +32,15 @@ import {
   getDynamicBuilder,
 } from "@polkadot-api/metadata-builders"
 import { shareLatest } from "@/utils"
-import { AccountId, Codec, SS58String } from "@polkadot-api/substrate-bindings"
+import {
+  AccountId,
+  Codec,
+  SS58String,
+  blockHeader,
+} from "@polkadot-api/substrate-bindings"
+import { getBestBlock$, getBestBlocks$ } from "./streams/best-block"
+
+export type { BlockHeaderWithHash } from "./streams/best-block"
 
 export interface RuntimeContext {
   checksumBuilder: ReturnType<typeof getChecksumBuilder>
@@ -51,6 +59,7 @@ export default (chainHead: ChainHead) => () => {
 
   const { runtime$, candidates$: runtimeCandidates$ } = getRuntime$(follow$)
   const finalized$ = getFinalized$(follow$)
+  const bestBlock$ = getBestBlock$(follow$)
 
   const { withUnpinning$, unpinFromUsage$ } = getWithUnpinning$(
     finalized$,
@@ -220,8 +229,15 @@ export default (chainHead: ChainHead) => () => {
   )
   currentFinalized$.subscribe()
 
+  const withHeader = (hash: string) =>
+    header$(hash).pipe(map((data) => ({ ...blockHeader.dec(data), hash })))
+
+  const bestBlocks$ = getBestBlocks$(bestBlock$, finalized$, withHeader)
+
   return {
     finalized$,
+    bestBlock$,
+    bestBlocks$,
     follow$,
     runtime$,
     metadata$,

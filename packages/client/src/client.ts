@@ -104,6 +104,8 @@ export const createClient: CreateClient = (connect, descriptors) => {
 
   return {
     finalized$: chainHead.finalized$,
+    bestBlock$: chainHead.bestBlock$,
+    bestBlocks$: chainHead.bestBlocks$,
     ...mapObject(descriptors, (des) =>
       createNamespace(des, createTxFromAddress, chainHead, client),
     ),
