@@ -12,6 +12,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3.5.3
+      - uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-18.x-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-18.x-turbo-
       - uses: pnpm/action-setup@v2
         with:
           version: 8
@@ -23,7 +29,7 @@ jobs:
       - name: build
         run: |
           pnpm install
-          pnpm build
+          pnpm turbo build
       - name: Get zombienet
         run: |
           curl -L -O https://github.com/paritytech/zombienet/releases/download/v1.3.71/zombienet-linux-x64
