@@ -29,7 +29,7 @@ jobs:
       - name: build
         run: |
           pnpm install
-          pnpm turbo build
+          pnpm turbo build --cache-dir=.turbo
       - name: Get zombienet
         run: |
           curl -L -O https://github.com/paritytech/zombienet/releases/download/v1.3.71/zombienet-linux-x64

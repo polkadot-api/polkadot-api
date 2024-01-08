@@ -34,7 +34,7 @@ jobs:
       - name: Install deps
         run: pnpm install
       - name: Build, Test and Lint
-        run: pnpm turbo build test lint
+        run: pnpm turbo build test lint --cache-dir=.turbo
       - name: Run Integration Tests
         run: pnpm test:ci
 
@@ -62,7 +62,7 @@ jobs:
       - name: Install deps
         run: pnpm install
       - name: Build
-        run: pnpm turbo build
+        run: pnpm turbo build --cache-dir=.turbo
       - name: Pack
         run: |
           pnpm dlx lerna init
