@@ -8,3 +8,4 @@ experiments/dist/**
 examples/*/dist/**
 .vscode
 .pnpm-store
+.turbo
