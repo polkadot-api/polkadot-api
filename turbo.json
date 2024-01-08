@@ -11,6 +11,8 @@
       "dependsOn": ["build"],
       "inputs": ["test/**", "tests/**"]
     },
-    "lint": {}
+    "lint": {
+      "dependsOn": ["build"]
+    }
   }
 }
