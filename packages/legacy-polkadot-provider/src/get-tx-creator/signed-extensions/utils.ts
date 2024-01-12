@@ -1,22 +1,17 @@
-import { noop, of } from "rxjs"
-import {
-  V14,
-  Storage,
-  Twox64Concat,
-  u32,
-} from "@polkadot-api/substrate-bindings"
+import { of } from "rxjs"
+import { V14 } from "@polkadot-api/substrate-bindings"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { ChainExtensionCtx } from "@/types/internal-types"
 
 export const empty$ = of(new Uint8Array())
 
-const genesisHashStorageKey = Storage("System")("BlockHash", noop, [
-  u32,
-  Twox64Concat,
-]).enc(0)
-
 export const genesisHashFromCtx = (ctx: ChainExtensionCtx) =>
-  ctx.chainHead.storage$(ctx.at, "value", genesisHashStorageKey, null)
+  ctx.chainHead.storage$(
+    ctx.at,
+    "value",
+    (ctx) => ctx.dynamicBuilder.buildStorage("System", "BlockHash").enc(0),
+    null,
+  )
 
 export const systemVersionProp = (propName: string, metadata: V14) => {
   const lookupFn = getLookupFn(metadata.lookup)

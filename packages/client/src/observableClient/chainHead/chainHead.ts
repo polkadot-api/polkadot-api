@@ -1,260 +1,276 @@
-import type {
+import { concatMapEager, shareLatest } from "@/utils"
+import { blockHeader } from "@polkadot-api/substrate-bindings"
+import {
   ChainHead,
+  FollowEventWithRuntime,
   StorageItemInput,
-  StorageItemResponse,
+  StorageResult,
 } from "@polkadot-api/substrate-client"
 import {
-  getWithRecovery,
-  getWithUnpinning$,
-  getWithOptionalhash$,
+  Observable,
+  ReplaySubject,
+  Subject,
+  distinctUntilChanged,
+  from,
+  map,
+  merge,
+  mergeMap,
+  scan,
+  share,
+  switchMap,
+  take,
+} from "rxjs"
+
+import type {
+  PinnedBlock,
+  BlockUsageEvent,
+  RuntimeContext,
+  SystemEvent,
+} from "./streams"
+import { getFollow$, getPinnedBlocks$ } from "./streams"
+import {
   fromAbortControllerFn,
+  getWithOptionalhash$,
+  getWithRecovery,
   withLazyFollower,
   withOperationInaccessibleRecovery,
 } from "./enhancers"
-import { getRuntime$, getFollow$, getFinalized$, getMetadata$ } from "./streams"
-import {
-  EMPTY,
-  Observable,
-  asapScheduler,
-  filter,
-  from,
-  map,
-  mergeAll,
-  mergeMap,
-  observeOn,
-  pipe,
-  shareReplay,
-  take,
-  withLatestFrom,
-} from "rxjs"
-import {
-  Decoder,
-  getChecksumBuilder,
-  getDynamicBuilder,
-} from "@polkadot-api/metadata-builders"
-import { concatMapEager, shareLatest } from "@/utils"
-import {
-  AccountId,
-  Codec,
-  SS58String,
-  blockHeader,
-} from "@polkadot-api/substrate-bindings"
-import { getBestBlock$, getBestBlocks$ } from "./streams/best-block"
+import { withDefaultValue } from "@/utils"
+import { getRecoveralStorage$ } from "./storage-queries"
 
-export type { BlockHeaderWithHash } from "./streams/best-block"
+export type { RuntimeContext, SystemEvent }
+export type { FollowEventWithRuntime }
 
-export interface RuntimeContext {
-  checksumBuilder: ReturnType<typeof getChecksumBuilder>
-  dynamicBuilder: ReturnType<typeof getDynamicBuilder>
-  events: {
-    key: string
-    dec: Decoder<any>
-  }
-  accountId: Codec<SS58String>
+export type BlockInfo = {
+  hash: string
+  number: number
+  parent: string
 }
 
-export default (chainHead: ChainHead) => () => {
+const toBlockInfo = ({ hash, number, parent }: PinnedBlock): BlockInfo => ({
+  hash,
+  number,
+  parent,
+})
+
+export const getChainHead$ = (chainHead: ChainHead) => {
   const { getFollower, unfollow, follow$ } = getFollow$(chainHead)
-
   const lazyFollower = withLazyFollower(getFollower)
-
-  const { runtime$, candidates$: runtimeCandidates$ } = getRuntime$(follow$)
-  const _finalized$ = getFinalized$(follow$)
-  const bestBlock$ = getBestBlock$(follow$)
-
-  const { withUnpinning$, unpinFromUsage$ } = getWithUnpinning$(
-    _finalized$,
-    follow$,
-    lazyFollower("unpin"),
-  )
-
-  const withOptionalHash$ = getWithOptionalhash$(_finalized$)
   const { withRecovery, withRecoveryFn } = getWithRecovery()
+
+  const blockUsage$ = new Subject<BlockUsageEvent>()
+  const withRefcount =
+    <A extends Array<any>, T>(
+      fn: (hash: string, ...args: A) => Observable<T>,
+    ): ((hash: string, ...args: A) => Observable<T>) =>
+    (hash, ...args) =>
+      new Observable((observer) => {
+        blockUsage$.next({ type: "blockUsage", value: { type: "hold", hash } })
+        const subscription = fn(hash, ...args).subscribe(observer)
+        return () => {
+          blockUsage$.next({
+            type: "blockUsage",
+            value: { type: "release", hash },
+          })
+          subscription.unsubscribe()
+        }
+      })
+
+  const getHeader = (hash: string) =>
+    getFollower().header(hash).then(blockHeader.dec)
+  const unpin = (hashes: string[]) => getFollower().unpin(hashes)
+
   const commonEnhancer = <A extends Array<any>, T>(
     fn: (
       key: string,
       ...args: [...A, ...[abortSignal: AbortSignal]]
     ) => Promise<T>,
   ) =>
-    withOptionalHash$(withUnpinning$(withRecoveryFn(fromAbortControllerFn(fn))))
+    withRefcount(
+      withOperationInaccessibleRecovery(
+        withRecoveryFn(fromAbortControllerFn(fn)),
+      ),
+    )
 
-  const call$ = commonEnhancer(lazyFollower("call"))
-  const body$ = commonEnhancer(lazyFollower("body"))
-  const storage$ = withOperationInaccessibleRecovery(
-    commonEnhancer(lazyFollower("storage")),
+  const _call$ = withOperationInaccessibleRecovery(
+    withRecoveryFn(fromAbortControllerFn(lazyFollower("call"))),
   )
 
-  const lazyHeader = lazyFollower("header")
-  const header$ = pipe(
-    withUnpinning$((hash: string) => from(lazyHeader(hash))),
-    map(blockHeader.dec),
+  const cache = new Map<string, Map<string, Observable<any>>>()
+  const pinnedBlocks$ = getPinnedBlocks$(
+    follow$,
+    getHeader,
+    _call$,
+    blockUsage$,
+    (blocks) => {
+      unpin(blocks)
+      blocks.forEach((hash) => {
+        cache.delete(hash)
+      })
+    },
   )
 
-  const recoveralStorage$ = (
-    hash: string,
-    queries: Array<StorageItemInput>,
-    childTrie: string | null,
-    isHighPriority: boolean,
-  ): Observable<StorageItemResponse> =>
-    new Observable<StorageItemResponse[] | Observable<StorageItemResponse>>(
-      (observer) =>
-        getFollower().storageSubscription(
-          hash,
-          queries,
-          childTrie ?? null,
-          (items) => {
-            observer.next(items)
-          },
-          (error) => {
-            observer.error(error)
-          },
-          () => {
-            observer.complete()
-          },
-          (nDiscarded) => {
-            observer.next(
-              recoveralStorage$(
-                hash,
-                queries.slice(-nDiscarded),
-                childTrie,
-                true,
-              ),
-            )
-          },
+  const getRuntimeContext$ = (hash: string) =>
+    pinnedBlocks$.pipe(
+      take(1),
+      mergeMap(
+        (pinned) => pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
+      ),
+    )
+
+  const withRuntime =
+    <T>(mapper: (x: T) => string) =>
+    (source$: Observable<T>): Observable<[T, RuntimeContext]> =>
+      source$.pipe(
+        concatMapEager((x) =>
+          getRuntimeContext$(mapper(x)).pipe(map((runtime) => [x, runtime])),
         ),
-    ).pipe(mergeAll(), withRecovery(isHighPriority))
+      )
 
+  const upsertCachedStream = <T>(
+    hash: string,
+    key: string,
+    stream: Observable<T>,
+  ): Observable<T> => {
+    const cached = cache.get(hash)?.get(key)
+    if (cached) return cached
+
+    if (!cache.has(hash)) cache.set(hash, new Map())
+
+    const result = stream.pipe(
+      share({
+        connector: () => new ReplaySubject<T>(),
+        resetOnError: true,
+        resetOnRefCountZero: true,
+        resetOnComplete: false,
+      }),
+    )
+    cache.get(hash)!.set(key, result)
+
+    return result
+  }
+
+  const finalized$ = pinnedBlocks$.pipe(
+    distinctUntilChanged((a, b) => a.finalized === b.finalized),
+    map((pinned) => toBlockInfo(pinned.blocks.get(pinned.finalized)!)),
+    shareLatest,
+  )
+
+  const bestBlocks$ = pinnedBlocks$.pipe(
+    distinctUntilChanged(
+      (prev, current) =>
+        prev.finalized === current.finalized && prev.best === current.best,
+    ),
+    scan((acc, pinned) => {
+      let current = pinned.best
+      const result = new Map<string, BlockInfo>()
+      while (current !== pinned.finalized) {
+        const block =
+          acc.get(current) || toBlockInfo(pinned.blocks.get(current)!)
+        result.set(current, block)
+        current = block.parent
+      }
+      return result
+    }, new Map<string, BlockInfo>()),
+    map((x) => [...x.values()]),
+    shareLatest,
+  )
+
+  const metadata$ = pinnedBlocks$.pipe(
+    distinctUntilChanged((a, b) => a.finalizedRuntime === b.finalizedRuntime),
+    switchMap(({ finalizedRuntime: { runtime } }) =>
+      runtime.pipe(
+        map((r) => r.metadata),
+        withDefaultValue(null),
+      ),
+    ),
+    shareLatest,
+  )
+
+  const withOptionalHash$ = getWithOptionalhash$(
+    finalized$.pipe(map((x) => x.hash)),
+  )
+
+  const _body$ = commonEnhancer(lazyFollower("body"))
+  const body$ = (hash: string) => upsertCachedStream(hash, "body", _body$(hash))
+
+  const _storage$ = commonEnhancer(lazyFollower("storage"))
+
+  const storage$ = withOptionalHash$(
+    <Type extends StorageItemInput["type"], T>(
+      hash: string,
+      type: Type,
+      keyMapper: (ctx: RuntimeContext) => string,
+      childTrie: string | null = null,
+      mapper?: (data: StorageResult<Type>, ctx: RuntimeContext) => T,
+    ): Observable<unknown extends T ? StorageResult<Type> : T> =>
+      pinnedBlocks$.pipe(
+        take(1),
+        mergeMap(
+          (pinned) => pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
+        ),
+        mergeMap((ctx) => {
+          const key = keyMapper(ctx)
+          const unMapped$ = upsertCachedStream(
+            hash,
+            `storage-${type}-${key}-${childTrie ?? ""}`,
+            _storage$(hash, type, key, childTrie),
+          )
+
+          return mapper
+            ? upsertCachedStream(
+                hash,
+                `storage-${type}-${key}-${childTrie ?? ""}-dec`,
+                unMapped$.pipe(map((x) => mapper(x, ctx))),
+              )
+            : unMapped$
+        }),
+      ) as Observable<unknown extends T ? StorageResult<Type> : T>,
+  )
+
+  const recoveralStorage$ = getRecoveralStorage$(getFollower, withRecovery)
   const storageQueries$ = withOperationInaccessibleRecovery(
     withOptionalHash$(
-      withUnpinning$(
+      withRefcount(
         (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
           recoveralStorage$(hash, queries, childTrie ?? null, false),
       ),
     ),
   )
 
-  const metadata$ = getMetadata$(call$, runtime$, _finalized$)
-  const runtimeContext$ = runtime$.pipe(
-    map(() => {
-      const result = metadata$.pipe(
-        filter(Boolean),
-        map((metadata): RuntimeContext => {
-          const checksumBuilder = getChecksumBuilder(metadata)
-          const dynamicBuilder = getDynamicBuilder(metadata)
-          const events = dynamicBuilder.buildStorage("System", "Events")
-          return {
-            checksumBuilder,
-            dynamicBuilder,
-            events: {
-              key: events.enc(),
-              dec: events.dec,
-            },
-            accountId: AccountId(dynamicBuilder.ss58Prefix),
-          }
-        }),
-        take(1),
-        shareReplay(1),
-      )
-      result.subscribe()
-      return result
-    }),
-    shareLatest,
+  const header$ = withOptionalHash$(
+    withRefcount((hash: string) => from(getHeader(hash))),
   )
 
   // calling `unfollow` also kills the subscription due to the fact
   // that `follow$` completes, which makes all other streams to
   // also complete (or error, in the case of ongoing operations)
-  metadata$.subscribe()
+  merge(metadata$, bestBlocks$).subscribe()
 
-  const currentFinalized$ = new Observable<
-    Record<string, Observable<RuntimeContext>>
-  >((observer) => {
-    let latestRuntimeCtx: Observable<RuntimeContext>
-    const toRemove = new Set<string>()
-    const result: Record<string, Observable<RuntimeContext>> = {}
-
-    const sub1 = runtimeContext$.subscribe({
-      next(v) {
-        latestRuntimeCtx = v
-      },
-      error(e) {
-        observer.error(e)
-      },
-    })
-
-    const sub2 = unpinFromUsage$.subscribe({
-      next(v) {
-        v.forEach((x) => {
-          if (result[x]) delete result[x]
-          else toRemove.add(x)
-        })
-      },
-      error(e) {
-        observer.error(e)
-      },
-    })
-
-    const sub3 = _finalized$.pipe(observeOn(asapScheduler)).subscribe({
-      next(v) {
-        if (toRemove.has(v)) toRemove.delete(v)
-        else result[v] = latestRuntimeCtx
-        observer.next(result)
-      },
-      error(e) {
-        observer.error(e)
-      },
-      complete() {
-        observer.complete()
-      },
-    })
-
-    return () => {
-      sub3.unsubscribe()
-      sub2.unsubscribe()
-      sub1.unsubscribe()
-    }
-  }).pipe(
-    map((x) => ({ ...x })),
-    shareLatest,
-  )
-
-  const getRuntimeContext$ = withOptionalHash$((hash: string) =>
-    currentFinalized$.pipe(
-      withLatestFrom(runtimeCandidates$),
-      take(1),
-      mergeMap(
-        ([x, runtimeCandidates]) =>
-          x[hash] ??
-          (runtimeCandidates.has(hash) ? EMPTY : Object.values(x).slice(-1)[0]),
-      ),
-    ),
-  )
-  currentFinalized$.subscribe()
-
-  const bestBlocks$ = getBestBlocks$(bestBlock$, _finalized$, header$)
-
-  const finalizedHeader$ = _finalized$.pipe(
-    concatMapEager((hash) =>
-      header$(hash).pipe(map((header) => ({ hash, header }))),
-    ),
-    shareLatest,
-  )
-  finalizedHeader$.subscribe()
-  const finalized$ = finalizedHeader$.pipe(map((x) => x.hash))
+  const eventsAt$ = (hash: string | null) =>
+    storage$(
+      hash,
+      "value",
+      (ctx) => ctx.events.key,
+      null,
+      (x, ctx) => ctx.events.dec(x!),
+    )
 
   return {
-    finalized$,
-    finalizedHeader$,
-    bestBlock$,
-    bestBlocks$,
     follow$,
-    runtime$,
+    finalized$,
+    bestBlocks$,
     metadata$,
+
+    header$,
     body$,
-    call$,
+    call$: withRefcount(_call$),
     storage$,
     storageQueries$,
+    eventsAt$,
+
+    withRuntime,
+    getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
     unfollow,
-    getRuntimeContext$,
   }
 }

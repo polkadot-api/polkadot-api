@@ -127,7 +127,9 @@ const EcdsaKeyring = (): Keyring => {
 //// utils start
 
 const getNonce =
-  (client: ReturnType<typeof getObservableClient>) =>
+  (
+    chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  ) =>
   async (from: Uint8Array) => {
     const lenToDecoder = {
       2: u16.dec,
@@ -135,11 +137,14 @@ const getNonce =
       8: u64.dec,
     }
 
-    const chainHead = client.chainHead$()
-    const at = await firstValueFrom(chainHead.finalized$)
+    const block = await firstValueFrom(chainHead.finalized$)
     return firstValueFrom(
       chainHead
-        .call$(at, "AccountNonceApi_account_nonce", toHex(from.subarray(0, 32)))
+        .call$(
+          block.hash,
+          "AccountNonceApi_account_nonce",
+          toHex(from.subarray(0, 32)),
+        )
         .pipe(
           map((result) => {
             const bytes = fromHex(result)
@@ -169,12 +174,13 @@ export async function run(_nodeName: string, networkInfo: any) {
         const customChainSpec = require(networkInfo.chainSpecPath)
         const provider = scProvider(JSON.stringify(customChainSpec)).relayChain
         const client = getObservableClient(createClient(provider))
+        const chainHead = client.chainHead$()
 
         const chain = await getChain({
           provider,
           keyring,
           txCustomizations: async (ctx) => {
-            const nonce = BigInt(await getNonce(client)(ctx.from))
+            const nonce = BigInt(await getNonce(chainHead)(ctx.from))
 
             return {
               userSignedExtensionsData: {
@@ -268,7 +274,7 @@ export async function run(_nodeName: string, networkInfo: any) {
         )
         await lastValueFrom(tx$)
 
-        client.chainHead$().unfollow()
+        chainHead.unfollow()
         client.destroy()
       })
 

@@ -1,5 +1,7 @@
 import type { SubstrateClient } from "@polkadot-api/substrate-client"
-import getChainHead$ from "./chainHead/chainHead"
+export type * from "./chainHead"
+
+import { getChainHead$ } from "./chainHead"
 import getTx$ from "./tx"
 
 export const getObservableClient = ({
@@ -7,7 +9,7 @@ export const getObservableClient = ({
   transaction,
   destroy,
 }: SubstrateClient) => ({
-  chainHead$: getChainHead$(chainHead),
+  chainHead$: () => getChainHead$(chainHead),
   tx$: getTx$(transaction),
   destroy,
 })

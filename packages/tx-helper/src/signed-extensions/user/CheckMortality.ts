@@ -38,7 +38,7 @@ export const CheckMortality: GetUserSignedExtension<"CheckMortality"> = (
   ctx,
 ) => {
   const blockNumber$ = ctx.chainHead
-    .storage$(ctx.at, "value", SystemNumberKey, null)
+    .storage$(ctx.at, "value", () => SystemNumberKey, null)
     .pipe(map((x) => SystemNumber.dec(x!)))
 
   return {

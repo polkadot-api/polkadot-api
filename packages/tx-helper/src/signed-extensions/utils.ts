@@ -18,7 +18,7 @@ const genesisHashStorageKey = Storage("System")("BlockHash", noop, [
 
 export const genesisHashFromCtx = (ctx: ChainExtensionCtx) =>
   ctx.chainHead
-    .storage$(ctx.at, "value", genesisHashStorageKey, null)
+    .storage$(ctx.at, "value", () => genesisHashStorageKey, null)
     .pipe(map((result) => fromHex(result!)))
 
 export const systemVersionProp$ = (propName: string, metadata: V14) => {

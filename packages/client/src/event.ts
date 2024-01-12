@@ -1,8 +1,11 @@
 import { PlainDescriptor } from "@polkadot-api/substrate-bindings"
 import { Observable, firstValueFrom, map, mergeMap } from "rxjs"
-import { Storage$ } from "./storage"
 import { concatMapEager, shareLatest } from "./utils"
-import { RuntimeContext } from "./observableClient/chainHead/chainHead"
+import {
+  getObservableClient,
+  BlockInfo,
+  RuntimeContext,
+} from "./observableClient"
 
 export type EventPhase =
   | { tag: "ApplyExtrinsic"; value: number }
@@ -11,7 +14,7 @@ export type EventPhase =
 
 export type EvWatch<T> = (filter?: (value: T) => boolean) => Observable<{
   meta: {
-    blockHash: string
+    block: BlockInfo
     phase: EventPhase
   }
   payload: T
@@ -20,7 +23,7 @@ export type EvWatch<T> = (filter?: (value: T) => boolean) => Observable<{
 export type EvPull<T> = () => Promise<
   Array<{
     meta: {
-      blockHash: string
+      block: BlockInfo
       phase: EventPhase
     }
     payload: T
@@ -51,46 +54,35 @@ export const createEventEntry = <T>(
   checksum: PlainDescriptor<T>,
   pallet: string,
   name: string,
-  getRuntimeContext$: (blockHash: string | null) => Observable<RuntimeContext>,
-  finalized: Observable<string>,
-  storage$: Storage$,
+  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ): EvClient<T> => {
-  const shared$ = finalized.pipe(
-    concatMapEager((block) =>
-      getRuntimeContext$(block).pipe(map((context) => ({ context, block }))),
-    ),
-    concatMapEager(
-      ({
-        block,
-        context: {
-          events: { key, dec },
-          checksumBuilder,
-        },
-      }) => {
-        const actualChecksum = checksumBuilder.buildEvent(pallet, name)
+  const checksumCheck = (ctx: RuntimeContext) => {
+    const actualChecksum = ctx.checksumBuilder.buildEvent(pallet, name)
+    if (checksum !== actualChecksum)
+      throw new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
+  }
 
-        if (checksum !== actualChecksum)
-          throw new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
-
-        return storage$(block, "value", key, null).pipe(
-          map((x) => {
-            const events = dec(x!) as Array<SystemEvent>
-            const winners = events.filter(
-              (e) => e.event.tag === pallet && e.event.value.tag === name,
-            )
-            return winners.map((x) => {
-              return {
-                meta: {
-                  phase: x.phase,
-                  blockHash: block,
-                },
-                payload: x.event.value.value,
-              }
-            })
-          }),
-        )
-      },
-    ),
+  const shared$ = chainHead.finalized$.pipe(
+    chainHead.withRuntime((x) => x.hash),
+    concatMapEager(([block, ctx]) => {
+      checksumCheck(ctx)
+      return chainHead.eventsAt$(block.hash).pipe(
+        map((events) => {
+          const winners = events.filter(
+            (e) => e.event.tag === pallet && e.event.value.tag === name,
+          )
+          return winners.map((x) => {
+            return {
+              meta: {
+                phase: x.phase,
+                block,
+              },
+              payload: x.event.value.value,
+            }
+          })
+        }),
+      )
+    }),
     shareLatest,
   )
 

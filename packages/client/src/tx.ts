@@ -1,5 +1,4 @@
 import type { SS58String, TxDescriptor } from "@polkadot-api/substrate-bindings"
-import type { Storage$ } from "./storage"
 import type {
   TxBestChainBlockIncluded,
   TxBroadcasted,
@@ -16,23 +15,7 @@ import {
   take,
 } from "rxjs"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
-import { getObservableClient } from "./observableClient"
-import { RuntimeContext } from "./observableClient/chainHead/chainHead"
-
-type SystemEvent = {
-  phase:
-    | { tag: "ApplyExtrinsic"; value: number }
-    | { tag: "Finalization" }
-    | { tag: "Initialization" }
-  event: {
-    tag: string
-    value: {
-      tag: string
-      value: any
-    }
-  }
-  topics: Array<any>
-}
+import { getObservableClient, SystemEvent } from "./observableClient"
 
 type TxSuccess = {
   ok: boolean
@@ -87,49 +70,37 @@ export const createTxEntry = <Args extends Array<any>>(
   descriptor: TxDescriptor<Args>,
   pallet: string,
   name: string,
-  getRuntimeContext$: (blockHash: string | null) => Observable<RuntimeContext>,
+  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   client: ReturnType<typeof getObservableClient>,
-  storage$: Storage$,
   signer: (from: string, callData: Uint8Array) => Promise<Uint8Array>,
 ): TxClient<Args> => {
-  const getCallDataAndEventDec$ = (...decodedArgs: Args) =>
-    getRuntimeContext$(null).pipe(
-      map(({ events, checksumBuilder, dynamicBuilder }) => {
+  const getCallData$ = (...decodedArgs: Args) =>
+    chainHead.getRuntimeContext$(null).pipe(
+      map(({ checksumBuilder, dynamicBuilder }) => {
         const checksum = checksumBuilder.buildCall(pallet, name)
         if (checksum !== descriptor)
           throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
         const { location, args } = dynamicBuilder.buildCall(pallet, name)
-        return {
-          callData: mergeUint8(new Uint8Array(location), args.enc(decodedArgs)),
-          events,
-        }
+        return mergeUint8(new Uint8Array(location), args.enc(decodedArgs))
       }),
     )
 
   const getCallData: TxCall<Args> = (...args) =>
-    firstValueFrom(getCallDataAndEventDec$(...args)).then((x) =>
-      toHex(x.callData),
-    )
+    firstValueFrom(getCallData$(...args)).then(toHex)
 
   const getTx: TxSigned<Args> = (from, ...args) =>
     firstValueFrom(
-      getCallDataAndEventDec$(...args).pipe(
-        mergeMap(({ callData }) => signer(from, callData)),
+      getCallData$(...args).pipe(
+        mergeMap((callData) => signer(from, callData)),
         map(toHex),
       ),
     )
 
   const submit: TxFunction<Args> = async (from, ...args) => {
-    const [tx, { key, dec }] = await firstValueFrom(
-      getCallDataAndEventDec$(...args).pipe(
-        mergeMap(({ callData, events }) =>
-          signer(from, callData).then((result) => ({
-            result,
-            events,
-          })),
-        ),
-        map((x) => [toHex(x.result), x.events] as const),
+    const tx = await firstValueFrom(
+      getCallData$(...args).pipe(
+        mergeMap((callData) => signer(from, callData).then(toHex)),
       ),
     )
 
@@ -142,9 +113,7 @@ export const createTxEntry = <Args extends Array<any>>(
         throw new Error("Dropped")
       case "finalized": {
         const systemEvents = await firstValueFrom(
-          storage$(result.block.hash, "value", key, null).pipe(
-            map((x) => dec(x!)),
-          ),
+          chainHead.eventsAt$(result.block.hash),
         )
 
         return getTxSuccessFromSystemEvents(
@@ -158,15 +127,10 @@ export const createTxEntry = <Args extends Array<any>>(
   }
 
   const submit$: TxObservable<Args> = (from, ...args) =>
-    getCallDataAndEventDec$(...args).pipe(
-      mergeMap(({ callData, events }) =>
-        signer(from, callData).then((result) => ({
-          result,
-          events,
-        })),
-      ),
+    getCallData$(...args).pipe(
+      mergeMap((callData) => signer(from, callData)),
       take(1),
-      mergeMap(({ result, events: { key, dec } }) => {
+      mergeMap((result) => {
         return client.tx$(toHex(result)).pipe(
           mergeMap((result) => {
             switch (result.type) {
@@ -175,8 +139,7 @@ export const createTxEntry = <Args extends Array<any>>(
               case "dropped":
                 throw new Error("Dropped")
               case "finalized": {
-                return storage$(result.block.hash, "value", key, null).pipe(
-                  map((x) => dec(x!)),
+                return chainHead.eventsAt$(result.block.hash).pipe(
                   map((events) => ({
                     ...result,
                     ...getTxSuccessFromSystemEvents(

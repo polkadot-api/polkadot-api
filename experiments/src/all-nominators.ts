@@ -30,7 +30,7 @@ const chainHead = chainHead$()
 const allNominators$ = chainHead.storage$(
   null,
   "descendantsValues",
-  "0x5f3e4907f716ac89b6347d15ececedca88dcde934c658227ee1dfafcd6e16903",
+  () => "0x5f3e4907f716ac89b6347d15ececedca88dcde934c658227ee1dfafcd6e16903",
   null,
 )
 

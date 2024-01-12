@@ -8,6 +8,7 @@ import { StorageEntry } from "./storage"
 import { TxClient } from "./tx"
 import { EvClient } from "./event"
 import { Observable } from "rxjs"
+import { BlockInfo } from "./observableClient"
 
 export type CreateTx = (
   publicKey: Uint8Array,
@@ -71,11 +72,12 @@ export type CreateClient = <T extends Record<string, Descriptors>>(
   connect: Connect,
   descriptors: T,
 ) => {
-  finalized$: Observable<string>
-} & {
   [K in keyof T]: {
     query: StorageApi<QueryFromDescriptors<T[K]>>
     tx: TxApi<TxFromDescriptors<T[K]>>
     event: EvApi<EventsFromDescriptors<T[K]>>
   }
+} & {
+  finalized$: Observable<BlockInfo>
+  bestBlocks$: Observable<BlockInfo[]>
 }

@@ -4,13 +4,10 @@ import {
   distinctUntilChanged,
   exhaustMap,
   map,
-  mergeMap,
-  withLatestFrom,
 } from "rxjs"
 import { firstValueFromWithSignal } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
-import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
-import { RuntimeContext } from "./observableClient/chainHead/chainHead"
+import { getObservableClient, RuntimeContext } from "./observableClient"
 
 type CallOptions = Partial<{
   at: string
@@ -68,127 +65,87 @@ export const createStorageEntry = (
   checksum: string,
   pallet: string,
   name: string,
-  getRuntimeContext$: (hash: string | null) => Observable<RuntimeContext>,
-  storage$: Storage$,
-  finalized$: Observable<string>,
+  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ) => {
-  const storageCall = <T, Type extends StorageItemInput["type"]>(
-    at: string | null,
-    mapper: (
-      codecs: ReturnType<ReturnType<typeof getDynamicBuilder>["buildStorage"]>,
-    ) => [
-      block: string | null,
-      args: [type: Type, key: string, childTrie: string | null],
-      decoder: (input: StorageResult<Type>) => T,
-    ],
-    signal?: AbortSignal,
-  ): Promise<T> => {
-    const request$ = getRuntimeContext$(at).pipe(
-      mergeMap((descriptors) => {
-        const actualChecksum = descriptors.checksumBuilder.buildStorage(
-          pallet,
-          name,
-        )
-        const codecs = descriptors.dynamicBuilder.buildStorage(pallet, name)
-        if (checksum !== actualChecksum)
-          throw new Error(
-            `Incompatible runtime entry Storage(${pallet}.${name})`,
-          )
+  const checksumCheck = (ctx: RuntimeContext) => {
+    const actualChecksum = ctx.checksumBuilder.buildStorage(pallet, name)
+    if (checksum !== actualChecksum)
+      throw new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
+  }
 
-        const [block, args, decoder] = mapper(codecs)
-        return storage$(block, ...args).pipe(map(decoder))
+  const invalidArgs = (args: Array<any>) =>
+    new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
+
+  const watchValue = (...args: Array<any>) =>
+    chainHead.finalized$.pipe(
+      debounceTime(0),
+      chainHead.withRuntime((x) => x.hash),
+      exhaustMap(([block, ctx]) => {
+        checksumCheck(ctx)
+        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+        return chainHead
+          .storage$(block.hash, "value", () => codecs.enc(...args))
+          .pipe(
+            distinctUntilChanged(),
+            map((val) => (val === null ? codecs.fallback : codecs.dec(val))),
+          )
       }),
     )
-    return firstValueFromWithSignal(request$, signal)
-  }
-
-  const watchValue = (...args: Array<any>) => {
-    const descriptors$ = finalized$.pipe(
-      mergeMap(getRuntimeContext$),
-      distinctUntilChanged(),
-      map((descriptors) =>
-        descriptors.dynamicBuilder.buildStorage(pallet, name),
-      ),
-    )
-
-    return finalized$.pipe(
-      debounceTime(0),
-      withLatestFrom(descriptors$),
-      exhaustMap(([latest, codecs]) =>
-        storage$(latest, "value", codecs.enc(...args), null).pipe(
-          map((val) => ({ val, codecs })),
-        ),
-      ),
-      distinctUntilChanged((a, b) => a.val === b.val),
-      map(({ codecs, val }) =>
-        val === null ? codecs.fallback : codecs.dec(val),
-      ),
-    )
-  }
 
   const getValue = (...args: Array<any>) => {
-    const invalidArgs = () =>
-      new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
-
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    return storageCall(
-      at ?? null,
-      (codecs) => {
+    const result$ = chainHead.storage$(
+      at,
+      "value",
+      (ctx) => {
+        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         const actualArgs = args.length === codecs.len ? args : args.slice(0, -1)
-
-        if (args !== actualArgs && !isLastArgOptional) throw invalidArgs()
-
-        const key = codecs.enc(...actualArgs)
-        return [
-          at,
-          ["value", key, null],
-          (response: StorageResult<"value">) =>
-            response === null
-              ? codecs.fallback
-              : codecs.dec(response as string),
-        ]
+        if (args !== actualArgs && !isLastArgOptional) throw invalidArgs(args)
+        checksumCheck(ctx)
+        return codecs.enc(...actualArgs)
       },
-      signal,
+      null,
+      (data, ctx) => {
+        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+        return data === null ? codecs.fallback : codecs.dec(data)
+      },
     )
+    return firstValueFromWithSignal(result$, signal)
   }
 
   const getEntries = (...args: Array<any>) => {
-    const invalidArgs = () =>
-      new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
-
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    return storageCall(
+    const result$ = chainHead.storage$(
       at,
-      (codecs) => {
-        if (args.length > codecs.len) throw invalidArgs()
-
+      "descendantsValues",
+      (ctx) => {
+        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+        if (args.length > codecs.len) throw invalidArgs(args)
         const actualArgs =
           args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
-
         if (args.length === codecs.len && actualArgs === args)
-          throw invalidArgs()
-
-        return [
-          at,
-          ["descendantsValues", codecs.enc(...actualArgs), null],
-          (x: StorageResult<"descendantsValues">) => {
-            return x.map(({ key, value }) => ({
-              keyArgs: codecs.keyDecoder(key),
-              value: codecs.dec(value),
-            }))
-          },
-        ]
+          throw invalidArgs(args)
+        checksumCheck(ctx)
+        return codecs.enc(...actualArgs)
       },
-      signal,
+      null,
+      (values, ctx) => {
+        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+        return values.map(({ key, value }) => ({
+          keyArgs: codecs.keyDecoder(key),
+          value: codecs.dec(value),
+        }))
+      },
     )
+    return firstValueFromWithSignal(result$, signal)
   }
 
   const getValues = (keyArgs: Array<Array<any>>, options?: CallOptions) =>

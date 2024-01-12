@@ -38,9 +38,7 @@ const createNamespace = (
         stgEntries[name],
         pallet,
         name,
-        chainHead.getRuntimeContext$,
-        chainHead.storage$,
-        chainHead.finalized$,
+        chainHead,
       )
     }
   }
@@ -54,9 +52,8 @@ const createNamespace = (
         txEntries[name],
         pallet,
         name,
-        chainHead.getRuntimeContext$,
+        chainHead,
         client,
-        chainHead.storage$,
         createTxFromAddress,
       )
     }
@@ -71,9 +68,7 @@ const createNamespace = (
         evEntries[name],
         pallet,
         name,
-        chainHead.getRuntimeContext$,
-        chainHead.finalized$,
-        chainHead.storage$,
+        chainHead,
       )
     }
   }
@@ -104,7 +99,6 @@ export const createClient: CreateClient = (connect, descriptors) => {
 
   return {
     finalized$: chainHead.finalized$,
-    bestBlock$: chainHead.bestBlock$,
     bestBlocks$: chainHead.bestBlocks$,
     ...mapObject(descriptors, (des) =>
       createNamespace(des, createTxFromAddress, chainHead, client),
