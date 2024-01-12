@@ -1,5 +1,5 @@
 import { UserSignedExtensions, getTxCreator } from "@polkadot-api/tx-helper"
-import { ScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { WellKnownChain } from "@polkadot-api/sc-provider"
 import {
   AccountId,
   Enum,

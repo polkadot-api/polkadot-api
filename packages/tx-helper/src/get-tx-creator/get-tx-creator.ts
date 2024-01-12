@@ -25,9 +25,9 @@ export const getTxCreator: GetTxCreator = (chainProvider, onCreateTx) => {
     filter(Boolean),
     withLatestFrom(chainHead.finalized$),
     take(1),
-    map(([metadata, at]) => {
+    map(([metadata, block]) => {
       const signedExtensions = getRelevantSignedExtensions(metadata)
-      return { metadata, at, signedExtensions }
+      return { metadata, at: block.hash, signedExtensions }
     }),
   )
 

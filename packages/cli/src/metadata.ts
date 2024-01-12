@@ -11,23 +11,22 @@ import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
 import { WebSocketProvider } from "./websocket-provider"
 import { getObservableClient } from "@polkadot-api/client"
-import { firstValueFrom, map, switchMap, take, withLatestFrom } from "rxjs"
+import { firstValueFrom, map, switchMap, take } from "rxjs"
 
 type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
 
 const getMetadataCall = async (provider: ConnectProvider) => {
   const client = getObservableClient(createClient(provider))
-  const chainHead = client.chainHead$()
+  const { finalized$, call$, unfollow } = client.chainHead$()
   const metadata = await firstValueFrom(
-    chainHead.runtime$.pipe(
-      withLatestFrom(chainHead.finalized$),
+    finalized$.pipe(
       take(1),
-      switchMap(([, hash]) => chainHead.call$(hash, "Metadata_metadata", "")),
+      switchMap((block) => call$(block.hash, "Metadata_metadata", "")),
       map(fromHex),
     ),
   )
 
-  chainHead.unfollow()
+  unfollow()
   client.destroy()
 
   return metadata
