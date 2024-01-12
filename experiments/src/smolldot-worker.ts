@@ -3,10 +3,11 @@ import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 
 const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
-const { ScProvider } = require("@polkadot-api/sc-provider")
+const { getScProvider } = require("@polkadot-api/sc-provider")
 
 const chain = workerData
-const getProvider = ScProvider(chain)
+const scProvider = getScProvider()
+const getProvider = scProvider(chain).relayChain
 
 if (!parentPort) {
   throw new Error("no parent port")

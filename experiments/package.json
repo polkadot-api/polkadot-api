@@ -6,14 +6,14 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "tsup-node src/main.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
-    "best-blocks": "tsup-node src/best-blocks.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/best-blocks.js\"",
+    "start": "tsup-node src/main.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
+    "best-blocks": "tsup-node src/best-blocks.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/best-blocks.js\"",
     "nominators": "tsup-node src/all-nominators.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\"",
     "viewer": "tsup-node src/viewer.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/viewer.js\"",
     "tx": "tsup-node src/tx.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/tx.js\"",
     "headers": "tsup-node src/headers.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/headers.js\"",
     "codegen": "polkadot-api",
-    "client": "tsup-node src/client.ts --watch --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/client.js\""
+    "client": "tsup-node src/client.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/client.js\""
   },
   "keywords": [],
   "author": "",
