@@ -15,6 +15,7 @@ import {
   TxFromDescriptors,
 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
+import { getRuntimeApi } from "./runtime"
 
 const createNamespace = (
   descriptors: Descriptors,
@@ -100,6 +101,7 @@ export const createClient: CreateClient = (connect, descriptors) => {
   return {
     finalized$: chainHead.finalized$,
     bestBlocks$: chainHead.bestBlocks$,
+    runtime: getRuntimeApi(descriptors, chainHead),
     ...mapObject(descriptors, (des) =>
       createNamespace(des, createTxFromAddress, chainHead, client),
     ),
