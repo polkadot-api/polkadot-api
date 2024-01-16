@@ -5,6 +5,7 @@ import { createClient } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
 import ksm, { Queries } from "./descriptors/ksm"
+import { Binary } from "@polkadot-api/substrate-bindings"
 const scProvider = getScProvider()
 
 const polkadotChain = await getChain({
@@ -17,6 +18,9 @@ const collectives = relayChain
 
 const latestRuntime = await relayChain.runtime.latest()
 
+const identityDataToString = (value: string | Binary | undefined) =>
+  value instanceof Binary ? value.asText() : value ?? ""
+
 function mapRawIdentity(
   rawIdentity?: Queries["Identity"]["IdentityOf"]["Value"],
 ) {
@@ -27,14 +31,15 @@ function mapRawIdentity(
   } = rawIdentity
 
   const additionalInfo = Object.fromEntries(
-    additional.map(([key, value]) => {
-      return [key.value!, value.value!]
-    }),
+    additional.map(([key, { value }]) => [
+      identityDataToString(key.value!),
+      identityDataToString(value),
+    ]),
   )
 
   const info = Object.fromEntries(
     Object.entries(rawInfo)
-      .map(([key, value]) => [key, value.value])
+      .map(([key, { value }]) => [key, identityDataToString(value as Binary)])
       .filter(([, value]) => value),
   )
 
