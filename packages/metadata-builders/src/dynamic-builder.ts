@@ -4,7 +4,7 @@ import { getLookupFn } from "./lookups"
 import * as scale from "@polkadot-api/substrate-bindings"
 import { withCache } from "./with-cache"
 
-const _bytes = scale.Hex()
+const _bytes = scale.Bin()
 
 const isBytes = (input: LookupEntry) =>
   input.type === "primitive" && input.value === "u8"
@@ -50,7 +50,7 @@ const _buildCodec = (
     if (isBytes(input.value)) {
       return input.len === 32 && (input.id === 0 || input.id === 1)
         ? _accountId
-        : scale.Hex(input.len)
+        : scale.Bin(input.len)
     }
 
     return buildVector(input.value, input.len)
@@ -61,16 +61,11 @@ const _buildCodec = (
   if (input.type === "struct") return buildStruct(input.value)
 
   // it has to be an enum by now
-  const dependencies = Object.entries(input.value).map(([k, v]) => {
+  const dependencies = Object.values(input.value).map((v) => {
     if (v.type === "primitive") return scale._void
-    if (v.type === "tuple" && v.value.length === 1) {
-      const innerVal = v.value[0]
-      return k.startsWith("Raw") &&
-        innerVal.type === "array" &&
-        isBytes(innerVal.value)
-        ? scale.fixedStr(innerVal.len)
-        : buildNextCodec(innerVal)
-    }
+    if (v.type === "tuple" && v.value.length === 1)
+      return buildNextCodec(v.value[0])
+
     return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
   })
 

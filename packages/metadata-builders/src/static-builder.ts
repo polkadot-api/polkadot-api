@@ -104,12 +104,13 @@ const _buildSyntax = (
     input.value.type === "primitive" &&
     input.value.value === "u8"
   ) {
-    declarations.imports.add("Hex")
+    declarations.imports.add("Bin")
     declarations.typeImports.add("HexString")
+    declarations.typeImports.add("Binary")
     const variable = {
       id: "_bytesSeq",
-      value: "Hex()",
-      types: "HexString",
+      value: "Bin()",
+      types: "Binary",
       directDependencies: new Set<string>(),
     }
 
@@ -190,14 +191,15 @@ const _buildSyntax = (
         return id
       }
 
-      declarations.imports.add("Hex")
+      declarations.imports.add("Bin")
       declarations.variables.set(varId, {
         id: varId,
-        value: `Hex(${input.len})`,
-        types: "HexString",
+        value: `Bin(${input.len})`,
+        types: "Binary",
         directDependencies: new Set<string>(),
       })
       declarations.typeImports.add("HexString")
+      declarations.typeImports.add("Binary")
       return varId
     }
 
@@ -220,27 +222,7 @@ const _buildSyntax = (
     const varName = toCamelCase(varId, key)
     if (value.type === "tuple") {
       if (value.value.length === 1) {
-        let result: string
-        const innerVal = value.value[0]
-        if (
-          key.startsWith("Raw") &&
-          innerVal.type === "array" &&
-          isBytes(innerVal.value)
-        ) {
-          const id = `_fixedStr${innerVal.len}`
-          result = id
-          if (!declarations.variables.has(id)) {
-            declarations.imports.add("fixedStr")
-            declarations.variables.set(id, {
-              id,
-              value: `fixedStr(${innerVal.len})`,
-              types: "string",
-              directDependencies: new Set(),
-            })
-          }
-        } else {
-          result = buildNextSyntax(value.value[0])
-        }
+        let result: string = buildNextSyntax(value.value[0])
 
         if (!declarations.variables.has(varName)) {
           declarations.variables.set(varName, {
