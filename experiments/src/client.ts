@@ -15,6 +15,8 @@ const polkadotChain = await getChain({
 const relayChain = createClient(polkadotChain.connect, { ksm })
 const collectives = relayChain
 
+const latestRuntime = await relayChain.runtime.latest()
+
 function mapRawIdentity(
   rawIdentity?: Queries["Identity"]["IdentityOf"]["Value"],
 ) {
@@ -55,3 +57,10 @@ const relevantIdentities =
     )
 
 relevantIdentities.forEach((identity) => console.log(identity))
+
+console.log(latestRuntime.constants.ksm.System.Version.spec_name)
+console.log(latestRuntime.constants.ksm.System.Version.spec_version)
+console.log(
+  "Is Balances.transfer_allow_death compatible:",
+  latestRuntime.isCompatible.ksm.tx.Balances.transfer_allow_death,
+)

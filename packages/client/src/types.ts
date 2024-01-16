@@ -9,6 +9,7 @@ import { TxClient } from "./tx"
 import { EvClient } from "./event"
 import { Observable } from "rxjs"
 import { BlockInfo } from "./observableClient"
+import { RuntimeApi } from "./runtime"
 
 export type CreateTx = (
   publicKey: Uint8Array,
@@ -80,4 +81,5 @@ export type CreateClient = <T extends Record<string, Descriptors>>(
 } & {
   finalized$: Observable<BlockInfo>
   bestBlocks$: Observable<BlockInfo[]>
+  runtime: RuntimeApi<T>
 }

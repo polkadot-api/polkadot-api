@@ -176,16 +176,15 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     shareLatest,
   )
 
-  const metadata$ = pinnedBlocks$.pipe(
+  const runtime$ = pinnedBlocks$.pipe(
     distinctUntilChanged((a, b) => a.finalizedRuntime === b.finalizedRuntime),
     switchMap(({ finalizedRuntime: { runtime } }) =>
-      runtime.pipe(
-        map((r) => r.metadata),
-        withDefaultValue(null),
-      ),
+      runtime.pipe(withDefaultValue(null)),
     ),
     shareLatest,
   )
+
+  const metadata$ = runtime$.pipe(map((x) => x?.metadata ?? null))
 
   const withOptionalHash$ = getWithOptionalhash$(
     finalized$.pipe(map((x) => x.hash)),
@@ -245,7 +244,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   // calling `unfollow` also kills the subscription due to the fact
   // that `follow$` completes, which makes all other streams to
   // also complete (or error, in the case of ongoing operations)
-  merge(metadata$, bestBlocks$).subscribe()
+  merge(runtime$, bestBlocks$).subscribe()
 
   const eventsAt$ = (hash: string | null) =>
     storage$(
@@ -260,6 +259,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     follow$,
     finalized$,
     bestBlocks$,
+    runtime$,
     metadata$,
 
     header$,
