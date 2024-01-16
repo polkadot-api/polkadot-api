@@ -3,11 +3,11 @@
   "extends": ["//"],
   "pipeline": {
     "build": {
-      "inputs": ["tsconfig.build.json"],
+      "inputs": ["tsconfig.build.json", "tsconfig.build.json", "src/**"],
       "outputs": ["bin/**"]
     },
     "test": {
-      "inputs": ["vitest.config.ts"]
+      "inputs": ["vitest.config.ts", "test/**"]
     }
   }
 }
