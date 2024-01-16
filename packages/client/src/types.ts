@@ -1,6 +1,8 @@
 import {
+  BlockHeader,
   Descriptors,
   EventsFromDescriptors,
+  HexString,
   QueryFromDescriptors,
   TxFromDescriptors,
 } from "@polkadot-api/substrate-bindings"
@@ -82,4 +84,7 @@ export type CreateClient = <T extends Record<string, Descriptors>>(
   finalized$: Observable<BlockInfo>
   bestBlocks$: Observable<BlockInfo[]>
   runtime: RuntimeApi<T>
+  getBlockHeader: (hash?: string) => Promise<BlockHeader>
+  getBlockBody: (hash: string) => Observable<HexString[]>
+  destroy: () => void
 }

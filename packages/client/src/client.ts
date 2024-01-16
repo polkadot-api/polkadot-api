@@ -105,5 +105,12 @@ export const createClient: CreateClient = (connect, descriptors) => {
     ...mapObject(descriptors, (des) =>
       createNamespace(des, createTxFromAddress, chainHead, client),
     ),
+    getBlockHeader: (hash?: string) =>
+      firstValueFrom(chainHead.header$(hash ?? null)),
+    getBlockBody: chainHead.body$,
+    destroy: () => {
+      chainHead.unfollow()
+      client.destroy()
+    },
   } as any
 }
