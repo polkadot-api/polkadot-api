@@ -43,23 +43,25 @@ type PlainRuntime<A extends Record<string, Record<string, any>>> = {
 }
 
 export interface Runtime<T extends Record<string, Descriptors>> {
-  version: string
   constants: {
     [K in keyof T]: ConstFromDescriptors<T[K]>
   }
-  isCompatible: {
-    [K in keyof T]: {
-      query: StorageRuntime<QueryFromDescriptors<T[K]>>
-      tx: TxRuntime<TxFromDescriptors<T[K]>>
-      event: PlainRuntime<EventsFromDescriptors<T[K]>>
-      const: PlainRuntime<ConstFromDescriptors<T[K]>>
-    }
-  }
+  isCompatible: (
+    cb: (api: {
+      [K in keyof T]: {
+        query: StorageRuntime<QueryFromDescriptors<T[K]>>
+        tx: TxRuntime<TxFromDescriptors<T[K]>>
+        event: PlainRuntime<EventsFromDescriptors<T[K]>>
+        const: PlainRuntime<ConstFromDescriptors<T[K]>>
+      }
+    }) => boolean,
+  ) => boolean
 }
 
-export interface RuntimeApi<T extends Record<string, Descriptors>> {
+export type RuntimeApi<T extends Record<string, Descriptors>> = Observable<
+  Runtime<T>
+> & {
   latest: () => Promise<Runtime<T>>
-  listen: Observable<Runtime<T>>
 }
 
 const createRuntime = <T extends Record<string, Descriptors>>(
@@ -112,12 +114,15 @@ const createRuntime = <T extends Record<string, Descriptors>>(
         ),
     )
 
-  const isCompatible = mapObject(descriptors, (inner) => ({
+  const isCompatibleApi = mapObject(descriptors, (inner) => ({
     query: isCompatibleMapper(0, "buildStorage", inner),
     tx: isCompatibleMapper(1, "buildCall", inner),
     event: isCompatibleMapper(2, "buildEvent", inner),
     const: isCompatibleMapper(4, "buildConstant", inner),
   }))
+
+  const isCompatible: (cb: (api: any) => boolean) => boolean = (cb) =>
+    cb(isCompatibleApi)
 
   return {
     constants,
@@ -147,11 +152,11 @@ export const getRuntimeApi = <T extends Record<string, Descriptors>>(
     }
   })
 
-  return {
-    latest: () => latestRuntime,
-    listen: chainHead.runtime$.pipe(
-      filter(Boolean),
-      map((x) => createRuntime(descriptors, x)),
-    ),
-  }
+  const result = chainHead.runtime$.pipe(
+    filter(Boolean),
+    map((x) => createRuntime(descriptors, x)),
+  ) as RuntimeApi<T>
+  result.latest = () => latestRuntime
+
+  return result
 }

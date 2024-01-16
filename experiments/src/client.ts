@@ -13,10 +13,8 @@ const polkadotChain = await getChain({
   keyring: { getPairs: () => [], onKeyPairsChanged: () => noop },
 })
 
-const relayChain = createClient(polkadotChain.connect, { ksm })
+const relayChain = createClient(polkadotChain.connect, { ksm, ksm1_2: ksm })
 const collectives = relayChain
-
-const latestRuntime = await relayChain.runtime.latest()
 
 const identityDataToString = (value: string | Binary | undefined) =>
   value instanceof Binary ? value.asText() : value ?? ""
@@ -63,9 +61,11 @@ const relevantIdentities =
 
 relevantIdentities.forEach((identity) => console.log(identity))
 
-console.log(latestRuntime.constants.ksm.System.Version.spec_name)
-console.log(latestRuntime.constants.ksm.System.Version.spec_version)
+const runtime = await relayChain.runtime.latest()
+
+console.log(runtime.constants.ksm.System.Version.spec_name)
+console.log(runtime.constants.ksm.System.Version.spec_version)
 console.log(
   "Is Balances.transfer_allow_death compatible:",
-  latestRuntime.isCompatible.ksm.tx.Balances.transfer_allow_death,
+  runtime.isCompatible((api) => api.ksm.tx.Balances.transfer_allow_death),
 )
