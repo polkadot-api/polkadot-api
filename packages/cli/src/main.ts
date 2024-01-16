@@ -75,9 +75,9 @@ if (descriptorMetadata) {
         key,
         descriptorData.selectOnly,
       )
-      process.exit(0)
     }
   }
+  if (!options.interactive) process.exit(0)
 }
 
 if (!metadata) {
