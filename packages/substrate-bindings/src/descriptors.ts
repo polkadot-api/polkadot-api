@@ -1,3 +1,5 @@
+import { Binary } from "./codecs"
+
 export type PlainDescriptor<T> = string & { _type?: T }
 export type StorageDescriptor<
   Args extends Array<any>,
@@ -33,6 +35,7 @@ type Anonymize<T> = T extends
   | undefined
   | null
   | symbol
+  | Binary
   ? T
   : T extends (...args: infer Args) => infer R
     ? (...args: Anonymize<Args>) => Anonymize<R>
