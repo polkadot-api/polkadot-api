@@ -150,7 +150,7 @@ export const createDescriptorsFile = async (
   const descriptorCodegen =
     knownImports
       .concat(
-        `import type {${keyTypesImports.join(", ")}} from "./${key}-types.ts"`,
+        `import type {${keyTypesImports.join(", ")}} from "./${key}-types"`,
       )
       .join(";\n") +
     "\n\n" +
