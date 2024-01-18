@@ -77,6 +77,12 @@ export const createClient = (gProvider: ConnectProvider): Client => {
       ;({ subscription, result, error } = params)
       if (!subscription || (!error && !Object.hasOwn(params, "result"))) throw 0
 
+      if (!subscriptions.has(subscription)) {
+        console.debug(
+          `Unknown subscription "${subscription}" seen on message: \n${message}`,
+        )
+      }
+
       if (error) {
         subscriptions.error(subscription, new RpcError(error!))
       } else {
