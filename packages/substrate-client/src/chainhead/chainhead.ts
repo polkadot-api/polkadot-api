@@ -53,8 +53,16 @@ export function getChainHead(
       deferredFollow.promise
 
     const onAllFollowEventsNext = (event: FollowEventRpc) => {
-      if (isOperationEvent(event))
+      if (isOperationEvent(event)) {
+        if (!subscriptions.has(event.operationId)) {
+          console.debug(
+            `Unknown operationId(${
+              event.operationId
+            }) seen on message: \n${JSON.stringify(event)}\n`,
+          )
+        }
         return subscriptions.next(event.operationId, event)
+      }
 
       if (event.event !== "stop") {
         const { event: type, ...rest } = event

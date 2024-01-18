@@ -79,7 +79,7 @@ export const createClient = (gProvider: ConnectProvider): Client => {
 
       if (!subscriptions.has(subscription)) {
         console.debug(
-          `Unknown subscription "${subscription}" seen on message: \n${message}`,
+          `Unknown subscription "${subscription}" seen on message: \n${message}\n`,
         )
       }
 
