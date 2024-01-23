@@ -1,8 +1,9 @@
 import type { Codec, StringRecord, V14 } from "@polkadot-api/substrate-bindings"
-import type { LookupEntry, TupleVar } from "./lookups"
+import type { EnumVar, LookupEntry, TupleVar } from "./lookups"
 import { getLookupFn } from "./lookups"
 import * as scale from "@polkadot-api/substrate-bindings"
 import { withCache } from "./with-cache"
+import { mapObject } from "@polkadot-api/utils"
 
 const _bytes = scale.Bin()
 
@@ -159,29 +160,21 @@ export const getDynamicBuilder = (metadata: V14) => {
     return storageWithFallback(hashes.length, entry, val.dec, ...hashArgs)
   }
 
-  const buildCall = (
-    pallet: string,
-    callName: string,
-  ): {
-    location: [number, number]
-    args: Codec<any>
-  } => {
-    const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-    const callsLookup = getLookupEntryDef(palletEntry.calls! as number)
+  const buildEnumEntry = (
+    entry: EnumVar["value"][keyof EnumVar["value"]],
+    forceTuple = false,
+  ): Codec<any> => {
+    if (entry.type === "primitive") return forceTuple ? emptyTuple : scale._void
 
-    if (callsLookup.type !== "enum") throw null
-    const callEntry = callsLookup.value[callName]
-    return {
-      location: [palletEntry.index, callEntry.idx],
-      args:
-        callEntry.type === "primitive"
-          ? emptyTuple
-          : scale.Tuple(
-              ...Object.values(callEntry.value).map((l) =>
-                buildDefinition(l.id),
-              ),
-            ),
-    }
+    return entry.type === "tuple" || forceTuple
+      ? scale.Tuple(
+          ...Object.values(entry.value).map((l) => buildDefinition(l.id)),
+        )
+      : scale.Struct(
+          mapObject(entry.value, (x) => buildDefinition(x.id)) as StringRecord<
+            Codec<any>
+          >,
+        )
   }
 
   const buildConstant = (pallet: string, constantName: string) => {
@@ -204,14 +197,31 @@ export const getDynamicBuilder = (metadata: V14) => {
       const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
       const lookup = getLookupEntryDef(palletEntry[type]!)
       if (lookup.type !== "enum") throw null
-      const event = lookup.value[name]
+      const entry = lookup.value[name]
 
       return {
-        location: [palletEntry.index, event.idx],
-        codec:
-          event.type === "primitive" ? scale._void : buildDefinition(lookup.id),
+        location: [palletEntry.index, entry.idx],
+        codec: buildEnumEntry(lookup.value[name]),
       }
     }
+
+  const buildCall = (
+    pallet: string,
+    name: string,
+  ): {
+    args: Codec<any>
+    location: [number, number]
+  } => {
+    const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
+    const lookup = getLookupEntryDef(palletEntry.calls!)
+    if (lookup.type !== "enum") throw null
+    const entry = lookup.value[name]
+
+    return {
+      location: [palletEntry.index, entry.idx],
+      args: buildEnumEntry(lookup.value[name], true),
+    }
+  }
 
   return {
     buildDefinition,

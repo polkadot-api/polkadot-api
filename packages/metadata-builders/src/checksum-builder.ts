@@ -163,20 +163,8 @@ export const getChecksumBuilder = (metadata: V14) => {
       : getChecksum(values, JSON.stringify(Object.keys(entry.value)))
   }
 
-  const buildCall = (pallet: string, callName: string): bigint | null => {
-    try {
-      const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-      const callsLookup = getLookupEntryDef(palletEntry.calls! as number)
-
-      if (callsLookup.type !== "enum") throw null
-      return buildEnumEntry(callsLookup.value[callName])
-    } catch (_) {
-      return null
-    }
-  }
-
   const buildVariant =
-    (variantType: "errors" | "events") =>
+    (variantType: "errors" | "events" | "calls") =>
     (pallet: string, name: string): bigint | null => {
       try {
         const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
@@ -217,7 +205,7 @@ export const getChecksumBuilder = (metadata: V14) => {
     buildDefinition: toStringEnhancer(buildDefinition),
 
     buildStorage: toStringEnhancer(buildStorage),
-    buildCall: toStringEnhancer(buildCall),
+    buildCall: toStringEnhancer(buildVariant("calls")),
     buildEvent: toStringEnhancer(buildVariant("events")),
     buildError: toStringEnhancer(buildVariant("errors")),
     buildConstant: toStringEnhancer(buildConstant),

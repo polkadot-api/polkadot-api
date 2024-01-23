@@ -1,4 +1,4 @@
-import { mapStringRecord } from "@polkadot-api/utils"
+import { mapObject, mapStringRecord } from "@polkadot-api/utils"
 import {
   Decoder,
   type StringRecord,
@@ -8,7 +8,7 @@ import {
   HexString,
   enhanceDecoder,
 } from "@polkadot-api/substrate-bindings"
-import type { LookupEntry } from "@/lookups"
+import type { EnumVar, LookupEntry } from "@/lookups"
 import { getLookupFn } from "@/lookups"
 import {
   primitives,
@@ -28,6 +28,25 @@ import {
   Shape,
 } from "./types"
 import { withCache } from "@/with-cache"
+
+const emptyTuple = complex.Tuple()
+
+type UnshapedDecoder = {
+  shape: Shape
+  decoder: Decoder<Decoded>
+}
+
+const toUnshapedDecoder =
+  <A extends Array<any>>(
+    fn: (...args: A) => ShapedDecoder,
+  ): ((...args: A) => UnshapedDecoder) =>
+  (...args) => {
+    const value = fn(...args)
+    return {
+      shape: value.shape,
+      decoder: value as Decoder<Decoded>,
+    }
+  }
 
 type WithProp<
   T extends Decoder<any> & { shape: any },
@@ -202,16 +221,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
     } catch (_) {}
   }
 
-  const buildDefinition = (
-    id: number,
-  ): { shape: Shape; decoder: Decoder<Decoded> } => {
-    const shapedDecoder = getDecoder(id)
-
-    return {
-      shape: shapedDecoder.shape,
-      decoder: shapedDecoder as any,
-    }
-  }
+  const buildDefinition = toUnshapedDecoder(getDecoder)
 
   const callDecoder: Decoder<DecodedCall> = createDecoder((bytes) => {
     const palletIdx = u8.dec(bytes)
@@ -249,5 +259,62 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
     }
   })
 
-  return { buildDefinition, callDecoder }
+  const buildEnumEntry = toUnshapedDecoder(
+    (
+      entry: EnumVar["value"][keyof EnumVar["value"]],
+      forceTuple = false,
+    ): ShapedDecoder => {
+      if (entry.type === "primitive")
+        return forceTuple ? emptyTuple : primitives._void
+
+      return entry.type === "tuple"
+        ? complex.Tuple(
+            ...Object.values(entry.value).map((l) => getDecoder(l.id)),
+          )
+        : complex.Struct(
+            mapObject(entry.value, (x) =>
+              getDecoder(x.id),
+            ) as StringRecord<ShapedDecoder>,
+          )
+    },
+  )
+
+  const buildVariant =
+    (type: "errors" | "events" | "calls") =>
+    (
+      pallet: string,
+      name: string,
+    ): {
+      view: UnshapedDecoder
+      location: [number, number]
+    } => {
+      const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
+
+      const lookup = getLookupEntryDef(palletEntry[type]!)
+      if (lookup.type !== "enum") throw null
+
+      const event = lookup.value[name]
+
+      return {
+        location: [palletEntry.index, event.idx],
+        view: buildEnumEntry(event, type === "calls"),
+      }
+    }
+
+  const buildConstant = (pallet: string, constantName: string) => {
+    const storageEntry = metadata.pallets
+      .find((x) => x.name === pallet)!
+      .constants!.find((s) => s.name === constantName)!
+
+    return buildDefinition(storageEntry.type as number)
+  }
+
+  return {
+    buildDefinition,
+    callDecoder,
+    buildEvent: buildVariant("events"),
+    buildError: buildVariant("errors"),
+    buildCall: buildVariant("calls"),
+    buildConstant,
+  }
 }
