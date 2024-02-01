@@ -269,7 +269,7 @@ describe.each([
       controller.abort()
 
       sendMessage({
-        id: 1,
+        id: 2,
         result: "someSubscription",
       })
 
@@ -287,7 +287,7 @@ describe.each([
       } = setupChainHeadOperation(op.name, ...args)
 
       sendMessage({
-        id: 2,
+        id: 3,
         result: { result: "limitReached" },
       })
 
@@ -340,7 +340,7 @@ describe.each([
       const promise = (chainHead[op.name] as any)(...(args as any[]))
 
       fixtures.sendMessage({
-        id: 1,
+        id: 2,
         error: parseError,
       })
 
@@ -348,7 +348,7 @@ describe.each([
       ;({ fixtures, ...chainHead } = setupChainHead())
 
       fixtures.sendMessage({
-        id: 1,
+        id: 2,
         error: parseError,
       })
 

@@ -52,6 +52,9 @@ export function setupChainHead(withRuntime: boolean = true) {
   const onMsg = vi.fn()
   const onError = vi.fn()
   const { client, fixtures } = createTestClient()
+  fixtures.sendMessage({ id: 1, result: [] })
+  fixtures.getNewMessages()
+
   const chainHead = client.chainHead(withRuntime as any, onMsg, onError)
 
   return { ...chainHead, fixtures: { ...fixtures, onMsg, onError } }
@@ -63,7 +66,7 @@ export function setupChainHeadWithSubscription(withRuntime = true) {
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
   fixtures.sendMessage({
-    id: 1,
+    id: 2,
     result: SUBSCRIPTION_ID,
   })
 
@@ -111,7 +114,7 @@ export function setupChainHeadOperationSubscription<
 
   const OPERATION_ID = `${nextOperationId++}`
   fixtures.sendMessage({
-    id: 2,
+    id: 3,
     result: {
       result: "started",
       operationId: OPERATION_ID,

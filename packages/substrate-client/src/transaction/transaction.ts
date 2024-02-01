@@ -7,7 +7,7 @@ import type {
   TxDroppedRpc,
   TxErrorRpc,
 } from "./json-rpc-types"
-import { Transaction, TxEvent } from "./public-types"
+import { TxEvent } from "./public-types"
 
 type EventToType<T extends { event: string }> = T extends { event: infer Type }
   ? Omit<T, "event"> & { type: Type }
@@ -48,9 +48,14 @@ export class TransactionError extends Error implements ITxError {
 }
 
 export const getTransaction =
-  (request: ClientRequest<string, TxEventRpc>): Transaction =>
-  (tx: string, next: (event: TxEvent) => void, error: (e: Error) => void) => {
-    let cancel = request("transaction_unstable_submitAndWatch", [tx], {
+  (request: ClientRequest<string, TxEventRpc>) =>
+  (
+    methodName: string,
+    tx: string,
+    next: (event: TxEvent) => void,
+    error: (e: Error) => void,
+  ) => {
+    let cancel = request(methodName, [tx], {
       onSuccess: (subscriptionId, follow) => {
         const done = follow(subscriptionId, {
           next: (event) => {

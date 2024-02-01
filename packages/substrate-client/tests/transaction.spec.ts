@@ -7,21 +7,26 @@ const eventToType = (input: { event: string }) => {
   return { type, ...rest }
 }
 
-function setupTx(tx: string = "") {
+async function setupTx(tx: string = "") {
   const onMsg = vi.fn()
   const onError = vi.fn()
   const { client, fixtures } = createTestClient()
+  fixtures.sendMessage({ id: 1, result: [] })
+  fixtures.getNewMessages()
+
   const cancel = client.transaction(tx, onMsg, onError)
-  return { cancel, fixtures: { ...fixtures, onMsg, onError } }
+  const result = { cancel, fixtures: { ...fixtures, onMsg, onError } }
+  await Promise.resolve()
+  return result
 }
 
-function setupTxWithSubscription() {
-  const { cancel, fixtures } = setupTx()
+async function setupTxWithSubscription() {
+  const { cancel, fixtures } = await setupTx()
   fixtures.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
   fixtures.sendMessage({
-    id: 1,
+    id: 2,
     result: SUBSCRIPTION_ID,
   })
 
@@ -43,24 +48,25 @@ function setupTxWithSubscription() {
 }
 
 describe("transaction", () => {
-  it("sends the correct transaction message", () => {
+  it("sends the correct transaction message", async () => {
     const FAKE_TX = "FAKE_TX"
+
     const {
       fixtures: { getNewMessages },
-    } = setupTx(FAKE_TX)
+    } = await setupTx(FAKE_TX)
 
     expect(getNewMessages()).toMatchObject([
       {
-        method: "transaction_unstable_submitAndWatch",
+        method: "transactionWatch_unstable_submitAndWatch",
         params: [FAKE_TX],
       },
     ])
   })
 
-  it("receives its corresponding subscription messages", () => {
+  it("receives its corresponding subscription messages", async () => {
     const {
       fixtures: { sendMessage, sendSubscription, onMsg, onError },
-    } = setupTxWithSubscription()
+    } = await setupTxWithSubscription()
 
     const validated = { event: "validated" }
     sendSubscription({
@@ -106,17 +112,17 @@ describe("transaction", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  it("stops receiving messages upon cancelation", () => {
+  it("stops receiving messages upon cancelation", async () => {
     const {
       cancel,
       fixtures: { sendMessage, onMsg, onError },
-    } = setupTx()
+    } = await setupTx()
 
     cancel()
 
     const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
     sendMessage({
-      id: 1,
+      id: 2,
       result: SUBSCRIPTION_ID,
     })
 
@@ -133,7 +139,7 @@ describe("transaction", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  it("sends an unsubscription message when necessary", () => {
+  it("sends an unsubscription message when necessary", async () => {
     const {
       cancel,
       fixtures: {
@@ -143,7 +149,7 @@ describe("transaction", () => {
         onMsg,
         onError,
       },
-    } = setupTxWithSubscription()
+    } = await setupTxWithSubscription()
 
     cancel()
 
@@ -163,11 +169,11 @@ describe("transaction", () => {
 
   test.each(["dropped", "invalid", "error"])(
     "`%s` event triggers a `TransactionError` error and automatically cancels the subscription",
-    (eventType) => {
+    async (eventType) => {
       const {
         cancel,
         fixtures: { sendSubscription, getNewMessages, onMsg, onError },
-      } = setupTxWithSubscription()
+      } = await setupTxWithSubscription()
 
       const error = `${eventType}: something wrong happened`
       sendSubscription({
@@ -192,11 +198,11 @@ describe("transaction", () => {
     },
   )
 
-  test("`finalized` event should automatically cancel the subscription", () => {
+  test("`finalized` event should automatically cancel the subscription", async () => {
     const {
       cancel,
       fixtures: { sendSubscription, getNewMessages, onMsg, onError },
-    } = setupTxWithSubscription()
+    } = await setupTxWithSubscription()
 
     const finalizedEvent = { event: "finalized" }
     sendSubscription({
@@ -221,13 +227,13 @@ describe("transaction", () => {
     expect(getNewMessages()).toEqual([])
   })
 
-  it("propagates the JSON-RPC Error when the initial request fails", () => {
+  it("propagates the JSON-RPC Error when the initial request fails", async () => {
     const {
       fixtures: { sendMessage, onMsg, onError },
-    } = setupTx()
+    } = await setupTx()
 
     sendMessage({
-      id: 1,
+      id: 2,
       error: parseError,
     })
 
@@ -236,10 +242,10 @@ describe("transaction", () => {
     expect(onError).toHaveBeenCalledWith(new RpcError(parseError))
   })
 
-  it("propagates the JSON-RPC Error on the subscription", () => {
+  it("propagates the JSON-RPC Error on the subscription", async () => {
     const {
       fixtures: { sendSubscription, onMsg, onError },
-    } = setupTxWithSubscription()
+    } = await setupTxWithSubscription()
 
     const error: IRpcError = {
       code: -32603,

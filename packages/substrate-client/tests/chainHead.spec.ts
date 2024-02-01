@@ -100,7 +100,7 @@ describe("chainHead", () => {
 
     const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
     sendMessage({
-      id: 1,
+      id: 2,
       result: SUBSCRIPTION_ID,
     })
 
@@ -201,7 +201,7 @@ describe("chainHead", () => {
 
     const bodyPromise = body("")
     sendMessage({
-      id: 2,
+      id: 3,
       result: {
         result: "started",
         operationId: "operationBody",
@@ -210,7 +210,7 @@ describe("chainHead", () => {
 
     const storagePromise = storage("", "value", "df", null)
     sendMessage({
-      id: 3,
+      id: 4,
       result: {
         result: "started",
         operationId: "operationStorage",
@@ -219,7 +219,7 @@ describe("chainHead", () => {
 
     const callPromise = call("", "", "")
     sendMessage({
-      id: 4,
+      id: 5,
       result: {
         result: "started",
         operationId: "operationCall",
@@ -269,7 +269,7 @@ describe("chainHead", () => {
     } = setupChainHead()
 
     sendMessage({
-      id: 1,
+      id: 2,
       error: parseError,
     })
 
