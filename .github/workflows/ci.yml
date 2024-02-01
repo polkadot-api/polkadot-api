@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-  merge_group:
   workflow_dispatch:
 
 jobs:
@@ -139,11 +137,23 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - name: NPM Publish automation
-        uses: octokit/request-action@v2.x
+      - name: Grab artifacts
+        uses: actions/download-artifact@v3
         with:
-          route: POST /repos/paritytech/npm_publish_automation/actions/workflows/publish.yml/dispatches
-          ref: main
-          inputs: '${{ format(''{{ "repo": "{0}", "run_id": "{1}", "npm_tag": "{2}" }}'', github.repository, github.run_id, github.ref_name == ''main'' && ''next'' || format(''pr-{0}'', github.event.number)) }}'
+          name: package
+          path: artifacts
+      - name: List npm packages
+        run: ls -1 ./artifacts > artifacts-list.txt
+      - name: Configure registry
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+      - name: Publish npm packages
+        run: |
+          while IFS= read -r file; do
+            echo "Publishing $file"
+            npm publish "./artifacts/$file" --tag next
+          done < artifacts-list.txt
         env:
-          GITHUB_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
