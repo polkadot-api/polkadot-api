@@ -42,7 +42,7 @@ describe.each([
     const promise = chainHead[name](...(args as [any]))
 
     sendMessage({
-      id: 2,
+      id: 3,
       result,
     })
 
@@ -58,7 +58,7 @@ describe.each([
     const promise = chainHead[name](...(args as [any]))
 
     sendMessage({
-      id: 2,
+      id: 3,
       error: parseError,
     })
 
@@ -81,7 +81,7 @@ describe.each([
     let promise = chainHead[name](...(args as [any]))
     // The errored JSON-RPC response comes **after** the user has called `header`/`unpin`
     fixtures.sendMessage({
-      id: 1,
+      id: 2,
       error: parseError,
     })
 
@@ -90,7 +90,7 @@ describe.each([
 
     // The errored JSON-RPC response comes **before** the user has called `header`/`unpin`
     fixtures.sendMessage({
-      id: 1,
+      id: 2,
       error: parseError,
     })
     promise = chainHead[name](...(args as [any]))
