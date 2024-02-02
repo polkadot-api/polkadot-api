@@ -7,12 +7,29 @@ import type {
 
 export type { Decoder, HexString, StringRecord, V14 }
 
+export type UnshapedDecoder = {
+  shape: Shape
+  decoder: Decoder<Decoded>
+}
+
+type VariantBasedBuild = (
+  pallet: string,
+  name: string,
+) => {
+  view: UnshapedDecoder
+  location: [number, number]
+}
+
 export type GetViewBuilder = (metadata: V14) => {
   buildDefinition: (idx: number) => {
     shape: Shape
     decoder: Decoder<Decoded>
   }
   callDecoder: Decoder<DecodedCall>
+  buildEvent: VariantBasedBuild
+  buildError: VariantBasedBuild
+  buildCall: VariantBasedBuild
+  buildConstant: (pallet: string, name: string) => UnshapedDecoder
 }
 
 export interface DecodedCall {
