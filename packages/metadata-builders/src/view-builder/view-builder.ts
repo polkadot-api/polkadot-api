@@ -25,16 +25,11 @@ import {
   DecodedCall,
   GetViewBuilder,
   PrimitiveDecoded,
-  Shape,
+  UnshapedDecoder,
 } from "./types"
 import { withCache } from "@/with-cache"
 
 const emptyTuple = complex.Tuple()
-
-type UnshapedDecoder = {
-  shape: Shape
-  decoder: Decoder<Decoded>
-}
 
 const toUnshapedDecoder =
   <A extends Array<any>>(
@@ -312,6 +307,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
   return {
     buildDefinition,
     callDecoder,
+
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
     buildCall: buildVariant("calls"),
