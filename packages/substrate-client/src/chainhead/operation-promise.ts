@@ -1,4 +1,3 @@
-import { ClientRequest } from "@/client"
 import { abortablePromiseFn, noop } from "@/internal-utils"
 import {
   CommonOperationEventsRpc,
@@ -9,6 +8,7 @@ import {
   OperationInaccessibleError,
   OperationLimitError,
 } from "./errors"
+import { ClientInnerRequest } from "./public-types"
 
 export const createOperationPromise =
   <I extends { operationId: string; event: string }, O, A extends Array<any>>(
@@ -21,7 +21,10 @@ export const createOperationPromise =
     ],
   ) =>
   (
-    request: ClientRequest<OperationResponseRpc, I | CommonOperationEventsRpc>,
+    request: ClientInnerRequest<
+      OperationResponseRpc,
+      I | CommonOperationEventsRpc
+    >,
   ) =>
     abortablePromiseFn<O, A>((res, rej, ...args) => {
       const [requestArgs, logicCb] = factory(...args)

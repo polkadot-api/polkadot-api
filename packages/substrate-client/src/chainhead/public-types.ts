@@ -1,5 +1,24 @@
-import { ClientRequestCb } from "@/client"
 import type { AbortablePromiseFn, UnsubscribeFn } from "@/common-types"
+import { Subscriber } from "@/internal-utils"
+
+export type FollowInnerSubscriptionCb<T> = (
+  subscriptionId: string,
+  cb: Subscriber<T>,
+) => UnsubscribeFn
+
+export type ClientInnerRequestCb<T, TT> = {
+  onSuccess: (
+    result: T,
+    followSubscription: FollowInnerSubscriptionCb<TT>,
+  ) => void
+  onError: (e: Error) => void
+}
+
+export type ClientInnerRequest<T, TT> = (
+  method: string,
+  params: Array<any>,
+  cb?: ClientInnerRequestCb<T, TT>,
+) => UnsubscribeFn
 
 export interface StorageItemInput {
   key: string
@@ -104,7 +123,7 @@ export interface FollowResponse {
   _request: <Reply, Notification>(
     method: string,
     params: any[],
-    cb?: ClientRequestCb<Reply, Notification>,
+    cb?: ClientInnerRequestCb<Reply, Notification>,
   ) => UnsubscribeFn
 }
 

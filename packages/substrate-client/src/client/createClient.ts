@@ -7,6 +7,7 @@ import { RpcError, IRpcError } from "./RpcError"
 import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
 
 export type FollowSubscriptionCb<T> = (
+  methodName: string,
   subscriptionId: string,
   cb: Subscriber<T>,
 ) => UnsubscribeFn
@@ -55,7 +56,9 @@ export const createClient = (gProvider: ConnectProvider): Client => {
         error: IRpcError | undefined,
         params: { subscription: any; result: any; error?: IRpcError },
         subscription: string
-      ;({ id, result, error, params } = JSON.parse(message))
+
+      const parsed = JSON.parse(message)
+      ;({ id, result, error, params } = parsed)
 
       if (id) {
         const cb = responses.get(id)
@@ -65,7 +68,8 @@ export const createClient = (gProvider: ConnectProvider): Client => {
 
         return error
           ? cb.onError(new RpcError(error))
-          : cb.onSuccess(result, (subscriptionId, subscriber) => {
+          : cb.onSuccess(result, (methodName, opaqueId, subscriber) => {
+              const subscriptionId = methodName + opaqueId
               subscriptions.subscribe(subscriptionId, subscriber)
               return () => {
                 subscriptions.unsubscribe(subscriptionId)
@@ -77,16 +81,17 @@ export const createClient = (gProvider: ConnectProvider): Client => {
       ;({ subscription, result, error } = params)
       if (!subscription || (!error && !Object.hasOwn(params, "result"))) throw 0
 
-      if (!subscriptions.has(subscription)) {
+      const subscriptionId = parsed.method + subscription
+      if (!subscriptions.has(subscriptionId)) {
         console.debug(
-          `Unknown subscription "${subscription}" seen on message: \n${message}\n`,
+          `Unknown subscription "${subscriptionId}" seen on message: \n${message}\n`,
         )
       }
 
       if (error) {
-        subscriptions.error(subscription, new RpcError(error!))
+        subscriptions.error(subscriptionId, new RpcError(error!))
       } else {
-        subscriptions.next(subscription, result)
+        subscriptions.next(subscriptionId, result)
       }
     } catch (e) {
       console.warn("Error parsing incomming message: " + message)

@@ -34,6 +34,7 @@ async function setupTxWithSubscription() {
     msg: { result: any } | { error: IRpcError },
   ): void => {
     fixtures.sendMessage({
+      method: "transactionWatch_unstable_watchEvent",
       params: {
         subscription: SUBSCRIPTION_ID,
         ...msg,
@@ -155,7 +156,7 @@ describe("transaction", () => {
 
     expect(getNewMessages()).toMatchObject([
       {
-        method: "transaction_unstable_unwatch",
+        method: "transactionWatch_unstable_unwatch",
         params: [SUBSCRIPTION_ID],
       },
     ])
