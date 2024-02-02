@@ -1,6 +1,6 @@
 import { noop } from "@polkadot-api/utils"
 import {
-  ClientRequest,
+  ClientInnerRequest,
   FollowResponse,
   OperationError,
   OperationInaccessibleError,
@@ -17,7 +17,7 @@ import {
 
 export const createStorageCb =
   (
-    request: ClientRequest<
+    request: ClientInnerRequest<
       OperationStorageStartedRpc | LimitReachedRpc,
       | CommonOperationEventsRpc
       | OperationStorageItemsRpc

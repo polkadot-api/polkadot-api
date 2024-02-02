@@ -1,7 +1,7 @@
-import type { ClientRequest } from "../client"
+import { ClientInnerRequest } from "./public-types"
 
 export const createHeaderFn =
-  (request: ClientRequest<string, unknown>) => (hash: string) =>
+  (request: ClientInnerRequest<string, unknown>) => (hash: string) =>
     new Promise<string>((res, rej) => {
       request("chainHead_unstable_header", [hash], {
         onSuccess: res,

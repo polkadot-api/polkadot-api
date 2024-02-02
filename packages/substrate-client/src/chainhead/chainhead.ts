@@ -7,6 +7,7 @@ import type {
 } from "./json-rpc-types"
 import type {
   ChainHead,
+  ClientInnerRequest,
   FollowEventWithoutRuntime,
   FollowEventWithRuntime,
   FollowResponse,
@@ -83,7 +84,7 @@ export function getChainHead(
       subscriptionId: string,
       follow: FollowSubscriptionCb<FollowEventRpc>,
     ) => {
-      const done = follow(subscriptionId, {
+      const done = follow("chainHead_unstable_followEvent", subscriptionId, {
         next: onAllFollowEventsNext,
         error: onAllFollowEventsError,
       })
@@ -116,7 +117,7 @@ export function getChainHead(
       { onSuccess: onFollowRequestSuccess, onError: onFollowRequestError },
     )
 
-    const fRequest: ClientRequest<any, any> = (method, params, cb) => {
+    const fRequest: ClientInnerRequest<any, any> = (method, params, cb) => {
       const disjoint = () => {
         cb?.onError(new DisjointError())
       }

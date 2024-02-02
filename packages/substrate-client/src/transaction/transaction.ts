@@ -50,33 +50,37 @@ export class TransactionError extends Error implements ITxError {
 export const getTransaction =
   (request: ClientRequest<string, TxEventRpc>) =>
   (
-    methodName: string,
+    namespace: string,
     tx: string,
     next: (event: TxEvent) => void,
     error: (e: Error) => void,
   ) => {
-    let cancel = request(methodName, [tx], {
+    let cancel = request(namespace + "_unstable_submitAndWatch", [tx], {
       onSuccess: (subscriptionId, follow) => {
-        const done = follow(subscriptionId, {
-          next: (event) => {
-            if (isTerminalEvent(event)) {
-              done()
+        const done = follow(
+          namespace + "_unstable_watchEvent",
+          subscriptionId,
+          {
+            next: (event) => {
+              if (isTerminalEvent(event)) {
+                done()
+                cancel = noop
+                if (event.event !== "finalized")
+                  return error(new TransactionError(event))
+              }
+              next(eventToType(event))
+            },
+            error(e) {
+              cancel()
               cancel = noop
-              if (event.event !== "finalized")
-                return error(new TransactionError(event))
-            }
-            next(eventToType(event))
+              error(e)
+            },
           },
-          error(e) {
-            cancel()
-            cancel = noop
-            error(e)
-          },
-        })
+        )
 
         cancel = () => {
           done()
-          request("transaction_unstable_unwatch", [subscriptionId])
+          request(namespace + "_unstable_unwatch", [subscriptionId])
         }
       },
       onError: error,

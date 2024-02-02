@@ -74,6 +74,7 @@ export function setupChainHeadWithSubscription(withRuntime = true) {
     msg: { result: any } | { error: IRpcError },
   ): void => {
     fixtures.sendMessage({
+      method: "chainHead_unstable_followEvent",
       params: {
         subscription: SUBSCRIPTION_ID,
         ...msg,
@@ -115,6 +116,7 @@ export function setupChainHeadOperationSubscription<
   const OPERATION_ID = `${nextOperationId++}`
   fixtures.sendMessage({
     id: 3,
+    method: "chainHead_unstable_followEvent",
     result: {
       result: "started",
       operationId: OPERATION_ID,

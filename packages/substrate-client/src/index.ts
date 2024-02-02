@@ -66,10 +66,10 @@ export const createClient = (provider: ConnectProvider): SubstrateClient => {
     (x) => (rpcMethods = new Set(Array.isArray(x) ? x : x.methods)),
   )
 
-  const getSubmitAndWatchCallName = (input: Set<string>) =>
+  const getSubmitAndWatchNamespace = (input: Set<string>) =>
     input.has("transaction_unstable_submitAndWatch")
-      ? "transaction_unstable_submitAndWatch"
-      : "transactionWatch_unstable_submitAndWatch"
+      ? "transaction"
+      : "transactionWatch"
 
   const innerTransaction = getTransaction(
     client.request as ClientRequest<any, any>,
@@ -84,7 +84,7 @@ export const createClient = (provider: ConnectProvider): SubstrateClient => {
         rpcMethods.then((result) => {
           if (!isRunning) return
           cleanup = innerTransaction(
-            getSubmitAndWatchCallName(result),
+            getSubmitAndWatchNamespace(result),
             tx,
             next,
             err,
@@ -98,7 +98,7 @@ export const createClient = (provider: ConnectProvider): SubstrateClient => {
       }
 
       return innerTransaction(
-        getSubmitAndWatchCallName(rpcMethods),
+        getSubmitAndWatchNamespace(rpcMethods),
         tx,
         next,
         err,
