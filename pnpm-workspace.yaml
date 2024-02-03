@@ -3,4 +3,3 @@ packages:
   - experiments
   - examples/*
   - zombie-tests
-  - vite
