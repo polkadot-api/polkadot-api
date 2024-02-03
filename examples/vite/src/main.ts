@@ -43,15 +43,14 @@ function populateUserDropdown(select: Element) {
 }
 
 function transfer(alexa: Account, billy: Account, amount: bigint) {
-  client.test.tx.Balances.transfer_keep_alive
-    .submit$(
-      alexa.address,
-      {
-        tag: "Id",
-        value: billy.address,
-      },
-      amount,
-    )
+  client.test.tx.Balances.transfer_keep_alive(
+    {
+      tag: "Id",
+      value: billy.address,
+    },
+    amount,
+  )
+    .submit$(alexa.address)
     .subscribe({
       next: (event) => {
         console.log(event)

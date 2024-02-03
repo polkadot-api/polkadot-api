@@ -22,14 +22,10 @@ type TxSuccess = {
   events: Array<SystemEvent["event"]>
 }
 
-type TxFunction<Args extends Array<any>> = (
-  from: SS58String,
-  ...args: Args
-) => Promise<TxSuccess>
+type TxFunction = (from: SS58String) => Promise<TxSuccess>
 
-type TxObservable<Args extends Array<any>> = (
+type TxObservable = (
   from: SS58String,
-  ...args: Args
 ) => Observable<
   | TxValidated
   | TxBroadcasted
@@ -37,18 +33,15 @@ type TxObservable<Args extends Array<any>> = (
   | (TxFinalized & TxSuccess)
 >
 
-type TxCall<Args extends Array<any>> = (...args: Args) => Promise<string>
+type TxCall = () => Promise<string>
 
-type TxSigned<Args extends Array<any>> = (
-  from: SS58String,
-  ...args: Args
-) => Promise<string>
+type TxSigned = (from: SS58String) => Promise<string>
 
-export type TxClient<Args extends Array<any>> = {
-  getCallData: TxCall<Args>
-  getTx: TxSigned<Args>
-  submit: TxFunction<Args>
-  submit$: TxObservable<Args>
+export type TxClient<Args extends Array<any>> = (...args: Args) => {
+  getCallData: TxCall
+  getTx: TxSigned
+  submit: TxFunction
+  submit$: TxObservable
 }
 
 const getTxSuccessFromSystemEvents = (
@@ -66,96 +59,98 @@ const getTxSuccessFromSystemEvents = (
   return { ok, events }
 }
 
-export const createTxEntry = <Args extends Array<any>>(
-  descriptor: TxDescriptor<Args>,
-  pallet: string,
-  name: string,
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-  client: ReturnType<typeof getObservableClient>,
-  signer: (from: string, callData: Uint8Array) => Promise<Uint8Array>,
-): TxClient<Args> => {
-  const getCallData$ = (...decodedArgs: Args) =>
-    chainHead.getRuntimeContext$(null).pipe(
-      map(({ checksumBuilder, dynamicBuilder }) => {
-        const checksum = checksumBuilder.buildCall(pallet, name)
-        if (checksum !== descriptor)
-          throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
+export const createTxEntry =
+  <Args extends Array<any>>(
+    descriptor: TxDescriptor<Args>,
+    pallet: string,
+    name: string,
+    chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+    client: ReturnType<typeof getObservableClient>,
+    signer: (from: string, callData: Uint8Array) => Promise<Uint8Array>,
+  ): TxClient<Args> =>
+  (...args: Args) => {
+    const getCallData$ = (...decodedArgs: Args) =>
+      chainHead.getRuntimeContext$(null).pipe(
+        map(({ checksumBuilder, dynamicBuilder }) => {
+          const checksum = checksumBuilder.buildCall(pallet, name)
+          if (checksum !== descriptor)
+            throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
-        const { location, args } = dynamicBuilder.buildCall(pallet, name)
-        return mergeUint8(new Uint8Array(location), args.enc(decodedArgs))
-      }),
-    )
+          const { location, args } = dynamicBuilder.buildCall(pallet, name)
+          return mergeUint8(new Uint8Array(location), args.enc(decodedArgs))
+        }),
+      )
 
-  const getCallData: TxCall<Args> = (...args) =>
-    firstValueFrom(getCallData$(...args)).then(toHex)
+    const getCallData: TxCall = () =>
+      firstValueFrom(getCallData$(...args)).then(toHex)
 
-  const getTx: TxSigned<Args> = (from, ...args) =>
-    firstValueFrom(
+    const getTx: TxSigned = (from) =>
+      firstValueFrom(
+        getCallData$(...args).pipe(
+          mergeMap((callData) => signer(from, callData)),
+          map(toHex),
+        ),
+      )
+
+    const submit: TxFunction = async (from) => {
+      const tx = await firstValueFrom(
+        getCallData$(...args).pipe(
+          mergeMap((callData) => signer(from, callData).then(toHex)),
+        ),
+      )
+
+      const result = await lastValueFrom(client.tx$(tx))
+
+      switch (result.type) {
+        case "invalid":
+          throw new Error("Invalid")
+        case "dropped":
+          throw new Error("Dropped")
+        case "finalized": {
+          const systemEvents = await firstValueFrom(
+            chainHead.eventsAt$(result.block.hash),
+          )
+
+          return getTxSuccessFromSystemEvents(
+            systemEvents,
+            Number(result.block.index),
+          )
+        }
+        default:
+          return { ok: true, events: [] }
+      }
+    }
+
+    const submit$: TxObservable = (from) =>
       getCallData$(...args).pipe(
         mergeMap((callData) => signer(from, callData)),
-        map(toHex),
-      ),
-    )
-
-  const submit: TxFunction<Args> = async (from, ...args) => {
-    const tx = await firstValueFrom(
-      getCallData$(...args).pipe(
-        mergeMap((callData) => signer(from, callData).then(toHex)),
-      ),
-    )
-
-    const result = await lastValueFrom(client.tx$(tx))
-
-    switch (result.type) {
-      case "invalid":
-        throw new Error("Invalid")
-      case "dropped":
-        throw new Error("Dropped")
-      case "finalized": {
-        const systemEvents = await firstValueFrom(
-          chainHead.eventsAt$(result.block.hash),
-        )
-
-        return getTxSuccessFromSystemEvents(
-          systemEvents,
-          Number(result.block.index),
-        )
-      }
-      default:
-        return { ok: true, events: [] }
-    }
-  }
-
-  const submit$: TxObservable<Args> = (from, ...args) =>
-    getCallData$(...args).pipe(
-      mergeMap((callData) => signer(from, callData)),
-      take(1),
-      mergeMap((result) => {
-        return client.tx$(toHex(result)).pipe(
-          mergeMap((result) => {
-            switch (result.type) {
-              case "invalid":
-                throw new Error("Invalid")
-              case "dropped":
-                throw new Error("Dropped")
-              case "finalized": {
-                return chainHead.eventsAt$(result.block.hash).pipe(
-                  map((events) => ({
-                    ...result,
-                    ...getTxSuccessFromSystemEvents(
-                      events,
-                      Number(result.block.index),
-                    ),
-                  })),
-                )
+        take(1),
+        mergeMap((result) => {
+          return client.tx$(toHex(result)).pipe(
+            mergeMap((result) => {
+              switch (result.type) {
+                case "invalid":
+                  throw new Error("Invalid")
+                case "dropped":
+                  throw new Error("Dropped")
+                case "finalized": {
+                  return chainHead.eventsAt$(result.block.hash).pipe(
+                    map((events) => ({
+                      ...result,
+                      ...getTxSuccessFromSystemEvents(
+                        events,
+                        Number(result.block.index),
+                      ),
+                    })),
+                  )
+                }
+                default:
+                  return of(result)
               }
-              default:
-                return of(result)
-            }
-          }),
-        )
-      }),
-    )
+            }),
+          )
+        }),
+      )
 
-  return { getCallData, getTx, submit, submit$ }
-}
+    return { getCallData, getTx, submit, submit$ }
+  }
