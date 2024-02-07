@@ -8,9 +8,9 @@ import {
 } from "./observableClient"
 
 export type EventPhase =
-  | { tag: "ApplyExtrinsic"; value: number }
-  | { tag: "Finalization" }
-  | { tag: "Initialization" }
+  | { type: "ApplyExtrinsic"; value: number }
+  | { type: "Finalization" }
+  | { type: "Initialization" }
 
 export type EvWatch<T> = (filter?: (value: T) => boolean) => Observable<{
   meta: {
@@ -41,9 +41,9 @@ export type EvClient<T> = {
 type SystemEvent = {
   phase: EventPhase
   event: {
-    tag: string
+    type: string
     value: {
-      tag: string
+      type: string
       value: any
     }
   }
@@ -69,7 +69,7 @@ export const createEventEntry = <T>(
       return chainHead.eventsAt$(block.hash).pipe(
         map((events) => {
           const winners = events.filter(
-            (e) => e.event.tag === pallet && e.event.value.tag === name,
+            (e) => e.event.type === pallet && e.event.value.type === name,
           )
           return winners.map((x) => {
             return {
@@ -93,7 +93,7 @@ export const createEventEntry = <T>(
 
   const filter: EvFilter<T> = (events) =>
     events
-      .filter((e) => e.tag === pallet && e.value.tag === name)
+      .filter((e) => e.type === pallet && e.value.type === name)
       .map((x) => x.value.value)
 
   return { watch, pull, filter }

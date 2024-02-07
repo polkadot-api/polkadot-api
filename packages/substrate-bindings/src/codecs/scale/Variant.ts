@@ -105,7 +105,8 @@ export const Enum: <
     return _value
   },
   is: (type: string) => type === _type,
-  variant: Object.freeze({ type: _type, value: _value }),
+  type: _type,
+  value: _value,
 })) as any
 
 export type EnumAs<T extends { type: string; value?: any }> = <

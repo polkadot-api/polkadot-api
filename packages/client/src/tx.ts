@@ -49,12 +49,12 @@ const getTxSuccessFromSystemEvents = (
   txIdx: number,
 ): TxSuccess => {
   const events = systemEvents
-    .filter((x) => x.phase.tag === "ApplyExtrinsic" && x.phase.value === txIdx)
+    .filter((x) => x.phase.type === "ApplyExtrinsic" && x.phase.value === txIdx)
     .map((x) => x.event)
 
   const lastEvent = events[events.length - 1]
   const ok =
-    lastEvent.tag === "System" && lastEvent.value.tag === "ExtrinsicSuccess"
+    lastEvent.type === "System" && lastEvent.value.type === "ExtrinsicSuccess"
 
   return { ok, events }
 }

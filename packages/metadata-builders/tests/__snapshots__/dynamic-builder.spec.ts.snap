@@ -6,51 +6,39 @@ exports[`getDynamicBuilder > batched call 1`] = `
     {
       "as": [Function],
       "is": [Function],
-      "variant": {
-        "type": "Balances",
+      "type": "Balances",
+      "value": {
+        "as": [Function],
+        "is": [Function],
+        "type": "transfer",
         "value": {
-          "as": [Function],
-          "is": [Function],
-          "variant": {
-            "type": "transfer",
-            "value": {
-              "dest": {
-                "as": [Function],
-                "is": [Function],
-                "variant": {
-                  "type": "Id",
-                  "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
-                },
-              },
-              "value": 4000000000000n,
-            },
+          "dest": {
+            "as": [Function],
+            "is": [Function],
+            "type": "Id",
+            "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
           },
+          "value": 4000000000000n,
         },
       },
     },
     {
       "as": [Function],
       "is": [Function],
-      "variant": {
-        "type": "Staking",
+      "type": "Staking",
+      "value": {
+        "as": [Function],
+        "is": [Function],
+        "type": "nominate",
         "value": {
-          "as": [Function],
-          "is": [Function],
-          "variant": {
-            "type": "nominate",
-            "value": {
-              "targets": [
-                {
-                  "as": [Function],
-                  "is": [Function],
-                  "variant": {
-                    "type": "Id",
-                    "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
-                  },
-                },
-              ],
+          "targets": [
+            {
+              "as": [Function],
+              "is": [Function],
+              "type": "Id",
+              "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
             },
-          },
+          ],
         },
       },
     },
@@ -63,37 +51,29 @@ exports[`getDynamicBuilder > felloship referenda submit 1`] = `
   {
     "as": [Function],
     "is": [Function],
-    "variant": {
-      "type": "Origins",
-      "value": {
-        "as": [Function],
-        "is": [Function],
-        "variant": {
-          "type": "Fellows",
-          "value": undefined,
-        },
-      },
+    "type": "Origins",
+    "value": {
+      "as": [Function],
+      "is": [Function],
+      "type": "Fellows",
+      "value": undefined,
     },
   },
   {
     "as": [Function],
     "is": [Function],
-    "variant": {
-      "type": "Inline",
-      "value": {
-        "asBytes": [Function],
-        "asHex": [Function],
-        "asText": [Function],
-      },
+    "type": "Inline",
+    "value": {
+      "asBytes": [Function],
+      "asHex": [Function],
+      "asText": [Function],
     },
   },
   {
     "as": [Function],
     "is": [Function],
-    "variant": {
-      "type": "After",
-      "value": 1,
-    },
+    "type": "After",
+    "value": 1,
   },
 ]
 `;
