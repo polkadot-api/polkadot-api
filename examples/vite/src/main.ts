@@ -7,6 +7,7 @@ import {
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
 import test from "./codegen/test"
+import { Enum } from "@polkadot-api/substrate-bindings"
 
 const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
@@ -43,13 +44,7 @@ function populateUserDropdown(select: Element) {
 }
 
 function transfer(alexa: Account, billy: Account, amount: bigint) {
-  client.test.tx.Balances.transfer_keep_alive(
-    {
-      tag: "Id",
-      value: billy.address,
-    },
-    amount,
-  )
+  client.test.tx.Balances.transfer_keep_alive(Enum("Id", billy.address), amount)
     .submit$(alexa.address)
     .subscribe({
       next: (event) => {

@@ -11,8 +11,8 @@ import { createDtsFile } from "./createDtsFile"
 import { createDescriptorsFile } from "./createDescriptorsFile"
 import {
   metadata as $metadata,
+  Bytes,
   CodecType,
-  OpaqueCodec,
 } from "@polkadot-api/substrate-bindings"
 
 type ReadDescriptorsArgs = {
@@ -122,15 +122,14 @@ export async function outputDescriptors({
   }
 }
 
+const encBytes = Bytes().enc
+
 export async function writeMetadataToDisk(
   metadata: CodecType<typeof $metadata>,
   outFile: string,
 ) {
   const encodedMetadata = $metadata.enc(metadata)
-  const encoded = OpaqueCodec($metadata).enc({
-    length: encodedMetadata.length,
-    inner: () => metadata,
-  })
+  const encoded = encBytes(encodedMetadata)
 
   await fs.mkdir(dirname(outFile), { recursive: true })
   await fs.writeFile(outFile, encoded)
@@ -142,8 +141,12 @@ export async function outputCodegen(
   key: string,
   selectOnly?: string[],
 ) {
-  const { code, descriptorsData } = getCodegenInfo(metadata, key, selectOnly)
+  const { code, descriptorsData, enums } = getCodegenInfo(
+    metadata,
+    key,
+    selectOnly,
+  )
   await fs.mkdir(outputFolder, { recursive: true })
   await createDtsFile(key, outputFolder, code)
-  await createDescriptorsFile(key, outputFolder, descriptorsData)
+  await createDescriptorsFile(key, outputFolder, descriptorsData, enums)
 }

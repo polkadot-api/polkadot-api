@@ -1,7 +1,7 @@
 import { CodecType, Struct, Vector, str, u8 } from "scale-ts"
 import { lookup } from "./lookup"
 import { pallets } from "./pallets"
-import { compactNumber } from "../../compact"
+import { compactNumber } from "../../scale"
 export type { V14Lookup } from "./lookup"
 export type { V14Pallets } from "./pallets"
 

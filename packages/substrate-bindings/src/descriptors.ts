@@ -1,4 +1,4 @@
-import { Binary } from "./codecs"
+import type { Anonymize } from "./codecs"
 
 export type PlainDescriptor<T> = string & { _type?: T }
 export type StorageDescriptor<
@@ -25,23 +25,6 @@ export type Descriptors = Record<
 type PickDescriptors<Idx extends 0 | 1 | 2 | 3 | 4, T extends Descriptors> = {
   [K in keyof T]: T[K][Idx]
 }
-
-type Anonymize<T> = T extends
-  | string
-  | number
-  | bigint
-  | boolean
-  | void
-  | undefined
-  | null
-  | symbol
-  | Binary
-  ? T
-  : T extends (...args: infer Args) => infer R
-    ? (...args: Anonymize<Args>) => Anonymize<R>
-    : {
-        [K in keyof T]: Anonymize<T[K]>
-      }
 
 type ExtractStorage<
   T extends Record<string, Record<string, StorageDescriptor<any, any, any>>>,

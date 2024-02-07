@@ -4,8 +4,12 @@ import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { createClient } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
-import ksm, { Queries } from "./descriptors/ksm"
-import { Binary } from "@polkadot-api/substrate-bindings"
+import ksm, {
+  EcXcmV2OriginKind,
+  EcXcmV3Instruction,
+  Queries,
+} from "./descriptors/ksm"
+import { Enum, Binary, EnumOption } from "@polkadot-api/substrate-bindings"
 const scProvider = getScProvider()
 
 const polkadotChain = await getChain({
@@ -15,6 +19,69 @@ const polkadotChain = await getChain({
 
 const relayChain = createClient(polkadotChain.connect, { ksm, ksm1_2: ksm })
 const collectives = relayChain
+
+export let foo: (x: Enum<EcXcmV2OriginKind>) => null = () => null as any
+
+const transact1: EnumOption<EcXcmV3Instruction, "Transact"> = {
+  call: Binary(""),
+  origin_kind: Enum("Xcm"),
+  require_weight_at_most: {
+    ref_time: 3n,
+    proof_size: 33n,
+  },
+}
+
+const instructions: Array<Enum<EcXcmV3Instruction>> = [
+  Enum("Transact", transact1),
+  Enum("WithdrawAsset", [
+    {
+      id: Enum("Concrete", {
+        parents: 3,
+        interior: Enum("Here"),
+      }),
+      fun: Enum("Fungible", 5n),
+    },
+  ]),
+]
+
+relayChain.ksm.tx.XcmPallet.execute(Enum("V3", instructions), {
+  proof_size: 3n,
+  ref_time: 3n,
+})
+
+relayChain.ksm.tx.Utility.batch([
+  Enum("Identity", Enum("set_fee", { index: 2, fee: 3n })),
+  Enum(
+    "Beefy",
+    Enum("report_equivocation_unsigned", {
+      equivocation_proof: {
+        first: {
+          commitment: {
+            payload: [[Binary(""), Binary("")]],
+            block_number: 3,
+            validator_set_id: 3n,
+          },
+          id: Binary(""),
+          signature: Binary(""),
+        },
+        second: {
+          commitment: {
+            payload: [[Binary(""), Binary("")]],
+            block_number: 3,
+            validator_set_id: 3n,
+          },
+          id: Binary(""),
+          signature: Binary(""),
+        },
+      },
+      key_owner_proof: {
+        session: 3,
+        trie_nodes: [Binary("")],
+        validator_count: 3,
+      },
+    }),
+  ),
+])
 
 const identityDataToString = (value: string | Binary | undefined) =>
   value instanceof Binary ? value.asText() : value ?? ""

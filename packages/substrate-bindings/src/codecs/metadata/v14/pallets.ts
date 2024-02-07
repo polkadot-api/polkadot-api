@@ -1,5 +1,4 @@
-import { Hex } from "../../Hex"
-import { compactNumber } from "../../compact"
+import { Hex, compactNumber } from "@/codecs/scale"
 import {
   Struct,
   Option,

@@ -219,7 +219,7 @@ const EnumDec = (
 ): EnumShapedDecoder =>
   complexShapedDecoder(
     { codec: "Enum", shape: mapStringRecord(input, (x) => x.shape) },
-    scale.Enum.dec(input as {}, args as any),
+    scale.Variant.dec(input as {}, args as any),
   )
 
 export const selfDecoder = (value: () => ShapedDecoder): ShapedDecoder => {

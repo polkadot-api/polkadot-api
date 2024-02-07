@@ -108,6 +108,7 @@ export const getCodegenInfo = (
   }
 
   const code = staticBuilder.getCode() + "\n\n" + exportedTypes.join("\n")
+  const enums = staticBuilder.getEnums()
 
-  return { descriptorsData, code }
+  return { descriptorsData, code, enums }
 }

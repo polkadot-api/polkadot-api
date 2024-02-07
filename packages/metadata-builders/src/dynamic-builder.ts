@@ -80,8 +80,8 @@ const _buildCodec = (
   const areIndexesSorted = indexes.every((idx, i) => idx === i)
 
   return areIndexesSorted
-    ? scale.Enum(inner)
-    : scale.Enum(inner, indexes as any)
+    ? scale.Variant(inner)
+    : scale.Variant(inner, indexes as any)
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 

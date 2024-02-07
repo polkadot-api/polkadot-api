@@ -8,7 +8,12 @@ import {
   take,
   withLatestFrom,
 } from "rxjs"
-import { Blake2256, _void, compact } from "@polkadot-api/substrate-bindings"
+import {
+  Blake2256,
+  Enum,
+  _void,
+  compact,
+} from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 
 import type { CreateTx, GetTxCreator } from "@/."
@@ -47,7 +52,7 @@ export const getTxCreator: GetTxCreator = (chainProvider, onCreateTx) => {
     const preResult = mergeUint8(
       versionBytes,
       multiAddressEncoder(from),
-      signatureEncoder({ tag: signer.signingType, value: signed }),
+      signatureEncoder(Enum(signer.signingType, signed)),
       extra,
       callData,
     )

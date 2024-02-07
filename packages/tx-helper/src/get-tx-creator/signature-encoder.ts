@@ -1,6 +1,6 @@
-import { Bytes, Enum } from "@polkadot-api/substrate-bindings"
+import { Bytes, Variant } from "@polkadot-api/substrate-bindings"
 
-export const signatureEncoder = Enum({
+export const signatureEncoder = Variant({
   Ed25519: Bytes(64),
   Sr25519: Bytes(64),
   Ecdsa: Bytes(65),

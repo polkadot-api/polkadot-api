@@ -38,15 +38,9 @@
     "@polkadot-api/utils": "workspace:*",
     "@substrate/connect": "^0.7.32",
     "@types/node": "^20.9.0",
-    "@typescript-eslint/eslint-plugin": "^6.7.2",
-    "@typescript-eslint/parser": "^6.7.2",
     "as-table": "^1.0.55",
     "chalk": "^5.3.0",
     "commander": "^11.0.0",
-    "eslint": "^8.49.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "eslint-plugin-unused-imports": "^3.0.0",
     "fp-ts": "^2.16.1",
     "fs.promises.exists": "^1.1.4",
     "ora": "^7.0.1",
@@ -62,7 +56,6 @@
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@types/eslint": "^8.44.2",
     "@types/ws": "^8.5.10",
     "clet": "^1.0.1"
   }
