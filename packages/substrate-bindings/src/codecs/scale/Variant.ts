@@ -108,6 +108,15 @@ export const Enum: <
   variant: Object.freeze({ type: _type, value: _value }),
 })) as any
 
+export type EnumAs<T extends { type: string; value?: any }> = <
+  Key extends T["type"],
+>(
+  type: Key,
+  ...args: ExtractValue<T, Key> extends undefined
+    ? []
+    : [value: Anonymize<ExtractValue<T, Key>>]
+) => Enum<T>
+
 const VariantEnc = <O extends StringRecord<Encoder<any>>>(
   ...args: [inner: O, x?: RestrictedLenTuple<number, O>]
 ): Encoder<

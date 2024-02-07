@@ -263,7 +263,7 @@ const _buildSyntax = (
   declarations.variables.set(varId, {
     id: varId,
     value: `Variant(${innerEnum})`,
-    types: `Enum<E${varId}>`,
+    types: `Enum<${varId.slice(1)}>`,
     directDependencies: new Set<string>(dependencies),
   })
   return varId
@@ -450,7 +450,7 @@ export const getStaticBuilder = (metadata: V14) => {
     const code = [...declarations.variables.values()]
       .map((variable) => {
         const ePrefix = declarations.enums.has(variable.id)
-          ? `export type E${variable.id} = ${declarations.enums.get(
+          ? `export type ${variable.id.slice(1)} = ${declarations.enums.get(
               variable.id,
             )!};\n`
           : ""
@@ -462,7 +462,7 @@ const ${variable.id}: Codec<I${variable.id}> = ${variable.value};`
     return `${typeImports}${varImports}${code}`
   }
 
-  const getEnums = () => [...declarations.enums.keys()].map((k) => `E${k}`)
+  const getEnums = () => [...declarations.enums.keys()].map((x) => x.slice(1))
 
   const getTypeFromVarName = (varName: string) =>
     primitiveTypes[varName as keyof typeof primitiveTypes] ??

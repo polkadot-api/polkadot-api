@@ -25,7 +25,8 @@ export const createDescriptorsFile = async (
   enums: Array<string>,
 ) => {
   const knownImports: Array<string> = [
-    `import type { PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/substrate-bindings"\n`,
+    `import type { EnumAs, PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/substrate-bindings"\n`,
+    `import { Enum } from "@polkadot-api/substrate-bindings"\n`,
   ]
   const keyTypesImports: Array<string> = []
   const addTypeImport = (type: string) => {
@@ -148,11 +149,18 @@ export const createDescriptorsFile = async (
   addLine(`export type Constants = ConstFromDescriptors<I${key}Descriptors>`)
   addLine(``)
 
+  enums.forEach((x) => {
+    addLine(`export type ${x} = _E${x};`)
+    addLine(`export const ${x} = Enum as unknown as EnumAs<${x}>;`)
+  })
+
   const descriptorCodegen =
     knownImports
       .concat(
         `import type {${keyTypesImports.join(", ")}} from "./${key}-types"
-export type {${enums.join(",")}} from "./${key}-types"
+import type {${enums
+          .map((n) => `${n} as _E${n}`)
+          .join(",")}} from "./${key}-types"
 `,
       )
       .join(";\n") +

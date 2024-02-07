@@ -5,9 +5,13 @@ import { createClient } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
 import ksm, {
-  EcXcmV2OriginKind,
-  EcXcmV3Instruction,
   Queries,
+  XcmV2OriginKind,
+  XcmV3Instruction,
+  XcmV3MultiassetAssetId,
+  XcmV3MultiassetAssetInstance,
+  XcmV3MultiassetFungibility,
+  XcmVersionedXcm,
 } from "./descriptors/ksm"
 import { Enum, Binary, EnumOption } from "@polkadot-api/substrate-bindings"
 const scProvider = getScProvider()
@@ -20,9 +24,7 @@ const polkadotChain = await getChain({
 const relayChain = createClient(polkadotChain.connect, { ksm, ksm1_2: ksm })
 const collectives = relayChain
 
-export let foo: (x: Enum<EcXcmV2OriginKind>) => null = () => null as any
-
-const transact1: EnumOption<EcXcmV3Instruction, "Transact"> = {
+const transact1: EnumOption<XcmV3Instruction, "Transact"> = {
   call: Binary(""),
   origin_kind: Enum("Xcm"),
   require_weight_at_most: {
@@ -31,7 +33,7 @@ const transact1: EnumOption<EcXcmV3Instruction, "Transact"> = {
   },
 }
 
-const instructions: Array<Enum<EcXcmV3Instruction>> = [
+const instructions: Array<Enum<XcmV3Instruction>> = [
   Enum("Transact", transact1),
   Enum("WithdrawAsset", [
     {
@@ -48,6 +50,29 @@ relayChain.ksm.tx.XcmPallet.execute(Enum("V3", instructions), {
   proof_size: 3n,
   ref_time: 3n,
 })
+
+relayChain.ksm.tx.XcmPallet.execute(
+  XcmVersionedXcm("V3", [
+    XcmV3Instruction("Transact", {
+      call: Binary("0x32ff"),
+      origin_kind: XcmV2OriginKind("Native"),
+      require_weight_at_most: {
+        ref_time: 5n,
+        proof_size: 3n,
+      },
+    }),
+    XcmV3Instruction("BurnAsset", [
+      {
+        id: XcmV3MultiassetAssetId("Abstract", ""),
+        fun: XcmV3MultiassetFungibility(
+          "NonFungible",
+          XcmV3MultiassetAssetInstance("Index", 3n),
+        ),
+      },
+    ]),
+  ]),
+  { ref_time: 3n, proof_size: 3n },
+)
 
 relayChain.ksm.tx.Utility.batch([
   Enum("Identity", Enum("set_fee", { index: 2, fee: 3n })),
