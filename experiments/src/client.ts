@@ -8,6 +8,8 @@ import Ksm, {
   KsmOption,
   KsmXcmV2OriginKind,
   KsmXcmV3Instruction,
+  KsmXcmV3JunctionJunction,
+  KsmXcmV3JunctionsJunctions,
   KsmXcmV3MultiassetAssetId,
   KsmXcmV3MultiassetAssetInstance,
   KsmXcmV3MultiassetFungibility,
@@ -25,10 +27,26 @@ const polkadotChain = await getChain({
 const relayChain = createClient(polkadotChain.connect, { Ksm, Ksm1_2: Ksm })
 const collectives = relayChain
 
-relayChain.Ksm.tx.XcmPallet.execute(KsmXcmVersionedXcm("V3", []), {
-  ref_time: 3n,
-  proof_size: 5n,
-})
+relayChain.Ksm.tx.XcmPallet.execute(
+  KsmXcmVersionedXcm.V3([
+    KsmXcmV3Instruction.LockAsset({
+      asset: {
+        id: KsmXcmV3MultiassetAssetId.Abstract(""),
+        fun: KsmXcmV3MultiassetFungibility.Fungible(4n),
+      },
+      unlocker: {
+        parents: 4,
+        interior: KsmXcmV3JunctionsJunctions.X1(
+          KsmXcmV3JunctionJunction.Parachain(4),
+        ),
+      },
+    }),
+  ]),
+  {
+    ref_time: 3n,
+    proof_size: 5n,
+  },
+)
 
 const transact1: EnumOption<KsmXcmV3Instruction, "Transact"> = {
   call: Binary(""),
@@ -57,15 +75,14 @@ relayChain.Ksm.tx.XcmPallet.execute(Enum("V3", instructions), {
   ref_time: 3n,
 })
 
-relayChain.Ksm.tx.XcmPallet.execute(KsmXcmVersionedXcm("V3", []), {
+relayChain.Ksm.tx.XcmPallet.execute(KsmXcmVersionedXcm.V3([]), {
   ref_time: 5n,
   proof_size: 3n,
 })
 relayChain.Ksm.tx.XcmPallet.execute(
-  KsmXcmVersionedXcm("V3", [
-    KsmXcmV3Instruction(
-      "ExpectOrigin",
-      KsmOption("Some", {
+  KsmXcmVersionedXcm.V3([
+    KsmXcmV3Instruction.ExpectOrigin(
+      KsmOption.Some({
         ref_time: 4n,
         proof_size: 2n,
       }),
@@ -78,21 +95,20 @@ relayChain.Ksm.tx.XcmPallet.execute(
 )
 
 relayChain.Ksm.tx.XcmPallet.execute(
-  KsmXcmVersionedXcm("V3", [
-    KsmXcmV3Instruction("Transact", {
+  KsmXcmVersionedXcm.V3([
+    KsmXcmV3Instruction.Transact({
       call: Binary("0x32ff"),
-      origin_kind: KsmXcmV2OriginKind("Native"),
+      origin_kind: KsmXcmV2OriginKind.Native(),
       require_weight_at_most: {
         ref_time: 5n,
         proof_size: 3n,
       },
     }),
-    KsmXcmV3Instruction("BurnAsset", [
+    KsmXcmV3Instruction.BurnAsset([
       {
-        id: KsmXcmV3MultiassetAssetId("Abstract", ""),
-        fun: KsmXcmV3MultiassetFungibility(
-          "NonFungible",
-          KsmXcmV3MultiassetAssetInstance("Index", 3n),
+        id: KsmXcmV3MultiassetAssetId.Abstract(""),
+        fun: KsmXcmV3MultiassetFungibility.NonFungible(
+          KsmXcmV3MultiassetAssetInstance.Index(3n),
         ),
       },
     ]),

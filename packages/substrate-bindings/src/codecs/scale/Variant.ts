@@ -56,7 +56,7 @@ export type Enum<T extends { type: string; value?: any }> = T & Discriminant<T>
 
 type MyTuple<T> = [T, ...T[]]
 
-type Vector<T> = Array<T>
+type List<T> = Array<T>
 
 export type Anonymize<T> = T extends
   | string
@@ -79,15 +79,33 @@ export type Anonymize<T> = T extends
             [K in keyof T]: Anonymize<T[K]>
           }
         : T extends Array<infer A>
-          ? Vector<Anonymize<A>>
+          ? List<Anonymize<A>>
           : {
               [K in keyof T]: Anonymize<T[K]>
             }
+
+export const _Enum = new Proxy(
+  {},
+  {
+    get(_, prop: string) {
+      return (value: string) =>
+        Enum<{ type: string; value: any }, string>(prop, value)
+    },
+  },
+)
 
 export type EnumOption<
   T extends { type: string; value?: any },
   Key extends T["type"],
 > = Anonymize<ExtractValue<T, Key>>
+
+export type GetEnum<T extends Enum<{ type: string; value: any }>> = {
+  [K in T["type"]]: (
+    ...args: ExtractValue<T, K> extends undefined
+      ? []
+      : [value: Anonymize<ExtractValue<T, K>>]
+  ) => T
+}
 
 export const Enum: <
   T extends { type: string; value?: any },
@@ -117,15 +135,6 @@ export const Enum: <
   type: _type,
   value: _value,
 })) as any
-
-export type EnumAs<T extends { type: string; value?: any }> = <
-  Key extends T["type"],
->(
-  type: Key,
-  ...args: ExtractValue<T, Key> extends undefined
-    ? []
-    : [value: Anonymize<ExtractValue<T, Key>>]
-) => T
 
 const VariantEnc = <O extends StringRecord<Encoder<any>>>(
   ...args: [inner: O, x?: RestrictedLenTuple<number, O>]

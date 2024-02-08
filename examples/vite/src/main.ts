@@ -44,7 +44,7 @@ function populateUserDropdown(select: Element) {
 
 function transfer(alexa: Account, billy: Account, amount: bigint) {
   client.test.tx.Balances.transfer_keep_alive(
-    TestMultiAddress("Id", billy.address),
+    TestMultiAddress.Id(billy.address),
     amount,
   )
     .submit$(alexa.address)
