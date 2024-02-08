@@ -1,14 +1,14 @@
 import {
   Bytes,
   CodecType,
-  Enum,
   Struct,
   Vector,
   _void,
   enhanceCodec,
-} from "scale-ts"
-import { Hex } from "./Hex"
-import { compactNumber } from "./compact"
+  Hex,
+  Variant,
+  compactNumber,
+} from "./scale"
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
@@ -24,7 +24,7 @@ const diggestVal = Struct({
   payload: Hex(),
 })
 
-const diggest = Enum(
+const diggest = Variant(
   {
     consensus: diggestVal,
     seal: diggestVal,

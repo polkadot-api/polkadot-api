@@ -144,7 +144,7 @@ export type StructDecoded = WithInputAndPath<{
 export type EnumDecoded = WithInputAndPath<{
   codec: "Enum"
   value: {
-    tag: string
+    type: string
     value: Decoded
   }
   docs: string[]

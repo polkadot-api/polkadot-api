@@ -1,4 +1,4 @@
-import { compactNumber } from "../../compact"
+import { compactNumber } from "../../scale/compact"
 import {
   CodecType,
   Enum,

@@ -5,7 +5,8 @@ import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
 import {
   metadata as $metadata,
-  OpaqueCodec,
+  Tuple,
+  compact,
 } from "@polkadot-api/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
@@ -92,11 +93,10 @@ async function getRawMetadata(args: GetMetadataArgs): Promise<Uint8Array> {
   }
 }
 
+const opaqueMeta = Tuple(compact, $metadata)
 export async function getMetadata(args: GetMetadataArgs) {
   const rawMetadata = await getRawMetadata(args)
-  const { inner } = OpaqueCodec($metadata).dec(rawMetadata)
-
-  const { magicNumber, metadata } = inner()
+  const [, { magicNumber, metadata }] = opaqueMeta.dec(rawMetadata)
 
   assertIsv14(metadata)
 

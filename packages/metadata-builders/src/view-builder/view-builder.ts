@@ -169,7 +169,7 @@ const _buildShapedDecoder = (
     : complex.Enum(inner, indexes as any)
 
   const withDocs = enhanceDecoder(withoutDocs, (val) => {
-    const docs = input.innerDocs[val.value.tag]
+    const docs = input.innerDocs[val.value.type]
     return {
       ...val,
       docs,
@@ -240,7 +240,7 @@ export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
 
     const call = {
       value: {
-        name: decoded.value.tag,
+        name: decoded.value.type,
         idx: bytes[1],
       },
       input: hexStrFromByte(bytes[1]),

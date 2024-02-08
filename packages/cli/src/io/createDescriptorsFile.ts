@@ -1,6 +1,5 @@
 import { PalletData } from "./types"
 import fs from "fs/promises"
-import { ESLint } from "eslint"
 import fsExists from "fs.promises.exists"
 import tsc from "tsc-prog"
 import path from "path"
@@ -23,9 +22,11 @@ export const createDescriptorsFile = async (
   key: string,
   outputFolder: string,
   pallets: Record<string, PalletData>,
+  enums: Array<string>,
 ) => {
   const knownImports: Array<string> = [
-    `import type { PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/substrate-bindings"\n`,
+    `import type { GetEnum, PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/client"\n`,
+    `import { _Enum } from "@polkadot-api/client"\n`,
   ]
   const keyTypesImports: Array<string> = []
   const addTypeImport = (type: string) => {
@@ -146,35 +147,27 @@ export const createDescriptorsFile = async (
   addLine(`export type Events = EventsFromDescriptors<I${key}Descriptors>`)
   addLine(`export type Errors = ErrorsFromDescriptors<I${key}Descriptors>`)
   addLine(`export type Constants = ConstFromDescriptors<I${key}Descriptors>`)
+  addLine(``)
+
+  enums.forEach((x) => {
+    addLine(`export type ${x} = _E${x};`)
+    addLine(`export const ${x} = _Enum as unknown as GetEnum<${x}>;`)
+  })
 
   const descriptorCodegen =
     knownImports
       .concat(
-        `import type {${keyTypesImports.join(", ")}} from "./${key}-types"`,
+        `import type {${keyTypesImports.join(", ")}} from "./${key}-types"
+import type {${enums
+          .map((n) => `${n} as _E${n}`)
+          .join(",")}} from "./${key}-types"
+`,
       )
       .join(";\n") +
     "\n\n" +
     code.join("\n")
 
   await fs.writeFile(`${outputFolder}/${key}.ts`, descriptorCodegen)
-
-  const eslint = new ESLint({
-    useEslintrc: false,
-    fix: true,
-    overrideConfig: {
-      extends: ["plugin:prettier/recommended"],
-      parser: "@typescript-eslint/parser",
-      plugins: ["@typescript-eslint", "unused-imports", "prettier"],
-      rules: {
-        "unused-imports/no-unused-imports": "error",
-        "unused-imports/no-unused-vars:": "error",
-        "max-len": ["error", { code: 120, ignoreUrls: true }],
-      },
-    },
-  })
-
-  const results = await eslint.lintFiles([`${outputFolder}/${key}.ts`])
-  await ESLint.outputFixes(results)
 
   // Run tsc again to make sure the final .ts file has no compile errors
   {

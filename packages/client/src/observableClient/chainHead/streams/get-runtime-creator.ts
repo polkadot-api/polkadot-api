@@ -16,13 +16,13 @@ import { Observable, map, shareReplay } from "rxjs"
 
 export type SystemEvent = {
   phase:
-    | { tag: "ApplyExtrinsic"; value: number }
-    | { tag: "Finalization" }
-    | { tag: "Initialization" }
+    | { type: "ApplyExtrinsic"; value: number }
+    | { type: "Finalization" }
+    | { type: "Initialization" }
   event: {
-    tag: string
+    type: string
     value: {
-      tag: string
+      type: string
       value: any
     }
   }

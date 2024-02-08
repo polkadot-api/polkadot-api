@@ -5,6 +5,7 @@ import {
   Enum,
   SS58String,
   Struct,
+  Variant,
   compact,
   u8,
 } from "@polkadot-api/substrate-bindings"
@@ -215,7 +216,7 @@ export async function run(_nodeName: string, networkInfo: any) {
           module: u8,
           method: u8,
           args: Struct({
-            dest: Enum({
+            dest: Variant({
               Id: AccountId(42),
             }),
             value: compact,
@@ -232,10 +233,7 @@ export async function run(_nodeName: string, networkInfo: any) {
               module: 4,
               method: 0,
               args: {
-                dest: {
-                  tag: "Id",
-                  value: to,
-                },
+                dest: Enum("Id", to),
                 value: 1000000n,
               },
             }),
