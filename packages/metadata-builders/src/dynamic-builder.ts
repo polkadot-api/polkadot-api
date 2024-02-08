@@ -85,8 +85,6 @@ const _buildCodec = (
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
-const emptyTuple = scale.Tuple()
-
 export const getDynamicBuilder = (metadata: V14) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
@@ -162,11 +160,10 @@ export const getDynamicBuilder = (metadata: V14) => {
 
   const buildEnumEntry = (
     entry: EnumVar["value"][keyof EnumVar["value"]],
-    forceTuple = false,
   ): Codec<any> => {
-    if (entry.type === "primitive") return forceTuple ? emptyTuple : scale._void
+    if (entry.type === "primitive") return scale._void
 
-    return entry.type === "tuple" || forceTuple
+    return entry.type === "tuple"
       ? scale.Tuple(
           ...Object.values(entry.value).map((l) => buildDefinition(l.id)),
         )
@@ -219,7 +216,7 @@ export const getDynamicBuilder = (metadata: V14) => {
 
     return {
       location: [palletEntry.index, entry.idx],
-      args: buildEnumEntry(lookup.value[name], true),
+      args: buildEnumEntry(lookup.value[name]),
     }
   }
 

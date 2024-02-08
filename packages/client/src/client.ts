@@ -5,7 +5,7 @@ import {
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { getObservableClient } from "./observableClient"
 import { CreateClient, CreateTx, EvApi, StorageApi, TxApi } from "./types"
-import { TxClient, createTxEntry } from "./tx"
+import { Transaction, createTxEntry } from "./tx"
 import { firstValueFrom } from "rxjs"
 import { EvClient, createEventEntry } from "./event"
 import {
@@ -44,7 +44,10 @@ const createNamespace = (
     }
   }
 
-  const tx = {} as Record<string, Record<string, TxClient<any>>>
+  const tx = {} as Record<
+    string,
+    Record<string, (a: any) => Transaction<any, any, any>>
+  >
   for (const pallet in descriptors) {
     tx[pallet] ||= {}
     const [, txEntries] = descriptors[pallet]

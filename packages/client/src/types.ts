@@ -7,7 +7,7 @@ import {
   TxFromDescriptors,
 } from "@polkadot-api/substrate-bindings"
 import { StorageEntry } from "./storage"
-import { TxClient } from "./tx"
+import { Transaction } from "./tx"
 import { EvClient } from "./event"
 import { Observable } from "rxjs"
 import { BlockInfo } from "./observableClient"
@@ -55,12 +55,12 @@ export type StorageApi<
   }
 }
 
-export type TxApi<
-  A extends Record<string, Record<string, Array<any> | unknown>>,
-> = {
-  [K in keyof A]: {
-    [KK in keyof A[K]]: A[K][KK] extends Array<any>
-      ? TxClient<A[K][KK]>
+export type TxApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A & string]: {
+    [KK in keyof A[K] & string]: A[K][KK] extends {} | undefined
+      ? (
+          ...args: A[K][KK] extends undefined ? [] : [data: A[K][KK]]
+        ) => Transaction<A[K][KK], K, KK>
       : unknown
   }
 }

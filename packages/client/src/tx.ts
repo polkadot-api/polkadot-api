@@ -1,4 +1,9 @@
-import type { SS58String, TxDescriptor } from "@polkadot-api/substrate-bindings"
+import {
+  Binary,
+  Enum,
+  SS58String,
+  TxDescriptor,
+} from "@polkadot-api/substrate-bindings"
 import type {
   TxBestChainBlockIncluded,
   TxBroadcasted,
@@ -33,12 +38,23 @@ type TxObservable = (
   | (TxFinalized & TxSuccess)
 >
 
-type TxCall = () => Promise<string>
+type TxCall = () => Promise<Binary>
 
 type TxSigned = (from: SS58String) => Promise<string>
 
-export type TxClient<Args extends Array<any>> = (...args: Args) => {
-  getCallData: TxCall
+export type Transaction<
+  Arg extends {} | undefined,
+  Pallet extends string,
+  Name extends string,
+> = {
+  callData: Enum<{
+    type: Pallet
+    value: Enum<{
+      type: Name
+      value: Arg
+    }>
+  }>
+  getEncodedData: TxCall
   getTx: TxSigned
   submit: TxFunction
   submit$: TxObservable
@@ -60,16 +76,16 @@ const getTxSuccessFromSystemEvents = (
 }
 
 export const createTxEntry =
-  <Args extends Array<any>>(
-    descriptor: TxDescriptor<Args>,
-    pallet: string,
-    name: string,
+  <Arg extends {} | undefined, Pallet extends string, Name extends string>(
+    descriptor: TxDescriptor<Arg>,
+    pallet: Pallet,
+    name: Name,
     chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
     client: ReturnType<typeof getObservableClient>,
     signer: (from: string, callData: Uint8Array) => Promise<Uint8Array>,
-  ): TxClient<Args> =>
-  (...args: Args) => {
-    const getCallData$ = (...decodedArgs: Args) =>
+  ): ((arg: any) => Transaction<Arg, Pallet, Name>) =>
+  (arg?: Arg): any => {
+    const getCallData$ = (arg?: any) =>
       chainHead.getRuntimeContext$(null).pipe(
         map(({ checksumBuilder, dynamicBuilder }) => {
           const checksum = checksumBuilder.buildCall(pallet, name)
@@ -77,25 +93,24 @@ export const createTxEntry =
             throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
           const { location, args } = dynamicBuilder.buildCall(pallet, name)
-          return mergeUint8(new Uint8Array(location), args.enc(decodedArgs))
+          return Binary(mergeUint8(new Uint8Array(location), args.enc(arg)))
         }),
       )
 
-    const getCallData: TxCall = () =>
-      firstValueFrom(getCallData$(...args)).then(toHex)
+    const getEncodedData: TxCall = () => firstValueFrom(getCallData$(arg))
 
     const getTx: TxSigned = (from) =>
       firstValueFrom(
-        getCallData$(...args).pipe(
-          mergeMap((callData) => signer(from, callData)),
+        getCallData$(arg).pipe(
+          mergeMap((callData) => signer(from, callData.asBytes())),
           map(toHex),
         ),
       )
 
     const submit: TxFunction = async (from) => {
       const tx = await firstValueFrom(
-        getCallData$(...args).pipe(
-          mergeMap((callData) => signer(from, callData).then(toHex)),
+        getCallData$(arg).pipe(
+          mergeMap((callData) => signer(from, callData.asBytes()).then(toHex)),
         ),
       )
 
@@ -122,8 +137,8 @@ export const createTxEntry =
     }
 
     const submit$: TxObservable = (from) =>
-      getCallData$(...args).pipe(
-        mergeMap((callData) => signer(from, callData)),
+      getCallData$(arg).pipe(
+        mergeMap((callData) => signer(from, callData.asBytes())),
         take(1),
         mergeMap((result) => {
           return client.tx$(toHex(result)).pipe(
@@ -152,5 +167,14 @@ export const createTxEntry =
         }),
       )
 
-    return { getCallData, getTx, submit, submit$ }
+    return {
+      callData: Enum(pallet, Enum(name, arg as any)) as Enum<{
+        type: Pallet
+        value: any
+      }>,
+      getEncodedData,
+      getTx,
+      submit,
+      submit$,
+    }
   }
