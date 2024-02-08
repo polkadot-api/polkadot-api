@@ -21,7 +21,10 @@ export const getCodegenInfo = (
     return Object.keys(lookup.value)
   }
 
-  const staticBuilder = getStaticBuilder(metadata)
+  const staticBuilder = getStaticBuilder(
+    metadata,
+    keyName[0].toUpperCase() + keyName.slice(1),
+  )
   const checksumBuilder = getChecksumBuilder(metadata)
   const exportedTypes: Array<string> = []
   const addExportedType = (

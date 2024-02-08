@@ -54,6 +54,10 @@ export interface Discriminant<T extends { type: string; value?: any }> {
 
 export type Enum<T extends { type: string; value?: any }> = T & Discriminant<T>
 
+type MyTuple<T> = [T, ...T[]]
+
+type Vector<T> = Array<T>
+
 export type Anonymize<T> = T extends
   | string
   | number
@@ -64,16 +68,21 @@ export type Anonymize<T> = T extends
   | null
   | symbol
   | Binary
+  | Enum<{ type: string; value: any }>
   ? T
-  : T extends Enum<infer V>
-    ? Enum<V>
-    : T extends (...args: infer Args) => infer R
-      ? (...args: Anonymize<Args>) => Anonymize<R>
-      : T extends Uint8Array
-        ? T
-        : {
+  : T extends (...args: infer Args) => infer R
+    ? (...args: Anonymize<Args>) => Anonymize<R>
+    : T extends Uint8Array
+      ? T
+      : T extends MyTuple<any>
+        ? {
             [K in keyof T]: Anonymize<T[K]>
           }
+        : T extends Array<infer A>
+          ? Vector<Anonymize<A>>
+          : {
+              [K in keyof T]: Anonymize<T[K]>
+            }
 
 export type EnumOption<
   T extends { type: string; value?: any },
@@ -116,7 +125,7 @@ export type EnumAs<T extends { type: string; value?: any }> = <
   ...args: ExtractValue<T, Key> extends undefined
     ? []
     : [value: Anonymize<ExtractValue<T, Key>>]
-) => Enum<T>
+) => T
 
 const VariantEnc = <O extends StringRecord<Encoder<any>>>(
   ...args: [inner: O, x?: RestrictedLenTuple<number, O>]

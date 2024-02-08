@@ -75,7 +75,7 @@ const isBytes = (input: LookupEntry) =>
   input.type === "primitive" && input.value === "u8"
 
 const getTypes = (varName: string) =>
-  primitiveTypes[varName as keyof typeof primitiveTypes] ?? `I${varName}`
+  primitiveTypes[varName as keyof typeof primitiveTypes] ?? varName
 
 const _buildSyntax = (
   input: LookupEntry,
@@ -263,7 +263,7 @@ const _buildSyntax = (
   declarations.variables.set(varId, {
     id: varId,
     value: `Variant(${innerEnum})`,
-    types: `Enum<${varId.slice(1)}>`,
+    types: `Enum<E${varId}>`,
     directDependencies: new Set<string>(dependencies),
   })
   return varId
@@ -277,7 +277,7 @@ const buildSyntax = withCache(
     const nonCircular = getVarName(entry.id)
     const variable: Variable = {
       id: getVarName(entry.id, "circular"),
-      types: `I${nonCircular}`,
+      types: nonCircular,
       value: `Self(() => ${nonCircular})`,
       directDependencies: new Set([nonCircular]),
     }
@@ -287,7 +287,7 @@ const buildSyntax = withCache(
   (x) => x,
 )
 
-export const getStaticBuilder = (metadata: V14) => {
+export const getStaticBuilder = (metadata: V14, namespace: string) => {
   const declarations: CodeDeclarations = {
     imports: new Set<string>(),
     typeImports: new Set<string>(["Codec"]),
@@ -300,7 +300,12 @@ export const getStaticBuilder = (metadata: V14) => {
 
   const getVarName = (idx: number, ...post: string[]): string => {
     const { path } = lookupData[idx]
-    const parts: string[] = path.length === 0 ? ["cdc" + idx] : ["c", ...path]
+    const parts: string[] =
+      path.length === 0
+        ? ["cdc" + idx]
+        : path[0] === "sp_runtime"
+          ? [namespace, path.slice(-1)[0]]
+          : [namespace, ...path]
 
     parts.push(...post)
 
@@ -450,24 +455,24 @@ export const getStaticBuilder = (metadata: V14) => {
     const code = [...declarations.variables.values()]
       .map((variable) => {
         const ePrefix = declarations.enums.has(variable.id)
-          ? `export type ${variable.id.slice(1)} = ${declarations.enums.get(
+          ? `type E${variable.id} = ${declarations.enums.get(
               variable.id,
-            )!};\n`
+            )!};\nexport `
           : ""
-        return `${ePrefix}type I${variable.id} = ${variable.types};
-const ${variable.id}: Codec<I${variable.id}> = ${variable.value};`
+        return `${ePrefix}type ${variable.id} = ${variable.types};
+const ${variable.id}: Codec<${variable.id}> = ${variable.value};`
       })
       .join("\n\n")
 
     return `${typeImports}${varImports}${code}`
   }
 
-  const getEnums = () => [...declarations.enums.keys()].map((x) => x.slice(1))
+  const getEnums = () => [...declarations.enums.keys()]
 
   const getTypeFromVarName = (varName: string) =>
     primitiveTypes[varName as keyof typeof primitiveTypes] ??
     declarations.variables.get(varName)?.types ??
-    `I${varName}`
+    varName
 
   return {
     buildDefinition,

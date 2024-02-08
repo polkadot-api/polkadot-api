@@ -4,14 +4,15 @@ import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { createClient } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
-import ksm, {
+import Ksm, {
+  KsmOption,
+  KsmXcmV2OriginKind,
+  KsmXcmV3Instruction,
+  KsmXcmV3MultiassetAssetId,
+  KsmXcmV3MultiassetAssetInstance,
+  KsmXcmV3MultiassetFungibility,
+  KsmXcmVersionedXcm,
   Queries,
-  XcmV2OriginKind,
-  XcmV3Instruction,
-  XcmV3MultiassetAssetId,
-  XcmV3MultiassetAssetInstance,
-  XcmV3MultiassetFungibility,
-  XcmVersionedXcm,
 } from "./descriptors/ksm"
 import { Enum, Binary, EnumOption } from "@polkadot-api/substrate-bindings"
 const scProvider = getScProvider()
@@ -21,10 +22,15 @@ const polkadotChain = await getChain({
   keyring: { getPairs: () => [], onKeyPairsChanged: () => noop },
 })
 
-const relayChain = createClient(polkadotChain.connect, { ksm, ksm1_2: ksm })
+const relayChain = createClient(polkadotChain.connect, { Ksm, Ksm1_2: Ksm })
 const collectives = relayChain
 
-const transact1: EnumOption<XcmV3Instruction, "Transact"> = {
+relayChain.Ksm.tx.XcmPallet.execute(KsmXcmVersionedXcm("V3", []), {
+  ref_time: 3n,
+  proof_size: 5n,
+})
+
+const transact1: EnumOption<KsmXcmV3Instruction, "Transact"> = {
   call: Binary(""),
   origin_kind: Enum("Xcm"),
   require_weight_at_most: {
@@ -33,7 +39,7 @@ const transact1: EnumOption<XcmV3Instruction, "Transact"> = {
   },
 }
 
-const instructions: Array<Enum<XcmV3Instruction>> = [
+const instructions: Array<KsmXcmV3Instruction> = [
   Enum("Transact", transact1),
   Enum("WithdrawAsset", [
     {
@@ -46,27 +52,47 @@ const instructions: Array<Enum<XcmV3Instruction>> = [
   ]),
 ]
 
-relayChain.ksm.tx.XcmPallet.execute(Enum("V3", instructions), {
+relayChain.Ksm.tx.XcmPallet.execute(Enum("V3", instructions), {
   proof_size: 3n,
   ref_time: 3n,
 })
 
-relayChain.ksm.tx.XcmPallet.execute(
-  XcmVersionedXcm("V3", [
-    XcmV3Instruction("Transact", {
+relayChain.Ksm.tx.XcmPallet.execute(KsmXcmVersionedXcm("V3", []), {
+  ref_time: 5n,
+  proof_size: 3n,
+})
+relayChain.Ksm.tx.XcmPallet.execute(
+  KsmXcmVersionedXcm("V3", [
+    KsmXcmV3Instruction(
+      "ExpectOrigin",
+      KsmOption("Some", {
+        ref_time: 4n,
+        proof_size: 2n,
+      }),
+    ),
+  ]),
+  {
+    ref_time: 5n,
+    proof_size: 33n,
+  },
+)
+
+relayChain.Ksm.tx.XcmPallet.execute(
+  KsmXcmVersionedXcm("V3", [
+    KsmXcmV3Instruction("Transact", {
       call: Binary("0x32ff"),
-      origin_kind: XcmV2OriginKind("Native"),
+      origin_kind: KsmXcmV2OriginKind("Native"),
       require_weight_at_most: {
         ref_time: 5n,
         proof_size: 3n,
       },
     }),
-    XcmV3Instruction("BurnAsset", [
+    KsmXcmV3Instruction("BurnAsset", [
       {
-        id: XcmV3MultiassetAssetId("Abstract", ""),
-        fun: XcmV3MultiassetFungibility(
+        id: KsmXcmV3MultiassetAssetId("Abstract", ""),
+        fun: KsmXcmV3MultiassetFungibility(
           "NonFungible",
-          XcmV3MultiassetAssetInstance("Index", 3n),
+          KsmXcmV3MultiassetAssetInstance("Index", 3n),
         ),
       },
     ]),
@@ -74,7 +100,7 @@ relayChain.ksm.tx.XcmPallet.execute(
   { ref_time: 3n, proof_size: 3n },
 )
 
-relayChain.ksm.tx.Utility.batch([
+relayChain.Ksm.tx.Utility.batch([
   Enum("Identity", Enum("set_fee", { index: 2, fee: 3n })),
   Enum(
     "Beefy",
@@ -137,10 +163,10 @@ function mapRawIdentity(
 }
 
 const relevantIdentities =
-  await collectives.ksm.query.FellowshipCollective.Members.getEntries()
+  await collectives.Ksm.query.FellowshipCollective.Members.getEntries()
     .then((allMembers) => allMembers.filter(({ value }) => value >= 4))
     .then((members) =>
-      relayChain.ksm.query.Identity.IdentityOf.getValues(
+      relayChain.Ksm.query.Identity.IdentityOf.getValues(
         members.map((m) => m.keyArgs),
       ).then((identities) =>
         identities.map((identity, idx) => ({
@@ -155,9 +181,9 @@ relevantIdentities.forEach((identity) => console.log(identity))
 
 const runtime = await relayChain.runtime.latest()
 
-console.log(runtime.constants.ksm.System.Version.spec_name)
-console.log(runtime.constants.ksm.System.Version.spec_version)
+console.log(runtime.constants.Ksm.System.Version.spec_name)
+console.log(runtime.constants.Ksm.System.Version.spec_version)
 console.log(
   "Is Balances.transfer_allow_death compatible:",
-  runtime.isCompatible((api) => api.ksm.tx.Balances.transfer_allow_death),
+  runtime.isCompatible((api) => api.Ksm.tx.Balances.transfer_allow_death),
 )
