@@ -151,7 +151,7 @@ relayChain.Ksm.tx.Utility.batch([
 ])
 
 const identityDataToString = (value: string | Binary | undefined) =>
-  value instanceof Binary ? value.asText() : value ?? ""
+  typeof value === "object" ? value.asText() : value ?? ""
 
 function mapRawIdentity(
   rawIdentity?: Queries["Identity"]["IdentityOf"]["Value"],

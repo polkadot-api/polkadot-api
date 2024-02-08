@@ -1,4 +1,4 @@
-import { Binary, createClient } from "@polkadot-api/client"
+import { createClient } from "@polkadot-api/client"
 import "./style.css"
 
 import {
@@ -7,7 +7,6 @@ import {
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
 import test, { TestMultiAddress } from "./codegen/test"
-
 const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
 
