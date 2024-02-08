@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "codegen": "papi",
     "start": "vite",
     "build": "pnpm i && polkadot-api && tsc && vite build",
     "preview": "vite preview"
@@ -19,7 +20,6 @@
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/client": "workspace:*",
     "@polkadot-api/legacy-polkadot-provider": "workspace:*",
-    "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@substrate/connect": "^0.8.4",

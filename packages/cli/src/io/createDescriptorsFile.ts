@@ -25,8 +25,8 @@ export const createDescriptorsFile = async (
   enums: Array<string>,
 ) => {
   const knownImports: Array<string> = [
-    `import type { GetEnum, PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/substrate-bindings"\n`,
-    `import { _Enum } from "@polkadot-api/substrate-bindings"\n`,
+    `import type { GetEnum, PlainDescriptor, TxDescriptor, StorageDescriptor, QueryFromDescriptors,TxFromDescriptors,EventsFromDescriptors,ErrorsFromDescriptors,ConstFromDescriptors } from "@polkadot-api/client"\n`,
+    `import { _Enum } from "@polkadot-api/client"\n`,
   ]
   const keyTypesImports: Array<string> = []
   const addTypeImport = (type: string) => {

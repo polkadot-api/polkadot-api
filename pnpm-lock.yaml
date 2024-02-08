@@ -120,9 +120,6 @@ importers:
       '@polkadot-api/legacy-polkadot-provider':
         specifier: workspace:*
         version: link:../../packages/legacy-polkadot-provider
-      '@polkadot-api/substrate-bindings':
-        specifier: workspace:*
-        version: link:../../packages/substrate-bindings
       '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../../packages/substrate-client

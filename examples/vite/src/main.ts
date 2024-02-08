@@ -1,4 +1,4 @@
-import { createClient } from "@polkadot-api/client"
+import { Binary, createClient } from "@polkadot-api/client"
 import "./style.css"
 
 import {

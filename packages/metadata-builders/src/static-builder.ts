@@ -446,7 +446,7 @@ export const getStaticBuilder = (metadata: V14, namespace: string) => {
   const getCode = (): string => {
     const typeImports = `import type {${[...declarations.typeImports].join(
       ", ",
-    )}} from "@polkadot-api/substrate-bindings";\n`
+    )}} from "@polkadot-api/client";\n`
 
     const varImports = `import {${[...declarations.imports].join(
       ", ",
