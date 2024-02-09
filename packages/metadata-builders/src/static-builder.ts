@@ -389,17 +389,17 @@ export const getStaticBuilder = (metadata: V14, namespace: string) => {
   }
 
   const buildVariant =
-    (type: "errors" | "events") => (pallet: string, name: string) => {
-      const eventsLookup = getLookupEntryDef(
+    (type: "errors" | "events" | "calls") => (pallet: string, name: string) => {
+      const lookupEntry = getLookupEntryDef(
         metadata.pallets.find((x) => x.name === pallet)![type]! as number,
       )
-      if (eventsLookup.type !== "enum") throw null
+      if (lookupEntry.type !== "enum") throw null
 
-      const returnVar = toCamelCase(buildDefinition(eventsLookup.id), name)
+      const returnVar = toCamelCase(buildDefinition(lookupEntry.id), name)
 
       if (
         !declarations.variables.has(returnVar) &&
-        eventsLookup.value[name].type === "primitive"
+        lookupEntry.value[name].type === "primitive"
       ) {
         declarations.variables.set(returnVar, {
           id: returnVar,
@@ -411,29 +411,6 @@ export const getStaticBuilder = (metadata: V14, namespace: string) => {
 
       return returnVar
     }
-
-  const buildCall = (pallet: string, callName: string) => {
-    const callsLookup = getLookupEntryDef(
-      metadata.pallets.find((x) => x.name === pallet)!.calls! as number,
-    )
-
-    if (callsLookup.type !== "enum") throw null
-
-    const callEntry = callsLookup.value[callName]
-    if (callEntry.type === "primitive") return getEmptyTuple()
-    if (callEntry.type === "tuple")
-      return toCamelCase(buildDefinition(callsLookup.id), callName)
-
-    const params = Object.entries(callEntry.value).map(([name, val]) => ({
-      name,
-      type: val.id,
-    }))
-
-    return buildNamedTuple(
-      params,
-      getVarName(callsLookup.id, callName, "Tupled"),
-    )
-  }
 
   const buildConstant = (pallet: string, constantName: string) => {
     const storageEntry = metadata.pallets
@@ -479,7 +456,7 @@ const ${variable.id}: Codec<${variable.id}> = ${variable.value};`
     buildStorage,
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
-    buildCall,
+    buildCall: buildVariant("calls"),
     buildConstant,
     getTypeFromVarName,
     getCode,

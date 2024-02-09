@@ -7,8 +7,8 @@ export type StorageDescriptor<
   Optional extends true | false,
 > = string & { _type: T; _args: Args; _optional: Optional }
 
-export type TxDescriptor<Args extends Array<any>> = string & {
-  _args: Args
+export type TxDescriptor<Args extends {} | undefined> = string & {
+  ___: Args
 }
 
 export type Descriptors = Record<

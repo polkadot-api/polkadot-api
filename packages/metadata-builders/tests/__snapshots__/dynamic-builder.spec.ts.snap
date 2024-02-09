@@ -1,8 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`getDynamicBuilder > batched call 1`] = `
-[
-  [
+{
+  "calls": [
     {
       "as": [Function],
       "is": [Function],
@@ -43,12 +43,28 @@ exports[`getDynamicBuilder > batched call 1`] = `
       },
     },
   ],
-]
+}
 `;
 
 exports[`getDynamicBuilder > felloship referenda submit 1`] = `
-[
-  {
+{
+  "enactment_moment": {
+    "as": [Function],
+    "is": [Function],
+    "type": "After",
+    "value": 1,
+  },
+  "proposal": {
+    "as": [Function],
+    "is": [Function],
+    "type": "Inline",
+    "value": {
+      "asBytes": [Function],
+      "asHex": [Function],
+      "asText": [Function],
+    },
+  },
+  "proposal_origin": {
     "as": [Function],
     "is": [Function],
     "type": "Origins",
@@ -59,21 +75,5 @@ exports[`getDynamicBuilder > felloship referenda submit 1`] = `
       "value": undefined,
     },
   },
-  {
-    "as": [Function],
-    "is": [Function],
-    "type": "Inline",
-    "value": {
-      "asBytes": [Function],
-      "asHex": [Function],
-      "asText": [Function],
-    },
-  },
-  {
-    "as": [Function],
-    "is": [Function],
-    "type": "After",
-    "value": 1,
-  },
-]
+}
 `;
