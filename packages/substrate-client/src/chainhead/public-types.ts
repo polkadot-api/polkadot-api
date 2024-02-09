@@ -138,4 +138,9 @@ export interface ChainHead {
     cb: (event: FollowEventWithRuntime) => void,
     onError: (error: Error) => void,
   ): FollowResponse
+  (
+    withRuntime: boolean,
+    cb: (event: FollowEventWithoutRuntime | FollowEventWithRuntime) => void,
+    onError: (error: Error) => void,
+  ): FollowResponse
 }

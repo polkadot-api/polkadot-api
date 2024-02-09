@@ -17,15 +17,13 @@ describe.each([
   ["header" as "header", ["someHash"] as [string], "someHeader", "someHeader"],
 ])("chainhead: %s", (name, args, result, expectedResult) => {
   it("sends the correct message", () => {
-    const {
-      fixtures: { getNewMessages, SUBSCRIPTION_ID },
-      ...chainHead
-    } = setupChainHeadWithSubscription()
+    const { provider, SUBSCRIPTION_ID, chainHead } =
+      setupChainHeadWithSubscription()
 
-    getNewMessages()
+    provider.getNewMessages()
     chainHead[name](...(args as [any]))
 
-    expect(getNewMessages()).toMatchObject([
+    expect(provider.getNewMessages()).toMatchObject([
       {
         method: `chainHead_unstable_${name}`,
         params: [SUBSCRIPTION_ID, ...args],
@@ -34,14 +32,11 @@ describe.each([
   })
 
   it("resolves the correct response", () => {
-    const {
-      fixtures: { sendMessage },
-      ...chainHead
-    } = setupChainHeadWithSubscription()
+    const { provider, chainHead } = setupChainHeadWithSubscription()
 
     const promise = chainHead[name](...(args as [any]))
 
-    sendMessage({
+    provider.sendMessage({
       id: 3,
       result,
     })
@@ -50,14 +45,11 @@ describe.each([
   })
 
   it("rejects the JSON-RPC Error when the request fails", () => {
-    const {
-      fixtures: { sendMessage },
-      ...chainHead
-    } = setupChainHeadWithSubscription()
+    const { provider, chainHead } = setupChainHeadWithSubscription()
 
     const promise = chainHead[name](...(args as [any]))
 
-    sendMessage({
+    provider.sendMessage({
       id: 3,
       error: parseError,
     })
@@ -66,34 +58,37 @@ describe.each([
   })
 
   it("rejects with an `DisjointError` when the function is created after `unfollow`", () => {
-    const { unfollow, ...chainHead } = setupChainHead()
+    const { chainHead } = setupChainHead()
 
-    unfollow()
+    chainHead.unfollow()
 
     return expect(chainHead[name](...(args as [any]))).rejects.toEqual(
       new DisjointError(),
     )
   })
 
-  it("rejects an `DisjointError` when the follow subscription fails", async () => {
-    let { fixtures, ...chainHead } = setupChainHead()
+  it("rejects an `DisjointError` when the follow subscription fails and the operation is pending", async () => {
+    const { provider, chainHead } = setupChainHead()
 
-    let promise = chainHead[name](...(args as [any]))
+    const promise = chainHead[name](...(args as [any]))
     // The errored JSON-RPC response comes **after** the user has called `header`/`unpin`
-    fixtures.sendMessage({
+    provider.sendMessage({
       id: 2,
       error: parseError,
     })
 
     await expect(promise).rejects.toEqual(new DisjointError())
-    ;({ fixtures, ...chainHead } = setupChainHead())
+  })
+
+  it("rejects an `DisjointError` when the follow subscription fails for any subsequent operation", async () => {
+    const { provider, chainHead } = setupChainHead()
 
     // The errored JSON-RPC response comes **before** the user has called `header`/`unpin`
-    fixtures.sendMessage({
+    provider.sendMessage({
       id: 2,
       error: parseError,
     })
-    promise = chainHead[name](...(args as [any]))
+    const promise = chainHead[name](...(args as [any]))
 
     await expect(promise).rejects.toEqual(new DisjointError())
   })

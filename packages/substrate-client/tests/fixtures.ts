@@ -1,5 +1,11 @@
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
-import { FollowResponse, IRpcError, createClient } from "@/."
+import {
+  FollowEventWithRuntime,
+  FollowEventWithoutRuntime,
+  FollowResponse,
+  IRpcError,
+  createClient,
+} from "@/."
 import * as vitest from "vitest"
 
 const vi = vitest.vi
@@ -9,63 +15,92 @@ export const parseError: IRpcError = {
   message: "Parse error",
 }
 
-export const createTestClient = () => {
+type SpyWithNew<T extends any[]> = vitest.Mock<T> & {
+  getNewCalls: () => T[]
+}
+function createSpy<T extends any[]>(): SpyWithNew<T> {
+  const spy = vi.fn<T, void>()
+
+  let latestIdx = 0
+  const getNewCalls = () => {
+    const result = spy.mock.calls.slice(latestIdx)
+    latestIdx = spy.mock.calls.length
+    return result
+  }
+
+  return Object.assign(spy, { getNewCalls })
+}
+
+export interface MockProvider extends ConnectProvider {
+  sendMessage: (msg: Record<string, any>) => void
+  getNewMessages: <T = Record<string, any>>() => T[]
+  getAllMessages: <T = Record<string, any>>() => T[]
+}
+export const createMockProvider = (): MockProvider => {
   let onMessage: (msg: string) => void
-  const sendMessage = (msg: {}) => {
+  const sendMessage = (msg: Record<string, any>) => {
     onMessage(JSON.stringify({ ...msg, jsonrpc: "2.0" }))
   }
 
-  const receivedMessages: Array<string> = []
+  const onMessageReceived = createSpy<[message: string]>()
 
   const provider: ConnectProvider = (_onMessage) => {
     onMessage = _onMessage
     return {
-      send(msg) {
-        receivedMessages.push(msg)
-      },
+      send: onMessageReceived,
       disconnect() {},
     }
   }
 
+  const getNewMessages = () =>
+    onMessageReceived.getNewCalls().map(([m]) => JSON.parse(m))
+  const getAllMessages = () =>
+    onMessageReceived.mock.calls.map(([m]) => JSON.parse(m))
+
+  return Object.assign(provider, {
+    sendMessage,
+    getNewMessages,
+    getAllMessages,
+  })
+}
+
+export const createTestClient = () => {
+  const provider = createMockProvider()
   const client = createClient(provider)
-
-  let latestIdx = 0
-  const getNewMessages = () => {
-    const result = receivedMessages.slice(latestIdx).map((m) => JSON.parse(m))
-    latestIdx = receivedMessages.length
-    return result
-  }
-
-  const getAllMessages = () => receivedMessages.map((m) => JSON.parse(m))
+  // Clear out initial rpc_methods call, as it's internal
+  provider.getNewMessages()
 
   return {
     client,
-    fixtures: {
-      sendMessage,
-      getNewMessages,
-      getAllMessages,
-    },
+    provider,
   }
 }
 
-export function setupChainHead(withRuntime: boolean = true) {
-  const onMsg = vi.fn()
-  const onError = vi.fn()
-  const { client, fixtures } = createTestClient()
-  fixtures.sendMessage({ id: 1, result: [] })
-  fixtures.getNewMessages()
+export function setupChainHead<T extends boolean = true>(
+  withRuntime: T = true as T,
+) {
+  const onMsg = createSpy()
+  const onError = createSpy()
+  const { client, provider } = createTestClient()
 
-  const chainHead = client.chainHead(withRuntime as any, onMsg, onError)
+  const chainHead = client.chainHead(withRuntime, onMsg, onError)
 
-  return { ...chainHead, fixtures: { ...fixtures, onMsg, onError } }
+  return {
+    chainHead,
+    provider,
+    onMsg: onMsg as SpyWithNew<
+      [T extends true ? FollowEventWithRuntime : FollowEventWithoutRuntime]
+    >,
+    onError,
+  }
 }
 
 export function setupChainHeadWithSubscription(withRuntime = true) {
-  const { fixtures, ...rest } = setupChainHead(withRuntime)
-  fixtures.getNewMessages()
+  const { provider, ...rest } = setupChainHead(withRuntime)
+  provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-  fixtures.sendMessage({
+  provider.sendMessage({
     id: 2,
     result: SUBSCRIPTION_ID,
   })
@@ -73,7 +108,7 @@ export function setupChainHeadWithSubscription(withRuntime = true) {
   const sendSubscription = (
     msg: { result: any } | { error: IRpcError },
   ): void => {
-    fixtures.sendMessage({
+    provider.sendMessage({
       method: "chainHead_unstable_followEvent",
       params: {
         subscription: SUBSCRIPTION_ID,
@@ -84,20 +119,23 @@ export function setupChainHeadWithSubscription(withRuntime = true) {
 
   return {
     ...rest,
-    fixtures: { ...fixtures, sendSubscription, SUBSCRIPTION_ID },
+    provider,
+    sendSubscription,
+    SUBSCRIPTION_ID,
   }
 }
 
 export function setupChainHeadOperation<
   Name extends "body" | "call" | "storage",
 >(name: Name, ...args: Parameters<FollowResponse[Name]>) {
-  const { fixtures, ...chainhead } = setupChainHeadWithSubscription()
-  fixtures.getNewMessages()
-  const operationPromise = (chainhead[name] as any)(
+  const { provider, chainHead, ...rest } = setupChainHeadWithSubscription()
+  provider.getNewMessages()
+
+  const operationPromise = (chainHead[name] as any)(
     ...(args as any[]),
   ) as ReturnType<FollowResponse[Name]>
 
-  return { ...chainhead, fixtures, operationPromise }
+  return { ...rest, provider, chainHead, operationPromise }
 }
 
 let nextOperationId = 1
@@ -110,11 +148,14 @@ export function setupChainHeadOperationSubscription<
   Name extends ChainHeadOperation,
 >(op: Name, ...args: Parameters<FollowResponse[ChainHeadOperation["name"]]>) {
   const { name, ...extras } = op
-  const { fixtures, ...rest } = setupChainHeadOperation(name, ...args)
-  fixtures.getNewMessages()
+  const { provider, sendSubscription, ...rest } = setupChainHeadOperation(
+    name,
+    ...args,
+  )
+  provider.getNewMessages()
 
   const OPERATION_ID = `${nextOperationId++}`
-  fixtures.sendMessage({
+  provider.sendMessage({
     id: 3,
     method: "chainHead_unstable_followEvent",
     result: {
@@ -125,7 +166,7 @@ export function setupChainHeadOperationSubscription<
   })
 
   const sendOperationNotification = (msg: {}): void => {
-    fixtures.sendSubscription({
+    sendSubscription({
       result: {
         operationId: OPERATION_ID,
         ...msg,
@@ -135,6 +176,9 @@ export function setupChainHeadOperationSubscription<
 
   return {
     ...rest,
-    fixtures: { ...fixtures, sendOperationNotification, OPERATION_ID },
+    provider,
+    sendSubscription,
+    sendOperationNotification,
+    OPERATION_ID,
   }
 }
