@@ -10,22 +10,22 @@ const eventToType = (input: { event: string }) => {
 async function setupTx(tx: string = "") {
   const onMsg = vi.fn()
   const onError = vi.fn()
-  const { client, fixtures } = createTestClient()
-  fixtures.sendMessage({ id: 1, result: [] })
-  fixtures.getNewMessages()
+  const { client, provider } = createTestClient()
+  provider.sendMessage({ id: 1, result: [] })
+  provider.getNewMessages()
 
   const cancel = client.transaction(tx, onMsg, onError)
-  const result = { cancel, fixtures: { ...fixtures, onMsg, onError } }
+  const result = { provider, cancel, onMsg, onError }
   await Promise.resolve()
   return result
 }
 
 async function setupTxWithSubscription() {
-  const { cancel, fixtures } = await setupTx()
-  fixtures.getNewMessages()
+  const { cancel, provider, ...rest } = await setupTx()
+  provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-  fixtures.sendMessage({
+  provider.sendMessage({
     id: 2,
     result: SUBSCRIPTION_ID,
   })
@@ -33,7 +33,7 @@ async function setupTxWithSubscription() {
   const sendSubscription = (
     msg: { result: any } | { error: IRpcError },
   ): void => {
-    fixtures.sendMessage({
+    provider.sendMessage({
       method: "transactionWatch_unstable_watchEvent",
       params: {
         subscription: SUBSCRIPTION_ID,
@@ -43,8 +43,11 @@ async function setupTxWithSubscription() {
   }
 
   return {
+    ...rest,
     cancel,
-    fixtures: { ...fixtures, sendSubscription, SUBSCRIPTION_ID },
+    provider,
+    sendSubscription,
+    SUBSCRIPTION_ID,
   }
 }
 
@@ -52,11 +55,9 @@ describe("transaction", () => {
   it("sends the correct transaction message", async () => {
     const FAKE_TX = "FAKE_TX"
 
-    const {
-      fixtures: { getNewMessages },
-    } = await setupTx(FAKE_TX)
+    const { provider } = await setupTx(FAKE_TX)
 
-    expect(getNewMessages()).toMatchObject([
+    expect(provider.getNewMessages()).toMatchObject([
       {
         method: "transactionWatch_unstable_submitAndWatch",
         params: [FAKE_TX],
@@ -65,9 +66,8 @@ describe("transaction", () => {
   })
 
   it("receives its corresponding subscription messages", async () => {
-    const {
-      fixtures: { sendMessage, sendSubscription, onMsg, onError },
-    } = await setupTxWithSubscription()
+    const { provider, onMsg, onError, sendSubscription } =
+      await setupTxWithSubscription()
 
     const validated = { event: "validated" }
     sendSubscription({
@@ -87,7 +87,7 @@ describe("transaction", () => {
     expect(onMsg).toHaveBeenLastCalledWith(eventToType(broadcasted))
     expect(onError).not.toHaveBeenCalled()
 
-    sendMessage({
+    provider.sendMessage({
       params: {
         subscription: "wrongSubscriptionId",
         result: { event: "broadcasted", numPeers: 5 },
@@ -114,15 +114,12 @@ describe("transaction", () => {
   })
 
   it("stops receiving messages upon cancelation", async () => {
-    const {
-      cancel,
-      fixtures: { sendMessage, onMsg, onError },
-    } = await setupTx()
+    const { cancel, provider, onMsg, onError } = await setupTx()
 
     cancel()
 
     const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-    sendMessage({
+    provider.sendMessage({
       id: 2,
       result: SUBSCRIPTION_ID,
     })
@@ -130,7 +127,7 @@ describe("transaction", () => {
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
 
-    sendMessage({
+    provider.sendMessage({
       params: {
         subscription: SUBSCRIPTION_ID,
         result: { event: "validated" },
@@ -143,18 +140,16 @@ describe("transaction", () => {
   it("sends an unsubscription message when necessary", async () => {
     const {
       cancel,
-      fixtures: {
-        sendSubscription,
-        SUBSCRIPTION_ID,
-        getNewMessages,
-        onMsg,
-        onError,
-      },
+      provider,
+      sendSubscription,
+      SUBSCRIPTION_ID,
+      onMsg,
+      onError,
     } = await setupTxWithSubscription()
 
     cancel()
 
-    expect(getNewMessages()).toMatchObject([
+    expect(provider.getNewMessages()).toMatchObject([
       {
         method: "transactionWatch_unstable_unwatch",
         params: [SUBSCRIPTION_ID],
@@ -171,10 +166,8 @@ describe("transaction", () => {
   test.each(["dropped", "invalid", "error"])(
     "`%s` event triggers a `TransactionError` error and automatically cancels the subscription",
     async (eventType) => {
-      const {
-        cancel,
-        fixtures: { sendSubscription, getNewMessages, onMsg, onError },
-      } = await setupTxWithSubscription()
+      const { cancel, provider, sendSubscription, onMsg, onError } =
+        await setupTxWithSubscription()
 
       const error = `${eventType}: something wrong happened`
       sendSubscription({
@@ -195,15 +188,13 @@ describe("transaction", () => {
       expect(onError).toHaveBeenCalledOnce()
 
       cancel()
-      expect(getNewMessages()).toEqual([])
+      expect(provider.getNewMessages()).toEqual([])
     },
   )
 
   test("`finalized` event should automatically cancel the subscription", async () => {
-    const {
-      cancel,
-      fixtures: { sendSubscription, getNewMessages, onMsg, onError },
-    } = await setupTxWithSubscription()
+    const { cancel, provider, sendSubscription, onMsg, onError } =
+      await setupTxWithSubscription()
 
     const finalizedEvent = { event: "finalized" }
     sendSubscription({
@@ -221,19 +212,17 @@ describe("transaction", () => {
     expect(onMsg).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
 
-    getNewMessages()
+    provider.getNewMessages()
 
     cancel()
 
-    expect(getNewMessages()).toEqual([])
+    expect(provider.getNewMessages()).toEqual([])
   })
 
   it("propagates the JSON-RPC Error when the initial request fails", async () => {
-    const {
-      fixtures: { sendMessage, onMsg, onError },
-    } = await setupTx()
+    const { provider, onMsg, onError } = await setupTx()
 
-    sendMessage({
+    provider.sendMessage({
       id: 2,
       error: parseError,
     })
@@ -244,9 +233,7 @@ describe("transaction", () => {
   })
 
   it("propagates the JSON-RPC Error on the subscription", async () => {
-    const {
-      fixtures: { sendSubscription, onMsg, onError },
-    } = await setupTxWithSubscription()
+    const { sendSubscription, onMsg, onError } = await setupTxWithSubscription()
 
     const error: IRpcError = {
       code: -32603,
