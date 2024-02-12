@@ -467,8 +467,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.3
       scale-ts:
-        specifier: ^1.4.3
-        version: 1.4.3
+        specifier: ^1.4.4
+        version: 1.4.4
     devDependencies:
       bigint-conversion:
         specifier: ^2.4.1
@@ -2853,7 +2853,7 @@ packages:
       '@noble/hashes': 1.3.2
       '@polkadot-api/utils': 0.0.1-4bc9bd71f8f37f800fec7a42775f403271903870.1.0
       '@scure/base': 1.1.3
-      scale-ts: 1.4.3
+      scale-ts: 1.4.4
     dev: false
 
   /@polkadot-api/substrate-bindings@0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0:
@@ -2862,7 +2862,7 @@ packages:
       '@noble/hashes': 1.3.2
       '@polkadot-api/utils': 0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0
       '@scure/base': 1.1.3
-      scale-ts: 1.4.3
+      scale-ts: 1.4.4
     dev: true
 
   /@polkadot-api/substrate-client@0.0.1-4bc9bd71f8f37f800fec7a42775f403271903870.1.0:
@@ -9633,8 +9633,8 @@ packages:
     resolution: {integrity: sha512-WTS1myYKhrNKzGCmQ434LkDGfgppcGUHCdpl1baH2jEu2Ow8al+llw5vOKO4Tk1/Y58+TfriReMtGV/07VMGmg==}
     dev: false
 
-  /scale-ts@1.4.3:
-    resolution: {integrity: sha512-45xNR+ovE11s5TY2deCwqct83TwoHDHFiqUlBBWR4H9ukEa1GHGB/YZPoNkNho0dbi9XxtDrZf5M/YZdKa3M1Q==}
+  /scale-ts@1.4.4:
+    resolution: {integrity: sha512-7juqW/zFQtipfBfAB2CiieqM3+ge9Ntb1471m08doI7ste0Xfubbi03nqd2lMLXWnmXaExeL88yFVUs4Sge1+A==}
 
   /scheduler@0.23.0:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
