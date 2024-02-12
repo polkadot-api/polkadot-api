@@ -8,10 +8,13 @@ import {
   Decoder,
   SS58String,
   Tuple,
-  V14,
+  Option,
+  V15,
   compact,
   metadata,
+  u32,
 } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
 import { Observable, map, shareReplay } from "rxjs"
 
 export type SystemEvent = {
@@ -30,7 +33,7 @@ export type SystemEvent = {
 }
 
 export interface RuntimeContext {
-  metadata: V14
+  metadata: V15
   checksumBuilder: ReturnType<typeof getChecksumBuilder>
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
   events: {
@@ -48,8 +51,9 @@ export interface Runtime {
   usages: Set<string>
 }
 
-const opaqueMeta = Tuple(compact, metadata)
+const opaqueMeta = Option(Tuple(compact, metadata))
 
+const v15Args = toHex(u32.enc(15))
 export const getRuntimeCreator =
   (call$: (hash: string, method: string, args: string) => Observable<string>) =>
   (hash: string): Runtime => {
@@ -57,19 +61,19 @@ export const getRuntimeCreator =
 
     const runtimeContext$: Observable<RuntimeContext> = call$(
       hash,
-      "Metadata_metadata",
-      "",
+      "Metadata_metadata_at_version",
+      v15Args,
     ).pipe(
       map((response) => {
-        const metadata = opaqueMeta.dec(response)[1]
-        if (metadata.metadata.tag !== "v14")
+        const metadata = opaqueMeta.dec(response)![1]
+        if (metadata.metadata.tag !== "v15")
           throw new Error("Wrong metadata version")
-        const v14 = metadata.metadata.value
-        const checksumBuilder = getChecksumBuilder(v14)
-        const dynamicBuilder = getDynamicBuilder(v14)
+        const v15 = metadata.metadata.value
+        const checksumBuilder = getChecksumBuilder(v15)
+        const dynamicBuilder = getDynamicBuilder(v15)
         const events = dynamicBuilder.buildStorage("System", "Events")
         return {
-          metadata: v14,
+          metadata: v15,
           checksumBuilder,
           dynamicBuilder,
           events: {

@@ -1,4 +1,4 @@
-import { V14, v14 } from "@polkadot-api/substrate-bindings"
+import { V15, v15 } from "@polkadot-api/substrate-bindings"
 import { ConsumerCallback, OnCreateTxCtx, UserSignedExtensionName } from ".."
 import { getInput$ } from "./input"
 import { combineLatest, filter, map, startWith, take } from "rxjs"
@@ -11,7 +11,7 @@ import {
 } from "@/signed-extensions"
 
 interface Ctx {
-  metadata: V14
+  metadata: V15
   at: string
   signedExtensions: {
     all: string[]
@@ -37,7 +37,7 @@ export const getTxData =
       {
         from,
         callData,
-        metadata: v14.enc(metadata),
+        metadata: v15.enc(metadata),
         userSingedExtensionsName: user as any,
         unknownSignedExtensions: unknown,
       },

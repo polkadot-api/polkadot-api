@@ -1,5 +1,5 @@
 import { of } from "rxjs"
-import { V14 } from "@polkadot-api/substrate-bindings"
+import { V15 } from "@polkadot-api/substrate-bindings"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { ChainExtensionCtx } from "@/types/internal-types"
 
@@ -13,7 +13,7 @@ export const genesisHashFromCtx = (ctx: ChainExtensionCtx) =>
     null,
   )
 
-export const systemVersionProp = (propName: string, metadata: V14) => {
+export const systemVersionProp = (propName: string, metadata: V15) => {
   const lookupFn = getLookupFn(metadata.lookup)
   const dynamicBuilder = getDynamicBuilder(metadata)
 

@@ -6,7 +6,7 @@ import {
   getLegacyProvider,
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
-import test, { TestMultiAddress } from "./codegen/test"
+import test, { WndMultiAddress } from "./codegen/wnd"
 
 const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
@@ -44,7 +44,7 @@ function populateUserDropdown(select: Element) {
 
 function transfer(alexa: Account, billy: Account, amount: bigint) {
   client.test.tx.Balances.transfer_keep_alive({
-    dest: TestMultiAddress.Id(billy.address),
+    dest: WndMultiAddress.Id(billy.address),
     value: amount,
   })
     .submit$(alexa.address)

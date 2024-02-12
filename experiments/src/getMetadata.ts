@@ -9,7 +9,10 @@ import {
   metadata,
   CodecType,
   Tuple,
+  Option,
+  u32,
 } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
 
 const scProvider = getScProvider()
 
@@ -42,7 +45,7 @@ export const { chainHead } = createClient(withLogsProvider(smProvider))
 
 type Metadata = CodecType<typeof metadata>
 
-const opaqueMeta = Tuple(compact, metadata)
+const opaqueMeta = Option(Tuple(compact, metadata))
 
 export const getMetadata = (): Promise<Metadata> =>
   new Promise<Metadata>((res, rej) => {
@@ -60,9 +63,13 @@ export const getMetadata = (): Promise<Metadata> =>
         requested = true
 
         chainHeadFollower
-          .call(latestFinalized, "Metadata_metadata", "")
+          .call(
+            latestFinalized,
+            "Metadata_metadata_at_version",
+            toHex(u32.enc(15)),
+          )
           .then((response) => {
-            const [, metadata] = opaqueMeta.dec(response)
+            const [, metadata] = opaqueMeta.dec(response)!
             res(metadata)
           })
           .catch((e) => {
@@ -76,3 +83,11 @@ export const getMetadata = (): Promise<Metadata> =>
       () => {},
     )
   })
+
+/*
+const result = await getMetadata()
+console.log(result)
+
+await writeFile("./v15.json", JSON.stringify(result, null, 2))
+console.log("done")
+*/

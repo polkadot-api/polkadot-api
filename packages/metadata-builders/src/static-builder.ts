@@ -1,4 +1,4 @@
-import { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
+import { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import { LookupEntry, getLookupFn } from "./lookups"
 import { withCache } from "./with-cache"
 
@@ -287,7 +287,7 @@ const buildSyntax = withCache(
   (x) => x,
 )
 
-export const getStaticBuilder = (metadata: V14, namespace: string) => {
+export const getStaticBuilder = (metadata: V15, namespace: string) => {
   const declarations: CodeDeclarations = {
     imports: new Set<string>(),
     typeImports: new Set<string>(["Codec"]),

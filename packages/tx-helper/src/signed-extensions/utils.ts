@@ -1,6 +1,6 @@
 import { map, noop, of } from "rxjs"
 import {
-  V14,
+  V15,
   Storage,
   Twox64Concat,
   u32,
@@ -21,7 +21,7 @@ export const genesisHashFromCtx = (ctx: ChainExtensionCtx) =>
     .storage$(ctx.at, "value", () => genesisHashStorageKey, null)
     .pipe(map((result) => fromHex(result!)))
 
-export const systemVersionProp$ = (propName: string, metadata: V14) => {
+export const systemVersionProp$ = (propName: string, metadata: V15) => {
   const lookupFn = getLookupFn(metadata.lookup)
   const dynamicBuilder = getDynamicBuilder(metadata)
 

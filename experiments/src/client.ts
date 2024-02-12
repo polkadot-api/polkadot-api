@@ -27,8 +27,8 @@ const polkadotChain = await getChain({
 const relayChain = createClient(polkadotChain.connect, { Ksm, Ksm1_2: Ksm })
 const collectives = relayChain
 
-relayChain.Ksm.tx.XcmPallet.execute(
-  KsmXcmVersionedXcm.V3([
+relayChain.Ksm.tx.XcmPallet.execute({
+  message: KsmXcmVersionedXcm.V3([
     KsmXcmV3Instruction.LockAsset({
       asset: {
         id: KsmXcmV3MultiassetAssetId.Abstract(""),
@@ -42,11 +42,11 @@ relayChain.Ksm.tx.XcmPallet.execute(
       },
     }),
   ]),
-  {
+  max_weight: {
     ref_time: 3n,
     proof_size: 5n,
   },
-)
+})
 
 const transact1: EnumOption<KsmXcmV3Instruction, "Transact"> = {
   call: Binary(""),
@@ -70,17 +70,23 @@ const instructions: Array<KsmXcmV3Instruction> = [
   ]),
 ]
 
-relayChain.Ksm.tx.XcmPallet.execute(Enum("V3", instructions), {
-  proof_size: 3n,
-  ref_time: 3n,
+relayChain.Ksm.tx.XcmPallet.execute({
+  message: Enum("V3", instructions),
+  max_weight: {
+    proof_size: 3n,
+    ref_time: 3n,
+  },
 })
 
-relayChain.Ksm.tx.XcmPallet.execute(KsmXcmVersionedXcm.V3([]), {
-  ref_time: 5n,
-  proof_size: 3n,
+relayChain.Ksm.tx.XcmPallet.execute({
+  message: KsmXcmVersionedXcm.V3([]),
+  max_weight: {
+    ref_time: 5n,
+    proof_size: 3n,
+  },
 })
-relayChain.Ksm.tx.XcmPallet.execute(
-  KsmXcmVersionedXcm.V3([
+relayChain.Ksm.tx.XcmPallet.execute({
+  message: KsmXcmVersionedXcm.V3([
     KsmXcmV3Instruction.ExpectOrigin(
       KsmOption.Some({
         ref_time: 4n,
@@ -88,14 +94,14 @@ relayChain.Ksm.tx.XcmPallet.execute(
       }),
     ),
   ]),
-  {
+  max_weight: {
     ref_time: 5n,
     proof_size: 33n,
   },
-)
+})
 
-relayChain.Ksm.tx.XcmPallet.execute(
-  KsmXcmVersionedXcm.V3([
+relayChain.Ksm.tx.XcmPallet.execute({
+  message: KsmXcmVersionedXcm.V3([
     KsmXcmV3Instruction.Transact({
       call: Binary("0x32ff"),
       origin_kind: KsmXcmV2OriginKind.Native(),
@@ -113,42 +119,44 @@ relayChain.Ksm.tx.XcmPallet.execute(
       },
     ]),
   ]),
-  { ref_time: 3n, proof_size: 3n },
-)
+  max_weight: { ref_time: 3n, proof_size: 3n },
+})
 
-relayChain.Ksm.tx.Utility.batch([
-  Enum("Identity", Enum("set_fee", { index: 2, fee: 3n })),
-  Enum(
-    "Beefy",
-    Enum("report_equivocation_unsigned", {
-      equivocation_proof: {
-        first: {
-          commitment: {
-            payload: [[Binary(""), Binary("")]],
-            block_number: 3,
-            validator_set_id: 3n,
+relayChain.Ksm.tx.Utility.batch({
+  calls: [
+    Enum("Identity", Enum("set_fee", { index: 2, fee: 3n })),
+    Enum(
+      "Beefy",
+      Enum("report_equivocation_unsigned", {
+        equivocation_proof: {
+          first: {
+            commitment: {
+              payload: [[Binary(""), Binary("")]],
+              block_number: 3,
+              validator_set_id: 3n,
+            },
+            id: Binary(""),
+            signature: Binary(""),
           },
-          id: Binary(""),
-          signature: Binary(""),
-        },
-        second: {
-          commitment: {
-            payload: [[Binary(""), Binary("")]],
-            block_number: 3,
-            validator_set_id: 3n,
+          second: {
+            commitment: {
+              payload: [[Binary(""), Binary("")]],
+              block_number: 3,
+              validator_set_id: 3n,
+            },
+            id: Binary(""),
+            signature: Binary(""),
           },
-          id: Binary(""),
-          signature: Binary(""),
         },
-      },
-      key_owner_proof: {
-        session: 3,
-        trie_nodes: [Binary("")],
-        validator_count: 3,
-      },
-    }),
-  ),
-])
+        key_owner_proof: {
+          session: 3,
+          trie_nodes: [Binary("")],
+          validator_count: 3,
+        },
+      }),
+    ),
+  ],
+})
 
 const identityDataToString = (value: string | Binary | undefined) =>
   typeof value === "object" ? value.asText() : value ?? ""

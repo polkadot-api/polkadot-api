@@ -1,31 +1,18 @@
 import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
-import { fromHex } from "@polkadot-api/utils"
 import * as fs from "node:fs/promises"
-import {
-  metadata as $metadata,
-  Tuple,
-  compact,
-} from "@polkadot-api/substrate-bindings"
+import { V15, v15 } from "@polkadot-api/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
 import { WebSocketProvider } from "./websocket-provider"
 import { getObservableClient } from "@polkadot-api/client"
-import { firstValueFrom, map, switchMap, take } from "rxjs"
-
-type Metadata = ReturnType<typeof $metadata.dec>["metadata"]
+import { filter, firstValueFrom } from "rxjs"
 
 const getMetadataCall = async (provider: ConnectProvider) => {
   const client = getObservableClient(createClient(provider))
-  const { finalized$, call$, unfollow } = client.chainHead$()
-  const metadata = await firstValueFrom(
-    finalized$.pipe(
-      take(1),
-      switchMap((block) => call$(block.hash, "Metadata_metadata", "")),
-      map(fromHex),
-    ),
-  )
+  const { metadata$, unfollow } = client.chainHead$()
+  const metadata = await firstValueFrom(metadata$.pipe(filter(Boolean)))
 
   unfollow()
   client.destroy()
@@ -59,11 +46,8 @@ const getMetadataFromWellKnownChain = async (chain: WellKnownChain) => {
   return getMetadataCall(provider)
 }
 
-const getMetadataFromWsURL = async (wsURL: string) => {
-  const provider: ConnectProvider = WebSocketProvider(wsURL)
-
-  return getMetadataCall(provider)
-}
+const getMetadataFromWsURL = async (wsURL: string) =>
+  getMetadataCall(WebSocketProvider(wsURL))
 
 export type GetMetadataArgs =
   | {
@@ -79,7 +63,7 @@ export type GetMetadataArgs =
       file: string
     }
 
-async function getRawMetadata(args: GetMetadataArgs): Promise<Uint8Array> {
+export async function getMetadata(args: GetMetadataArgs): Promise<V15> {
   switch (args.source) {
     case "chain": {
       return getMetadataFromWellKnownChain(args.chain)
@@ -88,25 +72,8 @@ async function getRawMetadata(args: GetMetadataArgs): Promise<Uint8Array> {
       return getMetadataFromWsURL(args.url)
     }
     case "file": {
-      return fs.readFile(args.file)
+      const data = await fs.readFile(args.file)
+      return v15.dec(data)
     }
-  }
-}
-
-const opaqueMeta = Tuple(compact, $metadata)
-export async function getMetadata(args: GetMetadataArgs) {
-  const rawMetadata = await getRawMetadata(args)
-  const [, { magicNumber, metadata }] = opaqueMeta.dec(rawMetadata)
-
-  assertIsv14(metadata)
-
-  return { magicNumber, metadata }
-}
-
-function assertIsv14(
-  metadata: Metadata,
-): asserts metadata is Metadata & { tag: "v14" } {
-  if (metadata.tag !== "v14") {
-    throw new Error("unreachable")
   }
 }

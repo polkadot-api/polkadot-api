@@ -1,4 +1,4 @@
-import { V14 } from "@polkadot-api/metadata-builders"
+import { V15 } from "@polkadot-api/metadata-builders"
 import fs from "fs/promises"
 import * as readPkg from "read-pkg"
 import * as writePkg from "write-pkg"
@@ -9,11 +9,7 @@ import fsExists from "fs.promises.exists"
 import { getCodegenInfo } from "./getCodegenInfo"
 import { createDtsFile } from "./createDtsFile"
 import { createDescriptorsFile } from "./createDescriptorsFile"
-import {
-  metadata as $metadata,
-  Bytes,
-  CodecType,
-} from "@polkadot-api/substrate-bindings"
+import { v15 } from "@polkadot-api/substrate-bindings"
 
 type ReadDescriptorsArgs = {
   pkgJSONKey: string
@@ -122,21 +118,15 @@ export async function outputDescriptors({
   }
 }
 
-const encBytes = Bytes().enc
-
-export async function writeMetadataToDisk(
-  metadata: CodecType<typeof $metadata>,
-  outFile: string,
-) {
-  const encodedMetadata = $metadata.enc(metadata)
-  const encoded = encBytes(encodedMetadata)
+export async function writeMetadataToDisk(metadata: V15, outFile: string) {
+  const encoded = v15.enc(metadata)
 
   await fs.mkdir(dirname(outFile), { recursive: true })
   await fs.writeFile(outFile, encoded)
 }
 
 export async function outputCodegen(
-  metadata: V14,
+  metadata: V15,
   outputFolder: string,
   key: string,
   selectOnly?: string[],

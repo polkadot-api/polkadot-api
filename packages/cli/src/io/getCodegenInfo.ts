@@ -1,4 +1,4 @@
-import { V14 } from "@polkadot-api/substrate-bindings"
+import type { V15 } from "@polkadot-api/substrate-bindings"
 import {
   getChecksumBuilder,
   getLookupFn,
@@ -7,7 +7,7 @@ import {
 import { PalletData } from "./types"
 
 export const getCodegenInfo = (
-  metadata: V14,
+  metadata: V15,
   keyName: string,
   selectOnly?: Array<string>,
 ) => {

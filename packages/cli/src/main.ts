@@ -2,10 +2,7 @@
 
 import "./_polyfills"
 
-import {
-  CodecType,
-  metadata as $metadata,
-} from "@polkadot-api/substrate-bindings"
+import { V15 } from "@polkadot-api/substrate-bindings"
 import { confirm, input, select } from "@inquirer/prompts"
 import { z } from "zod"
 import { program } from "commander"
@@ -56,10 +53,7 @@ const descriptorMetadata = await readDescriptors({
   fileName: options.file,
 })
 
-let metadata: {
-  magicNumber: number
-  metadata: CodecType<typeof $metadata>["metadata"] & { tag: "v14" }
-} | null = null
+let metadata: V15 | null = null
 
 if (descriptorMetadata) {
   for (const [key, descriptorData] of Object.entries(descriptorMetadata)) {
@@ -70,7 +64,7 @@ if (descriptorMetadata) {
 
     if (!options.interactive) {
       await outputCodegen(
-        metadata!.metadata.value,
+        metadata!,
         descriptorData.outputFolder,
         key,
         descriptorData.selectOnly,
@@ -176,7 +170,7 @@ await runWithEscapeKeyHandler(async (subscriptions, subscribe) => {
       })
     }
 
-    await outputCodegen(metadata!.metadata.value, outputFolder, key)
+    await outputCodegen(metadata!, outputFolder, key)
   } catch (err) {
     if (err instanceof Error && err.message === "Prompt was canceled") {
       return

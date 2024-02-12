@@ -26,20 +26,9 @@
     "rxjs": "^7.8.1"
   },
   "polkadot-api": {
-    "test": {
-      "metadata": "test-metadata.scale",
-      "outputFolder": "./src/codegen/",
-      "descriptors": {
-        "Balances": {
-          "constants": {},
-          "storage": {},
-          "events": {},
-          "errors": {},
-          "extrinsics": {
-            "transfer_keep_alive": "8mtvi1rkf8pbi"
-          }
-        }
-      }
+    "wnd": {
+      "metadata": "wnd-metadata.scale",
+      "outputFolder": "./src/codegen/"
     }
   }
 }

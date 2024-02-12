@@ -2,12 +2,12 @@ import type {
   Decoder,
   HexString,
   StringRecord,
-  V14,
+  V15,
 } from "@polkadot-api/substrate-bindings"
 
-export type { Decoder, HexString, StringRecord, V14 }
+export type { Decoder, HexString, StringRecord, V15 }
 
-export type GetViewBuilder = (metadata: V14) => {
+export type GetViewBuilder = (metadata: V15) => {
   buildDefinition: (idx: number) => {
     shape: Shape
     decoder: Decoder<Decoded>

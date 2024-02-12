@@ -1,4 +1,4 @@
-import type { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
+import type { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
 import {
   EnumVar,
@@ -121,7 +121,7 @@ const buildChecksum = withCache(
   (result) => result,
 )
 
-export const getChecksumBuilder = (metadata: V14) => {
+export const getChecksumBuilder = (metadata: V15) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
 

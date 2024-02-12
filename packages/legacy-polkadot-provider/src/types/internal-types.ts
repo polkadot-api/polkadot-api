@@ -1,4 +1,4 @@
-import type { V14 } from "@polkadot-api/substrate-bindings"
+import type { V15 } from "@polkadot-api/substrate-bindings"
 import { getObservableClient } from "@polkadot-api/client"
 import { Observable } from "rxjs"
 import type { ConnectProvider, Provider } from "@polkadot-api/json-rpc-provider"
@@ -56,7 +56,7 @@ export type UserSignedExtensionsInput<T extends UserSignedExtensionName> =
 export interface ChainExtensionCtx {
   from: Uint8Array
   callData: Uint8Array
-  metadata: V14
+  metadata: V15
   at: string
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>
 }

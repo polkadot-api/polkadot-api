@@ -1,4 +1,4 @@
-import { V14 } from "@polkadot-api/substrate-bindings"
+import { V15 } from "@polkadot-api/substrate-bindings"
 import { UserSignedExtensionName, UserSignedExtensionsInput } from "./types"
 import { getObservableClient } from "@polkadot-api/client"
 import { Observable } from "rxjs"
@@ -6,7 +6,7 @@ import { Observable } from "rxjs"
 export interface ChainExtensionCtx {
   from: Uint8Array
   callData: Uint8Array
-  metadata: V14
+  metadata: V15
   at: string
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>
 }

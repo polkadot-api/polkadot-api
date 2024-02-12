@@ -19,7 +19,7 @@ exports[`getViewBuilder > batched call 1`] = `
               "docs": [],
               "input": "0x040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a303",
               "path": [
-                "kusama_runtime",
+                "staging_kusama_runtime",
                 "RuntimeCall",
               ],
               "value": {
@@ -29,9 +29,7 @@ exports[`getViewBuilder > batched call 1`] = `
                 "value": {
                   "codec": "Enum",
                   "docs": [
-                    "Alias for \`transfer_allow_death\`, provided only for name-wise compatibility.",
-                    "",
-                    "WARNING: DEPRECATED! Will be released in approximately 3 months.",
+                    "See [\`Pallet::transfer\`].",
                   ],
                   "input": "0x0700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a303",
                   "path": [
@@ -90,7 +88,7 @@ exports[`getViewBuilder > batched call 1`] = `
               "docs": [],
               "input": "0x06050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
               "path": [
-                "kusama_runtime",
+                "staging_kusama_runtime",
                 "RuntimeCall",
               ],
               "value": {
@@ -100,16 +98,7 @@ exports[`getViewBuilder > batched call 1`] = `
                 "value": {
                   "codec": "Enum",
                   "docs": [
-                    "Declare the desire to nominate \`targets\` for the origin controller.",
-                    "",
-                    "Effects will be felt at the beginning of the next era.",
-                    "",
-                    "The dispatch origin for this call must be _Signed_ by the controller, not the stash.",
-                    "",
-                    "## Complexity",
-                    "- The transaction's complexity is proportional to the size of \`targets\` (N)",
-                    "which is capped at CompactAssignments::LIMIT (T::MaxNominations).",
-                    "- Both the reads and writes follow a similar pattern.",
+                    "See [\`Pallet::nominate\`].",
                   ],
                   "input": "0x050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
                   "path": [
@@ -171,24 +160,7 @@ exports[`getViewBuilder > batched call 1`] = `
   },
   "call": {
     "docs": [
-      "Send a batch of dispatch calls.",
-      "",
-      "May be called from any origin except \`None\`.",
-      "",
-      "- \`calls\`: The calls to be dispatched from the same origin. The number of call must not",
-      "  exceed the constant: \`batched_calls_limit\` (available in constant metadata).",
-      "",
-      "If origin is root then the calls are dispatched without checking origin filter. (This",
-      "includes bypassing \`frame_system::Config::BaseCallFilter\`).",
-      "",
-      "## Complexity",
-      "- O(C) where C is the number of calls to be batched.",
-      "",
-      "This will return \`Ok\` in all circumstances. To determine the success of the batch, an",
-      "event is deposited. If a call failed and the batch was interrupted, then the",
-      "\`BatchInterrupted\` event is deposited, along with the number of successful calls made",
-      "and the error of the failed call. If all were successful, then the \`BatchCompleted\`",
-      "event is deposited.",
+      "See [\`Pallet::batch\`].",
     ],
     "input": "0x00",
     "value": {
@@ -265,7 +237,7 @@ exports[`getViewBuilder > felloship referenda submit 1`] = `
           "docs": [],
           "input": "0x2b0f",
           "path": [
-            "kusama_runtime",
+            "staging_kusama_runtime",
             "OriginCaller",
           ],
           "value": {
@@ -277,7 +249,7 @@ exports[`getViewBuilder > felloship referenda submit 1`] = `
               "docs": [],
               "input": "0x0f",
               "path": [
-                "kusama_runtime",
+                "staging_kusama_runtime",
                 "governance",
                 "origins",
                 "pallet_custom_origins",
@@ -301,15 +273,7 @@ exports[`getViewBuilder > felloship referenda submit 1`] = `
   },
   "call": {
     "docs": [
-      "Propose a referendum on a privileged action.",
-      "",
-      "- \`origin\`: must be \`SubmitOrigin\` and the account must have \`SubmissionDeposit\` funds",
-      "  available.",
-      "- \`proposal_origin\`: The origin from which the proposal should be executed.",
-      "- \`proposal\`: The proposal.",
-      "- \`enactment_moment\`: The moment that the proposal should be enacted.",
-      "",
-      "Emits \`Submitted\`.",
+      "See [\`Pallet::submit\`].",
     ],
     "input": "0x00",
     "value": {
