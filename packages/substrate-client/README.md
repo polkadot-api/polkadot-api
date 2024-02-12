@@ -4,9 +4,9 @@ This TypeScript package provides low-level bindings to the [Substrate JSON-RPC I
 
 ## Usage
 
-This package starts creating a `SubstrateClient` object. To create one, you need a provider defined as `ConnectProvider` from [@polkadot-api/json-rpc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/json-rpc-provider) for establishing a connection to a specific blockchain client.
+Start by creating a `SubstrateClient` object with the exported function `createClient`. To create one, you need a `ConnectProvider` provider defined in [@polkadot-api/json-rpc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/json-rpc-provider) for establishing a connection to a specific blockchain client.
 
-For instance, use [@polkadot-api/sc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/sc-provider) to create a substrate-connect provider for connecting to the Polkadot relay chain through a light client:
+For instance, you can use [@polkadot-api/sc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/sc-provider) to get a substrate-connect provider for connecting to the Polkadot relay chain through a light client:
 
 ```ts
 import { getScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
@@ -50,7 +50,7 @@ The handle provides one method per each of the functions defined inside `chainHe
 
 The JSON-RPC Spec for chainHead specifies that these functions return an `operationId`, and that the resolved response for the call will come through the `chainHead_unstable_follow` subscription, linking it through this `operationId`.
 
-**`substrate-client`'s chainHead is an abstraction over this**: The events emitted through the `client.chainHead()` call are only the ones initiated from the JSON-RPC Server. Any event generated from one of the `chainHead`'s handle calls, will instead be emitted through the promise returned by them.
+**`substrate-client`'s chainHead is an abstraction over this**: The events emitted through the `client.chainHead()` callback are only the ones initiated from the JSON-RPC Server. The promise returned by any of the `chainHead`'s handle functions will resolve with the respective event.
 
 ```ts
 const chainHead = client.chainHead(
@@ -70,33 +70,102 @@ const chainHead = client.chainHead(
 )
 ```
 
-To close the subscription, call `chainHead.unfollow()`.
+#### header
+
+Calls `chainHead_unstable_call` and returns a promise that resolves with the SCALE-encoded header of the block
+
+```ts
+const header = await chainHead.header(blockHash)
+```
+
+#### body
+
+Calls `chainHead_unstable_body` and returns a promise that will resolve with an array of strings containing the SCALE-encoded extrinsics found in the block
+
+```ts
+const body = await chainHead.body(blockHash)
+```
+
+#### call
+
+Calls `chainHead_unstable_header` and returns a promise that resolves with the encoded output of the runtime function call
+
+```ts
+const result = await chainHead.call(blockHash, fnName, callParameters)
+```
+
+#### storage
+
+Calls `chainHead_unstable_storage` and returns a promise that resolves with the value returned by the JSON-RPC server, which depends on the `type` parameter. See the [JSON-RPC spec for chainHead_unstable_storage](https://paritytech.github.io/json-rpc-interface-spec/api/chainHead_unstable_storage.html) for the details on the usage.
+
+```ts
+// string with the SCALE-encoded value
+const value = await chainHead.storage(blockHash, "value", key, childTrie)
+
+// string with the hash value
+const hash = await chainHead.storage(blockHash, "hash", key, childTrie)
+
+// string with the merkle value
+const items = await chainHead.storage(
+  blockHash,
+  "closestDescendantMerkleValue",
+  key,
+  childTrie,
+)
+
+// array of key-value pairs
+const items = await chainHead.storage(
+  blockHash,
+  "descendantsValues",
+  key,
+  childTrie,
+)
+
+// array of key-hash pairs
+const hashes = await chainHead.storage(
+  blockHash,
+  "descendantsHashes",
+  key,
+  childTrie,
+)
+```
 
 #### storageSubscription
 
-For consistency, `chainHead.storage(hash, type, key, childTrie)` returns a Promise resolving with the value returned by the JSON-RPC server.
-
-However, the JSON-RPC Spec defines that it should be possible to pass multiple items to be resolved at once. For this case, substrate-client also offers a lower-level version called `chainHead.storageSubscription(hash, inputs, childTrie, onItems, onError, onDone, onDiscardedItems)` that emits the storage items as they get resolved by the JSON-RPC server:
+While `storage` only can resolve for one specific item, the JSON-RPC specification allows to resolve multiple items within the same call. For this case, substrate-client also offers a lower-level version called `chainHead.storageSubscription(hash, inputs, childTrie, onItems, onError, onDone, onDiscardedItems)` that emits the storage items as they get resolved by the JSON-RPC server:
 
 ```ts
-chainHead.storageSubscription(
+const abort = chainHead.storageSubscription(
   hash,
-  [{ key: "key", type: "value" }],
+  [
+    { key, type },
+    /* ... each item */
+  ],
   null,
   (items) => {
-    // ...
+    // items is an array of { key, value?, hash?, closestDescendantMerkleValue? }
   },
-  (error) => {
-    // ...
-  },
-  () => {
-    // done
-  },
+  onError,
+  onDone,
   (nDiscardedItems) => {
-    // ...
+    // amount of discarded items, as defined by the JSON-RPC spec.
   },
 )
 ```
+
+`storageSubscription` returns a function to cancel the operation.
+
+#### unpin
+
+Calls `chainHead_unstable_unpin` and returns a promise that will resolve after the operation is done.
+
+```ts
+chainHead.unpin(blockHashes)
+```
+
+#### unfollow
+
+To close the chainHead subscription, call `chainHead.unfollow()`.
 
 ### Transaction
 
@@ -114,6 +183,27 @@ const cancelRequest = client.transaction(
 )
 
 // call `cancelRequest()` to abort the transaction (`transaction_unstable_stop`)
+```
+
+The `event` emitted through the callback are fully typed, and can be discriminated through `event.type`
+
+```ts
+switch (event.type) {
+  case "validated":
+    break
+  case "broadcasted":
+    const { numPeers } = event
+    break
+  case "bestChainBlockIncluded":
+  case "finalized":
+    const { block } = event
+    break
+  case "dropped":
+  case "error":
+  case "invalid":
+    const { error } = event
+    break
+}
 ```
 
 ### Destroy
