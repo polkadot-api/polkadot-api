@@ -220,11 +220,24 @@ export const getDynamicBuilder = (metadata: V15) => {
     }
   }
 
+  const buildRuntimeCall = (api: string, method: string) => {
+    const entry = metadata.apis
+      .find((x) => x.name === api)
+      ?.methods.find((x) => x.name === method)
+    if (!entry) throw null
+
+    return {
+      args: scale.Tuple(...entry.inputs.map((x) => buildDefinition(x.type))),
+      value: buildDefinition(entry.output),
+    }
+  }
+
   return {
     buildDefinition,
     buildStorage,
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
+    buildRuntimeCall,
     buildCall,
     buildConstant,
     ss58Prefix,

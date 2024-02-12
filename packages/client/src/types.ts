@@ -4,6 +4,7 @@ import {
   EventsFromDescriptors,
   HexString,
   QueryFromDescriptors,
+  RuntimeDescriptor,
   TxFromDescriptors,
 } from "@polkadot-api/substrate-bindings"
 import { StorageEntry } from "./storage"
@@ -12,6 +13,7 @@ import { EvClient } from "./event"
 import { Observable } from "rxjs"
 import { BlockInfo } from "./observableClient"
 import { RuntimeApi } from "./runtime"
+import { RuntimeCall } from "./runtime-call"
 
 export type CreateTx = (
   publicKey: Uint8Array,
@@ -55,6 +57,19 @@ export type StorageApi<
   }
 }
 
+export type RuntimeCallsApi<
+  A extends Record<string, Record<string, RuntimeDescriptor<Array<any>, any>>>,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends RuntimeDescriptor<
+      infer Args,
+      infer Value
+    >
+      ? RuntimeCall<Args, Value>
+      : unknown
+  }
+}
+
 export type TxApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A & string]: {
     [KK in keyof A[K] & string]: A[K][KK] extends {} | undefined
@@ -79,6 +94,7 @@ export type CreateClient = <T extends Record<string, Descriptors>>(
     query: StorageApi<QueryFromDescriptors<T[K]>>
     tx: TxApi<TxFromDescriptors<T[K]>>
     event: EvApi<EventsFromDescriptors<T[K]>>
+    apis: RuntimeCallsApi<T[K]["apis"]>
   }
 } & {
   finalized$: Observable<BlockInfo>

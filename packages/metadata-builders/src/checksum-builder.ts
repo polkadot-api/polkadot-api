@@ -151,6 +151,23 @@ export const getChecksumBuilder = (metadata: V15) => {
     }
   }
 
+  const buildRuntimeCall = (api: string, method: string): bigint | null => {
+    try {
+      const entry = metadata.apis
+        .find((x) => x.name === api)
+        ?.methods.find((x) => x.name === method)
+      if (!entry) throw null
+
+      const args = getChecksum(
+        entry.inputs.map((x) => buildDefinition(x.type)),
+        `(${entry.inputs.map((x) => x.name).join(",")})`,
+      )
+      return getChecksum([args, buildDefinition(entry.output)])
+    } catch (_) {
+      return null
+    }
+  }
+
   const buildEnumEntry = (
     entry: EnumVar["value"][keyof EnumVar["value"]],
   ): bigint => {
@@ -203,7 +220,7 @@ export const getChecksumBuilder = (metadata: V15) => {
 
   return {
     buildDefinition: toStringEnhancer(buildDefinition),
-
+    buildRuntimeCall: toStringEnhancer(buildRuntimeCall),
     buildStorage: toStringEnhancer(buildStorage),
     buildCall: toStringEnhancer(buildVariant("calls")),
     buildEvent: toStringEnhancer(buildVariant("events")),

@@ -69,7 +69,7 @@ const createRuntime = <T extends Record<string, Descriptors>>(
   ctx: RuntimeContext,
 ): Runtime<T> => {
   const constants = mapObject(descriptors, (inner) =>
-    mapObject(inner, (_, palletName) => {
+    mapObject(inner.pallets, (_, palletName) => {
       const pallet = ctx.metadata.pallets.find((p) => p.name === palletName)
       const palletConstants: Record<
         string,
@@ -102,7 +102,7 @@ const createRuntime = <T extends Record<string, Descriptors>>(
     descriptor: Descriptors,
   ) =>
     mapObject(
-      descriptor,
+      descriptor.pallets,
       (x, pallet: string) =>
         new Proxy(
           {},

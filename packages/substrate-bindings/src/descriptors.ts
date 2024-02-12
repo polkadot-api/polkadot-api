@@ -11,18 +11,28 @@ export type TxDescriptor<Args extends {} | undefined> = string & {
   ___: Args
 }
 
-export type Descriptors = Record<
-  string,
-  [
-    Record<string, StorageDescriptor<any, any, any>>,
-    Record<string, TxDescriptor<any>>,
-    Record<string, PlainDescriptor<any>>,
-    Record<string, PlainDescriptor<any>>,
-    Record<string, PlainDescriptor<any>>,
-  ]
->
+export type RuntimeDescriptor<Args extends Array<any>, T> = string & {
+  __: [Args, T]
+}
 
-type PickDescriptors<Idx extends 0 | 1 | 2 | 3 | 4, T extends Descriptors> = {
+export type Descriptors = {
+  pallets: Record<
+    string,
+    [
+      Record<string, StorageDescriptor<any, any, any>>,
+      Record<string, TxDescriptor<any>>,
+      Record<string, PlainDescriptor<any>>,
+      Record<string, PlainDescriptor<any>>,
+      Record<string, PlainDescriptor<any>>,
+    ]
+  >
+  apis: Record<string, Record<string, RuntimeDescriptor<any, any>>>
+}
+
+type PickDescriptors<
+  Idx extends 0 | 1 | 2 | 3 | 4,
+  T extends Descriptors["pallets"],
+> = {
   [K in keyof T]: T[K][Idx]
 }
 
@@ -63,21 +73,21 @@ type ExtractPlain<
 }
 
 export type QueryFromDescriptors<T extends Descriptors> = ExtractStorage<
-  PickDescriptors<0, T>
+  PickDescriptors<0, T["pallets"]>
 >
 
 export type TxFromDescriptors<T extends Descriptors> = ExtractTx<
-  PickDescriptors<1, T>
+  PickDescriptors<1, T["pallets"]>
 >
 
 export type EventsFromDescriptors<T extends Descriptors> = ExtractPlain<
-  PickDescriptors<2, T>
+  PickDescriptors<2, T["pallets"]>
 >
 
 export type ErrorsFromDescriptors<T extends Descriptors> = ExtractPlain<
-  PickDescriptors<3, T>
+  PickDescriptors<3, T["pallets"]>
 >
 
 export type ConstFromDescriptors<T extends Descriptors> = ExtractPlain<
-  PickDescriptors<4, T>
+  PickDescriptors<4, T["pallets"]>
 >
