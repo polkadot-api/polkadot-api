@@ -16,6 +16,7 @@ export {
   i128,
   i256,
   Option,
+  Result,
   Vector,
   Tuple,
   Struct,
@@ -35,4 +36,5 @@ export type {
   EncoderType,
   DecoderType,
   StringRecord,
+  ResultPayload,
 } from "scale-ts"
