@@ -22,7 +22,7 @@ export type * from "./client"
 export type * from "./transaction"
 export type * from "./chainhead"
 
-export { RpcError } from "./client"
+export { RpcError, DestroyedError } from "./client"
 export { TransactionError } from "./transaction"
 export {
   StopError,
@@ -65,6 +65,7 @@ export const createClient = (provider: ConnectProvider): SubstrateClient => {
   >("rpc_methods", []).then(
     (x) => (rpcMethods = new Set(Array.isArray(x) ? x : x.methods)),
   )
+  rpcMethods.catch(noop)
 
   const getSubmitAndWatchNamespace = (input: Set<string>) =>
     input.has("transaction_unstable_submitAndWatch")

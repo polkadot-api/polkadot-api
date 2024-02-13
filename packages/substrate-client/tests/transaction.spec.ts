@@ -1,6 +1,6 @@
 import { expect, describe, test, vi, it } from "vitest"
 import { createTestClient, parseError } from "./fixtures"
-import { RpcError, TransactionError, IRpcError } from "@/."
+import { RpcError, TransactionError, IRpcError, DestroyedError } from "@/."
 
 const eventToType = (input: { event: string }) => {
   const { event: type, ...rest } = input
@@ -15,7 +15,7 @@ async function setupTx(tx: string = "") {
   provider.getNewMessages()
 
   const cancel = client.transaction(tx, onMsg, onError)
-  const result = { provider, cancel, onMsg, onError }
+  const result = { client, provider, cancel, onMsg, onError }
   await Promise.resolve()
   return result
 }
@@ -247,5 +247,23 @@ describe("transaction", () => {
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
     expect(onError).toHaveBeenCalledWith(new RpcError(error))
+  })
+
+  it("throws a DestroyedError if the client is destroyed", async () => {
+    const { client, onMsg, onError } = await setupTx()
+
+    client.destroy()
+    expect(onMsg).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledOnce()
+    expect(onError).toHaveBeenCalledWith(new DestroyedError())
+  })
+
+  it("throws a DestroyedError if the client is destroyed on the subscription", async () => {
+    const { client, onMsg, onError } = await setupTxWithSubscription()
+
+    client.destroy()
+    expect(onMsg).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledOnce()
+    expect(onError).toHaveBeenCalledWith(new DestroyedError())
   })
 })
