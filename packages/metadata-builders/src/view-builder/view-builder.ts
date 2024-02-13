@@ -2,7 +2,8 @@ import { mapObject, mapStringRecord } from "@polkadot-api/utils"
 import {
   Decoder,
   type StringRecord,
-  type V14,
+  type V15,
+  type V14Lookup,
   createDecoder,
   u8,
   HexString,
@@ -74,14 +75,14 @@ const addPath =
       input: LookupEntry,
       cache: Map<number, ShapedDecoder>,
       stack: Set<number>,
-      lookupData: V14["lookup"],
+      lookupData: V14Lookup,
       ...rest: Other
     ) => ShapedDecoder,
   ): ((
     input: LookupEntry,
     cache: Map<number, ShapedDecoder>,
     stack: Set<number>,
-    lookupData: V14["lookup"],
+    lookupData: V14Lookup,
     ...rest: Other
   ) => ShapedDecoder | WithProp<ShapedDecoder, "path", string[]>) =>
   (input, cache, stack, lookupData, ...rest) => {
@@ -94,7 +95,7 @@ const _buildShapedDecoder = (
   input: LookupEntry,
   cache: Map<number, ShapedDecoder>,
   stack: Set<number>,
-  lookupData: V14["lookup"],
+  lookupData: V14Lookup,
   _accountId: WithShapeWithoutExtra<AccountIdDecoded>,
 ): ShapedDecoder => {
   if (input.type === "primitive") return primitives[input.value]
@@ -188,7 +189,7 @@ const buildShapedDecoder = withCache(withPath, selfDecoder, (outter, inner) => {
 const hexStrFromByte = (input: number) =>
   `0x${input.toString(16).padEnd(2, "0")}` as HexString
 
-export const getViewBuilder: GetViewBuilder = (metadata: V14) => {
+export const getViewBuilder: GetViewBuilder = (metadata: V15) => {
   const lookupData = metadata.lookup
   const cache = new Map<number, ShapedDecoder>()
 

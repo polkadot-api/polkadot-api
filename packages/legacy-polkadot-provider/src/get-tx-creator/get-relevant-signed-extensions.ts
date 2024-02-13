@@ -1,4 +1,4 @@
-import { V14, _void } from "@polkadot-api/substrate-bindings"
+import { V15, _void } from "@polkadot-api/substrate-bindings"
 import {
   getChecksumBuilder,
   getDynamicBuilder,
@@ -9,7 +9,7 @@ import {
 } from "@/get-tx-creator/signed-extensions"
 import type { UserSignedExtensionName } from "@/."
 
-export const getRelevantSignedExtensions = (metadata: V14) => {
+export const getRelevantSignedExtensions = (metadata: V15) => {
   const checksumBuilder = getChecksumBuilder(metadata)
   const dynamicBuilder = getDynamicBuilder(metadata)
 

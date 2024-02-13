@@ -1,4 +1,4 @@
-import { AccountId, V14 } from "@polkadot-api/substrate-bindings"
+import { AccountId, V15 } from "@polkadot-api/substrate-bindings"
 import {
   UserSignedExtensionsData,
   OnCreateTxCtx,
@@ -16,7 +16,7 @@ import {
 import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
 
 interface Ctx {
-  metadata: V14
+  metadata: V15
   at: string
   signedExtensions: {
     all: string[]
@@ -26,7 +26,7 @@ interface Ctx {
   }
 }
 
-export const getAddressFormat = (metadata: V14): number => {
+export const getAddressFormat = (metadata: V15): number => {
   const dynamicBuilder = getDynamicBuilder(metadata)
 
   const constant = metadata.pallets

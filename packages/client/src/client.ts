@@ -4,7 +4,14 @@ import {
 } from "@polkadot-api/substrate-client"
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { getObservableClient } from "./observableClient"
-import { CreateClient, CreateTx, EvApi, StorageApi, TxApi } from "./types"
+import {
+  CreateClient,
+  CreateTx,
+  EvApi,
+  RuntimeCallsApi,
+  StorageApi,
+  TxApi,
+} from "./types"
 import { Transaction, createTxEntry } from "./tx"
 import { firstValueFrom } from "rxjs"
 import { EvClient, createEventEntry } from "./event"
@@ -16,6 +23,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import { getRuntimeApi } from "./runtime"
+import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 
 const createNamespace = (
   descriptors: Descriptors,
@@ -29,11 +37,13 @@ const createNamespace = (
   query: StorageApi<QueryFromDescriptors<Descriptors>>
   tx: TxApi<TxFromDescriptors<Descriptors>>
   event: EvApi<EventsFromDescriptors<Descriptors>>
+  apis: RuntimeCallsApi<Descriptors["apis"]>
 } => {
+  const { pallets, apis: runtimeApis } = descriptors
   const query = {} as Record<string, Record<string, StorageEntry<any, any>>>
-  for (const pallet in descriptors) {
+  for (const pallet in pallets) {
     query[pallet] ||= {}
-    const [stgEntries] = descriptors[pallet]
+    const [stgEntries] = pallets[pallet]
     for (const name in stgEntries) {
       query[pallet][name] = createStorageEntry(
         stgEntries[name],
@@ -48,9 +58,9 @@ const createNamespace = (
     string,
     Record<string, (a: any) => Transaction<any, any, any>>
   >
-  for (const pallet in descriptors) {
+  for (const pallet in pallets) {
     tx[pallet] ||= {}
-    const [, txEntries] = descriptors[pallet]
+    const [, txEntries] = pallets[pallet]
     for (const name in txEntries) {
       tx[pallet][name] = createTxEntry(
         txEntries[name],
@@ -64,9 +74,9 @@ const createNamespace = (
   }
 
   const events = {} as Record<string, Record<string, EvClient<any>>>
-  for (const pallet in descriptors) {
+  for (const pallet in pallets) {
     events[pallet] ||= {}
-    const [, , evEntries] = descriptors[pallet]
+    const [, , evEntries] = pallets[pallet]
     for (const name in evEntries) {
       events[pallet][name] = createEventEntry(
         evEntries[name],
@@ -77,10 +87,25 @@ const createNamespace = (
     }
   }
 
+  const apis = {} as Record<string, Record<string, RuntimeCall<any, any>>>
+  for (const api in runtimeApis) {
+    apis[api] ||= {}
+    const methods = runtimeApis[api]
+    for (const method in methods) {
+      apis[api][method] = createRuntimeCallEntry(
+        methods[method],
+        api,
+        method,
+        chainHead,
+      )
+    }
+  }
+
   return {
     query: query as any,
-    tx: tx as any,
-    event: events as any,
+    tx: tx,
+    event: events,
+    apis,
   }
 }
 

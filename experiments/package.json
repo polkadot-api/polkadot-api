@@ -7,6 +7,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsup-node src/main.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\"",
+    "meta": "tsup-node src/getMetadata.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/getMetadata.js\"",
     "best-blocks": "tsup-node src/best-blocks.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/best-blocks.js\"",
     "nominators": "tsup-node src/all-nominators.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/all-nominators.js\"",
     "viewer": "tsup-node src/viewer.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/viewer.js\"",
@@ -26,11 +27,11 @@
     "@noble/curves": "^1.2.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/client": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/node-polkadot-provider": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "rxjs": "^7.8.1"
@@ -43,27 +44,7 @@
   "polkadot-api": {
     "ksm": {
       "metadata": "ksm-metadata.scale",
-      "outputFolder": "./src/descriptors/",
-      "descriptors": {
-        "FellowshipCollective": {
-          "constants": {},
-          "storage": {
-            "Members": "bvc8f0qvh5ljj"
-          },
-          "events": {},
-          "errors": {},
-          "extrinsics": {}
-        },
-        "Identity": {
-          "constants": {},
-          "storage": {
-            "IdentityOf": "4uovu2fu29da6"
-          },
-          "events": {},
-          "errors": {},
-          "extrinsics": {}
-        }
-      }
+      "outputFolder": "./src/descriptors/"
     }
   }
 }

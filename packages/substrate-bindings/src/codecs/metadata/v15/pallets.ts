@@ -62,7 +62,8 @@ export const pallets = Vector(
     ),
     errors: Option(compactNumber),
     index: u8,
+    docs: Vector(str),
   }),
 )
 
-export type V14Pallets = CodecType<typeof pallets>
+export type V15Pallets = CodecType<typeof pallets>

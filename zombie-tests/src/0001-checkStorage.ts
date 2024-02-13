@@ -1,17 +1,25 @@
-import { Tuple, compact, metadata } from "@polkadot-api/substrate-bindings"
+import {
+  Option,
+  u32,
+  Tuple,
+  compact,
+  metadata,
+} from "@polkadot-api/substrate-bindings"
 import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
 import { createClient } from "@polkadot-api/substrate-client"
 import { getScProvider } from "@polkadot-api/sc-provider"
+import { toHex } from "@polkadot-api/utils"
 
 const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+
+const opaqueMeta = Option(Tuple(compact, metadata))
+const v15Args = toHex(u32.enc(15))
 
 const scProvider = getScProvider()
 export async function run(_nodeName: string, networkInfo: any) {
   const customChainSpec = require(networkInfo.chainSpecPath)
   let provider = scProvider(JSON.stringify(customChainSpec)).relayChain
   const { chainHead } = createClient(provider)
-
-  const opaqueMeta = Tuple(compact, metadata)
 
   let aliceBalance = 0
 
@@ -31,12 +39,12 @@ export async function run(_nodeName: string, networkInfo: any) {
         // Call metadata
         let response = await chainHeadFollower.call(
           latestFinalized,
-          "Metadata_metadata",
-          "",
+          "Metadata_metadata_at_version",
+          v15Args,
         )
 
-        const [, metadata] = opaqueMeta.dec(response)
-        if (metadata.metadata.tag === "v14") {
+        const [, metadata] = opaqueMeta.dec(response)!
+        if (metadata.metadata.tag === "v15") {
           const dynamicBuilder = getDynamicBuilder(metadata.metadata.value)
           const storageAccount = dynamicBuilder.buildStorage(
             "System",

@@ -264,7 +264,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
     header$,
     body$,
-    call$: withRefcount(_call$),
+    call$: withOptionalHash$(withRefcount(_call$)),
     storage$,
     storageQueries$,
     eventsAt$,

@@ -1,4 +1,4 @@
-import type { Codec, StringRecord, V14 } from "@polkadot-api/substrate-bindings"
+import type { Codec, StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import type { EnumVar, LookupEntry, TupleVar } from "./lookups"
 import { getLookupFn } from "./lookups"
 import * as scale from "@polkadot-api/substrate-bindings"
@@ -85,7 +85,7 @@ const _buildCodec = (
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
-export const getDynamicBuilder = (metadata: V14) => {
+export const getDynamicBuilder = (metadata: V15) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
   let _accountId = scale.AccountId()
@@ -220,11 +220,24 @@ export const getDynamicBuilder = (metadata: V14) => {
     }
   }
 
+  const buildRuntimeCall = (api: string, method: string) => {
+    const entry = metadata.apis
+      .find((x) => x.name === api)
+      ?.methods.find((x) => x.name === method)
+    if (!entry) throw null
+
+    return {
+      args: scale.Tuple(...entry.inputs.map((x) => buildDefinition(x.type))),
+      value: buildDefinition(entry.output),
+    }
+  }
+
   return {
     buildDefinition,
     buildStorage,
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
+    buildRuntimeCall,
     buildCall,
     buildConstant,
     ss58Prefix,

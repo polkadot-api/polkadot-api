@@ -1,4 +1,4 @@
-import type { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
+import type { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
 import {
   EnumVar,
@@ -121,7 +121,7 @@ const buildChecksum = withCache(
   (result) => result,
 )
 
-export const getChecksumBuilder = (metadata: V14) => {
+export const getChecksumBuilder = (metadata: V15) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
 
@@ -146,6 +146,23 @@ export const getChecksumBuilder = (metadata: V14) => {
           ? getChecksum([buildDefinition(key)])
           : buildDefinition(key)
       return getChecksum([val, returnKey])
+    } catch (_) {
+      return null
+    }
+  }
+
+  const buildRuntimeCall = (api: string, method: string): bigint | null => {
+    try {
+      const entry = metadata.apis
+        .find((x) => x.name === api)
+        ?.methods.find((x) => x.name === method)
+      if (!entry) throw null
+
+      const args = getChecksum(
+        entry.inputs.map((x) => buildDefinition(x.type)),
+        `(${entry.inputs.map((x) => x.name).join(",")})`,
+      )
+      return getChecksum([args, buildDefinition(entry.output)])
     } catch (_) {
       return null
     }
@@ -203,7 +220,7 @@ export const getChecksumBuilder = (metadata: V14) => {
 
   return {
     buildDefinition: toStringEnhancer(buildDefinition),
-
+    buildRuntimeCall: toStringEnhancer(buildRuntimeCall),
     buildStorage: toStringEnhancer(buildStorage),
     buildCall: toStringEnhancer(buildVariant("calls")),
     buildEvent: toStringEnhancer(buildVariant("events")),

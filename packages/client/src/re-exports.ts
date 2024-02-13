@@ -11,6 +11,7 @@ export type {
   EventsFromDescriptors,
   ErrorsFromDescriptors,
   ConstFromDescriptors,
+  RuntimeDescriptor,
 } from "@polkadot-api/substrate-bindings"
 export {
   AccountId,

@@ -1,4 +1,4 @@
-import { V14 } from "@polkadot-api/substrate-bindings"
+import type { V15 } from "@polkadot-api/substrate-bindings"
 import {
   getChecksumBuilder,
   getLookupFn,
@@ -7,11 +7,28 @@ import {
 import { PalletData } from "./types"
 
 export const getCodegenInfo = (
-  metadata: V14,
+  metadata: V15,
   keyName: string,
   selectOnly?: Array<string>,
 ) => {
-  const descriptorsData: Record<string, PalletData> = {}
+  const descriptorsData: {
+    pallets: Record<string, PalletData>
+    apis: Record<
+      string,
+      Record<
+        string,
+        {
+          checksum: string | null
+          payload: string
+          args: string
+        }
+      >
+    >
+  } = {
+    pallets: {},
+    apis: {},
+  }
+
   const getLookup = getLookupFn(metadata.lookup)
 
   const getEnumEntry = (id: number | undefined | void): Array<string> => {
@@ -50,7 +67,7 @@ export const getCodegenInfo = (
       storage: {},
       tx: {},
     }
-    descriptorsData[pallet.name] = result
+    descriptorsData.pallets[pallet.name] = result
 
     for (const stg of pallet.storage?.items ?? []) {
       if (whiteList && !whiteList.has(`${pallet.name}.query.${stg.name}`))
@@ -106,6 +123,30 @@ export const getCodegenInfo = (
       result.constants[constName] = {
         checksum: checksumBuilder.buildConstant(pallet.name, constName)!,
         payload: addExportedType(pallet.name, "Constant", constName, payload),
+      }
+    }
+  }
+
+  for (const api of metadata.apis) {
+    const result: Record<
+      string,
+      {
+        checksum: string | null
+        payload: string
+        args: string
+      }
+    > = {}
+    descriptorsData.apis[api.name] = result
+
+    for (const method of api.methods) {
+      if (whiteList && !whiteList.has(`api.${api.name}.${method.name}`))
+        continue
+      const st = staticBuilder.buildRuntimeCall(api.name, method.name)
+
+      result[method.name] = {
+        checksum: checksumBuilder.buildRuntimeCall(api.name, method.name),
+        args: addExportedType(api.name, "APIArgs", method.name, st.args),
+        payload: addExportedType(api.name, "APIValue", method.name, st.value),
       }
     }
   }

@@ -1,4 +1,4 @@
-import { StringRecord, V14 } from "@polkadot-api/substrate-bindings"
+import { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import { LookupEntry, getLookupFn } from "./lookups"
 import { withCache } from "./with-cache"
 
@@ -287,7 +287,7 @@ const buildSyntax = withCache(
   (x) => x,
 )
 
-export const getStaticBuilder = (metadata: V14, namespace: string) => {
+export const getStaticBuilder = (metadata: V15, namespace: string) => {
   const declarations: CodeDeclarations = {
     imports: new Set<string>(),
     typeImports: new Set<string>(["Codec"]),
@@ -388,6 +388,17 @@ export const getStaticBuilder = (metadata: V14, namespace: string) => {
     return { key: returnKey, val }
   }
 
+  const buildRuntimeCall = (api: string, method: string) => {
+    const entry = metadata.apis
+      .find((x) => x.name === api)
+      ?.methods.find((x) => x.name === method)
+    if (!entry) throw null
+    return {
+      args: buildNamedTuple(entry.inputs, `${api}${method}Args`),
+      value: buildDefinition(entry.output),
+    }
+  }
+
   const buildVariant =
     (type: "errors" | "events" | "calls") => (pallet: string, name: string) => {
       const lookupEntry = getLookupEntryDef(
@@ -457,6 +468,7 @@ const ${variable.id}: Codec<${variable.id}> = ${variable.value};`
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
     buildCall: buildVariant("calls"),
+    buildRuntimeCall,
     buildConstant,
     getTypeFromVarName,
     getCode,
