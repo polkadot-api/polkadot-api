@@ -1,5 +1,6 @@
 import { expect, describe, test, it } from "vitest"
 import {
+  ChainHeadOperation,
   parseError,
   setupChainHead,
   setupChainHeadOperation,
@@ -7,17 +8,20 @@ import {
 } from "./fixtures"
 import {
   DisjointError,
+  FollowResponse,
   OperationError,
   OperationInaccessibleError,
   OperationLimitError,
 } from "@/chainhead"
 
+type Args<T extends keyof FollowResponse> = Parameters<FollowResponse[T]>
+
 describe.each([
   [
-    "body" as "body",
-    { name: "body" } as const,
-    ["someHash"] as [string],
-    ["someHash"] as [string],
+    "body",
+    { name: "body" },
+    ["someHash"] satisfies Args<"body">,
+    ["someHash"],
     [
       {
         event: "operationBodyDone",
@@ -27,10 +31,10 @@ describe.each([
     ["tx1", "tx2"],
   ],
   [
-    "call" as "call",
-    { name: "call" } as const,
-    ["someHash", "someFnName", "someCallParams"] as [string, string, string],
-    ["someHash", "someFnName", "someCallParams"] as [string, string, string],
+    "call",
+    { name: "call" },
+    ["someHash", "someFnName", "someCallParams"] satisfies Args<"call">,
+    ["someHash", "someFnName", "someCallParams"],
     [
       {
         event: "operationCallDone",
@@ -41,13 +45,8 @@ describe.each([
   ],
   [
     "storage - value",
-    { name: "storage", discardedItems: 0 } as const,
-    ["someHash", "value", "someStorageKey", null] as [
-      hash: string,
-      type: "value",
-      key: string,
-      childTrie: string | null,
-    ],
+    { name: "storage", discardedItems: 0 },
+    ["someHash", "value", "someStorageKey", null] satisfies Args<"storage">,
     ["someHash", [{ key: "someStorageKey", type: "value" }], null],
     [
       {
@@ -67,13 +66,8 @@ describe.each([
   ],
   [
     "storage - hash",
-    { name: "storage", discardedItems: 0 } as const,
-    ["someHash", "hash", "someStorageKey", null] as [
-      hash: string,
-      type: "hash",
-      key: string,
-      childTrie: string | null,
-    ],
+    { name: "storage", discardedItems: 0 },
+    ["someHash", "hash", "someStorageKey", null] satisfies Args<"storage">,
     ["someHash", [{ key: "someStorageKey", type: "hash" }], null],
     [
       {
@@ -93,13 +87,13 @@ describe.each([
   ],
   [
     "storage - closestDescendantMerkleValue",
-    { name: "storage", discardedItems: 0 } as const,
-    ["someHash", "closestDescendantMerkleValue", "someStorageKey", null] as [
-      hash: string,
-      type: "closestDescendantMerkleValue",
-      key: string,
-      childTrie: string | null,
-    ],
+    { name: "storage", discardedItems: 0 },
+    [
+      "someHash",
+      "closestDescendantMerkleValue",
+      "someStorageKey",
+      null,
+    ] satisfies Args<"storage">,
     [
       "someHash",
       [{ key: "someStorageKey", type: "closestDescendantMerkleValue" }],
@@ -123,13 +117,13 @@ describe.each([
   ],
   [
     "storage - descendantsValues",
-    { name: "storage", discardedItems: 0 } as const,
-    ["someHash", "descendantsValues", "someStorageKey", null] as [
-      hash: string,
-      type: "descendantsValues",
-      key: string,
-      childTrie: string | null,
-    ],
+    { name: "storage", discardedItems: 0 },
+    [
+      "someHash",
+      "descendantsValues",
+      "someStorageKey",
+      null,
+    ] satisfies Args<"storage">,
     ["someHash", [{ key: "someStorageKey", type: "descendantsValues" }], null],
     [
       {
@@ -162,13 +156,13 @@ describe.each([
   ],
   [
     "storage - descendantsHashes",
-    { name: "storage", discardedItems: 0 } as const,
-    ["someHash", "descendantsHashes", "someStorageKey", null] as [
-      hash: string,
-      type: "descendantsHashes",
-      key: string,
-      childTrie: string | null,
-    ],
+    { name: "storage", discardedItems: 0 },
+    [
+      "someHash",
+      "descendantsHashes",
+      "someStorageKey",
+      null,
+    ] satisfies Args<"storage">,
     ["someHash", [{ key: "someStorageKey", type: "descendantsHashes" }], null],
     [
       {
@@ -199,7 +193,7 @@ describe.each([
       },
     ],
   ],
-])(
+] satisfies Array<[string, ChainHeadOperation, any[], any[], any, any]>)(
   "chainhead: %s",
   (_, op, args, expectedMsgArgs, operationNotifications, expectedResult) => {
     it("sends the correct operation message", () => {
