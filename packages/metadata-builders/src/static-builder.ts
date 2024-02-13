@@ -212,6 +212,36 @@ const _buildSyntax = (
   if (input.type === "tuple") return buildTuple(varId, input.value)
   if (input.type === "struct") return buildStruct(varId, input.value)
 
+  if (input.type === "option") {
+    declarations.imports.add("Option")
+    const inner = buildNextSyntax(input.value)
+    const id = `_Option_${inner}`
+    const variable = {
+      id,
+      value: `Option(${inner})`,
+      types: `${getTypes(inner)} | undefined`,
+      directDependencies: new Set<string>([inner]),
+    }
+    declarations.variables.set(id, variable)
+    return id
+  }
+
+  if (input.type === "result") {
+    declarations.imports.add("Result")
+    declarations.typeImports.add("ResultPayload")
+    const ok = buildNextSyntax(input.value.ok)
+    const ko = buildNextSyntax(input.value.ko)
+    const id = `_Result_${ok}_${ko}`
+    const variable = {
+      id,
+      value: `Result(${ok}, ${ko})`,
+      types: `ResultPayload<${getTypes(ok)}, ${getTypes(ko)}>`,
+      directDependencies: new Set<string>([ok, ko]),
+    }
+    declarations.variables.set(id, variable)
+    return id
+  }
+
   // it has to be an enum by now
   declarations.imports.add("Variant")
   declarations.typeImports.add("Enum")

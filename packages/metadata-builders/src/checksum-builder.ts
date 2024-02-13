@@ -106,6 +106,15 @@ const _buildChecksum = (
   if (input.type === "tuple") return buildTuple(input.value)
   if (input.type === "struct") return buildStruct(input.value)
 
+  if (input.type === "option")
+    return getChecksum([buildNextChecksum(input.value)], "Option()")
+
+  if (input.type === "result")
+    return getChecksum(
+      [input.value.ok, input.value.ko].map(buildNextChecksum),
+      "Result()",
+    )
+
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
     if (v.type === "primitive") return 0n

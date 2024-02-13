@@ -46,6 +46,14 @@ export type EnumVar = {
   value: StringRecord<(TupleVar | StructVar | VoidVar) & { idx: number }>
   innerDocs: StringRecord<string[]>
 }
+export type OptionVar = {
+  type: "option"
+  value: LookupEntry
+}
+export type ResultVar = {
+  type: "result"
+  value: { ok: LookupEntry; ko: LookupEntry }
+}
 export type SequenceVar = {
   type: "sequence"
   value: LookupEntry
@@ -61,6 +69,8 @@ export type ComposedVar =
   | StructVar
   | SequenceVar
   | ArrayVar
+  | OptionVar
+  | ResultVar
   | EnumVar
 
 export type Var = TerminalVar | ComposedVar
@@ -109,7 +119,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
   }
 
   const getLookupEntryDef = withCache((id): Var => {
-    const { def } = lookupData[id]
+    const { def, path, params } = lookupData[id]
 
     if (def.tag === "composite") {
       if (def.value.length === 0) return voidVar
@@ -125,7 +135,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       def.value.forEach((x, idx) => {
         allKey = allKey && !!x.name
         const key = x.name || idx
-        values[key] = getLookupEntryDef(x.type as number)
+        values[key] = getLookupEntryDef(x.type)
         innerDocs[key] = x.docs
       })
 
@@ -143,6 +153,33 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     }
 
     if (def.tag === "variant") {
+      if (
+        path.length === 1 &&
+        path[0] === "Option" &&
+        params.length === 1 &&
+        params[0].name === "T"
+      ) {
+        return {
+          type: "option",
+          value: getLookupEntryDef(params[0].type as number),
+        }
+      }
+
+      if (
+        path.length === 1 &&
+        path[0] === "Result" &&
+        params.length === 2 &&
+        params[0].name === "T" &&
+        params[1].name === "E"
+      ) {
+        return {
+          type: "result",
+          value: {
+            ok: getLookupEntryDef(params[0].type as number),
+            ko: getLookupEntryDef(params[1].type as number),
+          },
+        }
+      }
       if (def.value.length === 0) return voidVar
 
       const enumValue: StringRecord<EnumVar["value"][keyof EnumVar["value"]]> =

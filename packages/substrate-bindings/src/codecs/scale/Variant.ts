@@ -58,22 +58,26 @@ type MyTuple<T> = [T, ...T[]]
 
 type List<T> = Array<T>
 
-export type Anonymize<T> = T extends
-  | string
-  | number
-  | bigint
-  | boolean
-  | void
-  | undefined
-  | null
-  | symbol
-  | Binary
-  | Enum<{ type: string; value: any }>
-  ? T
-  : T extends (...args: infer Args) => infer R
-    ? (...args: Anonymize<Args>) => Anonymize<R>
-    : T extends Uint8Array
-      ? T
+type SeparateUndefined<T> = undefined extends T
+  ? undefined | Exclude<T, undefined>
+  : T
+
+export type Anonymize<T> = SeparateUndefined<
+  T extends
+    | string
+    | number
+    | bigint
+    | boolean
+    | void
+    | undefined
+    | null
+    | symbol
+    | Binary
+    | Enum<{ type: string; value: any }>
+    | Uint8Array
+    ? T
+    : T extends (...args: infer Args) => infer R
+      ? (...args: Anonymize<Args>) => Anonymize<R>
       : T extends MyTuple<any>
         ? {
             [K in keyof T]: Anonymize<T[K]>
@@ -83,6 +87,7 @@ export type Anonymize<T> = T extends
           : {
               [K in keyof T]: Anonymize<T[K]>
             }
+>
 
 export const _Enum = new Proxy(
   {},

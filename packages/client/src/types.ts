@@ -1,4 +1,5 @@
 import {
+  Anonymize,
   BlockHeader,
   Descriptors,
   EventsFromDescriptors,
@@ -13,7 +14,6 @@ import { EvClient } from "./event"
 import { Observable } from "rxjs"
 import { BlockInfo } from "./observableClient"
 import { RuntimeApi } from "./runtime"
-import { RuntimeCall } from "./runtime-call"
 
 export type CreateTx = (
   publicKey: Uint8Array,
@@ -57,6 +57,11 @@ export type StorageApi<
   }
 }
 
+type CallOptions = Partial<{
+  at: string
+  signal: AbortSignal
+}>
+
 export type RuntimeCallsApi<
   A extends Record<string, Record<string, RuntimeDescriptor<Array<any>, any>>>,
 > = {
@@ -65,7 +70,11 @@ export type RuntimeCallsApi<
       infer Args,
       infer Value
     >
-      ? RuntimeCall<Args, Value>
+      ? (
+          ...args: Args["length"] extends 0
+            ? [options?: CallOptions]
+            : [...args: Anonymize<Args>, options?: CallOptions]
+        ) => Promise<Anonymize<Value>>
       : unknown
   }
 }

@@ -14,7 +14,11 @@ import {
   Decoded,
   EnumDecoded,
   EnumShape,
+  OptionDecoded,
+  OptionShape,
   PrimitiveDecoded,
+  ResultDecoded,
+  ResultShape,
   SequenceDecoded,
   SequenceShape,
   StructDecoded,
@@ -49,6 +53,15 @@ type TupleShapedDecoder = Decoder<WithoutExtra<TupleDecoded>> & {
 type StructShapedDecoder = Decoder<WithoutExtra<StructDecoded>> & {
   shape: StructShape
 }
+
+type OptionShapedDecoder = Decoder<WithoutExtra<OptionDecoded>> & {
+  shape: OptionShape
+}
+
+type ResultShapedDecoder = Decoder<WithoutExtra<ResultDecoded>> & {
+  shape: ResultShape
+}
+
 type EnumShapedDecoder = Decoder<WithoutExtra<EnumDecoded>> & {
   shape: EnumShape
 }
@@ -57,6 +70,8 @@ type ComplexShapedDecoder =
   | ArrayShapedDecoder
   | TupleShapedDecoder
   | StructShapedDecoder
+  | OptionShapedDecoder
+  | ResultShapedDecoder
   | EnumShapedDecoder
 
 export type ShapedDecoder = PrimitiveShapeDecoder | ComplexShapedDecoder
@@ -222,6 +237,21 @@ const EnumDec = (
     scale.Variant.dec(input as {}, args as any),
   )
 
+export const OptionDec = (input: ShapedDecoder): OptionShapedDecoder =>
+  complexShapedDecoder(
+    { codec: "Option", shape: input.shape },
+    scale.Option.dec(input as any) as any,
+  )
+
+export const ResultDec = (
+  ok: ShapedDecoder,
+  ko: ShapedDecoder,
+): ResultShapedDecoder =>
+  complexShapedDecoder(
+    { codec: "Result", shape: { ok: ok.shape, ko: ko.shape } },
+    scale.Result.dec(ok as Decoder<any>, ko as Decoder<any>) as any,
+  )
+
 export const selfDecoder = (value: () => ShapedDecoder): ShapedDecoder => {
   let cache: Decoder<any> = (x) => {
     const decoder = value()
@@ -241,4 +271,6 @@ export const complex = {
   Tuple: TupleDec,
   Struct: StructDec,
   Enum: EnumDec,
+  Option: OptionDec,
+  Result: ResultDec,
 }
