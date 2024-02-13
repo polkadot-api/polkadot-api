@@ -61,6 +61,14 @@ const _buildCodec = (
   if (input.type === "tuple") return buildTuple(input.value)
   if (input.type === "struct") return buildStruct(input.value)
 
+  if (input.type === "option") return scale.Option(buildNextCodec(input.value))
+
+  if (input.type === "result")
+    return scale.Result(
+      buildNextCodec(input.value.ok),
+      buildNextCodec(input.value.ko),
+    )
+
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
     if (v.type === "primitive") return scale._void

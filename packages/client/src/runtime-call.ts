@@ -2,7 +2,6 @@ import { map, mergeMap } from "rxjs"
 import { firstValueFromWithSignal } from "@/utils"
 import { getObservableClient, RuntimeContext } from "./observableClient"
 import { toHex } from "@polkadot-api/utils"
-import { Anonymize } from "@polkadot-api/substrate-bindings"
 
 type CallOptions = Partial<{
   at: string
@@ -11,11 +10,11 @@ type CallOptions = Partial<{
 
 type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   ? [options?: CallOptions]
-  : [...args: Anonymize<Args>, options?: CallOptions]
+  : [...args: Args, options?: CallOptions]
 
 export type RuntimeCall<Args extends Array<any>, Payload> = (
   ...args: WithCallOptions<Args>
-) => Promise<Anonymize<Payload>>
+) => Promise<Payload>
 
 const isOptionalArg = (lastArg: any) => {
   if (typeof lastArg !== "object") return false

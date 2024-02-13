@@ -129,6 +129,16 @@ export type ArrayDecoded = WithInputAndPath<{
   value: Array<Decoded>
 }>
 
+export type OptionDecoded = WithInputAndPath<{
+  codec: "Option"
+  value: Decoded
+}>
+
+export type ResultDecoded = WithInputAndPath<{
+  codec: "Result"
+  value: { ok: Decoded; ko: Decoded }
+}>
+
 export type TupleDecoded = WithInputAndPath<{
   codec: "Tuple"
   value: Array<Decoded>
@@ -155,6 +165,8 @@ export type ComplexDecoded =
   | ArrayDecoded
   | TupleDecoded
   | StructDecoded
+  | OptionDecoded
+  | ResultDecoded
   | EnumDecoded
 
 export type Decoded = PrimitiveDecoded | ComplexDecoded
@@ -180,6 +192,16 @@ export interface StructShape {
   shape: StringRecord<Shape>
 }
 
+export interface OptionShape {
+  codec: "Option"
+  shape: Shape
+}
+
+export interface ResultShape {
+  codec: "Result"
+  shape: { ok: Shape; ko: Shape }
+}
+
 export interface EnumShape {
   codec: "Enum"
   shape: StringRecord<Shape>
@@ -190,6 +212,8 @@ export type ComplexShape =
   | ArrayShape
   | TupleShape
   | StructShape
+  | OptionShape
+  | ResultShape
   | EnumShape
 
 export type Shape = { codec: PrimitiveDecoded["codec"] } | ComplexShape

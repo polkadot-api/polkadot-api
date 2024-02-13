@@ -146,6 +146,10 @@ const _buildShapedDecoder = (
   if (input.type === "sequence") return buildVector(input.value)
   if (input.type === "tuple") return buildTuple(input.value, input.innerDocs)
   if (input.type === "struct") return buildStruct(input.value, input.innerDocs)
+  if (input.type === "option") return complex.Option(buildNext(input.value))
+
+  if (input.type === "result")
+    return complex.Result(buildNext(input.value.ok), buildNext(input.value.ko))
 
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
