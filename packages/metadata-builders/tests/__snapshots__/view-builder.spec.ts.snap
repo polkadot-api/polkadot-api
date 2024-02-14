@@ -65,6 +65,11 @@ exports[`getViewBuilder > batched call 1`] = `
                             "value": {
                               "codec": "AccountId",
                               "input": "0xdc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                              "path": [
+                                "sp_core",
+                                "crypto",
+                                "AccountId32",
+                              ],
                               "value": {
                                 "address": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
                                 "ss58Prefix": 2,
@@ -138,6 +143,11 @@ exports[`getViewBuilder > batched call 1`] = `
                                 "value": {
                                   "codec": "AccountId",
                                   "input": "0xdc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
+                                  "path": [
+                                    "sp_core",
+                                    "crypto",
+                                    "AccountId32",
+                                  ],
                                   "value": {
                                     "address": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
                                     "ss58Prefix": 2,

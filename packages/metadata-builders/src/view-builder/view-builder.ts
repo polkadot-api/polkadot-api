@@ -99,6 +99,7 @@ const _buildShapedDecoder = (
   _accountId: WithShapeWithoutExtra<AccountIdDecoded>,
 ): ShapedDecoder => {
   if (input.type === "primitive") return primitives[input.value]
+  if (input.type === "AccountId32") return _accountId
   if (input.type === "compact")
     return input.isBig ? primitives.compactBn : primitives.compactNumber
   if (input.type === "bitSequence") return primitives.bitSequence
@@ -135,9 +136,7 @@ const _buildShapedDecoder = (
   if (input.type === "array") {
     // Bytes case
     if (input.value.type === "primitive" && input.value.value === "u8") {
-      return input.len === 32 && (input.id === 0 || input.id === 1)
-        ? _accountId
-        : primitives.BytesArray(input.len)
+      return primitives.BytesArray(input.len)
     }
 
     return buildVector(input.value, input.len)

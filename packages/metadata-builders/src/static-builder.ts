@@ -71,9 +71,6 @@ const toCamelCase = (...parts: string[]): string =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join("")
 
-const isBytes = (input: LookupEntry) =>
-  input.type === "primitive" && input.value === "u8"
-
 const getTypes = (varName: string) =>
   primitiveTypes[varName as keyof typeof primitiveTypes] ?? varName
 
@@ -87,6 +84,19 @@ const _buildSyntax = (
   if (input.type === "primitive") {
     declarations.imports.add(input.value)
     return input.value
+  }
+
+  if (input.type === "AccountId32") {
+    declarations.imports.add("AccountId")
+    const id = "_accountId"
+    declarations.variables.set(id, {
+      id,
+      value: `AccountId()`,
+      types: "SS58String",
+      directDependencies: new Set<string>(),
+    })
+    declarations.typeImports.add("SS58String")
+    return id
   }
 
   if (input.type === "compact") {
@@ -178,20 +188,7 @@ const _buildSyntax = (
   const varId = getVarName(input.id)
   if (input.type === "array") {
     // Bytes case
-    if (isBytes(input.value)) {
-      if (input.len === 32 && (input.id === 0 || input.id === 1)) {
-        declarations.imports.add("AccountId")
-        const id = "_accountId"
-        declarations.variables.set(id, {
-          id,
-          value: `AccountId()`,
-          types: "SS58String",
-          directDependencies: new Set<string>(),
-        })
-        declarations.typeImports.add("SS58String")
-        return id
-      }
-
+    if (input.value.type === "primitive" && input.value.value === "u8") {
       declarations.imports.add("Bin")
       declarations.variables.set(varId, {
         id: varId,

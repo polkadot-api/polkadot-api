@@ -115,6 +115,10 @@ const _buildChecksum = (
       "Result()",
     )
 
+  if (input.type === "AccountId32") {
+    return getChecksum([primitiveChecksums.u8, 32n], "AccountId32")
+  }
+
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
     if (v.type === "primitive") return 0n
