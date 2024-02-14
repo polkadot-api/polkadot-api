@@ -250,8 +250,7 @@ describe.each([
 
       controller.abort()
 
-      provider.sendMessage({
-        id: 2,
+      provider.replyLast({
         result: "someSubscription",
       })
 
@@ -268,8 +267,7 @@ describe.each([
         ...args,
       )
 
-      provider.sendMessage({
-        id: 3,
+      provider.replyLast({
         result: { result: "limitReached" },
       })
 
@@ -317,8 +315,7 @@ describe.each([
 
       const promise = (chainHead[op.name] as any)(...(args as any[]))
 
-      provider.sendMessage({
-        id: 2,
+      provider.replyLast({
         error: parseError,
       })
 
@@ -328,8 +325,7 @@ describe.each([
     it("rejects an `DisjointError` error when the follow subscription fails for any subsequent operation", async () => {
       const { provider, chainHead } = setupChainHead()
 
-      provider.sendMessage({
-        id: 2,
+      provider.replyLast({
         error: parseError,
       })
 

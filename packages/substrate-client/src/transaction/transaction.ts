@@ -1,5 +1,5 @@
 import { noop } from "@/internal-utils"
-import type { ClientRequest } from "../client"
+import { DestroyedError, type ClientRequest } from "../client"
 import type {
   TxEventRpc,
   TxFinalizedRpc,
@@ -71,7 +71,7 @@ export const getTransaction =
               next(eventToType(event))
             },
             error(e) {
-              cancel()
+              if (!(e instanceof DestroyedError)) cancel()
               cancel = noop
               error(e)
             },

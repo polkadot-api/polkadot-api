@@ -25,6 +25,7 @@ import { createStorageFn } from "./storage"
 import { createUnpinFn } from "./unpin"
 import { DisjointError, StopError } from "./errors"
 import { createStorageCb } from "./storage-subscription"
+import { DestroyedError } from "@/client/DestroyedError"
 
 type FollowEventRpc =
   | FollowEventWithRuntimeRpc
@@ -77,7 +78,7 @@ export function getChainHead(
 
     const onAllFollowEventsError = (error: Error) => {
       onFollowError(error)
-      unfollow()
+      unfollow(!(error instanceof DestroyedError))
     }
 
     const onFollowRequestSuccess = (
@@ -106,7 +107,11 @@ export function getChainHead(
     }
 
     const onFollowRequestError = (e: Error) => {
-      onFollowError(e)
+      if (e instanceof DestroyedError) {
+        unfollow(false)
+      } else {
+        onFollowError(e)
+      }
       followSubscription = null
       deferredFollow.res(e)
     }

@@ -182,8 +182,7 @@ describe("chainHead", () => {
       setupChainHeadWithSubscription()
 
     const bodyPromise = chainHead.body("")
-    provider.sendMessage({
-      id: 3,
+    provider.replyLast({
       result: {
         result: "started",
         operationId: "operationBody",
@@ -191,8 +190,7 @@ describe("chainHead", () => {
     })
 
     const storagePromise = chainHead.storage("", "value", "df", null)
-    provider.sendMessage({
-      id: 4,
+    provider.replyLast({
       result: {
         result: "started",
         operationId: "operationStorage",
@@ -200,8 +198,7 @@ describe("chainHead", () => {
     })
 
     const callPromise = chainHead.call("", "", "")
-    provider.sendMessage({
-      id: 5,
+    provider.replyLast({
       result: {
         result: "started",
         operationId: "operationCall",
@@ -241,8 +238,7 @@ describe("chainHead", () => {
   it("propagates the JSON-RPC Error when the initial request fails", () => {
     const { provider, onMsg, onError } = setupChainHead()
 
-    provider.sendMessage({
-      id: 2,
+    provider.replyLast({
       error: parseError,
     })
 
@@ -293,5 +289,43 @@ describe("chainHead", () => {
     }
 
     expect(onError).not.toHaveBeenCalled()
+  })
+
+  test("destroying the client triggers a `DisjointError` on all pending requests", () => {
+    const { client, chainHead, provider } = setupChainHead()
+    const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
+    provider.replyLast({
+      result: SUBSCRIPTION_ID,
+    })
+
+    const allPromises = [
+      chainHead.header(""),
+      chainHead.unpin([""]),
+      chainHead.body(""),
+      chainHead.storage("", "value", "df", null),
+      chainHead.call("", "", ""),
+    ]
+    client.destroy()
+
+    return Promise.all(
+      allPromises.map((p) => expect(p).rejects.toEqual(new DisjointError())),
+    )
+  })
+
+  test("destroying the client triggers a `DisjointError` on all pending requests before JSON-RPC server confirmed subscription", () => {
+    const { client, chainHead } = setupChainHead()
+
+    const allPromises = [
+      chainHead.header(""),
+      chainHead.unpin([""]),
+      chainHead.body(""),
+      chainHead.storage("", "value", "df", null),
+      chainHead.call("", "", ""),
+    ]
+    client.destroy()
+
+    return Promise.all(
+      allPromises.map((p) => expect(p).rejects.toEqual(new DisjointError())),
+    )
   })
 })

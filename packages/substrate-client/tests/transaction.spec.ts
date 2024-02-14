@@ -1,6 +1,6 @@
 import { expect, describe, test, vi, it } from "vitest"
 import { createTestClient, parseError } from "./fixtures"
-import { RpcError, TransactionError, IRpcError } from "@/."
+import { RpcError, TransactionError, IRpcError, DestroyedError } from "@/."
 
 const eventToType = (input: { event: string }) => {
   const { event: type, ...rest } = input
@@ -11,11 +11,11 @@ async function setupTx(tx: string = "") {
   const onMsg = vi.fn()
   const onError = vi.fn()
   const { client, provider } = createTestClient()
-  provider.sendMessage({ id: 1, result: [] })
+  provider.replyLast({ result: [] })
   provider.getNewMessages()
 
   const cancel = client.transaction(tx, onMsg, onError)
-  const result = { provider, cancel, onMsg, onError }
+  const result = { client, provider, cancel, onMsg, onError }
   await Promise.resolve()
   return result
 }
@@ -25,8 +25,7 @@ async function setupTxWithSubscription() {
   provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-  provider.sendMessage({
-    id: 2,
+  provider.replyLast({
     result: SUBSCRIPTION_ID,
   })
 
@@ -119,8 +118,7 @@ describe("transaction", () => {
     cancel()
 
     const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-    provider.sendMessage({
-      id: 2,
+    provider.replyLast({
       result: SUBSCRIPTION_ID,
     })
 
@@ -222,8 +220,7 @@ describe("transaction", () => {
   it("propagates the JSON-RPC Error when the initial request fails", async () => {
     const { provider, onMsg, onError } = await setupTx()
 
-    provider.sendMessage({
-      id: 2,
+    provider.replyLast({
       error: parseError,
     })
 
@@ -247,5 +244,23 @@ describe("transaction", () => {
     expect(onMsg).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
     expect(onError).toHaveBeenCalledWith(new RpcError(error))
+  })
+
+  it("throws a DestroyedError if the client is destroyed", async () => {
+    const { client, onMsg, onError } = await setupTx()
+
+    client.destroy()
+    expect(onMsg).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledOnce()
+    expect(onError).toHaveBeenCalledWith(new DestroyedError())
+  })
+
+  it("throws a DestroyedError if the client is destroyed on the subscription", async () => {
+    const { client, onMsg, onError } = await setupTxWithSubscription()
+
+    client.destroy()
+    expect(onMsg).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledOnce()
+    expect(onError).toHaveBeenCalledWith(new DestroyedError())
   })
 })

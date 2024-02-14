@@ -5,6 +5,7 @@ import {
 import { UnsubscribeFn } from "../common-types"
 import { RpcError, IRpcError } from "./RpcError"
 import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
+import { DestroyedError } from "./DestroyedError"
 
 export type FollowSubscriptionCb<T> = (
   methodName: string,
@@ -103,6 +104,9 @@ export const createClient = (gProvider: ConnectProvider): Client => {
   const disconnect = () => {
     provider?.disconnect()
     provider = null
+    subscriptions.errorAll(new DestroyedError())
+    responses.forEach((r) => r.onError(new DestroyedError()))
+    responses.clear()
   }
 
   let nextId = 1
