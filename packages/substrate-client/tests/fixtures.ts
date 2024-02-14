@@ -1,11 +1,10 @@
-import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import {
   FollowEventWithRuntime,
-  FollowEventWithoutRuntime,
   FollowResponse,
   IRpcError,
   createClient,
 } from "@/."
+import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import * as vitest from "vitest"
 
 const vi = vitest.vi
@@ -18,8 +17,8 @@ export const parseError: IRpcError = {
 type SpyWithNew<T extends any[]> = vitest.Mock<T> & {
   getNewCalls: () => T[]
 }
-function createSpy<T extends any[]>(): SpyWithNew<T> {
-  const spy = vi.fn<T, void>()
+function createSpy<T extends any[]>(fn?: (...args: T) => void): SpyWithNew<T> {
+  const spy = fn ? vi.fn(fn) : vi.fn<T, void>()
 
   let latestIdx = 0
   const getNewCalls = () => {
@@ -35,20 +34,40 @@ export interface MockProvider extends ConnectProvider {
   sendMessage: (msg: Record<string, any>) => void
   getNewMessages: <T = Record<string, any>>() => T[]
   getAllMessages: <T = Record<string, any>>() => T[]
+  isConnected: () => boolean
 }
 export const createMockProvider = (): MockProvider => {
   let onMessage: (msg: string) => void
+  let isConnected = false
+
   const sendMessage = (msg: Record<string, any>) => {
+    if (!isConnected) {
+      // Not covering any test in particular, but this shouldn't really happen on any test.
+      throw new Error("Provider can't send messages while disconnected")
+    }
     onMessage(JSON.stringify({ ...msg, jsonrpc: "2.0" }))
   }
 
   const onMessageReceived = createSpy<[message: string]>()
-
   const provider: ConnectProvider = (_onMessage) => {
+    if (isConnected) {
+      throw new Error("Mock provider doesn't support multiple connections")
+    }
+    isConnected = true
+
     onMessage = _onMessage
     return {
-      send: onMessageReceived,
-      disconnect() {},
+      send: (message) => {
+        if (!isConnected) {
+          throw new Error(
+            "Provider received a message while being disconnected",
+          )
+        }
+        onMessageReceived(message)
+      },
+      disconnect: () => {
+        isConnected = false
+      },
     }
   }
 
@@ -61,6 +80,7 @@ export const createMockProvider = (): MockProvider => {
     sendMessage,
     getNewMessages,
     getAllMessages,
+    isConnected: () => isConnected,
   })
 }
 
@@ -76,27 +96,32 @@ export const createTestClient = () => {
   }
 }
 
-export function setupChainHead<T extends boolean = true>(
-  withRuntime: T = true as T,
+export function setupChainHead(
+  withRuntime: boolean = true,
+  onMsgFn?: (event: FollowEventWithRuntime) => void,
+  onErrorFn?: (error: any) => void,
 ) {
-  const onMsg = createSpy()
-  const onError = createSpy()
+  const onMsg = createSpy(onMsgFn)
+  const onError = createSpy(onErrorFn)
   const { client, provider } = createTestClient()
 
-  const chainHead = client.chainHead(withRuntime, onMsg, onError)
+  const chainHead = client.chainHead(withRuntime, onMsg as any, onError)
 
   return {
+    client,
     chainHead,
     provider,
-    onMsg: onMsg as SpyWithNew<
-      [T extends true ? FollowEventWithRuntime : FollowEventWithoutRuntime]
-    >,
+    onMsg,
     onError,
   }
 }
 
-export function setupChainHeadWithSubscription(withRuntime = true) {
-  const { provider, ...rest } = setupChainHead(withRuntime)
+export function setupChainHeadWithSubscription(
+  withRuntime?: boolean,
+  onMsgFn?: (event: FollowEventWithRuntime) => void,
+  onErrorFn?: (error: any) => void,
+) {
+  const { provider, ...rest } = setupChainHead(withRuntime, onMsgFn, onErrorFn)
   provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
@@ -139,7 +164,7 @@ export function setupChainHeadOperation<
 }
 
 let nextOperationId = 1
-type ChainHeadOperation =
+export type ChainHeadOperation =
   | { name: "body" }
   | { name: "call" }
   | { name: "storage"; discardedItems: number }

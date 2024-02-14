@@ -1,5 +1,5 @@
-import { expect, describe, test, it } from "vitest"
 import { DisjointError, RpcError, StopError } from "@/."
+import { describe, expect, it, test } from "vitest"
 import {
   parseError,
   setupChainHead,
@@ -11,6 +11,8 @@ const eventToType = (input: { event: string }) => {
   return { type, ...rest }
 }
 
+const nilHash =
+  "0x0000000000000000000000000000000000000000000000000000000000000000"
 describe("chainHead", () => {
   it("sends the correct follow message", () => {
     const withRuntime = true
@@ -30,12 +32,9 @@ describe("chainHead", () => {
 
     const initialized = {
       event: "initialized",
-      finalizedBlockHash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      finalizedBlockRuntime:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
+      finalizedBlockHash: nilHash,
+      finalizedBlockRuntime: nilHash,
     }
-
     sendSubscription({
       result: initialized,
     })
@@ -46,10 +45,8 @@ describe("chainHead", () => {
 
     const newBlock = {
       event: "newBlock",
-      blockHash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      parentBlockHash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
+      blockHash: nilHash,
+      parentBlockHash: nilHash,
       newRuntime: "",
     }
     sendSubscription({
@@ -62,8 +59,7 @@ describe("chainHead", () => {
 
     const bestBlockChanged = {
       event: "bestBlockChanged",
-      bestBlockHash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
+      bestBlockHash: nilHash,
     }
     sendSubscription({
       result: bestBlockChanged,
@@ -90,34 +86,36 @@ describe("chainHead", () => {
   })
 
   it("stops receiving messages upon cancelation", () => {
-    const { chainHead, provider, onMsg, onError } = setupChainHead()
+    const { sendSubscription, onMsg, onError, chainHead, provider } =
+      setupChainHeadWithSubscription(true, (evt) => {
+        if (evt.type === "initialized") {
+          chainHead.unfollow()
+        }
+      })
+    provider.getNewMessages()
 
-    chainHead.unfollow()
-
-    const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-    provider.sendMessage({
-      id: 2,
-      result: SUBSCRIPTION_ID,
-    })
-
-    expect(onMsg).not.toHaveBeenCalled()
-    expect(onError).not.toHaveBeenCalled()
-
-    const initialized = {
-      event: "initialized",
-      finalizedBlockHash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      finalizedBlockRuntime:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-    }
-
-    provider.sendMessage({
-      params: {
-        subscription: SUBSCRIPTION_ID,
-        result: initialized,
+    sendSubscription({
+      result: {
+        event: "initialized",
+        finalizedBlockHash: nilHash,
+        finalizedBlockRuntime: nilHash,
       },
     })
-    expect(onMsg).not.toHaveBeenCalled()
+    sendSubscription({
+      result: {
+        type: "newBlock",
+        blockHash: nilHash,
+        parentBlockHash: nilHash,
+        newRuntime: null,
+      },
+    })
+
+    expect(provider.getNewMessages()).toMatchObject([
+      {
+        method: "chainHead_unstable_unfollow",
+      },
+    ])
+    expect(onMsg).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
   })
 
@@ -142,10 +140,8 @@ describe("chainHead", () => {
 
     const initialized = {
       event: "initialized",
-      finalizedBlockHash:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      finalizedBlockRuntime:
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
+      finalizedBlockHash: nilHash,
+      finalizedBlockRuntime: nilHash,
     }
     sendSubscription({
       result: initialized,
@@ -169,10 +165,8 @@ describe("chainHead", () => {
     sendSubscription({
       result: {
         event: "initialized",
-        finalizedBlockHash:
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
-        finalizedBlockRuntime:
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        finalizedBlockHash: nilHash,
+        finalizedBlockRuntime: nilHash,
       },
     })
 
@@ -275,5 +269,29 @@ describe("chainHead", () => {
         params: [SUBSCRIPTION_ID],
       },
     ])
+  })
+
+  it("propagates the JSON-RPC Error when an operation can't be initiated without canceling the subscription", async () => {
+    const { chainHead, provider, onError } = setupChainHeadWithSubscription()
+    let id = 3
+
+    const allOperations = [
+      () => chainHead.header(""),
+      () => chainHead.unpin([""]),
+      () => chainHead.body(""),
+      () => chainHead.storage("", "value", "df", null),
+      () => chainHead.call("", "", ""),
+    ]
+
+    for (const op of allOperations) {
+      const promise = op()
+      provider.sendMessage({
+        id: id++,
+        error: parseError,
+      })
+      await expect(promise).rejects.toEqual(new RpcError(parseError))
+    }
+
+    expect(onError).not.toHaveBeenCalled()
   })
 })
