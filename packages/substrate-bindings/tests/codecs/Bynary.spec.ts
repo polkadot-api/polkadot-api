@@ -8,7 +8,7 @@ describe("Bin", () => {
     const decodedText = "a$¢ह€한𐍈😃"
     const encodedText = "0x546124c2a2e0a4b9e282aced959cf0908d88f09f9883"
 
-    const input = Binary(decodedText)
+    const input = Binary.fromText(decodedText)
     const encoded = codec.enc(input)
     const decoded = codec.dec(encodedText)
 
@@ -21,7 +21,7 @@ describe("Bin", () => {
   test("variable length - hex", () => {
     const codec = Bin()
 
-    const input = Binary("0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883")
+    const input = Binary.fromHex("0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883")
 
     const encoded = codec.enc(input)
     const decoded = codec.dec("0x546124c2a2e0a4b9e282aced959cf0908d88f09f9883")
@@ -39,7 +39,7 @@ describe("Bin", () => {
     const decodedText = "a$¢ह€한𐍈😃"
     const encodedText = "0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883"
 
-    const input = Binary(decodedText)
+    const input = Binary.fromText(decodedText)
     const encoded = codec.enc(input)
     const decoded = codec.dec(encodedText)
 
@@ -52,7 +52,7 @@ describe("Bin", () => {
   test("Fixed length - hex", () => {
     const codec = Bin(21)
 
-    const input = Binary("0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883")
+    const input = Binary.fromHex("0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883")
     const encoded = codec.enc(input)
     const decoded = codec.dec("0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883")
 

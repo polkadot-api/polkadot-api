@@ -5,7 +5,6 @@ import { createClient } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
 import Ksm, {
-  KsmOption,
   KsmXcmV2OriginKind,
   KsmXcmV3Instruction,
   KsmXcmV3JunctionJunction,
@@ -31,7 +30,7 @@ relayChain.Ksm.tx.XcmPallet.execute({
   message: KsmXcmVersionedXcm.V3([
     KsmXcmV3Instruction.LockAsset({
       asset: {
-        id: KsmXcmV3MultiassetAssetId.Abstract(""),
+        id: KsmXcmV3MultiassetAssetId.Abstract(Binary.fromText("")),
         fun: KsmXcmV3MultiassetFungibility.Fungible(4n),
       },
       unlocker: {
@@ -49,7 +48,7 @@ relayChain.Ksm.tx.XcmPallet.execute({
 })
 
 const transact1: EnumOption<KsmXcmV3Instruction, "Transact"> = {
-  call: Binary(""),
+  call: Binary.fromText(""),
   origin_kind: Enum("Xcm"),
   require_weight_at_most: {
     ref_time: 3n,
@@ -87,12 +86,10 @@ relayChain.Ksm.tx.XcmPallet.execute({
 })
 relayChain.Ksm.tx.XcmPallet.execute({
   message: KsmXcmVersionedXcm.V3([
-    KsmXcmV3Instruction.ExpectOrigin(
-      KsmOption.Some({
-        ref_time: 4n,
-        proof_size: 2n,
-      }),
-    ),
+    KsmXcmV3Instruction.ExpectOrigin({
+      parents: 3,
+      interior: Enum("X1", Enum("Parachain", 3)),
+    }),
   ]),
   max_weight: {
     ref_time: 5n,
@@ -103,7 +100,7 @@ relayChain.Ksm.tx.XcmPallet.execute({
 relayChain.Ksm.tx.XcmPallet.execute({
   message: KsmXcmVersionedXcm.V3([
     KsmXcmV3Instruction.Transact({
-      call: Binary("0x32ff"),
+      call: Binary.fromHex("0x32ff"),
       origin_kind: KsmXcmV2OriginKind.Native(),
       require_weight_at_most: {
         ref_time: 5n,
@@ -112,7 +109,7 @@ relayChain.Ksm.tx.XcmPallet.execute({
     }),
     KsmXcmV3Instruction.BurnAsset([
       {
-        id: KsmXcmV3MultiassetAssetId.Abstract(""),
+        id: KsmXcmV3MultiassetAssetId.Abstract(Binary.fromText("")),
         fun: KsmXcmV3MultiassetFungibility.NonFungible(
           KsmXcmV3MultiassetAssetInstance.Index(3n),
         ),
@@ -131,26 +128,26 @@ relayChain.Ksm.tx.Utility.batch({
         equivocation_proof: {
           first: {
             commitment: {
-              payload: [[Binary(""), Binary("")]],
+              payload: [[Binary.fromText(""), Binary.fromText("")]],
               block_number: 3,
               validator_set_id: 3n,
             },
-            id: Binary(""),
-            signature: Binary(""),
+            id: Binary.fromText(""),
+            signature: Binary.fromText(""),
           },
           second: {
             commitment: {
-              payload: [[Binary(""), Binary("")]],
+              payload: [[Binary.fromText(""), Binary.fromText("")]],
               block_number: 3,
               validator_set_id: 3n,
             },
-            id: Binary(""),
-            signature: Binary(""),
+            id: Binary.fromText(""),
+            signature: Binary.fromText(""),
           },
         },
         key_owner_proof: {
           session: 3,
-          trie_nodes: [Binary("")],
+          trie_nodes: [Binary.fromText("")],
           validator_count: 3,
         },
       }),
@@ -179,7 +176,12 @@ function mapRawIdentity(
 
   const info = Object.fromEntries(
     Object.entries(rawInfo)
-      .map(([key, { value }]) => [key, identityDataToString(value as Binary)])
+      .map(([key, x]) => [
+        key,
+        identityDataToString(
+          x instanceof Binary ? x.asText() : x?.value?.asText(),
+        ),
+      ])
       .filter(([, value]) => value),
   )
 

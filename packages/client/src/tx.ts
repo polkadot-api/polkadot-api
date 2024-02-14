@@ -93,7 +93,9 @@ export const createTxEntry =
             throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
           const { location, args } = dynamicBuilder.buildCall(pallet, name)
-          return Binary(mergeUint8(new Uint8Array(location), args.enc(arg)))
+          return Binary.fromBytes(
+            mergeUint8(new Uint8Array(location), args.enc(arg)),
+          )
         }),
       )
 
