@@ -458,6 +458,19 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc-provider
 
+  packages/sm-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
+    devDependencies:
+      smoldot:
+        specifier: ^2.0.21
+        version: 2.0.21
+
   packages/substrate-bindings:
     dependencies:
       '@noble/hashes':
@@ -9837,6 +9850,15 @@ packages:
       - bufferutil
       - utf-8-validate
     dev: false
+
+  /smoldot@2.0.21:
+    resolution: {integrity: sha512-XFpf3CQZ2BbFwVqKSyJHP7mbTDJxT3saRr/WfnfgWv+pbmA/J0e/LdfV/3A+jg7gNTEG06EAiDPtzN8ouXTLLw==}
+    dependencies:
+      ws: 8.14.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
 
   /smoldot@2.0.7:
     resolution: {integrity: sha512-VAOBqEen6vises36/zgrmAT1GWk2qE3X8AGnO7lmQFdskbKx8EovnwS22rtPAG+Y1Rk23/S22kDJUdPANyPkBA==}
