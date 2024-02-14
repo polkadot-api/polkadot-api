@@ -29,7 +29,12 @@ export type PrimitiveVar =
 
 export type CompactVar = { type: "compact"; isBig: boolean }
 export type BitSequenceVar = { type: "bitSequence" }
-export type TerminalVar = PrimitiveVar | CompactVar | BitSequenceVar
+export type AccountId32 = { type: "AccountId32" }
+export type TerminalVar =
+  | PrimitiveVar
+  | CompactVar
+  | BitSequenceVar
+  | AccountId32
 
 export type TupleVar = {
   type: "tuple"
@@ -118,6 +123,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     }
   }
 
+  let isAccountId32SearchOn = true
   const getLookupEntryDef = withCache((id): Var => {
     const { def, path, params } = lookupData[id]
 
@@ -125,8 +131,16 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       if (def.value.length === 0) return voidVar
 
       // used to be a "pointer"
-      if (def.value.length === 1)
+      if (def.value.length === 1) {
+        if (
+          isAccountId32SearchOn &&
+          path.join(",") === "sp_core,crypto,AccountId32"
+        ) {
+          isAccountId32SearchOn = false
+          return { type: "AccountId32" }
+        }
         return getLookupEntryDef(def.value[0].type as number)
+      }
 
       let allKey = true
 

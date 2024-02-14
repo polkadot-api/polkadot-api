@@ -7,9 +7,6 @@ import { mapObject } from "@polkadot-api/utils"
 
 const _bytes = scale.Bin()
 
-const isBytes = (input: LookupEntry) =>
-  input.type === "primitive" && input.value === "u8"
-
 const _buildCodec = (
   input: LookupEntry,
   cache: Map<number, Codec<any>>,
@@ -17,6 +14,7 @@ const _buildCodec = (
   _accountId: Codec<scale.SS58String>,
 ): Codec<any> => {
   if (input.type === "primitive") return scale[input.value]
+  if (input.type === "AccountId32") return _accountId
   if (input.type === "compact") return scale.compact
   if (input.type === "bitSequence") return scale.bitSequence
 
@@ -48,11 +46,8 @@ const _buildCodec = (
 
   if (input.type === "array") {
     // Bytes case
-    if (isBytes(input.value)) {
-      return input.len === 32 && (input.id === 0 || input.id === 1)
-        ? _accountId
-        : scale.Bin(input.len)
-    }
+    if (input.value.type === "primitive" && input.value.value === "u8")
+      return scale.Bin(input.len)
 
     return buildVector(input.value, input.len)
   }
