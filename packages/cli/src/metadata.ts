@@ -5,7 +5,7 @@ import * as fs from "node:fs/promises"
 import { V15, v15 } from "@polkadot-api/substrate-bindings"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
-import { WebSocketProvider } from "./websocket-provider"
+import { WebSocketProvider } from "@polkadot-api/ws-provider"
 import { getObservableClient } from "@polkadot-api/client"
 import { filter, firstValueFrom } from "rxjs"
 
