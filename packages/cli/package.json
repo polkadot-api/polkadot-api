@@ -32,6 +32,7 @@
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
+    "@polkadot-api/ws-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",

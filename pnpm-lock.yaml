@@ -221,6 +221,9 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+      '@polkadot-api/ws-provider':
+        specifier: workspace:*
+        version: link:../ws-provider
       '@substrate/connect':
         specifier: ^0.7.32
         version: 0.7.35
@@ -524,6 +527,15 @@ importers:
         version: 0.34.4(vitest@0.34.6)
 
   packages/utils: {}
+
+  packages/ws-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
 
   zombie-tests:
     dependencies:

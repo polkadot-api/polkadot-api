@@ -1,6 +1,7 @@
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
-import { ErrorEvent, MessageEvent, WebSocket } from "ws"
+
+export type { ConnectProvider }
 
 export const WebSocketProvider = (
   uri: string,
@@ -16,7 +17,7 @@ export const WebSocketProvider = (
       }
       socket.addEventListener("open", onOpen, { once: true })
 
-      const onError = (e: ErrorEvent) => {
+      const onError = (e: Event) => {
         reject(e)
         socket.removeEventListener("open", onOpen)
       }
@@ -25,11 +26,7 @@ export const WebSocketProvider = (
 
     return (onMessage, onHalt) => {
       const _onMessage = (e: MessageEvent) => {
-        if (typeof e.data === "string") {
-          onMessage(e.data)
-        } else {
-          console.log("e.data not string", e.data)
-        }
+        if (typeof e.data === "string") onMessage(e.data)
       }
 
       socket.addEventListener("message", _onMessage)
