@@ -11,7 +11,7 @@ async function setupTx(tx: string = "") {
   const onMsg = vi.fn()
   const onError = vi.fn()
   const { client, provider } = createTestClient()
-  provider.sendMessage({ id: 1, result: [] })
+  provider.replyLast({ result: [] })
   provider.getNewMessages()
 
   const cancel = client.transaction(tx, onMsg, onError)
@@ -25,8 +25,7 @@ async function setupTxWithSubscription() {
   provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-  provider.sendMessage({
-    id: 2,
+  provider.replyLast({
     result: SUBSCRIPTION_ID,
   })
 
@@ -119,8 +118,7 @@ describe("transaction", () => {
     cancel()
 
     const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-    provider.sendMessage({
-      id: 2,
+    provider.replyLast({
       result: SUBSCRIPTION_ID,
     })
 
@@ -222,8 +220,7 @@ describe("transaction", () => {
   it("propagates the JSON-RPC Error when the initial request fails", async () => {
     const { provider, onMsg, onError } = await setupTx()
 
-    provider.sendMessage({
-      id: 2,
+    provider.replyLast({
       error: parseError,
     })
 

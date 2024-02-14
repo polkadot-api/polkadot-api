@@ -34,6 +34,11 @@ export interface MockProvider extends ConnectProvider {
   sendMessage: (msg: Record<string, any>) => void
   getNewMessages: <T = Record<string, any>>() => T[]
   getAllMessages: <T = Record<string, any>>() => T[]
+  reply: (
+    method: string,
+    cb: (msg: Record<string, any>) => Record<string, any>,
+  ) => void
+  replyLast: (msg: Record<string, any>) => void
   isConnected: () => boolean
 }
 export const createMockProvider = (): MockProvider => {
@@ -49,6 +54,7 @@ export const createMockProvider = (): MockProvider => {
   }
 
   const onMessageReceived = createSpy<[message: string]>()
+  const pendingReplies: Record<string, Array<Record<string, any>>> = {}
   const provider: ConnectProvider = (_onMessage) => {
     if (isConnected) {
       throw new Error("Mock provider doesn't support multiple connections")
@@ -63,6 +69,9 @@ export const createMockProvider = (): MockProvider => {
             "Provider received a message while being disconnected",
           )
         }
+        const decoded = JSON.parse(message)
+        pendingReplies[decoded.method] = pendingReplies[decoded.method] ?? []
+        pendingReplies[decoded.method].push(decoded)
         onMessageReceived(message)
       },
       disconnect: () => {
@@ -75,11 +84,33 @@ export const createMockProvider = (): MockProvider => {
     onMessageReceived.getNewCalls().map(([m]) => JSON.parse(m))
   const getAllMessages = () =>
     onMessageReceived.mock.calls.map(([m]) => JSON.parse(m))
+  const reply = (
+    method: string,
+    cb: (msg: Record<string, any>) => Record<string, any>,
+  ) => {
+    const msg = (pendingReplies[method] ?? []).shift()
+    if (!msg) {
+      throw new Error("No message received for " + method)
+    }
+    sendMessage({
+      id: msg.id,
+      ...cb(msg),
+    })
+  }
+  const replyLast = (msg: Record<string, any>) => {
+    if (!onMessageReceived.mock.lastCall) {
+      throw new Error("No message received")
+    }
+    const lastMsg = JSON.parse(onMessageReceived.mock.lastCall[0])
+    reply(lastMsg.method, () => msg)
+  }
 
   return Object.assign(provider, {
     sendMessage,
     getNewMessages,
     getAllMessages,
+    reply,
+    replyLast,
     isConnected: () => isConnected,
   })
 }
@@ -125,10 +156,9 @@ export function setupChainHeadWithSubscription(
   provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-  provider.sendMessage({
-    id: 2,
+  provider.reply("chainHead_unstable_follow", () => ({
     result: SUBSCRIPTION_ID,
-  })
+  }))
 
   const sendSubscription = (
     msg: { result: any } | { error: IRpcError },
@@ -180,8 +210,7 @@ export function setupChainHeadOperationSubscription<
   provider.getNewMessages()
 
   const OPERATION_ID = `${nextOperationId++}`
-  provider.sendMessage({
-    id: 3,
+  provider.replyLast({
     method: "chainHead_unstable_followEvent",
     result: {
       result: "started",

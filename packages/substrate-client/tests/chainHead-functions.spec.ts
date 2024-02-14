@@ -32,11 +32,7 @@ describe.each([
       const { provider, chainHead } = setupChainHeadWithSubscription()
 
       const promise = chainHead[name](...(args as [any]))
-
-      provider.sendMessage({
-        id: 3,
-        result,
-      })
+      provider.replyLast({ result })
 
       return expect(promise).resolves.toEqual(expectedResult)
     })
@@ -45,11 +41,7 @@ describe.each([
       const { provider, chainHead } = setupChainHeadWithSubscription()
 
       const promise = chainHead[name](...(args as [any]))
-
-      provider.sendMessage({
-        id: 3,
-        error: parseError,
-      })
+      provider.replyLast({ error: parseError })
 
       return expect(promise).rejects.toEqual(new RpcError(parseError))
     })
@@ -69,8 +61,7 @@ describe.each([
 
       const promise = chainHead[name](...(args as [any]))
       // The errored JSON-RPC response comes **after** the user has called `header`/`unpin`
-      provider.sendMessage({
-        id: 2,
+      provider.replyLast({
         error: parseError,
       })
 
@@ -81,8 +72,7 @@ describe.each([
       const { provider, chainHead } = setupChainHead()
 
       // The errored JSON-RPC response comes **before** the user has called `header`/`unpin`
-      provider.sendMessage({
-        id: 2,
+      provider.replyLast({
         error: parseError,
       })
       const promise = chainHead[name](...(args as [any]))
