@@ -2,11 +2,11 @@ import { UserSignedExtensions, getTxCreator } from "@polkadot-api/tx-helper"
 import { WellKnownChain } from "@polkadot-api/sc-provider"
 import {
   AccountId,
-  Enum,
-  SS58String,
+  Variant,
   Struct,
   compact,
   u8,
+  Enum,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { ed25519 } from "@noble/curves/ed25519"
@@ -54,7 +54,7 @@ const call = Struct({
   module: u8,
   method: u8,
   args: Struct({
-    dest: Enum({
+    dest: Variant({
       Id: AccountId(42),
     }),
     value: compact,
@@ -68,11 +68,7 @@ const transaction = toHex(
       module: 4,
       method: 0,
       args: {
-        dest: {
-          tag: "Id",
-          value:
-            "5DyTf5gsCQG3ycM1venTzjoEPMUhKtoU9e9zg1MvnJddbye8" as SS58String,
-        },
+        dest: Enum("Id", "5DyTf5gsCQG3ycM1venTzjoEPMUhKtoU9e9zg1MvnJddbye8"),
         value: 1000000n,
       },
     }),
@@ -100,5 +96,5 @@ const tx$ = client.tx$(transaction).pipe(
 )
 await lastValueFrom(tx$)
 
-client.chainHead$().unfollow()
+txCreator.destroy()
 client.destroy()
