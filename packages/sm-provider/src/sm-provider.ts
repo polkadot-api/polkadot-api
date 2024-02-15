@@ -2,7 +2,7 @@ import type { AddChainOptions, Client } from "smoldot"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
-export const SmProvider =
+export const getSmProvider =
   (smoldot: Client) =>
   (chainSpecOrOptions: string | AddChainOptions): ConnectProvider =>
     getSyncProvider(async () => {

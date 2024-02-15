@@ -169,6 +169,9 @@ importers:
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../packages/sc-provider
+      '@polkadot-api/sm-provider':
+        specifier: workspace:*
+        version: link:../packages/sm-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../packages/substrate-bindings
@@ -181,9 +184,15 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../packages/utils
+      '@substrate/connect-known-chains':
+        specifier: ^1.0.6
+        version: 1.0.6
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+      smoldot:
+        specifier: ^2.0.21
+        version: 2.0.21
     devDependencies:
       '@types/node':
         specifier: ^20.4.7
@@ -2838,7 +2847,7 @@ packages:
       '@polkadot-api/json-rpc-provider-proxy': 0.0.1-4bc9bd71f8f37f800fec7a42775f403271903870.1.0
       '@polkadot-api/substrate-client': 0.0.1-4bc9bd71f8f37f800fec7a42775f403271903870.1.0
       '@substrate/connect-extension-protocol': 1.0.1
-      '@substrate/connect-known-chains': 1.0.3
+      '@substrate/connect-known-chains': 1.0.6
       rxjs: 7.8.1
       smoldot: 2.0.16
     dev: false
@@ -2853,7 +2862,7 @@ packages:
       '@polkadot-api/json-rpc-provider-proxy': 0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0
       '@polkadot-api/substrate-client': 0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0
       '@substrate/connect-extension-protocol': 1.0.1
-      '@substrate/connect-known-chains': 1.0.3
+      '@substrate/connect-known-chains': 1.0.6
       rxjs: 7.8.1
       smoldot: 2.0.13
     dev: true
@@ -4959,6 +4968,10 @@ packages:
 
   /@substrate/connect-known-chains@1.0.3:
     resolution: {integrity: sha512-GWw4Nk4OWU8peSya7WcMWnIKiXXAkPExRlMRaUc8wYZo77cwWqRz+ltiGyGaXyE3PLx/5ityvDmNkl2a4MAHrA==}
+    dev: false
+
+  /@substrate/connect-known-chains@1.0.6:
+    resolution: {integrity: sha512-2OhE6OdKmuKEE7J7zGnYTfGoVheHeuuE3OWmt9xcFU/nu81lRMDiK9zrgFJcfhBHcLJF9OyeGCbQaUlceVRWww==}
 
   /@substrate/connect@0.7.33:
     resolution: {integrity: sha512-1B984/bmXVQvTT9oV3c3b7215lvWmulP9rfP3T3Ri+OU3uIsyCzYw0A+XG6J8/jgO2FnroeNIBWlgoLaUM1uzw==}
@@ -4987,7 +5000,7 @@ packages:
     dependencies:
       '@polkadot-api/light-client-extension-helpers': 0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0(smoldot@2.0.13)
       '@substrate/connect-extension-protocol': 2.0.0
-      '@substrate/connect-known-chains': 1.0.3
+      '@substrate/connect-known-chains': 1.0.6
       smoldot: 2.0.13
     transitivePeerDependencies:
       - bufferutil
@@ -9858,7 +9871,6 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
-    dev: true
 
   /smoldot@2.0.7:
     resolution: {integrity: sha512-VAOBqEen6vises36/zgrmAT1GWk2qE3X8AGnO7lmQFdskbKx8EovnwS22rtPAG+Y1Rk23/S22kDJUdPANyPkBA==}

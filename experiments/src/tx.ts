@@ -1,5 +1,4 @@
 import { UserSignedExtensions, getTxCreator } from "@polkadot-api/tx-helper"
-import { WellKnownChain } from "@polkadot-api/sc-provider"
 import {
   AccountId,
   Variant,
@@ -11,12 +10,17 @@ import {
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { ed25519 } from "@noble/curves/ed25519"
 import { createClient } from "@polkadot-api/substrate-client"
-import { createProvider } from "./smolldot-worker"
 import { getObservableClient } from "@polkadot-api/client"
 import { lastValueFrom, tap } from "rxjs"
+import { start } from "smoldot"
+import { getSmProvider } from "@polkadot-api/sm-provider"
+import { westend2 } from "@substrate/connect-known-chains"
 
-const provider = createProvider(WellKnownChain.westend2)
-const client = getObservableClient(createClient(provider))
+const smoldot = start()
+const smProvider = getSmProvider(smoldot)
+
+const getConnectProvider = () => smProvider(westend2)
+const client = getObservableClient(createClient(getConnectProvider()))
 
 const priv = fromHex(
   "0xb18290bac66576e4067e0c47eb23b2eb40dc2a5906fe9af94063dc163367a1f0",
@@ -24,7 +28,7 @@ const priv = fromHex(
 const from = ed25519.getPublicKey(priv)
 
 const txCreator = getTxCreator(
-  provider,
+  getConnectProvider(),
   ({ userSingedExtensionsName }, callback) => {
     const userSignedExtensionsData = Object.fromEntries(
       userSingedExtensionsName.map((x) => {
@@ -74,6 +78,7 @@ const transaction = toHex(
     }),
   ),
 )
+txCreator.destroy()
 
 const tx$ = client.tx$(transaction).pipe(
   tap({
@@ -96,5 +101,5 @@ const tx$ = client.tx$(transaction).pipe(
 )
 await lastValueFrom(tx$)
 
-txCreator.destroy()
 client.destroy()
+smoldot.terminate()
