@@ -37,6 +37,7 @@ export type PinnedBlocks = {
   finalized: string
   runtimes: Record<string, Runtime>
   blocks: Map<string, PinnedBlock>
+  prunedBlocks: Set<string>
   finalizedRuntime: Runtime
 }
 
@@ -71,6 +72,9 @@ export const getPinnedBlocks$ = (
       while (pinned.blocks.has(current.parent)) {
         current = pinned.blocks.get(current.parent)!
         if (!current.refCount) result.add(current.hash)
+      }
+      for (const pruned of pinned.prunedBlocks) {
+        if (!current.refCount) result.add(pruned)
       }
 
       return result
@@ -164,6 +168,7 @@ export const getPinnedBlocks$ = (
             acc.finalized = event.finalizedBlockHashes.slice(-1)[0]
             acc.finalizedRuntime =
               acc.runtimes[acc.blocks.get(acc.finalized)!.runtime]
+            event.prunedBlockHashes.forEach((p) => acc.prunedBlocks.add(p))
             return acc
           }
 
@@ -179,6 +184,7 @@ export const getPinnedBlocks$ = (
 
               acc.blocks.get(acc.blocks.get(h)!.parent)?.children.delete(h)
               acc.blocks.delete(h)
+              acc.prunedBlocks.delete(h)
             })
 
             Object.entries(acc.runtimes)
@@ -202,6 +208,7 @@ export const getPinnedBlocks$ = (
         runtimes: {},
         blocks: new Map(),
         finalizedRuntime: {},
+        prunedBlocks: new Set(),
       } as PinnedBlocks,
     ),
     map((x) => ({ ...x })),
