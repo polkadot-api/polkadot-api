@@ -12,12 +12,14 @@ import type {
 } from "@polkadot-api/substrate-client"
 import {
   Observable,
+  concat,
   firstValueFrom,
   lastValueFrom,
   map,
   mergeMap,
   of,
   take,
+  takeWhile,
 } from "rxjs"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
 import { getObservableClient, SystemEvent } from "./observableClient"
@@ -85,6 +87,12 @@ export const createTxEntry =
     signer: (from: string, callData: Uint8Array) => Promise<Uint8Array>,
   ): ((arg: any) => Transaction<Arg, Pallet, Name>) =>
   (arg?: Arg): any => {
+    const tx$ = (tx: string) =>
+      concat(
+        client.tx$(tx).pipe(takeWhile((x) => x.type !== "broadcasted", true)),
+        chainHead.trackTx$(tx),
+      )
+
     const getCallData$ = (arg?: any) =>
       chainHead.getRuntimeContext$(null).pipe(
         map(({ checksumBuilder, dynamicBuilder }) => {
@@ -116,7 +124,7 @@ export const createTxEntry =
         ),
       )
 
-      const result = await lastValueFrom(client.tx$(tx))
+      const result = await lastValueFrom(tx$(tx))
 
       switch (result.type) {
         case "invalid":
@@ -143,7 +151,7 @@ export const createTxEntry =
         mergeMap((callData) => signer(from, callData.asBytes())),
         take(1),
         mergeMap((result) => {
-          return client.tx$(toHex(result)).pipe(
+          return tx$(toHex(result)).pipe(
             mergeMap((result) => {
               switch (result.type) {
                 case "invalid":
