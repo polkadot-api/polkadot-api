@@ -1,4 +1,5 @@
 import { BlockInfo, getObservableClient } from "@/observableClient"
+import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {
   createHeader,
@@ -193,6 +194,231 @@ describe("observableClient chainHead", () => {
         ...deadChain.map((v) => v.blockHash),
       ]
       expect(new Set(unpinned)).toEqual(new Set(expected))
+
+      cleanup(chainHead.unfollow)
+    })
+  })
+
+  describe("operation limit recovery", () => {
+    it("retries an operation when hit with a limitReached", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+
+      const { initialHash } = await initialize(mockClient)
+
+      const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
+      const bodyObserver = observe(chainHead.body$(initialHash))
+
+      // one internal call made by observable-client to get the metadata of the initial hash
+      // so we expect 2 calls
+      const initialCalls = 2
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
+        initialHash,
+        "myFn",
+        "",
+        expect.objectContaining({}),
+      )
+      await mockClient.chainHead.mock.call.reply(
+        initialHash,
+        Promise.reject(new OperationLimitError()),
+      )
+
+      expect(callObserver.next).not.toHaveBeenCalled()
+      expect(callObserver.error).not.toHaveBeenCalled()
+      expect(callObserver.complete).not.toHaveBeenCalled()
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+
+      expect(bodyObserver.next).not.toHaveBeenCalled()
+      await mockClient.chainHead.mock.body.reply(initialHash, [])
+      expect(bodyObserver.next).toHaveBeenCalledWith([])
+
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
+        initialCalls + 1,
+      )
+
+      await mockClient.chainHead.mock.call.reply(initialHash, "")
+
+      expect(callObserver.next).toHaveBeenCalledWith("")
+      expect(callObserver.error).not.toHaveBeenCalled()
+      expect(callObserver.complete).toHaveBeenCalled()
+
+      cleanup(chainHead.unfollow)
+    })
+
+    it("retries queued operations one by one", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+
+      const { initialHash } = await initialize(mockClient)
+      const newBlocks = sendNewBlockBranch(mockClient, initialHash, 2)
+      sendBestBlockChanged(mockClient, {
+        bestBlockHash: newBlocks.at(-1)!.blockHash,
+      })
+
+      const firstCallObserver = observe(
+        chainHead.call$(newBlocks[0].blockHash, "firstCall", ""),
+      )
+      const secondCallObserver = observe(
+        chainHead.call$(newBlocks[1].blockHash, "secondCall", ""),
+      )
+      observe(chainHead.body$(initialHash))
+
+      const initialCalls = 3
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      await mockClient.chainHead.mock.call.reply(
+        newBlocks[0].blockHash,
+        Promise.reject(new OperationLimitError()),
+      )
+      await mockClient.chainHead.mock.call.reply(
+        newBlocks[1].blockHash,
+        Promise.reject(new OperationLimitError()),
+      )
+
+      await mockClient.chainHead.mock.body.reply(initialHash, [])
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
+        initialCalls + 1,
+      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
+        newBlocks[1].blockHash,
+        "secondCall",
+        "",
+        expect.objectContaining({}),
+      )
+      await mockClient.chainHead.mock.call.reply(
+        newBlocks[1].blockHash,
+        "secondResponse",
+      )
+      expect(secondCallObserver.next).toHaveBeenCalledWith("secondResponse")
+
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
+        initialCalls + 2,
+      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
+        newBlocks[0].blockHash,
+        "firstCall",
+        "",
+        expect.objectContaining({}),
+      )
+      await mockClient.chainHead.mock.call.reply(
+        newBlocks[0].blockHash,
+        "firstResponse",
+      )
+      expect(firstCallObserver.next).toHaveBeenCalledWith("firstResponse")
+
+      cleanup(chainHead.unfollow)
+    })
+
+    it("waits for the queue to be empty before sending a new request", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+
+      const { initialHash } = await initialize(mockClient)
+      const newBlocks = sendNewBlockBranch(mockClient, initialHash, 2)
+      sendBestBlockChanged(mockClient, {
+        bestBlockHash: newBlocks.at(-1)!.blockHash,
+      })
+
+      observe(chainHead.body$(initialHash))
+      observe(chainHead.call$(newBlocks[0].blockHash, "firstCall", ""))
+
+      const initialCalls = 2
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      await mockClient.chainHead.mock.call.reply(
+        newBlocks[0].blockHash,
+        Promise.reject(new OperationLimitError()),
+      )
+
+      const callObserver = observe(
+        chainHead.call$(newBlocks[1].blockHash, "secondCall", ""),
+      )
+
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+
+      await mockClient.chainHead.mock.body.reply(initialHash, [])
+
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
+        initialCalls + 1,
+      )
+
+      await mockClient.chainHead.mock.call.reply(
+        newBlocks[0].blockHash,
+        "firstResponse",
+      )
+
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
+        initialCalls + 2,
+      )
+
+      await mockClient.chainHead.mock.call.reply(
+        newBlocks[1].blockHash,
+        "secondResponse",
+      )
+      expect(callObserver.next).toHaveBeenCalledWith("secondResponse")
+
+      cleanup(chainHead.unfollow)
+    })
+
+    it("removes operations from the queue if they are unsubscribed", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+
+      const { initialHash } = await initialize(mockClient)
+
+      const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
+      observe(chainHead.body$(initialHash))
+
+      const initialCalls = 2
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      await mockClient.chainHead.mock.call.reply(
+        initialHash,
+        Promise.reject(new OperationLimitError()),
+      )
+
+      callObserver.unsubscribe()
+
+      await mockClient.chainHead.mock.body.reply(initialHash, [])
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+
+      cleanup(chainHead.unfollow)
+    })
+
+    it("also counts errors as available spots", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+
+      const { initialHash } = await initialize(mockClient)
+
+      const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
+      const bodyObserver = observe(chainHead.body$(initialHash))
+
+      const initialCalls = 2
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      await mockClient.chainHead.mock.call.reply(
+        initialHash,
+        Promise.reject(new OperationLimitError()),
+      )
+
+      const error = new Error("boom")
+      await mockClient.chainHead.mock.body.reply(
+        initialHash,
+        Promise.reject(error),
+      )
+      expect(bodyObserver.error).toHaveBeenCalledWith(error)
+
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
+        initialCalls + 1,
+      )
+      await mockClient.chainHead.mock.call.reply(initialHash, "")
+
+      expect(callObserver.next).toHaveBeenCalledWith("")
+      expect(callObserver.error).not.toHaveBeenCalled()
+      expect(callObserver.complete).toHaveBeenCalled()
 
       cleanup(chainHead.unfollow)
     })
