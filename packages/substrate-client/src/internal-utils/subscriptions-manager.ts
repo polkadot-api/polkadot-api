@@ -1,3 +1,5 @@
+const MAX_TIME = 2_000
+
 export interface Subscriber<T> {
   next: (data: T) => void
   error: (e: Error) => void
@@ -37,3 +39,54 @@ export const getSubscriptionsManager = <T>() => {
 export type SubscriptionManager<T> = ReturnType<
   typeof getSubscriptionsManager<T>
 >
+
+export class OrphanMessages<T> {
+  #messages: Map<string, { expiry: number; messages: T[] }>
+  #token: number | null
+
+  constructor() {
+    this.#messages = new Map()
+    this.#token = null
+  }
+
+  private checkClear(): void {
+    if (this.#messages.size > 0) return
+
+    clearInterval(this.#token as any)
+    this.#token = null
+  }
+
+  set(key: string, message: T): void {
+    const messages = this.#messages.get(key)?.messages ?? []
+    messages.push(message)
+    this.#messages.set(key, { expiry: Date.now() + MAX_TIME, messages })
+
+    this.#token =
+      this.#token ||
+      (setInterval(() => {
+        const now = Date.now()
+
+        const iterator = this.#messages.entries()
+        let tmp = iterator.next()
+        while (tmp.done === false && tmp.value[1].expiry <= now) {
+          const key = tmp.value[0]
+          tmp = iterator.next()
+          this.#messages.delete(key)
+        }
+        this.checkClear()
+      }, MAX_TIME) as unknown as number)
+  }
+
+  retrieve(key: string): T[] {
+    const result = this.#messages.get(key)
+    if (!result) return []
+    this.#messages.delete(key)
+    this.checkClear()
+    return result.messages
+  }
+
+  clear() {
+    this.#messages.clear()
+    this.checkClear()
+  }
+}
