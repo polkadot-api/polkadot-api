@@ -11,7 +11,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { lastValueFrom, tap } from "rxjs"
-import { createClient } from "@polkadot-api/substrate-client"
+import { ConnectProvider, createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
 import { KeyPair } from "@polkadot-api/node-polkadot-provider"
 import { Blake2256 } from "@polkadot-api/substrate-bindings"
@@ -142,13 +142,33 @@ const TEST_ARGS = [Sr25519Keyring(), Ed25519Keyring(), EcdsaKeyring()]
 
 const accountIdDec = AccountId().dec
 
-const scProvider = getScProvider()
+const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
+  return (onMsg) => {
+    const result = input((msg) => {
+      console.log("<< " + msg)
+      onMsg(msg)
+    })
+
+    return {
+      ...result,
+      send: (msg) => {
+        console.log(">> " + msg)
+        result.send(msg)
+      },
+    }
+  }
+}
+
+const scProvider = getScProvider({ embeddedNodeConfig: { maxLogLevel: 9 } })
+
 export async function run(_nodeName: string, networkInfo: any) {
   try {
     const getPromises = (isMortal: boolean) =>
       TEST_ARGS.map(async (keyring) => {
         const customChainSpec = require(networkInfo.chainSpecPath)
-        const provider = scProvider(JSON.stringify(customChainSpec)).relayChain
+        const provider = withLogsProvider(
+          scProvider(JSON.stringify(customChainSpec)).relayChain,
+        )
         const client = getObservableClient(createClient(provider))
         const chainHead = client.chainHead$()
 
