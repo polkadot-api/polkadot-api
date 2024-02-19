@@ -170,7 +170,8 @@ export const getPinnedBlocks$ = (
             acc.finalized = event.finalizedBlockHashes.slice(-1)[0]
             acc.finalizedRuntime =
               acc.runtimes[acc.blocks.get(acc.finalized)!.runtime]
-            prunedBlocks$.next(event.prunedBlockHashes)
+            if (event.prunedBlockHashes.length > 0)
+              prunedBlocks$.next(event.prunedBlockHashes)
             return acc
           }
 
