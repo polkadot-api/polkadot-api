@@ -6,19 +6,11 @@ import type {
   UserSignedExtensionName,
 } from "@polkadot-api/tx-helper"
 
-type UnsubscribeFn = () => void
-
 export type KeyPair = {
-  address: string
   publicKey: Uint8Array
   signingType: SigningType
   name?: string
   sign: (input: Uint8Array) => Promise<Uint8Array>
-}
-
-export type Keyring = {
-  getPairs: () => KeyPair[]
-  onKeyPairsChanged: (cb: () => void) => UnsubscribeFn
 }
 
 export type CreateTxParams = NonNullable<Parameters<CreateTx>[2]>
@@ -29,7 +21,7 @@ export type CustomizeTxResult<T extends Array<UserSignedExtensionName>> = {
 }
 
 export type GetChainArgs = {
-  keyring: Keyring
+  keyring: Array<KeyPair>
   provider: ConnectProvider
   txCustomizations?:
     | Partial<UserSignedExtensions>

@@ -13,7 +13,7 @@ import { toHex } from "@polkadot-api/utils"
 import { lastValueFrom, tap } from "rxjs"
 import { createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
-import { Keyring } from "@polkadot-api/node-polkadot-provider"
+import { KeyPair } from "@polkadot-api/node-polkadot-provider"
 import { Blake2256 } from "@polkadot-api/substrate-bindings"
 import { fromHex } from "@polkadot-api/utils"
 import { Sr25519Account } from "@unique-nft/sr25519"
@@ -24,29 +24,20 @@ import { firstValueFrom, map } from "rxjs"
 
 /// keypairs start
 
-const Sr25519Keyring = (): Keyring => {
+const Sr25519Keyring = (): KeyPair[] => {
   const keyring = [
     [Sr25519Account.fromUri("//Alice"), "alice"],
     [Sr25519Account.fromUri("//Bob"), "bob"],
   ] as const
-
-  return {
-    getPairs() {
-      return keyring.map(([kp, name]) => ({
-        address: kp.address,
-        publicKey: kp.publicKey,
-        signingType: "Sr25519",
-        sign: async (input) => kp.sign(input),
-        name: name,
-      }))
-    },
-    onKeyPairsChanged() {
-      return () => {}
-    },
-  }
+  return keyring.map(([kp, name]) => ({
+    publicKey: kp.publicKey,
+    signingType: "Sr25519",
+    sign: async (input) => kp.sign(input),
+    name: name,
+  }))
 }
 
-const Ed25519Keyring = (): Keyring => {
+const Ed25519Keyring = (): KeyPair[] => {
   const alicePrivKey = fromHex(
     "0xabf8e5bdbe30c65656c0a3cbd181ff8a56294a69dfedd27982aace4a76909115",
   )
@@ -54,32 +45,23 @@ const Ed25519Keyring = (): Keyring => {
     "0x3b7b60af2abcd57ba401ab398f84f4ca54bd6b2140d2503fbcf3286535fe3ff1",
   )
 
-  return {
-    getPairs() {
-      return [
-        {
-          address: "5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu",
-          publicKey: ed25519.getPublicKey(alicePrivKey),
-          signingType: "Ed25519",
-          sign: async (input) => ed25519.sign(input, alicePrivKey),
-          name: "alice",
-        },
-        {
-          address: "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E",
-          publicKey: ed25519.getPublicKey(bobPrivKey),
-          signingType: "Ed25519",
-          sign: async (input) => ed25519.sign(input, bobPrivKey),
-          name: "bob",
-        },
-      ]
+  return [
+    {
+      publicKey: ed25519.getPublicKey(alicePrivKey),
+      signingType: "Ed25519",
+      sign: async (input) => ed25519.sign(input, alicePrivKey),
+      name: "alice",
     },
-    onKeyPairsChanged() {
-      return () => {}
+    {
+      publicKey: ed25519.getPublicKey(bobPrivKey),
+      signingType: "Ed25519",
+      sign: async (input) => ed25519.sign(input, bobPrivKey),
+      name: "bob",
     },
-  }
+  ]
 }
 
-const EcdsaKeyring = (): Keyring => {
+const EcdsaKeyring = (): KeyPair[] => {
   const alicePrivKey = fromHex(
     "0xcb6df9de1efca7a3998a8ead4e02159d5fa99c3e0d4fd6432667390bb4726854",
   )
@@ -98,29 +80,20 @@ const EcdsaKeyring = (): Keyring => {
     return result
   }
 
-  return {
-    getPairs() {
-      return [
-        {
-          address: "5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu",
-          publicKey: Blake2256(secp256k1.getPublicKey(alicePrivKey)),
-          signingType: "Ecdsa",
-          sign: async (input) => signEcdsa(input, alicePrivKey),
-          name: "alice",
-        },
-        {
-          address: "5GoNkf6WdbxCFnPdAnYYQyCjAKPJgLNxXwPjwTh6DGg6gN3E",
-          publicKey: Blake2256(secp256k1.getPublicKey(bobPrivKey)),
-          signingType: "Ecdsa",
-          sign: async (input) => signEcdsa(input, bobPrivKey),
-          name: "bob",
-        },
-      ]
+  return [
+    {
+      publicKey: Blake2256(secp256k1.getPublicKey(alicePrivKey)),
+      signingType: "Ecdsa",
+      sign: async (input) => signEcdsa(input, alicePrivKey),
+      name: "alice",
     },
-    onKeyPairsChanged() {
-      return () => {}
+    {
+      publicKey: Blake2256(secp256k1.getPublicKey(bobPrivKey)),
+      signingType: "Ecdsa",
+      sign: async (input) => signEcdsa(input, bobPrivKey),
+      name: "bob",
     },
-  }
+  ]
 }
 
 /// keypairs end
@@ -167,6 +140,8 @@ const getNonce =
 
 const TEST_ARGS = [Sr25519Keyring(), Ed25519Keyring(), EcdsaKeyring()]
 
+const accountIdDec = AccountId().dec
+
 const scProvider = getScProvider()
 export async function run(_nodeName: string, networkInfo: any) {
   try {
@@ -177,7 +152,7 @@ export async function run(_nodeName: string, networkInfo: any) {
         const client = getObservableClient(createClient(provider))
         const chainHead = client.chainHead$()
 
-        const chain = await getChain({
+        const chain = getChain({
           provider,
           keyring,
           txCustomizations: async (ctx) => {
@@ -199,18 +174,17 @@ export async function run(_nodeName: string, networkInfo: any) {
           },
         })
 
-        const accounts = await chain.getAccounts()
-
-        const alice = accounts.find((acct) => acct.displayName === "alice")!
-        const bob = accounts.find((acct) => acct.displayName === "bob")!
-        const signingType = keyring.getPairs().find((kp) => kp.name === "alice")
-          ?.signingType!
+        const alice = keyring.find((acct) => acct.name === "alice")!
+        const bob = keyring.find((acct) => acct.name === "bob")!
+        const signingType = alice.signingType
 
         console.log(
-          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${alice.address}, To: ${bob.address}}`,
+          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${accountIdDec(
+            alice.publicKey,
+          )}, To: ${accountIdDec(bob.publicKey)}}`,
         )
 
-        const { createTx } = chain.connect(console.log)
+        const { createTx } = chain(console.log)
 
         const call = Struct({
           module: u8,
@@ -224,7 +198,7 @@ export async function run(_nodeName: string, networkInfo: any) {
         })
 
         const from = alice.publicKey
-        const to = bob.address as SS58String
+        const to = accountIdDec(bob.publicKey) as SS58String
 
         const transaction = toHex(
           await createTx(
@@ -241,7 +215,9 @@ export async function run(_nodeName: string, networkInfo: any) {
         )
 
         console.log(
-          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${alice.address}, To: ${bob.address}}, Transaction`,
+          `Signing Type: ${signingType}, Is Mortal: ${isMortal}, From: ${accountIdDec(
+            alice.publicKey,
+          )}, To: ${accountIdDec(bob.publicKey)}}, Transaction`,
           transaction,
         )
 

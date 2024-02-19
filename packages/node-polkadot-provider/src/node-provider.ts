@@ -1,17 +1,16 @@
-import { Chain, JsonRpcProvider } from "./types/polkadot-provider"
+import { Connect, JsonRpcProvider } from "./types/json-rpc-provider"
 import {
   CreateTxContext,
   CustomizeTxResult,
   GetChainArgs,
+  KeyPair,
 } from "./types/public-types"
 import {
   UserSignedExtensionName,
   UserSignedExtensions,
   getTxCreator,
 } from "@polkadot-api/tx-helper"
-import { equals } from "./bytes"
 import { toHex } from "@polkadot-api/utils"
-import { getChainProps } from "./get-chain-props"
 
 const defaultUserSignedExtensions: UserSignedExtensions = {
   CheckMortality: {
@@ -23,26 +22,11 @@ const defaultUserSignedExtensions: UserSignedExtensions = {
   },
 }
 
-export const getChain = async ({
+export const getChain = ({
   provider: getProvider,
   keyring,
   txCustomizations = defaultUserSignedExtensions,
-}: GetChainArgs): Promise<Chain> => {
-  const getAccounts: Chain["getAccounts"] = async () =>
-    keyring.getPairs().map((kp) => ({
-      address: kp.address,
-      publicKey: kp.publicKey,
-      displayName: kp.name,
-    }))
-
-  const onAccountsChange: Chain["onAccountsChange"] = (accounts) => {
-    const unsub = keyring.onKeyPairsChanged(() => getAccounts().then(accounts))
-
-    return () => {
-      unsub()
-    }
-  }
-
+}: GetChainArgs): Connect => {
   const getUserSignedExtensionDefaults = () => {
     if (typeof txCustomizations === "object") {
       return txCustomizations
@@ -50,6 +34,10 @@ export const getChain = async ({
 
     return {}
   }
+
+  const keyringRecord: Record<string, KeyPair> = Object.fromEntries(
+    keyring.map((x) => [toHex(x.publicKey), x]),
+  )
 
   const getCustomizeTx = (): (<T extends Array<UserSignedExtensionName>>(
     ctx: CreateTxContext,
@@ -61,8 +49,9 @@ export const getChain = async ({
     return async () => ({})
   }
 
-  const connect: Chain["connect"] = (onMessage) => {
+  return (onMessage) => {
     const provider = getProvider(onMessage)
+
     const txCreator = getTxCreator(getProvider, async (ctx, cb) => {
       const customizeTx = await getCustomizeTx()(ctx)
       if (!customizeTx) {
@@ -78,12 +67,11 @@ export const getChain = async ({
         ]),
       ) as any
 
-      const keypair = keyring
-        .getPairs()
-        .find((kp) => equals(kp.publicKey, ctx.from))
+      const fromAsHex = toHex(ctx.from)
+      const keypair = keyringRecord[fromAsHex]
 
       if (!keypair) {
-        throw new Error(`${toHex(ctx.from)} doesn't exist in keyring`)
+        throw new Error(`${fromAsHex} doesn't exist in keyring`)
       }
 
       cb({
@@ -109,12 +97,5 @@ export const getChain = async ({
         txCreator.destroy()
       },
     }
-  }
-
-  return {
-    ...(await getChainProps(getProvider)),
-    getAccounts,
-    onAccountsChange,
-    connect,
   }
 }
