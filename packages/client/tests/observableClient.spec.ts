@@ -123,6 +123,7 @@ describe("observableClient chainHead", () => {
       const chainHead = client.chainHead$()
 
       const { initialHash } = await initialize(mockClient)
+      await wait(0)
 
       const firstChain = sendNewBlockBranch(mockClient, initialHash, 3)
       const followingChain = sendNewBlockBranch(
@@ -142,24 +143,36 @@ describe("observableClient chainHead", () => {
         finalizedBlockHashes: firstChain.map((v) => v.blockHash),
       })
 
-      let [unpinned] = await mockClient.chainHead.mock.unpin.waitNextCall()
-
       let expected = [
         initialHash,
         ...firstChain.slice(0, -1).map((v) => v.blockHash),
       ]
-      expect(new Set(unpinned)).toEqual(new Set(expected))
+
+      expected.forEach((block) => {
+        expect(mockClient.chainHead.mock.hasUnpinned(block)).not.toBeTruthy()
+      })
+
+      await mockClient.chainHead.mock.unpin.waitNextCall()
+      expected.forEach((block) => {
+        expect(mockClient.chainHead.mock.hasUnpinned(block)).toBeTruthy()
+      })
 
       sendFinalized(mockClient, {
         finalizedBlockHashes: followingChain.map((v) => v.blockHash),
       })
 
-      unpinned = (await mockClient.chainHead.mock.unpin.waitNextCall())[0]
       expected = [
         firstChain.slice(-1)[0].blockHash,
         ...followingChain.slice(0, -1).map((v) => v.blockHash),
       ]
-      expect(new Set(unpinned)).toEqual(new Set(expected))
+
+      expected.forEach((block) => {
+        expect(mockClient.chainHead.mock.hasUnpinned(block)).not.toBeTruthy()
+      })
+      await mockClient.chainHead.mock.unpin.waitNextCall()
+      expected.forEach((block) => {
+        expect(mockClient.chainHead.mock.hasUnpinned(block)).toBeTruthy()
+      })
 
       cleanup(chainHead.unfollow)
     })
@@ -170,6 +183,7 @@ describe("observableClient chainHead", () => {
       const chainHead = client.chainHead$()
 
       const { initialHash } = await initialize(mockClient)
+      await wait(0)
 
       const bestChain = sendNewBlockBranch(mockClient, initialHash, 5)
       const deadChain = sendNewBlockBranch(
@@ -181,19 +195,25 @@ describe("observableClient chainHead", () => {
         bestBlockHash: bestChain.at(-1)!.blockHash,
       })
 
+      const expected = [
+        initialHash,
+        ...bestChain.slice(0, -1).map((v) => v.blockHash),
+        ...deadChain.map((v) => v.blockHash),
+      ]
+
+      expected.forEach((block) => {
+        expect(mockClient.chainHead.mock.hasUnpinned(block)).not.toBeTruthy()
+      })
+
       sendFinalized(mockClient, {
         finalizedBlockHashes: bestChain.map((v) => v.blockHash),
         prunedBlockHashes: deadChain.map((v) => v.blockHash),
       })
 
-      let [unpinned] = await mockClient.chainHead.mock.unpin.waitNextCall()
-
-      let expected = [
-        initialHash,
-        ...bestChain.slice(0, -1).map((v) => v.blockHash),
-        ...deadChain.map((v) => v.blockHash),
-      ]
-      expect(new Set(unpinned)).toEqual(new Set(expected))
+      await mockClient.chainHead.mock.unpin.waitNextCall()
+      expected.forEach((block) => {
+        expect(mockClient.chainHead.mock.hasUnpinned(block)).toBeTruthy()
+      })
 
       cleanup(chainHead.unfollow)
     })
