@@ -8,6 +8,8 @@ import { Worker } from "node:worker_threads"
 import { WebSocketProvider } from "@polkadot-api/ws-provider"
 import { getObservableClient } from "@polkadot-api/client"
 import { filter, firstValueFrom } from "rxjs"
+import { WebSocket } from "ws"
+;(globalThis as any).WebSocket = WebSocket
 
 const getMetadataCall = async (provider: ConnectProvider) => {
   const client = getObservableClient(createClient(provider))

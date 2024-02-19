@@ -37,6 +37,7 @@ import {
 } from "./enhancers"
 import { withDefaultValue } from "@/utils"
 import { getRecoveralStorage$ } from "./storage-queries"
+import { getTrackTx } from "./track-tx"
 
 export type { RuntimeContext, SystemEvent }
 export type { FollowEventWithRuntime }
@@ -192,6 +193,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
   const _body$ = commonEnhancer(lazyFollower("body"))
   const body$ = (hash: string) => upsertCachedStream(hash, "body", _body$(hash))
+  const trackTx$ = getTrackTx(pinnedBlocks$, body$)
 
   const _storage$ = commonEnhancer(lazyFollower("storage"))
 
@@ -269,6 +271,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     storageQueries$,
     eventsAt$,
 
+    trackTx$,
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
     unfollow,

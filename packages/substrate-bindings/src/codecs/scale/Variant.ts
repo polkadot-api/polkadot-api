@@ -77,16 +77,22 @@ export type Anonymize<T> = SeparateUndefined<
     | Uint8Array
     ? T
     : T extends (...args: infer Args) => infer R
-      ? (...args: Anonymize<Args>) => Anonymize<R>
+      ? (
+          ...args: {
+            [K in keyof Args]: Anonymize<Args[K]>
+          }
+        ) => Anonymize<R>
       : T extends MyTuple<any>
         ? {
             [K in keyof T]: Anonymize<T[K]>
           }
-        : T extends Array<infer A>
-          ? List<Anonymize<A>>
-          : {
-              [K in keyof T]: Anonymize<T[K]>
-            }
+        : [] extends T
+          ? []
+          : T extends Array<infer A>
+            ? List<Anonymize<A>>
+            : {
+                [K in keyof T]: Anonymize<T[K]>
+              }
 >
 
 export const _Enum = new Proxy(
