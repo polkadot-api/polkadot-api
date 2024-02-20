@@ -2,6 +2,7 @@ import { BlockHeader } from "@polkadot-api/substrate-bindings"
 import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
 import {
   Observable,
+  Subject,
   Subscription,
   concatMap,
   defer,
@@ -37,7 +38,6 @@ export type PinnedBlocks = {
   finalized: string
   runtimes: Record<string, Runtime>
   blocks: Map<string, PinnedBlock>
-  prunedBlocks: Set<string>
   finalizedRuntime: Runtime
 }
 
@@ -63,25 +63,27 @@ export const getPinnedBlocks$ = (
 
   const [unpinnedBlocks$, connectUnpinnedBlocks] = selfDependent<string[]>()
 
-  const cleaner$ = interval(100).pipe(
-    withLatestFrom(defer(() => pinnedBlocks$)),
-    map(([, pinned]) => {
-      const result = new Set<string>()
+  const prunedBlocks$ = new Subject<string[]>()
+  const cleaner$ = merge(
+    prunedBlocks$,
+    interval(100).pipe(
+      withLatestFrom(defer(() => pinnedBlocks$)),
+      map(([, pinned]) => {
+        const result = new Set<string>()
 
-      let current = pinned.blocks.get(pinned.finalized)!
-      while (pinned.blocks.has(current.parent)) {
-        current = pinned.blocks.get(current.parent)!
-        if (!current.refCount) result.add(current.hash)
-      }
-      for (const pruned of pinned.prunedBlocks) {
-        if (!current.refCount) result.add(pruned)
-      }
+        let current = pinned.blocks.get(pinned.finalized)!
+        while (pinned.blocks.has(current.parent)) {
+          current = pinned.blocks.get(current.parent)!
+          if (!current.refCount) result.add(current.hash)
+        }
 
-      return result
-    }),
-    pairwise(),
-    map(([prev, current]) => [...current].filter((x) => prev.has(x))),
-    filter((x) => x.length > 0),
+        return result
+      }),
+      pairwise(),
+      map(([prev, current]) => [...current].filter((x) => prev.has(x))),
+      filter((x) => x.length > 0),
+    ),
+  ).pipe(
     connectUnpinnedBlocks(),
     tap(onUnpin),
     <T>(source$: Observable<T>) =>
@@ -168,7 +170,8 @@ export const getPinnedBlocks$ = (
             acc.finalized = event.finalizedBlockHashes.slice(-1)[0]
             acc.finalizedRuntime =
               acc.runtimes[acc.blocks.get(acc.finalized)!.runtime]
-            event.prunedBlockHashes.forEach((p) => acc.prunedBlocks.add(p))
+            if (event.prunedBlockHashes.length > 0)
+              prunedBlocks$.next(event.prunedBlockHashes)
             return acc
           }
 
@@ -184,7 +187,6 @@ export const getPinnedBlocks$ = (
 
               acc.blocks.get(acc.blocks.get(h)!.parent)?.children.delete(h)
               acc.blocks.delete(h)
-              acc.prunedBlocks.delete(h)
             })
 
             Object.entries(acc.runtimes)
@@ -208,7 +210,6 @@ export const getPinnedBlocks$ = (
         runtimes: {},
         blocks: new Map(),
         finalizedRuntime: {},
-        prunedBlocks: new Set(),
       } as PinnedBlocks,
     ),
     map((x) => ({ ...x })),
