@@ -7,6 +7,7 @@ import {
 } from "@polkadot-api/substrate-client"
 import { noop } from "@polkadot-api/utils"
 import { Mock, vi } from "vitest"
+import { DeferredPromise, WithWait, deferred, withWait } from "./spies"
 
 export interface MockSubstrateClient extends SubstrateClient {
   chainHead: MockChainHead
@@ -14,11 +15,6 @@ export interface MockSubstrateClient extends SubstrateClient {
 
 export const createMockSubstrateClient = (): MockSubstrateClient => {
   const chainHead = createMockChainHead()
-
-  // transaction: Transaction;
-  // destroy: UnsubscribeFn;
-  // request: <T>(method: string, params: any[], abortSignal?: AbortSignal) => Promise<T>;
-  // _request: <Reply, Notification>(method: string, params: any[], cb?: ClientRequestCb<Reply, Notification>) => UnsubscribeFn;
 
   return {
     _request: notImplemented,
@@ -48,7 +44,7 @@ interface MockChainHeadMocks {
     StorageResult<StorageItemInput["type"]>
   >
   unfollow: Mock<[], void>
-  unpin: MockWithWait<[string[]], Promise<void>>
+  unpin: WithWait<Mock<[string[]], Promise<void>>>
   send: (evt: FollowEventWithRuntime) => void
   sendError: (error: Error) => void
 }
@@ -70,9 +66,11 @@ const createMockChainHead = (): MockChainHead => {
     header: createMockPromiseFn(),
     storage: createMockPromiseFn(),
     unfollow: vi.fn(),
-    unpin: spyWithWait(async (hashes) => {
-      hashes.forEach((hash) => unpinnedHashes.add(hash))
-    }),
+    unpin: withWait(
+      vi.fn(async (hashes) => {
+        hashes.forEach((hash) => unpinnedHashes.add(hash))
+      }),
+    ),
     send: (evt: FollowEventWithRuntime) => {
       if (!active) {
         throw new Error("No one subscribed to chainHead")
@@ -106,33 +104,6 @@ const createMockChainHead = (): MockChainHead => {
   }
 
   return Object.assign(chainHead, { mock })
-}
-
-type MockWithWait<T extends any[], R> = Mock<T, R> & {
-  waitNextCall: () => Promise<T>
-}
-function spyWithWait<T extends any[], R>(
-  fn: (...args: T) => R,
-): MockWithWait<T, R> {
-  let promise: DeferredPromise<T> | null = null
-
-  return Object.assign(
-    vi.fn((...args: T) => {
-      if (promise) {
-        promise.res(args)
-        promise = null
-      }
-      return fn(...args)
-    }),
-    {
-      waitNextCall: async () => {
-        if (!promise) {
-          promise = deferred()
-        }
-        return promise
-      },
-    },
-  )
 }
 
 type MockOperationFn<T extends any[], R> = Mock<T, DeferredPromise<R>> & {
@@ -169,23 +140,6 @@ const createMockPromiseFn = <
       await Promise.resolve()
     },
   })
-}
-
-interface DeferredPromise<T> extends Promise<T> {
-  res: (value: T) => void
-  rej: (err: Error) => void
-}
-
-function deferred<T>(): DeferredPromise<T> {
-  let res: (value: T) => void = () => {}
-  let rej: (err: Error) => void = () => {}
-
-  const promise = new Promise<T>((_res, _rej) => {
-    res = _res
-    rej = _rej
-  })
-
-  return Object.assign(promise, { res, rej })
 }
 
 const notImplemented = () => {

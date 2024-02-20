@@ -35,6 +35,7 @@ import {
   getWithRecovery,
   withLazyFollower,
   withOperationInaccessibleRecovery,
+  withEnsureCanonicalChain,
 } from "./enhancers"
 import { withDefaultValue } from "@/utils"
 import { getRecoveralStorage$ } from "./storage-queries"
@@ -96,8 +97,12 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     ) => Promise<T>,
   ) =>
     withRefcount(
-      withOperationInaccessibleRecovery(
-        withRecoveryFn(fromAbortControllerFn(fn)),
+      withEnsureCanonicalChain(
+        pinnedBlocks$,
+        follow$,
+        withOperationInaccessibleRecovery(
+          withRecoveryFn(fromAbortControllerFn(fn)),
+        ),
       ),
     )
 
