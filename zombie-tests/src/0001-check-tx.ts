@@ -139,23 +139,6 @@ const getNonce =
 /// test start
 
 const TEST_ARGS = [Sr25519Keyring(), Ed25519Keyring(), EcdsaKeyring()]
-const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
-  return (onMsg) => {
-    const result = input((msg) => {
-      console.log("<<- " + msg)
-      onMsg(msg)
-    })
-
-    return {
-      ...result,
-      send: (msg) => {
-        console.log("->> " + msg)
-        result.send(msg)
-      },
-    }
-  }
-}
-
 const accountIdDec = AccountId().dec
 
 const scProvider = getScProvider()
@@ -165,9 +148,7 @@ export async function run(_nodeName: string, networkInfo: any) {
       TEST_ARGS.map(async (keyring) => {
         const customChainSpec = require(networkInfo.chainSpecPath)
         const provider = scProvider(JSON.stringify(customChainSpec)).relayChain
-        const client = getObservableClient(
-          createClient(withLogsProvider(provider)),
-        )
+        const client = getObservableClient(createClient(provider))
         const chainHead = client.chainHead$()
 
         const chain = getChain({
