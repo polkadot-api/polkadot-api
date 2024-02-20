@@ -2,6 +2,7 @@ import { concatMapEager, shareLatest } from "@/utils"
 import { blockHeader } from "@polkadot-api/substrate-bindings"
 import {
   ChainHead,
+  DisjointError,
   FollowEventWithRuntime,
   StorageItemInput,
   StorageResult,
@@ -79,7 +80,14 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
   const getHeader = (hash: string) =>
     getFollower().header(hash).then(blockHeader.dec)
-  const unpin = (hashes: string[]) => getFollower().unpin(hashes)
+  const unpin = (hashes: string[]) =>
+    getFollower()
+      .unpin(hashes)
+      .catch((e) => {
+        if (e instanceof DisjointError)
+          console.log("hello there, I got a DisjointError")
+        throw e
+      })
 
   const commonEnhancer = <A extends Array<any>, T>(
     fn: (

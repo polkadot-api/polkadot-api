@@ -11,7 +11,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { lastValueFrom, tap } from "rxjs"
-import { ConnectProvider, createClient } from "@polkadot-api/substrate-client"
+import { createClient } from "@polkadot-api/substrate-client"
 import { getObservableClient } from "@polkadot-api/client"
 import { KeyPair } from "@polkadot-api/node-polkadot-provider"
 import { Blake2256 } from "@polkadot-api/substrate-bindings"
