@@ -95,7 +95,10 @@ export function getChainHead(
         unfollow = noop
         done()
         sendUnfollow && request("chainHead_unstable_unfollow", [subscriptionId])
-        subscriptions.errorAll(new DisjointError())
+        console.log("unfollow")
+        const error = new DisjointError()
+        console.log(error.stack)
+        subscriptions.errorAll(error)
         ongoingRequests.forEach((cb) => {
           cb()
         })
@@ -124,10 +127,13 @@ export function getChainHead(
 
     const fRequest: ClientInnerRequest<any, any> = (method, params, cb) => {
       const disjoint = () => {
-        cb?.onError(new DisjointError())
+        const error = new DisjointError()
+        console.log(error.stack)
+        cb?.onError(error)
       }
 
       if (followSubscription === null) {
+        console.log("no subscription")
         disjoint()
         return noop
       }
@@ -142,6 +148,7 @@ export function getChainHead(
           subscriber: Subscriber<any>,
         ) => {
           if (followSubscription === null) {
+            console.log("no subscription")
             subscriber.error(new DisjointError())
             return noop
           }
@@ -174,6 +181,7 @@ export function getChainHead(
 
       let onCancel = noop
       followSubscription.then((x) => {
+        console.log("followSubscription errored")
         if (x instanceof Error) return disjoint()
         if (followSubscription) onCancel = onSubscription(x)
       })
