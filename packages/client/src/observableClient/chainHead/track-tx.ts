@@ -1,9 +1,12 @@
 import {
+  TxBestChainBlockIncluded,
+  TxFinalized,
+} from "@polkadot-api/substrate-client"
+import {
   Observable,
   concat,
   concatMap,
   distinct,
-  distinctUntilChanged,
   filter,
   map,
   mergeMap,
@@ -13,34 +16,14 @@ import {
   takeWhile,
 } from "rxjs"
 import { PinnedBlocks } from "./streams"
-import {
-  TxBestChainBlockIncluded,
-  TxFinalized,
-} from "@polkadot-api/substrate-client"
+import { isBestOrFinalizedBlock, isFinalized } from "./streams/block-operations"
 
-export const getTrackTx = (
-  blocks$: Observable<PinnedBlocks>,
-  getBody: (block: string) => Observable<string[]>,
-) => {
-  const findBestOrFinalized = (blockHash: string, type: "best" | "finalized") =>
-    blocks$.pipe(
-      takeWhile((b) => b.blocks.has(blockHash)),
-      distinctUntilChanged((a, b) => a[type] === b[type]),
-      filter(
-        (x) => x.blocks.get(x[type])!.number >= x.blocks.get(blockHash)!.number,
-      ),
-      map((pinned) => {
-        const { number } = pinned.blocks.get(blockHash)!
-        let current = pinned.blocks.get(pinned[type])!
-        while (current.number > number)
-          current = pinned.blocks.get(current.parent)!
-        return current.hash === blockHash
-      }),
-      filter(Boolean),
-      take(1),
-    )
-
-  return (tx: string): Observable<TxBestChainBlockIncluded | TxFinalized> =>
+export const getTrackTx =
+  (
+    blocks$: Observable<PinnedBlocks>,
+    getBody: (block: string) => Observable<string[]>,
+  ) =>
+  (tx: string): Observable<TxBestChainBlockIncluded | TxFinalized> =>
     blocks$.pipe(
       take(1),
       concatMap((x) => {
@@ -75,13 +58,18 @@ export const getTrackTx = (
         return findInBranch(x.finalized).pipe(
           mergeMap(({ hash, idx }) =>
             concat(
-              findBestOrFinalized(hash, "best").pipe(
+              blocks$.pipe(
+                isBestOrFinalizedBlock(hash),
+                filter(Boolean),
+                take(1),
                 map(() => ({
                   type: "bestChainBlockIncluded" as const,
                   block: { hash, index: idx },
                 })),
               ),
-              findBestOrFinalized(hash, "finalized").pipe(
+              blocks$.pipe(
+                isFinalized(hash),
+                filter(Boolean),
                 map(() => ({
                   type: "finalized" as const,
                   block: { hash, index: idx },
@@ -93,4 +81,3 @@ export const getTrackTx = (
       }),
       takeWhile((x) => x.type !== "finalized", true),
     )
-}

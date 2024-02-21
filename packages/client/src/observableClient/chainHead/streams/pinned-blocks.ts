@@ -1,3 +1,4 @@
+import { selfDependent, shareLatest } from "@/utils"
 import { BlockHeader } from "@polkadot-api/substrate-bindings"
 import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
 import {
@@ -16,8 +17,7 @@ import {
   tap,
   withLatestFrom,
 } from "rxjs"
-import { getRuntimeCreator, Runtime } from "./get-runtime-creator"
-import { selfDependent, shareLatest } from "@/utils"
+import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
 
 export interface PinnedBlock {
   hash: string
