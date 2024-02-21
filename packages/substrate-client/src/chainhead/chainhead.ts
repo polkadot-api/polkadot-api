@@ -60,11 +60,6 @@ export function getChainHead(
       if (isOperationEvent(event)) {
         if (!subscriptions.has(event.operationId)) {
           orphans.set(event.operationId, event)
-          console.debug(
-            `*Unknown operationId(${
-              event.operationId
-            }) seen on message: \n${JSON.stringify(event)}\n`,
-          )
         }
         return subscriptions.next(event.operationId, event)
       }
@@ -153,9 +148,13 @@ export function getChainHead(
           subscriptions.subscribe(operationId, subscriber)
 
           const pending = orphans.retrieve(operationId)
-          pending.forEach((msg) => {
-            subscriptions.next(operationId, msg)
-          })
+          if (pending.length) {
+            Promise.resolve().then(() => {
+              pending.forEach((msg) => {
+                subscriptions.next(operationId, msg)
+              })
+            })
+          }
 
           return () => {
             subscriptions.unsubscribe(operationId)

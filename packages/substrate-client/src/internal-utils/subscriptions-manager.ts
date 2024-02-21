@@ -65,14 +65,9 @@ export class OrphanMessages<T> {
       this.#token ||
       (setInterval(() => {
         const now = Date.now()
-
-        const iterator = this.#messages.entries()
-        let tmp = iterator.next()
-        while (tmp.done === false && tmp.value[1].expiry <= now) {
-          const key = tmp.value[0]
-          tmp = iterator.next()
-          this.#messages.delete(key)
-        }
+        ;[...this.#messages.entries()].forEach(([key, entry]) => {
+          if (entry.expiry > now) this.#messages.delete(key)
+        })
         this.checkClear()
       }, MAX_TIME) as unknown as number)
   }

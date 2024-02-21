@@ -78,9 +78,13 @@ export const createClient = (gProvider: ConnectProvider): Client => {
               const subscriptionId = methodName + opaqueId
               subscriptions.subscribe(subscriptionId, subscriber)
               const pending = orphans.retrieve(subscriptionId)
-              pending.forEach((msg) => {
-                subscriptions.next(subscriptionId, msg)
-              })
+              if (pending.length) {
+                Promise.resolve().then(() => {
+                  pending.forEach((msg) => {
+                    subscriptions.next(subscriptionId, msg)
+                  })
+                })
+              }
               return () => {
                 subscriptions.unsubscribe(subscriptionId)
               }
@@ -94,9 +98,6 @@ export const createClient = (gProvider: ConnectProvider): Client => {
       const subscriptionId = parsed.method + subscription
       if (!subscriptions.has(subscriptionId)) {
         orphans.set(subscriptionId, message)
-        console.debug(
-          `*Unknown subscription "${subscriptionId}" seen on message: \n${message}\n`,
-        )
       }
 
       if (error) {
