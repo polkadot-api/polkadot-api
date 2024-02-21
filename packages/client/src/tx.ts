@@ -29,7 +29,7 @@ type TxSuccess = {
   events: Array<SystemEvent["event"]>
 }
 
-type TxFunction = (from: SS58String) => Promise<TxSuccess>
+type TxFunction = (from: SS58String | Uint8Array) => Promise<TxSuccess>
 
 type TxObservable = (
   from: SS58String,
@@ -42,7 +42,7 @@ type TxObservable = (
 
 type TxCall = () => Promise<Binary>
 
-type TxSigned = (from: SS58String) => Promise<string>
+type TxSigned = (from: SS58String | Uint8Array) => Promise<string>
 
 export type Transaction<
   Arg extends {} | undefined,
@@ -84,7 +84,10 @@ export const createTxEntry =
     name: Name,
     chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
     client: ReturnType<typeof getObservableClient>,
-    signer: (from: string, callData: Uint8Array) => Promise<Uint8Array>,
+    signer: (
+      from: string | Uint8Array,
+      callData: Uint8Array,
+    ) => Promise<Uint8Array>,
   ): ((arg: any) => Transaction<Arg, Pallet, Name>) =>
   (arg?: Arg): any => {
     const tx$ = (tx: string) =>

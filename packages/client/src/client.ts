@@ -28,7 +28,7 @@ import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 const createNamespace = (
   descriptors: Descriptors,
   createTxFromAddress: (
-    address: string,
+    address: string | Uint8Array,
     callData: Uint8Array,
   ) => Promise<Uint8Array>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
@@ -119,11 +119,21 @@ export const createClient: CreateClient = (connect, descriptors) => {
   const client = getObservableClient(rawClient)
   const chainHead = client.chainHead$()
 
-  const createTxFromAddress = async (address: string, callData: Uint8Array) => {
-    const { accountId } = await firstValueFrom(
-      chainHead.getRuntimeContext$(null),
-    )
-    return createTx(accountId.enc(address), callData)
+  const createTxFromAddress = async (
+    address: string | Uint8Array,
+    callData: Uint8Array,
+  ) => {
+    let publicKey: Uint8Array
+
+    if (address instanceof Uint8Array) publicKey = address
+    else {
+      const { accountId } = await firstValueFrom(
+        chainHead.getRuntimeContext$(null),
+      )
+      publicKey = accountId.enc(address)
+    }
+
+    return createTx(publicKey, callData)
   }
 
   return {
