@@ -4,7 +4,11 @@ import {
 } from "@polkadot-api/json-rpc-provider"
 import { UnsubscribeFn } from "../common-types"
 import { RpcError, IRpcError } from "./RpcError"
-import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
+import {
+  OrphanMessages,
+  getSubscriptionsManager,
+  Subscriber,
+} from "@/internal-utils"
 import { DestroyedError } from "./DestroyedError"
 
 export type FollowSubscriptionCb<T> = (
@@ -32,6 +36,7 @@ export interface Client {
 export const createClient = (gProvider: ConnectProvider): Client => {
   const responses = new Map<number, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
+  const orphans = new OrphanMessages<string>()
 
   let provider: Provider | null = null
 
@@ -72,6 +77,10 @@ export const createClient = (gProvider: ConnectProvider): Client => {
           : cb.onSuccess(result, (methodName, opaqueId, subscriber) => {
               const subscriptionId = methodName + opaqueId
               subscriptions.subscribe(subscriptionId, subscriber)
+              const pending = orphans.retrieve(subscriptionId)
+              pending.forEach((msg) => {
+                subscriptions.next(subscriptionId, msg)
+              })
               return () => {
                 subscriptions.unsubscribe(subscriptionId)
               }
@@ -84,8 +93,9 @@ export const createClient = (gProvider: ConnectProvider): Client => {
 
       const subscriptionId = parsed.method + subscription
       if (!subscriptions.has(subscriptionId)) {
+        orphans.set(subscriptionId, message)
         console.debug(
-          `Unknown subscription "${subscriptionId}" seen on message: \n${message}\n`,
+          `*Unknown subscription "${subscriptionId}" seen on message: \n${message}\n`,
         )
       }
 
@@ -107,6 +117,7 @@ export const createClient = (gProvider: ConnectProvider): Client => {
     subscriptions.errorAll(new DestroyedError())
     responses.forEach((r) => r.onError(new DestroyedError()))
     responses.clear()
+    orphans.clear()
   }
 
   let nextId = 1
