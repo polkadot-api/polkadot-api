@@ -18,6 +18,11 @@ export const WebSocketProvider = (
       socket.addEventListener("open", onOpen, { once: true })
 
       const onError = (e: Event) => {
+        console.error(
+          `Unable to connect to ${uri}${
+            protocols ? ", protocols: " + protocols : ""
+          }`,
+        )
         reject(e)
         socket.removeEventListener("open", onOpen)
       }
