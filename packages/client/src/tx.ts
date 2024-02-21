@@ -32,7 +32,7 @@ type TxSuccess = {
 type TxFunction = (from: SS58String | Uint8Array) => Promise<TxSuccess>
 
 type TxObservable = (
-  from: SS58String,
+  from: SS58String | Uint8Array,
 ) => Observable<
   | TxValidated
   | TxBroadcasted
