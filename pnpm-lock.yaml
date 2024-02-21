@@ -374,6 +374,16 @@ importers:
         specifier: workspace:*
         version: link:../utils
 
+  packages/metadata-fixtures:
+    dependencies:
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.19
+        version: 20.11.19
+
   packages/node-polkadot-provider:
     dependencies:
       '@noble/hashes':
@@ -5380,6 +5390,12 @@ packages:
 
   /@types/node@18.18.10:
     resolution: {integrity: sha512-luANqZxPmjTll8bduz4ACs/lNTCLuWssCyjqTY9yLdsv1xnViQp3ISKwsEWOIecO13JWUqjVdig/Vjjc09o8uA==}
+    dependencies:
+      undici-types: 5.26.5
+    dev: true
+
+  /@types/node@20.11.19:
+    resolution: {integrity: sha512-7xMnVEcZFu0DikYjWOlRq7NTPETrm7teqUT2WkQjrTIkEgUyyGdWsj/Zg8bEJt5TNklzbPD1X3fqfsHw3SpapQ==}
     dependencies:
       undici-types: 5.26.5
     dev: true
