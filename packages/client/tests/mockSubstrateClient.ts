@@ -26,7 +26,7 @@ export const createMockSubstrateClient = (): MockSubstrateClient => {
 }
 
 interface MockChainHeadMocks {
-  hasUnpinned: (hash: string) => boolean
+  unpinnedHashes: Set<string>
   body: MockOperationFn<[string, AbortSignal | undefined], string[]>
   call: MockOperationFn<
     [string, string, string, AbortSignal | undefined],
@@ -60,7 +60,7 @@ const createMockChainHead = (): MockChainHead => {
   } | null = null
 
   const mock: MockChainHeadMocks = {
-    hasUnpinned: (hash) => unpinnedHashes.has(hash),
+    unpinnedHashes,
     body: createMockPromiseFn(),
     call: createMockPromiseFn(),
     header: createMockPromiseFn(),
@@ -68,7 +68,12 @@ const createMockChainHead = (): MockChainHead => {
     unfollow: vi.fn(),
     unpin: withWait(
       vi.fn(async (hashes) => {
-        hashes.forEach((hash) => unpinnedHashes.add(hash))
+        hashes.forEach((hash) => {
+          if (unpinnedHashes.has(hash)) {
+            throw new Error("Called unpin on a block previously unpinned")
+          }
+          unpinnedHashes.add(hash)
+        })
       }),
     ),
     send: (evt: FollowEventWithRuntime) => {
