@@ -32,6 +32,8 @@ export const getRecoveralStorage$ = (
             observer.complete()
           },
           (nDiscarded) => {
+            if (nDiscarded === 0) return
+
             observer.next(
               recoveralStorage$(
                 hash,

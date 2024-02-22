@@ -2,11 +2,12 @@ import {
   ChainHead,
   FollowEventWithRuntime,
   StorageItemInput,
+  StorageItemResponse,
   StorageResult,
   SubstrateClient,
 } from "@polkadot-api/substrate-client"
 import { noop } from "@polkadot-api/utils"
-import { Mock, vi } from "vitest"
+import { Mock, expect, vi } from "vitest"
 import { DeferredPromise, WithWait, deferred, withWait } from "./spies"
 
 export interface MockSubstrateClient extends SubstrateClient {
@@ -43,6 +44,7 @@ interface MockChainHeadMocks {
     ],
     StorageResult<StorageItemInput["type"]>
   >
+  storageSubscription: MockStorageSubscription
   unfollow: Mock<[], void>
   unpin: WithWait<Mock<[string[]], Promise<void>>>
   send: (evt: FollowEventWithRuntime) => void
@@ -65,6 +67,7 @@ const createMockChainHead = (): MockChainHead => {
     call: createMockPromiseFn(),
     header: createMockPromiseFn(),
     storage: createMockPromiseFn(),
+    storageSubscription: createMockStorageSubscription(),
     unfollow: vi.fn(),
     unpin: withWait(
       vi.fn(async (hashes) => {
@@ -102,7 +105,7 @@ const createMockChainHead = (): MockChainHead => {
       call: mock.call,
       header: mock.header,
       storage: mock.storage as any,
-      storageSubscription: notImplemented,
+      storageSubscription: mock.storageSubscription,
       unfollow: mock.unfollow,
       unpin: mock.unpin,
     }
@@ -145,6 +148,70 @@ const createMockPromiseFn = <
       await Promise.resolve()
     },
   })
+}
+
+type StorageSubscriptionArgs = [
+  string,
+  Array<StorageItemInput>,
+  string | null,
+  (items: Array<StorageItemResponse>) => void,
+  (error: Error) => void,
+  () => void,
+  (nDiscarded: number) => void,
+]
+type MockStorageSubscription = Mock<StorageSubscriptionArgs, () => void> & {
+  getCall: (idx: number) => StorageSubscriptionCall
+  getLastCall: (hash: string) => StorageSubscriptionCall
+}
+interface StorageSubscriptionCall {
+  args: StorageSubscriptionArgs
+  cleanupFn: Mock<[], void>
+  sendItems: (items: Array<StorageItemResponse>) => StorageSubscriptionCall
+  sendError: (error: Error) => StorageSubscriptionCall
+  sendComplete: () => StorageSubscriptionCall
+  sendDiscarded: (nDiscarded: number) => StorageSubscriptionCall
+}
+const createMockStorageSubscription = (): MockStorageSubscription => {
+  const spy = vi.fn((..._: StorageSubscriptionArgs) => vi.fn())
+
+  function getCall(idx: number): StorageSubscriptionCall {
+    expect(
+      spy.mock.calls.length,
+      `Expected function to have been called at least ${idx + 1} times`,
+    ).toBeGreaterThan(idx)
+    const args = spy.mock.calls[idx]
+    const [, , , onItems, onError, onDone, onDiscardedItems] = args
+
+    const result: StorageSubscriptionCall = {
+      args,
+      cleanupFn: spy.mock.results[idx].value,
+      sendComplete: chain(onDone),
+      sendDiscarded: chain(onDiscardedItems),
+      sendError: chain(onError),
+      sendItems: chain(onItems),
+    }
+    return result
+
+    function chain<T extends any[]>(fn: (...args: T) => void) {
+      return (...args: T) => {
+        fn(...args)
+        return result
+      }
+    }
+  }
+  function getLastCallIdx(hash: string) {
+    const idx = spy.mock.calls.findLastIndex((v) => v[0] === hash)
+    if (idx < 0) {
+      throw new Error("No call received for " + hash)
+    }
+    return idx
+  }
+
+  const result = Object.assign(spy, {
+    getCall,
+    getLastCall: (hash: string) => getCall(getLastCallIdx(hash)),
+  })
+  return result
 }
 
 const notImplemented = () => {
