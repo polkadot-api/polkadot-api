@@ -46,7 +46,7 @@
   },
   "polkadot-api": {
     "ksm": {
-      "metadata": "ksm-metadata.scale",
+      "metadata": "../packages/metadata-fixtures/ksm-metadata.scale",
       "outputFolder": "./src/descriptors/"
     }
   }

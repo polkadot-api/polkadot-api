@@ -8,7 +8,9 @@ import {
 
 type Metadata = CodecType<typeof $metadata>["metadata"]
 
-const metadataBytes = await readFile("./ksm-metadata.scale")
+const metadataBytes = await readFile(
+  "../packages/metadata-fixtures/ksm-metadata.scale",
+)
 const { inner } = OpaqueCodec($metadata).dec(metadataBytes)
 const { metadata } = inner()
 
