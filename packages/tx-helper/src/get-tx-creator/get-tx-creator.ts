@@ -36,12 +36,21 @@ export const getTxCreator: GetTxCreator = (chainProvider, onCreateTx) => {
     }),
   )
 
-  const createTx: CreateTx = async (from, callData, cb = onCreateTx) => {
+  const createTx: CreateTx = async (
+    from,
+    callData,
+    hintedSignedExtensions = {},
+    cb = onCreateTx,
+  ) => {
     const {
       signer,
       signedExtensions: { value: extra, additionalSigned },
     } = await firstValueFrom(
-      metaCtx$.pipe(mergeMap(getTxData(from, callData, chainHead, cb))),
+      metaCtx$.pipe(
+        mergeMap(
+          getTxData(from, callData, chainHead, hintedSignedExtensions, cb),
+        ),
+      ),
     )
 
     const toSign = mergeUint8(callData, extra, additionalSigned)

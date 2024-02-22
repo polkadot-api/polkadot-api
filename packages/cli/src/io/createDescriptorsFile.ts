@@ -36,6 +36,7 @@ export const createDescriptorsFile = async (
     >
   },
   enums: Array<string>,
+  asset: null | { checksum: string; type: string },
 ) => {
   const { pallets, apis } = descriptors
 
@@ -164,8 +165,16 @@ export const createDescriptorsFile = async (
     )};\n`,
   )
 
+  const assetIdType = `PlainDescriptor<${asset?.type ?? "void"}>`
+  const assetIdVarName = "ChargeAssetTxPaymentAsset"
   addLine(
-    `type I${key}Descriptors = { pallets: I${key}DescriptorsPallets, apis: I${key}DescriptorsApis };\n`,
+    `const ${assetIdVarName}: ${assetIdType} = "${
+      asset?.checksum ?? ""
+    }" as ${assetIdType}`,
+  )
+
+  addLine(
+    `type I${key}Descriptors = { pallets: I${key}DescriptorsPallets, apis: I${key}DescriptorsApis, asset: ${assetIdType} };\n`,
   )
 
   addLine(
@@ -191,7 +200,7 @@ export const createDescriptorsFile = async (
   )
 
   addLine(
-    `const _allDescriptors: I${key}Descriptors = { pallets: _allPalletDescriptors, apis: _allApiDescriptors }`,
+    `const _allDescriptors: I${key}Descriptors = { pallets: _allPalletDescriptors, apis: _allApiDescriptors, asset: ${assetIdVarName} }`,
   )
 
   addLine(`export default _allDescriptors`)

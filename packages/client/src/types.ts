@@ -15,10 +15,18 @@ import { Observable } from "rxjs"
 import { BlockInfo } from "./observableClient"
 import { RuntimeApi } from "./runtime"
 
+export type HintedSignedExtensions = Partial<{
+  tip: bigint
+  mortality: { mortal: false } | { mortal: true; period: number }
+  assetId: Uint8Array
+}>
+
 export type CreateTx = (
   publicKey: Uint8Array,
   callData: Uint8Array,
+  hintedSignedExtensions?: HintedSignedExtensions,
 ) => Promise<Uint8Array>
+
 interface JsonRpcProvider {
   send: (message: string) => void
   createTx: CreateTx
@@ -79,12 +87,12 @@ export type RuntimeCallsApi<
   }
 }
 
-export type TxApi<A extends Record<string, Record<string, any>>> = {
+export type TxApi<A extends Record<string, Record<string, any>>, Asset> = {
   [K in keyof A & string]: {
     [KK in keyof A[K] & string]: A[K][KK] extends {} | undefined
       ? (
           ...args: A[K][KK] extends undefined ? [] : [data: A[K][KK]]
-        ) => Transaction<A[K][KK], K, KK>
+        ) => Transaction<A[K][KK], K, KK, Asset>
       : unknown
   }
 }
@@ -101,7 +109,7 @@ export type CreateClient = <T extends Record<string, Descriptors>>(
 ) => {
   [K in keyof T]: {
     query: StorageApi<QueryFromDescriptors<T[K]>>
-    tx: TxApi<TxFromDescriptors<T[K]>>
+    tx: TxApi<TxFromDescriptors<T[K]>, Anonymize<T[K]["asset"]["_type"]>>
     event: EvApi<EventsFromDescriptors<T[K]>>
     apis: RuntimeCallsApi<T[K]["apis"]>
   }

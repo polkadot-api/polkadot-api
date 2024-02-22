@@ -59,13 +59,37 @@ export const getChain = ({
         return
       }
 
+      const {
+        userSingedExtensionsName,
+        hintedSignedExtensions: { mortality, tip, assetId },
+      } = ctx
       const userSignedExtensionDefaults = getUserSignedExtensionDefaults()
+
       const userSignedExtensionsData = Object.fromEntries(
-        ctx.userSingedExtensionsName.map((x) => [
-          x,
-          userSignedExtensionDefaults[x] ?? defaultUserSignedExtensions[x],
-        ]),
-      ) as any
+        userSingedExtensionsName.map((x) => {
+          const def = userSignedExtensionDefaults[x]
+          if (x === "CheckMortality") {
+            const result: UserSignedExtensions["CheckMortality"] = mortality ??
+              (def as any) ?? {
+                mortal: true,
+                period: 64,
+              }
+            return [x, result]
+          }
+
+          if (x === "ChargeTransactionPayment")
+            return [x, tip ?? (def as bigint) ?? 0n]
+
+          return [
+            x,
+            {
+              tip: tip ?? ((def as any).tip as bigint) ?? 0n,
+              assetId:
+                assetId ?? ((def as any).assetId as Uint8Array | undefined),
+            },
+          ]
+        }),
+      )
 
       const fromAsHex = toHex(ctx.from)
       const keypair = keyringRecord[fromAsHex]
@@ -87,8 +111,11 @@ export const getChain = ({
       })
     })
 
-    const createTx: JsonRpcProvider["createTx"] = async (from, callData) =>
-      txCreator.createTx(from, callData)
+    const createTx: JsonRpcProvider["createTx"] = async (
+      from,
+      callData,
+      hinted,
+    ) => txCreator.createTx(from, callData, hinted)
 
     return {
       createTx,

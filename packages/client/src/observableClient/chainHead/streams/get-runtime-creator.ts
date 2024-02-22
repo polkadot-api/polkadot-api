@@ -1,6 +1,7 @@
 import {
   getChecksumBuilder,
   getDynamicBuilder,
+  getLookupFn,
 } from "@polkadot-api/metadata-builders"
 import {
   AccountId,
@@ -13,6 +14,8 @@ import {
   compact,
   metadata,
   u32,
+  Encoder,
+  _void,
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { Observable, map, shareReplay } from "rxjs"
@@ -41,6 +44,7 @@ export interface RuntimeContext {
     dec: Decoder<Array<SystemEvent>>
   }
   accountId: Codec<SS58String>
+  asset: [Encoder<any>, string | null]
 }
 
 export interface Runtime {
@@ -72,7 +76,34 @@ export const getRuntimeCreator =
         const checksumBuilder = getChecksumBuilder(v15)
         const dynamicBuilder = getDynamicBuilder(v15)
         const events = dynamicBuilder.buildStorage("System", "Events")
+
+        const assetPayment =
+          metadata.metadata.value.extrinsic.signedExtensions.find(
+            (x) => x.identifier === "ChargeAssetTxPayment",
+          )
+
+        let _assetId: null | number = null
+        if (assetPayment) {
+          const assetTxPayment = getLookupFn(metadata.metadata.value.lookup)(
+            assetPayment.type,
+          )
+          if (assetTxPayment.type === "struct") {
+            const optionalAssetId = assetTxPayment.value.asset_id
+            if (optionalAssetId.type === "option")
+              _assetId = optionalAssetId.value.id
+          }
+        }
+
+        const asset: [Encoder<any>, string | null] =
+          _assetId === null
+            ? [_void.enc, null]
+            : [
+                dynamicBuilder.buildDefinition(_assetId).enc,
+                checksumBuilder.buildDefinition(_assetId),
+              ]
+
         return {
+          asset,
           metadata: v15,
           checksumBuilder,
           dynamicBuilder,

@@ -3,6 +3,7 @@ import {
   UserSignedExtensionsData,
   OnCreateTxCtx,
   UserSignedExtensionName,
+  HintedSignedExtensions,
 } from ".."
 import { getInput$ } from "./input"
 import { combineLatest, map } from "rxjs"
@@ -41,6 +42,7 @@ export const getTxData =
     from: Uint8Array,
     callData: Uint8Array,
     chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+    hintedSignedExtensions: HintedSignedExtensions,
     onCreateTx: (
       context: OnCreateTxCtx<T>,
       callback: (value: null | UserSignedExtensionsData<T>) => void,
@@ -52,6 +54,7 @@ export const getTxData =
       {
         from,
         callData,
+        hintedSignedExtensions,
         userSingedExtensionsName: user as any,
         unknownSignedExtensions: unknown,
       },

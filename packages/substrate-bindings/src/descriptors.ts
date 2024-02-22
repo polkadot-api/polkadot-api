@@ -27,6 +27,7 @@ export type Descriptors = {
     ]
   >
   apis: Record<string, Record<string, RuntimeDescriptor<any, any>>>
+  asset: PlainDescriptor<any>
 }
 
 type PickDescriptors<

@@ -18,21 +18,25 @@ import { Signer } from "@polkadot/api/types"
 import { mapObject } from "@polkadot-api/utils"
 
 const defaultOnCreateTx: CreateTxCallback = (
-  { userSingedExtensionsName },
+  {
+    userSingedExtensionsName,
+    hintedSignedExtensions: { mortality, tip, assetId },
+  },
   callback,
 ) => {
   const userSignedExtensionsData = Object.fromEntries(
     userSingedExtensionsName.map((x) => {
       if (x === "CheckMortality") {
-        const result: UserSignedExtensions["CheckMortality"] = {
+        const result: UserSignedExtensions["CheckMortality"] = mortality ?? {
           mortal: true,
           period: 64,
         }
         return [x, result]
       }
 
-      if (x === "ChargeTransactionPayment") return [x, 0n]
-      return [x, { tip: 0n }]
+      if (x === "ChargeTransactionPayment") return [x, tip ?? 0n]
+
+      return [x, { tip: tip ?? 0n, assetId }]
     }),
   )
 

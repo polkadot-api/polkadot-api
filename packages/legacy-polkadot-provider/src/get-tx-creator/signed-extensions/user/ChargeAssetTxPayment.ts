@@ -1,10 +1,15 @@
 import { map } from "rxjs"
-import { Option, Struct, compact, u32 } from "@polkadot-api/substrate-bindings"
+import {
+  Option,
+  Struct,
+  compact,
+  Bytes,
+} from "@polkadot-api/substrate-bindings"
 import type { GetUserSignedExtension } from "@/types/internal-types"
 
 const encoder = Struct({
   tip: compact,
-  assetId: Option(u32),
+  assetId: Option(Bytes(Infinity)),
 }).enc
 
 export const ChargeAssetTxPayment: GetUserSignedExtension<
