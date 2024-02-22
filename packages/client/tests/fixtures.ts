@@ -1,4 +1,11 @@
-import { blockHeader } from "@polkadot-api/substrate-bindings"
+import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
+import {
+  Option,
+  Tuple,
+  blockHeader,
+  compact,
+  metadata,
+} from "@polkadot-api/substrate-bindings"
 import {
   BestBlockChanged,
   Finalized,
@@ -113,6 +120,35 @@ export const initialize = async (mockClient: MockSubstrateClient) => {
     initialized,
     header,
   }
+}
+
+const opaqueMeta = Option(Tuple(compact, metadata))
+const metadataValue = getKsmMetadata()
+const metadataHex = metadataValue.then((metadata) =>
+  toHex(
+    opaqueMeta.enc([
+      0,
+      {
+        magicNumber: 0,
+        metadata: {
+          tag: "v15",
+          value: metadata,
+        },
+      },
+    ]),
+  ),
+)
+export const initializeWithMetadata = async (
+  mockClient: MockSubstrateClient,
+) => {
+  const result = await initialize(mockClient)
+
+  await mockClient.chainHead.mock.call.reply(
+    result.initialHash,
+    await metadataHex,
+  )
+
+  return { ...result, metadata: await metadataValue }
 }
 
 export const sendNewBlockBranch = (

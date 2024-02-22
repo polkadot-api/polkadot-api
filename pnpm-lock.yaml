@@ -307,6 +307,9 @@ importers:
         specifier: workspace:*
         version: link:../utils
     devDependencies:
+      '@polkadot-api/metadata-fixtures':
+        specifier: workspace:*
+        version: link:../metadata-fixtures
       '@vitest/coverage-v8':
         specifier: ^0.34.3
         version: 0.34.4(vitest@0.34.6)
