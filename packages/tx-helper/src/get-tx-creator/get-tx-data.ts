@@ -1,5 +1,10 @@
 import { V15, v15 } from "@polkadot-api/substrate-bindings"
-import { ConsumerCallback, OnCreateTxCtx, UserSignedExtensionName } from ".."
+import {
+  ConsumerCallback,
+  HintedSignedExtensions,
+  OnCreateTxCtx,
+  UserSignedExtensionName,
+} from ".."
 import { getInput$ } from "./input"
 import { combineLatest, filter, map, startWith, take } from "rxjs"
 import type { FlattenSignedExtension } from "@/internal-types"
@@ -26,6 +31,7 @@ export const getTxData =
     from: Uint8Array,
     callData: Uint8Array,
     chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+    hintedSignedExtensions: HintedSignedExtensions,
     onCreateTx: (
       context: OnCreateTxCtx<T>,
       callback: (value: null | ConsumerCallback<T>) => void,
@@ -38,6 +44,7 @@ export const getTxData =
         from,
         callData,
         metadata: v15.enc(metadata),
+        hintedSignedExtensions,
         userSingedExtensionsName: user as any,
         unknownSignedExtensions: unknown,
       },

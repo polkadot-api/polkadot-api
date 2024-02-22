@@ -14,6 +14,11 @@ export type OnCreateTxCtx<
   // different chains may require a different set of these.
   userSingedExtensionsName: UserSignedExtensionsName
 
+  // The dApp may suggested some default values for the signed extensions
+  // that require from user input. The user interface should take these
+  // values under consideration while allowing the user to alter them.
+  hintedSignedExtensions: HintedSignedExtensions
+
   // An Array containing a list of the signed extensions which are unknown
   // to the library and that require for a value on the "extra" field
   // and/or additionally signed data. This will give the consumer the opportunity
@@ -34,8 +39,14 @@ export type CreateTxCallback = <
 export type UserSignedExtensions = {
   CheckMortality: { mortal: false } | { mortal: true; period: number }
   ChargeTransactionPayment: bigint
-  ChargeAssetTxPayment: { tip: bigint; assetId?: number }
+  ChargeAssetTxPayment: { tip: bigint; assetId?: Uint8Array }
 }
+
+export type HintedSignedExtensions = Partial<{
+  tip: bigint
+  mortality: { mortal: false } | { mortal: true; period: number }
+  assetId: Uint8Array
+}>
 
 export type UserSignedExtensionName = keyof UserSignedExtensions
 

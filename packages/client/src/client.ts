@@ -8,6 +8,7 @@ import {
   CreateClient,
   CreateTx,
   EvApi,
+  HintedSignedExtensions,
   RuntimeCallsApi,
   StorageApi,
   TxApi,
@@ -35,7 +36,7 @@ const createNamespace = (
   client: ReturnType<typeof getObservableClient>,
 ): {
   query: StorageApi<QueryFromDescriptors<Descriptors>>
-  tx: TxApi<TxFromDescriptors<Descriptors>>
+  tx: TxApi<TxFromDescriptors<Descriptors>, Descriptors["asset"]["_type"]>
   event: EvApi<EventsFromDescriptors<Descriptors>>
   apis: RuntimeCallsApi<Descriptors["apis"]>
 } => {
@@ -56,7 +57,7 @@ const createNamespace = (
 
   const tx = {} as Record<
     string,
-    Record<string, (a: any) => Transaction<any, any, any>>
+    Record<string, (a: any) => Transaction<any, any, any, any>>
   >
   for (const pallet in pallets) {
     tx[pallet] ||= {}
@@ -66,6 +67,7 @@ const createNamespace = (
         txEntries[name],
         pallet,
         name,
+        descriptors.asset,
         chainHead,
         client,
         createTxFromAddress,
@@ -122,6 +124,7 @@ export const createClient: CreateClient = (connect, descriptors) => {
   const createTxFromAddress = async (
     address: string | Uint8Array,
     callData: Uint8Array,
+    hinted?: HintedSignedExtensions,
   ) => {
     let publicKey: Uint8Array
 
@@ -133,7 +136,7 @@ export const createClient: CreateClient = (connect, descriptors) => {
       publicKey = accountId.enc(address)
     }
 
-    return createTx(publicKey, callData)
+    return createTx(publicKey, callData, hinted)
   }
 
   return {

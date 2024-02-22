@@ -6,6 +6,7 @@ import {
   CreateTxCallback,
   UserSignedExtensionName,
   UserSignedExtensions,
+  HintedSignedExtensions,
 } from "./public-types"
 
 export type Callback<T> = (value: T) => void
@@ -36,6 +37,11 @@ export type OnCreateTxCtx<
   // different chains may require a different set of these.
   userSingedExtensionsName: UserSignedExtensionsName
 
+  // The dApp may suggested some default values for the signed extensions
+  // that require from user input. The user interface should take these
+  // values under consideration while allowing the user to alter them.
+  hintedSignedExtensions: HintedSignedExtensions
+
   // An Array containing a list of the signed extensions which are unknown
   // to the library and that require for a value on the "extra" field
   // and/or additionally signed data. This will give the consumer the opportunity
@@ -46,6 +52,7 @@ export type OnCreateTxCtx<
 export type CreateTx = (
   from: Uint8Array, // The public-key of the sender
   callData: Uint8Array,
+  hintedSignedExtensions?: HintedSignedExtensions,
 ) => Promise<Uint8Array>
 
 export type SigningType = "Ed25519" | "Sr25519" | "Ecdsa"

@@ -131,12 +131,18 @@ export async function outputCodegen(
   key: string,
   selectOnly?: string[],
 ) {
-  const { code, descriptorsData, enums } = getCodegenInfo(
+  const { code, descriptorsData, enums, assetId } = getCodegenInfo(
     metadata,
     key,
     selectOnly,
   )
   await fs.mkdir(outputFolder, { recursive: true })
   await createDtsFile(key, outputFolder, code)
-  await createDescriptorsFile(key, outputFolder, descriptorsData, enums)
+  await createDescriptorsFile(
+    key,
+    outputFolder,
+    descriptorsData,
+    enums,
+    assetId,
+  )
 }

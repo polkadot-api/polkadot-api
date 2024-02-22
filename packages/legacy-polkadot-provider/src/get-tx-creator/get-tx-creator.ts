@@ -36,10 +36,10 @@ export const getTxCreator: GetTxCreator = (
       }),
     )
 
-    const createTx: CreateTx = async (from, callData) => {
+    const createTx: CreateTx = async (from, callData, hinted = {}) => {
       const { extra, pjs } = await firstValueFrom(
         metaCtx$.pipe(
-          mergeMap(getTxData(from, callData, chainHead, onCreateTx)),
+          mergeMap(getTxData(from, callData, chainHead, hinted, onCreateTx)),
         ),
       )
 

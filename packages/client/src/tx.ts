@@ -1,6 +1,7 @@
 import {
   Binary,
   Enum,
+  PlainDescriptor,
   SS58String,
   TxDescriptor,
 } from "@polkadot-api/substrate-bindings"
@@ -29,10 +30,36 @@ type TxSuccess = {
   events: Array<SystemEvent["event"]>
 }
 
-type TxFunction = (from: SS58String | Uint8Array) => Promise<TxSuccess>
-
-type TxObservable = (
+type TxFunction<Asset> = (
   from: SS58String | Uint8Array,
+  hintedSignExtensions?: Partial<
+    void extends Asset
+      ? {
+          tip: bigint
+          mortal: { mortal: false } | { mortal: true; period: number }
+        }
+      : {
+          tip: bigint
+          mortal: { mortal: false } | { mortal: true; period: number }
+          asset: Asset
+        }
+  >,
+) => Promise<TxSuccess>
+
+type TxObservable<Asset> = (
+  from: SS58String | Uint8Array,
+  hintedSignExtensions?: Partial<
+    void extends Asset
+      ? {
+          tip: bigint
+          mortal: { mortal: false } | { mortal: true; period: number }
+        }
+      : {
+          tip: bigint
+          mortal: { mortal: false } | { mortal: true; period: number }
+          asset: Asset
+        }
+  >,
 ) => Observable<
   | TxValidated
   | TxBroadcasted
@@ -42,12 +69,27 @@ type TxObservable = (
 
 type TxCall = () => Promise<Binary>
 
-type TxSigned = (from: SS58String | Uint8Array) => Promise<string>
+type TxSigned<Asset> = (
+  from: SS58String | Uint8Array,
+  hintedSignExtensions?: Partial<
+    void extends Asset
+      ? {
+          tip: bigint
+          mortal: { mortal: false } | { mortal: true; period: number }
+        }
+      : {
+          tip: bigint
+          mortal: { mortal: false } | { mortal: true; period: number }
+          asset: Asset
+        }
+  >,
+) => Promise<string>
 
 export type Transaction<
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
+  Asset,
 > = {
   callData: Enum<{
     type: Pallet
@@ -57,9 +99,9 @@ export type Transaction<
     }>
   }>
   getEncodedData: TxCall
-  getTx: TxSigned
-  submit: TxFunction
-  submit$: TxObservable
+  getTx: TxSigned<Asset>
+  submit: TxFunction<Asset>
+  submit$: TxObservable<Asset>
 }
 
 const getTxSuccessFromSystemEvents = (
@@ -78,17 +120,24 @@ const getTxSuccessFromSystemEvents = (
 }
 
 export const createTxEntry =
-  <Arg extends {} | undefined, Pallet extends string, Name extends string>(
+  <
+    Arg extends {} | undefined,
+    Pallet extends string,
+    Name extends string,
+    Asset extends PlainDescriptor<any>,
+  >(
     descriptor: TxDescriptor<Arg>,
     pallet: Pallet,
     name: Name,
+    assetChecksum: Asset,
     chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
     client: ReturnType<typeof getObservableClient>,
     signer: (
       from: string | Uint8Array,
       callData: Uint8Array,
+      hinted?: Partial<{}>,
     ) => Promise<Uint8Array>,
-  ): ((arg: any) => Transaction<Arg, Pallet, Name>) =>
+  ): ((arg: any) => Transaction<Arg, Pallet, Name, Asset["_type"]>) =>
   (arg?: Arg): any => {
     const tx$ = (tx: string) =>
       concat(
@@ -96,34 +145,57 @@ export const createTxEntry =
         chainHead.trackTx$(tx),
       )
 
-    const getCallData$ = (arg?: any) =>
+    const getCallData$ = (arg: any, hinted: Partial<{ asset: any }> = {}) =>
       chainHead.getRuntimeContext$(null).pipe(
-        map(({ checksumBuilder, dynamicBuilder }) => {
-          const checksum = checksumBuilder.buildCall(pallet, name)
-          if (checksum !== descriptor)
-            throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
+        map(
+          ({
+            checksumBuilder,
+            dynamicBuilder,
+            asset: [assetEnc, assetCheck],
+          }) => {
+            const checksum = checksumBuilder.buildCall(pallet, name)
+            if (checksum !== descriptor)
+              throw new Error(
+                `Incompatible runtime entry Tx(${pallet}.${name})`,
+              )
 
-          const { location, args } = dynamicBuilder.buildCall(pallet, name)
-          return Binary.fromBytes(
-            mergeUint8(new Uint8Array(location), args.enc(arg)),
-          )
-        }),
+            let returnHinted = hinted
+            if (hinted.asset) {
+              if (assetChecksum !== assetCheck)
+                throw new Error(`Incompatible runtime asset`)
+              returnHinted = { ...hinted, asset: assetEnc(hinted.asset) }
+            }
+
+            const { location, args } = dynamicBuilder.buildCall(pallet, name)
+            return {
+              callData: Binary.fromBytes(
+                mergeUint8(new Uint8Array(location), args.enc(arg)),
+              ),
+              hinted: returnHinted,
+            }
+          },
+        ),
       )
 
-    const getEncodedData: TxCall = () => firstValueFrom(getCallData$(arg))
+    const getEncodedData: TxCall = () =>
+      firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
 
-    const getTx: TxSigned = (from) =>
+    const getTx: TxSigned<Asset> = (from, _hinted) =>
       firstValueFrom(
-        getCallData$(arg).pipe(
-          mergeMap((callData) => signer(from, callData.asBytes())),
+        getCallData$(arg, _hinted as any).pipe(
+          mergeMap(({ callData, hinted }) =>
+            signer(from, callData.asBytes(), hinted),
+          ),
           map(toHex),
         ),
       )
 
-    const submit: TxFunction = async (from) => {
+    const submit: TxFunction<Asset> = async (from, _hinted) => {
       const tx = await firstValueFrom(
-        getCallData$(arg).pipe(
-          mergeMap((callData) => signer(from, callData.asBytes()).then(toHex)),
+        getCallData$(arg, _hinted as any).pipe(
+          mergeMap(({ callData, hinted }) =>
+            signer(from, callData.asBytes(), hinted).then(toHex),
+          ),
         ),
       )
 
@@ -149,9 +221,11 @@ export const createTxEntry =
       }
     }
 
-    const submit$: TxObservable = (from) =>
-      getCallData$(arg).pipe(
-        mergeMap((callData) => signer(from, callData.asBytes())),
+    const submit$: TxObservable<Asset> = (from, _hinted) =>
+      getCallData$(arg, _hinted as any).pipe(
+        mergeMap(({ callData, hinted }) =>
+          signer(from, callData.asBytes(), hinted),
+        ),
         take(1),
         mergeMap((result) => {
           return tx$(toHex(result)).pipe(

@@ -13,7 +13,7 @@ export type KeyPair = {
   sign: (input: Uint8Array) => Promise<Uint8Array>
 }
 
-export type CreateTxParams = NonNullable<Parameters<CreateTx>[2]>
+export type CreateTxParams = NonNullable<Parameters<CreateTx>[3]>
 export type CreateTxContext = Parameters<CreateTxParams>[0]
 export type CustomizeTxResult<T extends Array<UserSignedExtensionName>> = {
   userSignedExtensionsData: ConsumerCallback<T>["userSignedExtensionsData"]

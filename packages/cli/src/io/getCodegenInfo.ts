@@ -151,8 +151,30 @@ export const getCodegenInfo = (
     }
   }
 
+  const assetPayment = metadata.extrinsic.signedExtensions.find(
+    (x) => x.identifier === "ChargeAssetTxPayment",
+  )
+  let _assetId: null | number = null
+  if (assetPayment) {
+    const assetTxPayment = getLookup(assetPayment.type)
+    if (assetTxPayment.type === "struct") {
+      const optionalAssetId = assetTxPayment.value.asset_id
+      if (optionalAssetId.type === "option") _assetId = optionalAssetId.value.id
+    }
+  }
+
+  const assetId =
+    _assetId === null
+      ? null
+      : {
+          checksum: checksumBuilder.buildDefinition(_assetId)!,
+          type: staticBuilder.getTypeFromVarName(
+            staticBuilder.buildDefinition(_assetId),
+          ),
+        }
+
   const code = staticBuilder.getCode() + "\n\n" + exportedTypes.join("\n")
   const enums = staticBuilder.getEnums()
 
-  return { descriptorsData, code, enums }
+  return { descriptorsData, code, enums, assetId }
 }
