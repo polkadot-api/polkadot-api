@@ -13,9 +13,10 @@ Polkadot API CLI
 
 Options:
   -j, --pkgJSONKey <key>  key in package json for descriptor metadata (default: "polkadot-api")
-  k --key <key>           first key in descriptor metadata
-  f --file <file>         path to descriptor metadata file; alternative to package json
-  w --wsURL <wsURL>       websocket url to fetch metadata
+  -k --key <key>           first key in descriptor metadata
+  -f --file <file>         path to descriptor metadata file; alternative to package json
+  -w --wsURL <wsURL>       websocket url to fetch metadata
+  -c --chainSpec <chainSpec> chainspec to fetch metadata
   -i, --interactive       whether to run in interactive mode (default: false)
   -h, --help              display help for command
 ```
@@ -67,6 +68,12 @@ If you want to fetch the metadata using a websocket url you can use the `--wsURL
 
 ```sh
 polkadot-api --interactive --wsURL "<YOUR WS URL>"
+```
+
+Alternatively, If you want to connect to a parachain with a chainspec, you can use the `--chainSpec` flag
+
+```sh
+polkadot-api --interactive --chainSpec "<YOUR CHAINSPEC FILE>"
 ```
 
 ## Non-Interactive Usage

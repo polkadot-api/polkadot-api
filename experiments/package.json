@@ -48,6 +48,10 @@
     "ksm": {
       "metadata": "../packages/metadata-fixtures/ksm-metadata.scale",
       "outputFolder": "./src/descriptors/"
+    },
+    "derp": {
+      "metadata": "derp-metadata.scale",
+      "outputFolder": "derp"
     }
   }
 }

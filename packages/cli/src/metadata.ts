@@ -8,6 +8,7 @@ import { Worker } from "node:worker_threads"
 import { WebSocketProvider } from "@polkadot-api/ws-provider"
 import { getObservableClient } from "@polkadot-api/client"
 import { filter, firstValueFrom } from "rxjs"
+import { wellKnownChains } from "@polkadot-api/sc-provider"
 import { WebSocket } from "ws"
 ;(globalThis as any).WebSocket = WebSocket
 
@@ -22,11 +23,16 @@ const getMetadataCall = async (provider: ConnectProvider) => {
   return metadata
 }
 
-const getMetadataFromWellKnownChain = async (chain: WellKnownChain) => {
+const getMetadataFromSmoldot = async (
+  chain: WellKnownChain,
+  chainSpec?: string,
+) => {
   const provider: ConnectProvider = (onMsg) => {
     let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
       eval: true,
-      workerData: chain,
+      workerData: chainSpec
+        ? { input: chainSpec, relayChainSpec: chain }
+        : { input: chain },
       stderr: true,
       stdout: true,
     })
@@ -61,6 +67,10 @@ export type GetMetadataArgs =
       url: string
     }
   | {
+      source: "chainSpec"
+      chainSpec: string
+    }
+  | {
       source: "file"
       file: string
     }
@@ -68,10 +78,18 @@ export type GetMetadataArgs =
 export async function getMetadata(args: GetMetadataArgs): Promise<V15> {
   switch (args.source) {
     case "chain": {
-      return getMetadataFromWellKnownChain(args.chain)
+      return getMetadataFromSmoldot(args.chain)
     }
     case "ws": {
       return getMetadataFromWsURL(args.url)
+    }
+    case "chainSpec": {
+      const chainSpec = await fs.readFile(args.chainSpec, { encoding: "utf-8" })
+      const relayChain = JSON.parse(chainSpec)["relay_chain"]
+      if (!relayChain || !wellKnownChains.has(relayChain)) {
+        throw new Error(`Unsupported relayChain: ${relayChain}`)
+      }
+      return getMetadataFromSmoldot(WellKnownChain.polkadot, chainSpec)
     }
     case "file": {
       const data = await fs.readFile(args.file)
