@@ -20,7 +20,7 @@ import { mapObject } from "@polkadot-api/utils"
 const defaultOnCreateTx: CreateTxCallback = (
   {
     userSingedExtensionsName,
-    hintedSignedExtensions: { mortality, tip, assetId },
+    hintedSignedExtensions: { mortality, tip, asset },
   },
   callback,
 ) => {
@@ -36,10 +36,9 @@ const defaultOnCreateTx: CreateTxCallback = (
 
       if (x === "ChargeTransactionPayment") return [x, tip ?? 0n]
 
-      return [x, { tip: tip ?? 0n, assetId }]
+      return [x, { tip: tip ?? 0n, asset }]
     }),
   )
-
   callback(userSignedExtensionsData)
 }
 

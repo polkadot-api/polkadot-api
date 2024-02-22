@@ -6,10 +6,11 @@ import {
   Bytes,
 } from "@polkadot-api/substrate-bindings"
 import type { GetUserSignedExtension } from "@/types/internal-types"
+import { toHex } from "@polkadot-api/utils"
 
 const encoder = Struct({
   tip: compact,
-  assetId: Option(Bytes(Infinity)),
+  asset: Option(Bytes(Infinity)),
 }).enc
 
 export const ChargeAssetTxPayment: GetUserSignedExtension<
@@ -19,9 +20,12 @@ export const ChargeAssetTxPayment: GetUserSignedExtension<
     map((val) => ({
       extra: encoder({
         tip: val.tip,
-        assetId: val.assetId,
+        asset: val.asset,
       }),
       additional: new Uint8Array(),
-      pjs: {},
+      pjs: {
+        ...(val.asset ? { assetId: toHex(val.asset) } : {}),
+        ...(val.tip > 0n ? { tip: "0x" + val.tip.toString(16) } : {}),
+      },
     })),
   )

@@ -10,7 +10,7 @@ import { empty$ } from "../utils"
 
 const encoder = Struct({
   tip: compact,
-  assetId: Option(Bytes(Infinity)),
+  asset: Option(Bytes(Infinity)),
 }).enc
 
 export const ChargeAssetTxPayment: GetUserSignedExtension<
@@ -20,7 +20,7 @@ export const ChargeAssetTxPayment: GetUserSignedExtension<
     map((val) =>
       encoder({
         tip: val.tip,
-        assetId: val.assetId,
+        asset: val.asset,
       }),
     ),
   ),

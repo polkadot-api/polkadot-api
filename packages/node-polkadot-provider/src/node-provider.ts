@@ -61,7 +61,7 @@ export const getChain = ({
 
       const {
         userSingedExtensionsName,
-        hintedSignedExtensions: { mortality, tip, assetId },
+        hintedSignedExtensions: { mortality, tip, asset },
       } = ctx
       const userSignedExtensionDefaults = getUserSignedExtensionDefaults()
 
@@ -84,8 +84,7 @@ export const getChain = ({
             x,
             {
               tip: tip ?? ((def as any).tip as bigint) ?? 0n,
-              assetId:
-                assetId ?? ((def as any).assetId as Uint8Array | undefined),
+              asset: asset ?? ((def as any).asset as Uint8Array | undefined),
             },
           ]
         }),

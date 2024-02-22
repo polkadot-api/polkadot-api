@@ -39,13 +39,13 @@ export type CreateTxCallback = <
 export type UserSignedExtensions = {
   CheckMortality: { mortal: false } | { mortal: true; period: number }
   ChargeTransactionPayment: bigint
-  ChargeAssetTxPayment: { tip: bigint; assetId?: Uint8Array }
+  ChargeAssetTxPayment: { tip: bigint; asset?: Uint8Array }
 }
 
 export type HintedSignedExtensions = Partial<{
   tip: bigint
   mortality: { mortal: false } | { mortal: true; period: number }
-  assetId: Uint8Array
+  asset: Uint8Array
 }>
 
 export type UserSignedExtensionName = keyof UserSignedExtensions
