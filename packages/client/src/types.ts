@@ -18,7 +18,7 @@ import { RuntimeApi } from "./runtime"
 export type HintedSignedExtensions = Partial<{
   tip: bigint
   mortality: { mortal: false } | { mortal: true; period: number }
-  assetId: Uint8Array
+  asset: Uint8Array
 }>
 
 export type CreateTx = (

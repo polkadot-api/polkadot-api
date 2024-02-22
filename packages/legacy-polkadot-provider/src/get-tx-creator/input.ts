@@ -22,7 +22,8 @@ export const getInput$ = <T extends Array<UserSignedExtensionName>>(
       const userKeys = user
       for (let i = 0; i < userKeys.length; i++) {
         const userKey = userKeys[i]
-        if (Object.hasOwn(x as any, userKey)) continue
+        if (Object.hasOwn(x, userKey)) continue
+        return observer.error(new Error(`Missing user data for "${userKey}"`))
       }
 
       observer.next(x)

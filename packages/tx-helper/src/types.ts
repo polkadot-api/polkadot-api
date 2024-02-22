@@ -68,7 +68,7 @@ export type ConsumerCallback<T extends Array<UserSignedExtensionName>> = {
 export type HintedSignedExtensions = Partial<{
   tip: bigint
   mortality: { mortal: false } | { mortal: true; period: number }
-  assetId: Uint8Array
+  asset: Uint8Array
 }>
 
 export type CreateTx = (
@@ -86,7 +86,7 @@ export type SigningType = "Ed25519" | "Sr25519" | "Ecdsa"
 export type UserSignedExtensions = {
   CheckMortality: { mortal: false } | { mortal: true; period: number }
   ChargeTransactionPayment: bigint
-  ChargeAssetTxPayment: { tip: bigint; assetId?: Uint8Array }
+  ChargeAssetTxPayment: { tip: bigint; asset?: Uint8Array }
 }
 
 export type UserSignedExtensionName = keyof UserSignedExtensions
