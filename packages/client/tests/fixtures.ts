@@ -54,7 +54,7 @@ export const newRuntime = fixtureWithDefault<Runtime>(() => ({
 export const newInitialized = fixtureWithDefault<InitializedWithRuntime>(
   () => ({
     type: "initialized",
-    finalizedBlockHash: nilHash,
+    finalizedBlockHashes: [nilHash],
     finalizedBlockRuntime: newRuntime(),
   }),
 )
@@ -108,14 +108,14 @@ export const initialize = async (mockClient: MockSubstrateClient) => {
     parentHash: newHash(),
   })
   await mockClient.chainHead.mock.header.reply(
-    initialized.finalizedBlockHash,
+    initialized.finalizedBlockHashes[0],
     encodeHeader(header),
   )
   // Wait a microtask, internally the code is mapping values through .then(), but it's guaranteed the result will come in the same macro task
   await waitMicro()
 
   return {
-    initialHash: initialized.finalizedBlockHash,
+    initialHash: initialized.finalizedBlockHashes[0],
     initialNumber: header.number,
     initialized,
     header,

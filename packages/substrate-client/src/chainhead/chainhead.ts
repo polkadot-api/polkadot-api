@@ -65,6 +65,17 @@ export function getChainHead(
       }
 
       if (event.event !== "stop") {
+        if (event.event === "initialized") {
+          return onFollowEvent({
+            type: event.event,
+            finalizedBlockHashes:
+              "finalizedBlockHash" in event
+                ? [event.finalizedBlockHash]
+                : event.finalizedBlockHashes,
+            finalizedBlockRuntime: (event as any).finalizedBlockRuntime,
+          })
+        }
+
         const { event: type, ...rest } = event
         // This is kinda dangerous, but YOLO
         return onFollowEvent({ type, ...rest } as any)

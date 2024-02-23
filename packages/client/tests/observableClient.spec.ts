@@ -33,14 +33,14 @@ describe("observableClient chainHead", () => {
       // initialized event is missing some parameters before `finalized$` can emit
       expect(next).not.toHaveBeenCalled()
       expect(mockClient.chainHead.mock.header).toHaveBeenCalledWith(
-        initialized.finalizedBlockHash,
+        initialized.finalizedBlockHashes[0],
       )
 
       const header = createHeader({
         parentHash: newHash(),
       })
       await mockClient.chainHead.mock.header.reply(
-        initialized.finalizedBlockHash,
+        initialized.finalizedBlockHashes[0],
         encodeHeader(header),
       )
 
@@ -49,7 +49,7 @@ describe("observableClient chainHead", () => {
 
       expect(next).toHaveBeenCalledOnce()
       expect(next).toHaveBeenLastCalledWith({
-        hash: initialized.finalizedBlockHash,
+        hash: initialized.finalizedBlockHashes[0],
         number: header.number,
         parent: header.parentHash,
       } satisfies BlockInfo)

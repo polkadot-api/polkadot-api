@@ -32,7 +32,7 @@ describe("chainHead", () => {
 
     const initialized = {
       event: "initialized",
-      finalizedBlockHash: nilHash,
+      finalizedBlockHashes: [nilHash],
       finalizedBlockRuntime: nilHash,
     }
     sendSubscription({

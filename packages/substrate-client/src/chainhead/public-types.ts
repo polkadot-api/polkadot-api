@@ -48,7 +48,7 @@ export interface Runtime {
 
 export interface Initialized {
   type: "initialized"
-  finalizedBlockHash: string
+  finalizedBlockHashes: string[]
 }
 
 export type InitializedWithRuntime = Initialized & {

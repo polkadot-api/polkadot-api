@@ -33,7 +33,7 @@ export async function run(_nodeName: string, networkInfo: any) {
           return
         }
         if (requested || event.type !== "initialized") return
-        const latestFinalized = event.finalizedBlockHash
+        const [latestFinalized] = event.finalizedBlockHashes.slice(-1)
         requested = true
 
         // Call metadata
