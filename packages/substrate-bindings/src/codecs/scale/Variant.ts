@@ -86,7 +86,7 @@ export type Anonymize<T> = SeparateUndefined<
         ? {
             [K in keyof T]: Anonymize<T[K]>
           }
-        : [] extends T
+        : T extends []
           ? []
           : T extends Array<infer A>
             ? List<Anonymize<A>>
