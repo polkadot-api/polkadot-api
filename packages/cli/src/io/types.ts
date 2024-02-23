@@ -13,3 +13,16 @@ export interface PalletData {
   >
   tx: Record<string, PlainDescriptor>
 }
+
+export type ApiData = {
+  docs: string[]
+  methods: Record<
+    string,
+    {
+      checksum: string | null
+      payload: string
+      args: string
+      docs: string[]
+    }
+  >
+}

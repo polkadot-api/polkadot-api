@@ -1,10 +1,10 @@
-import type { V15 } from "@polkadot-api/substrate-bindings"
 import {
   getChecksumBuilder,
   getLookupFn,
   getStaticBuilder,
 } from "@polkadot-api/metadata-builders"
-import { PalletData } from "./types"
+import type { V15 } from "@polkadot-api/substrate-bindings"
+import { ApiData, PalletData } from "./types"
 
 export const getCodegenInfo = (
   metadata: V15,
@@ -13,17 +13,7 @@ export const getCodegenInfo = (
 ) => {
   const descriptorsData: {
     pallets: Record<string, PalletData>
-    apis: Record<
-      string,
-      Record<
-        string,
-        {
-          checksum: string | null
-          payload: string
-          args: string
-        }
-      >
-    >
+    apis: Record<string, ApiData>
   } = {
     pallets: {},
     apis: {},
@@ -126,14 +116,10 @@ export const getCodegenInfo = (
   }
 
   for (const api of metadata.apis) {
-    const result: Record<
-      string,
-      {
-        checksum: string | null
-        payload: string
-        args: string
-      }
-    > = {}
+    const result: ApiData = {
+      methods: {},
+      docs: api.docs,
+    }
     descriptorsData.apis[api.name] = result
 
     for (const method of api.methods) {
@@ -141,10 +127,11 @@ export const getCodegenInfo = (
         continue
       const st = staticBuilder.buildRuntimeCall(api.name, method.name)
 
-      result[method.name] = {
+      result.methods[method.name] = {
         checksum: checksumBuilder.buildRuntimeCall(api.name, method.name),
         args: addExportedType(api.name, "APIArgs", method.name, st.args),
         payload: addExportedType(api.name, "APIValue", method.name, st.value),
+        docs: method.docs,
       }
     }
   }

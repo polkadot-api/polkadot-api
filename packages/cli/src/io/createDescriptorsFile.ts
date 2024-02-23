@@ -1,9 +1,9 @@
-import { PalletData } from "./types"
-import fs from "fs/promises"
-import fsExists from "fs.promises.exists"
-import tsc from "tsc-prog"
-import path from "path"
 import { mapObject } from "@polkadot-api/utils"
+import fsExists from "fs.promises.exists"
+import fs from "fs/promises"
+import path from "path"
+import tsc from "tsc-prog"
+import { ApiData, PalletData } from "./types"
 
 const customStringifyObject = (
   input: string | Record<string, any> | Array<any>,
@@ -23,7 +23,7 @@ const docsCodegen = (obj: Record<string, { types: string; docs?: string[] }>) =>
     .map(([key, value]) => {
       const definition = `${key}: ${value.types}`
       const docs = value.docs?.length
-        ? `/**\n${value.docs.map((doc) => ` * ${doc}`).join("\n")} */`
+        ? `/**\n${value.docs.map((doc) => ` *${doc}`).join("\n")}\n */`
         : null
 
       return value.docs?.length ? `${docs}\n${definition}` : definition
@@ -35,17 +35,7 @@ export const createDescriptorsFile = async (
   outputFolder: string,
   descriptors: {
     pallets: Record<string, PalletData>
-    apis: Record<
-      string,
-      Record<
-        string,
-        {
-          checksum: string | null
-          payload: string
-          args: string
-        }
-      >
-    >
+    apis: Record<string, ApiData>
   },
   enums: Array<string>,
   asset: null | { checksum: string; type: string },
@@ -82,7 +72,22 @@ export const createDescriptorsFile = async (
   const evDescriptors: Descriptors = {}
   const errDescriptors: Descriptors = {}
   const constDescriptors: Descriptors = {}
-  const runtimeDescriptors: Descriptors = {}
+
+  type RuntimeDescriptors = Record<
+    string,
+    {
+      docs: string[]
+      methods: Record<
+        string,
+        {
+          varName: string
+          types: string
+          docs: string[]
+        }
+      >
+    }
+  >
+  const runtimeDescriptors: RuntimeDescriptors = {}
 
   for (const [
     pallet,
@@ -140,15 +145,15 @@ export const createDescriptorsFile = async (
     }
   }
 
-  for (const [namespace, methods] of Object.entries(apis)) {
-    runtimeDescriptors[namespace] = {}
+  for (const [namespace, { methods, docs }] of Object.entries(apis)) {
+    runtimeDescriptors[namespace] = { docs, methods: {} }
 
-    for (const [method, { checksum, payload, args }] of Object.entries(
+    for (const [method, { checksum, payload, args, docs }] of Object.entries(
       methods,
     )) {
       const types = `RuntimeDescriptor<${args}, ${payload}>`
       const varName = `RuntimeApi${namespace}${method}`
-      runtimeDescriptors[namespace][method] = { types, varName }
+      runtimeDescriptors[namespace].methods[method] = { types, varName, docs }
       addTypeImport(args)
       addTypeImport(payload)
       addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
@@ -174,7 +179,12 @@ export const createDescriptorsFile = async (
 
   addLine(
     `type I${key}DescriptorsApis = ${customStringifyObject(
-      mapObject(runtimeDescriptors, (out) => docsCodegen(out)),
+      docsCodegen(
+        mapObject(runtimeDescriptors, (descriptor) => ({
+          docs: descriptor.docs,
+          types: docsCodegen(descriptor.methods),
+        })),
+      ),
     )};\n`,
   )
 
@@ -207,7 +217,7 @@ export const createDescriptorsFile = async (
   addLine(
     `const _allApiDescriptors: I${key}DescriptorsApis = ${customStringifyObject(
       mapObject(runtimeDescriptors, (api) =>
-        mapObject(api, (method) => method.varName),
+        mapObject(api.methods, (method) => method.varName),
       ),
     )};\n`,
   )
