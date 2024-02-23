@@ -88,11 +88,11 @@ export type RuntimeCallsApi<
 }
 
 export type TxApi<A extends Record<string, Record<string, any>>, Asset> = {
-  [K in keyof A & string]: {
-    [KK in keyof A[K] & string]: A[K][KK] extends {} | undefined
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends {} | undefined
       ? (
           ...args: A[K][KK] extends undefined ? [] : [data: A[K][KK]]
-        ) => Transaction<A[K][KK], K, KK, Asset>
+        ) => Transaction<A[K][KK], K & string, KK & string, Asset>
       : unknown
   }
 }

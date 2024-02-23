@@ -1,7 +1,7 @@
 export type PlainDescriptor = {
   checksum: string
   payload: string
-  docs?: string[]
+  docs: string[]
 }
 
 export interface PalletData {

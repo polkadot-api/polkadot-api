@@ -21,11 +21,16 @@ export const getCodegenInfo = (
 
   const getLookup = getLookupFn(metadata.lookup)
 
-  const getEnumEntry = (id: number | undefined | void): Array<string> => {
+  const getEnumEntry = (
+    id: number | undefined | void,
+  ): Array<{ name: string; docs: string[] }> => {
     if (!id) return []
     const lookup = getLookup(id)
     if (lookup.type !== "enum") return []
-    return Object.keys(lookup.value)
+    return Object.keys(lookup.value).map((name) => ({
+      name,
+      docs: lookup.innerDocs[name] ?? [],
+    }))
   }
 
   const staticBuilder = getStaticBuilder(metadata)
@@ -70,36 +75,39 @@ export const getCodegenInfo = (
       }
     }
 
-    for (const callName of getEnumEntry(pallet.calls)) {
-      if (whiteList && !whiteList.has(`${pallet.name}.call.${callName}`))
+    for (const call of getEnumEntry(pallet.calls)) {
+      if (whiteList && !whiteList.has(`${pallet.name}.call.${call.name}`))
         continue
 
-      const payload = staticBuilder.buildCall(pallet.name, callName)
-      result.tx[callName] = {
-        checksum: checksumBuilder.buildCall(pallet.name, callName)!,
-        payload: addExportedType(pallet.name, "Tx", callName, payload),
+      const payload = staticBuilder.buildCall(pallet.name, call.name)
+      result.tx[call.name] = {
+        checksum: checksumBuilder.buildCall(pallet.name, call.name)!,
+        payload: addExportedType(pallet.name, "Tx", call.name, payload),
+        docs: call.docs,
       }
     }
 
-    for (const errName of getEnumEntry(pallet.errors)) {
-      if (whiteList && !whiteList.has(`${pallet.name}.error.${errName}`))
+    for (const err of getEnumEntry(pallet.errors)) {
+      if (whiteList && !whiteList.has(`${pallet.name}.error.${err.name}`))
         continue
 
-      const payload = staticBuilder.buildError(pallet.name, errName)
-      result.errors[errName] = {
-        checksum: checksumBuilder.buildError(pallet.name, errName)!,
-        payload: addExportedType(pallet.name, "Error", errName, payload),
+      const payload = staticBuilder.buildError(pallet.name, err.name)
+      result.errors[err.name] = {
+        checksum: checksumBuilder.buildError(pallet.name, err.name)!,
+        payload: addExportedType(pallet.name, "Error", err.name, payload),
+        docs: err.docs,
       }
     }
 
-    for (const evName of getEnumEntry(pallet.events)) {
-      if (whiteList && !whiteList.has(`${pallet.name}.event.${evName}`))
+    for (const ev of getEnumEntry(pallet.events)) {
+      if (whiteList && !whiteList.has(`${pallet.name}.event.${ev.name}`))
         continue
 
-      const payload = staticBuilder.buildEvent(pallet.name, evName)
-      result.events[evName] = {
-        checksum: checksumBuilder.buildEvent(pallet.name, evName)!,
-        payload: addExportedType(pallet.name, "Event", evName, payload),
+      const payload = staticBuilder.buildEvent(pallet.name, ev.name)
+      result.events[ev.name] = {
+        checksum: checksumBuilder.buildEvent(pallet.name, ev.name)!,
+        payload: addExportedType(pallet.name, "Event", ev.name, payload),
+        docs: ev.docs,
       }
     }
 

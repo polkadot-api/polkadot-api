@@ -63,7 +63,7 @@ export const createDescriptorsFile = async (
       {
         varName: string
         types: string
-        docs?: string[]
+        docs: string[]
       }
     >
   >
@@ -94,19 +94,23 @@ export const createDescriptorsFile = async (
     { errors, events, constants, storage, tx },
   ] of Object.entries(pallets)) {
     errDescriptors[pallet] = {}
-    for (const [errorName, { checksum, payload }] of Object.entries(errors)) {
+    for (const [errorName, { checksum, payload, docs }] of Object.entries(
+      errors,
+    )) {
       const types = `PlainDescriptor<${payload}>`
       const varName = `Err${pallet}${errorName}`
-      errDescriptors[pallet][errorName] = { types, varName }
+      errDescriptors[pallet][errorName] = { types, varName, docs }
       addTypeImport(payload)
       addLine(`const ${varName}: ${types} = "${checksum}" as ${types};`)
     }
 
     evDescriptors[pallet] = {}
-    for (const [evName, { checksum, payload }] of Object.entries(events)) {
+    for (const [evName, { checksum, payload, docs }] of Object.entries(
+      events,
+    )) {
       const types = `PlainDescriptor<${payload}>`
       const varName = `Ev${pallet}${evName}`
-      evDescriptors[pallet][evName] = { types, varName }
+      evDescriptors[pallet][evName] = { types, varName, docs }
       addTypeImport(payload)
       addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
     }
@@ -123,10 +127,10 @@ export const createDescriptorsFile = async (
     }
 
     txDescriptors[pallet] = {}
-    for (const [txName, { checksum, payload }] of Object.entries(tx)) {
+    for (const [txName, { checksum, payload, docs }] of Object.entries(tx)) {
       const types = `TxDescriptor<${payload}>`
       const varName = `Tx${pallet}${txName}`
-      txDescriptors[pallet][txName] = { types, varName }
+      txDescriptors[pallet][txName] = { types, varName, docs }
       addTypeImport(payload)
       addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
     }
