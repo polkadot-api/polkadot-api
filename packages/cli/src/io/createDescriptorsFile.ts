@@ -112,12 +112,12 @@ export const createDescriptorsFile = async (
     }
 
     constDescriptors[pallet] = {}
-    for (const [constName, { checksum, payload }] of Object.entries(
+    for (const [constName, { checksum, payload, docs }] of Object.entries(
       constants,
     )) {
       const types = `PlainDescriptor<${payload}>`
       const varName = `Const${pallet}${constName}`
-      constDescriptors[pallet][constName] = { types, varName }
+      constDescriptors[pallet][constName] = { types, varName, docs }
       addTypeImport(payload)
       addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
     }

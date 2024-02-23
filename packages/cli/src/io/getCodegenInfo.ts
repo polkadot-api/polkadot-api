@@ -103,7 +103,7 @@ export const getCodegenInfo = (
       }
     }
 
-    for (const { name: constName } of pallet.constants) {
+    for (const { name: constName, docs } of pallet.constants) {
       if (whiteList && !whiteList.has(`${pallet.name}.const.${constName}`))
         continue
 
@@ -111,6 +111,7 @@ export const getCodegenInfo = (
       result.constants[constName] = {
         checksum: checksumBuilder.buildConstant(pallet.name, constName)!,
         payload: addExportedType(pallet.name, "Constant", constName, payload),
+        docs,
       }
     }
   }

@@ -1,6 +1,7 @@
 export type PlainDescriptor = {
   checksum: string
   payload: string
+  docs?: string[]
 }
 
 export interface PalletData {
@@ -9,7 +10,7 @@ export interface PalletData {
   events: Record<string, PlainDescriptor>
   storage: Record<
     string,
-    PlainDescriptor & { key: string; isOptional: boolean; docs: string[] }
+    PlainDescriptor & { key: string; isOptional: boolean }
   >
   tx: Record<string, PlainDescriptor>
 }
