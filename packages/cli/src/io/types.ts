@@ -9,7 +9,7 @@ export interface PalletData {
   events: Record<string, PlainDescriptor>
   storage: Record<
     string,
-    PlainDescriptor & { key: string; isOptional: boolean }
+    PlainDescriptor & { key: string; isOptional: boolean; docs: string[] }
   >
   tx: Record<string, PlainDescriptor>
 }

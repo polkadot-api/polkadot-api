@@ -76,6 +76,7 @@ export const getCodegenInfo = (
         payload: addExportedType(pallet.name, "Storage", stg.name, val),
         key: addExportedType(pallet.name, "Storage", stg.name + "_Args", key),
         isOptional: !stg.modifier,
+        docs: stg.docs,
       }
     }
 

@@ -18,6 +18,18 @@ const customStringifyObject = (
     .join(", ")}}`
 }
 
+const docsCodegen = (obj: Record<string, { types: string; docs?: string[] }>) =>
+  `{\n${Object.entries(obj)
+    .map(([key, value]) => {
+      const definition = `${key}: ${value.types}`
+      const docs = value.docs?.length
+        ? `/**\n${value.docs.map((doc) => ` * ${doc}`).join("\n")} */`
+        : null
+
+      return value.docs?.length ? `${docs}\n${definition}` : definition
+    })
+    .join(",\n")}\n}`
+
 export const createDescriptorsFile = async (
   key: string,
   outputFolder: string,
@@ -61,6 +73,7 @@ export const createDescriptorsFile = async (
       {
         varName: string
         types: string
+        docs?: string[]
       }
     >
   >
@@ -116,11 +129,11 @@ export const createDescriptorsFile = async (
     stgDescriptors[pallet] = {}
     for (const [
       stgName,
-      { checksum, payload, key, isOptional },
+      { checksum, payload, key, isOptional, docs },
     ] of Object.entries(storage)) {
       const types = `StorageDescriptor<${key}, ${payload}, ${isOptional}>`
       const varName = `Stg${pallet}${stgName}`
-      stgDescriptors[pallet][stgName] = { types, varName }
+      stgDescriptors[pallet][stgName] = { types, varName, docs }
       addTypeImport(key)
       addTypeImport(payload)
       addLine(`const ${varName}: ${types} = "${checksum}" as ${types}`)
@@ -154,14 +167,14 @@ export const createDescriptorsFile = async (
           evDescriptors,
           errDescriptors,
           constDescriptors,
-        ].map((x) => mapObject(x[key], (v) => v.types)),
+        ].map((x) => docsCodegen(x[key])),
       ),
     )};\n`,
   )
 
   addLine(
     `type I${key}DescriptorsApis = ${customStringifyObject(
-      mapObject(runtimeDescriptors, (out) => mapObject(out, (x) => x.types)),
+      mapObject(runtimeDescriptors, (out) => docsCodegen(out)),
     )};\n`,
   )
 
