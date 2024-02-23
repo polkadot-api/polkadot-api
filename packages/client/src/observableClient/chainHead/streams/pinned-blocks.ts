@@ -53,7 +53,7 @@ export const getPinnedBlocks$ = (
     concatMap((event) => {
       return event.type !== "initialized"
         ? of(event)
-        : getHeader(event.finalizedBlockHash).then((header) => ({
+        : getHeader(event.finalizedBlockHashes.slice(-1)[0]).then((header) => ({
             ...event,
             number: header.number,
             parentHash: header.parentHash,
@@ -125,7 +125,7 @@ export const getPinnedBlocks$ = (
       (acc, event) => {
         switch (event.type) {
           case "initialized":
-            const hash = event.finalizedBlockHash
+            const [hash] = event.finalizedBlockHashes.slice(-1)
             acc.finalized = acc.best = hash
 
             acc.blocks.set(hash, {
