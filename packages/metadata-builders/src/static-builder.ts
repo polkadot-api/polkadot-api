@@ -314,7 +314,7 @@ const buildSyntax = withCache(
   (x) => x,
 )
 
-export const getStaticBuilder = (metadata: V15, namespace: string) => {
+export const getStaticBuilder = (metadata: V15) => {
   const declarations: CodeDeclarations = {
     imports: new Set<string>(),
     typeImports: new Set<string>(["Codec"]),
@@ -327,12 +327,16 @@ export const getStaticBuilder = (metadata: V15, namespace: string) => {
 
   const getVarName = (idx: number, ...post: string[]): string => {
     const { path } = lookupData[idx]
-    const parts: string[] =
-      path.length === 0
-        ? ["cdc" + idx]
-        : path[0] === "sp_runtime"
-          ? [namespace, path.slice(-1)[0]]
-          : [namespace, ...path]
+    let parts: string[]
+    if (path.length === 0) parts = ["cdc" + idx]
+    else if (path[0] === "sp_runtime") parts = [path.slice(-1)[0]]
+    else if (
+      // Junctions Junctions, etc
+      path.length > 2 &&
+      path.slice(-2)[0].toUpperCase() === path.slice(-2)[1].toUpperCase()
+    )
+      parts = path.slice(0, -1)
+    else parts = [...path]
 
     parts.push(...post)
 
