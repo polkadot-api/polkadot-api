@@ -65,11 +65,7 @@ export interface CodeDeclarations {
 }
 
 const toCamelCase = (...parts: string[]): string =>
-  parts[0] +
-  parts
-    .slice(1)
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join("")
+  parts.map((part) => part[0].toUpperCase() + part.slice(1)).join("")
 
 const getTypes = (varName: string) =>
   primitiveTypes[varName as keyof typeof primitiveTypes] ?? varName
