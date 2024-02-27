@@ -1,3 +1,5 @@
+import { firstValueFromWithSignal } from "@/utils"
+import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
   debounceTime,
@@ -5,9 +7,8 @@ import {
   exhaustMap,
   map,
 } from "rxjs"
-import { firstValueFromWithSignal } from "@/utils"
-import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
-import { getObservableClient, RuntimeContext } from "./observableClient"
+import { RuntimeContext, getObservableClient } from "./observableClient"
+import { IsCompatible, createIsCompatible } from "./runtime"
 
 type CallOptions = Partial<{
   at: string
@@ -24,11 +25,13 @@ type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
   : []
 
 type StorageEntryWithoutKeys<Payload> = {
+  isCompatible: IsCompatible
   getValue: (options?: CallOptions) => Promise<Payload>
   watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
 }
 
 type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
+  isCompatible: IsCompatible
   getValue: (...args: [...WithCallOptions<Args>]) => Promise<Payload>
   watchValue: (
     ...args: [...Args, bestOrFinalized?: "best" | "finalized"]
@@ -68,10 +71,11 @@ export const createStorageEntry = (
   pallet: string,
   name: string,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-) => {
+): StorageEntry<any, any> => {
+  const hasSameChecksum = (ctx: RuntimeContext) =>
+    ctx.checksumBuilder.buildStorage(pallet, name) === checksum
   const checksumCheck = (ctx: RuntimeContext) => {
-    const actualChecksum = ctx.checksumBuilder.buildStorage(pallet, name)
-    if (checksum !== actualChecksum)
+    if (!hasSameChecksum(ctx))
       throw new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
   }
 
@@ -160,5 +164,7 @@ export const createStorageEntry = (
       keyArgs.map((args) => getValue(...(options ? [...args, options] : args))),
     )
 
-  return { getValue, getValues, getEntries, watchValue }
+  const isCompatible = createIsCompatible(chainHead, hasSameChecksum)
+
+  return { isCompatible, getValue, getValues, getEntries, watchValue }
 }

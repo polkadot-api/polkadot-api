@@ -15,8 +15,10 @@ const chain = relayChains.westend2
 const client = createClient(chain.connect)
 const testApi = client.getTypedApi(test)
 
+const isCompatible = await testApi.tx.AssetRate.create.isCompatible()
+
 const runtime = await testApi.runtime.latest()
-runtime.isCompatible((v) => v.tx.AssetRate.create)
+const isCompatible2 = testApi.tx.AssetRate.create.isCompatible(runtime)
 
 const accounts = await chain.getAccounts()
 

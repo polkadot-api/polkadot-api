@@ -9,7 +9,7 @@ import { getObservableClient } from "./observableClient"
 import { getRuntimeApi } from "./runtime"
 import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry, type StorageEntry } from "./storage"
-import { Transaction, createTxEntry } from "./tx"
+import { TxEntry, createTxEntry } from "./tx"
 import {
   CreateClient,
   CreateTx,
@@ -41,10 +41,7 @@ const createTypedApi = <D extends Descriptors>(
     }
   }
 
-  const tx = {} as Record<
-    string,
-    Record<string, (a: any) => Transaction<any, any, any, any>>
-  >
+  const tx = {} as Record<string, Record<string, TxEntry<any, any, any, any>>>
   for (const pallet in pallets) {
     tx[pallet] ||= {}
     const [, txEntries] = pallets[pallet]

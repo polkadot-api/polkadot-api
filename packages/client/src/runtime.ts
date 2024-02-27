@@ -1,66 +1,22 @@
 import {
   ConstFromDescriptors,
   Descriptors,
-  EventsFromDescriptors,
   HexString,
-  QueryFromDescriptors,
-  TxFromDescriptors,
 } from "@polkadot-api/substrate-bindings"
-import { RuntimeContext, getObservableClient } from "./observableClient"
-import { Observable, filter, map } from "rxjs"
 import { mapObject } from "@polkadot-api/utils"
-
-type StorageRuntime<
-  A extends Record<
-    string,
-    Record<
-      string,
-      | {
-          KeyArgs: Array<any>
-          Value: any
-          IsOptional: false | true
-        }
-      | unknown
-    >
-  >,
-> = {
-  [K in keyof A]: {
-    [KK in keyof A[K]]: boolean
-  }
-}
-
-type TxRuntime<A extends Record<string, Record<string, Array<any> | unknown>>> =
-  {
-    [K in keyof A]: {
-      [KK in keyof A[K]]: boolean
-    }
-  }
-
-type PlainRuntime<A extends Record<string, Record<string, any>>> = {
-  [K in keyof A]: {
-    [KK in keyof A[K]]: boolean
-  }
-}
-
-type MappedKey<K extends string, V> = `${K}${V extends Record<string, any>
-  ? `.${Paths<V>}`
-  : ""}`
-type KeyMap<T> = {
-  [K in keyof T & string]: MappedKey<K, T[K]>
-}
-type Paths<T> = KeyMap<T>[keyof T & string]
+import { Observable, filter, firstValueFrom, map } from "rxjs"
+import { RuntimeContext, getObservableClient } from "./observableClient"
 
 export interface Runtime<D extends Descriptors> {
   constants: ConstFromDescriptors<D>
-  isCompatible: (
-    cb: (api: {
-      query: StorageRuntime<QueryFromDescriptors<D>>
-      tx: TxRuntime<TxFromDescriptors<D>>
-      event: PlainRuntime<EventsFromDescriptors<D>>
-      const: PlainRuntime<ConstFromDescriptors<D>>
-    }) => boolean,
-  ) => boolean
+  constantIsCompatible: ConstIsCompatible<D>
+  ctx: RuntimeContext
 }
+
+type ConstIsCompatible<D extends Descriptors> = <K extends keyof D["pallets"]>(
+  pallet: K & string,
+  name: keyof D["pallets"][K][4] & string,
+) => boolean
 
 export type RuntimeApi<T extends Descriptors> = Observable<Runtime<T>> & {
   latest: () => Promise<Runtime<T>>
@@ -95,37 +51,35 @@ const createRuntime = <D extends Descriptors>(
       },
     )
   })
-  const isCompatibleMapper = (
-    idx: 0 | 1 | 2 | 4,
-    builder: "buildStorage" | "buildEvent" | "buildCall" | "buildConstant",
-  ) =>
-    mapObject(
-      descriptors.pallets,
-      (x, pallet: string) =>
-        new Proxy(
-          {},
-          {
-            get(_, name: string) {
-              return ctx.checksumBuilder[builder](pallet, name) === x[idx][name]
-            },
-          },
-        ),
-    )
 
-  const isCompatibleApi = {
-    query: isCompatibleMapper(0, "buildStorage"),
-    tx: isCompatibleMapper(1, "buildCall"),
-    event: isCompatibleMapper(2, "buildEvent"),
-    const: isCompatibleMapper(4, "buildConstant"),
+  const constantIsCompatible: ConstIsCompatible<D> = (pallet, name) => {
+    const descriptorChecksum = descriptors.pallets[pallet][4][name]
+    const actualChecksum = ctx.checksumBuilder.buildConstant(pallet, name)
+    return descriptorChecksum === actualChecksum
   }
 
-  const isCompatible: (cb: (api: any) => boolean) => boolean = (cb) =>
-    cb(isCompatibleApi)
-
   return {
-    constants,
-    isCompatible,
-  } as any
+    constants: constants as any,
+    constantIsCompatible,
+    ctx,
+  }
+}
+
+export interface IsCompatible {
+  (): Promise<boolean>
+  (runtime: Runtime<any>): boolean
+}
+export function createIsCompatible(
+  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  cb: (ctx: RuntimeContext) => boolean,
+): IsCompatible {
+  return (runtime?: Runtime<any>): any => {
+    if (runtime) {
+      return cb(runtime.ctx)
+    }
+
+    return firstValueFrom(chainHead.runtime$.pipe(filter(Boolean), map(cb)))
+  }
 }
 
 export const getRuntimeApi = <D extends Descriptors>(
@@ -141,8 +95,12 @@ export const getRuntimeApi = <D extends Descriptors>(
 
   chainHead.runtime$.subscribe((x) => {
     if (x) {
-      resolve!(createRuntime(descriptors, x))
-      resolve = null
+      if (resolve) {
+        resolve(createRuntime(descriptors, x))
+        resolve = null
+      } else {
+        latestRuntime = Promise.resolve(createRuntime(descriptors, x))
+      }
     } else if (!resolve) {
       latestRuntime = new Promise<Runtime<D>>((res) => {
         resolve = res
