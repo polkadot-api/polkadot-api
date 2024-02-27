@@ -12,7 +12,11 @@ const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
 
 const chain = relayChains.westend2
-const client = createClient(chain.connect, { test })
+const client = createClient(chain.connect)
+const testApi = client.getTypedApi(test)
+
+const runtime = await testApi.runtime.latest()
+runtime.isCompatible((v) => v.tx.AssetRate.create)
 
 const accounts = await chain.getAccounts()
 
@@ -43,7 +47,7 @@ function populateUserDropdown(select: Element) {
 }
 
 function transfer(alexa: Account, billy: Account, amount: bigint) {
-  client.test.tx.Balances.transfer_keep_alive({
+  testApi.tx.Balances.transfer_keep_alive({
     dest: MultiAddress.Id(billy.address),
     value: amount,
   })

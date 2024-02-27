@@ -1,45 +1,31 @@
+import { Descriptors } from "@polkadot-api/substrate-bindings"
 import {
   SubstrateClient,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
-import { createStorageEntry, type StorageEntry } from "./storage"
+import { firstValueFrom } from "rxjs"
+import { EvClient, createEventEntry } from "./event"
 import { getObservableClient } from "./observableClient"
+import { getRuntimeApi } from "./runtime"
+import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
+import { createStorageEntry, type StorageEntry } from "./storage"
+import { Transaction, createTxEntry } from "./tx"
 import {
   CreateClient,
   CreateTx,
-  EvApi,
   HintedSignedExtensions,
-  RuntimeCallsApi,
-  StorageApi,
-  TxApi,
+  TypedApi,
 } from "./types"
-import { Transaction, createTxEntry } from "./tx"
-import { firstValueFrom } from "rxjs"
-import { EvClient, createEventEntry } from "./event"
-import {
-  Descriptors,
-  EventsFromDescriptors,
-  QueryFromDescriptors,
-  TxFromDescriptors,
-} from "@polkadot-api/substrate-bindings"
-import { mapObject } from "@polkadot-api/utils"
-import { getRuntimeApi } from "./runtime"
-import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 
-const createNamespace = (
-  descriptors: Descriptors,
+const createTypedApi = <D extends Descriptors>(
+  descriptors: D,
   createTxFromAddress: (
     address: string | Uint8Array,
     callData: Uint8Array,
   ) => Promise<Uint8Array>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   client: ReturnType<typeof getObservableClient>,
-): {
-  query: StorageApi<QueryFromDescriptors<Descriptors>>
-  tx: TxApi<TxFromDescriptors<Descriptors>, Descriptors["asset"]["_type"]>
-  event: EvApi<EventsFromDescriptors<Descriptors>>
-  apis: RuntimeCallsApi<Descriptors["apis"]>
-} => {
+): TypedApi<D> => {
   const { pallets, apis: runtimeApis } = descriptors
   const query = {} as Record<string, Record<string, StorageEntry<any, any>>>
   for (const pallet in pallets) {
@@ -104,14 +90,15 @@ const createNamespace = (
   }
 
   return {
-    query: query as any,
+    query: query,
     tx: tx,
     event: events,
     apis,
-  }
+    runtime: getRuntimeApi(descriptors, chainHead),
+  } as any
 }
 
-export const createClient: CreateClient = (connect, descriptors) => {
+export const createClient: CreateClient = (connect) => {
   let createTx: CreateTx
   const rawClient: SubstrateClient = createRawClient((onMsg) => {
     const result = connect(onMsg)
@@ -142,10 +129,6 @@ export const createClient: CreateClient = (connect, descriptors) => {
   return {
     finalized$: chainHead.finalized$,
     bestBlocks$: chainHead.bestBlocks$,
-    runtime: getRuntimeApi(descriptors, chainHead),
-    ...mapObject(descriptors, (des) =>
-      createNamespace(des, createTxFromAddress, chainHead, client),
-    ),
     getBlockHeader: (hash?: string) =>
       firstValueFrom(chainHead.header$(hash ?? null)),
     getBlockBody: chainHead.body$,
@@ -153,5 +136,7 @@ export const createClient: CreateClient = (connect, descriptors) => {
       chainHead.unfollow()
       client.destroy()
     },
-  } as any
+    getTypedApi: <D extends Descriptors>(descriptors: D) =>
+      createTypedApi(descriptors, createTxFromAddress, chainHead, client),
+  }
 }

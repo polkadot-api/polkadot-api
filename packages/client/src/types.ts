@@ -103,21 +103,19 @@ export type EvApi<A extends Record<string, Record<string, any>>> = {
   }
 }
 
-export type CreateClient = <T extends Record<string, Descriptors>>(
-  connect: Connect,
-  descriptors: T,
-) => {
-  [K in keyof T]: {
-    query: StorageApi<QueryFromDescriptors<T[K]>>
-    tx: TxApi<TxFromDescriptors<T[K]>, Anonymize<T[K]["asset"]["_type"]>>
-    event: EvApi<EventsFromDescriptors<T[K]>>
-    apis: RuntimeCallsApi<T[K]["apis"]>
-  }
-} & {
+export type TypedApi<D extends Descriptors> = {
+  query: StorageApi<QueryFromDescriptors<D>>
+  tx: TxApi<TxFromDescriptors<D>, Anonymize<D["asset"]["_type"]>>
+  event: EvApi<EventsFromDescriptors<D>>
+  apis: RuntimeCallsApi<D["apis"]>
+  runtime: RuntimeApi<D>
+}
+
+export type CreateClient = (connect: Connect) => {
   finalized$: Observable<BlockInfo>
   bestBlocks$: Observable<BlockInfo[]>
-  runtime: RuntimeApi<T>
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
   getBlockBody: (hash: string) => Observable<HexString[]>
+  getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
   destroy: () => void
 }

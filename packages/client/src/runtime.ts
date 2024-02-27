@@ -42,67 +42,65 @@ type PlainRuntime<A extends Record<string, Record<string, any>>> = {
   }
 }
 
-export interface Runtime<T extends Record<string, Descriptors>> {
-  constants: {
-    [K in keyof T]: ConstFromDescriptors<T[K]>
-  }
+type MappedKey<K extends string, V> = `${K}${V extends Record<string, any>
+  ? `.${Paths<V>}`
+  : ""}`
+type KeyMap<T> = {
+  [K in keyof T & string]: MappedKey<K, T[K]>
+}
+type Paths<T> = KeyMap<T>[keyof T & string]
+
+export interface Runtime<D extends Descriptors> {
+  constants: ConstFromDescriptors<D>
   isCompatible: (
     cb: (api: {
-      [K in keyof T]: {
-        query: StorageRuntime<QueryFromDescriptors<T[K]>>
-        tx: TxRuntime<TxFromDescriptors<T[K]>>
-        event: PlainRuntime<EventsFromDescriptors<T[K]>>
-        const: PlainRuntime<ConstFromDescriptors<T[K]>>
-      }
+      query: StorageRuntime<QueryFromDescriptors<D>>
+      tx: TxRuntime<TxFromDescriptors<D>>
+      event: PlainRuntime<EventsFromDescriptors<D>>
+      const: PlainRuntime<ConstFromDescriptors<D>>
     }) => boolean,
   ) => boolean
 }
 
-export type RuntimeApi<T extends Record<string, Descriptors>> = Observable<
-  Runtime<T>
-> & {
+export type RuntimeApi<T extends Descriptors> = Observable<Runtime<T>> & {
   latest: () => Promise<Runtime<T>>
 }
 
-const createRuntime = <T extends Record<string, Descriptors>>(
-  descriptors: T,
+const createRuntime = <D extends Descriptors>(
+  descriptors: D,
   ctx: RuntimeContext,
-): Runtime<T> => {
-  const constants = mapObject(descriptors, (inner) =>
-    mapObject(inner.pallets, (_, palletName) => {
-      const pallet = ctx.metadata.pallets.find((p) => p.name === palletName)
-      const palletConstants: Record<
-        string,
-        { cache: false; value: HexString } | { cache: true; value: any }
-      > = {}
-      pallet?.constants.forEach((c) => {
-        palletConstants[c.name] = { cache: false, value: c.value }
-      })
+): Runtime<D> => {
+  const constants = mapObject(descriptors.pallets, (_, palletName) => {
+    const pallet = ctx.metadata.pallets.find((p) => p.name === palletName)
+    const palletConstants: Record<
+      string,
+      { cache: false; value: HexString } | { cache: true; value: any }
+    > = {}
+    pallet?.constants.forEach((c) => {
+      palletConstants[c.name] = { cache: false, value: c.value }
+    })
 
-      return new Proxy(
-        {},
-        {
-          get(_, name: string) {
-            const cached = palletConstants[name]
-            if (cached.cache) return cached.value
+    return new Proxy(
+      {},
+      {
+        get(_, name: string) {
+          const cached = palletConstants[name]
+          if (cached.cache) return cached.value
 
-            cached.cache = true as any
-            return (cached.value = ctx.dynamicBuilder
-              .buildConstant(palletName, name)
-              .dec(cached.value))
-          },
+          cached.cache = true as any
+          return (cached.value = ctx.dynamicBuilder
+            .buildConstant(palletName, name)
+            .dec(cached.value))
         },
-      )
-    }),
-  )
-
+      },
+    )
+  })
   const isCompatibleMapper = (
     idx: 0 | 1 | 2 | 4,
     builder: "buildStorage" | "buildEvent" | "buildCall" | "buildConstant",
-    descriptor: Descriptors,
   ) =>
     mapObject(
-      descriptor.pallets,
+      descriptors.pallets,
       (x, pallet: string) =>
         new Proxy(
           {},
@@ -114,12 +112,12 @@ const createRuntime = <T extends Record<string, Descriptors>>(
         ),
     )
 
-  const isCompatibleApi = mapObject(descriptors, (inner) => ({
-    query: isCompatibleMapper(0, "buildStorage", inner),
-    tx: isCompatibleMapper(1, "buildCall", inner),
-    event: isCompatibleMapper(2, "buildEvent", inner),
-    const: isCompatibleMapper(4, "buildConstant", inner),
-  }))
+  const isCompatibleApi = {
+    query: isCompatibleMapper(0, "buildStorage"),
+    tx: isCompatibleMapper(1, "buildCall"),
+    event: isCompatibleMapper(2, "buildEvent"),
+    const: isCompatibleMapper(4, "buildConstant"),
+  }
 
   const isCompatible: (cb: (api: any) => boolean) => boolean = (cb) =>
     cb(isCompatibleApi)
@@ -130,14 +128,14 @@ const createRuntime = <T extends Record<string, Descriptors>>(
   } as any
 }
 
-export const getRuntimeApi = <T extends Record<string, Descriptors>>(
-  descriptors: T,
+export const getRuntimeApi = <D extends Descriptors>(
+  descriptors: D,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-): RuntimeApi<T> => {
-  let latestRuntime: Promise<Runtime<T>>
-  let resolve: ((r: Runtime<T>) => void) | null = null
+): RuntimeApi<D> => {
+  let latestRuntime: Promise<Runtime<D>>
+  let resolve: ((r: Runtime<D>) => void) | null = null
 
-  latestRuntime = new Promise<Runtime<T>>((res) => {
+  latestRuntime = new Promise<Runtime<D>>((res) => {
     resolve = res
   })
 
@@ -146,7 +144,7 @@ export const getRuntimeApi = <T extends Record<string, Descriptors>>(
       resolve!(createRuntime(descriptors, x))
       resolve = null
     } else if (!resolve) {
-      latestRuntime = new Promise<Runtime<T>>((res) => {
+      latestRuntime = new Promise<Runtime<D>>((res) => {
         resolve = res
       })
     }
@@ -155,7 +153,7 @@ export const getRuntimeApi = <T extends Record<string, Descriptors>>(
   const result = chainHead.runtime$.pipe(
     filter(Boolean),
     map((x) => createRuntime(descriptors, x)),
-  ) as RuntimeApi<T>
+  ) as RuntimeApi<D>
   result.latest = () => latestRuntime
 
   return result
