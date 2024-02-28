@@ -29,12 +29,7 @@ const getChecksum = (values: Array<bigint>, shape?: string) => {
 }
 
 const primitiveChecksums: Record<
-  | MetadataPrimitives
-  | "_void"
-  | "compactb"
-  | "compacts"
-  | "bitSequence"
-  | "historicMetaCompat",
+  MetadataPrimitives | "_void" | "compactb" | "compacts" | "bitSequence",
   bigint
 > = {
   _void: 0n,
@@ -56,7 +51,6 @@ const primitiveChecksums: Record<
   compacts: 10n,
   compactb: 11n,
   bitSequence: 12n,
-  historicMetaCompat: 13n,
 }
 
 const bytesChecksum = 14n
