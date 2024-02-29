@@ -1,6 +1,7 @@
 import type {
   Decoder,
   HexString,
+  ResultPayload,
   StringRecord,
   V15,
 } from "@polkadot-api/substrate-bindings"
@@ -136,7 +137,7 @@ export type OptionDecoded = WithInputAndPath<{
 
 export type ResultDecoded = WithInputAndPath<{
   codec: "Result"
-  value: { ok: Decoded; ko: Decoded }
+  value: ResultPayload<Decoded, Decoded>
 }>
 
 export type TupleDecoded = WithInputAndPath<{
