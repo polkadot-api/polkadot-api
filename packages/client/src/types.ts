@@ -1,5 +1,6 @@
 import {
   BlockHeader,
+  ConstFromDescriptors,
   Descriptors,
   EventsFromDescriptors,
   HexString,
@@ -13,6 +14,7 @@ import { BlockInfo } from "./observableClient"
 import { RuntimeApi } from "./runtime"
 import { StorageEntry } from "./storage"
 import { TxEntry } from "./tx"
+import { ConstantEntry } from "./constants"
 
 export type HintedSignedExtensions = Partial<{
   tip: bigint
@@ -100,12 +102,19 @@ export type EvApi<A extends Record<string, Record<string, any>>> = {
   }
 }
 
+export type ConstApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: ConstantEntry<A[K][KK]>
+  }
+}
+
 export type TypedApi<D extends Descriptors> = {
   query: StorageApi<QueryFromDescriptors<D>>
   tx: TxApi<TxFromDescriptors<D>, D["asset"]["_type"]>
   event: EvApi<EventsFromDescriptors<D>>
   apis: RuntimeCallsApi<D["apis"]>
-  runtime: RuntimeApi<D>
+  constants: ConstApi<ConstFromDescriptors<D>>
+  runtime: RuntimeApi
 }
 
 export type CreateClient = (connect: Connect) => {

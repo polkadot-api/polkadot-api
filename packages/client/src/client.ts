@@ -16,6 +16,7 @@ import {
   HintedSignedExtensions,
   TypedApi,
 } from "./types"
+import { ConstantEntry, createConstantEntry } from "./constants"
 
 const createTypedApi = <D extends Descriptors>(
   descriptors: D,
@@ -72,6 +73,20 @@ const createTypedApi = <D extends Descriptors>(
     }
   }
 
+  const constants = {} as Record<string, Record<string, ConstantEntry<any>>>
+  for (const pallet in pallets) {
+    constants[pallet] ||= {}
+    const [, , , ctEntries] = pallets[pallet]
+    for (const name in ctEntries) {
+      constants[pallet][name] = createConstantEntry(
+        ctEntries[name],
+        pallet,
+        name,
+        chainHead,
+      )
+    }
+  }
+
   const apis = {} as Record<string, Record<string, RuntimeCall<any, any>>>
   for (const api in runtimeApis) {
     apis[api] ||= {}
@@ -91,7 +106,8 @@ const createTypedApi = <D extends Descriptors>(
     tx: tx,
     event: events,
     apis,
-    runtime: getRuntimeApi(descriptors, chainHead),
+    constants,
+    runtime: getRuntimeApi(chainHead),
   } as any
 }
 

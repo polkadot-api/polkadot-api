@@ -16,9 +16,13 @@ const client = createClient(chain.connect)
 const testApi = client.getTypedApi(test)
 
 const isCompatible = await testApi.tx.AssetRate.create.isCompatible()
+const constant = await testApi.constants.Auctions.EndingPeriod()
+const constantIsCompatible =
+  await testApi.constants.Auctions.EndingPeriod.isCompatible()
 
 const runtime = await testApi.runtime.latest()
 const isCompatible2 = testApi.tx.AssetRate.create.isCompatible(runtime)
+const constant2 = testApi.constants.Auctions.EndingPeriod(runtime)
 
 const accounts = await chain.getAccounts()
 

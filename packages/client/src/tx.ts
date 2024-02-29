@@ -28,7 +28,12 @@ import {
   SystemEvent,
   getObservableClient,
 } from "./observableClient"
-import { IsCompatible, Runtime, createIsCompatible } from "./runtime"
+import {
+  IsCompatible,
+  Runtime,
+  createIsCompatible,
+  getRuntimeContext,
+} from "./runtime"
 
 type TxSuccess = {
   ok: boolean
@@ -74,7 +79,7 @@ type TxObservable<Asset> = (
 
 interface TxCall {
   (): Promise<Binary>
-  (runtime: Runtime<any>): Binary
+  (runtime: Runtime): Binary
 }
 
 type TxSigned<Asset> = (
@@ -205,9 +210,9 @@ export const createTxEntry = <
         .getRuntimeContext$(null)
         .pipe(map((ctx) => getCallDataWithContext(ctx, arg, hinted)))
 
-    const getEncodedData: TxCall = (runtime?: Runtime<any>): any => {
+    const getEncodedData: TxCall = (runtime?: Runtime): any => {
       if (runtime) {
-        return getCallDataWithContext(runtime.ctx, arg).callData
+        return getCallDataWithContext(getRuntimeContext(runtime), arg).callData
       }
       return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
     }
