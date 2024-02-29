@@ -69,7 +69,6 @@ const def = Enum({
   primitive,
   compact: compactNumber,
   bitSequence,
-  historicMetaCompat: str,
 })
 
 const param = Struct({

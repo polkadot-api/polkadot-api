@@ -294,15 +294,9 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       }
     }
 
-    if (def.tag === "bitSequence") {
-      return { type: "bitSequence" }
-    }
-
-    // historicMetaCompat
-    const value = def.value as any
+    // bitSequence
     return {
-      type: "primitive",
-      value,
+      type: def.tag,
     }
   })
 

@@ -20,12 +20,7 @@ type MetadataPrimitives =
   | "i256"
 
 export const primitiveTypes: Record<
-  | MetadataPrimitives
-  | "_void"
-  | "compactNumber"
-  | "compactBn"
-  | "bitSequence"
-  | "historicMetaCompat",
+  MetadataPrimitives | "_void" | "compactNumber" | "compactBn" | "bitSequence",
   string
 > = {
   _void: "undefined",
@@ -47,7 +42,6 @@ export const primitiveTypes: Record<
   compactNumber: "number",
   compactBn: "bigint",
   bitSequence: "{bitsLen: number, bytes: Uint8Array}",
-  historicMetaCompat: "any",
 }
 
 export interface Variable {
