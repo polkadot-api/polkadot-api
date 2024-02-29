@@ -173,10 +173,15 @@ export const getLookupFn = (lookupData: V14Lookup) => {
         params.length === 1 &&
         params[0].name === "T"
       ) {
-        return {
-          type: "option",
-          value: getLookupEntryDef(params[0].type as number),
-        }
+        const value = getLookupEntryDef(params[0].type!)
+        return value.type === "primitive" && value.value === "_void"
+          ? // Option(_void) would return a Codec<undefined> which makes no sense
+            // Therefore, we better treat it as a bool
+            { type: "primitive", value: "bool" }
+          : {
+              type: "option",
+              value,
+            }
       }
 
       if (
