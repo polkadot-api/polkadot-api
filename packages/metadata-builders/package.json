@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/utils": "workspace:*",
+    "graph-cycles": "^3.0.0"
   }
 }

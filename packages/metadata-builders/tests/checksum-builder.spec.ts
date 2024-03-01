@@ -126,35 +126,6 @@ describe("buildDefinition properties", () => {
     )
   })
 
-  it.skip("gives a different checksum for reordered mixed tuple-struct types", () => {
-    expectNotEqual(
-      {
-        tag: "composite",
-        value: [
-          createCompositeEntry({
-            type: knownIds.u8,
-          }),
-          createCompositeEntry({
-            name: "bar",
-            type: knownIds.u64,
-          }),
-        ],
-      },
-      {
-        tag: "composite",
-        value: [
-          createCompositeEntry({
-            name: "bar",
-            type: knownIds.u64,
-          }),
-          createCompositeEntry({
-            type: knownIds.u8,
-          }),
-        ],
-      },
-    )
-  })
-
   it("gives a different checksum for reordered tuple types", () => {
     expectNotEqual(
       {
@@ -180,6 +151,114 @@ describe("buildDefinition properties", () => {
         ],
       },
     )
+  })
+
+  it("gives the same checksum when there are circular references", () => {
+    const aId = lookupPush({
+      tag: "composite",
+      value: [
+        createCompositeEntry({
+          name: "id",
+          type: knownIds.u32,
+        }),
+        createCompositeEntry({
+          name: "nextA",
+          type: 0,
+        }),
+      ],
+    })
+    const optionId = lookupPush({
+      tag: "variant",
+      value: [
+        {
+          docs: [],
+          index: 0,
+          name: "Some",
+          fields: [
+            createCompositeEntry({
+              type: aId,
+            }),
+          ],
+        },
+        {
+          docs: [],
+          index: 1,
+          name: "None",
+          fields: [],
+        },
+      ],
+    })
+    const aDef = lookup[aId].def
+    if (aDef.tag === "composite") {
+      aDef.value[1].type = optionId
+    }
+
+    const secondBuilder = getChecksumBuilder({ lookup } as any)
+
+    const aChecksum = builder.buildDefinition(aId)
+    const optionChecksum = builder.buildDefinition(optionId)
+
+    const secondOptionChecksum = secondBuilder.buildDefinition(optionId)
+    const secondAChecksum = secondBuilder.buildDefinition(aId)
+
+    expect(aChecksum).toEqual(secondAChecksum)
+    expect(optionChecksum).toEqual(secondOptionChecksum)
+    expect(aChecksum).not.toEqual(optionChecksum)
+  })
+
+  it("gives the same checksum when there are circular references after multiple levels", () => {
+    const aId = lookupPush({
+      tag: "sequence",
+      value: 0,
+    })
+    const bId = lookupPush({
+      tag: "sequence",
+      value: 0,
+    })
+    const cId = lookupPush({
+      tag: "composite",
+      value: [
+        createCompositeEntry({
+          name: "foo",
+          type: 0,
+        }),
+        createCompositeEntry({
+          name: "a",
+          type: aId,
+        }),
+      ],
+    })
+    const dId = lookupPush({
+      tag: "sequence",
+      value: aId,
+    })
+    lookup[aId].def.value = bId
+    lookup[bId].def.value = cId
+    function perms(xs: number[]): number[][] {
+      if (!xs.length) return [[]]
+      return xs.flatMap((x) => {
+        return perms(xs.filter((v) => v !== x)).map((vs) => [x, ...vs])
+      })
+    }
+
+    const orderings = perms([aId, bId, cId, dId])
+    const runOrdering = (ordering: number[]) => {
+      const builder = getChecksumBuilder({ lookup } as any)
+      return ordering
+        .map((id) => [id, builder.buildDefinition(id)] as const)
+        .sort(([a], [b]) => a - b)
+    }
+
+    const reference = runOrdering(orderings[0])
+
+    orderings
+      .slice(1)
+      .forEach((ordering, i) =>
+        expect(
+          runOrdering(ordering),
+          `checksum mismatch on case ${orderings[i + 1]}`,
+        ).toEqual(reference),
+      )
   })
 })
 

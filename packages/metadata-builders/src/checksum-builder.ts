@@ -1,5 +1,6 @@
 import type { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
+import { analyzeGraph } from "graph-cycles"
 import {
   LookupEntry,
   MetadataPrimitives,
@@ -8,7 +9,6 @@ import {
   VoidVar,
   getLookupFn,
 } from "./lookups"
-import { withCache } from "./with-cache"
 
 const textEncoder = new TextEncoder()
 const encodeText = textEncoder.encode.bind(textEncoder)
@@ -98,13 +98,54 @@ const structLikeBuilder = <T>(
   return getChecksum([shapeId, keysChecksum, valuesChecksum])
 }
 
+const buildGraph = (
+  entry: LookupEntry,
+  result = new Map<number, [LookupEntry, number[]]>(),
+) => {
+  if (result.has(entry.id)) return result
+
+  switch (entry.type) {
+    case "array":
+    case "option":
+    case "sequence":
+      result.set(entry.id, [entry, [entry.value.id]])
+      buildGraph(entry.value, result)
+      break
+    case "enum": {
+      const children = Object.values(entry.value).flatMap((value) => {
+        if (value.type === "primitive") return []
+        if (value.type === "struct") return Object.values(value.value)
+        return value.value
+      })
+      result.set(entry.id, [entry, children.map((child) => child.id)])
+      children.forEach((child) => buildGraph(child, result))
+      break
+    }
+    case "result":
+      result.set(entry.id, [entry, [entry.value.ok.id, entry.value.ko.id]])
+      buildGraph(entry.value.ok, result)
+      buildGraph(entry.value.ko, result)
+      break
+    case "struct": {
+      const children = Object.values(entry.value)
+      result.set(entry.id, [entry, children.map((child) => child.id)])
+      children.forEach((child) => buildGraph(child, result))
+      break
+    }
+    case "tuple":
+      result.set(entry.id, [entry, entry.value.map((child) => child.id)])
+      entry.value.forEach((child) => buildGraph(child, result))
+      break
+    default:
+      result.set(entry.id, [entry, []])
+  }
+  return result
+}
+
 const _buildChecksum = (
   input: LookupEntry,
-  cache: Map<number, bigint>,
-  stack: Set<number>,
+  buildNextChecksum: (entry: LookupEntry) => bigint,
 ): bigint => {
-  if (cache.has(input.id)) return cache.get(input.id)!
-
   if (input.type === "primitive")
     return getChecksum([shapeIds.primitive, metadataPrimitiveIds[input.value]])
 
@@ -128,9 +169,6 @@ const _buildChecksum = (
   if (input.type === "AccountId32") {
     return getChecksum([shapeIds.primitive, runtimePrimitiveIds.accountId])
   }
-
-  const buildNextChecksum = (nextInput: LookupEntry): bigint =>
-    buildChecksum(nextInput, cache, stack)
 
   if (input.type === "array") {
     const innerChecksum = buildNextChecksum(input.value)
@@ -173,11 +211,87 @@ const _buildChecksum = (
     }
   })
 }
-const buildChecksum = withCache(
-  _buildChecksum,
-  () => 0n,
-  (result) => result,
-)
+
+const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
+  if (cache.has(entry.id)) return cache.get(entry.id)!
+
+  const graph = buildGraph(entry)
+  const result = analyzeGraph(
+    Array.from(graph.entries()).map(([from, [, edges]]) => [
+      String(from),
+      edges.map((v) => String(v)),
+    ]),
+  )
+
+  /**
+   * We can't have "entryPoint" nodes as if they are part of the cycle, because it breaks the deterministic property.
+   * Picture this: a <-> b <- c
+   * If we start from either a or b, we won't see c as it's not in the cycle, so we will consider `a <-> b`
+   * Then we solve the checksums A, B.
+   * If we get a request for checksum C, then we will see the graph `c -> b <-> a`. But B is already solved so we will do C(B)
+   *
+   * Now if we get a different ordering, starting from c, we see the graph `c -> b <-> a`.
+   * If we try to solve hashes A B and C simultaneously, it could happen that on the first iteration C is equal to either B or A. This will cause
+   * a new round of re-generating checksums until all of them are distinct.
+   * The result of this is that A and B will have a different checksum than the previous ordering.
+   *
+   * The solution is to exclude the entry points from the cycle. With the example (c -> a <-> b -> d), the order to calculate checksums is:
+   * 1. Dependencies (d)
+   * 2. Cycles (a and b)
+   * 3. Entry points (c)
+   */
+  const entryPoints = new Set(result.entrypoints.flat().map((id) => Number(id)))
+  const circularIds = new Set(
+    result.all.map((id) => Number(id)).filter((id) => !entryPoints.has(id)),
+  )
+  const nonCircularIds = Array.from(graph.keys()).filter(
+    (id) => !circularIds.has(id) && !entryPoints.has(id),
+  )
+  const newCircularIds = Array.from(circularIds).filter((id) => !cache.has(id))
+
+  // separate writeCache since we might want to not override the current cache to ensure deterministic result regardless of order
+  const recursiveBuildChecksum = (
+    entry: LookupEntry,
+    writeCache: Map<number, bigint>,
+    skipCache = false,
+  ): bigint => {
+    if (!skipCache && cache.has(entry.id)) {
+      return cache.get(entry.id)!
+    }
+    const result = _buildChecksum(entry, (nextEntry) =>
+      recursiveBuildChecksum(nextEntry, writeCache),
+    )
+    writeCache.set(entry.id, result)
+    return result
+  }
+
+  nonCircularIds.forEach((id) =>
+    recursiveBuildChecksum(graph.get(id)![0], cache),
+  )
+
+  newCircularIds.forEach((id) => {
+    cache.set(id, 0n)
+  })
+  const hasDuplicates = () => {
+    const checksums = newCircularIds.map((id) => cache.get(id)!)
+    return checksums.length != new Set(checksums).size
+  }
+  for (
+    let i = 0;
+    i < newCircularIds.length && (i === 0 || hasDuplicates());
+    i++
+  ) {
+    const results = new Map<number, bigint>()
+    newCircularIds.forEach((id) =>
+      recursiveBuildChecksum(graph.get(id)![0], results, true),
+    )
+    Array.from(results.entries()).forEach(([id, checksum]) =>
+      cache.set(id, checksum),
+    )
+  }
+
+  return recursiveBuildChecksum(entry, cache)
+}
 
 export const getChecksumBuilder = (metadata: V15) => {
   const lookupData = metadata.lookup
@@ -186,7 +300,7 @@ export const getChecksumBuilder = (metadata: V15) => {
   const cache = new Map<number, bigint>()
 
   const buildDefinition = (id: number): bigint =>
-    buildChecksum(getLookupEntryDef(id), cache, new Set())
+    buildChecksum(getLookupEntryDef(id), cache)
 
   const buildStorage = (pallet: string, entry: string): bigint | null => {
     try {
