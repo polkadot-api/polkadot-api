@@ -1,5 +1,5 @@
 import ksm from "./ksm.json"
-import { V14Lookup } from "@polkadot-api/substrate-bindings"
+import { V14Lookup, V15 } from "@polkadot-api/substrate-bindings"
 import { expect, describe, it } from "vitest"
 import { getChecksumBuilder } from "@/."
 
@@ -37,6 +37,18 @@ describe("buildDefinition properties", () => {
       builder.buildDefinition(bId),
     )
   }
+
+  const XcmVersionedID = 401
+  it("works with XcmVersioned via differen paths", () => {
+    const firstBuilder = getChecksumBuilder(ksm as V15)
+    ksm.lookup.map((x) => x.id).forEach(firstBuilder.buildDefinition)
+    const firstResult = firstBuilder.buildDefinition(XcmVersionedID)
+
+    const secondBuilder = getChecksumBuilder(ksm as V15)
+    const secondResult = secondBuilder.buildDefinition(XcmVersionedID)
+
+    expect(firstResult).toEqual(secondResult)
+  })
 
   it("generates the same checksum if the runtime type is equal", () => {
     expect(builder.buildDefinition(knownIds.u8)).toEqual(
