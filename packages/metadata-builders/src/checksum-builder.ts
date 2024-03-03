@@ -1,6 +1,6 @@
 import type { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
-import { analyzeGraph } from "graph-cycles"
+import { analyzeGraph, FullAnalysisResult } from "graph-cycles"
 import {
   LookupEntry,
   MetadataPrimitives,
@@ -98,17 +98,15 @@ const structLikeBuilder = <T>(
   return getChecksum([shapeId, keysChecksum, valuesChecksum])
 }
 
-const buildGraph = (
-  entry: LookupEntry,
-  result = new Map<number, [LookupEntry, number[]]>(),
-) => {
+type Graph = Map<number, [LookupEntry, Set<number>]>
+const buildGraph = (entry: LookupEntry, result: Graph = new Map()) => {
   if (result.has(entry.id)) return result
 
   switch (entry.type) {
     case "array":
     case "option":
     case "sequence":
-      result.set(entry.id, [entry, [entry.value.id]])
+      result.set(entry.id, [entry, new Set([entry.value.id])])
       buildGraph(entry.value, result)
       break
     case "enum": {
@@ -117,27 +115,33 @@ const buildGraph = (
         if (value.type === "struct") return Object.values(value.value)
         return value.value
       })
-      result.set(entry.id, [entry, children.map((child) => child.id)])
+      result.set(entry.id, [entry, new Set(children.map((child) => child.id))])
       children.forEach((child) => buildGraph(child, result))
       break
     }
     case "result":
-      result.set(entry.id, [entry, [entry.value.ok.id, entry.value.ko.id]])
+      result.set(entry.id, [
+        entry,
+        new Set([entry.value.ok.id, entry.value.ko.id]),
+      ])
       buildGraph(entry.value.ok, result)
       buildGraph(entry.value.ko, result)
       break
     case "struct": {
       const children = Object.values(entry.value)
-      result.set(entry.id, [entry, children.map((child) => child.id)])
+      result.set(entry.id, [entry, new Set(children.map((child) => child.id))])
       children.forEach((child) => buildGraph(child, result))
       break
     }
     case "tuple":
-      result.set(entry.id, [entry, entry.value.map((child) => child.id)])
+      result.set(entry.id, [
+        entry,
+        new Set(entry.value.map((child) => child.id)),
+      ])
       entry.value.forEach((child) => buildGraph(child, result))
       break
     default:
-      result.set(entry.id, [entry, []])
+      result.set(entry.id, [entry, new Set()])
   }
   return result
 }
@@ -212,6 +216,62 @@ const _buildChecksum = (
   })
 }
 
+const getCyclicGroups = (result: FullAnalysisResult) => {
+  const ungroupedCycles = new Set(result.cycles.map((_, i) => i))
+  const edges = new Map(result.cycles.map((_, i) => [i, new Set<number>()]))
+  result.cycles.forEach((cycle, i) => {
+    result.cycles.slice(i + 1).forEach((otherCycle, _j) => {
+      const j = _j + i + 1
+      if (cycle.some((node) => otherCycle.includes(node))) {
+        edges.get(i)!.add(j)
+        edges.get(j)!.add(i)
+      }
+    })
+  })
+  const groups: Array<Set<number>> = []
+
+  while (ungroupedCycles.size) {
+    const group = new Set<number>()
+    const toVisit = [ungroupedCycles.values().next().value]
+    while (toVisit.length) {
+      const idx = toVisit.pop()
+      if (!ungroupedCycles.has(idx)) continue
+      ungroupedCycles.delete(idx)
+
+      const cycle = result.cycles[idx]
+      cycle.forEach((v) => group.add(Number(v)))
+      edges.get(idx)!.forEach((n) => toVisit.push(n))
+    }
+    groups.push(group)
+  }
+
+  return groups
+}
+
+const sortCyclicGroups = (groups: Array<Set<number>>, graph: Graph) => {
+  const getReachableNodes = (group: Set<number>) => {
+    const first = group.values().next().value as number
+    const entry = graph.get(first)![0]
+    return Array.from(buildGraph(entry).keys())
+  }
+
+  const result: Array<Set<number>> = new Array()
+
+  function dependentsFirst(group: Set<number>) {
+    if (result.includes(group)) return
+    const dependents = groups.filter(
+      (candidate) =>
+        candidate !== group &&
+        getReachableNodes(group).some((node) => candidate.has(node)),
+    )
+    dependents.forEach((group) => dependentsFirst(group))
+    result.push(group)
+  }
+
+  groups.forEach((group) => dependentsFirst(group))
+  return result
+}
+
 const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
   if (cache.has(entry.id)) return cache.get(entry.id)!
 
@@ -219,40 +279,16 @@ const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
   const result = analyzeGraph(
     Array.from(graph.entries()).map(([from, [, edges]]) => [
       String(from),
-      edges.map((v) => String(v)),
+      Array.from(edges).map((v) => String(v)),
     ]),
   )
-
-  /**
-   * We can't have "entryPoint" nodes as if they are part of the cycle, because it breaks the deterministic property.
-   * Picture this: a <-> b <- c
-   * If we start from either a or b, we won't see c as it's not in the cycle, so we will consider `a <-> b`
-   * Then we solve the checksums A, B.
-   * If we get a request for checksum C, then we will see the graph `c -> b <-> a`. But B is already solved so we will do C(B)
-   *
-   * Now if we get a different ordering, starting from c, we see the graph `c -> b <-> a`.
-   * If we try to solve hashes A B and C simultaneously, it could happen that on the first iteration C is equal to either B or A. This will cause
-   * a new round of re-generating checksums until all of them are distinct.
-   * The result of this is that A and B will have a different checksum than the previous ordering.
-   *
-   * The solution is to exclude the entry points from the cycle. With the example (c -> a <-> b -> d), the order to calculate checksums is:
-   * 1. Dependencies (d)
-   * 2. Cycles (a and b)
-   * 3. Entry points (c)
-   */
-  const entryPoints = new Set(result.entrypoints.flat().map((id) => Number(id)))
-  const circularIds = new Set(
-    result.all.map((id) => Number(id)).filter((id) => !entryPoints.has(id)),
-  )
-  const nonCircularIds = Array.from(graph.keys()).filter(
-    (id) => !circularIds.has(id) && !entryPoints.has(id),
-  )
-  const newCircularIds = Array.from(circularIds).filter((id) => !cache.has(id))
+  const cyclicGroups = getCyclicGroups(result)
+  const sortedCyclicGroups = sortCyclicGroups(cyclicGroups, graph)
 
   // separate writeCache since we might want to not override the current cache to ensure deterministic result regardless of order
   const recursiveBuildChecksum = (
     entry: LookupEntry,
-    writeCache: Map<number, bigint>,
+    writeCache: (id: number, value: bigint) => void,
     skipCache = false,
   ): bigint => {
     if (!skipCache && cache.has(entry.id)) {
@@ -261,36 +297,33 @@ const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
     const result = _buildChecksum(entry, (nextEntry) =>
       recursiveBuildChecksum(nextEntry, writeCache),
     )
-    writeCache.set(entry.id, result)
+    writeCache(entry.id, result)
     return result
   }
 
-  nonCircularIds.forEach((id) =>
-    recursiveBuildChecksum(graph.get(id)![0], cache),
-  )
-
-  newCircularIds.forEach((id) => {
-    cache.set(id, 0n)
+  sortedCyclicGroups.forEach((group) => {
+    group.forEach((id) => cache.set(id, 0n))
+    for (let i = 0; i < group.size; i++) {
+      const results = new Map<number, bigint>()
+      group.forEach((id) =>
+        recursiveBuildChecksum(
+          graph.get(id)![0],
+          (id, value) => {
+            // only store onto the actual cache results from other nodes
+            // cyclic nodes would depend on sorting order.
+            const writeCache = group.has(id) ? results : cache
+            writeCache.set(id, value)
+          },
+          true,
+        ),
+      )
+      Array.from(results.entries()).forEach(([id, checksum]) =>
+        cache.set(id, checksum),
+      )
+    }
   })
-  const hasDuplicates = () => {
-    const checksums = newCircularIds.map((id) => cache.get(id)!)
-    return checksums.length != new Set(checksums).size
-  }
-  for (
-    let i = 0;
-    i < newCircularIds.length && (i === 0 || hasDuplicates());
-    i++
-  ) {
-    const results = new Map<number, bigint>()
-    newCircularIds.forEach((id) =>
-      recursiveBuildChecksum(graph.get(id)![0], results, true),
-    )
-    Array.from(results.entries()).forEach(([id, checksum]) =>
-      cache.set(id, checksum),
-    )
-  }
 
-  return recursiveBuildChecksum(entry, cache)
+  return recursiveBuildChecksum(entry, (id, value) => cache.set(id, value))
 }
 
 export const getChecksumBuilder = (metadata: V15) => {

@@ -38,16 +38,17 @@ describe("buildDefinition properties", () => {
     )
   }
 
-  const XcmVersionedID = 401
-  it("works with XcmVersioned via differen paths", () => {
-    const firstBuilder = getChecksumBuilder(ksm as V15)
-    ksm.lookup.map((x) => x.id).forEach(firstBuilder.buildDefinition)
-    const firstResult = firstBuilder.buildDefinition(XcmVersionedID)
+  it("gives the same result regardless of entry point", () => {
+    const referenceBuilder = getChecksumBuilder(ksm as V15)
+    ksm.lookup.map((x) => x.id).forEach(referenceBuilder.buildDefinition)
 
-    const secondBuilder = getChecksumBuilder(ksm as V15)
-    const secondResult = secondBuilder.buildDefinition(XcmVersionedID)
+    ksm.lookup.forEach((x) => {
+      const secondBuilder = getChecksumBuilder(ksm as V15)
+      const referenceResult = referenceBuilder.buildDefinition(x.id)
+      const secondResult = secondBuilder.buildDefinition(x.id)
 
-    expect(firstResult).toEqual(secondResult)
+      expect(referenceResult).toEqual(secondResult)
+    })
   })
 
   it("generates the same checksum if the runtime type is equal", () => {
