@@ -52,12 +52,9 @@ export const getChain = ({
   return (onMessage) => {
     const provider = getProvider(onMessage)
 
-    const txCreator = getTxCreator(getProvider, async (ctx, cb) => {
+    const txCreator = getTxCreator(getProvider, async (ctx) => {
       const customizeTx = await getCustomizeTx()(ctx)
-      if (!customizeTx) {
-        cb(null)
-        return
-      }
+      if (!customizeTx) return null
 
       const {
         userSingedExtensionsName,
@@ -97,7 +94,7 @@ export const getChain = ({
         throw new Error(`${fromAsHex} doesn't exist in keyring`)
       }
 
-      cb({
+      return {
         overrides: {
           ...(customizeTx.overrides ?? {}),
         },
@@ -107,7 +104,7 @@ export const getChain = ({
         },
         signingType: keypair.signingType,
         signer: keypair.sign,
-      })
+      }
     })
 
     const createTx: JsonRpcProvider["createTx"] = async (

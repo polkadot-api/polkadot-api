@@ -10,15 +10,15 @@ export const getInput$ = <T extends Array<UserSignedExtensionName>>(
   ctx: OnCreateTxCtx<T>,
   onCreateTx: (
     context: OnCreateTxCtx<T>,
-    callback: Callback<null | ConsumerCallback<T>>,
-  ) => void,
+  ) => Promise<null | ConsumerCallback<T>>,
 ) => {
   const { userSingedExtensionsName: user, unknownSignedExtensions: unknown } =
     ctx
 
   const input$ = new Observable<ConsumerCallback<T>>((observer) => {
-    let onInput: Callback<null | ConsumerCallback<T>> = (x) => {
+    let onInput: Callback<null | ConsumerCallback<T> | Error> = (x) => {
       if (!x) return observer.error(new Error("User cancelled tx"))
+      if (x instanceof Error) return observer.error(x)
 
       const userKeys = user
       for (let i = 0; i < userKeys.length; i++) {
@@ -43,11 +43,18 @@ export const getInput$ = <T extends Array<UserSignedExtensionName>>(
       observer.complete()
     }
 
-    onCreateTx(ctx, (x) => {
-      Promise.resolve().then(() => {
-        onInput(x as any)
-      })
-    })
+    onCreateTx(ctx).then(
+      (x) => {
+        onInput(x)
+      },
+      (e) => {
+        onInput(
+          e instanceof Error
+            ? e
+            : new Error(typeof e === "string" ? e : void 0),
+        )
+      },
+    )
 
     return () => {
       onInput = noop

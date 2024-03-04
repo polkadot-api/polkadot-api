@@ -34,8 +34,7 @@ export const getTxData =
     hintedSignedExtensions: HintedSignedExtensions,
     onCreateTx: (
       context: OnCreateTxCtx<T>,
-      callback: (value: null | ConsumerCallback<T>) => void,
-    ) => void,
+    ) => Promise<null | ConsumerCallback<T>>,
   ) =>
   ({ metadata, at, signedExtensions }: Ctx) => {
     const { all, user, chain, unknown } = signedExtensions

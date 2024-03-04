@@ -6,15 +6,12 @@ export type GetTxCreator = (
   // The `TransactionCreator` communicates with the Chain to obtain metadata, latest block, nonce, etc.
   chainProvider: ConnectProvider,
 
-  // This callback is invoked in order to capture the necessary user input
+  // This function is invoked in order to capture the necessary user input
   // for creating the transaction.
+  // If the Promise resolves to `null`, that indicates that the user has decided not to sing the tx.
   onCreateTx: <UserSignedExtensionsName extends Array<UserSignedExtensionName>>(
     context: OnCreateTxCtx<UserSignedExtensionsName>,
-
-    // The function to call once the user has decided to cancel or proceed with the tx.
-    // Passing `null` indicates that the user has decided not to sing the tx.
-    callback: Callback<null | ConsumerCallback<UserSignedExtensionsName>>,
-  ) => void,
+  ) => Promise<null | ConsumerCallback<UserSignedExtensionsName>>,
 ) => {
   createTx: CreateTx
   destroy: () => void
@@ -77,8 +74,7 @@ export type CreateTx = (
   hintedSignedExtensions?: HintedSignedExtensions,
   cb?: <UserSignedExtensionsName extends Array<UserSignedExtensionName>>(
     context: OnCreateTxCtx<UserSignedExtensionsName>,
-    callback: Callback<null | ConsumerCallback<UserSignedExtensionsName>>,
-  ) => void,
+  ) => Promise<null | ConsumerCallback<UserSignedExtensionsName>>,
 ) => Promise<Uint8Array>
 
 export type SigningType = "Ed25519" | "Sr25519" | "Ecdsa"
