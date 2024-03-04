@@ -445,6 +445,12 @@ export const getChecksumBuilder = (metadata: V15) => {
     )
   }
 
+  const buildNamedTuple = (input: StructVar): bigint => {
+    return structLikeBuilder(shapeIds.tuple, input.value, (entry) =>
+      buildDefinition(entry.id),
+    )
+  }
+
   const buildVariant =
     (variantType: "errors" | "events" | "calls") =>
     (pallet: string, name: string): bigint | null => {
@@ -492,5 +498,6 @@ export const getChecksumBuilder = (metadata: V15) => {
     buildError: toStringEnhancer(buildVariant("errors")),
     buildConstant: toStringEnhancer(buildConstant),
     buildComposite: toStringEnhancer(buildComposite),
+    buildNamedTuple: toStringEnhancer(buildNamedTuple),
   }
 }
