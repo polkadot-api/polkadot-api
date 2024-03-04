@@ -1,6 +1,5 @@
 import type { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
-import { analyzeGraph, FullAnalysisResult } from "graph-cycles"
 import {
   LookupEntry,
   MetadataPrimitives,
@@ -216,13 +215,72 @@ const _buildChecksum = (
   })
 }
 
-const getCyclicGroups = (result: FullAnalysisResult) => {
-  const ungroupedCycles = new Set(result.cycles.map((_, i) => i))
-  const edges = new Map(result.cycles.map((_, i) => [i, new Set<number>()]))
-  result.cycles.forEach((cycle, i) => {
-    result.cycles.slice(i + 1).forEach((otherCycle, _j) => {
+const getCycles = (graph: Graph) => {
+  // Tarjan's strongly connected components
+  const tarjanState = new Map<
+    number,
+    {
+      index: number
+      lowLink: number
+      onStack: boolean
+    }
+  >()
+  let index = 0
+  const stack: number[] = []
+  const result: Array<Set<number>> = []
+
+  function strongConnect(v: number): void {
+    const state = {
+      index: index,
+      lowLink: index,
+      onStack: true,
+    }
+    tarjanState.set(v, state)
+    index++
+    stack.push(v)
+
+    const edges = graph.get(v)![1]
+    for (let w of edges) {
+      const edgeState = tarjanState.get(w)
+      if (!edgeState) {
+        strongConnect(w)
+        state.lowLink = Math.min(state.lowLink, tarjanState.get(w)!.lowLink)
+      } else if (edgeState.onStack) {
+        state.lowLink = Math.min(state.lowLink, edgeState.index)
+      }
+    }
+
+    if (state.lowLink === state.index) {
+      const component = new Set<number>()
+
+      let poppedNode = -1
+      do {
+        poppedNode = stack.pop()!
+        tarjanState.get(poppedNode)!.onStack = false
+        component.add(poppedNode)
+      } while (poppedNode !== v)
+
+      if (component.size > 1) result.push(component)
+    }
+  }
+
+  for (const node of graph.keys()) {
+    if (!tarjanState.has(node)) {
+      strongConnect(node)
+    }
+  }
+
+  return result
+}
+
+const getCyclicGroups = (cycles: Array<Set<number>>) => {
+  const ungroupedCycles = new Set(cycles.map((_, i) => i))
+  const edges = new Map(cycles.map((_, i) => [i, new Set<number>()]))
+  cycles.forEach((cycle, i) => {
+    cycles.slice(i + 1).forEach((otherCycle, _j) => {
       const j = _j + i + 1
-      if (cycle.some((node) => otherCycle.includes(node))) {
+      const combined = new Set([...cycle, ...otherCycle])
+      if (combined.size !== cycle.size + otherCycle.size) {
         edges.get(i)!.add(j)
         edges.get(j)!.add(i)
       }
@@ -238,7 +296,7 @@ const getCyclicGroups = (result: FullAnalysisResult) => {
       if (!ungroupedCycles.has(idx)) continue
       ungroupedCycles.delete(idx)
 
-      const cycle = result.cycles[idx]
+      const cycle = cycles[idx]
       cycle.forEach((v) => group.add(Number(v)))
       edges.get(idx)!.forEach((n) => toVisit.push(n))
     }
@@ -265,6 +323,7 @@ const sortCyclicGroups = (groups: Array<Set<number>>, graph: Graph) => {
         getReachableNodes(group).some((node) => candidate.has(node)),
     )
     dependents.forEach((group) => dependentsFirst(group))
+    if (result.includes(group)) return
     result.push(group)
   }
 
@@ -276,13 +335,8 @@ const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
   if (cache.has(entry.id)) return cache.get(entry.id)!
 
   const graph = buildGraph(entry)
-  const result = analyzeGraph(
-    Array.from(graph.entries()).map(([from, [, edges]]) => [
-      String(from),
-      Array.from(edges).map((v) => String(v)),
-    ]),
-  )
-  const cyclicGroups = getCyclicGroups(result)
+  const cycles = getCycles(graph)
+  const cyclicGroups = getCyclicGroups(cycles)
   const sortedCyclicGroups = sortCyclicGroups(cyclicGroups, graph)
 
   // separate writeCache since we might want to not override the current cache to ensure deterministic result regardless of order
