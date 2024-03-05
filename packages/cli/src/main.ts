@@ -6,11 +6,14 @@ import { add, generate, remove, update } from "./commands"
 
 program.name("polkadot-api").description("Polkadot API CLI")
 
+const config = new Option("--config <filename>", "Source for the config file")
+
 program
   .command("generate", {
     isDefault: true,
   })
   .description("Generate file descriptors")
+  .addOption(config)
   .option("-k, --key <key>", "Key of the descriptor to generate")
   .option("-f, --file <filename>", "Source from metadata encoded file")
   .action(generate)
@@ -23,6 +26,7 @@ program
     "[dest]",
     "Destination folder for the generated code. Defaults to src/codegen",
   )
+  .addOption(config)
   .option("-f, --file <filename>", "Source from metadata encoded file")
   .option("-w, --wsUrl <URL>", "Source from websocket url")
   .option("-c, --chainSpec <filename>", "Source from chain spec file")
@@ -44,12 +48,14 @@ program
     "[keys]",
     "Keys of the metadata files to update, separated by commas. Leave empty for all",
   )
+  .addOption(config)
   .action(update)
 
 program
   .command("remove")
   .description("Remove a chain spec to the list")
   .argument("<key>", "Key identifier for the chain spec")
+  .addOption(config)
   .action(remove)
 
 program.parse()

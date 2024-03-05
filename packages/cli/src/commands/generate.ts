@@ -4,39 +4,41 @@ import { getDescriptors } from "@polkadot-api/codegen"
 import { V15 } from "@polkadot-api/metadata-builders"
 import fsExists from "fs.promises.exists"
 import fs from "fs/promises"
-import ora from "ora"
 import path from "path"
 import tsc from "tsc-prog"
+import { CommonOptions } from "./commonOptions"
 
-export interface GenerateOptions {
+export interface GenerateOptions extends CommonOptions {
   key?: string
 }
 
 export async function generate(opts: GenerateOptions) {
   const sources = await getSources(opts)
 
+  if (Object.keys(sources).length == 0) {
+    console.log("No chains defined in config file")
+  }
+
   for (const [key, source] of Object.entries(sources)) {
-    const spinner = ora(`Reading ${key} metadata`).start()
+    console.log(`Reading "${key}" metadata`)
     const metadata = await getMetadata(source)
 
-    spinner.text = `Generating ${key}`
+    console.log(`Generating "${key}" code`)
     await outputCodegen(metadata!, source.outputFolder, key)
-
-    spinner.succeed(`Generated ${key}`)
   }
 }
 
 async function getSources(
   opts: GenerateOptions,
 ): Promise<Record<string, EntryConfig>> {
-  const config = await readPapiConfig()
+  const config = await readPapiConfig(opts.config)
   if (!config) {
-    throw new Error("Polkadot-API not configured in package.json")
+    throw new Error("Can't find the Polkadot-API configuration")
   }
 
   if (opts.key) {
     if (!config[opts.key]) {
-      throw new Error(`Key ${opts.key} not found in package.json config`)
+      throw new Error(`Key ${opts.key} not set in polkadot-api config`)
     }
     return {
       [opts.key]: config[opts.key],

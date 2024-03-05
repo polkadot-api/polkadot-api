@@ -1,15 +1,19 @@
 import { getMetadata, writeMetadataToDisk } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import ora from "ora"
+import { CommonOptions } from "./commonOptions"
 
-export async function update(keysInput: string | undefined) {
-  const entries = (await readPapiConfig()) ?? {}
+export async function update(
+  keysInput: string | undefined,
+  options: CommonOptions,
+) {
+  const entries = (await readPapiConfig(options.config)) ?? {}
   const keys =
     keysInput === undefined ? Object.keys(entries) : keysInput.split(",")
 
   for (let key of keys) {
     if (!(key in entries)) {
-      throw new Error(`Key ${key} not configured in package.json`)
+      throw new Error(`Key ${key} not set in polkadot-api config`)
     }
 
     const spinner = ora(`Updating ${key}`).start()

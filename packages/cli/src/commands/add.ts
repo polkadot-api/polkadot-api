@@ -2,8 +2,9 @@ import { getMetadata, writeMetadataToDisk } from "@/metadata"
 import { EntryConfig, readPapiConfig, writePapiConfig } from "@/papiConfig"
 import { WellKnownChain } from "@substrate/connect"
 import ora from "ora"
+import { CommonOptions } from "./commonOptions"
 
-export interface AddOptions {
+export interface AddOptions extends CommonOptions {
   file?: string
   wsUrl?: string
   chainSpec?: string
@@ -13,10 +14,10 @@ export interface AddOptions {
 
 export async function add(
   key: string,
-  outputFolder = "str/codegen",
+  outputFolder = "src/codegen",
   options: AddOptions,
 ) {
-  const entries = (await readPapiConfig()) ?? {}
+  const entries = (await readPapiConfig(options.config)) ?? {}
   if (key in entries) {
     console.warn(`Replacing existing ${key} config`)
   }
@@ -43,7 +44,7 @@ export async function add(
     }
   }
 
-  await writePapiConfig(entries)
+  await writePapiConfig(options.config, entries)
   return console.log(`Saved new spec ${key} from file ${options.file}`)
 }
 
