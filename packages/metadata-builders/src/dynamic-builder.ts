@@ -166,6 +166,9 @@ export const getDynamicBuilder = (metadata: V15) => {
   ): Codec<any> => {
     if (entry.type === "primitive") return scale._void
 
+    if (entry.type === "tuple" && entry.value.length === 1)
+      return buildDefinition(entry.value[0].id)
+
     return entry.type === "tuple"
       ? scale.Tuple(
           ...Object.values(entry.value).map((l) => buildDefinition(l.id)),
@@ -186,7 +189,7 @@ export const getDynamicBuilder = (metadata: V15) => {
   }
 
   const buildVariant =
-    (type: "errors" | "events") =>
+    (type: "errors" | "events" | "calls") =>
     (
       pallet: string,
       name: string,
@@ -204,24 +207,6 @@ export const getDynamicBuilder = (metadata: V15) => {
         codec: buildEnumEntry(lookup.value[name]),
       }
     }
-
-  const buildCall = (
-    pallet: string,
-    name: string,
-  ): {
-    args: Codec<any>
-    location: [number, number]
-  } => {
-    const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-    const lookup = getLookupEntryDef(palletEntry.calls!)
-    if (lookup.type !== "enum") throw null
-    const entry = lookup.value[name]
-
-    return {
-      location: [palletEntry.index, entry.idx],
-      args: buildEnumEntry(lookup.value[name]),
-    }
-  }
 
   const buildRuntimeCall = (api: string, method: string) => {
     const entry = metadata.apis
@@ -241,7 +226,7 @@ export const getDynamicBuilder = (metadata: V15) => {
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
     buildRuntimeCall,
-    buildCall,
+    buildCall: buildVariant("calls"),
     buildConstant,
     ss58Prefix,
   }

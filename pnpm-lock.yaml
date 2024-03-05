@@ -209,6 +209,9 @@ importers:
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../client
+      '@polkadot-api/codegen':
+        specifier: workspace:*
+        version: link:../codegen
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
@@ -316,6 +319,18 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+
+  packages/codegen:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/json-rpc-provider: {}
 

@@ -66,6 +66,7 @@ jobs:
           pnpm dlx lerna version prerelease --no-git-tag-version --yes --exact --preid ${{ github.sha }}.${{ github.run_attempt }}
           pnpm pack --dir packages/cli
           pnpm pack --dir packages/client
+          pnpm pack --dir packages/codegen
           pnpm pack --dir packages/json-rpc-provider
           pnpm pack --dir packages/json-rpc-provider-proxy
           pnpm pack --dir packages/legacy-polkadot-provider
@@ -85,6 +86,10 @@ jobs:
         with:
           name: package
           path: ./packages/client/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/codegen/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
