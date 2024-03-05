@@ -1,180 +1,61 @@
 #!/usr/bin/env node
 
-import "./_polyfills"
-
-import { V15 } from "@polkadot-api/substrate-bindings"
-import { confirm, input, select } from "@inquirer/prompts"
-import { z } from "zod"
-import { program } from "commander"
-import { getMetadata } from "./metadata"
+import { Option, program } from "@commander-js/extra-typings"
 import { WellKnownChain } from "@substrate/connect"
-import ora from "ora"
-import {
-  outputCodegen,
-  outputDescriptors,
-  readDescriptors,
-  writeMetadataToDisk,
-} from "./io"
-import { runWithEscapeKeyHandler } from "./keyboard"
+import { add, generate, remove, update } from "./commands"
 
-const ProgramArgs = z.object({
-  metadataFile: z.string().optional(),
-  pkgJSONKey: z.string(),
-  key: z.string().optional(),
-  file: z.string().optional(),
-  wsURL: z.string().optional(),
-  interactive: z.boolean(),
-})
+program.name("polkadot-api").description("Polkadot API CLI")
 
-type ProgramArgs = z.infer<typeof ProgramArgs>
+const config = new Option("--config <filename>", "Source for the config file")
 
 program
-  .name("polkadot-api")
-  .description("Polkadot API CLI")
-  .option(
-    "-j, --pkgJSONKey <key>",
-    "key in package json for descriptor metadata",
-    "polkadot-api",
+  .command("generate", {
+    isDefault: true,
+  })
+  .description("Generate file descriptors")
+  .addOption(config)
+  .option("-k, --key <key>", "Key of the descriptor to generate")
+  .option("-f, --file <filename>", "Source from metadata encoded file")
+  .action(generate)
+
+program
+  .command("add")
+  .description("Add a new chain spec to the list")
+  .argument("<key>", "Key identifier for the chain spec")
+  .argument(
+    "[dest]",
+    "Destination folder for the generated code. Defaults to src/codegen",
   )
-  .option("k --key <key>", "first key in descriptor metadata")
-  .option(
-    "f --file <file>",
-    "path to descriptor metadata file; alternative to package json",
+  .addOption(config)
+  .option("-f, --file <filename>", "Source from metadata encoded file")
+  .option("-w, --wsUrl <URL>", "Source from websocket url")
+  .option("-c, --chainSpec <filename>", "Source from chain spec file")
+  .addOption(
+    new Option("-n, --name <name>", "Source from a well-known chain").choices(
+      Object.keys(WellKnownChain) as WellKnownChain[],
+    ),
   )
-  .option("w --wsURL <wsURL>", "websocket url to fetch metadata")
-  .option("-i, --interactive", "whether to run in interactive mode", false)
+  .option(
+    "-p, --persist <name>",
+    "Persist the metadata into the file {name}.scale",
+  )
+  .action(add)
+
+program
+  .command("update")
+  .description("Update the metadata files")
+  .argument(
+    "[keys]",
+    "Keys of the metadata files to update, separated by commas. Leave empty for all",
+  )
+  .addOption(config)
+  .action(update)
+
+program
+  .command("remove")
+  .description("Remove a chain spec to the list")
+  .argument("<key>", "Key identifier for the chain spec")
+  .addOption(config)
+  .action(remove)
 
 program.parse()
-
-const options = ProgramArgs.parse(program.opts())
-
-const descriptorMetadata = await readDescriptors({
-  pkgJSONKey: options.pkgJSONKey,
-  fileName: options.file,
-})
-
-let metadata: V15 | null = null
-
-if (descriptorMetadata) {
-  for (const [key, descriptorData] of Object.entries(descriptorMetadata)) {
-    metadata = await getMetadata({
-      source: "file",
-      file: descriptorData.metadata,
-    })
-
-    if (!options.interactive) {
-      await outputCodegen(
-        metadata!,
-        descriptorData.outputFolder,
-        key,
-        descriptorData.selectOnly,
-      )
-    }
-  }
-  if (!options.interactive) process.exit(0)
-}
-
-if (!metadata) {
-  const metadataArgs = options.metadataFile
-    ? {
-        source: "file" as const,
-        file: options.metadataFile,
-      }
-    : options.wsURL
-      ? { source: "ws" as const, url: options.wsURL }
-      : {
-          source: "chain" as const,
-          chain: await select({
-            message: "Select a chain to pull metadata from",
-            choices: [
-              { name: "polkadot", value: WellKnownChain.polkadot },
-              { name: "westend", value: WellKnownChain.westend2 },
-              { name: "ksm", value: WellKnownChain.ksmcc3 },
-              { name: "rococo", value: WellKnownChain.rococo_v2_2 },
-            ],
-          }),
-        }
-
-  const spinner = ora(`Loading Metadata`).start()
-  metadata = await getMetadata(metadataArgs)
-  spinner.stop()
-}
-
-await runWithEscapeKeyHandler(async (subscriptions, subscribe) => {
-  try {
-    const key = await (async () => {
-      if (options.key) return options.key
-
-      const getDescriptorKeyPromise = input({
-        message: "descriptor key",
-        validate: (key) => !!key || "descriptor key cannot be empty",
-      })
-      subscriptions.push(subscribe(() => getDescriptorKeyPromise.cancel()))
-
-      return await getDescriptorKeyPromise
-    })()
-
-    const metadataFilePathPromise = input({
-      message: "metadata file path",
-      default: descriptorMetadata?.[key]?.metadata ?? `${key}-metadata.scale`,
-      validate: (path) => !!path || "metadata filepath cannot be empty",
-    })
-    subscriptions.push(subscribe(() => metadataFilePathPromise.cancel()))
-
-    const metadataFilePath = await metadataFilePathPromise
-
-    const writeToPkgJSONPromise = confirm({
-      message: "Write to package.json?",
-      default: options.file === undefined,
-    })
-    subscriptions.push(subscribe(() => writeToPkgJSONPromise.cancel()))
-    const writeToPkgJSON = await writeToPkgJSONPromise
-
-    const outputFolderPromise = input({
-      message: "codegen output directory",
-      default: descriptorMetadata?.[key]?.outputFolder ?? process.cwd(),
-      validate: (dir) => !!dir || "directory cannot be empty",
-    })
-    subscriptions.push(subscribe(() => outputFolderPromise.cancel()))
-    const outputFolder = await outputFolderPromise
-
-    await writeMetadataToDisk(metadata!, metadataFilePath)
-
-    const args = {
-      key,
-      metadataFile: metadataFilePath,
-      outputFolder,
-    }
-
-    if (writeToPkgJSON) {
-      await outputDescriptors({
-        ...args,
-        type: "package-json",
-        pkgJSONKey: options.pkgJSONKey,
-      })
-    } else {
-      const fileNamePromise = input({
-        message: "descriptor json file name",
-        default: options.file,
-        validate: (value) =>
-          (!!value && value !== outputFolder) ||
-          "descriptor json file name cannot be equal to codegen output directory",
-      })
-      subscriptions.push(subscribe(() => fileNamePromise.cancel()))
-      const fileName = await fileNamePromise
-
-      await outputDescriptors({
-        ...args,
-        type: "file",
-        fileName,
-      })
-    }
-
-    await outputCodegen(metadata!, outputFolder, key)
-  } catch (err) {
-    if (err instanceof Error && err.message === "Prompt was canceled") {
-      return
-    }
-    throw err
-  }
-})

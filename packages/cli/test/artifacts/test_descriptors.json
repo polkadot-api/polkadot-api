@@ -1,6 +1,0 @@
-{
-  "polkadot": {
-    "metadata": "test/artifacts/polkadot-metadata.scale",
-    "outputFolder": "out"
-  }
-}
