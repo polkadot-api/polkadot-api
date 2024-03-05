@@ -1,11 +1,4 @@
-import descriptorSchema from "../../src/descriptor-schema"
-import type { AsyncReturnType } from "type-fest"
-
-type Descriptors = AsyncReturnType<
-  typeof descriptorSchema.parseAsync
->[string]["descriptors"]
-
-export const mapDescriptorRecords = (records: Descriptors) => {
+export const mapDescriptorRecords = (records: any) => {
   const descriptors: Record<
     string,
     [
@@ -20,7 +13,7 @@ export const mapDescriptorRecords = (records: Descriptors) => {
   for (const [
     pallet,
     { storage, extrinsics, events, errors, constants },
-  ] of Object.entries(records)) {
+  ] of Object.entries<any>(records)) {
     descriptors[pallet] = [storage, extrinsics, events, errors, constants]
   }
 

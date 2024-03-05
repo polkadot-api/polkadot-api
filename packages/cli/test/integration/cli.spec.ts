@@ -2,12 +2,6 @@ import { describe, test, expect, it } from "vitest"
 import { runner } from "clet"
 import fsExists from "fs.promises.exists"
 import path from "path"
-import descriptorSchema from "../../src/descriptor-schema"
-import {
-  StorageDescriptor,
-  TxDescriptor,
-  PlainDescriptor,
-} from "@polkadot-api/substrate-bindings"
 import fs from "fs/promises"
 import { mapDescriptorRecords } from "./utils"
 
@@ -15,15 +9,11 @@ const cmd = "./bin/main.js"
 
 describe.skip("cli", async () => {
   describe.concurrent("happy paths", async () => {
-    const descriptorJSON = await descriptorSchema.parseAsync(
-      JSON.parse(
-        await fs.readFile("test/artifacts/test_descriptors.json", {
-          encoding: "utf-8",
-        }),
-      ),
+    const descriptorJSON = JSON.parse(
+      await fs.readFile("test/artifacts/test_descriptors.json", "utf-8"),
     )
 
-    Object.entries(descriptorJSON).map(
+    Object.entries<any>(descriptorJSON).map(
       ([key, { outputFolder, descriptors: descriptorRecords }]) =>
         test.concurrent(
           `descriptor codegen - ${key}`,
@@ -63,11 +53,10 @@ describe.skip("cli", async () => {
     )
   })
   describe("unhappy paths", async () => {
-    const descriptorJSON = await descriptorSchema.parseAsync(
-      JSON.parse(
-        await fs.readFile("test/artifacts/test_descriptors-altered.json", {
-          encoding: "utf-8",
-        }),
+    const descriptorJSON = JSON.parse(
+      await fs.readFile(
+        "test/artifacts/test_descriptors-altered.json",
+        "utf-8",
       ),
     )
 

@@ -9,6 +9,8 @@ import { WebSocketProvider } from "@polkadot-api/ws-provider"
 import { getObservableClient } from "@polkadot-api/client"
 import { filter, firstValueFrom } from "rxjs"
 import { WebSocket } from "ws"
+import { EntryConfig } from "./papiConfig"
+import { dirname } from "path"
 ;(globalThis as any).WebSocket = WebSocket
 
 const getMetadataCall = async (provider: ConnectProvider) => {
@@ -22,7 +24,7 @@ const getMetadataCall = async (provider: ConnectProvider) => {
   return metadata
 }
 
-const getMetadataFromWellKnownChain = async (chain: WellKnownChain) => {
+const getMetadataFromProvider = async (chain: WellKnownChain | string) => {
   const provider: ConnectProvider = (onMsg) => {
     let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
       eval: true,
@@ -51,31 +53,33 @@ const getMetadataFromWellKnownChain = async (chain: WellKnownChain) => {
 const getMetadataFromWsURL = async (wsURL: string) =>
   getMetadataCall(WebSocketProvider(wsURL))
 
-export type GetMetadataArgs =
-  | {
-      source: "chain"
-      chain: WellKnownChain
-    }
-  | {
-      source: "ws"
-      url: string
-    }
-  | {
-      source: "file"
-      file: string
-    }
-
-export async function getMetadata(args: GetMetadataArgs): Promise<V15> {
-  switch (args.source) {
-    case "chain": {
-      return getMetadataFromWellKnownChain(args.chain)
-    }
-    case "ws": {
-      return getMetadataFromWsURL(args.url)
-    }
-    case "file": {
-      const data = await fs.readFile(args.file)
-      return v15.dec(data)
-    }
+export async function getMetadata(entry: EntryConfig): Promise<V15 | null> {
+  // metadata file always prevails over other entries.
+  // cli's update will update the metadata file when the user requests it.
+  if (entry.metadata) {
+    const data = await fs.readFile(entry.metadata)
+    return v15.dec(data)
   }
+
+  if ("chain" in entry) {
+    return getMetadataFromProvider(entry.chain)
+  }
+
+  if ("chainSpec" in entry) {
+    const chainSpec = await fs.readFile(entry.chainSpec, "utf8")
+    return getMetadataFromProvider(chainSpec)
+  }
+
+  if ("wsUrl" in entry) {
+    return getMetadataFromWsURL(entry.wsUrl)
+  }
+
+  return null
+}
+
+export async function writeMetadataToDisk(metadata: V15, outFile: string) {
+  const encoded = v15.enc(metadata)
+
+  await fs.mkdir(dirname(outFile), { recursive: true })
+  await fs.writeFile(outFile, encoded)
 }
