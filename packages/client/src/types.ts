@@ -1,5 +1,4 @@
 import {
-  Anonymize,
   BlockHeader,
   Descriptors,
   EventsFromDescriptors,
@@ -81,8 +80,8 @@ export type RuntimeCallsApi<
       ? (
           ...args: Args["length"] extends 0
             ? [options?: CallOptions]
-            : [...args: Anonymize<Args>, options?: CallOptions]
-        ) => Promise<Anonymize<Value>>
+            : [...args: Args, options?: CallOptions]
+        ) => Promise<Value>
       : unknown
   }
 }
@@ -105,7 +104,7 @@ export type EvApi<A extends Record<string, Record<string, any>>> = {
 
 export type TypedApi<D extends Descriptors> = {
   query: StorageApi<QueryFromDescriptors<D>>
-  tx: TxApi<TxFromDescriptors<D>, Anonymize<D["asset"]["_type"]>>
+  tx: TxApi<TxFromDescriptors<D>, D["asset"]["_type"]>
   event: EvApi<EventsFromDescriptors<D>>
   apis: RuntimeCallsApi<D["apis"]>
   runtime: RuntimeApi<D>

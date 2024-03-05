@@ -9,16 +9,10 @@ export const createDtsFile = async (
   code: string,
 ) => {
   const tscFileName = path.join(dest, key)
-  const tscTypesFileName = path.join(dest, `${key}-types`)
 
-  if (await fsExists(`${tscTypesFileName}.d.ts`)) {
-    await fs.rm(`${tscTypesFileName}.d.ts`)
-  }
-  if (await fsExists(`${tscFileName}.ts`)) {
-    await fs.rm(`${tscFileName}.ts`)
-  }
+  if (await fsExists(`${tscFileName}.ts`)) await fs.rm(`${tscFileName}.ts`)
 
-  await fs.writeFile(`${tscTypesFileName}.ts`, code)
+  await fs.writeFile(`${tscFileName}.ts`, code)
 
   tsc.build({
     basePath: dest,
@@ -30,8 +24,5 @@ export const createDtsFile = async (
       module: "esnext",
       moduleResolution: "node",
     },
-    include: [`${key}-types.ts`],
   })
-
-  await fs.rm(`${tscTypesFileName}.ts`)
 }

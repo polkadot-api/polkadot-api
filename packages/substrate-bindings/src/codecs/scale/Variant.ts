@@ -9,7 +9,6 @@ import {
   StringRecord,
   createCodec,
 } from "scale-ts"
-import { Binary } from "./Binary"
 import { mapObject } from "@polkadot-api/utils"
 
 type Tuple<T, N extends number> = readonly [T, ...T[]] & { length: N }
@@ -39,7 +38,7 @@ type RestrictedLenTuple<T, O extends StringRecord<any>> = Tuple<
   TuplifyUnion<keyof O> extends Tuple<any, infer V> ? V : 0
 >
 
-type ExtractValue<
+export type ExtractEnumValue<
   T extends { type: string; value?: any },
   K extends string,
 > = T extends { type: K; value: infer R } ? R : never
@@ -48,92 +47,37 @@ export interface Discriminant<T extends { type: string; value?: any }> {
   is<K extends T["type"]>(
     this: Enum<T>,
     type: K,
-  ): this is Enum<{ type: K; value: ExtractValue<T, K> }>
-  as<K extends T["type"]>(type: K): ExtractValue<T, K>
+  ): this is Enum<{ type: K; value: ExtractEnumValue<T, K> }>
+  as<K extends T["type"]>(type: K): ExtractEnumValue<T, K>
 }
 
 export type Enum<T extends { type: string; value?: any }> = T & Discriminant<T>
-
-type MyTuple<T> = [T, ...T[]]
-
-type List<T> = Array<T>
-
-type SeparateUndefined<T> = undefined extends T
-  ? undefined | Exclude<T, undefined>
-  : T
-
-export type Anonymize<T> = SeparateUndefined<
-  T extends
-    | string
-    | number
-    | bigint
-    | boolean
-    | void
-    | undefined
-    | null
-    | symbol
-    | Binary
-    | Enum<{ type: string; value: any }>
-    | Uint8Array
-    ? T
-    : T extends (...args: infer Args) => infer R
-      ? (
-          ...args: {
-            [K in keyof Args]: Anonymize<Args[K]>
-          }
-        ) => Anonymize<R>
-      : T extends MyTuple<any>
-        ? {
-            [K in keyof T]: Anonymize<T[K]>
-          }
-        : T extends []
-          ? []
-          : T extends Array<infer A>
-            ? List<Anonymize<A>>
-            : {
-                [K in keyof T]: Anonymize<T[K]>
-              }
->
 
 export const _Enum = new Proxy(
   {},
   {
     get(_, prop: string) {
-      return (value: string) =>
-        Enum<{ type: string; value: any }, string>(prop, value)
+      return (value: string) => (Enum as any)(prop, value)
     },
   },
 )
-
-export type EnumOption<
-  T extends { type: string; value?: any },
-  Key extends T["type"],
-> = Anonymize<ExtractValue<T, Key>>
-
-export type GetEnum<T extends Enum<{ type: string; value: any }>> = {
-  [K in T["type"]]: (
-    ...args: ExtractValue<T, K> extends undefined
-      ? []
-      : [value: Anonymize<ExtractValue<T, K>>]
-  ) => T
-}
 
 export const Enum: <
   T extends { type: string; value?: any },
   Key extends T["type"],
 >(
   type: Key,
-  ...args: ExtractValue<T, Key> extends undefined
+  ...args: ExtractEnumValue<T, Key> extends undefined
     ? []
-    : [value: Anonymize<ExtractValue<T, Key>>]
+    : [value: ExtractEnumValue<T, Key>]
 ) => Enum<
-  ExtractValue<T, Key> extends undefined
+  ExtractEnumValue<T, Key> extends undefined
     ? T
-    : ExtractValue<T, Key> extends never
+    : ExtractEnumValue<T, Key> extends never
       ? T
       : {
           type: Key
-          value: ExtractValue<T, Key>
+          value: ExtractEnumValue<T, Key>
         }
 > = ((_type: string, _value: any) => ({
   as: (type: string) => {

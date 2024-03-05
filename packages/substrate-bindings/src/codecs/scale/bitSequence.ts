@@ -8,6 +8,7 @@ export interface BitSequence {
 
 const bitSequenceDecoder: Decoder<BitSequence> = createDecoder((data) => {
   const bitsLen = compactNumber.dec(data)
+
   const bytesLen = Math.ceil(bitsLen / 8)
   const bytes = Bytes(bytesLen).dec(data)
   return { bytes, bitsLen }

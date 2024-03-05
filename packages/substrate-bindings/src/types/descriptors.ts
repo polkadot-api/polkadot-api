@@ -1,5 +1,3 @@
-import type { Anonymize } from "./codecs"
-
 export type PlainDescriptor<T> = string & { _type?: T }
 export type StorageDescriptor<
   Args extends Array<any>,
@@ -47,8 +45,8 @@ type ExtractStorage<
       infer Optional
     >
       ? {
-          KeyArgs: Anonymize<Key>
-          Value: Anonymize<Value>
+          KeyArgs: Key
+          Value: Value
           IsOptional: Optional
         }
       : unknown
@@ -58,7 +56,7 @@ type ExtractStorage<
 type ExtractTx<T extends Record<string, Record<string, TxDescriptor<any>>>> = {
   [K in keyof T]: {
     [KK in keyof T[K]]: T[K][KK] extends TxDescriptor<infer Args>
-      ? Anonymize<Args>
+      ? Args
       : unknown
   }
 }
@@ -68,7 +66,7 @@ type ExtractPlain<
 > = {
   [K in keyof T]: {
     [KK in keyof T[K]]: T[K][KK] extends PlainDescriptor<infer Value>
-      ? Anonymize<Value>
+      ? Value
       : unknown
   }
 }

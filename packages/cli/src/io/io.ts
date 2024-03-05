@@ -6,10 +6,9 @@ import * as z from "zod"
 import descriptorSchema from "@/descriptor-schema"
 import { dirname } from "path"
 import fsExists from "fs.promises.exists"
-import { getCodegenInfo } from "./getCodegenInfo"
 import { createDtsFile } from "./createDtsFile"
-import { createDescriptorsFile } from "./createDescriptorsFile"
 import { v15 } from "@polkadot-api/substrate-bindings"
+import { getDescriptors } from "@polkadot-api/codegen"
 
 type ReadDescriptorsArgs = {
   pkgJSONKey: string
@@ -129,20 +128,10 @@ export async function outputCodegen(
   metadata: V15,
   outputFolder: string,
   key: string,
-  selectOnly?: string[],
+  _selectOnly?: string[],
 ) {
-  const { code, descriptorsData, enums, assetId } = getCodegenInfo(
-    metadata,
-    key,
-    selectOnly,
-  )
+  const code = getDescriptors(metadata, "", "@polkadot-api/client")
+
   await fs.mkdir(outputFolder, { recursive: true })
   await createDtsFile(key, outputFolder, code)
-  await createDescriptorsFile(
-    key,
-    outputFolder,
-    descriptorsData,
-    enums,
-    assetId,
-  )
 }

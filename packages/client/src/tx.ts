@@ -166,10 +166,10 @@ export const createTxEntry =
               returnHinted = { ...hinted, asset: assetEnc(hinted.asset) }
             }
 
-            const { location, args } = dynamicBuilder.buildCall(pallet, name)
+            const { location, codec } = dynamicBuilder.buildCall(pallet, name)
             return {
               callData: Binary.fromBytes(
-                mergeUint8(new Uint8Array(location), args.enc(arg)),
+                mergeUint8(new Uint8Array(location), codec.enc(arg)),
               ),
               hinted: returnHinted,
             }
