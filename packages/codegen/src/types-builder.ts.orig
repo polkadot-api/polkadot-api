@@ -56,6 +56,10 @@ export interface Variable {
 
   checksum: string
   type: string
+<<<<<<< Updated upstream
+  isCircular?: boolean
+=======
+>>>>>>> Stashed changes
 }
 
 export interface CodeDeclarations {
@@ -130,7 +134,13 @@ const _buildSyntax = (
     declarations.variables.set(id, variable)
     const innerType = buildNextSyntax(inner)
 
+<<<<<<< Updated upstream
+    variable.type = `Array<${
+      variable.isCircular ? innerType : anonymize(innerType)
+    }>`
+=======
     variable.type = `Array<${anonymize(innerType)}>`
+>>>>>>> Stashed changes
     return name
   }
 
@@ -241,8 +251,16 @@ const _buildSyntax = (
 
 const buildSyntax = withCache(
   _buildSyntax,
+<<<<<<< Updated upstream
+  (_getter, entry, declarations, getChecksum) => {
+    const variable = declarations.variables.get(getChecksum(entry.id)!)!
+    variable.isCircular = true
+    return variable.name
+  },
+=======
   (_getter, entry, declarations, getChecksum) =>
     declarations.variables.get(getChecksum(entry.id)!)!.name,
+>>>>>>> Stashed changes
   (x) => x,
 )
 
