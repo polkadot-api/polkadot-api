@@ -49,7 +49,7 @@ program
 
 program
   .command("remove")
-  .description("Remove a chain spec to the list")
+  .description("Remove a chain spec from the list")
   .argument("<key>", "Key identifier for the chain spec")
   .addOption(config)
   .action(remove)
