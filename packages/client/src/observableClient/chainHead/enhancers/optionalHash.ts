@@ -1,49 +1,23 @@
-import { withoutComplete } from "@/utils"
-import {
-  Observable,
-  ReplaySubject,
-  concat,
-  mergeMap,
-  of,
-  share,
-  take,
-  takeWhile,
-} from "rxjs"
+import { Observable, mergeMap, of, take } from "rxjs"
 
-const DONE = Symbol("DONE")
-type DONE = typeof DONE
-
-const delayUnsubscription = <T>(source$: Observable<T>) =>
-  new Observable<T>((observer) => {
-    const subscription = source$.subscribe(observer)
-    return () => {
-      setTimeout(() => {
-        subscription.unsubscribe()
-      }, 0)
-    }
-  })
-
-export const getWithOptionalhash$ = (finalized$: Observable<string>) => {
-  const current$ = finalized$.pipe(
-    take(1),
-    withoutComplete,
-    share({
-      connector: () => new ReplaySubject(1),
-      resetOnError: true,
-      resetOnRefCountZero: true,
-      resetOnComplete: false,
-    }),
-    delayUnsubscription,
-  )
-
+export const getWithOptionalhash$ = (
+  finalized$: Observable<string>,
+  best$: Observable<string>,
+) => {
   return <Args extends Array<any>, T>(
       fn: (hash: string, ...args: Args) => Observable<T>,
     ) =>
-    (hash: string | null, ...args: Args) =>
-      hash
-        ? fn(hash, ...args)
-        : current$.pipe(
-            mergeMap((h) => concat(fn(h, ...args), of(DONE))),
-            takeWhile((x): x is T => x !== DONE),
-          )
+    (hash: string | null, ...args: Args) => {
+      const hash$ =
+        hash === null || hash === "finalized"
+          ? finalized$
+          : hash === "best"
+            ? best$
+            : of(hash)
+
+      return hash$.pipe(
+        take(1),
+        mergeMap((h) => fn(h, ...args)),
+      )
+    }
 }
