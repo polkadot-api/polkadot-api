@@ -83,7 +83,7 @@ export const createStorageEntry = (
     const actualArgs =
       lastArg === "best" || lastArg === "finalized" ? args.slice(0, -1) : args
 
-    chainHead[lastArg === "best" ? "best$" : "finalized$"].pipe(
+    return chainHead[lastArg === "best" ? "best$" : "finalized$"].pipe(
       debounceTime(0),
       chainHead.withRuntime((x) => x.hash),
       exhaustMap(([block, ctx]) => {
