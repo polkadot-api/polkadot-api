@@ -72,6 +72,7 @@ jobs:
           pnpm pack --dir packages/legacy-polkadot-provider
           pnpm pack --dir packages/node-polkadot-provider
           pnpm pack --dir packages/sc-provider
+          pnpm pack --dir packages/sm-provider
           pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
           pnpm pack --dir packages/metadata-builders
@@ -110,6 +111,10 @@ jobs:
         with:
           name: package
           path: ./packages/sc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/sm-provider/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
