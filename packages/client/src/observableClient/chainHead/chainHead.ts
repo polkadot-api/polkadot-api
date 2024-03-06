@@ -201,7 +201,11 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const metadata$ = runtime$.pipe(map((x) => x?.metadata ?? null))
 
   const withOptionalHash$ = getWithOptionalhash$(
-    finalized$.pipe(map((x) => x.hash)),
+    finalized$.pipe(map((b) => b.hash)),
+    pinnedBlocks$.pipe(
+      map((x) => x.best),
+      distinctUntilChanged(),
+    ),
   )
 
   const _body$ = commonEnhancer(lazyFollower("body"))
