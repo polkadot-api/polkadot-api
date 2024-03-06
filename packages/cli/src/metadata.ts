@@ -3,16 +3,13 @@ import { createClient } from "@polkadot-api/substrate-client"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
 import { V15, v15 } from "@polkadot-api/substrate-bindings"
+import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
-import { getWebSocketProvider } from "@polkadot-api/ws-provider"
 import { getObservableClient } from "@polkadot-api/client"
 import { filter, firstValueFrom } from "rxjs"
-import { WebSocket } from "ws"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
-
-const WebSocketProvider = getWebSocketProvider(WebSocket as any)
 
 const getMetadataCall = async (provider: ConnectProvider) => {
   const client = getObservableClient(createClient(provider))
