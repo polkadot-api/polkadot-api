@@ -17,7 +17,7 @@ export interface JsonRpcProvider {
   createTx: (
     publicKey: Uint8Array,
     callData: Uint8Array,
-    hintedSignedExtensions: HintedSignedExtensions,
+    hintedSignedExtensions?: HintedSignedExtensions,
   ) => Promise<Uint8Array>
 
   // it disconnects from the JSON RPC Server and it de-registers
