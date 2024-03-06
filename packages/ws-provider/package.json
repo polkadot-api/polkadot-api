@@ -9,33 +9,31 @@
   "license": "MIT",
   "sideEffects": false,
   "exports": {
-    ".": {
-      "node": {
-        "production": {
-          "import": "./dist/index.mjs",
-          "require": "./dist/min/index.js",
-          "default": "./dist/index.js"
-        },
-        "import": "./dist/index.mjs",
-        "require": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+    "./node": {
+      "types": "./dist/node/node.d.ts",
+      "module": "./dist/node/node.mjs",
+      "import": "./dist/node/node.mjs",
+      "require": "./dist/node/node.js",
+      "default": "./dist/node/node.js"
+    },
+    "./web": {
+      "types": "./dist/web/web.d.ts",
+      "module": "./dist/web/web.mjs",
+      "import": "./dist/web/web.mjs",
+      "require": "./dist/web/web.js",
+      "default": "./dist/web/web.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "browser": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "web",
+    "node"
   ],
   "scripts": {
-    "build": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
+    "build": "tsc --noEmit && pnpm run build:web && pnpm run build:node",
+    "build:web": "tsup-node src/web.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/web && tsup-node src/web.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/web/min",
+    "build:node": "tsup-node src/node.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/node && tsup-node src/node.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/node/min",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -47,7 +45,8 @@
     "trailingComma": "all"
   },
   "dependencies": {
+    "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
-    "@polkadot-api/json-rpc-provider": "workspace:*"
+    "ws": "^8.14.2"
   }
 }

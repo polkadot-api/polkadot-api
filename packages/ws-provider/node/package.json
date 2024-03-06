@@ -1,0 +1,9 @@
+{
+  "name": "@polkadot-api/ws-provider/node",
+  "types": "../dist/node/node.d.ts",
+  "module": "../dist/node/node.mjs",
+  "import": "../dist/node/node.mjs",
+  "require": "../dist/node/node.js",
+  "default": "../dist/node/node.js",
+  "sideEffects": false
+}

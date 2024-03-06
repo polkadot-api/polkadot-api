@@ -571,6 +571,9 @@ importers:
       '@polkadot-api/json-rpc-provider-proxy':
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
+      ws:
+        specifier: ^8.14.2
+        version: 8.14.2
 
   zombie-tests:
     dependencies:
