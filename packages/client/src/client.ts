@@ -9,13 +9,14 @@ import { getObservableClient } from "./observableClient"
 import { getRuntimeApi } from "./runtime"
 import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry, type StorageEntry } from "./storage"
-import { Transaction, createTxEntry } from "./tx"
+import { TxEntry, createTxEntry } from "./tx"
 import {
   CreateClient,
   CreateTx,
   HintedSignedExtensions,
   TypedApi,
 } from "./types"
+import { ConstantEntry, createConstantEntry } from "./constants"
 
 const createTypedApi = <D extends Descriptors>(
   descriptors: D,
@@ -41,10 +42,7 @@ const createTypedApi = <D extends Descriptors>(
     }
   }
 
-  const tx = {} as Record<
-    string,
-    Record<string, (a: any) => Transaction<any, any, any, any>>
-  >
+  const tx = {} as Record<string, Record<string, TxEntry<any, any, any, any>>>
   for (const pallet in pallets) {
     tx[pallet] ||= {}
     const [, txEntries] = pallets[pallet]
@@ -75,6 +73,20 @@ const createTypedApi = <D extends Descriptors>(
     }
   }
 
+  const constants = {} as Record<string, Record<string, ConstantEntry<any>>>
+  for (const pallet in pallets) {
+    constants[pallet] ||= {}
+    const [, , , ctEntries] = pallets[pallet]
+    for (const name in ctEntries) {
+      constants[pallet][name] = createConstantEntry(
+        ctEntries[name],
+        pallet,
+        name,
+        chainHead,
+      )
+    }
+  }
+
   const apis = {} as Record<string, Record<string, RuntimeCall<any, any>>>
   for (const api in runtimeApis) {
     apis[api] ||= {}
@@ -94,7 +106,8 @@ const createTypedApi = <D extends Descriptors>(
     tx: tx,
     event: events,
     apis,
-    runtime: getRuntimeApi(descriptors, chainHead),
+    constants,
+    runtime: getRuntimeApi(chainHead),
   } as any
 }
 

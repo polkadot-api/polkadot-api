@@ -6,6 +6,7 @@ import {
   BlockInfo,
   RuntimeContext,
 } from "./observableClient"
+import { IsCompatible, createIsCompatible } from "./runtime"
 
 export type EventPhase =
   | { type: "ApplyExtrinsic"; value: number }
@@ -36,6 +37,7 @@ export type EvClient<T> = {
   watch: EvWatch<T>
   pull: EvPull<T>
   filter: EvFilter<T>
+  isCompatible: IsCompatible
 }
 
 type SystemEvent = {
@@ -56,9 +58,10 @@ export const createEventEntry = <T>(
   name: string,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ): EvClient<T> => {
+  const hasSameChecksum = (ctx: RuntimeContext) =>
+    ctx.checksumBuilder.buildStorage(pallet, name) === checksum
   const checksumCheck = (ctx: RuntimeContext) => {
-    const actualChecksum = ctx.checksumBuilder.buildEvent(pallet, name)
-    if (checksum !== actualChecksum)
+    if (!hasSameChecksum(ctx))
       throw new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
   }
 
@@ -96,5 +99,7 @@ export const createEventEntry = <T>(
       .filter((e) => e.type === pallet && e.value.type === name)
       .map((x) => x.value.value)
 
-  return { watch, pull, filter }
+  const isCompatible = createIsCompatible(chainHead, hasSameChecksum)
+
+  return { watch, pull, filter, isCompatible }
 }

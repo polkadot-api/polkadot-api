@@ -11,6 +11,7 @@ import type {
   TxFinalized,
   TxValidated,
 } from "@polkadot-api/substrate-client"
+import { mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   Observable,
   concat,
@@ -22,8 +23,17 @@ import {
   take,
   takeWhile,
 } from "rxjs"
-import { mergeUint8, toHex } from "@polkadot-api/utils"
-import { getObservableClient, SystemEvent } from "./observableClient"
+import {
+  RuntimeContext,
+  SystemEvent,
+  getObservableClient,
+} from "./observableClient"
+import {
+  IsCompatible,
+  Runtime,
+  createIsCompatible,
+  getRuntimeContext,
+} from "./runtime"
 
 type TxSuccess = {
   ok: boolean
@@ -67,7 +77,10 @@ type TxObservable<Asset> = (
   | (TxFinalized & TxSuccess)
 >
 
-type TxCall = () => Promise<Binary>
+interface TxCall {
+  (): Promise<Binary>
+  (runtime: Runtime): Binary
+}
 
 type TxSigned<Asset> = (
   from: SS58String | Uint8Array,
@@ -119,66 +132,90 @@ const getTxSuccessFromSystemEvents = (
   return { ok, events }
 }
 
-export const createTxEntry =
-  <
-    Arg extends {} | undefined,
-    Pallet extends string,
-    Name extends string,
-    Asset extends PlainDescriptor<any>,
-  >(
-    descriptor: TxDescriptor<Arg>,
-    pallet: Pallet,
-    name: Name,
-    assetChecksum: Asset,
-    chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-    client: ReturnType<typeof getObservableClient>,
-    signer: (
-      from: string | Uint8Array,
-      callData: Uint8Array,
-      hinted?: Partial<{}>,
-    ) => Promise<Uint8Array>,
-  ): ((arg: any) => Transaction<Arg, Pallet, Name, Asset["_type"]>) =>
-  (arg?: Arg): any => {
+export interface TxEntry<
+  Arg extends {} | undefined,
+  Pallet extends string,
+  Name extends string,
+  Asset,
+> {
+  (
+    ...args: Arg extends undefined ? [] : [data: Arg]
+  ): Transaction<Arg, Pallet, Name, Asset>
+  isCompatible: IsCompatible
+}
+
+export const createTxEntry = <
+  Arg extends {} | undefined,
+  Pallet extends string,
+  Name extends string,
+  Asset extends PlainDescriptor<any>,
+>(
+  descriptor: TxDescriptor<Arg>,
+  pallet: Pallet,
+  name: Name,
+  assetChecksum: Asset,
+  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  client: ReturnType<typeof getObservableClient>,
+  signer: (
+    from: string | Uint8Array,
+    callData: Uint8Array,
+    hinted?: Partial<{}>,
+  ) => Promise<Uint8Array>,
+): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
+  const hasSameChecksum = (
+    checksumBuilder: RuntimeContext["checksumBuilder"],
+  ) => checksumBuilder.buildStorage(pallet, name) === descriptor
+  const isCompatible = createIsCompatible(chainHead, (ctx) =>
+    hasSameChecksum(ctx.checksumBuilder),
+  )
+
+  const fn = (arg?: Arg): any => {
     const tx$ = (tx: string) =>
       concat(
         client.tx$(tx).pipe(takeWhile((x) => x.type !== "broadcasted", true)),
         chainHead.trackTx$(tx),
       )
 
-    const getCallData$ = (arg: any, hinted: Partial<{ asset: any }> = {}) =>
-      chainHead.getRuntimeContext$(null).pipe(
-        map(
-          ({
-            checksumBuilder,
-            dynamicBuilder,
-            asset: [assetEnc, assetCheck],
-          }) => {
-            const checksum = checksumBuilder.buildCall(pallet, name)
-            if (checksum !== descriptor)
-              throw new Error(
-                `Incompatible runtime entry Tx(${pallet}.${name})`,
-              )
+    const getCallDataWithContext = (
+      {
+        checksumBuilder,
+        dynamicBuilder,
+        asset: [assetEnc, assetCheck],
+      }: RuntimeContext,
+      arg: any,
+      hinted: Partial<{ asset: any }> = {},
+    ) => {
+      const checksum = checksumBuilder.buildCall(pallet, name)
+      if (checksum !== descriptor)
+        throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
-            let returnHinted = hinted
-            if (hinted.asset) {
-              if (assetChecksum !== assetCheck)
-                throw new Error(`Incompatible runtime asset`)
-              returnHinted = { ...hinted, asset: assetEnc(hinted.asset) }
-            }
+      let returnHinted = hinted
+      if (hinted.asset) {
+        if (assetChecksum !== assetCheck)
+          throw new Error(`Incompatible runtime asset`)
+        returnHinted = { ...hinted, asset: assetEnc(hinted.asset) }
+      }
 
-            const { location, codec } = dynamicBuilder.buildCall(pallet, name)
-            return {
-              callData: Binary.fromBytes(
-                mergeUint8(new Uint8Array(location), codec.enc(arg)),
-              ),
-              hinted: returnHinted,
-            }
-          },
+      const { location, codec } = dynamicBuilder.buildCall(pallet, name)
+      return {
+        callData: Binary.fromBytes(
+          mergeUint8(new Uint8Array(location), codec.enc(arg)),
         ),
-      )
+        hinted: returnHinted,
+      }
+    }
 
-    const getEncodedData: TxCall = () =>
-      firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
+    const getCallData$ = (arg: any, hinted: Partial<{ asset: any }> = {}) =>
+      chainHead
+        .getRuntimeContext$(null)
+        .pipe(map((ctx) => getCallDataWithContext(ctx, arg, hinted)))
+
+    const getEncodedData: TxCall = (runtime?: Runtime): any => {
+      if (runtime) {
+        return getCallDataWithContext(getRuntimeContext(runtime), arg).callData
+      }
+      return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
+    }
 
     const getTx: TxSigned<Asset> = (from, _hinted) =>
       firstValueFrom(
@@ -265,3 +302,6 @@ export const createTxEntry =
       submit$,
     }
   }
+
+  return Object.assign(fn, { isCompatible })
+}
