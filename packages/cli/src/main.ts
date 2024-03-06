@@ -12,10 +12,9 @@ program
   .command("generate", {
     isDefault: true,
   })
-  .description("Generate file descriptors")
+  .description("Generate descriptor files")
   .addOption(config)
   .option("-k, --key <key>", "Key of the descriptor to generate")
-  .option("-f, --file <filename>", "Source from metadata encoded file")
   .action(generate)
 
 program
@@ -35,10 +34,7 @@ program
       Object.keys(WellKnownChain) as WellKnownChain[],
     ),
   )
-  .option(
-    "-p, --persist <name>",
-    "Persist the metadata into the file {name}.scale",
-  )
+  .option("-p, --persist", "Persist the metadata into the file {key}.scale")
   .action(add)
 
 program
