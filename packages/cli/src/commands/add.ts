@@ -9,7 +9,7 @@ export interface AddOptions extends CommonOptions {
   wsUrl?: string
   chainSpec?: string
   name?: WellKnownChain
-  persist?: string
+  persist?: boolean
 }
 
 export async function add(
@@ -36,7 +36,7 @@ export async function add(
       const metadata = await getMetadata(entry)
 
       spinner.text = "Writing metadata"
-      const filename = options.persist + ".scale"
+      const filename = `${key}.scale`
       await writeMetadataToDisk(metadata!, filename)
 
       spinner.succeed(`Metadata saved as ${filename}`)
