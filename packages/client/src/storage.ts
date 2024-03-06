@@ -25,12 +25,14 @@ type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
 
 type StorageEntryWithoutKeys<Payload> = {
   getValue: (options?: CallOptions) => Promise<Payload>
-  watchValue: () => Observable<Payload>
+  watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
 }
 
 type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
   getValue: (...args: [...WithCallOptions<Args>]) => Promise<Payload>
-  watchValue: (...args: Args) => Observable<Payload>
+  watchValue: (
+    ...args: [...Args, bestOrFinalized?: "best" | "finalized"]
+  ) => Observable<Payload>
   getValues: (
     keys: Array<[...Args]>,
     options?: CallOptions,
@@ -77,7 +79,7 @@ export const createStorageEntry = (
     new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
   const watchValue = (...args: Array<any>) =>
-    chainHead.finalized$.pipe(
+    chainHead[args[args.length - 1] === "best" ? "best$" : "finalized$"].pipe(
       debounceTime(0),
       chainHead.withRuntime((x) => x.hash),
       exhaustMap(([block, ctx]) => {

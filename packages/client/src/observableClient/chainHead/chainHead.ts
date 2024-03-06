@@ -170,6 +170,12 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     shareLatest,
   )
 
+  const best$ = pinnedBlocks$.pipe(
+    distinctUntilChanged((a, b) => a.best === b.best),
+    map((pinned) => toBlockInfo(pinned.blocks.get(pinned.best)!)),
+    shareLatest,
+  )
+
   const bestBlocks$ = pinnedBlocks$.pipe(
     distinctUntilChanged(
       (prev, current) =>
@@ -202,10 +208,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
   const withOptionalHash$ = getWithOptionalhash$(
     finalized$.pipe(map((b) => b.hash)),
-    pinnedBlocks$.pipe(
-      map((x) => x.best),
-      distinctUntilChanged(),
-    ),
+    best$.pipe(map((b) => b.hash)),
   )
 
   const _body$ = commonEnhancer(lazyFollower("body"))
@@ -277,6 +280,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   return {
     follow$,
     finalized$,
+    best$,
     bestBlocks$,
     runtime$,
     metadata$,
