@@ -78,21 +78,26 @@ export const createStorageEntry = (
   const invalidArgs = (args: Array<any>) =>
     new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
-  const watchValue = (...args: Array<any>) =>
-    chainHead[args[args.length - 1] === "best" ? "best$" : "finalized$"].pipe(
+  const watchValue = (...args: Array<any>) => {
+    const lastArg = args[args.length - 1]
+    const actualArgs =
+      lastArg === "best" || lastArg === "finalized" ? args.slice(0, -1) : args
+
+    chainHead[lastArg === "best" ? "best$" : "finalized$"].pipe(
       debounceTime(0),
       chainHead.withRuntime((x) => x.hash),
       exhaustMap(([block, ctx]) => {
         checksumCheck(ctx)
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         return chainHead
-          .storage$(block.hash, "value", () => codecs.enc(...args))
+          .storage$(block.hash, "value", () => codecs.enc(...actualArgs))
           .pipe(
             distinctUntilChanged(),
             map((val) => (val === null ? codecs.fallback : codecs.dec(val))),
           )
       }),
     )
+  }
 
   const getValue = (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
