@@ -2,15 +2,20 @@ import type { AddChainOptions, Client } from "smoldot"
 import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
-export const getSmProvider =
-  (smoldot: Client) =>
-  (chainSpecOrOptions: string | AddChainOptions): ConnectProvider =>
+export const getSmProvider = (smoldot: Client) => {
+  let pending: Promise<any> | null = null
+  return (chainSpecOrOptions: string | AddChainOptions): ConnectProvider =>
     getSyncProvider(async () => {
-      const chain = await smoldot.addChain(
+      if (pending) await pending
+
+      const addChainP = smoldot.addChain(
         typeof chainSpecOrOptions === "string"
           ? { chainSpec: chainSpecOrOptions }
           : chainSpecOrOptions,
       )
+      pending = addChainP
+      const chain = await addChainP
+      pending = null
 
       return (listener, onError) => {
         let listening = true
@@ -39,3 +44,4 @@ export const getSmProvider =
         }
       }
     })
+}
