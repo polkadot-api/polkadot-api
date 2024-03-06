@@ -45,7 +45,7 @@ export async function add(
   }
 
   await writePapiConfig(options.config, entries)
-  return console.log(`Saved new spec ${key} from file ${options.file}`)
+  return console.log(`Saved new spec "${key}"`)
 }
 
 const entryFromOptions = (
