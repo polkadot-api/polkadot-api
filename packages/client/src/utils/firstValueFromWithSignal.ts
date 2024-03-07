@@ -1,3 +1,4 @@
+import { AbortError } from "@polkadot-api/utils"
 import { Observable, Subscription, noop } from "rxjs"
 
 export function firstValueFromWithSignal<T>(
@@ -6,28 +7,32 @@ export function firstValueFromWithSignal<T>(
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     let subscription: Subscription | null = null
-    const unsubscribe = () => {
-      subscription?.unsubscribe()
-      subscription = null
-    }
-    const onAbort = signal ? unsubscribe : noop
+    let isDone = false
+
+    const onAbort = signal
+      ? () => {
+          subscription?.unsubscribe()
+          reject(new AbortError())
+        }
+      : noop
 
     subscription = source.subscribe({
       next: (value) => {
         resolve(value)
-        unsubscribe()
+        subscription?.unsubscribe()
+        isDone = true
       },
       error: (e) => {
-        reject(e)
         signal?.removeEventListener("abort", onAbort)
+        reject(e)
       },
       complete: () => {
-        reject(new Error("Observable completed without emitting"))
         signal?.removeEventListener("abort", onAbort)
+        reject(new Error("Observable completed without emitting"))
       },
     })
 
     // the observable could have emitted synchronously
-    if (subscription) signal?.addEventListener("abort", onAbort)
+    if (!isDone) signal?.addEventListener("abort", onAbort)
   })
 }
