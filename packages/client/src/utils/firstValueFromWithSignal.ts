@@ -11,13 +11,7 @@ export function firstValueFromWithSignal<T>(
       subscription = null
     }
 
-    const onAbort = signal
-      ? () => {
-          subscription?.unsubscribe()
-          subscription = null
-        }
-      : noop
-
+    const onAbort = signal ? unsubscribe : noop
     subscription = source.subscribe({
       next: (value) => {
         resolve(value)
