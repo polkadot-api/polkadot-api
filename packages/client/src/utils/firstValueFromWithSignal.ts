@@ -1,25 +1,30 @@
-import { Observable, noop } from "rxjs"
+import { Observable, Subscription, noop } from "rxjs"
 
 export function firstValueFromWithSignal<T>(
   source: Observable<T>,
   signal?: AbortSignal,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
+    let subscription: Subscription | null = null
+    const unsubscribe = () => {
+      subscription?.unsubscribe()
+      subscription = null
+    }
+
     const onAbort = signal
       ? () => {
-          subscription.unsubscribe()
+          subscription?.unsubscribe()
+          subscription = null
         }
       : noop
 
-    let isDone = false
-    const subscription = source.subscribe({
+    subscription = source.subscribe({
       next: (value) => {
         resolve(value)
 
         // if the Observable emits synchronously, then `subscription`
         // won't exist yet.
-        isDone = true
-        subscription?.unsubscribe()
+        unsubscribe()
       },
       error: (e) => {
         reject(e)
@@ -32,8 +37,8 @@ export function firstValueFromWithSignal<T>(
     })
 
     // in case that the observable emitted synchronously
-    if (isDone) {
-      subscription.unsubscribe()
+    if (subscription) {
+      unsubscribe()
     } else {
       signal?.addEventListener("abort", onAbort)
     }
