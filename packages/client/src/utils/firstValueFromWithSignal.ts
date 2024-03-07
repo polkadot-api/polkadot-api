@@ -10,14 +10,11 @@ export function firstValueFromWithSignal<T>(
       subscription?.unsubscribe()
       subscription = null
     }
-
     const onAbort = signal ? unsubscribe : noop
+
     subscription = source.subscribe({
       next: (value) => {
         resolve(value)
-
-        // if the Observable emits synchronously, then `subscription`
-        // won't exist yet.
         unsubscribe()
       },
       error: (e) => {
@@ -30,11 +27,7 @@ export function firstValueFromWithSignal<T>(
       },
     })
 
-    // in case that the observable emitted synchronously
-    if (subscription) {
-      unsubscribe()
-    } else {
-      signal?.addEventListener("abort", onAbort)
-    }
+    // the observable could have emitted synchronously
+    if (subscription) signal?.addEventListener("abort", onAbort)
   })
 }
