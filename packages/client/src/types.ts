@@ -117,7 +117,7 @@ export type TypedApi<D extends Descriptors> = {
   runtime: RuntimeApi
 }
 
-export type CreateClient = (connect: Connect) => {
+export interface Client {
   finalized$: Observable<BlockInfo>
   bestBlocks$: Observable<BlockInfo[]>
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
@@ -125,3 +125,5 @@ export type CreateClient = (connect: Connect) => {
   getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
   destroy: () => void
 }
+
+export type CreateClient = (connect: Connect) => Client
