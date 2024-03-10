@@ -2,7 +2,7 @@ import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
 import { V15 } from "@polkadot-api/substrate-bindings"
-import fs from "fs/promises"
+import fs, { readFile } from "fs/promises"
 import path, { join } from "path"
 import process from "process"
 import tsc from "tsc-prog"
@@ -28,7 +28,9 @@ export async function generate(opts: GenerateOptions) {
     Object.entries(sources).map(async ([key, source]) => ({
       key,
       metadata: (await getMetadata(source))!,
-      knownTypes: {},
+      knownTypes: source.knownTypes
+        ? JSON.parse(await readFile(source.knownTypes, "utf-8"))
+        : {},
     })),
   )
 

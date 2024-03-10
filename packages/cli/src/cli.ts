@@ -37,6 +37,7 @@ export function getCli({ add, generate, remove, update }: Commands) {
       ),
     )
     .option("--no-persist", "Do not persist the metadata as a file")
+    .option("-k, --knownTypes <filename>", "Known types file for the chain")
     .action(add)
 
   program

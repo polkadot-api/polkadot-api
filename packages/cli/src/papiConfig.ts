@@ -4,7 +4,9 @@ import { updatePackage, writePackage } from "write-pkg"
 import { readFile, writeFile } from "node:fs/promises"
 import { WellKnownChain } from "./well-known-chains"
 
-export type EntryConfig =
+export type EntryConfig = {
+  knownTypes?: string
+} & (
   | {
       metadata: string
     }
@@ -20,6 +22,7 @@ export type EntryConfig =
       chain: WellKnownChain
       metadata?: string
     }
+)
 export type PapiConfig = Record<string, EntryConfig>
 
 const papiCfgDefaultFile = "polkadot-api.json"

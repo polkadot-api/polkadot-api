@@ -10,6 +10,7 @@ export interface AddOptions extends CommonOptions {
   chainSpec?: string
   name?: WellKnownChain
   noPersist?: boolean
+  knownTypes?: string
 }
 
 export async function add(key: string, options: AddOptions) {
@@ -38,6 +39,7 @@ export async function add(key: string, options: AddOptions) {
       entry.metadata = filename
     }
   }
+  entries[key].knownTypes = options.knownTypes
 
   await writePapiConfig(options.config, entries)
   return console.log(`Saved new spec "${key}"`)
