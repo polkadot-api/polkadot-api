@@ -14,21 +14,14 @@ type UnsubscribeFn = () => void
 // to the compact encoded block number, appended to the
 // hash of the forked block.
 
-export interface Chain {
+export interface ChainData {
   chainId: string
   name: string
   symbol: string
   decimals: number
   ss58Format: number
-
-  // it pulls the current list of available accounts for this Chain
-  getAccounts: () => Promise<Array<Account>>
-
-  // registers a callback that will be invoked whenever the list
-  // of available accounts for this chain has changed. The callback
-  // will be synchronously called with the current list of accounts.
-  onAccountsChange: (accounts: Callback<Array<Account>>) => UnsubscribeFn
-
+}
+export interface Chain {
   // returns a JSON RPC Provider that it's compliant with new
   // JSON-RPC API spec:
   // https://paritytech.github.io/json-rpc-interface-spec/api.html
@@ -37,10 +30,22 @@ export interface Chain {
     // will be sending messages to
     onMessage: Callback<string>,
   ) => JsonRpcProvider
+
+  // it pulls the current list of available accounts for this Chain
+  getAccounts: () => Promise<Array<Account>>
+
+  // registers a callback that will be invoked whenever the list
+  // of available accounts for this chain has changed. The callback
+  // will be synchronously called with the current list of accounts.
+  onAccountsChange: (accounts: Callback<Array<Account>>) => UnsubscribeFn
+}
+export interface Parachain extends Chain {
+  chainData: Promise<ChainData>
 }
 
 export interface RelayChain extends Chain {
-  getParachain: (chainspec: string) => Promise<Chain>
+  chainData: ChainData
+  getParachain: (chainspec: string) => Parachain
 }
 
 export interface JsonRpcProvider {

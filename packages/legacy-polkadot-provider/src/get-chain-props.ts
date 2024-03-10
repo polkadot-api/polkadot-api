@@ -3,6 +3,7 @@ import {
   SubstrateClient,
   createClient,
 } from "@polkadot-api/substrate-client"
+import { ChainData } from "./types/polkadot-provider"
 
 const clientRequest =
   (client: SubstrateClient) =>
@@ -14,7 +15,9 @@ const clientRequest =
       }),
     )
 
-export const getChainProps = async (provider: ConnectProvider) => {
+export const getChainProps = async (
+  provider: ConnectProvider,
+): Promise<ChainData> => {
   const client = createClient(provider)
   const request = clientRequest(client)
 
