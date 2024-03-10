@@ -4,7 +4,7 @@ import {
   getAllAccounts$,
   getSigner,
 } from "./accounts"
-import { Chain, RelayChain } from "./types/polkadot-provider"
+import { ChainData, Parachain, RelayChain } from "./types/polkadot-provider"
 import { SignerPayloadJSON } from "./types/internal-types"
 import { getTxCreator } from "./get-tx-creator"
 import { CreateTxCallback, UserSignedExtensions } from "./types/public-types"
@@ -109,46 +109,29 @@ export const getLegacyProvider = (
 
   const getProvider = getScProvider(scClient)
 
-  const chainCreator = (
-    provider: ConnectProvider,
-    chainData: {
-      chainId: string
-      name: string
-      ss58Format: number
-      decimals: number
-      symbol: string
-    },
-  ): Chain => {
-    const connect = getTxCreator(provider, onCreateTx, signPayload)
+  const parachainCreator =
+    (addParachain: (input: string) => ConnectProvider) =>
+    (chainspec: string): Parachain => {
+      const parachainProvider = addParachain(chainspec)
+      const parachainData = getChainProps(parachainProvider)
 
-    return {
-      connect,
-      ...getAccountsChainFns(
-        chainData.chainId,
-        chainData.ss58Format,
-        allAccounts$,
-      ),
-      ...chainData,
+      return {
+        connect: getTxCreator(parachainProvider, onCreateTx, signPayload),
+        ...getAccountsChainFns(parachainData, allAccounts$),
+        chainData: parachainData,
+      }
     }
-  }
 
   const relayChainCreator = (
-    chainData: {
-      chainId: string
-      name: string
-      ss58Format: number
-      decimals: number
-      symbol: string
-    },
+    chainData: ChainData,
     provider: ConnectProvider,
     addParachain: (input: string) => ConnectProvider,
-  ) => {
+  ): RelayChain => {
     return {
-      ...chainCreator(provider, chainData),
-      getParachain: async (chainspec: string) => {
-        const provider = addParachain(chainspec)
-        return chainCreator(provider, await getChainProps(provider))
-      },
+      connect: getTxCreator(provider, onCreateTx, signPayload),
+      chainData,
+      ...getAccountsChainFns(Promise.resolve(chainData), allAccounts$),
+      getParachain: parachainCreator(addParachain),
     }
   }
 

@@ -2,6 +2,7 @@ import type { Signer } from "@polkadot/api/types"
 import {
   Observable,
   catchError,
+  combineLatest,
   distinctUntilChanged,
   firstValueFrom,
   map,
@@ -12,7 +13,7 @@ import {
   startWith,
   switchMap,
 } from "rxjs"
-import { Callback } from "./types/polkadot-provider"
+import { Callback, ChainData } from "./types/polkadot-provider"
 import { UnsubscribeFn } from "@polkadot-api/substrate-client"
 import { AccountId } from "@polkadot-api/substrate-bindings"
 
@@ -98,23 +99,20 @@ export interface Account {
 }
 
 export const getAccountsChainFns = (
-  genesisHash: string,
-  ss58format: number,
+  chainData: Promise<ChainData>,
   allAccounts$: Observable<InjectedAccount[]>,
 ) => {
   const encoder = AccountId().enc
-  const decoder = AccountId(ss58format).dec
+  const decoder = chainData.then(({ ss58Format }) => AccountId(ss58Format).dec)
 
   let accounts: Account[]
 
-  const accounts$ = allAccounts$
+  const accounts$ = combineLatest([allAccounts$, decoder, chainData])
     .pipe(
       catchError(() => of([])),
-      map((innerAccounts) =>
+      map(([innerAccounts, decoder, { chainId }]) =>
         innerAccounts
-          .filter(
-            (data) => !data.genesisHash || data.genesisHash === genesisHash,
-          )
+          .filter((data) => !data.genesisHash || data.genesisHash === chainId)
           .map(({ address: addressRaw, name }) => {
             const publicKey = encoder(addressRaw as any)
             const address = decoder(publicKey)
