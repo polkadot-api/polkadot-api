@@ -1,0 +1,12 @@
+{
+  "dot": {
+    "outputFolder": "src/codegen",
+    "chain": "polkadot",
+    "metadata": "dot.scale"
+  },
+  "dot-assethub": {
+    "outputFolder": "src/codegen",
+    "wsUrl": "wss://polkadot-asset-hub-rpc.polkadot.io/",
+    "metadata": "dot-assethub.scale"
+  }
+}

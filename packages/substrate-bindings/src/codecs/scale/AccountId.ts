@@ -52,8 +52,11 @@ function fromBase58ToBuffer(nBytes: number, ss58Format: number) {
     )
       throw new Error("Invalid checksum")
 
-    if (prefixBytesToNumber(prefixBytes) != ss58Format)
-      throw new Error("Invalid SS58 prefix")
+    const actualSs58Format = prefixBytesToNumber(prefixBytes)
+    if (actualSs58Format != ss58Format) {
+      console.log("expected ss58Format", ss58Format)
+      console.log(actualSs58Format)
+    }
 
     return publicKey.slice()
   }
