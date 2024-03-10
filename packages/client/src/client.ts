@@ -76,7 +76,7 @@ const createTypedApi = <D extends Descriptors>(
   const constants = {} as Record<string, Record<string, ConstantEntry<any>>>
   for (const pallet in pallets) {
     constants[pallet] ||= {}
-    const [, , , ctEntries] = pallets[pallet]
+    const [, , , , ctEntries] = pallets[pallet]
     for (const name in ctEntries) {
       constants[pallet][name] = createConstantEntry(
         ctEntries[name],
