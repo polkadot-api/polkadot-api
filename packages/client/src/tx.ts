@@ -56,6 +56,12 @@ type TxFunction<Asset> = (
   >,
 ) => Promise<TxSuccess>
 
+export type TxEvent =
+  | TxValidated
+  | TxBroadcasted
+  | TxBestChainBlockIncluded
+  | (TxFinalized & TxSuccess)
+
 type TxObservable<Asset> = (
   from: SS58String | Uint8Array,
   hintedSignExtensions?: Partial<
@@ -70,12 +76,7 @@ type TxObservable<Asset> = (
           asset: Asset
         }
   >,
-) => Observable<
-  | TxValidated
-  | TxBroadcasted
-  | TxBestChainBlockIncluded
-  | (TxFinalized & TxSuccess)
->
+) => Observable<TxEvent>
 
 interface TxCall {
   (): Promise<Binary>

@@ -11,16 +11,17 @@ import { Observable } from "rxjs"
 
 const terminalTxEvents = new Set(["error", "finalized", "invalid", "dropped"])
 
+type ObservableClientTxEvent =
+  | TxValidated
+  | TxBroadcasted
+  | TxBestChainBlockIncluded
+  | TxFinalized
+  | TxInvalid
+  | TxDropped
+
 export default (baseTransaction: SubstrateClient["transaction"]) =>
   (transaction: string) =>
-    new Observable<
-      | TxValidated
-      | TxBroadcasted
-      | TxBestChainBlockIncluded
-      | TxFinalized
-      | TxInvalid
-      | TxDropped
-    >((observer) =>
+    new Observable<ObservableClientTxEvent>((observer) =>
       baseTransaction(
         transaction,
         (event) => {
