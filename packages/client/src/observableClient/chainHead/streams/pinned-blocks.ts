@@ -176,6 +176,8 @@ export const getPinnedBlocks$ = (
           }
 
           case "blockUsage": {
+            if (!acc.blocks.has(event.value.hash)) return acc
+
             acc.blocks.get(event.value.hash)!.refCount +=
               event.value.type === "hold" ? 1 : -1
             return acc

@@ -3309,4 +3309,361 @@ type RuntimeError = Enum<
   | { type: "XcmPallet"; value: Anonymize<XcmPalletError> }
   | { type: "MessageQueue"; value: Anonymize<MessageQueuePalletError> }
 >
+
+// 2dtccotemif6i
+type WestendRuntimeRuntimeEvent
+
+// 5ofh7hnvff54m
+type PalletEvent
+
+// dfir002lt6s7c
+type BalancesEvent
+
+// 8ohb99n25uga8
+type StakingEvent
+
+// bju6hjiipokne
+type IdentityEvent
+
+// a4b928jbpau7j
+type RecoveryEvent
+
+// 8ka48fenvkqnu
+type SchedulerEvent
+
+// 9hjv2b10hjpk2
+type SudoEvent
+
+// ncob4fcprm7u
+type ProxyEvent
+
+// 2nro5bb16i5rl
+type WestendRuntimeProxyType
+
+// 8t63dssf4qeo5
+type NominationPoolsEvent
+
+// 7sev2v4lj2adk
+type NominationPoolsCommissionClaimPermission
+
+// 3buks4t5p9jo5
+type WestendRuntimeRuntimeCall
+
+// 4fbotq4sjnarj
+type PalletCall
+
+// eqj54k6fuqphk
+type BalancesPalletCall
+
+// 5805da4gd2qdu
+type BalancesTypesAdjustmentDirection
+
+// f9vmbaq4bbji7
+type StakingPalletCall
+
+// 8563etdmiips3
+type SessionPalletCall
+
+// 7ai6hngrgci9q
+type UtilityPalletCall
+
+// 5ksf6iu72ku9a
+type WestendRuntimeOriginCaller
+
+// cihskiocbia8u
+type WestendRuntimeGovernanceOriginsPalletCustomOriginsOrigin
+
+// a9cia8lmgfbls
+type XcmPalletOrigin
+
+// 729f0smk6iq
+type XcmV4Junctions
+
+// 6ia0dve9b7jkt
+type XcmV4Junction
+
+// elvgq77sonmu4
+type XcmV4JunctionNetworkId
+
+// 3ftc2gm6vldmr
+type IdentityPalletCall
+
+// 9gk8gt7ihk77k
+type RecoveryPalletCall
+
+// 623hlu4egqc2g
+type VestingPalletCall
+
+// afl9u0rriejnl
+type SchedulerPalletCall
+
+// mbphi6s5kus8
+type PreimagePalletCall
+
+// c8ick5jm5228d
+type SudoPalletCall
+
+// f3ubj8sbog6fs
+type ProxyPalletCall
+
+// f5k05q35kbr90
+type MultisigPalletCall
+
+// 78ij2kk1uhji5
+type NominationPoolsPalletCall
+
+// bdt4c25ptt5ra
+type ReferendaPalletCall
+
+// 4iujedjoq34sc
+type WhitelistPalletCall
+
+// c7mcjddtrdd7g
+type TreasuryPalletCall
+
+// 1d46vkpb5c9u7
+type PolkadotRuntimeCommonImplsVersionedLocatableAsset
+
+// 8tdsq8385agqg
+type XcmV3Junctions
+
+// 48p5legd9t524
+type XcmV3MultiassetAssetId
+
+// 27joh99oja2ig
+type XcmVersionedLocation
+
+// 5bn08pbgv7o6l
+type PolkadotRuntimeParachainsConfigurationPalletCall
+
+// 2tod12af0blov
+type PolkadotPrimitivesV6ExecutorParamsExecutorParam
+
+// 8hiv7brh6h3c9
+type PolkadotPrimitivesV6PvfPrepKind
+
+// 96snh5u7enqqq
+type PolkadotRuntimeParachainsParasInherentPalletCall
+
+// fsku0269asef5
+type PolkadotPrimitivesV6DisputeStatement
+
+// 5aqomasnbnm91
+type PolkadotPrimitivesV6ValidDisputeStatementKind
+
+// 2vev2224bc186
+type PolkadotRuntimeParachainsHrmpPalletCall
+
+// 9s7urueli180g
+type PolkadotRuntimeParachainsAssignerOnDemandPalletCall
+
+// 849p7f3ud624h
+type PolkadotRuntimeCommonParasSudoWrapperPalletCall
+
+// 4a2omd2s8vpc6
+type XcmVersionedXcm
+
+// caq6rh92hm8c6
+type XcmV3Instruction
+
+// fh26t57c3mt3d
+type XcmV3Response
+
+// 30ddhmf424e2v
+type XcmV3MultiassetMultiAssetFilter
+
+// 7orphk6v4h73j
+type XcmV3MultiassetWildMultiAsset
+
+// 3lasejrgrfdor
+type XcmV4Instruction
+
+// 5tantc0kkflbi
+type XcmV4Response
+
+// 6su230je4hna6
+type XcmV4AssetAssetFilter
+
+// 88gf1purmfv28
+type XcmV4AssetWildAsset
+
+// 89kvlek9l45g6
+type PolkadotRuntimeCommonAssignedSlotsPalletCall
+
+// 8cds81hnme9t3
+type PolkadotRuntimeCommonAssignedSlotsSlotLeasePeriodStart
+
+// 9j40dmr75d665
+type PolkadotRuntimeParachainsCoretimePalletCall
+
+// fm8a585f84sm4
+type BrokerCoretimeInterfaceCoreAssignment
+
+// depofgn4a4b4b
+type XcmPalletCall
+
+// 7l6lsc3msmnb3
+type XcmVersionedAssets
+
+// 53dp9l4na5uc1
+type XcmVersionedXcm1
+
+// c7p4d004l7og1
+type XcmV3Instruction1
+
+// 9l8na4u51iicp
+type XcmV4Instruction1
+
+// jh957btgdq8t
+type AssetRatePalletCall
+
+// 9dlrguqm8rmav
+type RootTestingPalletCall
+
+// beddosggop7dd
+type BeefyPalletCall
+
+// 67t4bps9r5c4k
+type PolkadotRuntimeCommonIdentityMigratorPalletCall
+
+// btvhu2m2gt1et
+type TreasuryEvent
+
+// c4alvt16n58rg
+type PolkadotRuntimeParachainsHrmpEvent
+
+// 9ct52rvkkel07
+type PolkadotRuntimeParachainsAssignerOnDemandEvent
+
+// 1r9c13cpdm1in
+type PolkadotRuntimeCommonAssignedSlotsEvent
+
+// 7t5v4k056sf3d
+type PolkadotRuntimeParachainsCoretimeEvent
+
+// dv1b18q7r2u8i
+type XcmEvent
+
+// 8vh5s87utjc6h
+type XcmV4TraitsOutcome
+
+// f7m19fk2uan6u
+type AssetRateEvent
+
+// aqokr5ruccpq9
+type RootTestingEvent
+
+// 43e3ummb3h5dn
+type PolkadotRuntimeCommonIdentityMigratorEvent
+
+// 3bjnl897tu8j2
+type PalletError
+
+// bisqhs3kmv8ho
+type BabeDigestsPreDigest
+
+// 9b9mogv9ee9ar
+type WestendRuntimeRuntimeHoldReason
+
+// f81hvnpidvhl
+type PreimagePalletHoldReason
+
+// d52mcjgamb06q
+type WestendRuntimeRuntimeFreezeReason
+
+// 62v3u2ji2s72p
+type NominationPoolsPalletFreezeReason
+
+// 5sc45a3km4nfm
+type BalancesPalletError
+
+// 27lclujcpo90c
+type StakingPalletError
+
+// 8e7nos9s6ulu1
+type IdentityPalletError
+
+// 4ee35f08vnpr3
+type RecoveryPalletError
+
+// 2gj0h0im54fqd
+type PreimageRequestStatus
+
+// a89ulpbu4dl9t
+type PreimagePalletError
+
+// cbcrnankfkjms
+type SudoPalletError
+
+// 1o3j9uvelg2s3
+type ElectionProviderMultiPhasePalletError
+
+// 9ef24bhcdaoh3
+type NominationPoolsPalletError
+
+// crkl859at15l3
+type ReferendaTypesReferendumInfo
+
+// e3iqv87ntls1
+type TreasuryPaymentState
+
+// oc9hp9sj7pq0
+type TreasuryPalletError
+
+// 9prq676jdeeti
+type PolkadotRuntimeParachainsParasInherentPalletError
+
+// 6ep8h6104tukj
+type PolkadotRuntimeParachainsSchedulerPalletCoreOccupied
+
+// 782iqqbpekj4v
+type PolkadotRuntimeParachainsSchedulerCommonAssignment
+
+// 2abaj015pgc0k
+type PolkadotRuntimeParachainsParasPvfCheckCause
+
+// ei953gg3qbiup
+type PolkadotRuntimeParachainsParasPalletError
+
+// 89ine2unkluf5
+type PolkadotRuntimeParachainsHrmpPalletError
+
+// 5vs0cf31h4sgl
+type PolkadotRuntimeParachainsAssignerOnDemandPalletError
+
+// apoi8fhpr15s8
+type PolkadotRuntimeParachainsAssignerCoretimePalletError
+
+// 408so5338oklr
+type PolkadotRuntimeCommonParasRegistrarPalletError
+
+// ede5l2hkdh7m
+type PolkadotRuntimeCommonParasSudoWrapperPalletError
+
+// 9v0s2dlaqounm
+type PolkadotRuntimeCommonAssignedSlotsPalletError
+
+// f4nsgn5qipb72
+type PolkadotRuntimeParachainsCoretimePalletError
+
+// aevi24j48fqc7
+type XcmPalletQueryStatus
+
+// 15o3ptvl3k2sj
+type XcmVersionedResponse
+
+// 7p4okqh6qe3j7
+type XcmVersionedAssetId
+
+// d58ivj3ds68ht
+type XcmPalletError
+
+// 4iiukopdhct9f
+type MessageQueuePalletError
+
+// ot1gcn5btmm5
+type AssetRatePalletError
+
+// 8d4epped9g7uv
+type WestendRuntimeRuntimeError
 `
