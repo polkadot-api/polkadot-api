@@ -1,8 +1,8 @@
 import {
-  V15,
   getChecksumBuilder,
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
+import type { V15 } from "@polkadot-api/substrate-bindings"
 import { getTypesBuilder } from "./types-builder"
 
 type ArraVal<T extends Array<any>> = T extends Array<infer V> ? V : unknown

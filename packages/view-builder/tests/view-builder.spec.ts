@@ -1,9 +1,13 @@
-import ksm from "./ksm.json"
-import { expect, describe, it } from "vitest"
+import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
+import { expect, describe, it, beforeAll } from "vitest"
 import { getViewBuilder } from "@/."
 
 describe("getViewBuilder", () => {
-  const builder = getViewBuilder(ksm as any)
+  let builder: ReturnType<typeof getViewBuilder>
+  beforeAll(async () => {
+    builder = getViewBuilder(await getKsmMetadata())
+  })
+
   it("batched call", () => {
     const result = builder.callDecoder(
       "0x180008040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a30306050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",

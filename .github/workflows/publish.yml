@@ -51,6 +51,7 @@ jobs:
           pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
           pnpm pack --dir packages/metadata-builders
+          pnpm pack --dir packages/view-builder
           pnpm pack --dir packages/tx-helper
           pnpm pack --dir packages/utils
           pnpm pack --dir packages/rollup-plugin-descriptor-treeshake
@@ -106,6 +107,10 @@ jobs:
         with:
           name: package
           path: ./packages/metadata-builders/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/view-builder/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package

@@ -28,6 +28,8 @@
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/client": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
+    "@polkadot-api/metadata-fixtures": "workspace:*",
+    "@polkadot-api/view-builder": "workspace:*",
     "@polkadot-api/node-polkadot-provider": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",

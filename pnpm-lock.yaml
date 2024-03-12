@@ -41,12 +41,12 @@ importers:
 
   examples/decode-viewer:
     dependencies:
-      '@polkadot-api/metadata-builders':
-        specifier: workspace:*
-        version: link:../../packages/metadata-builders
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
+      '@polkadot-api/view-builder':
+        specifier: workspace:*
+        version: link:../../packages/view-builder
       '@polkadot-cloud/core':
         specifier: ^1.0.43
         version: 1.0.48
@@ -163,6 +163,9 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../packages/metadata-builders
+      '@polkadot-api/metadata-fixtures':
+        specifier: workspace:*
+        version: link:../packages/metadata-fixtures
       '@polkadot-api/node-polkadot-provider':
         specifier: workspace:*
         version: link:../packages/node-polkadot-provider
@@ -184,6 +187,9 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../packages/utils
+      '@polkadot-api/view-builder':
+        specifier: workspace:*
+        version: link:../packages/view-builder
       '@substrate/connect-known-chains':
         specifier: ^1.0.6
         version: 1.0.6
@@ -376,6 +382,10 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@polkadot-api/metadata-fixtures':
+        specifier: workspace:*
+        version: link:../metadata-fixtures
 
   packages/metadata-fixtures:
     dependencies:
@@ -562,6 +572,22 @@ importers:
         version: 0.34.4(vitest@0.34.6)
 
   packages/utils: {}
+
+  packages/view-builder:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+    devDependencies:
+      '@polkadot-api/metadata-fixtures':
+        specifier: workspace:*
+        version: link:../metadata-fixtures
 
   packages/ws-provider:
     dependencies:

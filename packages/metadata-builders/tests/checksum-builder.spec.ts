@@ -1,10 +1,19 @@
-import ksm from "./ksm.json"
+import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
 import { V14Lookup, V15 } from "@polkadot-api/substrate-bindings"
-import { expect, describe, it } from "vitest"
+import { expect, describe, it, beforeAll } from "vitest"
 import { getChecksumBuilder } from "@/."
 
+let ksm: Awaited<ReturnType<typeof getKsmMetadata>>
+beforeAll(async () => {
+  ksm = await getKsmMetadata()
+})
+
 describe("getChecksumBuilder snapshots", () => {
-  const builder = getChecksumBuilder(ksm as any)
+  let builder: ReturnType<typeof getChecksumBuilder>
+  beforeAll(() => {
+    builder = getChecksumBuilder(ksm)
+  })
+
   it("batched call", () => {
     const result = builder.buildCall("Utility", "batch")
     expect(result).toMatchSnapshot()
@@ -16,7 +25,7 @@ describe("getChecksumBuilder snapshots", () => {
   })
 })
 
-describe("buildDefinition properties", () => {
+describe("getChecksumBuilder properties", () => {
   const builder = getChecksumBuilder({ lookup } as any)
 
   const expectEqual = (

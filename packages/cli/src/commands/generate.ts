@@ -1,7 +1,7 @@
 import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import { getDescriptors } from "@polkadot-api/codegen"
-import { V15 } from "@polkadot-api/metadata-builders"
+import { V15 } from "@polkadot-api/substrate-bindings"
 import fsExists from "fs.promises.exists"
 import fs from "fs/promises"
 import path from "path"
