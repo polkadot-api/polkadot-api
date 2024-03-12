@@ -28,6 +28,10 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Install deps
         run: pnpm install
+      - name: Build, Test and Lint
+        run: pnpm turbo build test lint --cache-dir=.turbo
+      - name: Run Integration Tests
+        run: pnpm test:ci
       - name: Build
         run: pnpm turbo build --cache-dir=.turbo
       - name: Pack
