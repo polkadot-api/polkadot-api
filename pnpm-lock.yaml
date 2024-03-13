@@ -132,6 +132,9 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+      smoldot:
+        specifier: ^2.0.21
+        version: 2.0.21
     devDependencies:
       '@polkadot-api/rollup-plugin-descriptor-treeshake':
         specifier: workspace:*

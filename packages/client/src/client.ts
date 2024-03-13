@@ -4,6 +4,7 @@ import {
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
 import { firstValueFrom } from "rxjs"
+import { ConstantEntry, createConstantEntry } from "./constants"
 import { EvClient, createEventEntry } from "./event"
 import { getObservableClient } from "./observableClient"
 import { getRuntimeApi } from "./runtime"
@@ -11,12 +12,12 @@ import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { TxEntry, createTxEntry } from "./tx"
 import {
-  CreateClient,
   CreateTx,
   HintedSignedExtensions,
+  PolkadotClient,
+  PolkadotProvider,
   TypedApi,
 } from "./types"
-import { ConstantEntry, createConstantEntry } from "./constants"
 
 const createTypedApi = <D extends Descriptors>(
   descriptors: D,
@@ -111,10 +112,12 @@ const createTypedApi = <D extends Descriptors>(
   } as any
 }
 
-export const createClient: CreateClient = (connect) => {
+export function createClient(
+  polkadotProvider: PolkadotProvider,
+): PolkadotClient {
   let createTx: CreateTx
   const rawClient: SubstrateClient = createRawClient((onMsg) => {
-    const result = connect(onMsg)
+    const result = polkadotProvider(onMsg)
     createTx = result.createTx
     return result
   })

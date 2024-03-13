@@ -28,8 +28,6 @@ export type CreateTx = (
   hintedSignedExtensions?: HintedSignedExtensions,
 ) => Promise<Uint8Array>
 
-export type CreateClient = (connect: PolkadotProvider) => Client
-
 export interface PolkadotConnection {
   send: (message: string) => void
   createTx: CreateTx
@@ -121,7 +119,7 @@ export type TypedApi<D extends Descriptors> = {
   runtime: RuntimeApi
 }
 
-export interface Client {
+export interface PolkadotClient {
   finalized$: Observable<BlockInfo>
   bestBlocks$: Observable<BlockInfo[]>
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
