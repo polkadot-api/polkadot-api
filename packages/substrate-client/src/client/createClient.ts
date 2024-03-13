@@ -38,14 +38,14 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
   const subscriptions = getSubscriptionsManager()
   const orphans = new OrphanMessages<string>()
 
-  let rpcClient: JsonRpcConnection | null = null
+  let connection: JsonRpcConnection | null = null
 
   const send = (
     id: number,
     method: string,
     params: Array<boolean | string | number | null>,
   ) => {
-    rpcClient!.send(
+    connection!.send(
       JSON.stringify({
         jsonrpc: "2.0",
         id,
@@ -110,11 +110,11 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
       console.error(e)
     }
   }
-  rpcClient = gProvider(onMessage)
+  connection = gProvider(onMessage)
 
   const disconnect = () => {
-    rpcClient?.disconnect()
-    rpcClient = null
+    connection?.disconnect()
+    connection = null
     subscriptions.errorAll(new DestroyedError())
     responses.forEach((r) => r.onError(new DestroyedError()))
     responses.clear()
@@ -127,7 +127,7 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
     params: Array<any>,
     cb?: ClientRequestCb<T, TT>,
   ): UnsubscribeFn => {
-    if (!rpcClient) throw new Error("Not connected")
+    if (!connection) throw new Error("Not connected")
     const id = nextId++
 
     if (cb) responses.set(id, cb)

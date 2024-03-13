@@ -17,9 +17,8 @@ import { getSmProvider } from "@polkadot-api/sm-provider"
 import { westend2 } from "@substrate/connect-known-chains"
 
 const smoldot = start()
-const smProvider = getSmProvider(smoldot)
 
-const getConnectProvider = () => smProvider(westend2)
+const getConnectProvider = () => getSmProvider(smoldot, westend2)
 const client = getObservableClient(createClient(getConnectProvider()))
 
 const priv = fromHex(
@@ -29,7 +28,7 @@ const from = ed25519.getPublicKey(priv)
 
 const txCreator = getTxCreator(
   getConnectProvider(),
-  ({ userSingedExtensionsName }, callback) => {
+  async ({ userSingedExtensionsName }) => {
     const userSignedExtensionsData = Object.fromEntries(
       userSingedExtensionsName.map((x) => {
         if (x === "CheckMortality") {
@@ -45,12 +44,12 @@ const txCreator = getTxCreator(
       }),
     )
 
-    callback({
+    return {
       userSignedExtensionsData,
       overrides: {},
       signingType: "Ed25519",
       signer: async (value) => ed25519.sign(value, priv),
-    })
+    }
   },
 )
 
