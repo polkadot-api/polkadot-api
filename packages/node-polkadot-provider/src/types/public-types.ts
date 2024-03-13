@@ -1,4 +1,4 @@
-import { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { SigningType, UserSignedExtensions } from "@polkadot-api/tx-helper"
 import type {
   CreateTx,
@@ -22,7 +22,7 @@ export type CustomizeTxResult<T extends Array<UserSignedExtensionName>> = {
 
 export type GetChainArgs = {
   keyring: Array<KeyPair>
-  provider: ConnectProvider
+  provider: JsonRpcProvider
   txCustomizations?:
     | Partial<UserSignedExtensions>
     | (<T extends Array<UserSignedExtensionName>>(

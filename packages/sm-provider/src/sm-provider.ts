@@ -1,10 +1,10 @@
 import type { AddChainOptions, Client } from "smoldot"
-import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 export const getSmProvider = (smoldot: Client) => {
   let pending: Promise<any> | null = null
-  return (chainSpecOrOptions: string | AddChainOptions): ConnectProvider =>
+  return (chainSpecOrOptions: string | AddChainOptions): JsonRpcProvider =>
     getSyncProvider(async () => {
       if (pending) await pending
 

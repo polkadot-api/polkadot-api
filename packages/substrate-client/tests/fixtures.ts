@@ -4,7 +4,7 @@ import {
   IRpcError,
   createClient,
 } from "@/."
-import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as vitest from "vitest"
 
 const vi = vitest.vi
@@ -30,7 +30,7 @@ function createSpy<T extends any[]>(fn?: (...args: T) => void): SpyWithNew<T> {
   return Object.assign(spy, { getNewCalls })
 }
 
-export interface MockProvider extends ConnectProvider {
+export interface MockProvider extends JsonRpcProvider {
   sendMessage: (msg: Record<string, any>) => void
   getNewMessages: <T = Record<string, any>>() => T[]
   getAllMessages: <T = Record<string, any>>() => T[]
@@ -55,7 +55,7 @@ export const createMockProvider = (): MockProvider => {
 
   const onMessageReceived = createSpy<[message: string]>()
   const pendingReplies: Record<string, Array<Record<string, any>>> = {}
-  const provider: ConnectProvider = (_onMessage) => {
+  const provider: JsonRpcProvider = (_onMessage) => {
     if (isConnected) {
       throw new Error("Mock provider doesn't support multiple connections")
     }

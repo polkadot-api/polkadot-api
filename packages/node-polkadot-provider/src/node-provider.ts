@@ -1,4 +1,4 @@
-import { Connect, JsonRpcProvider } from "./types/json-rpc-provider"
+import { PolkadotConnection, PolkadotProvider } from "@polkadot-api/client"
 import {
   CreateTxContext,
   CustomizeTxResult,
@@ -26,7 +26,7 @@ export const getChain = ({
   provider: getProvider,
   keyring,
   txCustomizations = defaultUserSignedExtensions,
-}: GetChainArgs): Connect => {
+}: GetChainArgs): PolkadotProvider => {
   const getUserSignedExtensionDefaults = () => {
     if (typeof txCustomizations === "object") {
       return txCustomizations
@@ -107,7 +107,7 @@ export const getChain = ({
       }
     })
 
-    const createTx: JsonRpcProvider["createTx"] = async (
+    const createTx: PolkadotConnection["createTx"] = async (
       from,
       callData,
       hinted,

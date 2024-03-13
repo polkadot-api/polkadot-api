@@ -1,8 +1,8 @@
-export interface Provider {
+export interface JsonRpcConnection {
   send: (message: string) => void
   disconnect: () => void
 }
 
-export declare type ConnectProvider = (
+export declare type JsonRpcProvider = (
   onMessage: (message: string) => void,
-) => Provider
+) => JsonRpcConnection

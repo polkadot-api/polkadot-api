@@ -1,4 +1,4 @@
-import type { Callback } from "./polkadot-provider"
+import type { Callback } from "./chain-types"
 
 export type OnCreateTxCtx<
   UserSignedExtensionsName extends Array<UserSignedExtensionName>,

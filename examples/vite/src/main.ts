@@ -12,7 +12,7 @@ const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
 
 const chain = relayChains.westend2
-const client = createClient(chain.connect)
+const client = createClient(chain.provider)
 const testApi = client.getTypedApi(test)
 
 const isCompatible = await testApi.tx.AssetRate.create.isCompatible()
