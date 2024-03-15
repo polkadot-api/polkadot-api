@@ -1,4 +1,4 @@
-import { selfDependent, shareLatest } from "@/utils"
+import { shareLatest } from "@/utils"
 import { BlockHeader } from "@polkadot-api/substrate-bindings"
 import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
 import {
@@ -45,7 +45,7 @@ export const getPinnedBlocks$ = (
   follow$: Observable<FollowEventWithRuntime>,
   getHeader: (hash: string) => Promise<BlockHeader>,
   call$: (hash: string, method: string, args: string) => Observable<string>,
-  blockUsage$: Observable<BlockUsageEvent>,
+  blockUsage$: Subject<BlockUsageEvent>,
   onUnpin: (blocks: string[]) => void,
 ) => {
   const getRuntime = getRuntimeCreator(call$)
@@ -61,7 +61,7 @@ export const getPinnedBlocks$ = (
     }),
   )
 
-  const [unpinnedBlocks$, connectUnpinnedBlocks] = selfDependent<string[]>()
+  const unpinnedBlocks$ = new Subject<string[]>()
 
   const prunedBlocks$ = new Subject<string[]>()
   const cleaner$ = merge(
@@ -84,8 +84,15 @@ export const getPinnedBlocks$ = (
       filter((x) => x.length > 0),
     ),
   ).pipe(
-    connectUnpinnedBlocks(),
-    tap(onUnpin),
+    tap({
+      next(x) {
+        onUnpin(x)
+        unpinnedBlocks$.next(x)
+      },
+      error(e) {
+        unpinnedBlocks$.error(e)
+      },
+    }),
     <T>(source$: Observable<T>) =>
       new Observable<never>((observer) => {
         let subscription: Subscription | null = null
@@ -100,6 +107,8 @@ export const getPinnedBlocks$ = (
             // and let's make sure that it completes when follow$ is done
             follow$.subscribe({
               complete() {
+                blockUsage$.complete()
+                unpinnedBlocks$.complete()
                 observer.complete()
               },
             }),

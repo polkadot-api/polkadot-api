@@ -269,7 +269,6 @@ describe("chainHead", () => {
 
   it("propagates the JSON-RPC Error when an operation can't be initiated without canceling the subscription", async () => {
     const { chainHead, provider, onError } = setupChainHeadWithSubscription()
-    let id = 3
 
     const allOperations = [
       () => chainHead.header(""),
@@ -281,10 +280,7 @@ describe("chainHead", () => {
 
     for (const op of allOperations) {
       const promise = op()
-      provider.sendMessage({
-        id: id++,
-        error: parseError,
-      })
+      provider.replyLast({ error: parseError })
       await expect(promise).rejects.toEqual(new RpcError(parseError))
     }
 
