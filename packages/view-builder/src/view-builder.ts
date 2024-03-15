@@ -9,8 +9,8 @@ import {
   HexString,
   enhanceDecoder,
 } from "@polkadot-api/substrate-bindings"
-import type { EnumVar, LookupEntry } from "@/lookups"
-import { getLookupFn } from "@/lookups"
+import type { EnumVar, LookupEntry } from "@polkadot-api/metadata-builders"
+import { getLookupFn } from "@polkadot-api/metadata-builders"
 import {
   primitives,
   complex,
@@ -28,7 +28,7 @@ import {
   PrimitiveDecoded,
   UnshapedDecoder,
 } from "./types"
-import { withCache } from "@/with-cache"
+import { withCache } from "./with-cache"
 
 const emptyTuple = complex.Tuple()
 

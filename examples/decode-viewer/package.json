@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/metadata-builders": "workspace:*",
+    "@polkadot-api/view-builder": "workspace:*",
     "@polkadot-cloud/core": "^1.0.43",
     "@polkadot-cloud/react": "^0.1.121",
     "@polkadot-cloud/utils": "^0.0.25",

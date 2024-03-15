@@ -1,8 +1,4 @@
-import {
-  HexString,
-  Shape,
-  StructDecoded,
-} from "@polkadot-api/metadata-builders"
+import { HexString, Shape, StructDecoded } from "@polkadot-api/view-builder"
 
 export interface DecodedCall {
   pallet: InitStruct

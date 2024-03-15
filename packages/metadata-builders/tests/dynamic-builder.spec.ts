@@ -1,9 +1,13 @@
-import ksm from "./ksm.json"
-import { expect, describe, it } from "vitest"
+import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
+import { expect, describe, it, beforeAll } from "vitest"
 import { getDynamicBuilder } from "@/."
 
 describe("getDynamicBuilder", () => {
-  const builder = getDynamicBuilder(ksm as any)
+  let builder: ReturnType<typeof getDynamicBuilder>
+  beforeAll(async () => {
+    builder = getDynamicBuilder(await getKsmMetadata())
+  })
+
   it("batched call", () => {
     const result = builder
       .buildCall("Utility", "batch")
