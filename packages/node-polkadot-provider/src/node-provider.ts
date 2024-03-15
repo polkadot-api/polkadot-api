@@ -117,6 +117,7 @@ export const getChain = ({
       createTx,
       send: provider.send,
       disconnect() {
+        provider.disconnect()
         txCreator.destroy()
       },
     }
