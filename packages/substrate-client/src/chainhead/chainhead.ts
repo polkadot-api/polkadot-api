@@ -17,7 +17,6 @@ import {
   getSubscriptionsManager,
   noop,
   deferred,
-  OrphanMessages,
 } from "@/internal-utils"
 import { createBodyFn } from "./body"
 import { createCallFn } from "./call"
@@ -49,7 +48,6 @@ export function getChainHead(
     onFollowError: (e: Error) => void,
   ): FollowResponse => {
     const subscriptions = getSubscriptionsManager<OperationEventsRpc>()
-    const orphans = new OrphanMessages<OperationEventsRpc>()
 
     const ongoingRequests = new Set<() => void>()
     const deferredFollow = deferred<string | Error>()
@@ -58,9 +56,9 @@ export function getChainHead(
 
     const onAllFollowEventsNext = (event: FollowEventRpc) => {
       if (isOperationEvent(event)) {
-        if (!subscriptions.has(event.operationId)) {
-          orphans.set(event.operationId, event)
-        }
+        if (!subscriptions.has(event.operationId))
+          console.warn("Uknown operationId on", event)
+
         return subscriptions.next(event.operationId, event)
       }
 
@@ -109,7 +107,6 @@ export function getChainHead(
           cb()
         })
         ongoingRequests.clear()
-        orphans.clear()
       }
 
       followSubscription = subscriptionId
@@ -157,15 +154,6 @@ export function getChainHead(
           }
 
           subscriptions.subscribe(operationId, subscriber)
-
-          const pending = orphans.retrieve(operationId)
-          if (pending.length) {
-            Promise.resolve().then(() => {
-              pending.forEach((msg) => {
-                subscriptions.next(operationId, msg)
-              })
-            })
-          }
 
           return () => {
             subscriptions.unsubscribe(operationId)

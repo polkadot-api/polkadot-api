@@ -4,11 +4,7 @@ import {
 } from "@polkadot-api/json-rpc-provider"
 import { UnsubscribeFn } from "../common-types"
 import { RpcError, IRpcError } from "./RpcError"
-import {
-  OrphanMessages,
-  getSubscriptionsManager,
-  Subscriber,
-} from "@/internal-utils"
+import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
 import { DestroyedError } from "./DestroyedError"
 
 export type FollowSubscriptionCb<T> = (
@@ -33,15 +29,16 @@ export interface Client {
   request: ClientRequest<any, any>
 }
 
+let nextClientId = 1
 export const createClient = (gProvider: JsonRpcProvider): Client => {
-  const responses = new Map<number, ClientRequestCb<any, any>>()
+  let clientId = nextClientId++
+  const responses = new Map<string, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
-  const orphans = new OrphanMessages<string>()
 
   let connection: JsonRpcConnection | null = null
 
   const send = (
-    id: number,
+    id: string,
     method: string,
     params: Array<boolean | string | number | null>,
   ) => {
@@ -57,7 +54,7 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
 
   function onMessage(message: string): void {
     try {
-      let id: number,
+      let id: string,
         result,
         error: IRpcError | undefined,
         params: { subscription: any; result: any; error?: IRpcError },
@@ -77,14 +74,6 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
           : cb.onSuccess(result, (methodName, opaqueId, subscriber) => {
               const subscriptionId = methodName + opaqueId
               subscriptions.subscribe(subscriptionId, subscriber)
-              const pending = orphans.retrieve(subscriptionId)
-              if (pending.length) {
-                Promise.resolve().then(() => {
-                  pending.forEach((msg) => {
-                    subscriptions.next(subscriptionId, msg)
-                  })
-                })
-              }
               return () => {
                 subscriptions.unsubscribe(subscriptionId)
               }
@@ -96,9 +85,6 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
       if (!subscription || (!error && !Object.hasOwn(params, "result"))) throw 0
 
       const subscriptionId = parsed.method + subscription
-      if (!subscriptions.has(subscriptionId)) {
-        orphans.set(subscriptionId, message)
-      }
 
       if (error) {
         subscriptions.error(subscriptionId, new RpcError(error!))
@@ -118,7 +104,6 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
     subscriptions.errorAll(new DestroyedError())
     responses.forEach((r) => r.onError(new DestroyedError()))
     responses.clear()
-    orphans.clear()
   }
 
   let nextId = 1
@@ -128,7 +113,7 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
     cb?: ClientRequestCb<T, TT>,
   ): UnsubscribeFn => {
     if (!connection) throw new Error("Not connected")
-    const id = nextId++
+    const id = `${clientId}-${nextId++}`
 
     if (cb) responses.set(id, cb)
     send(id, method, params)

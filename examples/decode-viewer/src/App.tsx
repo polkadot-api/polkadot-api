@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react"
-import { V15, getViewBuilder } from "@polkadot-api/metadata-builders"
+import { V15, getViewBuilder } from "@polkadot-api/view-builder"
 
 import { Button } from "@polkadot-cloud/react"
 import { Input } from "./stories/Input"

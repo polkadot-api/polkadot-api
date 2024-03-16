@@ -1,22 +1,9 @@
-import { getViewBuilder } from "@polkadot-api/metadata-builders"
-import { readFile } from "node:fs/promises"
-import {
-  metadata as $metadata,
-  CodecType,
-  OpaqueCodec,
-} from "@polkadot-api/substrate-bindings"
+import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
+import { getViewBuilder } from "@polkadot-api/view-builder"
 
-type Metadata = CodecType<typeof $metadata>["metadata"]
+const metadata = await getKsmMetadata("../packages/metadata-fixtures/src")
 
-const metadataBytes = await readFile(
-  "../packages/metadata-fixtures/ksm-metadata.scale",
-)
-const { inner } = OpaqueCodec($metadata).dec(metadataBytes)
-const { metadata } = inner()
-
-assertIsV14(metadata)
-
-const { callDecoder } = getViewBuilder(metadata.value)
+const { callDecoder } = getViewBuilder(metadata)
 const start = Date.now()
 const result = callDecoder(
   "0x180008040700dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d0b00409452a30306050400dc97b0271418c41f80d049826cfb1d6bd2e44e11ea39759addf6b01632ca973d",
@@ -35,11 +22,3 @@ console.log(
 )
 
 console.log(end - start)
-
-function assertIsV14(
-  metadata: Metadata,
-): asserts metadata is Metadata & { tag: "v14" } {
-  if (metadata.tag !== "v14") {
-    throw new Error("unreachable")
-  }
-}
