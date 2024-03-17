@@ -1,18 +1,21 @@
 import type { RequestId } from "./internal-types"
-import type { ConnectProvider, Provider } from "@polkadot-api/json-rpc-provider"
+import type {
+  JsonRpcProvider,
+  JsonRpcConnection,
+} from "@polkadot-api/json-rpc-provider"
 import { getSubscriptionManager } from "./subscription-manager"
 
-export type ConnectAsyncProvider = (
+export type AsyncJsonRpcProvider = (
   onMessage: (message: string) => void,
   onHalt: () => void,
-) => Provider
+) => JsonRpcConnection
 
 export const getSyncProvider =
-  (input: () => Promise<ConnectAsyncProvider>): ConnectProvider =>
+  (input: () => Promise<AsyncJsonRpcProvider>): JsonRpcProvider =>
   (onMessage) => {
     // if it's null it means that the consumer has called `disconnect`
     // of it's a Promise it means that it's being respolved, otherwise it's resolved
-    let provider: Provider | Promise<Provider> | null
+    let provider: JsonRpcConnection | Promise<JsonRpcConnection> | null
 
     let bufferedMessages: Array<string> = []
     const pendingResponses = new Set<RequestId>()
@@ -49,7 +52,7 @@ export const getSyncProvider =
       } else provider.send(message)
     }
 
-    const onHalt = (): Promise<Provider> => {
+    const onHalt = (): Promise<JsonRpcConnection> => {
       bufferedMessages = []
       const pendingResponsesCopy = [...pendingResponses]
       pendingResponses.clear()
@@ -79,8 +82,8 @@ export const getSyncProvider =
       return result
     }
 
-    const start = (): Promise<Provider> => {
-      const onResolve = (getProvider: ConnectAsyncProvider) => {
+    const start = (): Promise<JsonRpcConnection> => {
+      const onResolve = (getProvider: AsyncJsonRpcProvider) => {
         let halted = false
         const _onHalt = () => {
           if (halted) return
@@ -107,7 +110,7 @@ export const getSyncProvider =
     const disconnect = () => {
       if (!provider) return
 
-      const finishIt = (input: Provider | null) => {
+      const finishIt = (input: JsonRpcConnection | null) => {
         subscriptionManager.onDisconnect()
         pendingResponses.clear()
         provider = null

@@ -1,10 +1,10 @@
-import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 
 export type Callback<T> = (value: T) => void
 
 export type GetTxCreator = (
   // The `TransactionCreator` communicates with the Chain to obtain metadata, latest block, nonce, etc.
-  chainProvider: ConnectProvider,
+  chainProvider: JsonRpcProvider,
 
   // This function is invoked in order to capture the necessary user input
   // for creating the transaction.

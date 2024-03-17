@@ -1,6 +1,6 @@
 import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
-import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
 import { V15, v15 } from "@polkadot-api/substrate-bindings"
 import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
@@ -11,7 +11,7 @@ import { filter, firstValueFrom } from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
 
-const getMetadataCall = async (provider: ConnectProvider) => {
+const getMetadataCall = async (provider: JsonRpcProvider) => {
   const client = getObservableClient(createClient(provider))
   const { metadata$, unfollow } = client.chainHead$()
   const metadata = await firstValueFrom(metadata$.pipe(filter(Boolean)))
@@ -23,7 +23,7 @@ const getMetadataCall = async (provider: ConnectProvider) => {
 }
 
 const getMetadataFromProvider = async (chain: WellKnownChain | string) => {
-  const provider: ConnectProvider = (onMsg) => {
+  const provider: JsonRpcProvider = (onMsg) => {
     let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
       eval: true,
       workerData: chain,

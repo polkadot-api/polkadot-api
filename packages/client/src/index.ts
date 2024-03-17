@@ -4,3 +4,9 @@ export * from "./re-exports"
 export type { BlockInfo } from "./observableClient"
 export type { EventPhase } from "./event"
 export type { TxEvent } from "./tx"
+export type {
+  PolkadotConnection,
+  PolkadotProvider,
+  PolkadotClient,
+  TypedApi,
+} from "./types"

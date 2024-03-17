@@ -1,7 +1,7 @@
 import type { V15 } from "@polkadot-api/substrate-bindings"
-import { getObservableClient } from "@polkadot-api/client"
+import { PolkadotProvider, getObservableClient } from "@polkadot-api/client"
 import { Observable } from "rxjs"
-import type { ConnectProvider, Provider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import {
   CreateTxCallback,
   UserSignedExtensionName,
@@ -13,15 +13,13 @@ export type Callback<T> = (value: T) => void
 
 export type GetTxCreator = (
   // The `TransactionCreator` communicates with the Chain to obtain metadata, latest block, nonce, etc.
-  chainProvider: ConnectProvider,
+  chainProvider: JsonRpcProvider,
 
   // This callback is invoked in order to capture the necessary user input
   // for creating the transaction.
   onCreateTx: CreateTxCallback,
   signPayload: (payload: SignerPayloadJSON) => Promise<{ signature: string }>,
-) => (onMessage: (msg: string) => void) => Provider & {
-  createTx: CreateTx
-}
+) => PolkadotProvider
 
 export type OnCreateTxCtx<
   UserSignedExtensionsName extends Array<UserSignedExtensionName>,

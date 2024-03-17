@@ -1,7 +1,7 @@
 // @ts-ignore
 import { WebSocket } from "ws"
 import { getWebSocketProvider } from "./ws-provider"
-export type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+export type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 
 class WS extends WebSocket {
   close() {

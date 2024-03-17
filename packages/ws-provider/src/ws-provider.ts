@@ -1,9 +1,9 @@
-import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 export const getWebSocketProvider =
   (WebsocketClass: typeof WebSocket) =>
-  (uri: string, protocols?: string | string[]): ConnectProvider =>
+  (uri: string, protocols?: string | string[]): JsonRpcProvider =>
     getSyncProvider(async () => {
       const socket = new WebsocketClass(uri, protocols)
 

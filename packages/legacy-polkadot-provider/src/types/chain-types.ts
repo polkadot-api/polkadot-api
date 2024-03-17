@@ -1,3 +1,5 @@
+import { PolkadotProvider } from "@polkadot-api/client"
+
 export type Callback<T> = (value: T) => void
 type UnsubscribeFn = () => void
 
@@ -25,11 +27,7 @@ export interface Chain {
   // returns a JSON RPC Provider that it's compliant with new
   // JSON-RPC API spec:
   // https://paritytech.github.io/json-rpc-interface-spec/api.html
-  connect: (
-    // the listener callback that the JsonRpcProvider
-    // will be sending messages to
-    onMessage: Callback<string>,
-  ) => JsonRpcProvider
+  provider: PolkadotProvider
 
   // it pulls the current list of available accounts for this Chain
   getAccounts: () => Promise<Array<Account>>
@@ -46,21 +44,6 @@ export interface Parachain extends Chain {
 export interface RelayChain extends Chain {
   chainData: ChainData
   getParachain: (chainspec: string) => Parachain
-}
-
-export interface JsonRpcProvider {
-  // it sends messages to the JSON RPC Server
-  send: (message: string) => void
-
-  // `publicKey` is the SS58Formated public key
-  // `callData` is the scale encoded call-data
-  // (module index, call index and args)
-  createTx: (publicKey: Uint8Array, callData: Uint8Array) => Promise<Uint8Array>
-
-  // it disconnects from the JSON RPC Server and it de-registers
-  // the `onMessage` and `onStatusChange` callbacks that
-  // were previously registered
-  disconnect: UnsubscribeFn
 }
 
 export interface Account {

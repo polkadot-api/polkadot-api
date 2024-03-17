@@ -1,9 +1,6 @@
-import {
-  ConnectProvider,
-  SubstrateClient,
-  createClient,
-} from "@polkadot-api/substrate-client"
-import { ChainData } from "./types/polkadot-provider"
+import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import { SubstrateClient, createClient } from "@polkadot-api/substrate-client"
+import { ChainData } from "./types/chain-types"
 
 const clientRequest =
   (client: SubstrateClient) =>
@@ -16,7 +13,7 @@ const clientRequest =
     )
 
 export const getChainProps = async (
-  provider: ConnectProvider,
+  provider: JsonRpcProvider,
 ): Promise<ChainData> => {
   const client = createClient(provider)
   const request = clientRequest(client)

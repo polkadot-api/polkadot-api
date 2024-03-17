@@ -4,14 +4,14 @@ import {
   getAllAccounts$,
   getSigner,
 } from "./accounts"
-import { ChainData, Parachain, RelayChain } from "./types/polkadot-provider"
+import { ChainData, Parachain, RelayChain } from "./types/chain-types"
 import { SignerPayloadJSON } from "./types/internal-types"
 import { getTxCreator } from "./get-tx-creator"
 import { CreateTxCallback, UserSignedExtensions } from "./types/public-types"
 import { knownChainsData } from "./known-chain-data"
 import { getChainProps } from "./get-chain-props"
 import { Subject } from "rxjs"
-import type { ConnectProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import type { ScClient } from "@substrate/connect"
 import { getScProvider, WellKnownChain } from "./ScProvider"
 import { Signer } from "@polkadot/api/types"
@@ -110,13 +110,13 @@ export const getLegacyProvider = (
   const getProvider = getScProvider(scClient)
 
   const parachainCreator =
-    (addParachain: (input: string) => ConnectProvider) =>
+    (addParachain: (input: string) => JsonRpcProvider) =>
     (chainspec: string): Parachain => {
       const parachainProvider = addParachain(chainspec)
       const parachainData = getChainProps(parachainProvider)
 
       return {
-        connect: getTxCreator(parachainProvider, onCreateTx, signPayload),
+        provider: getTxCreator(parachainProvider, onCreateTx, signPayload),
         ...getAccountsChainFns(parachainData, allAccounts$),
         chainData: parachainData,
       }
@@ -124,11 +124,11 @@ export const getLegacyProvider = (
 
   const relayChainCreator = (
     chainData: ChainData,
-    provider: ConnectProvider,
-    addParachain: (input: string) => ConnectProvider,
+    provider: JsonRpcProvider,
+    addParachain: (input: string) => JsonRpcProvider,
   ): RelayChain => {
     return {
-      connect: getTxCreator(provider, onCreateTx, signPayload),
+      provider: getTxCreator(provider, onCreateTx, signPayload),
       chainData,
       ...getAccountsChainFns(Promise.resolve(chainData), allAccounts$),
       getParachain: parachainCreator(addParachain),

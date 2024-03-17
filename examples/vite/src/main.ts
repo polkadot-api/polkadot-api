@@ -1,4 +1,4 @@
-import { createClient } from "@polkadot-api/client"
+import { PolkadotClient, TypedApi, createClient } from "@polkadot-api/client"
 import "./style.css"
 
 import {
@@ -12,10 +12,13 @@ const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
 
 const chain = relayChains.westend2
-const client = createClient(chain.connect)
-const testApi = client.getTypedApi(test)
+const connection: PolkadotClient = createClient(chain.provider)
+const testApi: TypedApi<typeof test> = connection.getTypedApi(test)
 
-const isCompatible = await testApi.tx.AssetRate.create.isCompatible()
+const assetRateTransactions: TypedApi<typeof test>["tx"]["AssetRate"] =
+  testApi.tx.AssetRate
+
+const isCompatible = await assetRateTransactions.create.isCompatible()
 const constant = await testApi.constants.Auctions.EndingPeriod()
 const constantIsCompatible =
   await testApi.constants.Auctions.EndingPeriod.isCompatible()

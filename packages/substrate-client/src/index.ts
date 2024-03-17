@@ -1,7 +1,4 @@
-import {
-  type ConnectProvider,
-  type Provider,
-} from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getTransaction } from "./transaction/transaction"
 import { getChainHead } from "./chainhead"
 import {
@@ -14,8 +11,6 @@ import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"
 import { abortablePromiseFn } from "./internal-utils"
 import { noop } from "@polkadot-api/utils"
-
-export type { ConnectProvider, Provider }
 
 export type * from "./common-types"
 export type * from "./client"
@@ -48,7 +43,7 @@ export interface SubstrateClient {
   ) => UnsubscribeFn
 }
 
-export const createClient = (provider: ConnectProvider): SubstrateClient => {
+export const createClient = (provider: JsonRpcProvider): SubstrateClient => {
   const client = createRawClient(provider)
 
   const request = abortablePromiseFn(

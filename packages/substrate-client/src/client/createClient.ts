@@ -1,6 +1,6 @@
 import {
-  type ConnectProvider,
-  type Provider,
+  JsonRpcConnection,
+  JsonRpcProvider,
 } from "@polkadot-api/json-rpc-provider"
 import { UnsubscribeFn } from "../common-types"
 import { RpcError, IRpcError } from "./RpcError"
@@ -30,19 +30,19 @@ export interface Client {
 }
 
 let nextClientId = 1
-export const createClient = (gProvider: ConnectProvider): Client => {
+export const createClient = (gProvider: JsonRpcProvider): Client => {
   let clientId = nextClientId++
   const responses = new Map<string, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
 
-  let provider: Provider | null = null
+  let connection: JsonRpcConnection | null = null
 
   const send = (
     id: string,
     method: string,
     params: Array<boolean | string | number | null>,
   ) => {
-    provider!.send(
+    connection!.send(
       JSON.stringify({
         jsonrpc: "2.0",
         id,
@@ -96,11 +96,11 @@ export const createClient = (gProvider: ConnectProvider): Client => {
       console.error(e)
     }
   }
-  provider = gProvider(onMessage)
+  connection = gProvider(onMessage)
 
   const disconnect = () => {
-    provider?.disconnect()
-    provider = null
+    connection?.disconnect()
+    connection = null
     subscriptions.errorAll(new DestroyedError())
     responses.forEach((r) => r.onError(new DestroyedError()))
     responses.clear()
@@ -112,7 +112,7 @@ export const createClient = (gProvider: ConnectProvider): Client => {
     params: Array<any>,
     cb?: ClientRequestCb<T, TT>,
   ): UnsubscribeFn => {
-    if (!provider) throw new Error("Not connected")
+    if (!connection) throw new Error("Not connected")
     const id = `${clientId}-${nextId++}`
 
     if (cb) responses.set(id, cb)

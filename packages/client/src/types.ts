@@ -28,13 +28,15 @@ export type CreateTx = (
   hintedSignedExtensions?: HintedSignedExtensions,
 ) => Promise<Uint8Array>
 
-interface JsonRpcProvider {
+export interface PolkadotConnection {
   send: (message: string) => void
   createTx: CreateTx
   disconnect: () => void
 }
 
-export type Connect = (onMessage: (value: string) => void) => JsonRpcProvider
+export type PolkadotProvider = (
+  onMessage: (message: string) => void,
+) => PolkadotConnection
 
 export type StorageApi<
   A extends Record<
@@ -117,7 +119,7 @@ export type TypedApi<D extends Descriptors> = {
   runtime: RuntimeApi
 }
 
-export interface Client {
+export interface PolkadotClient {
   finalized$: Observable<BlockInfo>
   bestBlocks$: Observable<BlockInfo[]>
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
@@ -125,5 +127,3 @@ export interface Client {
   getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
   destroy: () => void
 }
-
-export type CreateClient = (connect: Connect) => Client

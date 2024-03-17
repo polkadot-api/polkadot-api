@@ -13,7 +13,7 @@ import {
   startWith,
   switchMap,
 } from "rxjs"
-import { Callback, ChainData } from "./types/polkadot-provider"
+import { Callback, ChainData } from "./types/chain-types"
 import { UnsubscribeFn } from "@polkadot-api/substrate-client"
 import { AccountId } from "@polkadot-api/substrate-bindings"
 
