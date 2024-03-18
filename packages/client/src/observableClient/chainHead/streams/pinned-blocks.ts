@@ -32,8 +32,8 @@ const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
   blocks.delete(blockHash)
 }
 
-const getBlocksToUnpin = (blocks: PinnedBlocks, prunned: string[]) => {
-  const result: string[] = []
+const getBlocksToUnpin = (blocks: PinnedBlocks, pruned: string[]) => {
+  const result: string[] = [...pruned]
   let current = blocks.blocks.get(blocks.blocks.get(blocks.finalized)!.parent)
 
   const trail: string[] = []
@@ -47,7 +47,7 @@ const getBlocksToUnpin = (blocks: PinnedBlocks, prunned: string[]) => {
     current = blocks.blocks.get(current.parent)
   }
 
-  const deletedBlocks = [...prunned]
+  const deletedBlocks = [...pruned]
   for (let i = trail.length - 1; i >= 0; i--) {
     current = blocks.blocks.get(trail[i])!
     if (!current.unpinned) return result
@@ -65,8 +65,8 @@ const getBlocksToUnpin = (blocks: PinnedBlocks, prunned: string[]) => {
     }))
     .filter((x) => x.usages === 0)
     .map((x) => x.key)
-    .forEach((unsusedRuntime) => {
-      delete blocks.runtimes[unsusedRuntime]
+    .forEach((unusedRuntime) => {
+      delete blocks.runtimes[unusedRuntime]
     })
   return result
 }
