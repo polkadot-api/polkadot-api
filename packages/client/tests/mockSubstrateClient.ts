@@ -159,7 +159,7 @@ type StorageSubscriptionArgs = [
   () => void,
   (nDiscarded: number) => void,
 ]
-type MockStorageSubscription = Mock<StorageSubscriptionArgs, () => void> & {
+type MockStorageSubscription = Mock<StorageSubscriptionArgs, Mock<any, any>> & {
   getCall: (idx: number) => StorageSubscriptionCall
   getLastCall: (hash: string) => StorageSubscriptionCall
 }
