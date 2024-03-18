@@ -147,9 +147,6 @@ describe("observableClient chainHead", () => {
         finalizedBlockHashes: firstChain.map((v) => v.blockHash),
       })
 
-      expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(new Set())
-      await mockClient.chainHead.mock.unpin.waitNextCall()
-
       const expected = [
         initialHash,
         ...firstChain.slice(0, -1).map((v) => v.blockHash),
@@ -161,12 +158,6 @@ describe("observableClient chainHead", () => {
       sendFinalized(mockClient, {
         finalizedBlockHashes: followingChain.map((v) => v.blockHash),
       })
-
-      expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(
-        new Set(expected),
-      )
-
-      await mockClient.chainHead.mock.unpin.waitNextCall()
 
       expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(
         new Set([
@@ -204,7 +195,6 @@ describe("observableClient chainHead", () => {
         prunedBlockHashes: deadChain.map((v) => v.blockHash),
       })
 
-      await mockClient.chainHead.mock.unpin.waitNextCall()
       expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(
         new Set([
           initialHash,

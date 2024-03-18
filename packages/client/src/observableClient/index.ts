@@ -1,2 +1,6 @@
 export * from "./getObservableClient"
-export { BlockPrunedError, NotBestBlockError } from "./chainHead"
+export {
+  BlockNotPinnedError,
+  BlockPrunedError,
+  NotBestBlockError,
+} from "./chainHead"
