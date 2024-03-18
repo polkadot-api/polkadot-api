@@ -1,27 +1,31 @@
 import { Observable } from "rxjs"
 
 export const withLogs =
-  (msg: string) =>
+  (msg: string, withSubId?: boolean) =>
   <T>(base: Observable<T>): Observable<T> => {
+    let nextId = 0
     return new Observable((observer) => {
-      console.log(`withLogs(${msg}): subsribed`)
+      const id = nextId++
+      const log = (...args: any[]) =>
+        console.log(...(withSubId ? [id, ...args] : args))
+      log(`withLogs(${msg}): subscribed`)
       const sub = base.subscribe({
         next(v) {
-          console.log(`withLogs(${msg}): next`, v)
+          log(`withLogs(${msg}): next`, v)
           observer.next(v)
         },
         error(e) {
-          console.log(`withLogs(${msg}): error`, e)
+          log(`withLogs(${msg}): error`, e)
           observer.error(e)
         },
         complete() {
-          console.log(`withLogs(${msg}): complete`)
+          log(`withLogs(${msg}): complete`)
           observer.complete()
         },
       })
 
       return () => {
-        console.log(`withLogs(${msg}): cleanup`)
+        log(`withLogs(${msg}): cleanup`)
         sub.unsubscribe()
       }
     })

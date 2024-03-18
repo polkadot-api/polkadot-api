@@ -36,10 +36,12 @@ import {
   withLazyFollower,
   withOperationInaccessibleRecovery,
   withEnsureCanonicalChain,
+  withStopRecovery,
 } from "./enhancers"
 import { withDefaultValue } from "@/utils"
 import { getRecoveralStorage$ } from "./storage-queries"
 import { getTrackTx } from "./track-tx"
+import { BlockNotPinnedError } from "./errors"
 
 export type { RuntimeContext, SystemEvent }
 export type { FollowEventWithRuntime }
@@ -55,13 +57,6 @@ const toBlockInfo = ({ hash, number, parent }: PinnedBlock): BlockInfo => ({
   number,
   parent,
 })
-
-export class BlockNotPinnedError extends Error {
-  constructor() {
-    super("Block is not pinned")
-    this.name = "BlockNotPinnedError"
-  }
-}
 
 export const getChainHead$ = (chainHead: ChainHead) => {
   const { getFollower, unfollow, follow$ } = getFollow$(chainHead)
@@ -124,11 +119,14 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   ) =>
     withInMemory(
       withRefcount(
-        withEnsureCanonicalChain(
+        withStopRecovery(
           pinnedBlocks$,
-          follow$,
-          withOperationInaccessibleRecovery(
-            withRecoveryFn(fromAbortControllerFn(fn)),
+          withEnsureCanonicalChain(
+            pinnedBlocks$,
+            follow$,
+            withOperationInaccessibleRecovery(
+              withRecoveryFn(fromAbortControllerFn(fn)),
+            ),
           ),
         ),
       ),
