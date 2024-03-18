@@ -56,6 +56,13 @@ const toBlockInfo = ({ hash, number, parent }: PinnedBlock): BlockInfo => ({
   parent,
 })
 
+export class BlockNotPinnedError extends Error {
+  constructor() {
+    super("Block is not pinned")
+    this.name = "BlockNotPinnedError"
+  }
+}
+
 export const getChainHead$ = (chainHead: ChainHead) => {
   const { getFollower, unfollow, follow$ } = getFollow$(chainHead)
   const lazyFollower = withLazyFollower(getFollower)
@@ -71,12 +78,31 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         blockUsage$.next({ type: "blockUsage", value: { type: "hold", hash } })
         const subscription = fn(hash, ...args).subscribe(observer)
         return () => {
-          blockUsage$.next({
-            type: "blockUsage",
-            value: { type: "release", hash },
-          })
+          setTimeout(() => {
+            blockUsage$.next({
+              type: "blockUsage",
+              value: { type: "release", hash },
+            })
+          }, 0)
           subscription.unsubscribe()
         }
+      })
+
+  const withInMemory =
+    <A extends Array<any>, T>(
+      fn: (hash: string, ...args: A) => Observable<T>,
+    ): ((hash: string, ...args: A) => Observable<T>) =>
+    (hash, ...args) =>
+      new Observable((observer) => {
+        let isPresent = false
+        pinnedBlocks$.pipe(take(1)).subscribe((blocks) => {
+          const block = blocks.blocks.get(hash)
+          isPresent = !!block && !block.unpinned
+        })
+
+        return isPresent
+          ? fn(hash, ...args).subscribe(observer)
+          : observer.error(new BlockNotPinnedError())
       })
 
   const getHeader = (hash: string) =>
@@ -96,12 +122,14 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       ...args: [...A, ...[abortSignal: AbortSignal]]
     ) => Promise<T>,
   ) =>
-    withRefcount(
-      withEnsureCanonicalChain(
-        pinnedBlocks$,
-        follow$,
-        withOperationInaccessibleRecovery(
-          withRecoveryFn(fromAbortControllerFn(fn)),
+    withInMemory(
+      withRefcount(
+        withEnsureCanonicalChain(
+          pinnedBlocks$,
+          follow$,
+          withOperationInaccessibleRecovery(
+            withRecoveryFn(fromAbortControllerFn(fn)),
+          ),
         ),
       ),
     )

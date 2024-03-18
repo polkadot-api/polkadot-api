@@ -1,22 +1,7 @@
 import { shareLatest } from "@/utils"
 import { BlockHeader } from "@polkadot-api/substrate-bindings"
 import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
-import {
-  Observable,
-  Subject,
-  Subscription,
-  concatMap,
-  defer,
-  filter,
-  interval,
-  map,
-  merge,
-  of,
-  pairwise,
-  scan,
-  tap,
-  withLatestFrom,
-} from "rxjs"
+import { Observable, Subject, concatMap, map, merge, of, scan } from "rxjs"
 import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
 
 export interface PinnedBlock {
@@ -26,6 +11,7 @@ export interface PinnedBlock {
   children: Set<string>
   runtime: string
   refCount: number
+  unpinned?: true
 }
 
 export interface BlockUsageEvent {
@@ -39,6 +25,50 @@ export type PinnedBlocks = {
   runtimes: Record<string, Runtime>
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
+}
+
+const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
+  blocks.get(blocks.get(blockHash)!.parent)?.children.delete(blockHash)
+  blocks.delete(blockHash)
+}
+
+const getBlocksToUnpin = (blocks: PinnedBlocks, prunned: string[]) => {
+  const result: string[] = []
+  let current = blocks.blocks.get(blocks.blocks.get(blocks.finalized)!.parent)
+
+  const trail: string[] = []
+  while (current) {
+    trail.push(current.hash)
+    if (current.refCount === 0 && !current.unpinned) {
+      result.push(current.hash)
+      current.unpinned = true
+    }
+
+    current = blocks.blocks.get(current.parent)
+  }
+
+  const deletedBlocks = [...prunned]
+  for (let i = trail.length - 1; i >= 0; i--) {
+    current = blocks.blocks.get(trail[i])!
+    if (!current.unpinned) return result
+    deletedBlocks.push(current.hash)
+  }
+
+  deletedBlocks.forEach((hash) => {
+    deleteBlock(blocks.blocks, hash)
+  })
+
+  Object.entries(blocks.runtimes)
+    .map(([key, value]) => ({
+      key,
+      usages: value.deleteBlocks(deletedBlocks),
+    }))
+    .filter((x) => x.usages === 0)
+    .map((x) => x.key)
+    .forEach((unsusedRuntime) => {
+      delete blocks.runtimes[unsusedRuntime]
+    })
+  return result
 }
 
 export const getPinnedBlocks$ = (
@@ -61,74 +91,9 @@ export const getPinnedBlocks$ = (
     }),
   )
 
-  const unpinnedBlocks$ = new Subject<string[]>()
-
-  const prunedBlocks$ = new Subject<string[]>()
-  const cleaner$ = merge(
-    prunedBlocks$,
-    interval(100).pipe(
-      withLatestFrom(defer(() => pinnedBlocks$)),
-      map(([, pinned]) => {
-        const result = new Set<string>()
-
-        let current = pinned.blocks.get(pinned.finalized)!
-        while (pinned.blocks.has(current.parent)) {
-          current = pinned.blocks.get(current.parent)!
-          if (!current.refCount) result.add(current.hash)
-        }
-
-        return result
-      }),
-      pairwise(),
-      map(([prev, current]) => [...current].filter((x) => prev.has(x))),
-      filter((x) => x.length > 0),
-    ),
-  ).pipe(
-    tap({
-      next(x) {
-        onUnpin(x)
-        unpinnedBlocks$.next(x)
-      },
-      error(e) {
-        unpinnedBlocks$.error(e)
-      },
-    }),
-    <T>(source$: Observable<T>) =>
-      new Observable<never>((observer) => {
-        let subscription: Subscription | null = null
-        // let's delay the initial subscription
-        const token = setTimeout(() => {
-          subscription = source$.subscribe({
-            error(e) {
-              observer.error(e)
-            },
-          })
-          subscription.add(
-            // and let's make sure that it completes when follow$ is done
-            follow$.subscribe({
-              complete() {
-                blockUsage$.complete()
-                unpinnedBlocks$.complete()
-                observer.complete()
-              },
-            }),
-          )
-        }, 0)
-
-        return () => {
-          clearTimeout(token)
-          subscription?.unsubscribe()
-        }
-      }),
-  )
-
   const pinnedBlocks$: Observable<PinnedBlocks> = merge(
     blockUsage$,
     followWithInitializedNumber$,
-    unpinnedBlocks$.pipe(
-      map((hashes) => ({ type: "unpin" as "unpin", hashes })),
-    ),
-    cleaner$,
   ).pipe(
     scan(
       (acc, event) => {
@@ -179,38 +144,23 @@ export const getPinnedBlocks$ = (
             acc.finalized = event.finalizedBlockHashes.slice(-1)[0]
             acc.finalizedRuntime =
               acc.runtimes[acc.blocks.get(acc.finalized)!.runtime]
-            if (event.prunedBlockHashes.length > 0)
-              prunedBlocks$.next(event.prunedBlockHashes)
+
+            onUnpin(getBlocksToUnpin(acc, event.prunedBlockHashes))
             return acc
           }
 
           case "blockUsage": {
             if (!acc.blocks.has(event.value.hash)) return acc
 
-            acc.blocks.get(event.value.hash)!.refCount +=
-              event.value.type === "hold" ? 1 : -1
-            return acc
-          }
-
-          case "unpin": {
-            event.hashes.forEach((h) => {
-              if (!acc.blocks.has(h)) return
-
-              acc.blocks.get(acc.blocks.get(h)!.parent)?.children.delete(h)
-              acc.blocks.delete(h)
-            })
-
-            Object.entries(acc.runtimes)
-              .map(([key, value]) => ({
-                key,
-                usages: value.deleteBlocks(event.hashes),
-              }))
-              .filter((x) => x.usages === 0)
-              .map((x) => x.key)
-              .forEach((unsusedRuntime) => {
-                delete acc.runtimes[unsusedRuntime]
-              })
-
+            const block = acc.blocks.get(event.value.hash)!
+            block.refCount += event.value.type === "hold" ? 1 : -1
+            if (
+              block.refCount === 0 &&
+              block.number < acc.blocks.get(acc.finalized)!.number
+            ) {
+              block.unpinned = true
+              onUnpin([block.hash])
+            }
             return acc
           }
         }
