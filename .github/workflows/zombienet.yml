@@ -53,7 +53,7 @@ jobs:
       - name: Run test
         run: |
           export PATH=$(pwd):$PATH
-          ./zombienet-linux-x64 -p native test ./zombie-tests/src/0001-test.zndsl
+          ./zombienet-linux-x64 -p native test ./integration-tests/zombie-tests/src/0001-test.zndsl
       - name: Store logs
         if: failure()
         uses: actions/upload-artifact@v4

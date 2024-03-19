@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "codegen": "papi",
-    "start": "vite",
-    "build": "pnpm i && polkadot-api && tsc && vite build",
+    "start": "../../packages/cli/bin/main.js && vite",
+    "build": "../../packages/cli/bin/main.js && tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {

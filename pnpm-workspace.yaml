@@ -2,4 +2,4 @@ packages:
   - packages/*
   - experiments
   - examples/*
-  - zombie-tests
+  - integration-tests/*
