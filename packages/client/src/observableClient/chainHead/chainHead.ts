@@ -119,11 +119,11 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   ) =>
     withInMemory(
       withRefcount(
-        withStopRecovery(
+        withEnsureCanonicalChain(
           pinnedBlocks$,
-          withEnsureCanonicalChain(
+          follow$,
+          withStopRecovery(
             pinnedBlocks$,
-            follow$,
             withOperationInaccessibleRecovery(
               withRecoveryFn(fromAbortControllerFn(fn)),
             ),

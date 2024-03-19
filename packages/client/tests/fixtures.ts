@@ -101,21 +101,25 @@ export const waitMicro = async (amount = 1) => {
   }
 }
 
-export const initialize = async (mockClient: MockSubstrateClient) => {
-  const initialized = sendInitialized(mockClient, newInitialized())
+export const initialize = async (
+  mockClient: MockSubstrateClient,
+  overrides: Partial<InitializedWithRuntime> = newInitialized(),
+) => {
+  const initialized = sendInitialized(mockClient, overrides)
+  const initialHash = initialized.finalizedBlockHashes.at(-1)!
 
   const header = createHeader({
     parentHash: newHash(),
   })
   await mockClient.chainHead.mock.header.reply(
-    initialized.finalizedBlockHashes[0],
+    initialHash,
     encodeHeader(header),
   )
   // Wait a microtask, internally the code is mapping values through .then(), but it's guaranteed the result will come in the same macro task
   await waitMicro()
 
   return {
-    initialHash: initialized.finalizedBlockHashes[0],
+    initialHash,
     initialNumber: header.number,
     initialized,
     header,
@@ -140,8 +144,9 @@ const metadataHex = metadataValue.then((metadata) =>
 )
 export const initializeWithMetadata = async (
   mockClient: MockSubstrateClient,
+  overrides?: Partial<InitializedWithRuntime>,
 ) => {
-  const result = await initialize(mockClient)
+  const result = await initialize(mockClient, overrides)
 
   await mockClient.chainHead.mock.call.reply(
     result.initialHash,

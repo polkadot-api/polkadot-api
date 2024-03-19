@@ -140,7 +140,7 @@ export const getPinnedBlocks$ = (
         case "newBlock": {
           const { parentBlockHash: parent, blockHash: hash } = event
           if (acc.blocks.has(hash)) {
-            acc.recovering = false
+            acc.blocks.get(hash)!.recovering = false
           } else {
             const parentNode = acc.blocks.get(parent)!
             parentNode.children.add(hash)
@@ -225,10 +225,12 @@ const withInitializedNumber =
       concatMap((event) => {
         return event.type !== "initialized"
           ? of(event)
-          : getHeader(event.finalizedBlockHashes[0]).then((header) => ({
-              ...event,
-              number: header.number,
-              parentHash: header.parentHash,
-            }))
+          : getHeader(event.finalizedBlockHashes.slice(-1)[0]).then(
+              (header) => ({
+                ...event,
+                number: header.number,
+                parentHash: header.parentHash,
+              }),
+            )
       }),
     )

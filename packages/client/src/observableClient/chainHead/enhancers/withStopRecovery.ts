@@ -18,7 +18,6 @@ export function withStopRecovery<A extends Array<any>, T>(
         sourceSub = source$.subscribe({
           next: (v) => observer.next(v),
           error: (e) => {
-            console.log("source controlled error", e)
             return e instanceof StopError ? null : observer.error(e)
           },
           complete: () => observer.complete(),
