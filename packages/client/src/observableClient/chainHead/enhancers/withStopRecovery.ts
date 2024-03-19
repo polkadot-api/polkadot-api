@@ -1,5 +1,5 @@
 import { StopError } from "@polkadot-api/substrate-client"
-import { Observable, ObservedValueOf, Subscription, map } from "rxjs"
+import { Observable, ObservedValueOf, Subscription } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
 import { PinnedBlocks } from "../streams"
 
@@ -9,7 +9,6 @@ export function withStopRecovery<A extends Array<any>, T>(
 ) {
   return (hash: string, ...args: A) => {
     const source$ = fn(hash, ...args)
-    const block$ = blocks$.pipe(map(({ blocks }) => blocks.get(hash)))
 
     return new Observable<ObservedValueOf<typeof source$>>((observer) => {
       let sourceSub: Subscription | null = null
@@ -24,17 +23,24 @@ export function withStopRecovery<A extends Array<any>, T>(
         })
       }
 
-      const blockSub = block$.subscribe({
+      let isRecovering = false
+      const blockSub = blocks$.subscribe({
         next: (v) => {
-          if (!v) {
-            observer.error(new BlockNotPinnedError())
-          } else if (v.recovering) {
+          const block = v.blocks.get(hash)
+          if (!block) {
+            // This branch conflicts with BlockPrunedError, as the block might disappear when it gets pruned
+            // We can avoid this conflict by checking that we're actually recovering.
+            if (isRecovering) {
+              observer.error(new BlockNotPinnedError())
+            }
+          } else if (block.recovering) {
             // Pause while it's recovering, as we don't know if the block is there
             sourceSub?.unsubscribe()
             sourceSub = null
           } else {
             performSourceSub()
           }
+          isRecovering = v.recovering
         },
         error: (e) => observer.error(e),
       })
