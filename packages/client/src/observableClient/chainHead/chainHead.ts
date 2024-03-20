@@ -11,8 +11,8 @@ import {
   Observable,
   ReplaySubject,
   Subject,
+  defer,
   distinctUntilChanged,
-  from,
   map,
   merge,
   mergeMap,
@@ -292,7 +292,9 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
   const header$ = withOptionalHash$(
     withRefcount(
-      withStopRecovery(pinnedBlocks$, (hash: string) => from(getHeader(hash))),
+      withStopRecovery(pinnedBlocks$, (hash: string) =>
+        defer(() => getHeader(hash)),
+      ),
     ),
   )
 

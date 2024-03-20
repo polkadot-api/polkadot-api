@@ -1,9 +1,15 @@
 import { BlockNotPinnedError, getObservableClient } from "@/observableClient"
-import { DisjointError, StopError } from "@polkadot-api/substrate-client"
+import {
+  DisjointError,
+  StopError,
+  StorageItemInput,
+} from "@polkadot-api/substrate-client"
 import { filter } from "rxjs"
 import { describe, expect, it } from "vitest"
 import {
+  createHeader,
   createNewBlock,
+  encodeHeader,
   initialize,
   initializeWithMetadata,
   newHash,
@@ -259,6 +265,134 @@ describe("observableClient stopError recovery", () => {
     await mockClient.chainHead.mock.body.reply(newBlock.blockHash, ["result"])
     expect(body.error).not.toHaveBeenCalled()
     expect(body.next).toHaveBeenCalledWith(["result"])
+
+    cleanup(chainHead.unfollow)
+  })
+
+  it("recovers getHeader requests", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    const chainHead = client.chainHead$()
+
+    const { initialHash } = await initializeWithMetadata(mockClient)
+    const header = observe(chainHead.header$(initialHash))
+
+    expect(header.next).not.toHaveBeenCalled()
+    expect(header.error).not.toHaveBeenCalled()
+    expect(mockClient.chainHead.mock.header).toHaveBeenCalledTimes(2)
+
+    mockClient.chainHead.mock.sendError(new StopError())
+    await mockClient.chainHead.mock.header.reply(
+      initialHash,
+      Promise.reject(new DisjointError()),
+    )
+
+    expect(header.next).not.toHaveBeenCalled()
+    expect(header.error).not.toHaveBeenCalled()
+    expect(mockClient.chainHead.mock.header).toHaveBeenCalledTimes(2)
+
+    await initializeWithMetadata(mockClient)
+
+    const headerResponse = createHeader()
+    await mockClient.chainHead.mock.header.reply(
+      initialHash,
+      encodeHeader(headerResponse),
+    )
+    await waitMicro()
+
+    expect(header.error).not.toHaveBeenCalled()
+    expect(header.next).toHaveBeenCalledWith(headerResponse)
+
+    cleanup(chainHead.unfollow)
+  })
+
+  it("recovers storage subscriptions", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    const chainHead = client.chainHead$()
+
+    const { initialHash } = await initializeWithMetadata(mockClient)
+    const queries: StorageItemInput[] = [
+      {
+        key: "mykey",
+        type: "hash",
+      },
+    ]
+    const storage = observe(chainHead.storageQueries$(initialHash, queries))
+
+    mockClient.chainHead.mock.sendError(new StopError())
+    mockClient.chainHead.mock.storageSubscription
+      .getLastCall(initialHash)
+      .sendError(new DisjointError())
+
+    expect(storage.next).not.toHaveBeenCalled()
+    expect(storage.error).not.toHaveBeenCalled()
+
+    await initializeWithMetadata(mockClient)
+
+    const responses = queries.map(({ key }) => ({
+      key,
+      value: `${key} response`,
+    }))
+    mockClient.chainHead.mock.storageSubscription
+      .getLastCall(initialHash)
+      .sendDiscarded(0)
+      .sendItems(responses)
+      .sendComplete()
+
+    responses.forEach((response) =>
+      expect(storage.next).toHaveBeenCalledWith(response),
+    )
+
+    cleanup(chainHead.unfollow)
+  })
+
+  it("handles having a stopError in between a storage subscription response", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    const chainHead = client.chainHead$()
+
+    const { initialHash } = await initializeWithMetadata(mockClient)
+    const queries: StorageItemInput[] = [
+      {
+        key: "A",
+        type: "hash",
+      },
+      {
+        key: "B",
+        type: "hash",
+      },
+    ]
+    const responses = queries.map(({ key }) => ({
+      key,
+      value: `${key} response`,
+    }))
+    const storage = observe(chainHead.storageQueries$(initialHash, queries))
+
+    mockClient.chainHead.mock.storageSubscription
+      .getLastCall(initialHash)
+      .sendDiscarded(0)
+      .sendItems([responses[0]])
+
+    mockClient.chainHead.mock.sendError(new StopError())
+    mockClient.chainHead.mock.storageSubscription
+      .getLastCall(initialHash)
+      .sendError(new DisjointError())
+
+    expect(storage.next).toHaveBeenCalledWith(responses[0])
+    expect(storage.error).not.toHaveBeenCalled()
+
+    await initializeWithMetadata(mockClient)
+
+    mockClient.chainHead.mock.storageSubscription
+      .getLastCall(initialHash)
+      .sendDiscarded(0)
+      .sendItems(responses)
+      .sendComplete()
+
+    responses.forEach((response) =>
+      expect(storage.next).toHaveBeenCalledWith(response),
+    )
 
     cleanup(chainHead.unfollow)
   })
