@@ -62,7 +62,7 @@ export const sendInitialized = sendFnChainheadFollow(newInitialized)
 
 export const createNewBlock = fixtureWithDefault<NewBlockWithRuntime>(() => ({
   type: "newBlock",
-  blockHash: nilHash,
+  blockHash: newHash(),
   newRuntime: null,
   parentBlockHash: nilHash,
 }))

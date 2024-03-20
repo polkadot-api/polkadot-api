@@ -1,13 +1,18 @@
 import { BlockNotPinnedError, getObservableClient } from "@/observableClient"
-import { StopError } from "@polkadot-api/substrate-client"
+import { DisjointError, StopError } from "@polkadot-api/substrate-client"
+import { filter } from "rxjs"
 import { describe, expect, it } from "vitest"
 import {
+  createNewBlock,
+  initialize,
   initializeWithMetadata,
   newHash,
   newInitialized,
   sendBestBlockChanged,
+  sendNewBlock,
   sendNewBlockBranch,
   wait,
+  waitMicro,
 } from "./fixtures"
 import { createMockSubstrateClient } from "./mockSubstrateClient"
 import { observe } from "./observe"
@@ -32,10 +37,14 @@ describe("observableClient stopError recovery", () => {
     expect(mockClient.chainHead.mock.body).toHaveBeenCalledOnce()
 
     mockClient.chainHead.mock.sendError(new StopError())
+    await mockClient.chainHead.mock.body.reply(
+      requestedBodyHash,
+      Promise.reject(new DisjointError()),
+    )
 
     expect(body.error).not.toHaveBeenCalled()
 
-    await initializeWithMetadata(
+    await initialize(
       mockClient,
       newInitialized({
         finalizedBlockHashes: newBlocks.map((block) => block.blockHash),
@@ -68,7 +77,7 @@ describe("observableClient stopError recovery", () => {
     const body = observe(chainHead.body$(requestedBodyHash))
 
     mockClient.chainHead.mock.sendError(new StopError())
-    await initializeWithMetadata(
+    await initialize(
       mockClient,
       newInitialized({
         finalizedBlockHashes: [newBlocks[0].blockHash],
@@ -114,7 +123,7 @@ describe("observableClient stopError recovery", () => {
     const body = observe(chainHead.body$(initialBest))
 
     mockClient.chainHead.mock.sendError(new StopError())
-    await initializeWithMetadata(
+    await initialize(
       mockClient,
       newInitialized({
         finalizedBlockHashes: [newBlocks[0].blockHash],
@@ -158,6 +167,98 @@ describe("observableClient stopError recovery", () => {
     })
 
     expect(body.error).toHaveBeenCalledWith(new BlockNotPinnedError())
+
+    cleanup(chainHead.unfollow)
+  })
+
+  it("recovers after a stop error happens while fetching the runtime", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    const chainHead = client.chainHead$()
+
+    const { initialHash } = await initialize(mockClient)
+    const runtimeObs = observe(chainHead.runtime$.pipe(filter(Boolean)))
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledOnce()
+
+    expect(runtimeObs.next).not.toHaveBeenCalled()
+    expect(runtimeObs.error).not.toHaveBeenCalled()
+
+    mockClient.chainHead.mock.sendError(new StopError())
+    await mockClient.chainHead.mock.call.reply(
+      initialHash,
+      Promise.reject(new DisjointError()),
+    )
+
+    expect(runtimeObs.next).not.toHaveBeenCalled()
+    expect(runtimeObs.error).not.toHaveBeenCalled()
+
+    await initializeWithMetadata(mockClient)
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
+
+    expect(runtimeObs.error).not.toHaveBeenCalled()
+    expect(runtimeObs.next).toHaveBeenCalled()
+
+    cleanup(chainHead.unfollow)
+  })
+
+  it("recovers after a stop error happens while recovering from another stop event", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    const chainHead = client.chainHead$()
+
+    const { initialHash } = await initializeWithMetadata(mockClient)
+    const newBlock = sendNewBlock(mockClient, {
+      parentBlockHash: initialHash,
+    })
+    sendBestBlockChanged(mockClient, {
+      bestBlockHash: newBlock.blockHash,
+    })
+
+    const runtimeObs = observe(chainHead.runtime$.pipe(filter(Boolean)))
+    const body = observe(chainHead.body$(newBlock.blockHash))
+
+    mockClient.chainHead.mock.sendError(new StopError())
+    await waitMicro()
+    mockClient.chainHead.mock.sendError(new StopError())
+
+    expect(body.next).not.toHaveBeenCalled()
+    expect(body.error).not.toHaveBeenCalled()
+    expect(runtimeObs.next).toHaveBeenCalledOnce()
+    expect(runtimeObs.error).not.toHaveBeenCalled()
+
+    // initialize without metadata
+    // Pass in an extra block as finalized to force a metadata refetch
+    const newFinalized = createNewBlock({
+      parentBlockHash: newBlock.blockHash,
+    })
+    await initialize(mockClient, {
+      finalizedBlockHashes: [
+        initialHash,
+        newBlock.blockHash,
+        newFinalized.blockHash,
+      ],
+    })
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
+
+    // We haven't received a new runtime yet
+    expect(runtimeObs.next).toHaveBeenCalledOnce()
+
+    mockClient.chainHead.mock.sendError(new StopError())
+    await initializeWithMetadata(mockClient, {
+      finalizedBlockHashes: [
+        initialHash,
+        newBlock.blockHash,
+        newFinalized.blockHash,
+      ],
+    })
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
+
+    expect(runtimeObs.error).not.toHaveBeenCalled()
+    expect(runtimeObs.next).toHaveBeenCalledTimes(2)
+
+    await mockClient.chainHead.mock.body.reply(newBlock.blockHash, ["result"])
+    expect(body.error).not.toHaveBeenCalled()
+    expect(body.next).toHaveBeenCalledWith(["result"])
 
     cleanup(chainHead.unfollow)
   })

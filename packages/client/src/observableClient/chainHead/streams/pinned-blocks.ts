@@ -4,6 +4,7 @@ import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
 import { Observable, Subject, concatMap, map, merge, of, scan } from "rxjs"
 import { retryOnStopError } from "./follow"
 import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
+import { withStopRecovery } from "../enhancers"
 
 export interface PinnedBlock {
   hash: string
@@ -81,8 +82,6 @@ export const getPinnedBlocks$ = (
   blockUsage$: Subject<BlockUsageEvent>,
   onUnpin: (blocks: string[]) => void,
 ) => {
-  const getRuntime = getRuntimeCreator(call$)
-
   const pinnedBlocks$: Observable<PinnedBlocks> = merge(
     blockUsage$,
     follow$.pipe(withInitializedNumber(getHeader), retryOnStopError()),
@@ -124,9 +123,12 @@ export const getPinnedBlocks$ = (
             }
           })
 
-          // TODO do we have to do this for all finalized hashes?
-          acc.runtimes[finalizedHash] = getRuntime(finalizedHash)
-          acc.finalizedRuntime = acc.runtimes[finalizedHash]
+          const finalizedRuntime = Object.values(acc.runtimes).find((runtime) =>
+            runtime.usages.has(finalizedHash),
+          )
+          acc.finalizedRuntime =
+            finalizedRuntime ??
+            (acc.runtimes[finalizedHash] = getRuntime(finalizedHash))
           return acc
 
         case "stop-error":
@@ -205,6 +207,8 @@ export const getPinnedBlocks$ = (
     map((x) => ({ ...x })),
     shareLatest,
   )
+
+  const getRuntime = getRuntimeCreator(withStopRecovery(pinnedBlocks$, call$))
 
   return pinnedBlocks$
 }

@@ -22,29 +22,28 @@ import {
   take,
 } from "rxjs"
 
-import type {
-  PinnedBlock,
-  BlockUsageEvent,
-  RuntimeContext,
-  SystemEvent,
-} from "./streams"
-import { getFollow$, getPinnedBlocks$ } from "./streams"
+import { withDefaultValue } from "@/utils"
 import {
   fromAbortControllerFn,
   getWithOptionalhash$,
   getWithRecovery,
+  withEnsureCanonicalChain,
   withLazyFollower,
   withOperationInaccessibleRecovery,
-  withEnsureCanonicalChain,
   withStopRecovery,
 } from "./enhancers"
-import { withDefaultValue } from "@/utils"
-import { getRecoveralStorage$ } from "./storage-queries"
-import { getTrackTx } from "./track-tx"
 import { BlockNotPinnedError } from "./errors"
+import { getRecoveralStorage$ } from "./storage-queries"
+import type {
+  BlockUsageEvent,
+  PinnedBlock,
+  RuntimeContext,
+  SystemEvent,
+} from "./streams"
+import { getFollow$, getPinnedBlocks$ } from "./streams"
+import { getTrackTx } from "./track-tx"
 
-export type { RuntimeContext, SystemEvent }
-export type { FollowEventWithRuntime }
+export type { FollowEventWithRuntime, RuntimeContext, SystemEvent }
 
 export type BlockInfo = {
   hash: string
@@ -279,14 +278,22 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const storageQueries$ = withOperationInaccessibleRecovery(
     withOptionalHash$(
       withRefcount(
-        (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
-          recoveralStorage$(hash, queries, childTrie ?? null, false),
+        withStopRecovery(
+          pinnedBlocks$,
+          (
+            hash: string,
+            queries: Array<StorageItemInput>,
+            childTrie?: string,
+          ) => recoveralStorage$(hash, queries, childTrie ?? null, false),
+        ),
       ),
     ),
   )
 
   const header$ = withOptionalHash$(
-    withRefcount((hash: string) => from(getHeader(hash))),
+    withRefcount(
+      withStopRecovery(pinnedBlocks$, (hash: string) => from(getHeader(hash))),
+    ),
   )
 
   // calling `unfollow` also kills the subscription due to the fact
@@ -313,7 +320,9 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
     header$,
     body$,
-    call$: withOptionalHash$(withRefcount(_call$)),
+    call$: withOptionalHash$(
+      withRefcount(withStopRecovery(pinnedBlocks$, _call$)),
+    ),
     storage$,
     storageQueries$,
     eventsAt$,

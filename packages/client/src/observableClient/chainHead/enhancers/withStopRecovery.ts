@@ -1,4 +1,3 @@
-import { StopError } from "@polkadot-api/substrate-client"
 import { Observable, ObservedValueOf, Subscription } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
 import { PinnedBlocks } from "../streams"
@@ -16,9 +15,7 @@ export function withStopRecovery<A extends Array<any>, T>(
         if (sourceSub) return
         sourceSub = source$.subscribe({
           next: (v) => observer.next(v),
-          error: (e) => {
-            return e instanceof StopError ? null : observer.error(e)
-          },
+          error: (e) => observer.error(e),
           complete: () => observer.complete(),
         })
       }
