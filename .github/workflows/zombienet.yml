@@ -12,30 +12,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3.5.3
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-18.x-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-18.x-turbo-
-      - uses: pnpm/action-setup@v2
+            ${{ runner.os }}-turbo-
+      - uses: pnpm/action-setup@v3
         with:
           version: 8
-      - name: Setup Node.js 18.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
-          cache: pnpm
+          node-version: 20
+          cache: "pnpm"
       - name: build
         run: |
           pnpm install
           pnpm turbo build --cache-dir=.turbo
       - name: Download Polkadot and parachain binaries
         run: |
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.8.0/polkadot
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.8.0/polkadot-parachain
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.8.0/polkadot-prepare-worker
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.8.0/polkadot-execute-worker
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot-parachain
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot-prepare-worker
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot-execute-worker
           chmod +x ./polkadot*
         working-directory: integration-tests/zombie-tests
       - name: Run a local relaychain using zombienet
