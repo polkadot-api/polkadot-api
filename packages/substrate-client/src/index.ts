@@ -9,8 +9,7 @@ import {
 import type { ChainHead } from "./chainhead"
 import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"
-import { abortablePromiseFn } from "./internal-utils"
-import { noop } from "@polkadot-api/utils"
+import { abortablePromiseFn, noop } from "./internal-utils"
 
 export type * from "./common-types"
 export type * from "./client"
@@ -18,7 +17,6 @@ export type * from "./transaction"
 export type * from "./chainhead"
 
 export { RpcError, DestroyedError } from "./client"
-export { TransactionError } from "./transaction"
 export {
   StopError,
   DisjointError,
@@ -62,44 +60,12 @@ export const createClient = (provider: JsonRpcProvider): SubstrateClient => {
   )
   rpcMethods.catch(noop)
 
-  const getSubmitAndWatchNamespace = (input: Set<string>) =>
-    input.has("transaction_unstable_submitAndWatch")
-      ? "transaction"
-      : "transactionWatch"
-
-  const innerTransaction = getTransaction(
-    client.request as ClientRequest<any, any>,
-  )
   return {
     chainHead: getChainHead(client.request as ClientRequest<any, any>),
-    transaction: (tx, next, err) => {
-      if (rpcMethods instanceof Promise) {
-        let cleanup = noop
-        let isRunning = true
-
-        rpcMethods.then((result) => {
-          if (!isRunning) return
-          cleanup = innerTransaction(
-            getSubmitAndWatchNamespace(result),
-            tx,
-            next,
-            err,
-          )
-        })
-
-        return () => {
-          isRunning = false
-          cleanup()
-        }
-      }
-
-      return innerTransaction(
-        getSubmitAndWatchNamespace(rpcMethods),
-        tx,
-        next,
-        err,
-      )
-    },
+    transaction: getTransaction(
+      client.request as ClientRequest<string, any>,
+      rpcMethods,
+    ),
     destroy: () => {
       client.disconnect()
     },

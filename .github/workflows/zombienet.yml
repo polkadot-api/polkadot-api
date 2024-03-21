@@ -12,51 +12,49 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3.5.3
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-18.x-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-18.x-turbo-
-      - uses: pnpm/action-setup@v2
+            ${{ runner.os }}-turbo-
+      - uses: pnpm/action-setup@v3
         with:
           version: 8
-      - name: Setup Node.js 18.x
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.x
-          cache: pnpm
+          node-version: 20
+          cache: "pnpm"
       - name: build
         run: |
           pnpm install
           pnpm turbo build --cache-dir=.turbo
-      - name: Get zombienet
+      - name: Download Polkadot and parachain binaries
         run: |
-          curl -L -O https://github.com/paritytech/zombienet/releases/download/v1.3.71/zombienet-linux-x64
-          chmod +x zombienet-linux-x64
-      - name: Get polkadot
-        run: |
-          curl -L -O https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.2.0/polkadot
-          chmod +x polkadot
-      - name: Get polkadot execute worker
-        run: |
-          curl -L -O https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.2.0/polkadot-execute-worker
-          chmod +x polkadot-execute-worker
-      - name: Get polkadot prepare worker
-        run: |
-          curl -L -O https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.2.0/polkadot-prepare-worker
-          chmod +x polkadot-prepare-worker
-      - name: Get polkadot-parachain
-        run: |
-          curl -L -O https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.2.0/polkadot-parachain
-          chmod +x polkadot-parachain
-      - name: Run test
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot-parachain
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot-prepare-worker
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.9.0/polkadot-execute-worker
+          chmod +x ./polkadot*
+        working-directory: integration-tests/zombie-tests
+      - name: Run a local relaychain using zombienet
         run: |
           export PATH=$(pwd):$PATH
-          ./zombienet-linux-x64 -p native test ./integration-tests/zombie-tests/src/0001-test.zndsl
+          npx --yes @zombienet/cli@1.3.93 \
+            --provider native \
+            --dir zombienet_logs \
+            spawn zombienet.native.toml \
+            > polkadot.txt 2>&1 &
+          source wait_until.sh 'curl -s "127.0.0.1:9933"'
+          source wait_until.sh 'curl -s "127.0.0.1:9934"'
+        working-directory: integration-tests/zombie-tests
+      - name: Run test
+        run: pnpm e2e
+        working-directory: integration-tests/zombie-tests
       - name: Store logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: zombie-logs
-          path: /tmp/zombie-*
+          path: integration-tests/zombie-tests/zombienet_logs

@@ -1,2 +1,2 @@
 export type * from "./public-types"
-export { getTransaction, TransactionError } from "./transaction"
+export { getTransaction } from "./transaction"

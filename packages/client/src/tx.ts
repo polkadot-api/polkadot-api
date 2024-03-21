@@ -5,12 +5,6 @@ import {
   SS58String,
   TxDescriptor,
 } from "@polkadot-api/substrate-bindings"
-import type {
-  TxBestChainBlockIncluded,
-  TxBroadcasted,
-  TxFinalized,
-  TxValidated,
-} from "@polkadot-api/substrate-client"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   Observable,
@@ -21,7 +15,6 @@ import {
   mergeMap,
   of,
   take,
-  takeWhile,
 } from "rxjs"
 import {
   RuntimeContext,
@@ -34,6 +27,7 @@ import {
   createIsCompatible,
   getRuntimeContext,
 } from "./runtime"
+import { TrackedTx } from "./observableClient/chainHead/track-tx"
 
 type TxSuccess = {
   ok: boolean
@@ -56,12 +50,6 @@ type TxFunction<Asset> = (
   >,
 ) => Promise<TxSuccess>
 
-export type TxEvent =
-  | TxValidated
-  | TxBroadcasted
-  | TxBestChainBlockIncluded
-  | (TxFinalized & TxSuccess)
-
 type TxObservable<Asset> = (
   from: SS58String | Uint8Array,
   hintedSignExtensions?: Partial<
@@ -76,7 +64,11 @@ type TxObservable<Asset> = (
           asset: Asset
         }
   >,
-) => Observable<TxEvent>
+) => Observable<
+  | { type: "broadcasted" }
+  | { type: "bestChainBlockIncluded"; block: { hash: string; index: number } }
+  | ({ type: "finalized"; block: { hash: string; index: number } } & TxSuccess)
+>
 
 interface TxCall {
   (): Promise<Binary>
@@ -165,7 +157,7 @@ export const createTxEntry = <
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
   const hasSameChecksum = (
     checksumBuilder: RuntimeContext["checksumBuilder"],
-  ) => checksumBuilder.buildStorage(pallet, name) === descriptor
+  ) => checksumBuilder.buildCall(pallet, name) === descriptor
   const isCompatible = createIsCompatible(chainHead, (ctx) =>
     hasSameChecksum(ctx.checksumBuilder),
   )
@@ -173,8 +165,25 @@ export const createTxEntry = <
   const fn = (arg?: Arg): any => {
     const tx$ = (tx: string) =>
       concat(
-        client.tx$(tx).pipe(takeWhile((x) => x.type !== "broadcasted", true)),
-        chainHead.trackTx$(tx),
+        chainHead.finalized$.pipe(
+          take(1),
+          mergeMap((finalized) => chainHead.validateTx$(tx, finalized.hash)),
+          map((isValid) => {
+            if (!isValid) throw new Error("Invalid")
+            return { type: "broadcasted" as "broadcasted" }
+          }),
+        ),
+        new Observable<TrackedTx>((observer) => {
+          const subscription = chainHead.trackTx$(tx).subscribe(observer)
+          subscription.add(
+            client.broadcastTx$(tx).subscribe({
+              error(e) {
+                observer.error(e)
+              },
+            }),
+          )
+          return subscription
+        }),
       )
 
     const getCallDataWithContext = (
@@ -237,26 +246,16 @@ export const createTxEntry = <
         ),
       )
 
-      const result = await lastValueFrom(tx$(tx))
+      const result = (await lastValueFrom(tx$(tx))) as TrackedTx
 
-      switch (result.type) {
-        case "invalid":
-          throw new Error("Invalid")
-        case "dropped":
-          throw new Error("Dropped")
-        case "finalized": {
-          const systemEvents = await firstValueFrom(
-            chainHead.eventsAt$(result.block.hash),
-          )
+      const systemEvents = await firstValueFrom(
+        chainHead.eventsAt$(result.block.hash),
+      )
 
-          return getTxSuccessFromSystemEvents(
-            systemEvents,
-            Number(result.block.index),
-          )
-        }
-        default:
-          return { ok: true, events: [] }
-      }
+      return getTxSuccessFromSystemEvents(
+        systemEvents,
+        Number(result.block.index),
+      )
     }
 
     const submit$: TxObservable<Asset> = (from, _hinted) =>
@@ -268,13 +267,9 @@ export const createTxEntry = <
         mergeMap((result) => {
           return tx$(toHex(result)).pipe(
             mergeMap((result) => {
-              switch (result.type) {
-                case "invalid":
-                  throw new Error("Invalid")
-                case "dropped":
-                  throw new Error("Dropped")
-                case "finalized": {
-                  return chainHead.eventsAt$(result.block.hash).pipe(
+              return result.type !== "finalized"
+                ? of(result)
+                : chainHead.eventsAt$(result.block.hash).pipe(
                     map((events) => ({
                       ...result,
                       ...getTxSuccessFromSystemEvents(
@@ -283,10 +278,6 @@ export const createTxEntry = <
                       ),
                     })),
                   )
-                }
-                default:
-                  return of(result)
-              }
             }),
           )
         }),

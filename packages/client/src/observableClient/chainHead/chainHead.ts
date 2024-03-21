@@ -42,6 +42,7 @@ import type {
 } from "./streams"
 import { getFollow$, getPinnedBlocks$ } from "./streams"
 import { getTrackTx } from "./track-tx"
+import { getValidateTx } from "./validate-tx"
 
 export type { FollowEventWithRuntime, RuntimeContext, SystemEvent }
 
@@ -312,6 +313,12 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       (x, ctx) => ctx.events.dec(x!),
     )
 
+  const call$ = withOptionalHash$(
+    withRefcount(withStopRecovery(pinnedBlocks$, _call$)),
+  )
+
+  const validateTx$ = getValidateTx(call$)
+
   return {
     follow$,
     finalized$,
@@ -322,13 +329,12 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
     header$,
     body$,
-    call$: withOptionalHash$(
-      withRefcount(withStopRecovery(pinnedBlocks$, _call$)),
-    ),
+    call$,
     storage$,
     storageQueries$,
     eventsAt$,
 
+    validateTx$,
     trackTx$,
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
