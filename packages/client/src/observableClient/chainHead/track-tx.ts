@@ -1,8 +1,4 @@
 import {
-  TxBestChainBlockIncluded,
-  TxFinalized,
-} from "@polkadot-api/substrate-client"
-import {
   EMPTY,
   Observable,
   catchError,
@@ -20,12 +16,22 @@ import {
 import { PinnedBlocks } from "./streams"
 import { isBestOrFinalizedBlock, isFinalized } from "./streams/block-operations"
 
+export type TrackedTx =
+  | {
+      type: "bestChainBlockIncluded"
+      block: { hash: string; index: number }
+    }
+  | {
+      type: "finalized"
+      block: { hash: string; index: number }
+    }
+
 export const getTrackTx =
   (
     blocks$: Observable<PinnedBlocks>,
     getBody: (block: string) => Observable<string[]>,
   ) =>
-  (tx: string): Observable<TxBestChainBlockIncluded | TxFinalized> =>
+  (tx: string): Observable<TrackedTx> =>
     blocks$.pipe(
       take(1),
       concatMap((x) => {

@@ -1,90 +1,62 @@
 import { noop } from "@/internal-utils"
-import { DestroyedError, type ClientRequest } from "../client"
-import type {
-  TxEventRpc,
-  TxFinalizedRpc,
-  TxInvalidRpc,
-  TxDroppedRpc,
-  TxErrorRpc,
-} from "./json-rpc-types"
-import { TxEvent } from "./public-types"
+import { type ClientRequest } from "../client"
 
-type EventToType<T extends { event: string }> = T extends { event: infer Type }
-  ? Omit<T, "event"> & { type: Type }
-  : T
-const eventToType = <T extends { event: string }>(input: T): EventToType<T> => {
-  const { event: type, ...rest } = input
-  return { type, ...rest } as any
-}
+const getTxBroadcastNames = (input: Set<string>): [string, string] => {
+  // Proper
+  if (input.has("transaction_v1_broadcast"))
+    return ["transaction_v1_broadcast", "transaction_v1_stop"]
 
-type TerminalEvent = TxDroppedRpc | TxInvalidRpc | TxFinalizedRpc | TxErrorRpc
-const terminalEvents: Set<string> = new Set<TerminalEvent["event"]>([
-  "dropped",
-  "invalid",
-  "finalized",
-  "error",
-])
+  // Fallback for versions not up-to-date yet
+  if (input.has("transactionWatch_unstable_submitAndWatch"))
+    return [
+      "transactionWatch_unstable_submitAndWatch",
+      "transactionWatch_unstable_unwatch",
+    ]
 
-function isTerminalEvent(event: TxEventRpc): event is TerminalEvent {
-  return terminalEvents.has(event.event)
-}
-
-type ErrorEvents = TxDroppedRpc | TxInvalidRpc | TxErrorRpc
-
-export interface ITxError {
-  type: ErrorEvents["event"]
-  error: string
-}
-
-export class TransactionError extends Error implements ITxError {
-  type
-  error
-  constructor(e: ErrorEvents) {
-    super(`TxError: ${e.event} - ${e.error}`)
-    this.type = e.event
-    this.error = e.error
-    this.name = "TransactionError"
-  }
+  // Fallback for very old versions
+  return ["transaction_unstable_submitAndWatch", "transaction_unstable_unwatch"]
 }
 
 export const getTransaction =
-  (request: ClientRequest<string, TxEventRpc>) =>
   (
-    namespace: string,
-    tx: string,
-    next: (event: TxEvent) => void,
-    error: (e: Error) => void,
-  ) => {
-    let cancel = request(namespace + "_unstable_submitAndWatch", [tx], {
-      onSuccess: (subscriptionId, follow) => {
-        const done = follow(
-          namespace + "_unstable_watchEvent",
-          subscriptionId,
-          {
-            next: (event) => {
-              if (isTerminalEvent(event)) {
-                done()
-                cancel = noop
-                if (event.event !== "finalized")
-                  return error(new TransactionError(event))
-              }
-              next(eventToType(event))
-            },
-            error(e) {
-              if (!(e instanceof DestroyedError)) cancel()
-              cancel = noop
-              error(e)
-            },
-          },
-        )
+    request: ClientRequest<string, any>,
+    rpcMethods: Promise<Set<string>> | Set<string>,
+  ) =>
+  (tx: string, error: (e: Error) => void) => {
+    const broadcast = (
+      tx: string,
+      broadcastFn: string,
+      cancelBroadcastFn: string,
+    ) =>
+      request(broadcastFn, [tx], {
+        onSuccess: (subscriptionId) => {
+          cancel =
+            subscriptionId === null
+              ? noop
+              : () => {
+                  request(cancelBroadcastFn, [subscriptionId])
+                }
 
-        cancel = () => {
-          done()
-          request(namespace + "_unstable_unwatch", [subscriptionId])
-        }
-      },
-      onError: error,
-    })
+          if (subscriptionId === null) {
+            error(
+              new Error("Max # of broadcasted transactions has been reached"),
+            )
+          }
+        },
+        onError: error,
+      })
+
+    let isActive = true
+    let cancel = () => {
+      isActive = false
+    }
+
+    if (rpcMethods instanceof Promise) {
+      rpcMethods.then(getTxBroadcastNames).then((names) => {
+        if (!isActive) return
+        cancel = broadcast(tx, ...names)
+      })
+    } else cancel = broadcast(tx, ...getTxBroadcastNames(rpcMethods))
 
     return () => {
       cancel()

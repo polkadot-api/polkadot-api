@@ -40,6 +40,7 @@ import {
 import { withDefaultValue } from "@/utils"
 import { getRecoveralStorage$ } from "./storage-queries"
 import { getTrackTx } from "./track-tx"
+import { getValidateTx } from "./validate-tx"
 
 export type { RuntimeContext, SystemEvent }
 export type { FollowEventWithRuntime }
@@ -305,6 +306,10 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       (x, ctx) => ctx.events.dec(x!),
     )
 
+  const call$ = withOptionalHash$(withRefcount(_call$))
+
+  const validateTx$ = getValidateTx(call$)
+
   return {
     follow$,
     finalized$,
@@ -315,11 +320,12 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
     header$,
     body$,
-    call$: withOptionalHash$(withRefcount(_call$)),
+    call$,
     storage$,
     storageQueries$,
     eventsAt$,
 
+    validateTx$,
     trackTx$,
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
