@@ -89,7 +89,9 @@ const createMockChainHead = (): MockChainHead => {
       if (!active) {
         throw new Error("No one subscribed to chainHead")
       }
-      active.onError(error)
+      const prevActive = active
+      active = null
+      prevActive.onError(error)
     },
   }
 

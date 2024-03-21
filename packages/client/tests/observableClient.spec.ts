@@ -2,7 +2,7 @@ import { BlockInfo, getObservableClient } from "@/observableClient"
 import {
   BlockPrunedError,
   NotBestBlockError,
-} from "@/observableClient/chainHead/enhancers/whileBestBlock"
+} from "@/observableClient/chainHead/errors"
 import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {

@@ -1,2 +1,2 @@
 export * from "./chainHead"
-export { BlockPrunedError, NotBestBlockError } from "./enhancers"
+export * from "./errors"

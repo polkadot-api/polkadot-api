@@ -11,8 +11,8 @@ import {
   Observable,
   ReplaySubject,
   Subject,
+  defer,
   distinctUntilChanged,
-  from,
   map,
   merge,
   mergeMap,
@@ -22,28 +22,29 @@ import {
   take,
 } from "rxjs"
 
-import type {
-  PinnedBlock,
-  BlockUsageEvent,
-  RuntimeContext,
-  SystemEvent,
-} from "./streams"
-import { getFollow$, getPinnedBlocks$ } from "./streams"
+import { withDefaultValue } from "@/utils"
 import {
   fromAbortControllerFn,
   getWithOptionalhash$,
   getWithRecovery,
+  withEnsureCanonicalChain,
   withLazyFollower,
   withOperationInaccessibleRecovery,
-  withEnsureCanonicalChain,
+  withStopRecovery,
 } from "./enhancers"
-import { withDefaultValue } from "@/utils"
+import { BlockNotPinnedError } from "./errors"
 import { getRecoveralStorage$ } from "./storage-queries"
+import type {
+  BlockUsageEvent,
+  PinnedBlock,
+  RuntimeContext,
+  SystemEvent,
+} from "./streams"
+import { getFollow$, getPinnedBlocks$ } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
 
-export type { RuntimeContext, SystemEvent }
-export type { FollowEventWithRuntime }
+export type { FollowEventWithRuntime, RuntimeContext, SystemEvent }
 
 export type BlockInfo = {
   hash: string
@@ -56,13 +57,6 @@ const toBlockInfo = ({ hash, number, parent }: PinnedBlock): BlockInfo => ({
   number,
   parent,
 })
-
-export class BlockNotPinnedError extends Error {
-  constructor() {
-    super("Block is not pinned")
-    this.name = "BlockNotPinnedError"
-  }
-}
 
 export const getChainHead$ = (chainHead: ChainHead) => {
   const { getFollower, unfollow, follow$ } = getFollow$(chainHead)
@@ -128,8 +122,11 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         withEnsureCanonicalChain(
           pinnedBlocks$,
           follow$,
-          withOperationInaccessibleRecovery(
-            withRecoveryFn(fromAbortControllerFn(fn)),
+          withStopRecovery(
+            pinnedBlocks$,
+            withOperationInaccessibleRecovery(
+              withRecoveryFn(fromAbortControllerFn(fn)),
+            ),
           ),
         ),
       ),
@@ -282,14 +279,24 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const storageQueries$ = withOperationInaccessibleRecovery(
     withOptionalHash$(
       withRefcount(
-        (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
-          recoveralStorage$(hash, queries, childTrie ?? null, false),
+        withStopRecovery(
+          pinnedBlocks$,
+          (
+            hash: string,
+            queries: Array<StorageItemInput>,
+            childTrie?: string,
+          ) => recoveralStorage$(hash, queries, childTrie ?? null, false),
+        ),
       ),
     ),
   )
 
   const header$ = withOptionalHash$(
-    withRefcount((hash: string) => from(getHeader(hash))),
+    withRefcount(
+      withStopRecovery(pinnedBlocks$, (hash: string) =>
+        defer(() => getHeader(hash)),
+      ),
+    ),
   )
 
   // calling `unfollow` also kills the subscription due to the fact
@@ -306,7 +313,9 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       (x, ctx) => ctx.events.dec(x!),
     )
 
-  const call$ = withOptionalHash$(withRefcount(_call$))
+  const call$ = withOptionalHash$(
+    withRefcount(withStopRecovery(pinnedBlocks$, _call$)),
+  )
 
   const validateTx$ = getValidateTx(call$)
 

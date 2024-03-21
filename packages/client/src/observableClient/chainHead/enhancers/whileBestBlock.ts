@@ -3,21 +3,9 @@ import {
   FollowEventWithRuntime,
 } from "@polkadot-api/substrate-client"
 import { Observable, filter, mergeMap, switchMap, take, throwError } from "rxjs"
-import { PinnedBlocks } from "../streams"
+import { BlockPrunedError, NotBestBlockError } from "../errors"
+import { PinnedBlocks, retryOnStopError } from "../streams"
 import { isBestOrFinalizedBlock } from "../streams/block-operations"
-
-export class BlockPrunedError extends Error {
-  constructor() {
-    super("Block pruned")
-    this.name = "BlockPrunedError"
-  }
-}
-export class NotBestBlockError extends Error {
-  constructor() {
-    super("Block is not best block or finalized")
-    this.name = "NotBestBlockError"
-  }
-}
 
 export function withEnsureCanonicalChain<A extends Array<any>, T>(
   blocks$: Observable<PinnedBlocks>,
@@ -29,6 +17,7 @@ export function withEnsureCanonicalChain<A extends Array<any>, T>(
       throwWhenPrune(
         hash,
         follow$.pipe(
+          retryOnStopError(),
           filter((evt): evt is Finalized => evt.type === "finalized"),
           mergeMap((evt) => evt.prunedBlockHashes),
         ),
