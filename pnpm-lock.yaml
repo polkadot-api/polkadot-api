@@ -215,18 +215,18 @@ importers:
       '@noble/curves':
         specifier: ^1.2.0
         version: 1.2.0
+      '@polkadot-api/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../../packages/client
-      '@polkadot-api/metadata-builders':
-        specifier: workspace:*
-        version: link:../../packages/metadata-builders
       '@polkadot-api/node-polkadot-provider':
         specifier: workspace:^
         version: link:../../packages/node-polkadot-provider
-      '@polkadot-api/sc-provider':
+      '@polkadot-api/sm-provider':
         specifier: workspace:*
-        version: link:../../packages/sc-provider
+        version: link:../../packages/sm-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -236,12 +236,18 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@polkadot-api/ws-provider':
+        specifier: workspace:*
+        version: link:../../packages/ws-provider
       '@unique-nft/sr25519':
         specifier: ^0.0.1
         version: 0.0.1
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+      smoldot:
+        specifier: 2.0.23
+        version: 2.0.23
     devDependencies:
       '@types/node':
         specifier: ^20.6.0
@@ -9802,6 +9808,15 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  /smoldot@2.0.23:
+    resolution: {integrity: sha512-rZOHZoL6iSdjl3nEHaZmIAvFjaSsK/pkI2G6m46Ua1xNurcIZByyjLnMrlY5jm1rasdJDHFnNmasGBgeQFyLcQ==}
+    dependencies:
+      ws: 8.14.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
 
   /smoldot@2.0.7:
     resolution: {integrity: sha512-VAOBqEen6vises36/zgrmAT1GWk2qE3X8AGnO7lmQFdskbKx8EovnwS22rtPAG+Y1Rk23/S22kDJUdPANyPkBA==}
