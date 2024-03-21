@@ -21,7 +21,7 @@ export const createConstantEntry = <T>(
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ): ConstantEntry<T> => {
   const hasSameChecksum = (ctx: RuntimeContext) =>
-    ctx.checksumBuilder.buildStorage(palletName, name) === checksum
+    ctx.checksumBuilder.buildConstant(palletName, name) === checksum
 
   const cachedResults = new WeakMap<RuntimeContext, T>()
   const getValueWithContext = (ctx: RuntimeContext) => {

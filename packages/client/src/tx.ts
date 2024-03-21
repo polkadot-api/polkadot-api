@@ -165,7 +165,7 @@ export const createTxEntry = <
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
   const hasSameChecksum = (
     checksumBuilder: RuntimeContext["checksumBuilder"],
-  ) => checksumBuilder.buildStorage(pallet, name) === descriptor
+  ) => checksumBuilder.buildCall(pallet, name) === descriptor
   const isCompatible = createIsCompatible(chainHead, (ctx) =>
     hasSameChecksum(ctx.checksumBuilder),
   )

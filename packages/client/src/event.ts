@@ -59,7 +59,7 @@ export const createEventEntry = <T>(
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ): EvClient<T> => {
   const hasSameChecksum = (ctx: RuntimeContext) =>
-    ctx.checksumBuilder.buildStorage(pallet, name) === checksum
+    ctx.checksumBuilder.buildEvent(pallet, name) === checksum
   const checksumCheck = (ctx: RuntimeContext) => {
     if (!hasSameChecksum(ctx))
       throw new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
