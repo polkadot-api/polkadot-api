@@ -6,6 +6,7 @@ import { readFile, writeFile } from "node:fs/promises"
 
 export type EntryConfig = {
   outputFolder: string
+  knownTypes?: string
 } & (
   | {
       metadata: string

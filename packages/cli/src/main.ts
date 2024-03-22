@@ -35,6 +35,7 @@ program
     ),
   )
   .option("-p, --persist", "Persist the metadata into the file {key}.scale")
+  .option("-k, --knownTypes <filename>", "Known types file for the chain")
   .action(add)
 
 program

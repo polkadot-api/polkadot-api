@@ -24,7 +24,7 @@ export async function generate(opts: GenerateOptions) {
     const metadata = await getMetadata(source)
 
     console.log(`Generating "${key}" code`)
-    await outputCodegen(metadata!, source.outputFolder, key)
+    await outputCodegen(metadata!, source, key)
   }
 }
 
@@ -48,10 +48,18 @@ async function getSources(
   return config
 }
 
-async function outputCodegen(metadata: V15, outputFolder: string, key: string) {
-  const code = getDescriptors(metadata, "", "@polkadot-api/client")
-  await fs.mkdir(outputFolder, { recursive: true })
-  await createDtsFile(key, outputFolder, code)
+async function outputCodegen(metadata: V15, config: EntryConfig, key: string) {
+  const knownDeclarations = config.knownTypes
+    ? await fs.readFile(config.knownTypes, "utf-8")
+    : ""
+
+  const code = getDescriptors(
+    metadata,
+    knownDeclarations,
+    "@polkadot-api/client",
+  )
+  await fs.mkdir(config.outputFolder, { recursive: true })
+  await createDtsFile(key, config.outputFolder, code)
 }
 
 const createDtsFile = async (key: string, dest: string, code: string) => {
