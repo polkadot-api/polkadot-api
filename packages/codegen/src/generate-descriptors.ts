@@ -1,11 +1,10 @@
-import { V15 } from "@polkadot-api/substrate-bindings"
-import { getTypesBuilder } from "./types-builder"
 import {
   getChecksumBuilder,
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
+import { V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
-import knownTypesContent from "./known-types"
+import { getTypesBuilder } from "./types-builder"
 
 const isDocs = (x: any) => {
   if (typeof x !== "object") return false
@@ -49,17 +48,18 @@ export const getKnownTypesFromFileContent = (fileContent: string) => {
   return knownTypes
 }
 
-export const getDescriptors = (
+export const generateDescriptors = (
   metadata: V15,
-  knownDeclarationsFileContent: string,
-  libraryName: string,
-): string => {
-  const knownTypes = getKnownTypesFromFileContent(
-    knownTypesContent + "\n\n" + knownDeclarationsFileContent,
-  )
+  knownTypes: Map<string, string>,
+  checksums: string[],
+  checksumBuilder: ReturnType<typeof getChecksumBuilder>,
+  paths: {
+    client: string
+    checksums: string
+  },
+) => {
   const typesBuilder = getTypesBuilder(metadata, knownTypes)
   const declarations = typesBuilder.getDeclarations()
-  const checksumBuilder = getChecksumBuilder(metadata)
 
   const buildEnumObj = <T>(
     val: number | undefined,
@@ -76,12 +76,6 @@ export const getDescriptors = (
     )
   }
 
-  const seenChecksums = new Map<string, number>()
-  const registerChecksum = (checksum: string) => {
-    seenChecksums.set(checksum, (seenChecksums.get(checksum) ?? 0) + 1)
-    return checksum
-  }
-
   const storage = Object.fromEntries(
     metadata.pallets.map((pallet) => {
       return [
@@ -94,7 +88,7 @@ export const getDescriptors = (
             return [
               name,
               {
-                checksum: registerChecksum(checksum),
+                checksum: checksums.indexOf(checksum),
                 type,
                 name: `stg_${pallet.name}_${name}`,
                 docs,
@@ -120,7 +114,7 @@ export const getDescriptors = (
             return [
               name,
               {
-                checksum: registerChecksum(checksum),
+                checksum: checksums.indexOf(checksum),
                 type,
                 name: `const_${pallet.name}_${name}`,
                 docs,
@@ -137,7 +131,7 @@ export const getDescriptors = (
       return [
         pallet.name,
         buildEnumObj(pallet.calls, (name, docs) => ({
-          checksum: registerChecksum(
+          checksum: checksums.indexOf(
             checksumBuilder.buildCall(pallet.name, name)!,
           ),
           type: `TxDescriptor<${typesBuilder.buildCall(pallet.name, name)}>`,
@@ -153,7 +147,7 @@ export const getDescriptors = (
       return [
         pallet.name,
         buildEnumObj(pallet.events, (name, docs) => ({
-          checksum: registerChecksum(
+          checksum: checksums.indexOf(
             checksumBuilder.buildEvent(pallet.name, name)!,
           ),
           type: `PlainDescriptor<${typesBuilder.buildEvent(
@@ -173,7 +167,7 @@ export const getDescriptors = (
         pallet.name,
         buildEnumObj(pallet.errors, (name, docs) => {
           return {
-            checksum: registerChecksum(
+            checksum: checksums.indexOf(
               checksumBuilder.buildError(pallet.name, name)!,
             ),
             type: `PlainDescriptor<${typesBuilder.buildError(
@@ -204,10 +198,9 @@ export const getDescriptors = (
             return [
               method.name,
               {
-                checksum: checksumBuilder.buildRuntimeCall(
-                  api.name,
-                  method.name,
-                )!,
+                checksum: checksums.indexOf(
+                  checksumBuilder.buildRuntimeCall(api.name, method.name)!,
+                ),
                 type: `RuntimeDescriptor<${args}, ${value}>`,
                 name: `runtime_${api.name}_${method.name}`,
                 docs: method.docs,
@@ -230,9 +223,7 @@ export const getDescriptors = (
     Object.values(entryType).forEach((x) =>
       Object.values(x).forEach(({ checksum, type, name }) => {
         descriptorDeclarations.push(
-          `const ${name}: ${type} = ${
-            seenChecksums.get(checksum)! > 1 ? `c${checksum}` : `"${checksum}"`
-          } as ${type};`,
+          `const ${name}: ${type} = ${checksum} as ${type};`,
         )
       }),
     )
@@ -273,6 +264,7 @@ export const getDescriptors = (
   ;[
     "StorageDescriptor",
     "PlainDescriptor",
+    "AssetDescriptor",
     "TxDescriptor",
     "RuntimeDescriptor",
     "Enum",
@@ -287,9 +279,11 @@ export const getDescriptors = (
     declarations.imports.add(name)
   })
 
-  const imports = `import {${[...declarations.imports].join(
-    ", ",
-  )}} from "${libraryName}";`
+  const imports = `import {${[...declarations.imports].join(", ")}} from "${
+    paths.client
+  }";
+  import checksums from "${paths.checksums}" assert { type: 'json' };
+  `
 
   const baseTypes = [...declarations.variables.values()]
     .map(({ name, type }) =>
@@ -367,11 +361,6 @@ type Anonymize<T> = SeparateUndefined<
 
 ${baseTypes}
 
-${[...seenChecksums.entries()]
-  .filter(([, len]) => len > 1)
-  .map(([x]) => `const c${x} = "${x}";`)
-  .join("\n")}
-
 ${descriptorDeclarations.join("\n")}
 
 type IPallets = ${customStringifyObject(iPallets)};
@@ -380,11 +369,11 @@ export const pallets: IPallets = ${customStringifyObject(pallets)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 export const apis: IRuntimeCalls = ${customStringifyObject(runtimeCallsObj)};
 
-type IAsset = PlainDescriptor<${asset?.type ?? "void"}>
+type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
 const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
 
-type IDescriptors = { pallets: IPallets, apis: IRuntimeCalls, asset: IAsset };
-const _allDescriptors: IDescriptors = { pallets, apis, asset };
+type IDescriptors = { pallets: IPallets, apis: IRuntimeCalls, asset: IAsset, checksums: string[] };
+const _allDescriptors: IDescriptors = { pallets, apis, asset, checksums };
 export default _allDescriptors;
 
 

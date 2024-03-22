@@ -28,6 +28,8 @@ const createTypedApi = <D extends Descriptors>(
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   client: ReturnType<typeof getObservableClient>,
 ): TypedApi<D> => {
+  const getChecksum = (idx: number) => descriptors.checksums[idx]
+
   const { pallets, apis: runtimeApis } = descriptors
   const query = {} as Record<string, Record<string, StorageEntry<any, any>>>
   for (const pallet in pallets) {
@@ -35,7 +37,7 @@ const createTypedApi = <D extends Descriptors>(
     const [stgEntries] = pallets[pallet]
     for (const name in stgEntries) {
       query[pallet][name] = createStorageEntry(
-        stgEntries[name],
+        getChecksum(stgEntries[name]),
         pallet,
         name,
         chainHead,
@@ -49,7 +51,7 @@ const createTypedApi = <D extends Descriptors>(
     const [, txEntries] = pallets[pallet]
     for (const name in txEntries) {
       tx[pallet][name] = createTxEntry(
-        txEntries[name],
+        getChecksum(txEntries[name]),
         pallet,
         name,
         descriptors.asset,
@@ -66,7 +68,7 @@ const createTypedApi = <D extends Descriptors>(
     const [, , evEntries] = pallets[pallet]
     for (const name in evEntries) {
       events[pallet][name] = createEventEntry(
-        evEntries[name],
+        getChecksum(evEntries[name]),
         pallet,
         name,
         chainHead,
@@ -80,7 +82,7 @@ const createTypedApi = <D extends Descriptors>(
     const [, , , , ctEntries] = pallets[pallet]
     for (const name in ctEntries) {
       constants[pallet][name] = createConstantEntry(
-        ctEntries[name],
+        getChecksum(ctEntries[name]),
         pallet,
         name,
         chainHead,
@@ -94,7 +96,7 @@ const createTypedApi = <D extends Descriptors>(
     const methods = runtimeApis[api]
     for (const method in methods) {
       apis[api][method] = createRuntimeCallEntry(
-        methods[method],
+        getChecksum(methods[method]),
         api,
         method,
         chainHead,

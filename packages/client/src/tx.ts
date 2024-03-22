@@ -1,9 +1,8 @@
 import {
+  AssetDescriptor,
   Binary,
   Enum,
-  PlainDescriptor,
   SS58String,
-  TxDescriptor,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
 import {
@@ -141,9 +140,9 @@ export const createTxEntry = <
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
-  Asset extends PlainDescriptor<any>,
+  Asset extends AssetDescriptor<any>,
 >(
-  descriptor: TxDescriptor<Arg>,
+  checksum: string,
   pallet: Pallet,
   name: Name,
   assetChecksum: Asset,
@@ -157,7 +156,7 @@ export const createTxEntry = <
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
   const hasSameChecksum = (
     checksumBuilder: RuntimeContext["checksumBuilder"],
-  ) => checksumBuilder.buildCall(pallet, name) === descriptor
+  ) => checksumBuilder.buildCall(pallet, name) === checksum
   const isCompatible = createIsCompatible(chainHead, (ctx) =>
     hasSameChecksum(ctx.checksumBuilder),
   )
@@ -196,7 +195,7 @@ export const createTxEntry = <
       hinted: Partial<{ asset: any }> = {},
     ) => {
       const checksum = checksumBuilder.buildCall(pallet, name)
-      if (checksum !== descriptor)
+      if (checksum !== checksum)
         throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
       let returnHinted = hinted

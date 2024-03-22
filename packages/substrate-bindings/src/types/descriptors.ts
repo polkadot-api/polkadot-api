@@ -1,15 +1,16 @@
-export type PlainDescriptor<T> = string & { _type?: T }
+export type PlainDescriptor<T> = number & { _type?: T }
+export type AssetDescriptor<T> = string & { _type?: T }
 export type StorageDescriptor<
   Args extends Array<any>,
   T,
   Optional extends true | false,
-> = string & { _type: T; _args: Args; _optional: Optional }
+> = number & { _type: T; _args: Args; _optional: Optional }
 
-export type TxDescriptor<Args extends {} | undefined> = string & {
+export type TxDescriptor<Args extends {} | undefined> = number & {
   ___: Args
 }
 
-export type RuntimeDescriptor<Args extends Array<any>, T> = string & {
+export type RuntimeDescriptor<Args extends Array<any>, T> = number & {
   __: [Args, T]
 }
 
@@ -25,7 +26,8 @@ export type Descriptors = {
     ]
   >
   apis: Record<string, Record<string, RuntimeDescriptor<any, any>>>
-  asset: PlainDescriptor<any>
+  asset: AssetDescriptor<any>
+  checksums: string[]
 }
 
 type PickDescriptors<

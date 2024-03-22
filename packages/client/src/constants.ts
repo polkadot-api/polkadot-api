@@ -1,12 +1,11 @@
-import { PlainDescriptor } from "@polkadot-api/substrate-bindings"
+import { filter, firstValueFrom, map } from "rxjs"
+import { RuntimeContext, getObservableClient } from "./observableClient"
 import {
   IsCompatible,
   Runtime,
   createIsCompatible,
   getRuntimeContext,
 } from "./runtime"
-import { RuntimeContext, getObservableClient } from "./observableClient"
-import { filter, firstValueFrom, map } from "rxjs"
 
 export interface ConstantEntry<T> {
   (): Promise<T>
@@ -15,7 +14,7 @@ export interface ConstantEntry<T> {
 }
 
 export const createConstantEntry = <T>(
-  checksum: PlainDescriptor<T>,
+  checksum: string,
   palletName: string,
   name: string,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
