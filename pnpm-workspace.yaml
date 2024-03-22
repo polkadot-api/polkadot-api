@@ -1,4 +1,5 @@
 packages:
+  - packages/json-rpc/*
   - packages/*
   - experiments
   - examples/*

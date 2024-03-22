@@ -177,10 +177,10 @@ importers:
         version: link:../packages/node-polkadot-provider
       '@polkadot-api/sc-provider':
         specifier: workspace:*
-        version: link:../packages/sc-provider
+        version: link:../packages/json-rpc/sc-provider
       '@polkadot-api/sm-provider':
         specifier: workspace:*
-        version: link:../packages/sm-provider
+        version: link:../packages/json-rpc/sm-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../packages/substrate-bindings
@@ -229,7 +229,7 @@ importers:
         version: link:../../packages/node-polkadot-provider
       '@polkadot-api/sm-provider':
         specifier: workspace:*
-        version: link:../../packages/sm-provider
+        version: link:../../packages/json-rpc/sm-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -241,7 +241,7 @@ importers:
         version: link:../../packages/utils
       '@polkadot-api/ws-provider':
         specifier: workspace:*
-        version: link:../../packages/ws-provider
+        version: link:../../packages/json-rpc/ws-provider
       '@unique-nft/sr25519':
         specifier: ^0.0.1
         version: 0.0.1
@@ -269,16 +269,16 @@ importers:
         version: link:../codegen
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
-        version: link:../json-rpc-provider
+        version: link:../json-rpc/json-rpc-provider
       '@polkadot-api/json-rpc-provider-proxy':
         specifier: workspace:*
-        version: link:../json-rpc-provider-proxy
+        version: link:../json-rpc/json-rpc-provider-proxy
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
       '@polkadot-api/sc-provider':
         specifier: workspace:*
-        version: link:../sc-provider
+        version: link:../json-rpc/sc-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
@@ -290,7 +290,7 @@ importers:
         version: link:../utils
       '@polkadot-api/ws-provider':
         specifier: workspace:*
-        version: link:../ws-provider
+        version: link:../json-rpc/ws-provider
       '@substrate/connect':
         specifier: ^0.7.32
         version: 0.7.35
@@ -369,13 +369,51 @@ importers:
         specifier: workspace:*
         version: link:../utils
 
-  packages/json-rpc-provider: {}
+  packages/json-rpc/json-rpc-provider: {}
 
-  packages/json-rpc-provider-proxy:
+  packages/json-rpc/json-rpc-provider-proxy:
     devDependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
+
+  packages/json-rpc/sc-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
+      '@substrate/connect':
+        specifier: ^0.8.8
+        version: 0.8.8
+    devDependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+
+  packages/json-rpc/sm-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
+    devDependencies:
+      smoldot:
+        specifier: 2.0.23
+        version: 2.0.23
+
+  packages/json-rpc/ws-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
+      ws:
+        specifier: ^8.14.2
+        version: 8.14.2
 
   packages/legacy-polkadot-provider:
     dependencies:
@@ -387,10 +425,10 @@ importers:
         version: link:../client
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
-        version: link:../json-rpc-provider
+        version: link:../json-rpc/json-rpc-provider
       '@polkadot-api/json-rpc-provider-proxy':
         specifier: workspace:*
-        version: link:../json-rpc-provider-proxy
+        version: link:../json-rpc/json-rpc-provider-proxy
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
@@ -450,13 +488,13 @@ importers:
         version: link:../client
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
-        version: link:../json-rpc-provider
+        version: link:../json-rpc/json-rpc-provider
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
       '@polkadot-api/sc-provider':
         specifier: workspace:*
-        version: link:../sc-provider
+        version: link:../json-rpc/sc-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
@@ -513,32 +551,6 @@ importers:
         specifier: ^5.3.2
         version: 5.3.2
 
-  packages/sc-provider:
-    dependencies:
-      '@polkadot-api/json-rpc-provider-proxy':
-        specifier: workspace:*
-        version: link:../json-rpc-provider-proxy
-      '@substrate/connect':
-        specifier: ^0.8.8
-        version: 0.8.8
-    devDependencies:
-      '@polkadot-api/json-rpc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc-provider
-
-  packages/sm-provider:
-    dependencies:
-      '@polkadot-api/json-rpc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc-provider
-      '@polkadot-api/json-rpc-provider-proxy':
-        specifier: workspace:*
-        version: link:../json-rpc-provider-proxy
-    devDependencies:
-      smoldot:
-        specifier: 2.0.23
-        version: 2.0.23
-
   packages/substrate-bindings:
     dependencies:
       '@noble/hashes':
@@ -565,7 +577,7 @@ importers:
     devDependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
-        version: link:../json-rpc-provider
+        version: link:../json-rpc/json-rpc-provider
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
@@ -580,13 +592,13 @@ importers:
         version: link:../client
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
-        version: link:../json-rpc-provider
+        version: link:../json-rpc/json-rpc-provider
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
       '@polkadot-api/sc-provider':
         specifier: workspace:*
-        version: link:../sc-provider
+        version: link:../json-rpc/sc-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
@@ -617,18 +629,6 @@ importers:
       '@polkadot-api/metadata-fixtures':
         specifier: workspace:*
         version: link:../metadata-fixtures
-
-  packages/ws-provider:
-    dependencies:
-      '@polkadot-api/json-rpc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc-provider
-      '@polkadot-api/json-rpc-provider-proxy':
-        specifier: workspace:*
-        version: link:../json-rpc-provider-proxy
-      ws:
-        specifier: ^8.14.2
-        version: 8.14.2
 
 packages:
 
@@ -3077,7 +3077,7 @@ packages:
       '@polkadot-api/json-rpc-provider-proxy': 0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0
       '@polkadot-api/substrate-client': 0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0
       '@substrate/connect-extension-protocol': 1.0.1
-      '@substrate/connect-known-chains': 1.0.6
+      '@substrate/connect-known-chains': 1.1.2
       rxjs: 7.8.1
       smoldot: 2.0.23
     dev: true
@@ -3108,7 +3108,7 @@ packages:
     dependencies:
       '@noble/hashes': 1.3.2
       '@polkadot-api/utils': 0.0.1-492c132563ea6b40ae1fc5470dec4cd18768d182.1.0
-      '@scure/base': 1.1.3
+      '@scure/base': 1.1.6
       scale-ts: 1.6.0
     dev: false
 
@@ -4271,7 +4271,6 @@ packages:
 
   /@scure/base@1.1.6:
     resolution: {integrity: sha512-ok9AWwhcgYuGG3Zfhyqg+zwl+Wn5uE+dwC0NV/2qQkx4dABbb/bx96vWu8NSj+BNjjSjno+JRYRjle1jV08k3g==}
-    dev: true
 
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -5226,7 +5225,6 @@ packages:
 
   /@substrate/connect-known-chains@1.1.2:
     resolution: {integrity: sha512-XvyemTVqon+6EF2G7QL0fEXxjuz3nUNFgFV0TSWhSVpPb+Sfs+vfipbEZxGNouxvjCoJdr6CF0rwgGsrrKOnAA==}
-    dev: false
 
   /@substrate/connect@0.7.33:
     resolution: {integrity: sha512-1B984/bmXVQvTT9oV3c3b7215lvWmulP9rfP3T3Ri+OU3uIsyCzYw0A+XG6J8/jgO2FnroeNIBWlgoLaUM1uzw==}
