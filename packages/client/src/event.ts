@@ -1,12 +1,11 @@
-import { PlainDescriptor } from "@polkadot-api/substrate-bindings"
 import { Observable, firstValueFrom, map, mergeMap } from "rxjs"
-import { concatMapEager, shareLatest } from "./utils"
 import {
-  getObservableClient,
   BlockInfo,
   RuntimeContext,
+  getObservableClient,
 } from "./observableClient"
 import { IsCompatible, createIsCompatible } from "./runtime"
+import { concatMapEager, shareLatest } from "./utils"
 
 export type EventPhase =
   | { type: "ApplyExtrinsic"; value: number }
@@ -53,7 +52,7 @@ type SystemEvent = {
 }
 
 export const createEventEntry = <T>(
-  checksum: PlainDescriptor<T>,
+  checksum: string,
   pallet: string,
   name: string,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,

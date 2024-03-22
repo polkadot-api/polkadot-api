@@ -499,5 +499,7 @@ export const getChecksumBuilder = (metadata: V15) => {
     buildConstant: toStringEnhancer(buildConstant),
     buildComposite: toStringEnhancer(buildComposite),
     buildNamedTuple: toStringEnhancer(buildNamedTuple),
+    getAllGeneratedChecksums: () =>
+      Array.from(cache.values()).map((v) => v.toString(32)),
   }
 }

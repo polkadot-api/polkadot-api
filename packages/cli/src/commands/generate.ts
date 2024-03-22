@@ -1,6 +1,6 @@
 import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
-import { getDescriptors } from "@polkadot-api/codegen"
+import { generateMultipleDescriptors } from "@polkadot-api/codegen"
 import { V15 } from "@polkadot-api/substrate-bindings"
 import fsExists from "fs.promises.exists"
 import fs from "fs/promises"
@@ -19,12 +19,18 @@ export async function generate(opts: GenerateOptions) {
     console.log("No chains defined in config file")
   }
 
-  for (const [key, source] of Object.entries(sources)) {
-    console.log(`Reading "${key}" metadata`)
-    const metadata = await getMetadata(source)
+  console.log(`Reading metadata`)
+  const chains = await Promise.all(
+    Object.entries(sources).map(async ([key, source]) => ({
+      key,
+      metadata: (await getMetadata(source))!,
+      knownDeclarations: "",
+    })),
+  )
 
-    console.log(`Generating "${key}" code`)
-    await outputCodegen(metadata!, source.outputFolder, key)
+  const outputFolder = Object.values(sources)[0]?.outputFolder
+  if (outputFolder) {
+    await outputCodegen(chains, outputFolder)
   }
 }
 
@@ -48,10 +54,49 @@ async function getSources(
   return config
 }
 
-async function outputCodegen(metadata: V15, outputFolder: string, key: string) {
-  const code = getDescriptors(metadata, "", "@polkadot-api/client")
+async function outputCodegen(
+  chains: Array<{
+    key: string
+    metadata: V15
+    knownDeclarations: string
+  }>,
+  outputFolder: string,
+) {
+  console.log(`Generating code`)
+
+  const { descriptorsFileContent, checksums } = generateMultipleDescriptors(
+    chains,
+    {
+      client: "@polkadot-api/client",
+      checksums: "./checksums.json",
+    },
+  )
+
+  console.log("Writing code")
   await fs.mkdir(outputFolder, { recursive: true })
-  await createDtsFile(key, outputFolder, code)
+  await fs.writeFile(
+    path.join(outputFolder, "checksums.json"),
+    JSON.stringify(checksums),
+  )
+  await Promise.all(
+    chains.map((chain, i) =>
+      createDtsFile(chain.key, outputFolder, descriptorsFileContent[i]),
+    ),
+  )
+
+  tsc.build({
+    basePath: outputFolder,
+    compilerOptions: {
+      skipLibCheck: true,
+      emitDeclarationOnly: true,
+      declaration: true,
+      target: "esnext",
+      module: "esnext",
+      moduleResolution: "node",
+      resolveJsonModule: true,
+      allowSyntheticDefaultImports: true,
+    },
+  })
 }
 
 const createDtsFile = async (key: string, dest: string, code: string) => {
@@ -60,16 +105,4 @@ const createDtsFile = async (key: string, dest: string, code: string) => {
   if (await fsExists(`${tscFileName}.ts`)) await fs.rm(`${tscFileName}.ts`)
 
   await fs.writeFile(`${tscFileName}.ts`, code)
-
-  tsc.build({
-    basePath: dest,
-    compilerOptions: {
-      skipLibCheck: true,
-      emitDeclarationOnly: true,
-      declaration: true,
-      target: "esnext",
-      module: "esnext",
-      moduleResolution: "node",
-    },
-  })
 }

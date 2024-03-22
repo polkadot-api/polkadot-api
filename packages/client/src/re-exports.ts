@@ -4,6 +4,7 @@ export type {
   HexString,
   GetEnum,
   PlainDescriptor,
+  AssetDescriptor,
   TxDescriptor,
   StorageDescriptor,
   QueryFromDescriptors,
