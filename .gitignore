@@ -3,7 +3,7 @@
 node_modules
 coverage
 .cache
-packages/*/dist/**
+packages/**/dist/**
 experiments/dist/**
 examples/*/dist/**
 .vscode

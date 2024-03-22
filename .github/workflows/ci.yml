@@ -67,12 +67,13 @@ jobs:
           pnpm pack --dir packages/cli
           pnpm pack --dir packages/client
           pnpm pack --dir packages/codegen
-          pnpm pack --dir packages/json-rpc-provider
-          pnpm pack --dir packages/json-rpc-provider-proxy
+          pnpm pack --dir packages/json-rpc/json-rpc-provider
+          pnpm pack --dir packages/json-rpc/json-rpc-provider-proxy
+          pnpm pack --dir packages/json-rpc/sc-provider
+          pnpm pack --dir packages/json-rpc/sm-provider
+          pnpm pack --dir packages/json-rpc/ws-provider
           pnpm pack --dir packages/legacy-polkadot-provider
           pnpm pack --dir packages/node-polkadot-provider
-          pnpm pack --dir packages/sc-provider
-          pnpm pack --dir packages/sm-provider
           pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
           pnpm pack --dir packages/metadata-builders
@@ -95,11 +96,23 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: package
-          path: ./packages/json-rpc-provider/*.tgz
+          path: ./packages/json-rpc/json-rpc-provider/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
-          path: ./packages/json-rpc-provider-proxy/*.tgz
+          path: ./packages/json-rpc/json-rpc-provider-proxy/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/json-rpc/sc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/json-rpc/sm-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/json-rpc/ws-provider/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
@@ -108,14 +121,6 @@ jobs:
         with:
           name: package
           path: ./packages/node-polkadot-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/sc-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/sm-provider/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
