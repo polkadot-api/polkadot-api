@@ -54,7 +54,6 @@ jobs:
           pnpm pack --dir packages/view-builder
           pnpm pack --dir packages/tx-helper
           pnpm pack --dir packages/utils
-          pnpm pack --dir packages/rollup-plugin-descriptor-treeshake
       - uses: actions/upload-artifact@v3
         with:
           name: package
@@ -119,10 +118,6 @@ jobs:
         with:
           name: package
           path: ./packages/utils/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/rollup-plugin-descriptor-treeshake/*.tgz
 
   publish:
     needs: pack
