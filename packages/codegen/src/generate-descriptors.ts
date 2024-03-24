@@ -50,17 +50,15 @@ export const getKnownTypesFromFileContent = (fileContent: string) => {
 
 export const generateDescriptors = (
   metadata: V15,
-  knownTypes: Map<string, string>,
   checksums: string[],
+  typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
   paths: {
     client: string
     checksums: string
+    types: string
   },
 ) => {
-  const typesBuilder = getTypesBuilder(metadata, knownTypes)
-  const declarations = typesBuilder.getDeclarations()
-
   const buildEnumObj = <T>(
     val: number | undefined,
     cb: (name: string, docs: string[]) => T,
@@ -261,7 +259,7 @@ export const generateDescriptors = (
     mapObject(api.methods, (x) => x.name),
   )
 
-  ;[
+  const clientImports = [
     "StorageDescriptor",
     "PlainDescriptor",
     "AssetDescriptor",
@@ -269,29 +267,20 @@ export const generateDescriptors = (
     "RuntimeDescriptor",
     "Enum",
     "_Enum",
-    "GetEnum",
     "QueryFromDescriptors",
     "TxFromDescriptors",
     "EventsFromDescriptors",
     "ErrorsFromDescriptors",
     "ConstFromDescriptors",
-  ].forEach((name) => {
-    declarations.imports.add(name)
-  })
+    ...typesBuilder.getClientFileImports(),
+  ]
 
-  const imports = `import {${[...declarations.imports].join(", ")}} from "${
-    paths.client
+  const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
+  import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
+    paths.types
   }";
   import checksums from "${paths.checksums}" assert { type: 'json' };
   `
-
-  const baseTypes = [...declarations.variables.values()]
-    .map(({ name, type }) =>
-      type.startsWith("Enum<")
-        ? `export type ${name} = ${type};\nexport const ${name} = _Enum as unknown as GetEnum<${name}>;`
-        : `type ${name} = ${type};`,
-    )
-    .join("\n\n")
 
   const assetPayment = metadata.extrinsic.signedExtensions.find(
     (x) => x.identifier === "ChargeAssetTxPayment",
@@ -359,15 +348,13 @@ type Anonymize<T> = SeparateUndefined<
               }
 >
 
-${baseTypes}
-
 ${descriptorDeclarations.join("\n")}
 
 type IPallets = ${customStringifyObject(iPallets)};
-export const pallets: IPallets = ${customStringifyObject(pallets)};
+const pallets: IPallets = ${customStringifyObject(pallets)};
 
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-export const apis: IRuntimeCalls = ${customStringifyObject(runtimeCallsObj)};
+const apis: IRuntimeCalls = ${customStringifyObject(runtimeCallsObj)};
 
 type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
 const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
@@ -377,10 +364,10 @@ const _allDescriptors: IDescriptors = { pallets, apis, asset, checksums };
 export default _allDescriptors;
 
 
-export type Queries = QueryFromDescriptors<IDescriptors>
-export type Calls = TxFromDescriptors<IDescriptors>
-export type Events = EventsFromDescriptors<IDescriptors>
-export type Errors = ErrorsFromDescriptors<IDescriptors>
-export type Constants = ConstFromDescriptors<IDescriptors>
+type Queries = QueryFromDescriptors<IDescriptors>
+type Calls = TxFromDescriptors<IDescriptors>
+type Events = EventsFromDescriptors<IDescriptors>
+type Errors = ErrorsFromDescriptors<IDescriptors>
+type Constants = ConstFromDescriptors<IDescriptors>
 `
 }

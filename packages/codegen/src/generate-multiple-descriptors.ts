@@ -1,11 +1,13 @@
+import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { V15 } from "@polkadot-api/substrate-bindings"
-import { getUsedChecksums } from "./get-used-checksums"
 import {
   generateDescriptors,
   getKnownTypesFromFileContent,
 } from "./generate-descriptors"
+import { generateTypes } from "./generate-types"
+import { getUsedChecksums } from "./get-used-checksums"
 import knownTypesContent from "./known-types"
-import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
+import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
@@ -16,6 +18,7 @@ export const generateMultipleDescriptors = (
   paths: {
     client: string
     checksums: string
+    types: string
   },
 ) => {
   const chainData = chains.map((chain) => {
@@ -35,18 +38,29 @@ export const generateMultipleDescriptors = (
     new Set(chainData.flatMap((chain) => Array.from(chain.checksums))),
   )
 
-  return {
-    descriptorsFileContent: chainData.map((chain) =>
-      generateDescriptors(
-        chain.metadata,
-        chain.knownTypes,
-        checksums,
-        chain.builder,
-        paths,
-      ),
+  const declarations = defaultDeclarations()
+  const descriptorsFileContent = chainData.map((chain) =>
+    generateDescriptors(
+      chain.metadata,
+      checksums,
+      getTypesBuilder(declarations, chain.metadata, chain.knownTypes),
+      chain.builder,
+      paths,
     ),
+  )
+
+  return {
+    descriptorsFileContent,
     checksums,
+    typesFileContent: generateTypes(declarations, paths),
+    publicTypes: getPublicTypes(declarations.variables),
   }
+}
+
+function getPublicTypes(variables: Map<string, Variable>) {
+  return Array.from(variables.values())
+    .filter((variable) => variable.type.startsWith("Enum<"))
+    .map((variable) => variable.name)
 }
 
 function resolveConflicts(

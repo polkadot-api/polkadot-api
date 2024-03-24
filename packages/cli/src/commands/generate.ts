@@ -64,19 +64,26 @@ async function outputCodegen(
 ) {
   console.log(`Generating code`)
 
-  const { descriptorsFileContent, checksums } = generateMultipleDescriptors(
-    chains,
-    {
+  const { descriptorsFileContent, checksums, typesFileContent, publicTypes } =
+    generateMultipleDescriptors(chains, {
       client: "@polkadot-api/client",
       checksums: "./checksums.json",
-    },
-  )
+      types: "./common-types",
+    })
 
   console.log("Writing code")
   await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
     path.join(outputFolder, "checksums.json"),
     JSON.stringify(checksums),
+  )
+  await fs.writeFile(
+    path.join(outputFolder, "common-types.ts"),
+    typesFileContent,
+  )
+  await fs.writeFile(
+    path.join(outputFolder, "public-types.ts"),
+    `export { ${publicTypes.join(",\n")} } from './common-types';`,
   )
   await Promise.all(
     chains.map((chain, i) =>
@@ -104,5 +111,8 @@ const createDtsFile = async (key: string, dest: string, code: string) => {
 
   if (await fsExists(`${tscFileName}.ts`)) await fs.rm(`${tscFileName}.ts`)
 
-  await fs.writeFile(`${tscFileName}.ts`, code)
+  await fs.writeFile(
+    `${tscFileName}.ts`,
+    code + ";\n export * from './public-types'; ",
+  )
 }
