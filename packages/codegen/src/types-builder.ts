@@ -286,9 +286,7 @@ export const getTypesBuilder = (
 
     if (knownTypes.has(checksum)) return variable.name
 
-    return variable.type.startsWith("AnonymousEnum")
-      ? `Anonymize<${variable.type}>`
-      : variable.type
+    return `Anonymize<${variable.name}>`
   }
 
   const buildStorage = (pallet: string, entry: string) => {
