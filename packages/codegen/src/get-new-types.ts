@@ -28,7 +28,7 @@ export const getNewTypes = (
     .forEach((entry) => {
       if (entry.type !== "enum") throw null
       Object.values(entry.value).forEach((inner) => {
-        if (inner.type === "primitive") return
+        if (inner.type === "void") return
         ignoredIds.add(Object.values(inner.value)[0].id)
       })
     })
