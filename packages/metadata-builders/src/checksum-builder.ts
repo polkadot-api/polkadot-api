@@ -5,7 +5,6 @@ import {
   MetadataPrimitives,
   StructVar,
   TupleVar,
-  VoidVar,
   getLookupFn,
 } from "./lookups"
 
@@ -110,7 +109,8 @@ const buildGraph = (entry: LookupEntry, result: Graph = new Map()) => {
       break
     case "enum": {
       const children = Object.values(entry.value).flatMap((value) => {
-        if (value.type === "primitive") return []
+        if (value.type === "lookupEntry") return value.value
+        if (value.type === "void") return []
         if (value.type === "struct") return Object.values(value.value)
         return value.value
       })
@@ -199,13 +199,14 @@ const _buildChecksum = (
   if (input.type === "result")
     return getChecksum([
       shapeIds.result,
-      buildNextChecksum(input.value.ok),
+      buildNextChecksum(input.value.ko),
       buildNextChecksum(input.value.ko),
     ])
 
   return structLikeBuilder(shapeIds.enum, input.value, (entry) => {
+    if (entry.type === "lookupEntry") return buildNextChecksum(entry.value)
     switch (entry.type) {
-      case "primitive":
+      case "void":
         return metadataPrimitiveIds._void
       case "tuple":
         return buildTuple(entry.value)
@@ -428,8 +429,10 @@ export const getChecksumBuilder = (metadata: V15) => {
     }
   }
 
-  const buildComposite = (input: TupleVar | StructVar | VoidVar): bigint => {
-    if (input.type === "primitive") return getChecksum([0n])
+  const buildComposite = (
+    input: TupleVar | StructVar | { type: "void" },
+  ): bigint => {
+    if (input.type === "void") return getChecksum([0n])
 
     if (input.type === "tuple") {
       const values = Object.values(input.value).map((entry) =>
@@ -456,12 +459,15 @@ export const getChecksumBuilder = (metadata: V15) => {
     (pallet: string, name: string): bigint | null => {
       try {
         const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-        const callsLookup = getLookupEntryDef(
+        const enumLookup = getLookupEntryDef(
           palletEntry[variantType]! as number,
         )
 
-        if (callsLookup.type !== "enum") throw null
-        return buildComposite(callsLookup.value[name])
+        if (enumLookup.type !== "enum") throw null
+        const entry = enumLookup.value[name]
+        return entry.type === "lookupEntry"
+          ? buildDefinition(entry.value.id)
+          : buildComposite(entry)
       } catch (_) {
         return null
       }

@@ -66,10 +66,8 @@ const _buildCodec = (
 
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
-    if (v.type === "primitive") return scale._void
-    if (v.type === "tuple" && v.value.length === 1)
-      return buildNextCodec(v.value[0])
-
+    if (v.type === "lookupEntry") return buildNextCodec(v.value)
+    if (v.type === "void") return scale._void
     return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
   })
 
@@ -164,11 +162,8 @@ export const getDynamicBuilder = (metadata: V15) => {
   const buildEnumEntry = (
     entry: EnumVar["value"][keyof EnumVar["value"]],
   ): Codec<any> => {
-    if (entry.type === "primitive") return scale._void
-
-    if (entry.type === "tuple" && entry.value.length === 1)
-      return buildDefinition(entry.value[0].id)
-
+    if (entry.type === "lookupEntry") return buildDefinition(entry.value.id)
+    if (entry.type === "void") return scale._void
     return entry.type === "tuple"
       ? scale.Tuple(
           ...Object.values(entry.value).map((l) => buildDefinition(l.id)),

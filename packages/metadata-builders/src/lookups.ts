@@ -48,7 +48,14 @@ export type StructVar = {
 }
 export type EnumVar = {
   type: "enum"
-  value: StringRecord<(TupleVar | StructVar | VoidVar) & { idx: number }>
+  value: StringRecord<
+    (
+      | { type: "lookupEntry"; value: LookupEntry }
+      | { type: "void" }
+      | TupleVar
+      | StructVar
+    ) & { idx: number }
+  >
   innerDocs: StringRecord<string[]>
 }
 export type OptionVar = {
@@ -210,7 +217,16 @@ export const getLookupFn = (lookupData: V14Lookup) => {
         enumDocs[key] = x.docs
 
         if (x.fields.length === 0) {
-          enumValue[key] = { ...voidVar, idx: x.index }
+          enumValue[key] = { type: "void", idx: x.index }
+          return
+        }
+
+        if (x.fields.length === 1 && !x.fields[0].name) {
+          enumValue[key] = {
+            type: "lookupEntry",
+            value: getLookupEntryDef(x.fields[0].type),
+            idx: x.index,
+          }
           return
         }
 
@@ -257,7 +273,26 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     }
 
     if (def.tag === "array") {
-      const value = getLookupEntryDef(def.value.type as number)
+      const { len } = def.value
+      const value = getLookupEntryDef(def.value.type)
+
+      if (len === 0) return { type: "primitive", value: "_void" }
+      if (len === 1) return value
+
+      // It's preferable to treat it as a Tuple when the size
+      // is reasonably small
+      if (len < 10) {
+        const values = Array(len)
+          .fill(null)
+          .map(() => value)
+
+        return {
+          type: "tuple",
+          value: values,
+          innerDocs: values.map(() => []),
+        }
+      }
+
       return {
         type: "array",
         value,
