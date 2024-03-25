@@ -5,7 +5,6 @@ import {
   getChecksumBuilder,
   TupleVar,
   StructVar,
-  VoidVar,
 } from "@polkadot-api/metadata-builders"
 import { withCache } from "./with-cache"
 import { mapObject } from "@polkadot-api/utils"
@@ -69,7 +68,7 @@ const _buildSyntax = (
   cache: Map<number, string>,
   stack: Set<number>,
   declarations: CodeDeclarations,
-  getChecksum: (id: number | StructVar | TupleVar | VoidVar) => string | null,
+  getChecksum: (id: number | StructVar | TupleVar) => string | null,
   knownTypes: Map<string, string>,
 ): string => {
   const addImport = (varName: string) => {
@@ -213,17 +212,15 @@ const _buildSyntax = (
   }
   declarations.variables.set(checksum, variable)
 
-  const dependencies = Object.entries(input.value).map(([key, value]) => {
-    if (value.type === "primitive") return "undefined"
+  const dependencies = Object.values(input.value).map((value) => {
+    const anonymize = (value: string) => `Anonymize<${value}>`
+    if (value.type === "lookupEntry")
+      return anonymize(buildNextSyntax(value.value))
+
+    if (value.type === "void") return "undefined"
 
     let innerChecksum: string
-    const anonymize = (value: string) => `Anonymize<${value}>`
-
-    if (value.type === "tuple" && value.value.length === 1) {
-      innerChecksum = getChecksum(value.value[0].id)!
-      return anonymize(buildNextSyntax(value.value[0]))
-    }
-    innerChecksum = getChecksum(input.value[key])!
+    innerChecksum = getChecksum(value)!
 
     const builder = value.type === "tuple" ? buildTuple : buildStruct
     return anonymize(builder(innerChecksum, value.value as any))
@@ -261,7 +258,7 @@ export const getTypesBuilder = (
   const getLookupEntryDef = getLookupFn(lookupData)
   const checksumBuilder = getChecksumBuilder(metadata)
 
-  const getChecksum = (id: number | StructVar | TupleVar | VoidVar): string =>
+  const getChecksum = (id: number | StructVar | TupleVar): string =>
     typeof id === "number"
       ? checksumBuilder.buildDefinition(id)!
       : checksumBuilder.buildComposite(id)!
@@ -338,11 +335,10 @@ export const getTypesBuilder = (
       buildDefinition(lookupEntry.id)
 
       const innerLookup = lookupEntry.value[name]
-      if (innerLookup.type === "primitive") return "undefined"
 
-      if (innerLookup.type === "tuple" && innerLookup.value.length === 1)
-        return buildTypeDefinition(innerLookup.value[0].id)
-
+      if (innerLookup.type === "lookupEntry")
+        return buildTypeDefinition(innerLookup.value.id)
+      if (innerLookup.type === "void") return "undefined"
       return declarations.variables.get(getChecksum(innerLookup))!.type
     }
 
