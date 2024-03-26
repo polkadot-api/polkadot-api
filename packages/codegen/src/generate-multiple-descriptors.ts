@@ -1,11 +1,13 @@
+import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { V15 } from "@polkadot-api/substrate-bindings"
-import { getUsedChecksums } from "./get-used-checksums"
 import {
   generateDescriptors,
   getKnownTypesFromFileContent,
 } from "./generate-descriptors"
+import { generateTypes } from "./generate-types"
+import { getUsedChecksums } from "./get-used-checksums"
 import knownTypesContent from "./known-types"
-import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
+import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
@@ -16,6 +18,7 @@ export const generateMultipleDescriptors = (
   paths: {
     client: string
     checksums: string
+    types: string
   },
 ) => {
   const chainData = chains.map((chain) => {
@@ -35,18 +38,30 @@ export const generateMultipleDescriptors = (
     new Set(chainData.flatMap((chain) => Array.from(chain.checksums))),
   )
 
-  return {
-    descriptorsFileContent: chainData.map((chain) =>
-      generateDescriptors(
-        chain.metadata,
-        chain.knownTypes,
-        checksums,
-        chain.builder,
-        paths,
-      ),
+  const declarations = defaultDeclarations()
+  const descriptorsFileContent = chainData.map((chain) =>
+    generateDescriptors(
+      chain.metadata,
+      checksums,
+      getTypesBuilder(declarations, chain.metadata, chain.knownTypes),
+      chain.builder,
+      capitalize(chain.key),
+      paths,
     ),
+  )
+
+  return {
+    descriptorsFileContent,
     checksums,
+    typesFileContent: generateTypes(declarations, paths),
+    publicTypes: getPublicTypes(declarations.variables),
   }
+}
+
+function getPublicTypes(variables: Map<string, Variable>) {
+  return Array.from(variables.values())
+    .filter((variable) => variable.type.startsWith("Enum<"))
+    .map((variable) => variable.name)
 }
 
 function resolveConflicts(
@@ -56,23 +71,38 @@ function resolveConflicts(
     knownTypes: Map<string, string>
   }>,
 ) {
-  const usedNames = new Map<string, Set<string>>()
+  const usedNames = new Map<string, Map<string, Set<string>>>()
 
   chainData.forEach((chain) =>
     chain.checksums.forEach((checksum) => {
       const name = chain.knownTypes.get(checksum)
       if (!name) return
       if (!usedNames.has(name)) {
-        usedNames.set(name, new Set())
+        usedNames.set(name, new Map())
       }
-      usedNames.get(name)!.add(checksum)
+      if (!usedNames.get(name)!.has(chain.key)) {
+        usedNames.get(name)!.set(chain.key, new Set())
+      }
+      usedNames.get(name)!.get(chain.key)!.add(checksum)
     }),
   )
-  const conflictedChecksums = Array.from(usedNames.values())
-    .filter((checksums) => checksums.size > 1)
-    .flatMap((checksums) => Array.from(checksums))
 
-  conflictedChecksums.forEach((checksum) =>
+  const conflictedChecksums = Array.from(usedNames.values()).flatMap(
+    (chainToChecksums) => {
+      const checksums = new Set(
+        Array.from(chainToChecksums.values()).flatMap((v) => [...v]),
+      )
+      if (checksums.size === 1) return []
+      const allAreTheSame = Array.from(chainToChecksums.values()).every(
+        (chainChecksums) => chainChecksums.size === checksums.size,
+      )
+      if (allAreTheSame) return []
+
+      return [...checksums]
+    },
+  )
+
+  Array.from(new Set(conflictedChecksums)).forEach((checksum) =>
     chainData.forEach((chain) => {
       const name = chain.knownTypes.get(checksum)
       if (name) {

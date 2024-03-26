@@ -64,17 +64,35 @@ export interface CodeDeclarations {
   takenNames: Set<string>
 }
 
+export const defaultDeclarations = (): CodeDeclarations => ({
+  imports: new Set(),
+  variables: new Map(),
+  takenNames: new Set(),
+})
+
+interface TypeForEntry {
+  type: string
+  import?: "globalTypes" | "client"
+}
+const typesImport = (varName: string): TypeForEntry => ({
+  type: varName,
+  import: "globalTypes",
+})
+const clientImport = (varName: string): TypeForEntry => ({
+  type: varName,
+  import: "client",
+})
+
 const _buildSyntax = (
   input: LookupEntry,
-  cache: Map<number, string>,
+  cache: Map<number, TypeForEntry>,
   stack: Set<number>,
   declarations: CodeDeclarations,
   getChecksum: (id: number | StructVar | TupleVar | VoidVar) => string | null,
   knownTypes: Map<string, string>,
-): string => {
-  const addImport = (varName: string) => {
-    declarations.imports.add(varName)
-    return varName
+): TypeForEntry => {
+  const addImport = (entry: TypeForEntry) => {
+    if (entry.import === "client") declarations.imports.add(entry.type)
   }
 
   const getName = (checksum: string) => {
@@ -97,30 +115,36 @@ const _buildSyntax = (
       : varName
   }
 
-  if (input.type === "primitive") return primitiveTypes[input.value]
-  if (input.type === "AccountId32") return addImport("SS58String")
-  if (input.type === "compact") return input.isBig ? "bigint" : "number"
+  if (input.type === "primitive") return { type: primitiveTypes[input.value] }
+  if (input.type === "AccountId32") return clientImport("SS58String")
+  if (input.type === "compact")
+    return { type: input.isBig ? "bigint" : "number" }
   if (input.type === "bitSequence")
-    return "{bytes: Uint8Array, bitsLen: number}"
+    return { type: "{bytes: Uint8Array, bitsLen: number}" }
 
   if (
     input.type === "sequence" &&
     input.value.type === "primitive" &&
     input.value.value === "u8"
   )
-    return addImport("Binary")
+    return clientImport("Binary")
 
   const checksum = getChecksum(input.id)!
 
+  // Problem: checksum WndPalletEvent = 5ofh7hnvff54m; DotPalletEvent = KsmPalletEvent = 2gc4echvba3ni
+  // declarations.variables is checksum -> Var, but now we can have two names for the same checksum
+  // currently, the second chain will reuse the first name, so ksm types will have DotPalletEvent (and KsmPalletEvent doesn't exist)
+  // TODO declarations.variables should have a way of having multiple type definitions for the same checksum
+  // TODO declarations.takenNames should be solved on `resolveConflicts` instead.
   if (declarations.variables.has(checksum)) {
     const entry = declarations.variables.get(checksum)!
-    return entry.name ?? entry.type
+    return typesImport(entry.name)
   }
 
-  const buildNextSyntax = (nextInput: LookupEntry): string =>
+  const buildNextSyntax = (nextInput: LookupEntry) =>
     buildSyntax(nextInput, cache, stack, declarations, getChecksum, knownTypes)
 
-  const buildVector = (id: string, inner: LookupEntry) => {
+  const buildVector = (id: string, inner: LookupEntry): TypeForEntry => {
     const name = getName(id)
     const variable: Variable = {
       checksum: id,
@@ -129,12 +153,13 @@ const _buildSyntax = (
     }
     declarations.variables.set(id, variable)
     const innerType = buildNextSyntax(inner)
+    addImport(innerType)
 
-    variable.type = `Array<${anonymize(innerType)}>`
-    return name
+    variable.type = `Array<${anonymize(innerType.type)}>`
+    return typesImport(name)
   }
 
-  const buildTuple = (id: string, value: LookupEntry[]) => {
+  const buildTuple = (id: string, value: LookupEntry[]): TypeForEntry => {
     const name = getName(id)
     const variable: Variable = {
       checksum: id,
@@ -142,11 +167,17 @@ const _buildSyntax = (
       name,
     }
     declarations.variables.set(id, variable)
-    variable.type = `[${value.map(buildNextSyntax).map(anonymize).join(", ")}]`
-    return name
+    const innerTypes = value.map(buildNextSyntax)
+    innerTypes.forEach(addImport)
+    variable.type = `[${innerTypes.map((v) => anonymize(v.type)).join(", ")}]`
+
+    return typesImport(name)
   }
 
-  const buildStruct = (id: string, value: StringRecord<LookupEntry>) => {
+  const buildStruct = (
+    id: string,
+    value: StringRecord<LookupEntry>,
+  ): TypeForEntry => {
     const name = getName(id)
     const variable: Variable = {
       checksum: id,
@@ -155,16 +186,18 @@ const _buildSyntax = (
     }
     declarations.variables.set(id, variable)
     const deps = mapObject(value, buildNextSyntax)
+    Object.values(deps).forEach(addImport)
     variable.type = `{${Object.entries(deps)
-      .map(([key, val]) => `${key}: ${anonymize(val)}`)
+      .map(([key, val]) => `${key}: ${anonymize(val.type)}`)
       .join(", ")}}`
-    return name
+
+    return typesImport(name)
   }
 
   if (input.type === "array") {
     // Bytes case
     if (input.value.type === "primitive" && input.value.value === "u8")
-      return "Binary"
+      return clientImport("Binary")
 
     // non-fixed size Vector case
     return buildVector(checksum, input.value)
@@ -183,12 +216,15 @@ const _buildSyntax = (
     }
     declarations.variables.set(checksum, variable)
 
-    variable.type = `${anonymize(buildNextSyntax(input.value))} | undefined`
-    return name
+    const innerType = buildNextSyntax(input.value)
+    addImport(innerType)
+
+    variable.type = `${anonymize(innerType.type)} | undefined`
+    return typesImport(name)
   }
 
   if (input.type === "result") {
-    addImport("ResultPayload")
+    declarations.imports.add("ResultPayload")
     const name = getName(checksum)
     const variable: Variable = {
       checksum,
@@ -198,8 +234,12 @@ const _buildSyntax = (
     declarations.variables.set(checksum, variable)
     const ok = buildNextSyntax(input.value.ok)
     const ko = buildNextSyntax(input.value.ko)
-    variable.type = `ResultPayload<${anonymize(ok)}, ${anonymize(ko)}>`
-    return name
+    ;[ok, ko].forEach(addImport)
+    variable.type = `ResultPayload<${anonymize(ok.type)}, ${anonymize(
+      ko.type,
+    )}>`
+
+    return typesImport(name)
   }
 
   // it has to be an enum by now
@@ -221,12 +261,16 @@ const _buildSyntax = (
 
     if (value.type === "tuple" && value.value.length === 1) {
       innerChecksum = getChecksum(value.value[0].id)!
-      return anonymize(buildNextSyntax(value.value[0]))
+      const inner = buildNextSyntax(value.value[0])
+      addImport(inner)
+      return anonymize(inner.type)
     }
     innerChecksum = getChecksum(input.value[key])!
 
     const builder = value.type === "tuple" ? buildTuple : buildStruct
-    return anonymize(builder(innerChecksum, value.value as any))
+    const inner = builder(innerChecksum, value.value as any)
+    addImport(inner)
+    return anonymize(inner.type)
   })
 
   variable.type = isKnown
@@ -236,25 +280,32 @@ const _buildSyntax = (
     : `AnonymousEnum<{${Object.keys(input.value)
         .map((key, idx) => `"${key}": ${dependencies[idx]}`)
         .join(" , ")}}>`
-  return name
+  return typesImport(name)
 }
 
 const buildSyntax = withCache(
   _buildSyntax,
-  (_getter, entry, declarations, getChecksum) =>
-    declarations.variables.get(getChecksum(entry.id)!)!.name,
+  (_getter, entry, declarations, getChecksum): TypeForEntry =>
+    typesImport(declarations.variables.get(getChecksum(entry.id)!)!.name),
   (x) => x,
 )
 
 export const getTypesBuilder = (
+  declarations: CodeDeclarations,
   metadata: V15,
   // checksum -> desired-name
   knownTypes: Map<string, string>,
 ) => {
-  const declarations: CodeDeclarations = {
-    imports: new Set(),
-    variables: new Map(),
-    takenNames: new Set(),
+  const typeFileImports = new Set<string>()
+  const clientFileImports = new Set<string>()
+
+  const importType = (entry: TypeForEntry) => {
+    if (entry.import === "client") {
+      clientFileImports.add(entry.type)
+    } else if (entry.import === "globalTypes") {
+      typeFileImports.add(entry.type)
+    }
+    return entry.type
   }
 
   const lookupData = metadata.lookup
@@ -279,16 +330,14 @@ export const getTypesBuilder = (
 
   const buildTypeDefinition = (id: number) => {
     const tmp = buildDefinition(id)
+    importType(tmp)
+
+    if (!tmp.import || tmp.import === "client") return tmp.type
 
     const checksum = checksumBuilder.buildDefinition(id)!
-    const variable = declarations.variables.get(checksum)
-    if (!variable) return tmp
+    if (knownTypes.has(checksum)) return tmp.type
 
-    if (knownTypes.has(checksum)) return variable.name
-
-    return variable.type.startsWith("AnonymousEnum")
-      ? `Anonymize<${variable.type}>`
-      : variable.type
+    return `Anonymize<${tmp.type}>`
   }
 
   const buildStorage = (pallet: string, entry: string) => {
@@ -335,6 +384,8 @@ export const getTypesBuilder = (
         metadata.pallets.find((x) => x.name === pallet)![type]! as number,
       )
       if (lookupEntry.type !== "enum") throw null
+
+      // Generate the type that has all the variants - This is so the consumer can import the type, even if it's not used directly by the descriptor file
       buildDefinition(lookupEntry.id)
 
       const innerLookup = lookupEntry.value[name]
@@ -343,7 +394,12 @@ export const getTypesBuilder = (
       if (innerLookup.type === "tuple" && innerLookup.value.length === 1)
         return buildTypeDefinition(innerLookup.value[0].id)
 
-      return declarations.variables.get(getChecksum(innerLookup))!.type
+      const newReturn = declarations.variables.get(
+        getChecksum(innerLookup),
+      )!.name
+      typeFileImports.add(newReturn)
+
+      return `Anonymize<${newReturn}>`
     }
 
   const buildConstant = (pallet: string, constantName: string) => {
@@ -363,6 +419,7 @@ export const getTypesBuilder = (
     buildCall: buildVariant("calls"),
     buildRuntimeCall,
     buildConstant,
-    getDeclarations: () => declarations,
+    getTypeFileImports: () => Array.from(typeFileImports),
+    getClientFileImports: () => Array.from(clientFileImports),
   }
 }
