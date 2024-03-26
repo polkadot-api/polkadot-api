@@ -45,6 +45,7 @@ export const generateMultipleDescriptors = (
       checksums,
       getTypesBuilder(declarations, chain.metadata, chain.knownTypes),
       chain.builder,
+      capitalize(chain.key),
       paths,
     ),
   )
@@ -70,23 +71,38 @@ function resolveConflicts(
     knownTypes: Map<string, string>
   }>,
 ) {
-  const usedNames = new Map<string, Set<string>>()
+  const usedNames = new Map<string, Map<string, Set<string>>>()
 
   chainData.forEach((chain) =>
     chain.checksums.forEach((checksum) => {
       const name = chain.knownTypes.get(checksum)
       if (!name) return
       if (!usedNames.has(name)) {
-        usedNames.set(name, new Set())
+        usedNames.set(name, new Map())
       }
-      usedNames.get(name)!.add(checksum)
+      if (!usedNames.get(name)!.has(chain.key)) {
+        usedNames.get(name)!.set(chain.key, new Set())
+      }
+      usedNames.get(name)!.get(chain.key)!.add(checksum)
     }),
   )
-  const conflictedChecksums = Array.from(usedNames.values())
-    .filter((checksums) => checksums.size > 1)
-    .flatMap((checksums) => Array.from(checksums))
 
-  conflictedChecksums.forEach((checksum) =>
+  const conflictedChecksums = Array.from(usedNames.values()).flatMap(
+    (chainToChecksums) => {
+      const checksums = new Set(
+        Array.from(chainToChecksums.values()).flatMap((v) => [...v]),
+      )
+      if (checksums.size === 1) return []
+      const allAreTheSame = Array.from(chainToChecksums.values()).every(
+        (chainChecksums) => chainChecksums.size === checksums.size,
+      )
+      if (allAreTheSame) return []
+
+      return [...checksums]
+    },
+  )
+
+  Array.from(new Set(conflictedChecksums)).forEach((checksum) =>
     chainData.forEach((chain) => {
       const name = chain.knownTypes.get(checksum)
       if (name) {

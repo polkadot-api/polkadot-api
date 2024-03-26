@@ -53,6 +53,7 @@ export const generateDescriptors = (
   checksums: string[],
   typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
+  prefix: string,
   paths: {
     client: string
     checksums: string
@@ -364,10 +365,10 @@ const _allDescriptors: IDescriptors = { pallets, apis, asset, checksums };
 export default _allDescriptors;
 
 
-type Queries = QueryFromDescriptors<IDescriptors>
-type Calls = TxFromDescriptors<IDescriptors>
-type Events = EventsFromDescriptors<IDescriptors>
-type Errors = ErrorsFromDescriptors<IDescriptors>
-type Constants = ConstFromDescriptors<IDescriptors>
+export type ${prefix}Queries = QueryFromDescriptors<IDescriptors>
+export type ${prefix}Calls = TxFromDescriptors<IDescriptors>
+export type ${prefix}Events = EventsFromDescriptors<IDescriptors>
+export type ${prefix}Errors = ErrorsFromDescriptors<IDescriptors>
+export type ${prefix}Constants = ConstFromDescriptors<IDescriptors>
 `
 }

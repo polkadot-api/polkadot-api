@@ -113,6 +113,6 @@ const createDtsFile = async (key: string, dest: string, code: string) => {
 
   await fs.writeFile(
     `${tscFileName}.ts`,
-    code + ";\n export * from './public-types'; ",
+    code + "\nexport * from './public-types'",
   )
 }

@@ -459,6 +459,7 @@ export const getChecksumBuilder = (metadata: V15) => {
         const callsLookup = getLookupEntryDef(
           palletEntry[variantType]! as number,
         )
+        buildDefinition(callsLookup.id)
 
         if (callsLookup.type !== "enum") throw null
         return buildComposite(callsLookup.value[name])

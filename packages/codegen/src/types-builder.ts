@@ -131,6 +131,11 @@ const _buildSyntax = (
 
   const checksum = getChecksum(input.id)!
 
+  // Problem: checksum WndPalletEvent = 5ofh7hnvff54m; DotPalletEvent = KsmPalletEvent = 2gc4echvba3ni
+  // declarations.variables is checksum -> Var, but now we can have two names for the same checksum
+  // currently, the second chain will reuse the first name, so ksm types will have DotPalletEvent (and KsmPalletEvent doesn't exist)
+  // TODO declarations.variables should have a way of having multiple type definitions for the same checksum
+  // TODO declarations.takenNames should be solved on `resolveConflicts` instead.
   if (declarations.variables.has(checksum)) {
     const entry = declarations.variables.get(checksum)!
     return typesImport(entry.name)
@@ -379,6 +384,8 @@ export const getTypesBuilder = (
         metadata.pallets.find((x) => x.name === pallet)![type]! as number,
       )
       if (lookupEntry.type !== "enum") throw null
+
+      // Generate the type that has all the variants - This is so the consumer can import the type, even if it's not used directly by the descriptor file
       buildDefinition(lookupEntry.id)
 
       const innerLookup = lookupEntry.value[name]
@@ -391,10 +398,6 @@ export const getTypesBuilder = (
         getChecksum(innerLookup),
       )!.name
       typeFileImports.add(newReturn)
-
-      // TODO
-      const old = declarations.variables.get(getChecksum(innerLookup))!.type
-      console.log(`${old} => Anonymize<${newReturn}>`)
 
       return `Anonymize<${newReturn}>`
     }
