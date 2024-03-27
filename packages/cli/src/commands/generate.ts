@@ -75,6 +75,9 @@ async function outputCodegen(
     })
 
   console.log("Writing code")
+  if (existsSync(outputFolder)) {
+    await fs.rm(outputFolder, { recursive: true })
+  }
   await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
     path.join(outputFolder, "checksums.json"),
@@ -135,11 +138,11 @@ async function outputCodegen(
     },
   })
 
-  // await Promise.all(
-  //   generatedFiles.map((file) =>
-  //     fs.unlink(path.join(outputFolder, file + ".ts")),
-  //   ),
-  // )
+  await Promise.all(
+    generatedFiles.map((file) =>
+      fs.unlink(path.join(outputFolder, file + ".ts")),
+    ),
+  )
 }
 
 const createDtsFile = async (key: string, dest: string, code: string) => {
