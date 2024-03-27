@@ -341,3 +341,4 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     unfollow,
   }
 }
+export type ChainHead$ = ReturnType<typeof getChainHead$>

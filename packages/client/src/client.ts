@@ -7,7 +7,7 @@ import { firstValueFrom } from "rxjs"
 import { ConstantEntry, createConstantEntry } from "./constants"
 import { EvClient, createEventEntry } from "./event"
 import { getObservableClient } from "./observableClient"
-import { getRuntimeApi } from "./runtime"
+import { compatibilityHelper, getRuntimeApi } from "./runtime"
 import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { TxEntry, createTxEntry } from "./tx"
@@ -28,7 +28,7 @@ const createTypedApi = <D extends Descriptors>(
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   client: ReturnType<typeof getObservableClient>,
 ): TypedApi<D> => {
-  const getChecksum = (idx: number) => descriptors.checksums[idx]
+  const runtimeApi = getRuntimeApi(descriptors.checksums, chainHead)
 
   const { pallets, apis: runtimeApis } = descriptors
   const query = {} as Record<string, Record<string, StorageEntry<any, any>>>
@@ -37,10 +37,10 @@ const createTypedApi = <D extends Descriptors>(
     const [stgEntries] = pallets[pallet]
     for (const name in stgEntries) {
       query[pallet][name] = createStorageEntry(
-        getChecksum(stgEntries[name]),
         pallet,
         name,
         chainHead,
+        compatibilityHelper(runtimeApi, stgEntries[name]),
       )
     }
   }
@@ -51,13 +51,13 @@ const createTypedApi = <D extends Descriptors>(
     const [, txEntries] = pallets[pallet]
     for (const name in txEntries) {
       tx[pallet][name] = createTxEntry(
-        getChecksum(txEntries[name]),
         pallet,
         name,
         descriptors.asset,
         chainHead,
         client,
         createTxFromAddress,
+        compatibilityHelper(runtimeApi, txEntries[name]),
       )
     }
   }
@@ -68,10 +68,10 @@ const createTypedApi = <D extends Descriptors>(
     const [, , evEntries] = pallets[pallet]
     for (const name in evEntries) {
       events[pallet][name] = createEventEntry(
-        getChecksum(evEntries[name]),
         pallet,
         name,
         chainHead,
+        compatibilityHelper(runtimeApi, evEntries[name]),
       )
     }
   }
@@ -82,10 +82,10 @@ const createTypedApi = <D extends Descriptors>(
     const [, , , , ctEntries] = pallets[pallet]
     for (const name in ctEntries) {
       constants[pallet][name] = createConstantEntry(
-        getChecksum(ctEntries[name]),
         pallet,
         name,
         chainHead,
+        compatibilityHelper(runtimeApi, ctEntries[name]),
       )
     }
   }
@@ -96,10 +96,10 @@ const createTypedApi = <D extends Descriptors>(
     const methods = runtimeApis[api]
     for (const method in methods) {
       apis[api][method] = createRuntimeCallEntry(
-        getChecksum(methods[method]),
         api,
         method,
         chainHead,
+        compatibilityHelper(runtimeApi, methods[method]),
       )
     }
   }
@@ -110,7 +110,7 @@ const createTypedApi = <D extends Descriptors>(
     event: events,
     apis,
     constants,
-    runtime: getRuntimeApi(chainHead),
+    runtime: runtimeApi,
   } as any
 }
 

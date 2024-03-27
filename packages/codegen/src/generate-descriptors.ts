@@ -280,7 +280,8 @@ export const generateDescriptors = (
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
     paths.types
   }";
-  import checksums from "${paths.checksums}" assert { type: 'json' };
+
+  const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
   `
 
   const assetPayment = metadata.extrinsic.signedExtensions.find(
@@ -360,7 +361,7 @@ const apis: IRuntimeCalls = ${customStringifyObject(runtimeCallsObj)};
 type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
 const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
 
-type IDescriptors = { pallets: IPallets, apis: IRuntimeCalls, asset: IAsset, checksums: string[] };
+type IDescriptors = { pallets: IPallets, apis: IRuntimeCalls, asset: IAsset, checksums: Promise<string[]> };
 const _allDescriptors: IDescriptors = { pallets, apis, asset, checksums };
 export default _allDescriptors;
 

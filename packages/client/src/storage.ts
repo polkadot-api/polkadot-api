@@ -7,8 +7,8 @@ import {
   exhaustMap,
   map,
 } from "rxjs"
-import { RuntimeContext, getObservableClient } from "./observableClient"
-import { IsCompatible, createIsCompatible } from "./runtime"
+import { ChainHead$ } from "./observableClient"
+import { CompatibilityHelper, IsCompatible } from "./runtime"
 
 type CallOptions = Partial<{
   at: string
@@ -67,18 +67,16 @@ const isOptionalArg = (lastArg: any) => {
 }
 
 export const createStorageEntry = (
-  checksum: string,
   pallet: string,
   name: string,
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
+  compatibilityHelper: CompatibilityHelper,
 ): StorageEntry<any, any> => {
-  const hasSameChecksum = (ctx: RuntimeContext) =>
-    ctx.checksumBuilder.buildStorage(pallet, name) === checksum
-  const checksumCheck = (ctx: RuntimeContext) => {
-    if (!hasSameChecksum(ctx))
-      throw new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
-  }
+  const { isCompatible, waitChecksums, withCompatibleRuntime } =
+    compatibilityHelper((ctx) => ctx.checksumBuilder.buildStorage(pallet, name))
 
+  const checksumError = () =>
+    new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
   const invalidArgs = (args: Array<any>) =>
     new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
@@ -89,9 +87,8 @@ export const createStorageEntry = (
 
     return chainHead[lastArg === "best" ? "best$" : "finalized$"].pipe(
       debounceTime(0),
-      chainHead.withRuntime((x) => x.hash),
+      withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
       exhaustMap(([block, ctx]) => {
-        checksumCheck(ctx)
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         return chainHead
           .storage$(block.hash, "value", () => codecs.enc(...actualArgs))
@@ -103,12 +100,13 @@ export const createStorageEntry = (
     )
   }
 
-  const getValue = (...args: Array<any>) => {
+  const getValue = async (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
+    const isCompatible = await waitChecksums()
     const result$ = chainHead.storage$(
       at,
       "value",
@@ -116,7 +114,7 @@ export const createStorageEntry = (
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         const actualArgs = args.length === codecs.len ? args : args.slice(0, -1)
         if (args !== actualArgs && !isLastArgOptional) throw invalidArgs(args)
-        checksumCheck(ctx)
+        if (!isCompatible(ctx)) throw checksumError()
         return codecs.enc(...actualArgs)
       },
       null,
@@ -128,12 +126,13 @@ export const createStorageEntry = (
     return firstValueFromWithSignal(result$, signal)
   }
 
-  const getEntries = (...args: Array<any>) => {
+  const getEntries = async (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
+    const isCompatible = await waitChecksums()
     const result$ = chainHead.storage$(
       at,
       "descendantsValues",
@@ -144,7 +143,7 @@ export const createStorageEntry = (
           args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
         if (args.length === codecs.len && actualArgs === args)
           throw invalidArgs(args)
-        checksumCheck(ctx)
+        if (!isCompatible(ctx)) throw checksumError()
         return codecs.enc(...actualArgs)
       },
       null,
@@ -163,8 +162,6 @@ export const createStorageEntry = (
     Promise.all(
       keyArgs.map((args) => getValue(...(options ? [...args, options] : args))),
     )
-
-  const isCompatible = createIsCompatible(chainHead, hasSameChecksum)
 
   return { isCompatible, getValue, getValues, getEntries, watchValue }
 }

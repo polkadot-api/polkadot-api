@@ -1,10 +1,6 @@
 import { Observable, firstValueFrom, map, mergeMap } from "rxjs"
-import {
-  BlockInfo,
-  RuntimeContext,
-  getObservableClient,
-} from "./observableClient"
-import { IsCompatible, createIsCompatible } from "./runtime"
+import { BlockInfo, ChainHead$ } from "./observableClient"
+import { CompatibilityHelper, IsCompatible } from "./runtime"
 import { concatMapEager, shareLatest } from "./utils"
 
 export type EventPhase =
@@ -52,23 +48,21 @@ type SystemEvent = {
 }
 
 export const createEventEntry = <T>(
-  checksum: string,
   pallet: string,
   name: string,
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
+  compatibilityHelper: CompatibilityHelper,
 ): EvClient<T> => {
-  const hasSameChecksum = (ctx: RuntimeContext) =>
-    ctx.checksumBuilder.buildEvent(pallet, name) === checksum
-  const checksumCheck = (ctx: RuntimeContext) => {
-    if (!hasSameChecksum(ctx))
-      throw new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
-  }
+  const { isCompatible, withCompatibleRuntime } = compatibilityHelper((ctx) =>
+    ctx.checksumBuilder.buildEvent(pallet, name),
+  )
+  const checksumError = () =>
+    new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
 
   const shared$ = chainHead.finalized$.pipe(
-    chainHead.withRuntime((x) => x.hash),
-    concatMapEager(([block, ctx]) => {
-      checksumCheck(ctx)
-      return chainHead.eventsAt$(block.hash).pipe(
+    withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
+    concatMapEager(([block]) =>
+      chainHead.eventsAt$(block.hash).pipe(
         map((events) => {
           const winners = events.filter(
             (e) => e.event.type === pallet && e.event.value.type === name,
@@ -83,8 +77,8 @@ export const createEventEntry = <T>(
             }
           })
         }),
-      )
-    }),
+      ),
+    ),
     shareLatest,
   )
 
@@ -97,8 +91,6 @@ export const createEventEntry = <T>(
     events
       .filter((e) => e.type === pallet && e.value.type === name)
       .map((x) => x.value.value)
-
-  const isCompatible = createIsCompatible(chainHead, hasSameChecksum)
 
   return { watch, pull, filter, isCompatible }
 }

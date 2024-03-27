@@ -15,6 +15,7 @@ import { RuntimeApi } from "./runtime"
 import { StorageEntry } from "./storage"
 import { TxEntry } from "./tx"
 import { ConstantEntry } from "./constants"
+import { RuntimeCall } from "./runtime-call"
 
 export type HintedSignedExtensions = Partial<{
   tip: bigint
@@ -68,11 +69,6 @@ export type StorageApi<
   }
 }
 
-type CallOptions = Partial<{
-  at: string
-  signal: AbortSignal
-}>
-
 export type RuntimeCallsApi<
   A extends Record<string, Record<string, RuntimeDescriptor<Array<any>, any>>>,
 > = {
@@ -81,11 +77,7 @@ export type RuntimeCallsApi<
       infer Args,
       infer Value
     >
-      ? (
-          ...args: Args["length"] extends 0
-            ? [options?: CallOptions]
-            : [...args: Args, options?: CallOptions]
-        ) => Promise<Value>
+      ? RuntimeCall<Args, Value>
       : unknown
   }
 }
