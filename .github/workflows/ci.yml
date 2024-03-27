@@ -70,6 +70,7 @@ jobs:
           pnpm pack --dir packages/json-rpc/json-rpc-provider
           pnpm pack --dir packages/json-rpc/json-rpc-provider-proxy
           pnpm pack --dir packages/json-rpc/sc-provider
+          pnpm pack --dir packages/json-rpc/logs-provider
           pnpm pack --dir packages/json-rpc/sm-provider
           pnpm pack --dir packages/json-rpc/ws-provider
           pnpm pack --dir packages/legacy-polkadot-provider
@@ -104,6 +105,10 @@ jobs:
         with:
           name: package
           path: ./packages/json-rpc/sc-provider/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/json-rpc/logs-provider/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
