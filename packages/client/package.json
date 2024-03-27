@@ -25,6 +25,13 @@
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./descriptors": {
+      "types": "./descriptors/index.d.ts",
+      "module": "./descriptors/index.mjs",
+      "import": "./descriptors/index.mjs",
+      "require": "./descriptors/index.js",
+      "default": "./descriptors/index.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",

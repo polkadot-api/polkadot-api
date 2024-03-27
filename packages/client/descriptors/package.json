@@ -1,0 +1,12 @@
+{
+  "name": "@polkadot-api/client/descriptors",
+  "types": "./index.d.ts",
+  "module": "./index.mjs",
+  "import": "./index.mjs",
+  "require": "./index.js",
+  "default": "./index.js",
+  "sideEffects": false,
+  "peerDependencies": {
+    "@polkadot-api/client": "workspace:*"
+  }
+}
