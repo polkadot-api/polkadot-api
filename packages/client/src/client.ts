@@ -10,7 +10,7 @@ import { getObservableClient } from "./observableClient"
 import { compatibilityHelper, getRuntimeApi } from "./runtime"
 import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry, type StorageEntry } from "./storage"
-import { TxEntry, createTxEntry } from "./tx"
+import { TxEntry, createTxEntry, getSubmitFns } from "./tx"
 import {
   CreateTx,
   HintedSignedExtensions,
@@ -26,7 +26,7 @@ const createTypedApi = <D extends Descriptors>(
     callData: Uint8Array,
   ) => Promise<Uint8Array>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-  client: ReturnType<typeof getObservableClient>,
+  submitFns: ReturnType<typeof getSubmitFns>,
 ): TypedApi<D> => {
   const runtimeApi = getRuntimeApi(descriptors.checksums, chainHead)
 
@@ -55,7 +55,7 @@ const createTypedApi = <D extends Descriptors>(
         name,
         descriptors.asset,
         chainHead,
-        client,
+        submitFns,
         createTxFromAddress,
         compatibilityHelper(runtimeApi, txEntries[name]),
       )
@@ -144,6 +144,9 @@ export function createClient(
     return createTx(publicKey, callData, hinted)
   }
 
+  const submitFns = getSubmitFns(chainHead, client)
+  const { submit, submit$: submitAndWatch } = submitFns
+
   return {
     finalized$: chainHead.finalized$,
     bestBlocks$: chainHead.bestBlocks$,
@@ -154,7 +157,9 @@ export function createClient(
       chainHead.unfollow()
       client.destroy()
     },
+    submit,
+    submitAndWatch,
     getTypedApi: <D extends Descriptors>(descriptors: D) =>
-      createTypedApi(descriptors, createTxFromAddress, chainHead, client),
+      createTypedApi(descriptors, createTxFromAddress, chainHead, submitFns),
   }
 }

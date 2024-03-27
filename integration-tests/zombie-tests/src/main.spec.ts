@@ -93,7 +93,7 @@ describe("E2E", async () => {
         api.tx.Balances.transfer_allow_death({
           dest: MultiAddress.Id(to),
           value: amount,
-        }).callData,
+        }).decodedCall,
     )
 
     const aliceTransfer = api.tx.Utility.batch_all({ calls: calls.slice(0, 2) })
@@ -101,7 +101,7 @@ describe("E2E", async () => {
 
     await Promise.all(
       [aliceTransfer, bobTransfer].map((call, idx) =>
-        call.submit(idx === 0 ? alice : bob),
+        call.signAndSubmit(idx === 0 ? alice : bob),
       ),
     )
 
@@ -158,7 +158,7 @@ describe("E2E", async () => {
           api.tx.Balances.transfer_allow_death({
             dest: MultiAddress.Id(to[idx]),
             value: ED,
-          }).submit(from),
+          }).signAndSubmit(from),
         ),
       )
 

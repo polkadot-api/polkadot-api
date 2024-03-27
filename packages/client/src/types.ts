@@ -13,7 +13,7 @@ import { EvClient } from "./event"
 import { BlockInfo } from "./observableClient"
 import { RuntimeApi } from "./runtime"
 import { StorageEntry } from "./storage"
-import { TxEntry } from "./tx"
+import { TxEntry, TxEvents, TxFinalizedPayload } from "./tx"
 import { ConstantEntry } from "./constants"
 import { RuntimeCall } from "./runtime-call"
 
@@ -118,4 +118,6 @@ export interface PolkadotClient {
   getBlockBody: (hash: string) => Observable<HexString[]>
   getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
   destroy: () => void
+  submit: (transaction: HexString) => Promise<TxFinalizedPayload>
+  submitAndWatch: (transaction: HexString) => Observable<TxEvents>
 }
