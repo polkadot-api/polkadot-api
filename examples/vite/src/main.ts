@@ -60,7 +60,7 @@ function transfer(alexa: Account, billy: Account, amount: bigint) {
     dest: MultiAddress.Id(billy.address),
     value: amount,
   })
-    .submit$(alexa.address)
+    .signSubmitAndWatch(alexa.address)
     .subscribe({
       next: (event) => {
         console.log(event)
