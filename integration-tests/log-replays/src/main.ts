@@ -28,6 +28,7 @@ try {
   await Promise.all(
     Object.values(tests).map(([key, fn]) => fn(spawn("pnpm", [key]))),
   )
+  process.exit(0)
 } catch (e) {
   console.error(e)
   process.exit(1)
