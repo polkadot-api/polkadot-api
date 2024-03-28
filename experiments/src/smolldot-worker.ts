@@ -1,5 +1,5 @@
 import { Worker } from "node:worker_threads"
-import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { JsonRpcProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 
 const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
@@ -28,9 +28,9 @@ parentPort.on("message", (msg) => {
 })
 `
 
-const providers: Record<string, ConnectProvider> = {}
+const providers: Record<string, JsonRpcProvider> = {}
 
-export const createProvider = (chain: WellKnownChain): ConnectProvider => {
+export const createProvider = (chain: WellKnownChain): JsonRpcProvider => {
   if (!providers[chain]) {
     let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
       eval: true,

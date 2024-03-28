@@ -6,7 +6,7 @@ import { getSmProvider } from "@polkadot-api/sm-provider"
 import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
 import { accounts, keyring } from "./keyring"
-import descriptors, { MultiAddress } from "./codegen/roc"
+import { MultiAddress, roc } from "@polkadot-api/client/descriptors"
 import { combineLatest, filter, firstValueFrom, map } from "rxjs"
 import { randomBytes } from "crypto"
 
@@ -42,7 +42,7 @@ describe("E2E", async () => {
       keyring,
     }),
   )
-  const api = client.getTypedApi(descriptors)
+  const api = client.getTypedApi(roc)
 
   console.log("getting the latest runtime")
   const runtime = await api.runtime.latest()

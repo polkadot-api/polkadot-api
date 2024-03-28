@@ -11,8 +11,8 @@ const follower = chainHead(
   true,
   (event) => {
     if (event.type === "initialized") {
-      logHeader(event.finalizedBlockHash)
-      follower.unpin([event.finalizedBlockHash])
+      logHeader(event.finalizedBlockHashes.at(-1)!)
+      follower.unpin([event.finalizedBlockHashes.at(-1)!])
       return
     }
 

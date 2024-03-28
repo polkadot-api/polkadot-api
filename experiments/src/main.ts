@@ -1,12 +1,8 @@
-import {
-  CodeDeclarations,
-  getChecksumBuilder,
-  getStaticBuilder,
-} from "@polkadot-api/metadata-builders"
-import { getMetadata } from "./getMetadata"
-import { writeFile } from "fs"
+import { defaultDeclarations, getTypesBuilder } from "@polkadot-api/codegen"
+import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
+import { metadata as $metadata, V15 } from "@polkadot-api/substrate-bindings"
 import * as fs from "node:fs/promises"
-import { metadata as $metadata } from "@polkadot-api/substrate-bindings"
+import { getMetadata } from "./getMetadata"
 
 const metadata = await getMetadata()
 await fs.writeFile("./collectives-meta.scale", $metadata.enc(metadata))
@@ -21,13 +17,14 @@ if (metadata.metadata.tag !== "v14") throw new Error("wrong metadata version")
 
 console.log("got metadata", metadata.metadata.value)
 
-const declarations: CodeDeclarations = {
-  imports: new Set(),
-  variables: new Map(),
-}
+const declarations = defaultDeclarations()
 const { imports, variables } = declarations
-const staticBuilders = getStaticBuilder(metadata.metadata.value, declarations)
-const checksumBuilders = getChecksumBuilder(metadata.metadata.value)
+const staticBuilders = getTypesBuilder(
+  declarations,
+  metadata.metadata.value as V15,
+  new Map(),
+)
+const checksumBuilders = getChecksumBuilder(metadata.metadata.value as V15)
 
 const start = Date.now()
 // this is likely the most expensive checksum that can be computed
@@ -48,11 +45,11 @@ const exportedVars = staticBuilders.buildStorage("System", "Events")
 const constDeclarations = [...variables.values()].map(
   (variable) =>
     `${
-      variable.id === exportedVars.key || variable.id === exportedVars.val
+      variable.name === exportedVars.key || variable.name === exportedVars.val
         ? "export "
         : ""
-    }const ${variable.id}${variable.types ? ": " + variable.types : ""} = ${
-      variable.value
+    }const ${variable.name}${variable.type ? ": " + variable.type : ""} = ${
+      variable.checksum
     };`,
 )
 constDeclarations.unshift(
