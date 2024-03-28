@@ -1,9 +1,9 @@
-import { filter, firstValueFrom, map } from "rxjs"
-import { RuntimeContext, getObservableClient } from "./observableClient"
+import { firstValueFrom, map } from "rxjs"
+import { ChainHead$, RuntimeContext } from "./observableClient"
 import {
+  CompatibilityHelper,
   IsCompatible,
   Runtime,
-  createIsCompatible,
   getRuntimeContext,
 } from "./runtime"
 
@@ -14,24 +14,22 @@ export interface ConstantEntry<T> {
 }
 
 export const createConstantEntry = <T>(
-  checksum: string,
   palletName: string,
   name: string,
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
+  compatibilityHelper: CompatibilityHelper,
 ): ConstantEntry<T> => {
-  const hasSameChecksum = (ctx: RuntimeContext) =>
-    ctx.checksumBuilder.buildConstant(palletName, name) === checksum
+  const { isCompatible, compatibleRuntime$ } = compatibilityHelper((ctx) =>
+    ctx.checksumBuilder.buildConstant(palletName, name),
+  )
+  const checksumError = () =>
+    new Error(`Incompatible runtime entry Constant(${palletName}.${name})`)
 
   const cachedResults = new WeakMap<RuntimeContext, T>()
   const getValueWithContext = (ctx: RuntimeContext) => {
     if (cachedResults.has(ctx)) {
       return cachedResults.get(ctx)!
     }
-
-    if (!hasSameChecksum(ctx))
-      throw new Error(
-        `Incompatible runtime entry Constant(${palletName}.${name})`,
-      )
 
     const pallet = ctx.metadata.pallets.find((p) => p.name === palletName)
     const constant = pallet?.constants.find((c) => c.name === name)!
@@ -44,13 +42,15 @@ export const createConstantEntry = <T>(
 
   const fn = (runtime?: Runtime): any => {
     if (runtime) {
+      if (!isCompatible(runtime)) throw checksumError()
       return getValueWithContext(getRuntimeContext(runtime))
     }
     return firstValueFrom(
-      chainHead.runtime$.pipe(filter(Boolean), map(getValueWithContext)),
+      compatibleRuntime$(chainHead, null, checksumError).pipe(
+        map(getValueWithContext),
+      ),
     )
   }
-  const isCompatible = createIsCompatible(chainHead, hasSameChecksum)
 
   return Object.assign(fn, { isCompatible })
 }

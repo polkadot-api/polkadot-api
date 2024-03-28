@@ -20,13 +20,13 @@ import {
   SystemEvent,
   getObservableClient,
 } from "./observableClient"
+import { TrackedTx } from "./observableClient/chainHead/track-tx"
 import {
+  CompatibilityHelper,
   IsCompatible,
   Runtime,
-  createIsCompatible,
   getRuntimeContext,
 } from "./runtime"
-import { TrackedTx } from "./observableClient/chainHead/track-tx"
 
 type TxSuccess = {
   ok: boolean
@@ -142,7 +142,6 @@ export const createTxEntry = <
   Name extends string,
   Asset extends AssetDescriptor<any>,
 >(
-  checksum: string,
   pallet: Pallet,
   name: Name,
   assetChecksum: Asset,
@@ -153,13 +152,13 @@ export const createTxEntry = <
     callData: Uint8Array,
     hinted?: Partial<{}>,
   ) => Promise<Uint8Array>,
+  compatibilityHelper: CompatibilityHelper,
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
-  const hasSameChecksum = (
-    checksumBuilder: RuntimeContext["checksumBuilder"],
-  ) => checksumBuilder.buildCall(pallet, name) === checksum
-  const isCompatible = createIsCompatible(chainHead, (ctx) =>
-    hasSameChecksum(ctx.checksumBuilder),
+  const { isCompatible, compatibleRuntime$ } = compatibilityHelper((ctx) =>
+    ctx.checksumBuilder.buildCall(pallet, name),
   )
+  const checksumError = () =>
+    new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
   const fn = (arg?: Arg): any => {
     const tx$ = (tx: string) =>
@@ -186,18 +185,10 @@ export const createTxEntry = <
       )
 
     const getCallDataWithContext = (
-      {
-        checksumBuilder,
-        dynamicBuilder,
-        asset: [assetEnc, assetCheck],
-      }: RuntimeContext,
+      { dynamicBuilder, asset: [assetEnc, assetCheck] }: RuntimeContext,
       arg: any,
       hinted: Partial<{ asset: any }> = {},
     ) => {
-      const checksum = checksumBuilder.buildCall(pallet, name)
-      if (checksum !== checksum)
-        throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
-
       let returnHinted = hinted
       if (hinted.asset) {
         if (assetChecksum !== assetCheck)
@@ -215,12 +206,15 @@ export const createTxEntry = <
     }
 
     const getCallData$ = (arg: any, hinted: Partial<{ asset: any }> = {}) =>
-      chainHead
-        .getRuntimeContext$(null)
-        .pipe(map((ctx) => getCallDataWithContext(ctx, arg, hinted)))
+      compatibleRuntime$(chainHead, null, checksumError).pipe(
+        map((ctx) => getCallDataWithContext(ctx, arg, hinted)),
+      )
 
     const getEncodedData: TxCall = (runtime?: Runtime): any => {
       if (runtime) {
+        if (!isCompatible(runtime)) {
+          throw checksumError()
+        }
         return getCallDataWithContext(getRuntimeContext(runtime), arg).callData
       }
       return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))

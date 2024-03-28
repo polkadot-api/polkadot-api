@@ -27,7 +27,7 @@ export type Descriptors = {
   >
   apis: Record<string, Record<string, RuntimeDescriptor<any, any>>>
   asset: AssetDescriptor<any>
-  checksums: string[]
+  checksums: Promise<string[]>
 }
 
 type PickDescriptors<
