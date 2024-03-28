@@ -33,8 +33,6 @@ export async function generate(opts: GenerateOptions) {
 
   const clientDir = join(getClientDir(), "descriptors/generated")
   await outputCodegen(chains, clientDir)
-
-  await generateIndexes(clientDir, Object.keys(sources))
 }
 
 async function getSources(
@@ -87,14 +85,15 @@ async function outputCodegen(
     path.join(outputFolder, "common-types.ts"),
     typesFileContent,
   )
-  await fs.writeFile(
-    path.join(outputFolder, "public-types.ts"),
-    `export { ${publicTypes.join(",\n")} } from './common-types';`,
-  )
   await Promise.all(
     chains.map((chain, i) =>
       createDtsFile(chain.key, outputFolder, descriptorsFileContent[i]),
     ),
+  )
+  await generateIndex(
+    outputFolder,
+    chains.map((chain) => chain.key),
+    publicTypes,
   )
 
   console.log("Generating ESM")
@@ -111,7 +110,7 @@ async function outputCodegen(
     },
   })
   const generatedFiles = [
-    "public-types",
+    "index",
     "common-types",
     ...chains.map((chain) => chain.key),
   ]
@@ -157,7 +156,7 @@ const getClientDir = () => {
   const require = createRequire(process.cwd() + "/")
   const candidates = require.resolve.paths("@polkadot-api/client")
   const result = candidates
-    ?.map((path) => join(path, "@polkadot-api/client"))
+    ?.map((path) => join(path, "@polkadot-api", "client"))
     .find(existsSync)
   if (!result) {
     throw new Error("@polkadot-api/client can't be found")
@@ -165,27 +164,19 @@ const getClientDir = () => {
   return result
 }
 
-const generateIndexes = async (path: string, keys: string[]) => {
-  const indexCjs = [
-    "module.exports = {",
-    ...keys.map((key) => `${key}: require("./${key}.js").default,`),
-    '...require("./public-types.js")',
-    "};",
-  ].join("\n")
-  await fs.writeFile(join(path, "index.js"), indexCjs)
-
-  const indexEsm = [
-    ...keys.map((key) => `export { default as ${key} } from "./${key}.mjs";`),
-    `export * from "./public-types.mjs";`,
-  ].join("\n")
-  await fs.writeFile(join(path, "index.mjs"), indexEsm)
-
-  const indexDts = [
+const generateIndex = async (
+  path: string,
+  keys: string[],
+  publicTypes: string[],
+) => {
+  const indexTs = [
     ...keys.flatMap((key) => [
       `export { default as ${key} } from "./${key}";`,
       `export type * from "./${key}";`,
     ]),
-    `export * from "./public-types";`,
+    `export {`,
+    publicTypes.join(", "),
+    `} from './common-types';`,
   ].join("\n")
-  await fs.writeFile(join(path, "index.d.ts"), indexDts)
+  await fs.writeFile(join(path, "index.ts"), indexTs)
 }
