@@ -210,6 +210,58 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0
 
+  integration-tests/log-replays:
+    dependencies:
+      '@noble/curves':
+        specifier: ^1.2.0
+        version: 1.2.0
+      '@polkadot-api/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@polkadot-api/logs-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/logs-provider
+      '@polkadot-api/node-polkadot-provider':
+        specifier: workspace:*
+        version: link:../../packages/node-polkadot-provider
+      '@polkadot-api/sc-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/sc-provider
+      '@polkadot-api/sm-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/sm-provider
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../packages/substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../../packages/substrate-client
+      '@polkadot-api/tx-helper':
+        specifier: workspace:*
+        version: link:../../packages/tx-helper
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@substrate/connect-known-chains':
+        specifier: ^1.0.6
+        version: 1.1.2
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
+      smoldot:
+        specifier: 2.0.23
+        version: 2.0.23
+    devDependencies:
+      '@types/node':
+        specifier: ^20.4.7
+        version: 20.11.19
+      prettier:
+        specifier: ^3.1.0
+        version: 3.2.5
+
   integration-tests/zombie-tests:
     dependencies:
       '@noble/curves':
@@ -3035,7 +3087,7 @@ packages:
       '@polkadot-api/json-rpc-provider-proxy': 0.0.1-4bc9bd71f8f37f800fec7a42775f403271903870.1.0
       '@polkadot-api/substrate-client': 0.0.1-4bc9bd71f8f37f800fec7a42775f403271903870.1.0
       '@substrate/connect-extension-protocol': 1.0.1
-      '@substrate/connect-known-chains': 1.0.6
+      '@substrate/connect-known-chains': 1.1.2
       rxjs: 7.8.1
       smoldot: 2.0.23
     dev: false
@@ -5187,6 +5239,7 @@ packages:
 
   /@substrate/connect-known-chains@1.0.6:
     resolution: {integrity: sha512-2OhE6OdKmuKEE7J7zGnYTfGoVheHeuuE3OWmt9xcFU/nu81lRMDiK9zrgFJcfhBHcLJF9OyeGCbQaUlceVRWww==}
+    dev: false
 
   /@substrate/connect-known-chains@1.1.2:
     resolution: {integrity: sha512-XvyemTVqon+6EF2G7QL0fEXxjuz3nUNFgFV0TSWhSVpPb+Sfs+vfipbEZxGNouxvjCoJdr6CF0rwgGsrrKOnAA==}
@@ -5218,7 +5271,7 @@ packages:
     dependencies:
       '@polkadot-api/light-client-extension-helpers': 0.0.1-56b4ad0a42cc57d8ef99401f196fcbe4691f8e41.1.0(smoldot@2.0.23)
       '@substrate/connect-extension-protocol': 2.0.0
-      '@substrate/connect-known-chains': 1.0.6
+      '@substrate/connect-known-chains': 1.1.2
       smoldot: 2.0.23
     transitivePeerDependencies:
       - bufferutil
