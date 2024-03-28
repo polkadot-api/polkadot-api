@@ -30,8 +30,12 @@ jobs:
           cache: pnpm
       - name: Install deps
         run: pnpm install
-      - name: Build, Test and Lint
-        run: pnpm turbo build test lint --cache-dir=.turbo
+      - name: Build
+        run: pnpm turbo build --cache-dir=.turbo
+      - name: Lint
+        run: pnpm lint
+      - name: Test
+        run: pnpm test
       - name: Run Integration Tests
         run: pnpm test:ci
 

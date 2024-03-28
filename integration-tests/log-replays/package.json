@@ -1,0 +1,48 @@
+{
+  "name": "log-replays",
+  "private": true,
+  "version": "0.0.0-experimental",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "../../packages/cli/bin/main.js",
+    "undefined-runtime": "tsup-node src/undefined-runtime/undefined-runtime.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/undefined-runtime.js\"",
+    "test": "tsup-node src/main.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.4.7",
+    "prettier": "^3.1.0"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.2.0",
+    "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/client": "workspace:*",
+    "@polkadot-api/node-polkadot-provider": "workspace:*",
+    "@polkadot-api/sc-provider": "workspace:*",
+    "@polkadot-api/logs-provider": "workspace:*",
+    "@polkadot-api/sm-provider": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/tx-helper": "workspace:*",
+    "@polkadot-api/utils": "workspace:*",
+    "@substrate/connect-known-chains": "^1.0.6",
+    "rxjs": "^7.8.1",
+    "smoldot": "^2.0.21"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "polkadot-api": {
+    "roc": {
+      "outputFolder": "src/codegen",
+      "chain": "rococo_v2_2",
+      "metadata": "roc.scale"
+    }
+  }
+}
