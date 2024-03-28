@@ -150,13 +150,14 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     },
   )
 
-  const getRuntimeContext$ = (hash: string) =>
+  const getRuntimeContext$ = withRefcount((hash: string) =>
     pinnedBlocks$.pipe(
       take(1),
       mergeMap(
         (pinned) => pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
       ),
-    )
+    ),
+  )
 
   const withRuntime =
     <T>(mapper: (x: T) => string) =>

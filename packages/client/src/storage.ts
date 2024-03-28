@@ -86,8 +86,8 @@ export const createStorageEntry = (
       lastArg === "best" || lastArg === "finalized" ? args.slice(0, -1) : args
 
     return chainHead[lastArg === "best" ? "best$" : "finalized$"].pipe(
-      debounceTime(0),
       withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
+      debounceTime(0),
       exhaustMap(([block, ctx]) => {
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         return chainHead

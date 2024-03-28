@@ -7,6 +7,7 @@ export const concatMapEager =
   ) =>
   (source$: Observable<I>) =>
     new Observable<O>((observer) => {
+      let topSubscription: Subscription
       const queues = new Map<number, Observable<O>>()
       const innerSubscriptions = new Map<number, Subscription>()
       const results = new Map<number, O[]>()
@@ -18,7 +19,10 @@ export const concatMapEager =
       const nextSubscription = () => {
         const inner$ = queues.get(subscriptionIdx)
         if (!inner$) {
-          if (topSubscription.closed && innerSubscriptions.size === 0) {
+          if (
+            innerSubscriptions.size === 0 &&
+            (typeof topSubscription === "undefined" || topSubscription.closed)
+          ) {
             observer.complete()
           }
           return
@@ -60,7 +64,7 @@ export const concatMapEager =
         )
       }
 
-      const topSubscription = source$.subscribe({
+      topSubscription = source$.subscribe({
         next(outterValue: I) {
           const idx = mapperIdx++
           queues.set(
