@@ -79,7 +79,7 @@ export const compatibilityHelper =
 
     const isCompatible: IsCompatible = (runtime?: Runtime): any => {
       if (runtime) {
-        isCompatibleSync(runtime)
+        return isCompatibleSync(runtime)
       }
 
       return runtimeApi.latest().then(isCompatibleSync)
