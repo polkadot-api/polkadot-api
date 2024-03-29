@@ -118,7 +118,7 @@ async function compileCodegen(packageDir: string) {
     }),
   })
 
-  await tsc.build({
+  tsc.build({
     basePath: srcDir,
     compilerOptions: {
       skipLibCheck: true,
@@ -132,51 +132,6 @@ async function compileCodegen(packageDir: string) {
       outDir,
     },
   })
-
-  // const esmDir = join(packageDir, "esm")
-  // const cjsDir = join(packageDir, "cjs")
-
-  // if (existsSync(esmDir)) await fs.rm(esmDir, { recursive: true })
-  // if (existsSync(cjsDir)) await fs.rm(cjsDir, { recursive: true })
-
-  // console.log("Generating ESM")
-  // tsc.build({
-  //   basePath: srcDir,
-  //   compilerOptions: {
-  //     skipLibCheck: true,
-  //     declaration: true,
-  //     target: "esnext",
-  //     module: "esnext",
-  //     moduleResolution: "node",
-  //     resolveJsonModule: true,
-  //     allowSyntheticDefaultImports: true,
-  //     outDir: join(packageDir, "esm"),
-  //   },
-  // })
-
-  // console.log("Generating CJS")
-  // tsc.build({
-  //   basePath: srcDir,
-  //   compilerOptions: {
-  //     skipLibCheck: true,
-  //     declaration: false,
-  //     target: "esnext",
-  //     module: "commonjs",
-  //     moduleResolution: "node",
-  //     resolveJsonModule: true,
-  //     allowSyntheticDefaultImports: true,
-  //     outDir: join(packageDir, "cjs"),
-  //   },
-  // })
-  // const nonSourceFiles = (await fs.readdir(srcDir)).filter(
-  //   (file) => !file.endsWith(".ts"),
-  // )
-  // await Promise.all(
-  //   nonSourceFiles.flatMap((file) => [
-  //     fs.copyFile(join(srcDir, file), join(esmDir, file)),
-  //     fs.copyFile(join(srcDir, file), join(cjsDir, file)),
-  //   ]),
-  // )
 }
 
 const generateIndex = async (

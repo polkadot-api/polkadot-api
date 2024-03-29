@@ -1,7 +1,7 @@
-import { createClient } from "@polkadot-api/client"
-import { ksm } from "@polkadot-api/descriptors"
-import { getLegacyProvider } from "@polkadot-api/legacy-polkadot-provider"
-import { createScClient } from "@substrate/connect"
+const { createClient } = require("@polkadot-api/client")
+const { ksm } = require("@polkadot-api/descriptors")
+const { getLegacyProvider } = require("@polkadot-api/legacy-polkadot-provider")
+const { createScClient } = require("@substrate/connect")
 
 const { relayChains } = getLegacyProvider(createScClient())
 

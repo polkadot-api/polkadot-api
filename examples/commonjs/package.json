@@ -5,7 +5,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "node src/index.js",
     "test": "echo \"no tests to run\""
   },
   "keywords": [],
@@ -17,7 +17,6 @@
     "@polkadot-api/legacy-polkadot-provider": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "@substrate/connect": "^0.8.4",
-    "tsx": "^4.7.1"
+    "@substrate/connect": "^0.8.4"
   }
 }
