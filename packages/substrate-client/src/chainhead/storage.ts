@@ -26,7 +26,7 @@ export const createStorageFn = (
 
     const onItems: Parameters<typeof cbStore>[3] = isDescendants
       ? (items) => {
-          result.push(...items)
+          result.push(items)
         }
       : (items) => {
           result = items[0]?.[type as "value"]
@@ -39,7 +39,11 @@ export const createStorageFn = (
       onItems,
       reject,
       () => {
-        resolve(result)
+        try {
+          resolve(isDescendants ? result.flat() : result)
+        } catch (e) {
+          reject(e)
+        }
       },
       (nDiscarded) => {
         if (nDiscarded > 0) {
