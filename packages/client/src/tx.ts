@@ -2,6 +2,7 @@ import {
   AssetDescriptor,
   Binary,
   Enum,
+  HexString,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
@@ -13,6 +14,7 @@ import {
   map,
   mergeMap,
   of,
+  startWith,
   take,
 } from "rxjs"
 import {
@@ -28,9 +30,32 @@ import {
   getRuntimeContext,
 } from "./runtime"
 
-type TxSuccess = {
+export type TxEvents =
+  | { type: "broadcasted" }
+  | { type: "bestChainBlockIncluded"; block: { hash: string; index: number } }
+  | ({
+      type: "finalized"
+    } & TxFinalizedPayload)
+
+export type TxFinalizedPayload = {
   ok: boolean
   events: Array<SystemEvent["event"]>
+  block: { hash: string; index: number }
+}
+
+const getTxSuccessFromSystemEvents = (
+  systemEvents: Array<SystemEvent>,
+  txIdx: number,
+): Omit<TxFinalizedPayload, "block"> => {
+  const events = systemEvents
+    .filter((x) => x.phase.type === "ApplyExtrinsic" && x.phase.value === txIdx)
+    .map((x) => x.event)
+
+  const lastEvent = events[events.length - 1]
+  const ok =
+    lastEvent.type === "System" && lastEvent.value.type === "ExtrinsicSuccess"
+
+  return { ok, events }
 }
 
 type TxFunction<Asset> = (
@@ -47,7 +72,7 @@ type TxFunction<Asset> = (
           asset: Asset
         }
   >,
-) => Promise<TxSuccess>
+) => Promise<TxFinalizedPayload>
 
 type TxObservable<Asset> = (
   from: SS58String | Uint8Array,
@@ -63,11 +88,7 @@ type TxObservable<Asset> = (
           asset: Asset
         }
   >,
-) => Observable<
-  | { type: "broadcasted" }
-  | { type: "bestChainBlockIncluded"; block: { hash: string; index: number } }
-  | ({ type: "finalized"; block: { hash: string; index: number } } & TxSuccess)
->
+) => Observable<TxEvents | { type: "signed"; tx: HexString }>
 
 interface TxCall {
   (): Promise<Binary>
@@ -96,32 +117,17 @@ export type Transaction<
   Name extends string,
   Asset,
 > = {
-  callData: Enum<{
+  sign: TxSigned<Asset>
+  signSubmitAndWatch: TxObservable<Asset>
+  signAndSubmit: TxFunction<Asset>
+  getEncodedData: TxCall
+  decodedCall: Enum<{
     type: Pallet
     value: Enum<{
       type: Name
       value: Arg
     }>
   }>
-  getEncodedData: TxCall
-  getTx: TxSigned<Asset>
-  submit: TxFunction<Asset>
-  submit$: TxObservable<Asset>
-}
-
-const getTxSuccessFromSystemEvents = (
-  systemEvents: Array<SystemEvent>,
-  txIdx: number,
-): TxSuccess => {
-  const events = systemEvents
-    .filter((x) => x.phase.type === "ApplyExtrinsic" && x.phase.value === txIdx)
-    .map((x) => x.event)
-
-  const lastEvent = events[events.length - 1]
-  const ok =
-    lastEvent.type === "System" && lastEvent.value.type === "ExtrinsicSuccess"
-
-  return { ok, events }
 }
 
 export interface TxEntry<
@@ -136,6 +142,72 @@ export interface TxEntry<
   isCompatible: IsCompatible
 }
 
+export const getSubmitFns = (
+  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  client: ReturnType<typeof getObservableClient>,
+) => {
+  const tx$ = (tx: string) =>
+    concat(
+      chainHead.finalized$.pipe(
+        take(1),
+        mergeMap((finalized) => chainHead.validateTx$(tx, finalized.hash)),
+        map((isValid) => {
+          if (!isValid) throw new Error("Invalid")
+          return { type: "broadcasted" as "broadcasted" }
+        }),
+      ),
+      new Observable<TrackedTx>((observer) => {
+        const subscription = chainHead.trackTx$(tx).subscribe(observer)
+        subscription.add(
+          client.broadcastTx$(tx).subscribe({
+            error(e) {
+              observer.error(e)
+            },
+          }),
+        )
+        return subscription
+      }),
+    )
+
+  const submit$ = (transaction: HexString): Observable<TxEvents> =>
+    tx$(transaction).pipe(
+      mergeMap((result) => {
+        return result.type !== "finalized"
+          ? of(result)
+          : chainHead.eventsAt$(result.block.hash).pipe(
+              map((events) => ({
+                ...result,
+                ...getTxSuccessFromSystemEvents(
+                  events,
+                  Number(result.block.index),
+                ),
+              })),
+            )
+      }),
+    )
+
+  const submit = async (
+    transaction: HexString,
+  ): Promise<{
+    ok: boolean
+    events: Array<SystemEvent["event"]>
+    block: { hash: string; index: number }
+  }> =>
+    lastValueFrom(submit$(transaction)).then((x) => {
+      if (x.type !== "finalized") throw null
+      const result: {
+        ok: boolean
+        events: Array<SystemEvent["event"]>
+        block: { hash: string; index: number }
+        type?: any
+      } = { ...x }
+      delete result.type
+      return result
+    })
+
+  return { submit$, submit }
+}
+
 export const createTxEntry = <
   Arg extends {} | undefined,
   Pallet extends string,
@@ -146,7 +218,7 @@ export const createTxEntry = <
   name: Name,
   assetChecksum: Asset,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-  client: ReturnType<typeof getObservableClient>,
+  submits: ReturnType<typeof getSubmitFns>,
   signer: (
     from: string | Uint8Array,
     callData: Uint8Array,
@@ -161,29 +233,6 @@ export const createTxEntry = <
     new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
   const fn = (arg?: Arg): any => {
-    const tx$ = (tx: string) =>
-      concat(
-        chainHead.finalized$.pipe(
-          take(1),
-          mergeMap((finalized) => chainHead.validateTx$(tx, finalized.hash)),
-          map((isValid) => {
-            if (!isValid) throw new Error("Invalid")
-            return { type: "broadcasted" as "broadcasted" }
-          }),
-        ),
-        new Observable<TrackedTx>((observer) => {
-          const subscription = chainHead.trackTx$(tx).subscribe(observer)
-          subscription.add(
-            client.broadcastTx$(tx).subscribe({
-              error(e) {
-                observer.error(e)
-              },
-            }),
-          )
-          return subscription
-        }),
-      )
-
     const getCallDataWithContext = (
       { dynamicBuilder, asset: [assetEnc, assetCheck] }: RuntimeContext,
       arg: any,
@@ -220,7 +269,7 @@ export const createTxEntry = <
       return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
     }
 
-    const getTx: TxSigned<Asset> = (from, _hinted) =>
+    const sign: TxSigned<Asset> = (from, _hinted) =>
       firstValueFrom(
         getCallData$(arg, _hinted as any).pipe(
           mergeMap(({ callData, hinted }) =>
@@ -230,61 +279,38 @@ export const createTxEntry = <
         ),
       )
 
-    const submit: TxFunction<Asset> = async (from, _hinted) => {
-      const tx = await firstValueFrom(
+    const signAndSubmit: TxFunction<Asset> = (from, _hinted) =>
+      firstValueFrom(
         getCallData$(arg, _hinted as any).pipe(
           mergeMap(({ callData, hinted }) =>
             signer(from, callData.asBytes(), hinted).then(toHex),
           ),
         ),
-      )
+      ).then(submits.submit)
 
-      const result = (await lastValueFrom(tx$(tx))) as TrackedTx
-
-      const systemEvents = await firstValueFrom(
-        chainHead.eventsAt$(result.block.hash),
-      )
-
-      return getTxSuccessFromSystemEvents(
-        systemEvents,
-        Number(result.block.index),
-      )
-    }
-
-    const submit$: TxObservable<Asset> = (from, _hinted) =>
+    const signSubmitAndWatch: TxObservable<Asset> = (from, _hinted) =>
       getCallData$(arg, _hinted as any).pipe(
         mergeMap(({ callData, hinted }) =>
           signer(from, callData.asBytes(), hinted),
         ),
         take(1),
         mergeMap((result) => {
-          return tx$(toHex(result)).pipe(
-            mergeMap((result) => {
-              return result.type !== "finalized"
-                ? of(result)
-                : chainHead.eventsAt$(result.block.hash).pipe(
-                    map((events) => ({
-                      ...result,
-                      ...getTxSuccessFromSystemEvents(
-                        events,
-                        Number(result.block.index),
-                      ),
-                    })),
-                  )
-            }),
-          )
+          const tx = toHex(result)
+          return submits
+            .submit$(tx)
+            .pipe(startWith({ type: "signed" as const, tx }))
         }),
       )
 
     return {
-      callData: Enum(pallet, Enum(name, arg as any)) as Enum<{
+      decodedCall: Enum(pallet, Enum(name, arg as any)) as Enum<{
         type: Pallet
         value: any
       }>,
       getEncodedData,
-      getTx,
-      submit,
-      submit$,
+      sign,
+      signSubmitAndWatch,
+      signAndSubmit,
     }
   }
 
