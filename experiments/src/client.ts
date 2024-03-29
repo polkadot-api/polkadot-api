@@ -3,7 +3,7 @@ import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { createClient, Binary } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
-import Ksm, { Queries } from "./descriptors/ksm"
+import { KsmQueries, ksm } from "@polkadot-api/descriptors"
 const scProvider = getScProvider()
 
 const polkadotChain = getChain({
@@ -14,13 +14,13 @@ const polkadotChain = getChain({
 const relayChain = createClient(polkadotChain)
 // const collectives = relayChain
 
-const apis = relayChain.getTypedApi(Ksm)
+const apis = relayChain.getTypedApi(ksm)
 
 const identityDataToString = (value: string | Binary | undefined) =>
   typeof value === "object" ? value.asText() : value ?? ""
 
 function mapRawIdentity(
-  rawIdentity?: Queries["Identity"]["IdentityOf"]["Value"],
+  rawIdentity?: KsmQueries["Identity"]["IdentityOf"]["Value"],
 ) {
   if (!rawIdentity) return rawIdentity
 

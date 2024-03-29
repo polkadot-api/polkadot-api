@@ -1,27 +1,30 @@
 import { PolkadotClient, TypedApi, createClient } from "@polkadot-api/client"
-import "./style.css"
-
+import { MultiAddress, wnd } from "@polkadot-api/descriptors"
 import {
   Account,
   getLegacyProvider,
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
-import test, { MultiAddress } from "./codegen/wnd"
+import "./style.css"
 
 const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")
 
 const chain = relayChains.westend2
-const connection: PolkadotClient = createClient(chain.provider)
-const testApi: TypedApi<typeof test> = connection.getTypedApi(test)
+const client: PolkadotClient = createClient(chain.provider)
+const testApi: TypedApi<typeof wnd> = client.getTypedApi(wnd)
 
-const assetRateTransactions: TypedApi<typeof test>["tx"]["AssetRate"] =
+const assetRateTransactions: TypedApi<typeof wnd>["tx"]["AssetRate"] =
   testApi.tx.AssetRate
 
 const isCompatible = await assetRateTransactions.create.isCompatible()
-const constant = await testApi.constants.Auctions.EndingPeriod()
+console.log({ isCompatible })
+
 const constantIsCompatible =
   await testApi.constants.Auctions.EndingPeriod.isCompatible()
+
+console.log({ constantIsCompatible })
+const constant = await testApi.constants.Auctions.EndingPeriod()
 
 const runtime = await testApi.runtime.latest()
 const isCompatible2 = testApi.tx.AssetRate.create.isCompatible(runtime)

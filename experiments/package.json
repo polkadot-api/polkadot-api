@@ -30,6 +30,7 @@
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/metadata-fixtures": "workspace:*",
     "@polkadot-api/view-builder": "workspace:*",
+    "@polkadot-api/codegen": "workspace:*",
     "@polkadot-api/node-polkadot-provider": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
@@ -48,8 +49,7 @@
   },
   "polkadot-api": {
     "ksm": {
-      "metadata": "../packages/metadata-fixtures/ksm-metadata.scale",
-      "outputFolder": "./src/descriptors/"
+      "metadata": "../packages/metadata-fixtures/ksm-metadata.scale"
     }
   }
 }

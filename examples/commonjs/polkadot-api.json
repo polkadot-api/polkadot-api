@@ -1,0 +1,6 @@
+{
+  "ksm": {
+    "chain": "ksmcc3",
+    "metadata": "../../packages/metadata-fixtures/ksm-metadata.scale"
+  }
+}

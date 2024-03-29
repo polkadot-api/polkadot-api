@@ -1,4 +1,4 @@
-import { ConnectProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { JsonRpcProvider, WellKnownChain } from "@polkadot-api/sc-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 import { createProvider } from "./smolldot-worker"
 import { getObservableClient } from "@polkadot-api/client"
@@ -6,7 +6,7 @@ import { firstValueFrom } from "rxjs"
 
 const provider = createProvider(WellKnownChain.polkadot)
 
-const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
+const withLogsProvider = (input: JsonRpcProvider): JsonRpcProvider => {
   return (onMsg) => {
     const result = input((msg) => {
       console.log("<< " + msg)

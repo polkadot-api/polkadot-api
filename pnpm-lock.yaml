@@ -45,6 +45,27 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
 
+  examples/commonjs:
+    dependencies:
+      '@polkadot-api/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@polkadot-api/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@polkadot-api/legacy-polkadot-provider':
+        specifier: workspace:*
+        version: link:../../packages/legacy-polkadot-provider
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../../packages/substrate-client
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@substrate/connect':
+        specifier: ^0.8.4
+        version: 0.8.8
+
   examples/decode-viewer:
     dependencies:
       '@polkadot-api/substrate-bindings':
@@ -163,6 +184,9 @@ importers:
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../packages/client
+      '@polkadot-api/codegen':
+        specifier: workspace:*
+        version: link:../packages/codegen
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../packages/metadata-builders

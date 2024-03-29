@@ -26,8 +26,7 @@
   },
   "polkadot-api": {
     "wnd": {
-      "metadata": "wnd-metadata.scale",
-      "outputFolder": "./src/codegen/"
+      "metadata": "wnd-metadata.scale"
     }
   }
 }

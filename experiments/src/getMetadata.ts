@@ -1,7 +1,7 @@
 import {
   getScProvider,
   WellKnownChain,
-  ConnectProvider,
+  JsonRpcProvider,
 } from "@polkadot-api/sc-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 import {
@@ -24,7 +24,7 @@ const smProvider = scProvider(
 }*/,
 ).relayChain
 
-const withLogsProvider = (input: ConnectProvider): ConnectProvider => {
+const withLogsProvider = (input: JsonRpcProvider): JsonRpcProvider => {
   return (onMsg) => {
     const result = input((msg) => {
       console.log("<< " + msg)
@@ -58,7 +58,7 @@ export const getMetadata = (): Promise<Metadata> =>
           return
         }
         if (requested || message.type !== "initialized") return
-        const latestFinalized = message.finalizedBlockHash
+        const latestFinalized = message.finalizedBlockHashes.at(-1)!
         if (requested) return
         requested = true
 

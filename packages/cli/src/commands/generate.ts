@@ -2,10 +2,11 @@ import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
 import { V15 } from "@polkadot-api/substrate-bindings"
-import fsExists from "fs.promises.exists"
 import fs from "fs/promises"
-import path from "path"
+import path, { join } from "path"
+import process from "process"
 import tsc from "tsc-prog"
+import tsup from "tsup"
 import { CommonOptions } from "./commonOptions"
 
 export interface GenerateOptions extends CommonOptions {
@@ -28,10 +29,18 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
-  const outputFolder = Object.values(sources)[0]?.outputFolder
-  if (outputFolder) {
-    await outputCodegen(chains, outputFolder)
-  }
+  const descriptorsDir = join(
+    process.cwd(),
+    "node_modules",
+    "@polkadot-api",
+    "descriptors",
+  )
+
+  await fs.mkdir(descriptorsDir, { recursive: true })
+  await generatePackageJson(join(descriptorsDir, "package.json"))
+  await outputCodegen(chains, join(descriptorsDir, "src"))
+  await compileCodegen(descriptorsDir)
+  await fs.rm(join(descriptorsDir, "src"), { recursive: true })
 }
 
 async function getSources(
@@ -72,7 +81,7 @@ async function outputCodegen(
     })
 
   console.log("Writing code")
-  await fs.mkdir(outputFolder, { recursive: true })
+  await fs.mkdir(outputFolder)
   await fs.writeFile(
     path.join(outputFolder, "checksums.json"),
     JSON.stringify(checksums),
@@ -81,38 +90,89 @@ async function outputCodegen(
     path.join(outputFolder, "common-types.ts"),
     typesFileContent,
   )
-  await fs.writeFile(
-    path.join(outputFolder, "public-types.ts"),
-    `export { ${publicTypes.join(",\n")} } from './common-types';`,
-  )
   await Promise.all(
     chains.map((chain, i) =>
-      createDtsFile(chain.key, outputFolder, descriptorsFileContent[i]),
+      fs.writeFile(
+        join(outputFolder, `${chain.key}.ts`),
+        descriptorsFileContent[i],
+      ),
     ),
   )
+  await generateIndex(
+    outputFolder,
+    chains.map((chain) => chain.key),
+    publicTypes,
+  )
+}
+
+async function compileCodegen(packageDir: string) {
+  const srcDir = join(packageDir, "src")
+  const outDir = join(packageDir, "dist")
+
+  await tsup.build({
+    format: ["cjs", "esm"],
+    entry: [path.join(srcDir, "index.ts")],
+    outDir,
+    outExtension: (ctx) => ({
+      js: ctx.format === "esm" ? ".mjs" : ".js",
+    }),
+  })
 
   tsc.build({
-    basePath: outputFolder,
+    basePath: srcDir,
     compilerOptions: {
       skipLibCheck: true,
-      emitDeclarationOnly: true,
       declaration: true,
+      emitDeclarationOnly: true,
       target: "esnext",
       module: "esnext",
       moduleResolution: "node",
       resolveJsonModule: true,
       allowSyntheticDefaultImports: true,
+      outDir,
     },
   })
 }
 
-const createDtsFile = async (key: string, dest: string, code: string) => {
-  const tscFileName = path.join(dest, key)
+const generateIndex = async (
+  path: string,
+  keys: string[],
+  publicTypes: string[],
+) => {
+  const indexTs = [
+    ...keys.flatMap((key) => [
+      `export { default as ${key} } from "./${key}";`,
+      `export type * from "./${key}";`,
+    ]),
+    `export {`,
+    publicTypes.join(", "),
+    `} from './common-types';`,
+  ].join("\n")
+  await fs.writeFile(join(path, "index.ts"), indexTs)
+}
 
-  if (await fsExists(`${tscFileName}.ts`)) await fs.rm(`${tscFileName}.ts`)
-
+const generatePackageJson = async (path: string) => {
   await fs.writeFile(
-    `${tscFileName}.ts`,
-    code + "\nexport * from './public-types'",
+    path,
+    `{
+      "name": "@polkadot-api/descriptors",
+      "exports": {
+        ".": {
+          "module": "./dist/index.mjs",
+          "import": "./dist/index.mjs",
+          "require": "./dist/index.js",
+          "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+      },
+      "main": "./dist/index.js",
+      "module": "./dist/index.mjs",
+      "browser": "./dist/index.mjs",
+      "types": "./dist/index.d.ts",
+      "sideEffects": false,
+      "peerDependencies": {
+        "@polkadot-api/client": "*"
+      }
+    }`,
   )
 }

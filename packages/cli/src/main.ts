@@ -21,10 +21,6 @@ program
   .command("add")
   .description("Add a new chain spec to the list")
   .argument("<key>", "Key identifier for the chain spec")
-  .argument(
-    "[dest]",
-    "Destination folder for the generated code. Defaults to src/codegen",
-  )
   .addOption(config)
   .option("-f, --file <filename>", "Source from metadata encoded file")
   .option("-w, --wsUrl <URL>", "Source from websocket url")

@@ -12,11 +12,7 @@ export interface AddOptions extends CommonOptions {
   persist?: boolean
 }
 
-export async function add(
-  key: string,
-  outputFolder = "src/codegen",
-  options: AddOptions,
-) {
+export async function add(key: string, options: AddOptions) {
   const entries = (await readPapiConfig(options.config)) ?? {}
   if (key in entries) {
     console.warn(`Replacing existing ${key} config`)
@@ -25,10 +21,9 @@ export async function add(
   if (options.file) {
     entries[key] = {
       metadata: options.file,
-      outputFolder,
     }
   } else {
-    const entry = entryFromOptions(outputFolder, options)
+    const entry = entryFromOptions(options)
     entries[key] = entry
 
     if (options.persist) {
@@ -48,25 +43,19 @@ export async function add(
   return console.log(`Saved new spec "${key}"`)
 }
 
-const entryFromOptions = (
-  outputFolder: string,
-  options: AddOptions,
-): EntryConfig => {
+const entryFromOptions = (options: AddOptions): EntryConfig => {
   if (options.wsUrl) {
     return {
-      outputFolder,
       wsUrl: options.wsUrl,
     }
   }
   if (options.chainSpec) {
     return {
-      outputFolder,
       chainSpec: options.chainSpec,
     }
   }
   if (options.name) {
     return {
-      outputFolder,
       chain: options.name as WellKnownChain,
     }
   }
