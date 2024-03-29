@@ -1,11 +1,11 @@
 import { PolkadotClient, TypedApi, createClient } from "@polkadot-api/client"
-import "./style.css"
-import { MultiAddress, wnd } from "@polkadot-api/client/descriptors"
+import { MultiAddress, wnd } from "@polkadot-api/descriptors"
 import {
   Account,
   getLegacyProvider,
 } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
+import "./style.css"
 
 const { relayChains, connectAccounts } = getLegacyProvider(createScClient())
 connectAccounts("polkadot-js")

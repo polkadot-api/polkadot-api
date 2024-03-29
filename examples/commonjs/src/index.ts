@@ -1,5 +1,5 @@
 import { createClient } from "@polkadot-api/client"
-import { ksm } from "@polkadot-api/client/descriptors"
+import { ksm } from "@polkadot-api/descriptors"
 import { getLegacyProvider } from "@polkadot-api/legacy-polkadot-provider"
 import { createScClient } from "@substrate/connect"
 

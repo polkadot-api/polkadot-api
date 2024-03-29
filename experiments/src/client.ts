@@ -3,7 +3,7 @@ import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { createClient, Binary } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
-import { KsmQueries, ksm } from "@polkadot-api/client/descriptors"
+import { KsmQueries, ksm } from "@polkadot-api/descriptors"
 const scProvider = getScProvider()
 
 const polkadotChain = getChain({

@@ -40,7 +40,6 @@
   },
   "polkadot-api": {
     "roc": {
-      "outputFolder": "src/codegen",
       "chain": "rococo_v2_2",
       "metadata": "roc.scale"
     }

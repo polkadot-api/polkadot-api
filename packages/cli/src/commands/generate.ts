@@ -2,14 +2,12 @@ import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
 import { V15 } from "@polkadot-api/substrate-bindings"
-import fsExists from "fs.promises.exists"
 import fs from "fs/promises"
 import path, { join } from "path"
 import process from "process"
 import tsc from "tsc-prog"
+import tsup from "tsup"
 import { CommonOptions } from "./commonOptions"
-import { createRequire } from "module"
-import { existsSync } from "fs"
 
 export interface GenerateOptions extends CommonOptions {
   key?: string
@@ -31,8 +29,18 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
-  const clientDir = join(getClientDir(), "descriptors/generated")
-  await outputCodegen(chains, clientDir)
+  const descriptorsDir = join(
+    process.cwd(),
+    "node_modules",
+    "@polkadot-api",
+    "descriptors",
+  )
+
+  await fs.mkdir(descriptorsDir, { recursive: true })
+  await generatePackageJson(join(descriptorsDir, "package.json"))
+  await outputCodegen(chains, join(descriptorsDir, "src"))
+  await compileCodegen(descriptorsDir)
+  await fs.rm(join(descriptorsDir, "src"), { recursive: true })
 }
 
 async function getSources(
@@ -67,16 +75,13 @@ async function outputCodegen(
 
   const { descriptorsFileContent, checksums, typesFileContent, publicTypes } =
     generateMultipleDescriptors(chains, {
-      client: "../../dist",
+      client: "@polkadot-api/client",
       checksums: "./checksums.json",
       types: "./common-types",
     })
 
   console.log("Writing code")
-  if (existsSync(outputFolder)) {
-    await fs.rm(outputFolder, { recursive: true })
-  }
-  await fs.mkdir(outputFolder, { recursive: true })
+  await fs.mkdir(outputFolder)
   await fs.writeFile(
     path.join(outputFolder, "checksums.json"),
     JSON.stringify(checksums),
@@ -87,7 +92,10 @@ async function outputCodegen(
   )
   await Promise.all(
     chains.map((chain, i) =>
-      createDtsFile(chain.key, outputFolder, descriptorsFileContent[i]),
+      fs.writeFile(
+        join(outputFolder, `${chain.key}.ts`),
+        descriptorsFileContent[i],
+      ),
     ),
   )
   await generateIndex(
@@ -95,73 +103,80 @@ async function outputCodegen(
     chains.map((chain) => chain.key),
     publicTypes,
   )
+}
 
-  console.log("Generating ESM")
-  tsc.build({
-    basePath: outputFolder,
+async function compileCodegen(packageDir: string) {
+  const srcDir = join(packageDir, "src")
+  const outDir = join(packageDir, "dist")
+
+  await tsup.build({
+    format: ["cjs", "esm"],
+    entry: [path.join(srcDir, "index.ts")],
+    outDir,
+    outExtension: (ctx) => ({
+      js: ctx.format === "esm" ? ".mjs" : ".js",
+    }),
+  })
+
+  await tsc.build({
+    basePath: srcDir,
     compilerOptions: {
       skipLibCheck: true,
       declaration: true,
+      emitDeclarationOnly: true,
       target: "esnext",
       module: "esnext",
       moduleResolution: "node",
       resolveJsonModule: true,
       allowSyntheticDefaultImports: true,
-    },
-  })
-  const generatedFiles = [
-    "index",
-    "common-types",
-    ...chains.map((chain) => chain.key),
-  ]
-  await Promise.all(
-    generatedFiles.map((file) =>
-      fs.rename(
-        path.join(outputFolder, file + ".js"),
-        path.join(outputFolder, file + ".mjs"),
-      ),
-    ),
-  )
-
-  console.log("Generating CJS")
-  tsc.build({
-    basePath: outputFolder,
-    compilerOptions: {
-      skipLibCheck: true,
-      declaration: true,
-      target: "esnext",
-      module: "commonjs",
-      moduleResolution: "node",
-      resolveJsonModule: true,
-      allowSyntheticDefaultImports: true,
+      outDir,
     },
   })
 
-  await Promise.all(
-    generatedFiles.map((file) =>
-      fs.unlink(path.join(outputFolder, file + ".ts")),
-    ),
-  )
-}
+  // const esmDir = join(packageDir, "esm")
+  // const cjsDir = join(packageDir, "cjs")
 
-const createDtsFile = async (key: string, dest: string, code: string) => {
-  const tscFileName = path.join(dest, key)
+  // if (existsSync(esmDir)) await fs.rm(esmDir, { recursive: true })
+  // if (existsSync(cjsDir)) await fs.rm(cjsDir, { recursive: true })
 
-  if (await fsExists(`${tscFileName}.ts`)) await fs.rm(`${tscFileName}.ts`)
+  // console.log("Generating ESM")
+  // tsc.build({
+  //   basePath: srcDir,
+  //   compilerOptions: {
+  //     skipLibCheck: true,
+  //     declaration: true,
+  //     target: "esnext",
+  //     module: "esnext",
+  //     moduleResolution: "node",
+  //     resolveJsonModule: true,
+  //     allowSyntheticDefaultImports: true,
+  //     outDir: join(packageDir, "esm"),
+  //   },
+  // })
 
-  await fs.writeFile(`${tscFileName}.ts`, code)
-}
-
-const getClientDir = () => {
-  const require = createRequire(process.cwd() + "/")
-  const candidates = require.resolve.paths("@polkadot-api/client")
-  const result = candidates
-    ?.map((path) => join(path, "@polkadot-api", "client"))
-    .find(existsSync)
-  if (!result) {
-    throw new Error("@polkadot-api/client can't be found")
-  }
-  return result
+  // console.log("Generating CJS")
+  // tsc.build({
+  //   basePath: srcDir,
+  //   compilerOptions: {
+  //     skipLibCheck: true,
+  //     declaration: false,
+  //     target: "esnext",
+  //     module: "commonjs",
+  //     moduleResolution: "node",
+  //     resolveJsonModule: true,
+  //     allowSyntheticDefaultImports: true,
+  //     outDir: join(packageDir, "cjs"),
+  //   },
+  // })
+  // const nonSourceFiles = (await fs.readdir(srcDir)).filter(
+  //   (file) => !file.endsWith(".ts"),
+  // )
+  // await Promise.all(
+  //   nonSourceFiles.flatMap((file) => [
+  //     fs.copyFile(join(srcDir, file), join(esmDir, file)),
+  //     fs.copyFile(join(srcDir, file), join(cjsDir, file)),
+  //   ]),
+  // )
 }
 
 const generateIndex = async (
@@ -179,4 +194,30 @@ const generateIndex = async (
     `} from './common-types';`,
   ].join("\n")
   await fs.writeFile(join(path, "index.ts"), indexTs)
+}
+
+const generatePackageJson = async (path: string) => {
+  await fs.writeFile(
+    path,
+    `{
+      "name": "@polkadot-api/descriptors",
+      "exports": {
+        ".": {
+          "module": "./dist/index.mjs",
+          "import": "./dist/index.mjs",
+          "require": "./dist/index.js",
+          "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+      },
+      "main": "./dist/index.js",
+      "module": "./dist/index.mjs",
+      "browser": "./dist/index.mjs",
+      "types": "./dist/index.d.ts",
+      "sideEffects": false,
+      "peerDependencies": {
+        "@polkadot-api/client": "*"
+      }
+    }`,
+  )
 }
