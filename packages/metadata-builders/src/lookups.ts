@@ -23,7 +23,7 @@ export type PrimitiveVar = {
 }
 
 export type VoidVar = { type: "void" }
-export type CompactVar = { type: "compact"; isBig: boolean }
+export type CompactVar = { type: "compact"; isBig: boolean | null }
 export type BitSequenceVar = { type: "bitSequence" }
 export type AccountId32 = { type: "AccountId32" }
 export type TerminalVar =
@@ -314,7 +314,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
 
     if (def.tag === "compact") {
       const translated = getLookupEntryDef(def.value) as PrimitiveVar | VoidVar
-      if (translated.type === "void") return { type: "void" }
+      if (translated.type === "void") return { type: "compact", isBig: null }
 
       const isBig = Number(translated.value.slice(1)) > 32
 

@@ -27,10 +27,9 @@ type MetadataPrimitives =
   | "i256"
 
 export const primitiveTypes: Record<
-  MetadataPrimitives | "_void" | "compactNumber" | "compactBn",
+  MetadataPrimitives | "compactNumber" | "compactBn",
   string
 > = {
-  _void: "undefined",
   bool: "boolean",
   char: "string",
   str: "string",
@@ -115,9 +114,16 @@ const _buildSyntax = (
   }
 
   if (input.type === "primitive") return { type: primitiveTypes[input.value] }
+  if (input.type === "void") return { type: "undefined" }
   if (input.type === "AccountId32") return clientImport("SS58String")
   if (input.type === "compact")
-    return { type: input.isBig ? "bigint" : "number" }
+    return {
+      type: input.isBig
+        ? "bigint"
+        : input.isBig === null
+          ? "number | bigint"
+          : "number",
+    }
   if (input.type === "bitSequence")
     return { type: "{bytes: Uint8Array, bitsLen: number}" }
 
@@ -254,8 +260,11 @@ const _buildSyntax = (
 
   const dependencies = Object.values(input.value).map((value) => {
     const anonymize = (value: string) => `Anonymize<${value}>`
-    if (value.type === "lookupEntry")
-      return anonymize(buildNextSyntax(value.value))
+    if (value.type === "lookupEntry") {
+      const inner = buildNextSyntax(value.value)
+      addImport(inner)
+      return anonymize(inner.type)
+    }
 
     if (value.type === "void") return "undefined"
 
@@ -384,12 +393,21 @@ export const getTypesBuilder = (
 
       const innerLookup = lookupEntry.value[name]
 
-      const newReturn = declarations.variables.get(
-        getChecksum(innerLookup),
-      )!.name
-      typeFileImports.add(newReturn)
+      if (innerLookup.type === "lookupEntry") {
+        const tmp = buildDefinition(innerLookup.value.id)
+        importType(tmp)
 
-      return `Anonymize<${newReturn}>`
+        return `Anonymize<${tmp.type}>`
+      } else if (innerLookup.type === "void") {
+        return "undefined"
+      } else {
+        const result = declarations.variables.get(
+          getChecksum(innerLookup),
+        )!.name
+        typeFileImports.add(result)
+
+        return `Anonymize<${result}>`
+      }
     }
 
   const buildConstant = (pallet: string, constantName: string) => {

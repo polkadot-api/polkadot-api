@@ -159,31 +159,39 @@ const _buildChecksum = (
   if (input.type === "compact")
     return getChecksum([
       shapeIds.primitive,
-      runtimePrimitiveIds[input.isBig ? "bigint" : "number"],
+      runtimePrimitiveIds[
+        input.isBig || input.isBig === null ? "bigint" : "number"
+      ],
     ])
 
   if (input.type === "bitSequence")
     return getChecksum([shapeIds.primitive, runtimePrimitiveIds.bitSequence])
-
-  if (
-    input.type === "sequence" &&
-    input.value.type === "primitive" &&
-    input.value.value === "u8"
-  ) {
-    return getChecksum([shapeIds.primitive, runtimePrimitiveIds.byteSequence])
-  }
 
   if (input.type === "AccountId32") {
     return getChecksum([shapeIds.primitive, runtimePrimitiveIds.accountId])
   }
 
   if (input.type === "array") {
-    const innerChecksum = buildNextChecksum(input.value)
+    const innerValue = input.value
+    if (innerValue.type === "primitive" && innerValue.value === "u8") {
+      return getChecksum([
+        shapeIds.primitive,
+        runtimePrimitiveIds.byteSequence,
+        BigInt(input.len),
+      ])
+    }
+    const innerChecksum = buildNextChecksum(innerValue)
+
     return getChecksum([shapeIds.vector, innerChecksum, BigInt(input.len)])
   }
 
   if (input.type === "sequence") {
-    const innerChecksum = buildNextChecksum(input.value)
+    const innerValue = input.value
+    if (innerValue.type === "primitive" && innerValue.value === "u8") {
+      return getChecksum([shapeIds.primitive, runtimePrimitiveIds.byteSequence])
+    }
+    const innerChecksum = buildNextChecksum(innerValue)
+
     return getChecksum([shapeIds.vector, innerChecksum])
   }
 
