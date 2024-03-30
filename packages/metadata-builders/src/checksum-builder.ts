@@ -174,7 +174,15 @@ const _buildChecksum = (
   }
 
   if (input.type === "array") {
-    const innerChecksum = buildNextChecksum(input.value)
+    const innerValue = input.value
+    if (innerValue.type === "primitive" && innerValue.value === "u8") {
+      return getChecksum([
+        shapeIds.primitive,
+        runtimePrimitiveIds.byteSequence,
+        BigInt(input.len),
+      ])
+    }
+    const innerChecksum = buildNextChecksum(innerValue)
     return getChecksum([shapeIds.vector, innerChecksum, BigInt(input.len)])
   }
 
