@@ -1,8 +1,5 @@
 import type { StringRecord, V14Lookup } from "@polkadot-api/substrate-bindings"
 
-export type VoidVar = { type: "primitive"; value: "_void" }
-const voidVar: VoidVar = { type: "primitive", value: "_void" }
-
 export type MetadataPrimitives =
   | "bool"
   | "char"
@@ -20,22 +17,27 @@ export type MetadataPrimitives =
   | "i128"
   | "i256"
 
-export type PrimitiveVar =
-  | {
-      type: "primitive"
-      value: MetadataPrimitives
-    }
-  | VoidVar
+export type PrimitiveVar = {
+  type: "primitive"
+  value: MetadataPrimitives
+}
 
+export type VoidVar = { type: "void" }
 export type CompactVar = { type: "compact"; isBig: boolean }
 export type BitSequenceVar = { type: "bitSequence" }
 export type AccountId32 = { type: "AccountId32" }
 export type TerminalVar =
   | PrimitiveVar
+  | VoidVar
   | CompactVar
   | BitSequenceVar
   | AccountId32
 
+/* Array-like vars:
+ * - TupleVar: Mixed types, fixed length
+ * - Sequence: One type, arbitrary length
+ * - Array: One type, fixed length
+ */
 export type TupleVar = {
   type: "tuple"
   value: LookupEntry[]
@@ -51,7 +53,7 @@ export type EnumVar = {
   value: StringRecord<
     (
       | { type: "lookupEntry"; value: LookupEntry }
-      | { type: "void" }
+      | VoidVar
       | TupleVar
       | StructVar
     ) & { idx: number }
@@ -135,7 +137,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     const { def, path, params } = lookupData[id]
 
     if (def.tag === "composite") {
-      if (def.value.length === 0) return voidVar
+      if (def.value.length === 0) return { type: "void" }
 
       // used to be a "pointer"
       if (def.value.length === 1) {
@@ -181,8 +183,8 @@ export const getLookupFn = (lookupData: V14Lookup) => {
         params[0].name === "T"
       ) {
         const value = getLookupEntryDef(params[0].type!)
-        return value.type === "primitive" && value.value === "_void"
-          ? // Option(_void) would return a Codec<undefined> which makes no sense
+        return value.type === "void"
+          ? // Option<void> would return a Codec<undefined> which makes no sense
             // Therefore, we better treat it as a bool
             { type: "primitive", value: "bool" }
           : {
@@ -206,7 +208,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
           },
         }
       }
-      if (def.value.length === 0) return voidVar
+      if (def.value.length === 0) return { type: "void" }
 
       const enumValue: StringRecord<EnumVar["value"][keyof EnumVar["value"]]> =
         {}
@@ -276,22 +278,8 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       const { len } = def.value
       const value = getLookupEntryDef(def.value.type)
 
-      if (len === 0) return { type: "primitive", value: "_void" }
+      if (len === 0) return { type: "void" }
       if (len === 1) return value
-
-      // It's preferable to treat it as a Tuple when the size
-      // is reasonably small
-      if (len < 10) {
-        const values = Array(len)
-          .fill(null)
-          .map(() => value)
-
-        return {
-          type: "tuple",
-          value: values,
-          innerDocs: values.map(() => []),
-        }
-      }
 
       return {
         type: "array",
@@ -301,7 +289,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     }
 
     if (def.tag === "tuple") {
-      if (def.value.length === 0) return voidVar
+      if (def.value.length === 0) return { type: "void" }
 
       // use to be a "pointer"
       if (def.value.length === 1)
@@ -325,7 +313,9 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     }
 
     if (def.tag === "compact") {
-      const translated = getLookupEntryDef(def.value as number) as PrimitiveVar
+      const translated = getLookupEntryDef(def.value) as PrimitiveVar | VoidVar
+      if (translated.type === "void") return { type: "void" }
+
       const isBig = Number(translated.value.slice(1)) > 32
 
       return {

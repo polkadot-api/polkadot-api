@@ -5,6 +5,7 @@ import {
   MetadataPrimitives,
   StructVar,
   TupleVar,
+  VoidVar,
   getLookupFn,
 } from "./lookups"
 
@@ -24,6 +25,7 @@ const getStringChecksum = (values: Array<string>) =>
 
 type Shape =
   | "primitive"
+  | "void"
   | "vector"
   | "tuple"
   | "struct"
@@ -38,6 +40,7 @@ const shapeIds: Record<Shape, bigint> = {
   option: 4n,
   result: 5n,
   enum: 6n,
+  void: 7n,
 }
 
 type RuntimePrimitives =
@@ -61,8 +64,7 @@ const runtimePrimitiveIds: Record<RuntimePrimitives, bigint> = {
   accountId: 7n, // SS58String
 }
 
-const metadataPrimitiveIds: Record<MetadataPrimitives | "_void", bigint> = {
-  _void: runtimePrimitiveIds.undefined,
+const metadataPrimitiveIds: Record<MetadataPrimitives, bigint> = {
   bool: runtimePrimitiveIds.boolean,
   char: runtimePrimitiveIds.string,
   str: runtimePrimitiveIds.string,
@@ -109,8 +111,8 @@ const buildGraph = (entry: LookupEntry, result: Graph = new Map()) => {
       break
     case "enum": {
       const children = Object.values(entry.value).flatMap((value) => {
-        if (value.type === "lookupEntry") return value.value
         if (value.type === "void") return []
+        if (value.type === "lookupEntry") return value.value
         if (value.type === "struct") return Object.values(value.value)
         return value.value
       })
@@ -151,6 +153,8 @@ const _buildChecksum = (
 ): bigint => {
   if (input.type === "primitive")
     return getChecksum([shapeIds.primitive, metadataPrimitiveIds[input.value]])
+
+  if (input.type === "void") return getChecksum([shapeIds.void])
 
   if (input.type === "compact")
     return getChecksum([
@@ -199,7 +203,7 @@ const _buildChecksum = (
   if (input.type === "result")
     return getChecksum([
       shapeIds.result,
-      buildNextChecksum(input.value.ko),
+      buildNextChecksum(input.value.ok),
       buildNextChecksum(input.value.ko),
     ])
 
@@ -207,7 +211,7 @@ const _buildChecksum = (
     if (entry.type === "lookupEntry") return buildNextChecksum(entry.value)
     switch (entry.type) {
       case "void":
-        return metadataPrimitiveIds._void
+        return getChecksum([shapeIds.void])
       case "tuple":
         return buildTuple(entry.value)
       case "struct":
@@ -429,9 +433,7 @@ export const getChecksumBuilder = (metadata: V15) => {
     }
   }
 
-  const buildComposite = (
-    input: TupleVar | StructVar | { type: "void" },
-  ): bigint => {
+  const buildComposite = (input: TupleVar | StructVar | VoidVar): bigint => {
     if (input.type === "void") return getChecksum([0n])
 
     if (input.type === "tuple") {
@@ -462,7 +464,7 @@ export const getChecksumBuilder = (metadata: V15) => {
         const enumLookup = getLookupEntryDef(
           palletEntry[variantType]! as number,
         )
-        buildDefinition(callsLookup.id)
+        buildDefinition(enumLookup.id)
 
         if (enumLookup.type !== "enum") throw null
         const entry = enumLookup.value[name]
