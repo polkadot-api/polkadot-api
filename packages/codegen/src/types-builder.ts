@@ -164,6 +164,34 @@ const _buildSyntax = (
     return typesImport(name)
   }
 
+  const buildArray = (
+    id: string,
+    inner: LookupEntry,
+    length: number,
+  ): TypeForEntry => {
+    const name = getName(id)
+    const variable: Variable = {
+      checksum: id,
+      type: "",
+      name,
+    }
+    declarations.variables.set(id, variable)
+
+    if (inner.type === "primitive" && inner.value === "u8") {
+      declarations.imports.add("FixedSizeBinary")
+
+      variable.type = `FixedSizeBinary<${length}>`
+    } else {
+      const innerType = buildNextSyntax(inner)
+      addImport(innerType)
+      declarations.imports.add("FixedSizeArray")
+
+      variable.type = `FixedSizeArray<${anonymize(innerType.type)}, ${length}>`
+    }
+
+    return typesImport(name)
+  }
+
   const buildTuple = (id: string, value: LookupEntry[]): TypeForEntry => {
     const name = getName(id)
     const variable: Variable = {
@@ -200,12 +228,7 @@ const _buildSyntax = (
   }
 
   if (input.type === "array") {
-    // Bytes case
-    if (input.value.type === "primitive" && input.value.value === "u8")
-      return clientImport("Binary")
-
-    // non-fixed size Vector case
-    return buildVector(checksum, input.value)
+    return buildArray(checksum, input.value, input.len)
   }
 
   if (input.type === "sequence") return buildVector(checksum, input.value)

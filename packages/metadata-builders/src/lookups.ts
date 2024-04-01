@@ -298,6 +298,15 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       const value = def.value.map((x) => getLookupEntryDef(x as number))
       const innerDocs = def.value.map((x) => lookupData[x].docs)
 
+      const areAllSame = value.every((v) => v.id === value[0].id)
+      if (areAllSame && innerDocs.every((doc) => doc.length === 0)) {
+        return {
+          type: "array",
+          value: value[0],
+          len: value.length,
+        }
+      }
+
       return {
         type: "tuple",
         value,

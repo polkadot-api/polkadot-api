@@ -268,6 +268,8 @@ export const generateDescriptors = (
     "RuntimeDescriptor",
     "Enum",
     "_Enum",
+    "FixedSizeBinary",
+    "FixedSizeArray",
     "QueryFromDescriptors",
     "TxFromDescriptors",
     "EventsFromDescriptors",
@@ -322,6 +324,7 @@ type SeparateUndefined<T> = undefined extends T
   : T
 
 type Anonymize<T> = SeparateUndefined<
+  T extends FixedSizeBinary<infer L> ? FixedSizeBinary<L> :
   T extends
     | string
     | number
@@ -343,8 +346,10 @@ type Anonymize<T> = SeparateUndefined<
           }
         : T extends []
           ? []
-          : T extends Array<infer A>
-            ? Array<A>
+          : T extends FixedSizeArray<infer T, infer L>
+            ? number extends L
+              ? Array<T>
+              : FixedSizeArray<T, L>
             : {
                 [K in keyof T & string]: T[K]
               }

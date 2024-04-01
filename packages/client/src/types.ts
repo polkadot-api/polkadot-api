@@ -121,3 +121,5 @@ export interface PolkadotClient {
   submit: (transaction: HexString) => Promise<TxFinalizedPayload>
   submitAndWatch: (transaction: HexString) => Observable<TxEvents>
 }
+
+export type FixedSizeArray<T, L extends number> = Array<T> & { length: L }
