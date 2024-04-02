@@ -10,7 +10,7 @@ type DigestItem = Enum<
 >
 
 // polkadot_runtime,RuntimeEvent
-// de34t9q69e2j6
+// g5c5925ajuhf
 type PolkadotRuntimeEvent = Enum<
   | { type: "System"; value: Anonymize<PalletEvent> }
   | { type: "Scheduler"; value: Anonymize<SchedulerEvent> }
@@ -312,7 +312,7 @@ type PreimagesBounded = Enum<
 >
 
 // polkadot_runtime,RuntimeCall
-// 87qsc0rkcck4h
+// ba8llnk6vilc1
 type PolkadotRuntimeRuntimeCall = Enum<
   | { type: "System"; value: Anonymize<PalletCall> }
   | { type: "Scheduler"; value: Anonymize<SchedulerPalletCall> }
@@ -402,7 +402,7 @@ type SystemPalletCall = Enum<
 >
 
 // pallet_scheduler,pallet,Call
-// 1mum455a9gns6
+// 63lttqq192u3u
 type SchedulerPalletCall = Enum<
   | { type: "schedule"; value: Anonymize<I9rdmmgjk34dr5> }
   | { type: "cancel"; value: Anonymize<I5n4sebgkfr760> }
@@ -760,7 +760,7 @@ type TraitsScheduleDispatchTime = Enum<
 >
 
 // pallet_whitelist,pallet,Call
-// ahaflmpl38som
+// 9djtho2ujkjru
 type WhitelistPalletCall = Enum<
   | { type: "whitelist_call"; value: Anonymize<I8413rb6im3iko> }
   | { type: "remove_whitelisted_call"; value: Anonymize<I8413rb6im3iko> }
@@ -798,7 +798,7 @@ type VestingPalletCall = Enum<
 >
 
 // pallet_utility,pallet,Call
-// 8e2cmllth3kf8
+// 1do24ko4ttjjh
 type UtilityPalletCall = Enum<
   | { type: "batch"; value: Anonymize<I5nt83bjbs8adq> }
   | { type: "as_derivative"; value: Anonymize<I5dd5n6i2aokg9> }
@@ -897,7 +897,7 @@ type IdentityJudgement = Enum<
 >
 
 // pallet_proxy,pallet,Call
-// 408jh0aa8oolr
+// ee51a0b95ro6t
 type ProxyPalletCall = Enum<
   | { type: "proxy"; value: Anonymize<I5qk1jhgai8p1i> }
   | { type: "add_proxy"; value: Anonymize<Iaaog12m0bl04j> }
@@ -925,7 +925,7 @@ type ProxyType = Enum<
 >
 
 // pallet_multisig,pallet,Call
-// 45lq3lvbnfa8h
+// 6b144vgnnj706
 type MultisigPalletCall = Enum<
   | { type: "as_multi_threshold_1"; value: Anonymize<Ifh15js2h1oacm> }
   | { type: "as_multi"; value: Anonymize<Iea90e94llgau7> }
@@ -1883,7 +1883,7 @@ type MultisigEvent = Enum<
 >
 
 // pallet_bounties,pallet,Event
-// alepu0vuuvje8
+// ei6k1tdcht3q
 type BountiesEvent = Enum<
   | { type: "BountyProposed"; value: Anonymize<I666bl2fqjkejo> }
   | { type: "BountyRejected"; value: Anonymize<Id9idaj83175f9> }
@@ -3237,7 +3237,7 @@ type MmrPrimitivesError = Enum<
 >
 
 // polkadot_runtime,RuntimeError
-// 6g80grgit8ufa
+// etl8s4bnnlm8n
 type RuntimeError = Enum<
   | { type: "System"; value: Anonymize<PalletError> }
   | { type: "Scheduler"; value: Anonymize<SchedulerPalletError> }

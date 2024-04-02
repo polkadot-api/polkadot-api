@@ -21,6 +21,7 @@ import {
 import { start } from "smoldot"
 import { getMetadataFromProvider } from "./getMetadata"
 import { readFile, writeFile } from "node:fs/promises"
+import { V15 } from "@polkadot-api/substrate-bindings"
 
 const chains = {
   dot: [polkadot],
@@ -107,7 +108,7 @@ async function getCurrentKnownTypes() {
     mapObject(chains, (_, key) =>
       readFile(getMetadataPath(key), "utf-8").then((r) => {
         try {
-          return JSON.parse(r)
+          return JSON.parse(r) as V15
         } catch (ex) {
           console.error(key, ex)
           throw ex
@@ -156,17 +157,23 @@ async function refreshTypes() {
     string,
     [string, number]
   >
-  const checksumBuilders = mapObject(chains, (_, key) =>
-    readFile(getMetadataPath(key), "utf-8")
-      .then((r) => {
-        try {
-          return JSON.parse(r)
-        } catch (ex) {
-          console.error(key, ex)
-          throw ex
-        }
-      })
-      .then(getChecksumBuilder),
+  const bundledKnownTypes = getBundledKnownTypes()
+  const paths = new Set(
+    Array.from(bundledKnownTypes.keys()).filter((key) => key.includes(",")),
+  )
+
+  const metadatas = mapObject(chains, (_, key) =>
+    readFile(getMetadataPath(key), "utf-8").then((r) => {
+      try {
+        return JSON.parse(r) as V15
+      } catch (ex) {
+        console.error(key, ex)
+        throw ex
+      }
+    }),
+  )
+  const checksumBuilders = mapObject(metadatas, (metadata) =>
+    metadata.then(getChecksumBuilder),
   )
 
   for (const entry of Object.entries(checksumMap)) {
@@ -174,7 +181,26 @@ async function refreshTypes() {
     const newChecksum = (await checksumBuilders[key]).buildDefinition(idx)
     if (!newChecksum) throw new Error("Unreachable")
 
+    const path = (await metadatas[key]).lookup[idx].path.join(",")
+    paths.delete(path)
     knownTypes = knownTypes.replaceAll(checksum, newChecksum)
+  }
+
+  // Try to find missing paths
+  for (const key of Object.keys(metadatas)) {
+    const metadata = await metadatas[key]
+    const builder = await checksumBuilders[key]
+    for (let idx = 0; idx < metadata.lookup.length; idx++) {
+      const path = metadata.lookup[idx].path.join(",")
+      if (!paths.has(path)) continue
+      paths.delete(path)
+
+      const checksum = builder.buildDefinition(idx)!
+      const oldChecksum = bundledKnownTypes.get(path)
+      if (oldChecksum && checksum !== oldChecksum) {
+        knownTypes = knownTypes.replaceAll(oldChecksum, checksum)
+      }
+    }
   }
 
   await writeFile(knownTypesFile, knownTypes)
