@@ -4,6 +4,7 @@ import {
 } from "@polkadot-api/metadata-builders"
 import { V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
+import knownTypesContent from "./known-types"
 import { getTypesBuilder } from "./types-builder"
 
 const isDocs = (x: any) => {
@@ -47,6 +48,9 @@ export const getKnownTypesFromFileContent = (fileContent: string) => {
   })
   return knownTypes
 }
+
+export const getBundledKnownTypes = () =>
+  getKnownTypesFromFileContent(knownTypesContent)
 
 export const generateDescriptors = (
   metadata: V15,
@@ -268,6 +272,8 @@ export const generateDescriptors = (
     "RuntimeDescriptor",
     "Enum",
     "_Enum",
+    "FixedSizeBinary",
+    "FixedSizeArray",
     "QueryFromDescriptors",
     "TxFromDescriptors",
     "EventsFromDescriptors",
@@ -322,6 +328,7 @@ type SeparateUndefined<T> = undefined extends T
   : T
 
 type Anonymize<T> = SeparateUndefined<
+  T extends FixedSizeBinary<infer L> ? FixedSizeBinary<L> :
   T extends
     | string
     | number
@@ -343,8 +350,10 @@ type Anonymize<T> = SeparateUndefined<
           }
         : T extends []
           ? []
-          : T extends Array<infer A>
-            ? Array<A>
+          : T extends FixedSizeArray<infer L, infer T>
+            ? number extends L
+              ? Array<T>
+              : FixedSizeArray<L, T>
             : {
                 [K in keyof T & string]: T[K]
               }

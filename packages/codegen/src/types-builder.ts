@@ -5,7 +5,6 @@ import {
   getChecksumBuilder,
   TupleVar,
   StructVar,
-  VoidVar,
 } from "@polkadot-api/metadata-builders"
 import { withCache } from "./with-cache"
 import { mapObject } from "@polkadot-api/utils"
@@ -28,10 +27,9 @@ type MetadataPrimitives =
   | "i256"
 
 export const primitiveTypes: Record<
-  MetadataPrimitives | "_void" | "compactNumber" | "compactBn",
+  MetadataPrimitives | "compactNumber" | "compactBn",
   string
 > = {
-  _void: "undefined",
   bool: "boolean",
   char: "string",
   str: "string",
@@ -88,7 +86,7 @@ const _buildSyntax = (
   cache: Map<number, TypeForEntry>,
   stack: Set<number>,
   declarations: CodeDeclarations,
-  getChecksum: (id: number | StructVar | TupleVar | VoidVar) => string | null,
+  getChecksum: (id: number | StructVar | TupleVar) => string | null,
   knownTypes: Map<string, string>,
 ): TypeForEntry => {
   const addImport = (entry: TypeForEntry) => {
@@ -116,9 +114,16 @@ const _buildSyntax = (
   }
 
   if (input.type === "primitive") return { type: primitiveTypes[input.value] }
+  if (input.type === "void") return { type: "undefined" }
   if (input.type === "AccountId32") return clientImport("SS58String")
   if (input.type === "compact")
-    return { type: input.isBig ? "bigint" : "number" }
+    return {
+      type: input.isBig
+        ? "bigint"
+        : input.isBig === null
+          ? "number | bigint"
+          : "number",
+    }
   if (input.type === "bitSequence")
     return { type: "{bytes: Uint8Array, bitsLen: number}" }
 
@@ -159,6 +164,34 @@ const _buildSyntax = (
     return typesImport(name)
   }
 
+  const buildArray = (
+    id: string,
+    inner: LookupEntry,
+    length: number,
+  ): TypeForEntry => {
+    const name = getName(id)
+    const variable: Variable = {
+      checksum: id,
+      type: "",
+      name,
+    }
+    declarations.variables.set(id, variable)
+
+    if (inner.type === "primitive" && inner.value === "u8") {
+      declarations.imports.add("FixedSizeBinary")
+
+      variable.type = `FixedSizeBinary<${length}>`
+    } else {
+      const innerType = buildNextSyntax(inner)
+      addImport(innerType)
+      declarations.imports.add("FixedSizeArray")
+
+      variable.type = `FixedSizeArray<${length}, ${anonymize(innerType.type)}>`
+    }
+
+    return typesImport(name)
+  }
+
   const buildTuple = (id: string, value: LookupEntry[]): TypeForEntry => {
     const name = getName(id)
     const variable: Variable = {
@@ -195,12 +228,7 @@ const _buildSyntax = (
   }
 
   if (input.type === "array") {
-    // Bytes case
-    if (input.value.type === "primitive" && input.value.value === "u8")
-      return clientImport("Binary")
-
-    // non-fixed size Vector case
-    return buildVector(checksum, input.value)
+    return buildArray(checksum, input.value, input.len)
   }
 
   if (input.type === "sequence") return buildVector(checksum, input.value)
@@ -253,19 +281,17 @@ const _buildSyntax = (
   }
   declarations.variables.set(checksum, variable)
 
-  const dependencies = Object.entries(input.value).map(([key, value]) => {
-    if (value.type === "primitive") return "undefined"
-
-    let innerChecksum: string
+  const dependencies = Object.values(input.value).map((value) => {
     const anonymize = (value: string) => `Anonymize<${value}>`
-
-    if (value.type === "tuple" && value.value.length === 1) {
-      innerChecksum = getChecksum(value.value[0].id)!
-      const inner = buildNextSyntax(value.value[0])
+    if (value.type === "lookupEntry") {
+      const inner = buildNextSyntax(value.value)
       addImport(inner)
       return anonymize(inner.type)
     }
-    innerChecksum = getChecksum(input.value[key])!
+
+    if (value.type === "void") return "undefined"
+
+    let innerChecksum = getChecksum(value)!
 
     const builder = value.type === "tuple" ? buildTuple : buildStruct
     const inner = builder(innerChecksum, value.value as any)
@@ -312,7 +338,7 @@ export const getTypesBuilder = (
   const getLookupEntryDef = getLookupFn(lookupData)
   const checksumBuilder = getChecksumBuilder(metadata)
 
-  const getChecksum = (id: number | StructVar | TupleVar | VoidVar): string =>
+  const getChecksum = (id: number | StructVar | TupleVar): string =>
     typeof id === "number"
       ? checksumBuilder.buildDefinition(id)!
       : checksumBuilder.buildComposite(id)!
@@ -389,17 +415,22 @@ export const getTypesBuilder = (
       buildDefinition(lookupEntry.id)
 
       const innerLookup = lookupEntry.value[name]
-      if (innerLookup.type === "primitive") return "undefined"
 
-      if (innerLookup.type === "tuple" && innerLookup.value.length === 1)
-        return buildTypeDefinition(innerLookup.value[0].id)
+      if (innerLookup.type === "lookupEntry") {
+        const tmp = buildDefinition(innerLookup.value.id)
+        importType(tmp)
 
-      const newReturn = declarations.variables.get(
-        getChecksum(innerLookup),
-      )!.name
-      typeFileImports.add(newReturn)
+        return `Anonymize<${tmp.type}>`
+      } else if (innerLookup.type === "void") {
+        return "undefined"
+      } else {
+        const result = declarations.variables.get(
+          getChecksum(innerLookup),
+        )!.name
+        typeFileImports.add(result)
 
-      return `Anonymize<${newReturn}>`
+        return `Anonymize<${result}>`
+      }
     }
 
   const buildConstant = (pallet: string, constantName: string) => {

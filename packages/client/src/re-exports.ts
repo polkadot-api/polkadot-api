@@ -14,6 +14,7 @@ export type {
   ConstFromDescriptors,
   RuntimeDescriptor,
   ResultPayload,
+  FixedSizeBinary,
 } from "@polkadot-api/substrate-bindings"
 export {
   AccountId,

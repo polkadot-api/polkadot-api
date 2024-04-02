@@ -35,6 +35,7 @@ export const generateTypes = (
     : T
   
   type Anonymize<T> = SeparateUndefined<
+    T extends FixedSizeBinary<infer L> ? FixedSizeBinary<L> :
     T extends
       | string
       | number
@@ -56,8 +57,10 @@ export const generateTypes = (
             }
           : T extends []
             ? []
-            : T extends Array<infer A>
-              ? Array<A>
+            : T extends FixedSizeArray<infer L, infer T>
+              ? number extends L
+                ? Array<T>
+                : FixedSizeArray<L, T>
               : {
                   [K in keyof T & string]: T[K]
                 }

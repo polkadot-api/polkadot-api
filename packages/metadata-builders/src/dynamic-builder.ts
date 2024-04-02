@@ -14,17 +14,10 @@ const _buildCodec = (
   _accountId: Codec<scale.SS58String>,
 ): Codec<any> => {
   if (input.type === "primitive") return scale[input.value]
+  if (input.type === "void") return scale._void
   if (input.type === "AccountId32") return _accountId
   if (input.type === "compact") return scale.compact
   if (input.type === "bitSequence") return scale.bitSequence
-
-  if (
-    input.type === "sequence" &&
-    input.value.type === "primitive" &&
-    input.value.value === "u8"
-  ) {
-    return _bytes
-  }
 
   const buildNextCodec = (nextInput: LookupEntry): Codec<any> =>
     buildCodec(nextInput, cache, stack, _accountId)
@@ -42,6 +35,14 @@ const _buildCodec = (
       Object.entries(value).map(([key, value]) => [key, buildNextCodec(value)]),
     ) as StringRecord<Codec<any>>
     return scale.Struct(inner)
+  }
+
+  if (
+    input.type === "sequence" &&
+    input.value.type === "primitive" &&
+    input.value.value === "u8"
+  ) {
+    return _bytes
   }
 
   if (input.type === "array") {
@@ -66,10 +67,8 @@ const _buildCodec = (
 
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
-    if (v.type === "primitive") return scale._void
-    if (v.type === "tuple" && v.value.length === 1)
-      return buildNextCodec(v.value[0])
-
+    if (v.type === "void") return scale._void
+    if (v.type === "lookupEntry") return buildNextCodec(v.value)
     return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
   })
 
@@ -164,11 +163,8 @@ export const getDynamicBuilder = (metadata: V15) => {
   const buildEnumEntry = (
     entry: EnumVar["value"][keyof EnumVar["value"]],
   ): Codec<any> => {
-    if (entry.type === "primitive") return scale._void
-
-    if (entry.type === "tuple" && entry.value.length === 1)
-      return buildDefinition(entry.value[0].id)
-
+    if (entry.type === "void") return scale._void
+    if (entry.type === "lookupEntry") return buildDefinition(entry.value.id)
     return entry.type === "tuple"
       ? scale.Tuple(
           ...Object.values(entry.value).map((l) => buildDefinition(l.id)),

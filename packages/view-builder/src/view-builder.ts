@@ -99,9 +99,12 @@ const _buildShapedDecoder = (
   _accountId: WithShapeWithoutExtra<AccountIdDecoded>,
 ): ShapedDecoder => {
   if (input.type === "primitive") return primitives[input.value]
+  if (input.type === "void") return primitives._void
   if (input.type === "AccountId32") return _accountId
   if (input.type === "compact")
-    return input.isBig ? primitives.compactBn : primitives.compactNumber
+    return input.isBig || input.isBig === null
+      ? primitives.compactBn
+      : primitives.compactNumber
   if (input.type === "bitSequence") return primitives.bitSequence
 
   if (
@@ -152,9 +155,9 @@ const _buildShapedDecoder = (
 
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
-    if (v.type === "primitive") return primitives._void
-    if (v.type === "tuple" && v.value.length === 1) {
-      return buildNext(v.value[0])
+    if (v.type === "void") return primitives._void
+    if (v.type === "lookupEntry") {
+      return buildNext(v.value)
     }
     return v.type === "tuple"
       ? buildTuple(v.value, v.innerDocs)
@@ -263,8 +266,10 @@ export const getViewBuilder: GetViewBuilder = (metadata: V15) => {
       entry: EnumVar["value"][keyof EnumVar["value"]],
       forceTuple = false,
     ): ShapedDecoder => {
-      if (entry.type === "primitive")
+      if (entry.type === "void")
         return forceTuple ? emptyTuple : primitives._void
+
+      if (entry.type === "lookupEntry") return getDecoder(entry.value.id)
 
       return entry.type === "tuple"
         ? complex.Tuple(

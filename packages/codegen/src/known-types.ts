@@ -1,6 +1,6 @@
 export default `
 // sp_runtime,generic,digest,DigestItem
-// a9nqlj8g2rd50
+// 7bvp9q4ceuk7
 type DigestItem = Enum<
   | { type: "PreRuntime"; value: Anonymize<Idhk5e7nto8mrb> }
   | { type: "Consensus"; value: Anonymize<Idhk5e7nto8mrb> }
@@ -10,7 +10,7 @@ type DigestItem = Enum<
 >
 
 // polkadot_runtime,RuntimeEvent
-// de34t9q69e2j6
+// g5c5925ajuhf
 type PolkadotRuntimeEvent = Enum<
   | { type: "System"; value: Anonymize<PalletEvent> }
   | { type: "Scheduler"; value: Anonymize<SchedulerEvent> }
@@ -64,7 +64,7 @@ type PolkadotRuntimeEvent = Enum<
 >
 
 // frame_system,pallet,Event
-// 2gc4echvba3ni
+// 5qmbgbglg3djl
 type PalletEvent = Enum<
   | { type: "ExtrinsicSuccess"; value: Anonymize<Iede1ukavoderd> }
   | { type: "ExtrinsicFailed"; value: Anonymize<Iennefu6o2bgdm> }
@@ -75,7 +75,7 @@ type PalletEvent = Enum<
 >
 
 // frame_support,dispatch,DispatchClass
-// 7h46ck91hh6vs
+// 90bksimft5ia2
 type DispatchClass = Enum<
   | { type: "Normal"; value: undefined }
   | { type: "Operational"; value: undefined }
@@ -83,13 +83,13 @@ type DispatchClass = Enum<
 >
 
 // frame_support,dispatch,Pays
-// erbskk1i7uho1
+// ehg04bj71rkd
 type DispatchPays = Enum<
   { type: "Yes"; value: undefined } | { type: "No"; value: undefined }
 >
 
 // sp_runtime,DispatchError
-// gnqino6he83j
+// edh5jo3t7dgka
 type DispatchError = Enum<
   | { type: "Other"; value: undefined }
   | { type: "CannotLookup"; value: undefined }
@@ -108,7 +108,7 @@ type DispatchError = Enum<
 >
 
 // sp_runtime,TokenError
-// 3ldui4cne5cf5
+// 5ltp1mv4fr7n7
 type TokenError = Enum<
   | { type: "FundsUnavailable"; value: undefined }
   | { type: "OnlyProvider"; value: undefined }
@@ -123,7 +123,7 @@ type TokenError = Enum<
 >
 
 // sp_arithmetic,ArithmeticError
-// 4agfqde3d73j5
+// 87r8lmtt997st
 type ArithmeticError = Enum<
   | { type: "Underflow"; value: undefined }
   | { type: "Overflow"; value: undefined }
@@ -131,14 +131,14 @@ type ArithmeticError = Enum<
 >
 
 // sp_runtime,TransactionalError
-// bp0epbgi7rrgf
+// f87qnbuqe30lh
 type TransactionalError = Enum<
   | { type: "LimitReached"; value: undefined }
   | { type: "NoLayer"; value: undefined }
 >
 
 // pallet_scheduler,pallet,Event
-// eg2uo0sn62ph5
+// cvnn3223kutus
 type SchedulerEvent = Enum<
   | { type: "Scheduled"; value: Anonymize<I5n4sebgkfr760> }
   | { type: "Canceled"; value: Anonymize<I5n4sebgkfr760> }
@@ -149,7 +149,7 @@ type SchedulerEvent = Enum<
 >
 
 // pallet_preimage,pallet,Event
-// a0lfn1qtnaa1q
+// 302o6h1bqiqgu
 type PreimageEvent = Enum<
   | { type: "Noted"; value: Anonymize<Id9d48vaes3c53> }
   | { type: "Requested"; value: Anonymize<Id9d48vaes3c53> }
@@ -165,7 +165,7 @@ type IndicesEvent = Enum<
 >
 
 // pallet_balances,pallet,Event
-// co59ab62teq7s
+// pa3jfc46ilad
 type BalancesEvent = Enum<
   | { type: "Endowed"; value: Anonymize<Icv68aq8841478> }
   | { type: "DustLost"; value: Anonymize<Ic262ibdoec56a> }
@@ -191,7 +191,7 @@ type BalancesEvent = Enum<
 >
 
 // frame_support,traits,tokens,misc,BalanceStatus
-// c3oq1k0pgfar0
+// 7u481jea1442o
 type BalanceStatus = Enum<
   { type: "Free"; value: undefined } | { type: "Reserved"; value: undefined }
 >
@@ -226,7 +226,7 @@ type StakingEvent = Enum<
 >
 
 // pallet_staking,Forcing
-// c142rsp117vl8
+// bs10onqorvq4b
 type StakingForcing = Enum<
   | { type: "NotForcing"; value: undefined }
   | { type: "ForceNew"; value: undefined }
@@ -235,7 +235,7 @@ type StakingForcing = Enum<
 >
 
 // pallet_offences,pallet,Event
-// fpeqv9u8n5chc
+// 1tac42poi01n8
 type OffencesEvent = Enum<{ type: "Offence"; value: Anonymize<I41n4hddrgegvb> }>
 
 // pallet_session,pallet,Event
@@ -246,7 +246,7 @@ type SessionEvent = Enum<{
 }>
 
 // pallet_grandpa,pallet,Event
-// 1rtj2rs2ro9mg
+// cg9t1ptkdnbi3
 type GrandpaEvent = Enum<
   | { type: "NewAuthorities"; value: Anonymize<Ib31jedabim0q7> }
   | { type: "Paused"; value: undefined }
@@ -254,7 +254,7 @@ type GrandpaEvent = Enum<
 >
 
 // pallet_im_online,pallet,Event
-// fvd6vtrm8npeq
+// 9jqrili6gan6u
 type ImOnlineEvent = Enum<
   | { type: "HeartbeatReceived"; value: Anonymize<I93nne97c4i0sr> }
   | { type: "AllGood"; value: undefined }
@@ -276,14 +276,14 @@ type TreasuryEvent = Enum<
 >
 
 // pallet_conviction_voting,pallet,Event
-// 2tqn2cgbi63ki
+// 7tae00r2its65
 type ConvictionVotingEvent = Enum<
   | { type: "Delegated"; value: Anonymize<Ic5oktqtdlvdvq> }
   | { type: "Undelegated"; value: Anonymize<SS58String> }
 >
 
 // pallet_referenda,pallet,Event
-// 9sl4d03v9o6fa
+// dfraa3b4eu018
 type ReferendaEvent = Enum<
   | { type: "Submitted"; value: Anonymize<Idhr9v8mlnjej> }
   | { type: "DecisionDepositPlaced"; value: Anonymize<I62nte77gksm0f> }
@@ -304,7 +304,7 @@ type ReferendaEvent = Enum<
 >
 
 // frame_support,traits,preimages,Bounded
-// 5ho590l6e9i0h
+// cgde8bg5ldqpa
 type PreimagesBounded = Enum<
   | { type: "Legacy"; value: Anonymize<Id9d48vaes3c53> }
   | { type: "Inline"; value: Anonymize<Binary> }
@@ -312,7 +312,7 @@ type PreimagesBounded = Enum<
 >
 
 // polkadot_runtime,RuntimeCall
-// 87qsc0rkcck4h
+// ba8llnk6vilc1
 type PolkadotRuntimeRuntimeCall = Enum<
   | { type: "System"; value: Anonymize<PalletCall> }
   | { type: "Scheduler"; value: Anonymize<SchedulerPalletCall> }
@@ -389,7 +389,7 @@ type PolkadotRuntimeRuntimeCall = Enum<
 >
 
 // frame_system,pallet,Call
-// 9e3da21snrnki
+// ccjej82b2j3c5
 type SystemPalletCall = Enum<
   | { type: "remark"; value: Anonymize<I8ofcg5rbj0g2c> }
   | { type: "set_heap_pages"; value: Anonymize<I4adgbll7gku4i> }
@@ -402,7 +402,7 @@ type SystemPalletCall = Enum<
 >
 
 // pallet_scheduler,pallet,Call
-// 1mum455a9gns6
+// 63lttqq192u3u
 type SchedulerPalletCall = Enum<
   | { type: "schedule"; value: Anonymize<I9rdmmgjk34dr5> }
   | { type: "cancel"; value: Anonymize<I5n4sebgkfr760> }
@@ -422,7 +422,7 @@ type PreimagePalletCall = Enum<
 >
 
 // pallet_babe,pallet,Call
-// 9rirk1cmljjr8
+// 1jeo0dpbkma5g
 type BabePalletCall = Enum<
   | { type: "report_equivocation"; value: Anonymize<I7mmbgd20nut80> }
   | { type: "report_equivocation_unsigned"; value: Anonymize<I7mmbgd20nut80> }
@@ -430,14 +430,14 @@ type BabePalletCall = Enum<
 >
 
 // sp_consensus_babe,digests,NextConfigDescriptor
-// dbrkktcap6cr5
+// ek17d55ubjjm9
 type BabeDigestsNextConfigDescriptor = Enum<{
   type: "V1"
   value: Anonymize<Idkva8q2m9meg0>
 }>
 
 // sp_consensus_babe,AllowedSlots
-// c7vee79u0e3in
+// 3g7a8g60ho721
 type BabeAllowedSlots = Enum<
   | { type: "PrimarySlots"; value: undefined }
   | { type: "PrimaryAndSecondaryPlainSlots"; value: undefined }
@@ -452,7 +452,7 @@ type TimestampPalletCall = Enum<{
 }>
 
 // pallet_indices,pallet,Call
-// 7ct9h8ssfj64t
+// 4gfcs0af6e39j
 type IndicesPalletCall = Enum<
   | { type: "claim"; value: Anonymize<I666bl2fqjkejo> }
   | { type: "transfer"; value: Anonymize<Idge7gk9m5car0> }
@@ -462,7 +462,7 @@ type IndicesPalletCall = Enum<
 >
 
 // sp_runtime,multiaddress,MultiAddress
-// 3vgoe4ibpkqsa
+// 5a3qnpcq081o6
 type MultiAddress = Enum<
   | { type: "Id"; value: Anonymize<SS58String> }
   | { type: "Index"; value: Anonymize<number> }
@@ -486,7 +486,7 @@ type BalancesPalletCall = Enum<
 >
 
 // pallet_staking,pallet,pallet,Call
-// ae9vpvjkouor
+// 4gpetiocnudbl
 type StakingPalletCall = Enum<
   | { type: "bond"; value: Anonymize<I9f7ms9viml8of> }
   | { type: "bond_extra"; value: Anonymize<I564va64vtidbq> }
@@ -517,7 +517,7 @@ type StakingPalletCall = Enum<
 >
 
 // pallet_staking,RewardDestination
-// k33dr5k1cir4
+// 4peoofcn0loqr
 type StakingRewardDestination = Enum<
   | { type: "Staked"; value: undefined }
   | { type: "Stash"; value: undefined }
@@ -527,7 +527,7 @@ type StakingRewardDestination = Enum<
 >
 
 // pallet_staking,pallet,pallet,ConfigOp
-// 1eecgmop7hnh1
+// fms5l9j358vie
 type StakingPalletConfigOp = Enum<
   | { type: "Noop"; value: undefined }
   | { type: "Set"; value: Anonymize<bigint> }
@@ -535,7 +535,7 @@ type StakingPalletConfigOp = Enum<
 >
 
 // pallet_staking,pallet,pallet,ConfigOp
-// ahhpbddec35sj
+// bb454pgf9ofrq
 type StakingPalletConfigOp1 = Enum<
   | { type: "Noop"; value: undefined }
   | { type: "Set"; value: Anonymize<number> }
@@ -550,7 +550,7 @@ type SessionPalletCall = Enum<
 >
 
 // pallet_grandpa,pallet,Call
-// cj2fr5fp8sh92
+// 5u9ggmn8umfqm
 type GrandpaPalletCall = Enum<
   | { type: "report_equivocation"; value: Anonymize<I4kjek1q6rj24q> }
   | { type: "report_equivocation_unsigned"; value: Anonymize<I4kjek1q6rj24q> }
@@ -558,14 +558,14 @@ type GrandpaPalletCall = Enum<
 >
 
 // sp_consensus_grandpa,Equivocation
-// 7duugv7e7ms79
+// brvqfk00lp42n
 type GrandpaEquivocation = Enum<
   | { type: "Prevote"; value: Anonymize<Igd938ojs7e2l> }
   | { type: "Precommit"; value: Anonymize<Igd938ojs7e2l> }
 >
 
 // pallet_im_online,pallet,Call
-// crveb3mpts9kd
+// 7ubsrnb7nbvds
 type ImOnlinePalletCall = Enum<{
   type: "heartbeat"
   value: Anonymize<Ifgbq9oil78ogk>
@@ -582,7 +582,7 @@ type TreasuryPalletCall = Enum<
 >
 
 // pallet_conviction_voting,pallet,Call
-// 6alau6l948gli
+// 7t0ikq66tic1d
 type ConvictionVotingPalletCall = Enum<
   | { type: "vote"; value: Anonymize<Idnsr2pndm36h0> }
   | { type: "delegate"; value: Anonymize<Id7ut33dljf52c> }
@@ -601,7 +601,7 @@ type ConvictionVotingVoteAccountVote = Enum<
 >
 
 // pallet_conviction_voting,conviction,Conviction
-// 4lulgvub647ta
+// 85ca14rjo42j5
 type VotingConviction = Enum<
   | { type: "None"; value: undefined }
   | { type: "Locked1x"; value: undefined }
@@ -613,7 +613,7 @@ type VotingConviction = Enum<
 >
 
 // pallet_referenda,pallet,Call
-// sr72goo5nq52
+// 76ia9hi2mtki0
 type ReferendaPalletCall = Enum<
   | { type: "submit"; value: Anonymize<I86t0cca08a1h1> }
   | { type: "place_decision_deposit"; value: Anonymize<I666bl2fqjkejo> }
@@ -627,7 +627,7 @@ type ReferendaPalletCall = Enum<
 >
 
 // polkadot_runtime,OriginCaller
-// 9on9043po1pat
+// 1fed1h86s1adc
 type PolkadotRuntimeOriginCaller = Enum<
   | { type: "system"; value: Anonymize<DispatchRawOrigin> }
   | {
@@ -643,7 +643,7 @@ type PolkadotRuntimeOriginCaller = Enum<
 >
 
 // frame_support,dispatch,RawOrigin
-// ddonul1av3dt
+// a3gvv195g4jot
 type DispatchRawOrigin = Enum<
   | { type: "Root"; value: undefined }
   | { type: "Signed"; value: Anonymize<SS58String> }
@@ -651,7 +651,7 @@ type DispatchRawOrigin = Enum<
 >
 
 // polkadot_runtime,governance,origins,pallet_custom_origins,Origin
-// 3keeb7khgorlv
+// 86j1nib528oqi
 type GovernanceOrigin = Enum<
   | { type: "StakingAdmin"; value: undefined }
   | { type: "Treasurer"; value: undefined }
@@ -670,21 +670,21 @@ type GovernanceOrigin = Enum<
 >
 
 // polkadot_runtime_parachains,origin,pallet,Origin
-// afo9nbdmgjt0l
+// 49em457ob9ou0
 type ParachainsOrigin = Enum<{
   type: "Parachain"
   value: Anonymize<number>
 }>
 
 // pallet_xcm,pallet,Origin
-// cfsu6vpd2084d
+// 30af8rr48c0nq
 type XcmPalletOrigin = Enum<
   | { type: "Xcm"; value: Anonymize<I43cmiele6sevi> }
   | { type: "Response"; value: Anonymize<I43cmiele6sevi> }
 >
 
 // xcm,v3,junctions,Junctions
-// 5g2mnv3ggfln
+// 2vq47ejc4o36c
 type XcmV3Junctions = Enum<
   | { type: "Here"; value: undefined }
   | { type: "X1"; value: Anonymize<XcmV3Junction> }
@@ -698,7 +698,7 @@ type XcmV3Junctions = Enum<
 >
 
 // xcm,v3,junction,Junction
-// 8ehjm0ablg1vv
+// aqrmqn3umgltq
 type XcmV3Junction = Enum<
   | { type: "Parachain"; value: Anonymize<number> }
   | { type: "AccountId32"; value: Anonymize<I6i61tqvseg382> }
@@ -713,7 +713,7 @@ type XcmV3Junction = Enum<
 >
 
 // xcm,v3,junction,NetworkId
-// 5lfbjat2u9lt3
+// 4k01tahcim329
 type XcmV3JunctionNetworkId = Enum<
   | { type: "ByGenesis"; value: Anonymize<Binary> }
   | { type: "ByFork"; value: Anonymize<I83hg7ig5d74ok> }
@@ -728,7 +728,7 @@ type XcmV3JunctionNetworkId = Enum<
 >
 
 // xcm,v3,junction,BodyId
-// 61u360hiot8su
+// bd6859lkk2107
 type XcmV3JunctionBodyId = Enum<
   | { type: "Unit"; value: undefined }
   | { type: "Moniker"; value: Anonymize<Binary> }
@@ -743,7 +743,7 @@ type XcmV3JunctionBodyId = Enum<
 >
 
 // xcm,v3,junction,BodyPart
-// 9iekj6k4pskf1
+// f5frjbmqcgt5k
 type XcmV3JunctionBodyPart = Enum<
   | { type: "Voice"; value: undefined }
   | { type: "Members"; value: Anonymize<Iafscmv8tjf0ou> }
@@ -753,14 +753,14 @@ type XcmV3JunctionBodyPart = Enum<
 >
 
 // frame_support,traits,schedule,DispatchTime
-// 8tar9q0o8uksk
+// e3otks9vj8a3b
 type TraitsScheduleDispatchTime = Enum<
   | { type: "At"; value: Anonymize<number> }
   | { type: "After"; value: Anonymize<number> }
 >
 
 // pallet_whitelist,pallet,Call
-// ahaflmpl38som
+// 9djtho2ujkjru
 type WhitelistPalletCall = Enum<
   | { type: "whitelist_call"; value: Anonymize<I8413rb6im3iko> }
   | { type: "remove_whitelisted_call"; value: Anonymize<I8413rb6im3iko> }
@@ -772,7 +772,7 @@ type WhitelistPalletCall = Enum<
 >
 
 // polkadot_runtime_common,claims,pallet,Call
-// 7oimg3dtc0sv2
+// d0dj18ct09hlp
 type ClaimsPalletCall = Enum<
   | { type: "claim"; value: Anonymize<I1u3s4gbjnre15> }
   | { type: "mint_claim"; value: Anonymize<I20qiajmn4c5d4> }
@@ -782,13 +782,13 @@ type ClaimsPalletCall = Enum<
 >
 
 // polkadot_runtime_common,claims,StatementKind
-// 6eft9tqctp8n6
+// 9lvi13skegcil
 type ClaimsStatementKind = Enum<
   { type: "Regular"; value: undefined } | { type: "Saft"; value: undefined }
 >
 
 // pallet_vesting,pallet,Call
-// 6snbjd7ptp453
+// 4kol6ak3n4pb6
 type VestingPalletCall = Enum<
   | { type: "vest"; value: undefined }
   | { type: "vest_other"; value: Anonymize<I29er5j74l8bu> }
@@ -798,7 +798,7 @@ type VestingPalletCall = Enum<
 >
 
 // pallet_utility,pallet,Call
-// 8e2cmllth3kf8
+// 1do24ko4ttjjh
 type UtilityPalletCall = Enum<
   | { type: "batch"; value: Anonymize<I5nt83bjbs8adq> }
   | { type: "as_derivative"; value: Anonymize<I5dd5n6i2aokg9> }
@@ -809,7 +809,7 @@ type UtilityPalletCall = Enum<
 >
 
 // pallet_identity,pallet,Call
-// 8oeof8t7vdmqj
+// ciintj40nctsg
 type IdentityPalletCall = Enum<
   | { type: "add_registrar"; value: Anonymize<Ibsu2pfvipmui6> }
   | { type: "set_identity"; value: Anonymize<I621gpns74tp1f> }
@@ -829,7 +829,7 @@ type IdentityPalletCall = Enum<
 >
 
 // pallet_identity,types,Data
-// ailth9i7lungm
+// 629bfqn3u6tle
 type IdentityTypesData = Enum<
   | { type: "None"; value: undefined }
   | { type: "Raw0"; value: Anonymize<Binary> }
@@ -872,7 +872,7 @@ type IdentityTypesData = Enum<
 >
 
 // pallet_identity,types,IdentityField
-// 3o4f5r49d2l70
+// apijri6pqtqte
 type IdentityField = Enum<
   | { type: "Display"; value: undefined }
   | { type: "Legal"; value: undefined }
@@ -885,7 +885,7 @@ type IdentityField = Enum<
 >
 
 // pallet_identity,types,Judgement
-// f70ekotugg1oc
+// 7ujvudkvg12so
 type IdentityJudgement = Enum<
   | { type: "Unknown"; value: undefined }
   | { type: "FeePaid"; value: Anonymize<bigint> }
@@ -897,7 +897,7 @@ type IdentityJudgement = Enum<
 >
 
 // pallet_proxy,pallet,Call
-// 408jh0aa8oolr
+// ee51a0b95ro6t
 type ProxyPalletCall = Enum<
   | { type: "proxy"; value: Anonymize<I5qk1jhgai8p1i> }
   | { type: "add_proxy"; value: Anonymize<Iaaog12m0bl04j> }
@@ -912,7 +912,7 @@ type ProxyPalletCall = Enum<
 >
 
 // polkadot_runtime,ProxyType
-// 1hf9hs6v59hi
+// 3tnqcv58l4e62
 type ProxyType = Enum<
   | { type: "Any"; value: undefined }
   | { type: "NonTransfer"; value: undefined }
@@ -925,7 +925,7 @@ type ProxyType = Enum<
 >
 
 // pallet_multisig,pallet,Call
-// 45lq3lvbnfa8h
+// 6b144vgnnj706
 type MultisigPalletCall = Enum<
   | { type: "as_multi_threshold_1"; value: Anonymize<Ifh15js2h1oacm> }
   | { type: "as_multi"; value: Anonymize<Iea90e94llgau7> }
@@ -934,7 +934,7 @@ type MultisigPalletCall = Enum<
 >
 
 // pallet_bounties,pallet,Call
-// cdmog3acq6ilo
+// id6a5f1ss4bc
 type BountiesPalletCall = Enum<
   | { type: "propose_bounty"; value: Anonymize<I2a839vbf5817q> }
   | { type: "approve_bounty"; value: Anonymize<Ia9p5bg6p18r0i> }
@@ -948,7 +948,7 @@ type BountiesPalletCall = Enum<
 >
 
 // pallet_child_bounties,pallet,Call
-// 3ft320ktglil4
+// 9rps5u7cv97of
 type ChildBountiesPalletCall = Enum<
   | { type: "add_child_bounty"; value: Anonymize<I8mk5kjgn02hi8> }
   | { type: "propose_curator"; value: Anonymize<I113qogfj9ii7a> }
@@ -970,7 +970,7 @@ type ElectionProviderMultiPhasePalletCall = Enum<
 >
 
 // pallet_bags_list,pallet,Call
-// 6rpbr4r99jaiv
+// 613rol2spf5hd
 type BagsListPalletCall = Enum<
   | { type: "rebag"; value: Anonymize<Iqk00vc9d6173> }
   | { type: "put_in_front_of"; value: Anonymize<Idg844jjtqnc9b> }
@@ -1004,14 +1004,14 @@ type NominationPoolsPalletCall = Enum<
 >
 
 // pallet_nomination_pools,BondExtra
-// 2g9n1oa4g6bqf
+// 2bvq1blgrln1s
 type NominationPoolsBondExtra = Enum<
   | { type: "FreeBalance"; value: Anonymize<bigint> }
   | { type: "Rewards"; value: undefined }
 >
 
 // pallet_nomination_pools,PoolState
-// 4og5p0c00n2j0
+// 22g1a3o3q475f
 type NominationPoolsPoolState = Enum<
   | { type: "Open"; value: undefined }
   | { type: "Blocked"; value: undefined }
@@ -1019,7 +1019,7 @@ type NominationPoolsPoolState = Enum<
 >
 
 // pallet_nomination_pools,ConfigOp
-// 582t7ae2qru3q
+// 5tbcfetjk0h9h
 type NominationPoolsConfigOp = Enum<
   | { type: "Noop"; value: undefined }
   | { type: "Set"; value: Anonymize<SS58String> }
@@ -1027,7 +1027,7 @@ type NominationPoolsConfigOp = Enum<
 >
 
 // pallet_nomination_pools,ClaimPermission
-// 3i0hotocfq1f2
+// 8g50cqebfncn4
 type NominationPoolsClaimPermission = Enum<
   | { type: "Permissioned"; value: undefined }
   | { type: "PermissionlessCompound"; value: undefined }
@@ -1036,7 +1036,7 @@ type NominationPoolsClaimPermission = Enum<
 >
 
 // pallet_fast_unstake,pallet,Call
-// stg17hrnhc1a
+// 44snhj1gahvrd
 type FastUnstakePalletCall = Enum<
   | { type: "register_fast_unstake"; value: undefined }
   | { type: "deregister"; value: undefined }
@@ -1044,7 +1044,7 @@ type FastUnstakePalletCall = Enum<
 >
 
 // polkadot_runtime_parachains,configuration,pallet,Call
-// 34i474561hdcm
+// f8hb8migh37h9
 type ParachainsConfigurationPalletCall = Enum<
   | {
       type: "set_validation_upgrade_cooldown"
@@ -1124,7 +1124,7 @@ type ParachainsConfigurationPalletCall = Enum<
 >
 
 // polkadot_primitives,v5,executor_params,ExecutorParam
-// 5c1flg66f6tja
+// 2s1qfdh76bati
 type PolkadotPrimitivesV5ExecutorParam = Enum<
   | { type: "MaxMemoryPages"; value: Anonymize<number> }
   | { type: "StackLogicalMax"; value: Anonymize<number> }
@@ -1136,33 +1136,33 @@ type PolkadotPrimitivesV5ExecutorParam = Enum<
 >
 
 // polkadot_primitives,v5,PvfPrepTimeoutKind
-// a6k99kfauvte5
+// 1p5n9bbuf71e9
 type PolkadotPrimitivesV5PvfPrepTimeoutKind = Enum<
   { type: "Precheck"; value: undefined } | { type: "Lenient"; value: undefined }
 >
 
 // polkadot_primitives,v5,PvfExecTimeoutKind
-// 1hthvtjt346g7
+// 4k4r9im11cdan
 type PolkadotPrimitivesV5PvfExecTimeoutKind = Enum<
   { type: "Backing"; value: undefined } | { type: "Approval"; value: undefined }
 >
 
 // polkadot_runtime_parachains,paras_inherent,pallet,Call
-// 3kcic8e7rjqca
+// din60jmik27o9
 type ParachainsParasInherentPalletCall = Enum<{
   type: "enter"
   value: Anonymize<I6uj8ujct0o4v7>
 }>
 
 // polkadot_primitives,v5,ValidityAttestation
-// djh2e6e363e80
+// fqkhvelo2q77o
 type PolkadotPrimitivesV5ValidityAttestation = Enum<
   | { type: "Implicit"; value: Anonymize<Binary> }
   | { type: "Explicit"; value: Anonymize<Binary> }
 >
 
 // polkadot_primitives,v5,DisputeStatement
-// des7i4dbbdc9p
+// b7nns1qbu48af
 type PolkadotPrimitivesV5DisputeStatement = Enum<
   | {
       type: "Valid"
@@ -1175,7 +1175,7 @@ type PolkadotPrimitivesV5DisputeStatement = Enum<
 >
 
 // polkadot_primitives,v5,ValidDisputeStatementKind
-// 9od188ps4ja7o
+// e33c1balm2hk9
 type PolkadotPrimitivesV5ValidDisputeStatementKind = Enum<
   | { type: "Explicit"; value: undefined }
   | { type: "BackingSeconded"; value: Anonymize<Binary> }
@@ -1184,14 +1184,14 @@ type PolkadotPrimitivesV5ValidDisputeStatementKind = Enum<
 >
 
 // polkadot_primitives,v5,InvalidDisputeStatementKind
-// 9k3kl2e4era06
+// f9rpgkuafvsb4
 type PolkadotPrimitivesV5InvalidDisputeStatementKind = Enum<{
   type: "Explicit"
   value: undefined
 }>
 
 // polkadot_runtime_parachains,paras,pallet,Call
-// e0n14dqkjdo81
+// e2dden5k4kk7t
 type ParachainsParasPalletCall = Enum<
   | { type: "force_set_current_code"; value: Anonymize<I1k3urvkqqshbc> }
   | { type: "force_set_current_head"; value: Anonymize<I2ff0ffsh15vej> }
@@ -1225,28 +1225,28 @@ type ParachainsHrmpPalletCall = Enum<
 >
 
 // polkadot_runtime_parachains,disputes,pallet,Call
-// e0ce4cahslitj
+// fkh1ep7g9h3rv
 type ParachainsDisputesPalletCall = Enum<{
   type: "force_unfreeze"
   value: undefined
 }>
 
 // polkadot_runtime_parachains,disputes,slashing,pallet,Call
-// a3ifpplu7f7dh
+// 3jj054kp2bjol
 type ParachainsDisputesSlashingPalletCall = Enum<{
   type: "report_dispute_lost_unsigned"
   value: Anonymize<I1ur1874hp9ar5>
 }>
 
 // polkadot_primitives,v5,slashing,SlashingOffenceKind
-// frh8gljtn84sj
+// 8jjr2rgj6aa2v
 type PolkadotPrimitivesV5SlashingSlashingOffenceKind = Enum<
   | { type: "ForInvalid"; value: undefined }
   | { type: "AgainstValid"; value: undefined }
 >
 
 // polkadot_runtime_common,paras_registrar,pallet,Call
-// 5v4rtqdk542he
+// cclqj5sge2nc7
 type CommonParasRegistrarPalletCall = Enum<
   | { type: "register"; value: Anonymize<I7mf0sij342109> }
   | { type: "force_register"; value: Anonymize<Ibvirp862qkkup> }
@@ -1268,7 +1268,7 @@ type CommonSlotsPalletCall = Enum<
 >
 
 // polkadot_runtime_common,auctions,pallet,Call
-// cqed38u30r195
+// 4a8qeimc5p3qn
 type CommonAuctionsPalletCall = Enum<
   | { type: "new_auction"; value: Anonymize<I19hvnphoaj44l> }
   | { type: "bid"; value: Anonymize<I1ng31ej27mh4k> }
@@ -1276,7 +1276,7 @@ type CommonAuctionsPalletCall = Enum<
 >
 
 // polkadot_runtime_common,crowdloan,pallet,Call
-// 7u0r5dadhukq0
+// aj4q75nu5v2i2
 type CommonCrowdloanPalletCall = Enum<
   | { type: "create"; value: Anonymize<I3js6c9fubdele> }
   | { type: "contribute"; value: Anonymize<I6n5jj22t7mm7i> }
@@ -1290,7 +1290,7 @@ type CommonCrowdloanPalletCall = Enum<
 >
 
 // sp_runtime,MultiSigner
-// 7jv65g23ri3tr
+// d7em8997pfm92
 type MultiSigner = Enum<
   | { type: "Ed25519"; value: Anonymize<Binary> }
   | { type: "Sr25519"; value: Anonymize<Binary> }
@@ -1298,7 +1298,7 @@ type MultiSigner = Enum<
 >
 
 // sp_runtime,MultiSignature
-// eti7sc57le20a
+// bkbo8vqdq5g5a
 type MultiSignature = Enum<
   | { type: "Ed25519"; value: Anonymize<Binary> }
   | { type: "Sr25519"; value: Anonymize<Binary> }
@@ -1306,7 +1306,7 @@ type MultiSignature = Enum<
 >
 
 // pallet_xcm,pallet,Call
-// beic697td9gbd
+// 5jnu77ehu4bfu
 type XcmPalletCall = Enum<
   | { type: "send"; value: Anonymize<Icvpjofp09bmlh> }
   | { type: "teleport_assets"; value: Anonymize<Ieeis6pj62kiu4> }
@@ -1328,14 +1328,14 @@ type XcmPalletCall = Enum<
 >
 
 // xcm,VersionedMultiLocation
-// 9d0brbqusnk7u
+// fso6iqf887gac
 type XcmVersionedMultiLocation = Enum<
   | { type: "V2"; value: Anonymize<Ibki0d249v3ojt> }
   | { type: "V3"; value: Anonymize<I43cmiele6sevi> }
 >
 
 // xcm,v2,multilocation,Junctions
-// a0stgrcgo40mm
+// du33014qjqdr2
 type XcmV2MultilocationJunctions = Enum<
   | { type: "Here"; value: undefined }
   | { type: "X1"; value: Anonymize<XcmV2Junction> }
@@ -1349,7 +1349,7 @@ type XcmV2MultilocationJunctions = Enum<
 >
 
 // xcm,v2,junction,Junction
-// e29m1kjs7nvtq
+// 505kan7sticn1
 type XcmV2Junction = Enum<
   | { type: "Parachain"; value: Anonymize<number> }
   | { type: "AccountId32"; value: Anonymize<I92r3c354plrou> }
@@ -1363,7 +1363,7 @@ type XcmV2Junction = Enum<
 >
 
 // xcm,v2,NetworkId
-// coj1t7nhdohqe
+// 710b6mh49al4f
 type XcmV2NetworkId = Enum<
   | { type: "Any"; value: undefined }
   | { type: "Named"; value: Anonymize<Binary> }
@@ -1372,7 +1372,7 @@ type XcmV2NetworkId = Enum<
 >
 
 // xcm,v2,BodyId
-// 36s6uedt5k2ik
+// 46j01db9schbn
 type XcmV2BodyId = Enum<
   | { type: "Unit"; value: undefined }
   | { type: "Named"; value: Anonymize<Binary> }
@@ -1387,14 +1387,14 @@ type XcmV2BodyId = Enum<
 >
 
 // xcm,VersionedXcm
-// etsr30ao1pi0g
+// 69sdq9h61mcjv
 type XcmVersionedXcm = Enum<
   | { type: "V2"; value: Anonymize<I797ibmv93o8n9> }
   | { type: "V3"; value: Anonymize<I8l0577387vghn> }
 >
 
 // xcm,v2,Instruction
-// dsudf9rnglbq6
+// fn5bbkq9rcm83
 type XcmV2Instruction = Enum<
   | { type: "WithdrawAsset"; value: Anonymize<Ia3ggl9eghkufh> }
   | { type: "ReserveAssetDeposited"; value: Anonymize<Ia3ggl9eghkufh> }
@@ -1427,21 +1427,21 @@ type XcmV2Instruction = Enum<
 >
 
 // xcm,v2,multiasset,AssetId
-// 2jjujhv8oq9ss
+// 2kuvuc3c51k00
 type XcmV2MultiassetAssetId = Enum<
   | { type: "Concrete"; value: Anonymize<Ibki0d249v3ojt> }
   | { type: "Abstract"; value: Anonymize<Binary> }
 >
 
 // xcm,v2,multiasset,Fungibility
-// f1315gjp25lcq
+// 1e4e6h17tes8n
 type XcmV2MultiassetFungibility = Enum<
   | { type: "Fungible"; value: Anonymize<bigint> }
   | { type: "NonFungible"; value: Anonymize<XcmV2MultiassetAssetInstance> }
 >
 
 // xcm,v2,multiasset,AssetInstance
-// dn04c4357ffq4
+// 11avansl9buvp
 type XcmV2MultiassetAssetInstance = Enum<
   | { type: "Undefined"; value: undefined }
   | { type: "Index"; value: Anonymize<bigint> }
@@ -1453,7 +1453,7 @@ type XcmV2MultiassetAssetInstance = Enum<
 >
 
 // xcm,v2,Response
-// f245d9f4ltol7
+// 7cgekabf482c4
 type XcmV2Response = Enum<
   | { type: "Null"; value: undefined }
   | { type: "Assets"; value: Anonymize<Ia3ggl9eghkufh> }
@@ -1462,7 +1462,7 @@ type XcmV2Response = Enum<
 >
 
 // xcm,v2,traits,Error
-// cdrnustu3hu9r
+// amc6gl7bd9por
 type XcmV2TraitsError = Enum<
   | { type: "Overflow"; value: undefined }
   | { type: "Unimplemented"; value: undefined }
@@ -1493,7 +1493,7 @@ type XcmV2TraitsError = Enum<
 >
 
 // xcm,v2,OriginKind
-// ejm157ms8rggd
+// 2dcitigd3tk41
 type XcmV2OriginKind = Enum<
   | { type: "Native"; value: undefined }
   | { type: "SovereignAccount"; value: undefined }
@@ -1502,35 +1502,35 @@ type XcmV2OriginKind = Enum<
 >
 
 // xcm,v2,multiasset,MultiAssetFilter
-// 82bpn63uhm15o
+// e4sgpst2e3uke
 type XcmV2MultiAssetFilter = Enum<
   | { type: "Definite"; value: Anonymize<Ia3ggl9eghkufh> }
   | { type: "Wild"; value: Anonymize<XcmV2MultiassetWildMultiAsset> }
 >
 
 // xcm,v2,multiasset,WildMultiAsset
-// 86gqrii9990va
+// d9gnfbqterb30
 type XcmV2MultiassetWildMultiAsset = Enum<
   | { type: "All"; value: undefined }
   | { type: "AllOf"; value: Anonymize<I96k6616d81u1u> }
 >
 
 // xcm,v2,multiasset,WildFungibility
-// 6c22r09p1vv0l
+// cg1p3hrtv6n5f
 type XcmV2MultiassetWildFungibility = Enum<
   | { type: "Fungible"; value: undefined }
   | { type: "NonFungible"; value: undefined }
 >
 
 // xcm,v2,WeightLimit
-// 1jmfrmoul7br7
+// adqdire0qjg0e
 type XcmV2WeightLimit = Enum<
   | { type: "Unlimited"; value: undefined }
   | { type: "Limited"; value: Anonymize<bigint> }
 >
 
 // xcm,v3,Instruction
-// 5pgud0bpbdfv
+// 590ugg567qnb0
 type XcmV3Instruction = Enum<
   | { type: "WithdrawAsset"; value: Anonymize<Id7mn3j3ge1h6a> }
   | { type: "ReserveAssetDeposited"; value: Anonymize<Id7mn3j3ge1h6a> }
@@ -1583,21 +1583,21 @@ type XcmV3Instruction = Enum<
 >
 
 // xcm,v3,multiasset,AssetId
-// 86r5hmuqh3tlm
+// d4ai9oreddetp
 type XcmV3MultiassetAssetId = Enum<
   | { type: "Concrete"; value: Anonymize<I43cmiele6sevi> }
   | { type: "Abstract"; value: Anonymize<Binary> }
 >
 
 // xcm,v3,multiasset,Fungibility
-// dqbbtup761nj6
+// d2d2vjc8h66mf
 type XcmV3MultiassetFungibility = Enum<
   | { type: "Fungible"; value: Anonymize<bigint> }
   | { type: "NonFungible"; value: Anonymize<XcmV3MultiassetAssetInstance> }
 >
 
 // xcm,v3,multiasset,AssetInstance
-// vi5r8tf5527s
+// 9d6sev8uj006q
 type XcmV3MultiassetAssetInstance = Enum<
   | { type: "Undefined"; value: undefined }
   | { type: "Index"; value: Anonymize<bigint> }
@@ -1608,7 +1608,7 @@ type XcmV3MultiassetAssetInstance = Enum<
 >
 
 // xcm,v3,Response
-// 3o2f9pe99t1pr
+// 42ng32a5771l6
 type XcmV3Response = Enum<
   | { type: "Null"; value: undefined }
   | { type: "Assets"; value: Anonymize<Id7mn3j3ge1h6a> }
@@ -1619,7 +1619,7 @@ type XcmV3Response = Enum<
 >
 
 // xcm,v3,traits,Error
-// ag2cbvfvg50nu
+// 8j0abm9jkapk2
 type XcmV3TraitsError = Enum<
   | { type: "Overflow"; value: undefined }
   | { type: "Unimplemented"; value: undefined }
@@ -1664,7 +1664,7 @@ type XcmV3TraitsError = Enum<
 >
 
 // xcm,v3,MaybeErrorCode
-// bnk21r3n488fd
+// 5g0925eiftlcf
 type XcmV3MaybeErrorCode = Enum<
   | { type: "Success"; value: undefined }
   | { type: "Error"; value: Anonymize<Binary> }
@@ -1672,14 +1672,14 @@ type XcmV3MaybeErrorCode = Enum<
 >
 
 // xcm,v3,multiasset,MultiAssetFilter
-// 8295v9jo05fda
+// 6b08ikcf19cj0
 type XcmV3MultiAssetFilter = Enum<
   | { type: "Definite"; value: Anonymize<Id7mn3j3ge1h6a> }
   | { type: "Wild"; value: Anonymize<XcmV3MultiassetWildMultiAsset> }
 >
 
 // xcm,v3,multiasset,WildMultiAsset
-// e1knav11e1m23
+// 229oojecaod2j
 type XcmV3WildMultiAsset = Enum<
   | { type: "All"; value: undefined }
   | { type: "AllOf"; value: Anonymize<Ikhntpa3k1bng> }
@@ -1688,28 +1688,28 @@ type XcmV3WildMultiAsset = Enum<
 >
 
 // xcm,v3,WeightLimit
-// 9ntqusgeot9dg
+// 769fta165mequ
 type XcmV3WeightLimit = Enum<
   | { type: "Unlimited"; value: undefined }
   | { type: "Limited"; value: Anonymize<I4q39t5hn830vp> }
 >
 
 // xcm,VersionedMultiAssets
-// co8om0tesn9qo
+// 85l50t95kraik
 type XcmVersionedMultiAssets = Enum<
   | { type: "V2"; value: Anonymize<Ia3ggl9eghkufh> }
   | { type: "V3"; value: Anonymize<Id7mn3j3ge1h6a> }
 >
 
 // xcm,VersionedXcm
-// 7aun9ilud3c1
+// 27oeif4on5jk1
 type XcmVersionedXcm1 = Enum<
   | { type: "V2"; value: Anonymize<I6gdh0i5feh6sm> }
   | { type: "V3"; value: Anonymize<I3f103a4f7tafe> }
 >
 
 // xcm,v2,Instruction
-// 3tjb5tuvqfgma
+// f1981q9hna52f
 type XcmV2Instruction1 = Enum<
   | { type: "WithdrawAsset"; value: Anonymize<Ia3ggl9eghkufh> }
   | { type: "ReserveAssetDeposited"; value: Anonymize<Ia3ggl9eghkufh> }
@@ -1742,7 +1742,7 @@ type XcmV2Instruction1 = Enum<
 >
 
 // xcm,v3,Instruction
-// 4ihj33ol90fqj
+// 4so8crc3ps5sk
 type XcmV3Instruction1 = Enum<
   | { type: "WithdrawAsset"; value: Anonymize<Id7mn3j3ge1h6a> }
   | { type: "ReserveAssetDeposited"; value: Anonymize<Id7mn3j3ge1h6a> }
@@ -1795,28 +1795,28 @@ type XcmV3Instruction1 = Enum<
 >
 
 // pallet_message_queue,pallet,Call
-// b8ngpkn6qbeq0
+// 3lic4llm6egbr
 type MessageQueuePalletCall = Enum<
   | { type: "reap_page"; value: Anonymize<I3f1tq7m3kurig> }
   | { type: "execute_overweight"; value: Anonymize<Ifhnflnkf9f278> }
 >
 
 // polkadot_runtime_parachains,inclusion,AggregateMessageOrigin
-// 6liql5oh190bt
+// 4sjnuvedkqa2r
 type ParachainsInclusionAggregateMessageOrigin = Enum<{
   type: "Ump"
   value: Anonymize<PolkadotRuntimeParachainsInclusionUmpQueueId>
 }>
 
 // polkadot_runtime_parachains,inclusion,UmpQueueId
-// 3vi23ut4vgr36
+// 29a9v38btsv3g
 type ParachainsInclusionUmpQueueId = Enum<{
   type: "Para"
   value: Anonymize<number>
 }>
 
 // pallet_whitelist,pallet,Event
-// aevbt1be7t7he
+// 9iria2mpol0si
 type WhitelistEvent = Enum<
   | { type: "CallWhitelisted"; value: Anonymize<I8413rb6im3iko> }
   | { type: "WhitelistedCallRemoved"; value: Anonymize<I8413rb6im3iko> }
@@ -1824,7 +1824,7 @@ type WhitelistEvent = Enum<
 >
 
 // polkadot_runtime_common,claims,pallet,Event
-// tf8rtj25rquh
+// 2v2nj97k9o9e
 type CommonClaimsEvent = Enum<{
   type: "Claimed"
   value: Anonymize<Idhjiuhlaei3db>
@@ -1838,7 +1838,7 @@ type VestingEvent = Enum<
 >
 
 // pallet_utility,pallet,Event
-// 1p8rsj8n4h3pd
+// b1t99vn44417o
 type UtilityEvent = Enum<
   | { type: "BatchInterrupted"; value: Anonymize<I6tn8e5lqr339o> }
   | { type: "BatchCompleted"; value: undefined }
@@ -1864,7 +1864,7 @@ type IdentityEvent = Enum<
 >
 
 // pallet_proxy,pallet,Event
-// 60d8dveok0m3l
+// 11i3h84sudutq
 type ProxyEvent = Enum<
   | { type: "ProxyExecuted"; value: Anonymize<Ie5i8qqljk3tjb> }
   | { type: "PureCreated"; value: Anonymize<I180p9c978rp4d> }
@@ -1874,7 +1874,7 @@ type ProxyEvent = Enum<
 >
 
 // pallet_multisig,pallet,Event
-// 2lgbtaqqtgk1f
+// 5830pdel8nng3
 type MultisigEvent = Enum<
   | { type: "NewMultisig"; value: Anonymize<Ibvv58de7m7rsi> }
   | { type: "MultisigApproval"; value: Anonymize<I4uo2dg1jvbdtg> }
@@ -1883,7 +1883,7 @@ type MultisigEvent = Enum<
 >
 
 // pallet_bounties,pallet,Event
-// alepu0vuuvje8
+// ei6k1tdcht3q
 type BountiesEvent = Enum<
   | { type: "BountyProposed"; value: Anonymize<I666bl2fqjkejo> }
   | { type: "BountyRejected"; value: Anonymize<Id9idaj83175f9> }
@@ -1904,7 +1904,7 @@ type ChildBountiesEvent = Enum<
 >
 
 // pallet_election_provider_multi_phase,pallet,Event
-// dereprl6madt5
+// c5529239bmt3g
 type ElectionProviderMultiPhaseEvent = Enum<
   | { type: "SolutionStored"; value: Anonymize<I5an5igf3n0vgh> }
   | { type: "ElectionFinalized"; value: Anonymize<I1rd7gkt317ndg> }
@@ -1915,7 +1915,7 @@ type ElectionProviderMultiPhaseEvent = Enum<
 >
 
 // pallet_election_provider_multi_phase,ElectionCompute
-// cn4j4tkk3m773
+// htopdh9noje5
 type ElectionProviderMultiPhaseElectionCompute = Enum<
   | { type: "OnChain"; value: undefined }
   | { type: "Signed"; value: undefined }
@@ -1925,7 +1925,7 @@ type ElectionProviderMultiPhaseElectionCompute = Enum<
 >
 
 // pallet_election_provider_multi_phase,Phase
-// 398ip9ldm6khf
+// 1ra0103q36u4i
 type ElectionProviderMultiPhasePhase = Enum<
   | { type: "Off"; value: undefined }
   | { type: "Signed"; value: undefined }
@@ -1964,7 +1964,7 @@ type NominationPoolsEvent = Enum<
 >
 
 // pallet_fast_unstake,pallet,Event
-// d5dptm3j4itt7
+// dri14nid3e46g
 type FastUnstakeEvent = Enum<
   | { type: "Unstaked"; value: Anonymize<Iag2vtju06tj0k> }
   | { type: "Slashed"; value: Anonymize<Ifk8eme5o7mukf> }
@@ -1974,7 +1974,7 @@ type FastUnstakeEvent = Enum<
 >
 
 // polkadot_runtime_parachains,inclusion,pallet,Event
-// rbai22jastj7
+// dp2d78gpqj4r6
 type ParachainsInclusionEvent = Enum<
   | { type: "CandidateBacked"; value: Anonymize<Ieno5vn1m65ng2> }
   | { type: "CandidateIncluded"; value: Anonymize<Ieno5vn1m65ng2> }
@@ -1983,7 +1983,7 @@ type ParachainsInclusionEvent = Enum<
 >
 
 // polkadot_runtime_parachains,paras,pallet,Event
-// 3n06su5lm8kt4
+// 5dmbh5kq5novn
 type ParachainsParasEvent = Enum<
   | { type: "CurrentCodeUpdated"; value: Anonymize<number> }
   | { type: "CurrentHeadUpdated"; value: Anonymize<number> }
@@ -2006,7 +2006,7 @@ type ParachainsHrmpEvent = Enum<
 >
 
 // polkadot_runtime_parachains,disputes,pallet,Event
-// 5o2grods8pncm
+// 8vj9hqgjobpdo
 type ParachainsDisputesEvent = Enum<
   | { type: "DisputeInitiated"; value: Anonymize<I3o099fcusuh31> }
   | { type: "DisputeConcluded"; value: Anonymize<Ifr2e7vm3bun8k> }
@@ -2014,13 +2014,13 @@ type ParachainsDisputesEvent = Enum<
 >
 
 // polkadot_runtime_parachains,disputes,DisputeLocation
-// 4qbribbspkutb
+// a2kllcmf9u10g
 type ParachainsDisputesDisputeLocation = Enum<
   { type: "Local"; value: undefined } | { type: "Remote"; value: undefined }
 >
 
 // polkadot_runtime_parachains,disputes,DisputeResult
-// 1qd9b6ihtul4p
+// 6hem0avr1eoco
 type ParachainsDisputesDisputeResult = Enum<
   { type: "Valid"; value: undefined } | { type: "Invalid"; value: undefined }
 >
@@ -2054,7 +2054,7 @@ type CommonAuctionsEvent = Enum<
 >
 
 // polkadot_runtime_common,crowdloan,pallet,Event
-// 183ec9vmk808t
+// aoe6t9b9v4nhr
 type CommonCrowdloanEvent = Enum<
   | { type: "Created"; value: Anonymize<I37r4bdai8o9mp> }
   | { type: "Contributed"; value: Anonymize<I8ve4g3egaln6a> }
@@ -2069,7 +2069,7 @@ type CommonCrowdloanEvent = Enum<
 >
 
 // pallet_xcm,pallet,Event
-// 766e9r8ta6cqv
+// 83jrjk78nrqg0
 type XcmEvent = Enum<
   | { type: "Attempted"; value: Anonymize<I4e7dkr4hrus3u> }
   | { type: "Sent"; value: Anonymize<Ia5b8kts5gt3p5> }
@@ -2097,7 +2097,7 @@ type XcmEvent = Enum<
 >
 
 // xcm,v3,traits,Outcome
-// cqjcqsilacfhq
+// b01fvb3ofrhi8
 type XcmV3TraitsOutcome = Enum<
   | { type: "Complete"; value: Anonymize<I4q39t5hn830vp> }
   | { type: "Incomplete"; value: Anonymize<Ilcvm3kc2hvtg> }
@@ -2105,7 +2105,7 @@ type XcmV3TraitsOutcome = Enum<
 >
 
 // pallet_message_queue,pallet,Event
-// 6dvmecfbuvn8s
+// eknqsk8t6a8oo
 type MessageQueueEvent = Enum<
   | { type: "ProcessingFailed"; value: Anonymize<I6ian27okrbc15> }
   | { type: "Processed"; value: Anonymize<I74b8cu68dfbfr> }
@@ -2114,7 +2114,7 @@ type MessageQueueEvent = Enum<
 >
 
 // frame_support,traits,messages,ProcessMessageError
-// e2n9cer007qb9
+// 4hum2k6q9amhf
 type ProcessMessageError = Enum<
   | { type: "BadFormat"; value: undefined }
   | { type: "Corrupt"; value: undefined }
@@ -2124,7 +2124,7 @@ type ProcessMessageError = Enum<
 >
 
 // frame_system,Phase
-// a3md08567vo9e
+// bl1lrline4to8
 type Phase = Enum<
   | { type: "ApplyExtrinsic"; value: Anonymize<number> }
   | { type: "Finalization"; value: undefined }
@@ -2132,7 +2132,7 @@ type Phase = Enum<
 >
 
 // frame_system,pallet,Error
-// 1dripfevp7g09
+// 2b5jj3f5ebo54
 type PalletError = Enum<
   | { type: "InvalidSpecName"; value: undefined }
   | { type: "SpecVersionNeedsToIncrease"; value: undefined }
@@ -2143,7 +2143,7 @@ type PalletError = Enum<
 >
 
 // pallet_scheduler,pallet,Error
-// 4haav2v0m3ggm
+// f7oa8fprnilo5
 type SchedulerPalletError = Enum<
   | { type: "FailedToSchedule"; value: undefined }
   | { type: "NotFound"; value: undefined }
@@ -2171,7 +2171,7 @@ type PreimagePalletError = Enum<
 >
 
 // sp_consensus_babe,digests,PreDigest
-// b0p3hn1hor9d5
+// arof15is9j858
 type BabeDigestsPreDigest = Enum<
   | { type: "Primary"; value: Anonymize<I7u2rr2qf89ek5> }
   | { type: "SecondaryPlain"; value: Anonymize<Ieiaevc5q41ard> }
@@ -2179,7 +2179,7 @@ type BabeDigestsPreDigest = Enum<
 >
 
 // pallet_babe,pallet,Error
-// 79seaoe0asl2p
+// b6q602k6o213a
 type BabePalletError = Enum<
   | { type: "InvalidEquivocationProof"; value: undefined }
   | { type: "InvalidKeyOwnershipProof"; value: undefined }
@@ -2188,7 +2188,7 @@ type BabePalletError = Enum<
 >
 
 // pallet_indices,pallet,Error
-// 19gi41sv8v9ef
+// cq1825fru3di2
 type IndicesPalletError = Enum<
   | { type: "NotAssigned"; value: undefined }
   | { type: "NotOwner"; value: undefined }
@@ -2198,7 +2198,7 @@ type IndicesPalletError = Enum<
 >
 
 // pallet_balances,types,Reasons
-// b7hfggqh7t59t
+// bgr9ooktct68l
 type BalancesTypesReasons = Enum<
   | { type: "Fee"; value: undefined }
   | { type: "Misc"; value: undefined }
@@ -2206,7 +2206,7 @@ type BalancesTypesReasons = Enum<
 >
 
 // pallet_balances,pallet,Error
-// 1qr983qbbdng5
+// fe9031aj6on0k
 type BalancesPalletError = Enum<
   | { type: "VestingBalance"; value: undefined }
   | { type: "LiquidityRestrictions"; value: undefined }
@@ -2221,13 +2221,13 @@ type BalancesPalletError = Enum<
 >
 
 // pallet_transaction_payment,Releases
-// 944994o3qcrkq
+// fcqan2gt5adqc
 type TransactionPaymentReleases = Enum<
   { type: "V1Ancient"; value: undefined } | { type: "V2"; value: undefined }
 >
 
 // pallet_staking,pallet,pallet,Error
-// 628bck8b0ca1
+// br8ob0iqlr7cl
 type StakingPalletError = Enum<
   | { type: "NotController"; value: undefined }
   | { type: "NotStash"; value: undefined }
@@ -2257,7 +2257,7 @@ type StakingPalletError = Enum<
 >
 
 // pallet_session,pallet,Error
-// 5qpv0o8a80s2g
+// 1e07dgbaqd1sq
 type SessionPalletError = Enum<
   | { type: "InvalidProof"; value: undefined }
   | { type: "NoAssociatedValidatorId"; value: undefined }
@@ -2267,7 +2267,7 @@ type SessionPalletError = Enum<
 >
 
 // pallet_grandpa,StoredState
-// 9atcbaq1i12p8
+// 66mc66cqnpat1
 type GrandpaStoredState = Enum<
   | { type: "Live"; value: undefined }
   | { type: "PendingPause"; value: Anonymize<Ib95oqfalvjqfe> }
@@ -2276,7 +2276,7 @@ type GrandpaStoredState = Enum<
 >
 
 // pallet_grandpa,pallet,Error
-// bgis98gojccd2
+// 7q8i0pp1gkas6
 type GrandpaPalletError = Enum<
   | { type: "PauseFailed"; value: undefined }
   | { type: "ResumeFailed"; value: undefined }
@@ -2288,7 +2288,7 @@ type GrandpaPalletError = Enum<
 >
 
 // pallet_im_online,pallet,Error
-// f7jug92or5v07
+// 8kh6j0q1r930d
 type ImOnlinePalletError = Enum<
   | { type: "InvalidKey"; value: undefined }
   | { type: "DuplicatedHeartbeat"; value: undefined }
@@ -2305,14 +2305,14 @@ type TreasuryPalletError = Enum<
 >
 
 // pallet_conviction_voting,vote,Voting
-// c78k9425ahgpt
+// e5ojv0odma80
 type ConvictionVotingVoteVoting = Enum<
   | { type: "Casting"; value: Anonymize<If52hjr5c5nrc5> }
   | { type: "Delegating"; value: Anonymize<I77dj6ku8n5d58> }
 >
 
 // pallet_conviction_voting,pallet,Error
-// 8um40om9rpokb
+// dfa8k8ikssbsf
 type ConvictionVotingPalletError = Enum<
   | { type: "NotOngoing"; value: undefined }
   | { type: "NotVoter"; value: undefined }
@@ -2329,7 +2329,7 @@ type ConvictionVotingPalletError = Enum<
 >
 
 // pallet_referenda,types,ReferendumInfo
-// frehuk4dr72fl
+// a7j6l4e7oe7ln
 type ReferendaTypesReferendumInfo = Enum<
   | { type: "Ongoing"; value: Anonymize<Iec63114qk6dsm> }
   | { type: "Approved"; value: Anonymize<Ini94eljn5lj8> }
@@ -2348,7 +2348,7 @@ type ReferendaTypesCurve = Enum<
 >
 
 // pallet_referenda,pallet,Error
-// mb0rfq2n73k
+// 8oq2c4augjrlt
 type ReferendaPalletError = Enum<
   | { type: "NotOngoing"; value: undefined }
   | { type: "HasDeposit"; value: undefined }
@@ -2366,7 +2366,7 @@ type ReferendaPalletError = Enum<
 >
 
 // pallet_whitelist,pallet,Error
-// 6n3n7cmkp0mau
+// 15nctscutpbeh
 type WhitelistPalletError = Enum<
   | { type: "UnavailablePreImage"; value: undefined }
   | { type: "UndecodableCall"; value: undefined }
@@ -2376,7 +2376,7 @@ type WhitelistPalletError = Enum<
 >
 
 // polkadot_runtime_common,claims,pallet,Error
-// 12il8hovaikta
+// jh2jbbqvb176
 type CommonClaimsPalletError = Enum<
   | { type: "InvalidEthereumSignature"; value: undefined }
   | { type: "SignerHasNoClaim"; value: undefined }
@@ -2387,13 +2387,13 @@ type CommonClaimsPalletError = Enum<
 >
 
 // pallet_vesting,Releases
-// f6v8gsdlcpu8j
+// cuaiiptinb4jf
 type VestingReleases = Enum<
   { type: "V0"; value: undefined } | { type: "V1"; value: undefined }
 >
 
 // pallet_vesting,pallet,Error
-// 3kqdk8thfj7mr
+// cof2acl69lq3c
 type VestingPalletError = Enum<
   | { type: "NotVesting"; value: undefined }
   | { type: "AtMaxVestingSchedules"; value: undefined }
@@ -2403,11 +2403,11 @@ type VestingPalletError = Enum<
 >
 
 // pallet_utility,pallet,Error
-// 21htoakoc6i6i
+// 8dt2g2hcrgh36
 type UtilityPalletError = Enum<{ type: "TooManyCalls"; value: undefined }>
 
 // pallet_identity,pallet,Error
-// 23rd046k40v9a
+// 4burhm31qmut2
 type IdentityPalletError = Enum<
   | { type: "TooManySubAccounts"; value: undefined }
   | { type: "NotFound"; value: undefined }
@@ -2430,7 +2430,7 @@ type IdentityPalletError = Enum<
 >
 
 // pallet_proxy,pallet,Error
-// 6tgdp5b211u1q
+// uvt54ei4cehc
 type ProxyPalletError = Enum<
   | { type: "TooMany"; value: undefined }
   | { type: "NotFound"; value: undefined }
@@ -2443,7 +2443,7 @@ type ProxyPalletError = Enum<
 >
 
 // pallet_multisig,pallet,Error
-// 9273ssmbgd959
+// a76qmhhg4jvb9
 type MultisigPalletError = Enum<
   | { type: "MinimumThreshold"; value: undefined }
   | { type: "AlreadyApproved"; value: undefined }
@@ -2462,7 +2462,7 @@ type MultisigPalletError = Enum<
 >
 
 // pallet_bounties,BountyStatus
-// f468p1dvjpbhe
+// 8eicfpc71dtp2
 type BountiesBountyStatus = Enum<
   | { type: "Proposed"; value: undefined }
   | { type: "Approved"; value: undefined }
@@ -2473,7 +2473,7 @@ type BountiesBountyStatus = Enum<
 >
 
 // pallet_bounties,pallet,Error
-// d5u067sd9farr
+// bfvjqqblobf53
 type BountiesPalletError = Enum<
   | { type: "InsufficientProposersBalance"; value: undefined }
   | { type: "InvalidIndex"; value: undefined }
@@ -2489,7 +2489,7 @@ type BountiesPalletError = Enum<
 >
 
 // pallet_child_bounties,ChildBountyStatus
-// c6ur3jpnol4fn
+// 8fgf6e6g02u7k
 type ChildBountyStatus = Enum<
   | { type: "Added"; value: undefined }
   | { type: "CuratorProposed"; value: Anonymize<I846573mdj1pfn> }
@@ -2498,7 +2498,7 @@ type ChildBountyStatus = Enum<
 >
 
 // pallet_child_bounties,pallet,Error
-// 5hg06qpfsmtg9
+// 4u5ou5u3tthff
 type ChildBountiesPalletError = Enum<
   | { type: "ParentBountyNotActive"; value: undefined }
   | { type: "InsufficientBountyBalance"; value: undefined }
@@ -2506,7 +2506,7 @@ type ChildBountiesPalletError = Enum<
 >
 
 // pallet_election_provider_multi_phase,pallet,Error
-// fnmfgo17cp2im
+// aldi0cb4r5uls
 type ElectionProviderMultiPhasePalletError = Enum<
   | { type: "PreDispatchEarlySubmission"; value: undefined }
   | { type: "PreDispatchWrongWinnerCount"; value: undefined }
@@ -2525,14 +2525,14 @@ type ElectionProviderMultiPhasePalletError = Enum<
 >
 
 // pallet_bags_list,pallet,Error
-// et5s2g3hab8bs
+// c35l5bgiij29p
 type BagsListPalletError = Enum<{
   type: "List"
   value: Anonymize<BagsListListListError>
 }>
 
 // pallet_bags_list,list,ListError
-// 6vvtth6i19bfd
+// 5h5t0elhnbseq
 type BagsListListListError = Enum<
   | { type: "Duplicate"; value: undefined }
   | { type: "NotHeavier"; value: undefined }
@@ -2577,7 +2577,7 @@ type NominationPoolsPalletError = Enum<
 >
 
 // pallet_nomination_pools,pallet,DefensiveError
-// emao7ej6fldfd
+// 8s9terlv6i0tr
 type NominationPoolsPalletDefensiveError = Enum<
   | { type: "NotEnoughSpaceInUnbondPool"; value: undefined }
   | { type: "PoolNotFound"; value: undefined }
@@ -2587,7 +2587,7 @@ type NominationPoolsPalletDefensiveError = Enum<
 >
 
 // pallet_fast_unstake,pallet,Error
-// 1cth2atduktit
+// au9bur8dc3bec
 type FastUnstakePalletError = Enum<
   | { type: "NotController"; value: undefined }
   | { type: "AlreadyQueued"; value: undefined }
@@ -2598,14 +2598,14 @@ type FastUnstakePalletError = Enum<
 >
 
 // polkadot_runtime_parachains,configuration,pallet,Error
-// f57u6qs39mesv
+// n1jctfv299lm
 type ParachainsConfigurationPalletError = Enum<{
   type: "InvalidNewValue"
   value: undefined
 }>
 
 // polkadot_runtime_parachains,inclusion,pallet,Error
-// 1lcmhm1k3e2sl
+// dp335n5ul2mnv
 type ParachainsInclusionPalletError = Enum<
   | { type: "UnsortedOrDuplicateValidatorIndices"; value: undefined }
   | { type: "UnsortedOrDuplicateDisputeStatementSet"; value: undefined }
@@ -2639,7 +2639,7 @@ type ParachainsInclusionPalletError = Enum<
 >
 
 // polkadot_runtime_parachains,paras_inherent,pallet,Error
-// j672f8car1dd
+// au1n8bje17hl9
 type ParachainsParasInherentPalletError = Enum<
   | { type: "TooManyInclusionInherents"; value: undefined }
   | { type: "InvalidParentHeader"; value: undefined }
@@ -2650,7 +2650,7 @@ type ParachainsParasInherentPalletError = Enum<
 >
 
 // polkadot_primitives,v5,CoreOccupied
-// fhl9qatk5neut
+// b19964q7gq7o9
 type PolkadotPrimitivesV5CoreOccupied = Enum<
   | { type: "Free"; value: undefined }
   | { type: "Paras"; value: Anonymize<I7kvbv2iq0pupl> }
@@ -2664,7 +2664,7 @@ type ParachainsParasPvfCheckCause = Enum<
 >
 
 // polkadot_runtime_parachains,paras,ParaLifecycle
-// 1h232u7cnkql6
+// 341grmvm6j3e5
 type ParachainsParasParaLifecycle = Enum<
   | { type: "Onboarding"; value: undefined }
   | { type: "Parathread"; value: undefined }
@@ -2676,20 +2676,20 @@ type ParachainsParasParaLifecycle = Enum<
 >
 
 // polkadot_primitives,v5,UpgradeGoAhead
-// c8pfdvb4unpqu
+// f331um1stp6g0
 type PolkadotPrimitivesV5UpgradeGoAhead = Enum<
   { type: "Abort"; value: undefined } | { type: "GoAhead"; value: undefined }
 >
 
 // polkadot_primitives,v5,UpgradeRestriction
-// bvqh99q7j5gop
+// 9pobt6o24rqdc
 type PolkadotPrimitivesV5UpgradeRestriction = Enum<{
   type: "Present"
   value: undefined
 }>
 
 // polkadot_runtime_parachains,paras,pallet,Error
-// 6jafq1kduvqnh
+// bkrdj74n62tfq
 type ParachainsParasPalletError = Enum<
   | { type: "NotRegistered"; value: undefined }
   | { type: "CannotOnboard"; value: undefined }
@@ -2730,7 +2730,7 @@ type ParachainsHrmpPalletError = Enum<
 >
 
 // polkadot_runtime_parachains,disputes,pallet,Error
-// d0ni9m1lcgd32
+// akburbqot4g58
 type ParachainsDisputesPalletError = Enum<
   | { type: "DuplicateDisputeStatementSets"; value: undefined }
   | { type: "AncientDisputeStatement"; value: undefined }
@@ -2744,7 +2744,7 @@ type ParachainsDisputesPalletError = Enum<
 >
 
 // polkadot_runtime_parachains,disputes,slashing,pallet,Error
-// 55a5haj36rd6b
+// 1v70p1j0r2q1j
 type ParachainsDisputesSlashingPalletError = Enum<
   | { type: "InvalidKeyOwnershipProof"; value: undefined }
   | { type: "InvalidSessionIndex"; value: undefined }
@@ -2755,7 +2755,7 @@ type ParachainsDisputesSlashingPalletError = Enum<
 >
 
 // polkadot_runtime_common,paras_registrar,pallet,Error
-// davjumnnm9r4l
+// 2dgbmoac0j5l9
 type CommonParasRegistrarPalletError = Enum<
   | { type: "NotRegistered"; value: undefined }
   | { type: "AlreadyRegistered"; value: undefined }
@@ -2774,14 +2774,14 @@ type CommonParasRegistrarPalletError = Enum<
 >
 
 // polkadot_runtime_common,slots,pallet,Error
-// 4fo5rjlmh6emb
+// ers095sa65pbg
 type CommonSlotsPalletError = Enum<
   | { type: "ParaNotOnboarding"; value: undefined }
   | { type: "LeaseError"; value: undefined }
 >
 
 // polkadot_runtime_common,auctions,pallet,Error
-// 9smvfd7gnmpbi
+// 4kgo47o2v3701
 type CommonAuctionsPalletError = Enum<
   | { type: "AuctionInProgress"; value: undefined }
   | { type: "LeasePeriodInPast"; value: undefined }
@@ -2793,7 +2793,7 @@ type CommonAuctionsPalletError = Enum<
 >
 
 // polkadot_runtime_common,crowdloan,LastContribution
-// 99tkbktmjcc4v
+// 1rjg0rh02tt4m
 type CommonCrowdloanLastContribution = Enum<
   | { type: "Never"; value: undefined }
   | { type: "PreEnding"; value: Anonymize<number> }
@@ -2801,7 +2801,7 @@ type CommonCrowdloanLastContribution = Enum<
 >
 
 // polkadot_runtime_common,crowdloan,pallet,Error
-// 2fv0pbfhc4grq
+// 9o6l1c4r4qc3s
 type CommonCrowdloanPalletError = Enum<
   | { type: "FirstPeriodInPast"; value: undefined }
   | { type: "FirstPeriodTooFarInFuture"; value: undefined }
@@ -2829,7 +2829,7 @@ type CommonCrowdloanPalletError = Enum<
 >
 
 // pallet_xcm,pallet,QueryStatus
-// 16uivrdc0cj8i
+// 70hv9q4f7l6lo
 type XcmPalletQueryStatus = Enum<
   | { type: "Pending"; value: Anonymize<Ichb9e5l86b18e> }
   | { type: "VersionNotifier"; value: Anonymize<I3mn2je4qtr2lg> }
@@ -2837,14 +2837,14 @@ type XcmPalletQueryStatus = Enum<
 >
 
 // xcm,VersionedResponse
-// bonue80fk9sas
+// 6j42g3504c9ir
 type XcmVersionedResponse = Enum<
   | { type: "V2"; value: Anonymize<XcmV2Response> }
   | { type: "V3"; value: Anonymize<XcmV3Response> }
 >
 
 // pallet_xcm,pallet,VersionMigrationStage
-// 1s1utqquuaa2b
+// 6c90ieeim9tjd
 type XcmPalletVersionMigrationStage = Enum<
   | { type: "MigrateSupportedVersion"; value: undefined }
   | { type: "MigrateVersionNotifiers"; value: undefined }
@@ -2853,14 +2853,14 @@ type XcmPalletVersionMigrationStage = Enum<
 >
 
 // xcm,VersionedAssetId
-// 4u03osfj6rbiu
+// 5d3g5d2drdfrc
 type XcmVersionedAssetId = Enum<{
   type: "V3"
   value: Anonymize<XcmV3MultiassetAssetId>
 }>
 
 // pallet_xcm,pallet,Error
-// 3nsvjo56pqtk
+// 93avf3rpkhb2d
 type XcmPalletError = Enum<
   | { type: "Unreachable"; value: undefined }
   | { type: "SendFailure"; value: undefined }
@@ -2885,7 +2885,7 @@ type XcmPalletError = Enum<
 >
 
 // pallet_message_queue,pallet,Error
-// 8oc4559rltngd
+// 3a4cqqjs0cj3s
 type MessageQueuePalletError = Enum<
   | { type: "NotReapable"; value: undefined }
   | { type: "NoPage"; value: undefined }
@@ -2898,7 +2898,7 @@ type MessageQueuePalletError = Enum<
 >
 
 // frame_system,extensions,check_mortality,CheckMortality
-// 40ossjc7s7e5p
+// 8slcnsmtfbubd
 type ExtensionsCheckMortality = Enum<
   | { type: "Immortal"; value: undefined }
   | { type: "Mortal1"; value: Anonymize<number> }
@@ -3159,14 +3159,14 @@ type ExtensionsCheckMortality = Enum<
 >
 
 // sp_runtime,transaction_validity,TransactionValidityError
-// 8jl45nv8fnhf9
+// 8ur8bpe8ahbdb
 type TransactionValidityError = Enum<
   | { type: "Invalid"; value: Anonymize<TransactionValidityInvalidTransaction> }
   | { type: "Unknown"; value: Anonymize<TransactionValidityUnknownTransaction> }
 >
 
 // sp_runtime,transaction_validity,InvalidTransaction
-// embm96fqd9ev
+// 9jj84pbmaraa
 type TransactionValidityInvalidTransaction = Enum<
   | { type: "Call"; value: undefined }
   | { type: "Payment"; value: undefined }
@@ -3182,7 +3182,7 @@ type TransactionValidityInvalidTransaction = Enum<
 >
 
 // sp_runtime,transaction_validity,UnknownTransaction
-// 6765gcgbbpmft
+// avhrl5td7rf4q
 type TransactionValidityUnknownTransaction = Enum<
   | { type: "CannotLookup"; value: undefined }
   | { type: "NoUnsignedValidator"; value: undefined }
@@ -3190,7 +3190,7 @@ type TransactionValidityUnknownTransaction = Enum<
 >
 
 // sp_runtime,transaction_validity,TransactionSource
-// 9dndgf7t9fte
+// cpkfkhj5jq924
 type TransactionValidityTransactionSource = Enum<
   | { type: "InBlock"; value: undefined }
   | { type: "Local"; value: undefined }
@@ -3198,7 +3198,7 @@ type TransactionValidityTransactionSource = Enum<
 >
 
 // polkadot_primitives,v5,CoreState
-// 7t3be1evqt3q2
+// b5fd0r2ju9g0l
 type PolkadotPrimitivesV5CoreState = Enum<
   | { type: "Occupied"; value: Anonymize<Iedrr54lmrujd0> }
   | { type: "Scheduled"; value: Anonymize<Ij0oq61lvrdfj> }
@@ -3206,7 +3206,7 @@ type PolkadotPrimitivesV5CoreState = Enum<
 >
 
 // polkadot_primitives,v5,OccupiedCoreAssumption
-// 5u0hotcciakna
+// 4vbt6tkj8bvqs
 type PolkadotPrimitivesV5OccupiedCoreAssumption = Enum<
   | { type: "Included"; value: undefined }
   | { type: "TimedOut"; value: undefined }
@@ -3214,7 +3214,7 @@ type PolkadotPrimitivesV5OccupiedCoreAssumption = Enum<
 >
 
 // polkadot_primitives,v5,CandidateEvent
-// 5pvmdn0usr1s2
+// 129huic8ces20
 type PolkadotPrimitivesV5CandidateEvent = Enum<
   | { type: "CandidateBacked"; value: Anonymize<Ieno5vn1m65ng2> }
   | { type: "CandidateIncluded"; value: Anonymize<Ieno5vn1m65ng2> }
@@ -3222,7 +3222,7 @@ type PolkadotPrimitivesV5CandidateEvent = Enum<
 >
 
 // sp_mmr_primitives,Error
-// fdpee6aoq0pi0
+// 6rjjsd07rc200
 type MmrPrimitivesError = Enum<
   | { type: "InvalidNumericOp"; value: undefined }
   | { type: "Push"; value: undefined }
@@ -3237,7 +3237,7 @@ type MmrPrimitivesError = Enum<
 >
 
 // polkadot_runtime,RuntimeError
-// 6g80grgit8ufa
+// etl8s4bnnlm8n
 type RuntimeError = Enum<
   | { type: "System"; value: Anonymize<PalletError> }
   | { type: "Scheduler"; value: Anonymize<SchedulerPalletError> }
@@ -3313,13 +3313,13 @@ type RuntimeError = Enum<
 // 2dtccotemif6i
 type WestendRuntimeRuntimeEvent
 
-// 5ofh7hnvff54m
+// 15jjq0jj438cq
 type PalletEvent
 
-// dfir002lt6s7c
+// ao8h4hv7atnq3
 type BalancesEvent
 
-// 8ohb99n25uga8
+// 1vpsle7nk6bbf
 type StakingEvent
 
 // bju6hjiipokne
@@ -3328,76 +3328,76 @@ type IdentityEvent
 // a4b928jbpau7j
 type RecoveryEvent
 
-// 8ka48fenvkqnu
+// 9d4cj2o3vj1d8
 type SchedulerEvent
 
-// 9hjv2b10hjpk2
+// 346qm7n7jcer7
 type SudoEvent
 
-// ncob4fcprm7u
+// 8rdpads1sa84
 type ProxyEvent
 
-// 2nro5bb16i5rl
+// fbiij71gdkvth
 type WestendRuntimeProxyType
 
-// 8t63dssf4qeo5
+// 14qmevhulqskl
 type NominationPoolsEvent
 
-// 7sev2v4lj2adk
+// 1lanl0ouai2l7
 type NominationPoolsCommissionClaimPermission
 
 // 3buks4t5p9jo5
 type WestendRuntimeRuntimeCall
 
-// 4fbotq4sjnarj
+// ekve0i6djpd9f
 type PalletCall
 
-// eqj54k6fuqphk
+// 68md1shlobg68
 type BalancesPalletCall
 
-// 5805da4gd2qdu
+// 3vrnp048j3b2d
 type BalancesTypesAdjustmentDirection
 
-// f9vmbaq4bbji7
+// 4q47o0id5531b
 type StakingPalletCall
 
-// 8563etdmiips3
+// ceajactc9a8pc
 type SessionPalletCall
 
 // 7ai6hngrgci9q
 type UtilityPalletCall
 
-// 5ksf6iu72ku9a
+// j50joavafcok
 type WestendRuntimeOriginCaller
 
-// cihskiocbia8u
+// 3f4te0335d8h1
 type WestendRuntimeGovernanceOriginsPalletCustomOriginsOrigin
 
-// a9cia8lmgfbls
+// 5svrq9ei0ks3q
 type XcmPalletOrigin
 
-// 729f0smk6iq
+// faafmcb1jmm2o
 type XcmV4Junctions
 
-// 6ia0dve9b7jkt
+// 6ag633d941o7v
 type XcmV4Junction
 
-// elvgq77sonmu4
+// 982q4n5eor6ih
 type XcmV4JunctionNetworkId
 
-// 3ftc2gm6vldmr
+// bd2atep95irq3
 type IdentityPalletCall
 
 // 9gk8gt7ihk77k
 type RecoveryPalletCall
 
-// 623hlu4egqc2g
+// 27bisdosp4kdo
 type VestingPalletCall
 
 // afl9u0rriejnl
 type SchedulerPalletCall
 
-// mbphi6s5kus8
+// f81ks88t5mpk5
 type PreimagePalletCall
 
 // c8ick5jm5228d
@@ -3409,46 +3409,46 @@ type ProxyPalletCall
 // f5k05q35kbr90
 type MultisigPalletCall
 
-// 78ij2kk1uhji5
+// annvvkuhf73hh
 type NominationPoolsPalletCall
 
-// bdt4c25ptt5ra
+// 4n17hls1edfih
 type ReferendaPalletCall
 
 // 4iujedjoq34sc
 type WhitelistPalletCall
 
-// c7mcjddtrdd7g
+// e61dae9rhc6h9
 type TreasuryPalletCall
 
-// 1d46vkpb5c9u7
+// bg4htetmc9ijl
 type PolkadotRuntimeCommonImplsVersionedLocatableAsset
 
-// 8tdsq8385agqg
+// 6g50r303ureo1
 type XcmV3Junctions
 
-// 48p5legd9t524
+// evr61550o2b5r
 type XcmV3MultiassetAssetId
 
-// 27joh99oja2ig
+// 9kia9e3c30f2q
 type XcmVersionedLocation
 
 // 5bn08pbgv7o6l
 type PolkadotRuntimeParachainsConfigurationPalletCall
 
-// 2tod12af0blov
+// 9fihu1euvgfa
 type PolkadotPrimitivesV6ExecutorParamsExecutorParam
 
-// 8hiv7brh6h3c9
+// c7d5cscq9c6gi
 type PolkadotPrimitivesV6PvfPrepKind
 
-// 96snh5u7enqqq
+// d5l4f3jqtnb0u
 type PolkadotRuntimeParachainsParasInherentPalletCall
 
-// fsku0269asef5
+// bs56nuk6pe5bp
 type PolkadotPrimitivesV6DisputeStatement
 
-// 5aqomasnbnm91
+// bta4mfoh73fpt
 type PolkadotPrimitivesV6ValidDisputeStatementKind
 
 // 2vev2224bc186
@@ -3457,76 +3457,76 @@ type PolkadotRuntimeParachainsHrmpPalletCall
 // 9s7urueli180g
 type PolkadotRuntimeParachainsAssignerOnDemandPalletCall
 
-// 849p7f3ud624h
+// bttqq10i7n2oi
 type PolkadotRuntimeCommonParasSudoWrapperPalletCall
 
-// 4a2omd2s8vpc6
+// 9do7mabokdub7
 type XcmVersionedXcm
 
-// caq6rh92hm8c6
+// 72g8jajh3f07q
 type XcmV3Instruction
 
-// fh26t57c3mt3d
+// 6tjgvbhdp6u37
 type XcmV3Response
 
-// 30ddhmf424e2v
+// 7kciqhufi9efg
 type XcmV3MultiassetMultiAssetFilter
 
-// 7orphk6v4h73j
+// cmduam81snutq
 type XcmV3MultiassetWildMultiAsset
 
-// 3lasejrgrfdor
+// andndh150vhd7
 type XcmV4Instruction
 
-// 5tantc0kkflbi
+// csmfdagrgtkj5
 type XcmV4Response
 
-// 6su230je4hna6
+// biemf2h6nh9pa
 type XcmV4AssetAssetFilter
 
-// 88gf1purmfv28
+// e252kk4p31sv6
 type XcmV4AssetWildAsset
 
-// 89kvlek9l45g6
+// dlqs78vqqscm0
 type PolkadotRuntimeCommonAssignedSlotsPalletCall
 
-// 8cds81hnme9t3
+// 910lmkjcsvii
 type PolkadotRuntimeCommonAssignedSlotsSlotLeasePeriodStart
 
-// 9j40dmr75d665
+// em08ilhcfie6v
 type PolkadotRuntimeParachainsCoretimePalletCall
 
-// fm8a585f84sm4
+// cgoc620vdl0ci
 type BrokerCoretimeInterfaceCoreAssignment
 
 // depofgn4a4b4b
 type XcmPalletCall
 
-// 7l6lsc3msmnb3
+// euovokrvq9if6
 type XcmVersionedAssets
 
-// 53dp9l4na5uc1
+// as92ddpgmu2iq
 type XcmVersionedXcm1
 
-// c7p4d004l7og1
+// 9pburd1ur9ru2
 type XcmV3Instruction1
 
-// 9l8na4u51iicp
+// ch16j3eggp2rk
 type XcmV4Instruction1
 
-// jh957btgdq8t
+// 1arg0adfjutke
 type AssetRatePalletCall
 
-// 9dlrguqm8rmav
+// 9rkc7eqejp3rj
 type RootTestingPalletCall
 
-// beddosggop7dd
+// 918ie8roegt3d
 type BeefyPalletCall
 
 // 67t4bps9r5c4k
 type PolkadotRuntimeCommonIdentityMigratorPalletCall
 
-// btvhu2m2gt1et
+// f6gbfd96s6jd9
 type TreasuryEvent
 
 // c4alvt16n58rg
@@ -3535,22 +3535,22 @@ type PolkadotRuntimeParachainsHrmpEvent
 // 9ct52rvkkel07
 type PolkadotRuntimeParachainsAssignerOnDemandEvent
 
-// 1r9c13cpdm1in
+// cn24k411b4s6t
 type PolkadotRuntimeCommonAssignedSlotsEvent
 
 // 7t5v4k056sf3d
 type PolkadotRuntimeParachainsCoretimeEvent
 
-// dv1b18q7r2u8i
+// ceudajfn32ki2
 type XcmEvent
 
-// 8vh5s87utjc6h
+// bnmfm52c5n7nq
 type XcmV4TraitsOutcome
 
-// f7m19fk2uan6u
+// 12mt5ojqi246n
 type AssetRateEvent
 
-// aqokr5ruccpq9
+// tofo38uukr3h
 type RootTestingEvent
 
 // 43e3ummb3h5dn
@@ -3559,109 +3559,109 @@ type PolkadotRuntimeCommonIdentityMigratorEvent
 // 3bjnl897tu8j2
 type PalletError
 
-// bisqhs3kmv8ho
+// 9uqvk3mspevjn
 type BabeDigestsPreDigest
 
-// 9b9mogv9ee9ar
+// 3nveejfjt6cjg
 type WestendRuntimeRuntimeHoldReason
 
-// f81hvnpidvhl
+// hpogi4p6q6h5
 type PreimagePalletHoldReason
 
-// d52mcjgamb06q
+// c1jnealhlqk0n
 type WestendRuntimeRuntimeFreezeReason
 
-// 62v3u2ji2s72p
+// 8b4gf7pjdvue3
 type NominationPoolsPalletFreezeReason
 
-// 5sc45a3km4nfm
+// dj13i7adlomht
 type BalancesPalletError
 
-// 27lclujcpo90c
+// bklnaqjbd0mho
 type StakingPalletError
 
-// 8e7nos9s6ulu1
+// 9mq328955mgb8
 type IdentityPalletError
 
-// 4ee35f08vnpr3
+// 29mqdjoga49c9
 type RecoveryPalletError
 
 // 2gj0h0im54fqd
 type PreimageRequestStatus
 
-// a89ulpbu4dl9t
+// 4cfhml1prt4lu
 type PreimagePalletError
 
-// cbcrnankfkjms
+// aug04qjhbli00
 type SudoPalletError
 
-// 1o3j9uvelg2s3
+// db84kfjd998sl
 type ElectionProviderMultiPhasePalletError
 
-// 9ef24bhcdaoh3
+// 823cj5ecot4us
 type NominationPoolsPalletError
 
-// crkl859at15l3
+// 2pnuv6i9ju403
 type ReferendaTypesReferendumInfo
 
-// e3iqv87ntls1
+// 8mdo9fqa201s6
 type TreasuryPaymentState
 
-// oc9hp9sj7pq0
+// 7dodf8ccnun1b
 type TreasuryPalletError
 
-// 9prq676jdeeti
+// dr9omiep0prh9
 type PolkadotRuntimeParachainsParasInherentPalletError
 
-// 6ep8h6104tukj
+// d7hag4aqiaqqv
 type PolkadotRuntimeParachainsSchedulerPalletCoreOccupied
 
-// 782iqqbpekj4v
+// f6qqn0nd8o1nf
 type PolkadotRuntimeParachainsSchedulerCommonAssignment
 
-// 2abaj015pgc0k
+// 14vn72umovb89
 type PolkadotRuntimeParachainsParasPvfCheckCause
 
-// ei953gg3qbiup
+// eo97unb4d08rl
 type PolkadotRuntimeParachainsParasPalletError
 
-// 89ine2unkluf5
+// bns95nfmm92df
 type PolkadotRuntimeParachainsHrmpPalletError
 
-// 5vs0cf31h4sgl
+// 5kmpac1lo149t
 type PolkadotRuntimeParachainsAssignerOnDemandPalletError
 
-// apoi8fhpr15s8
+// e3b9qd0nd59gs
 type PolkadotRuntimeParachainsAssignerCoretimePalletError
 
-// 408so5338oklr
+// 97vkspnd0b8bh
 type PolkadotRuntimeCommonParasRegistrarPalletError
 
-// ede5l2hkdh7m
+// eq0677kv2oqb2
 type PolkadotRuntimeCommonParasSudoWrapperPalletError
 
-// 9v0s2dlaqounm
+// 40te5bcfc046n
 type PolkadotRuntimeCommonAssignedSlotsPalletError
 
-// f4nsgn5qipb72
+// 53h5rnv8hd3qi
 type PolkadotRuntimeParachainsCoretimePalletError
 
-// aevi24j48fqc7
+// 2o3sscokodbdt
 type XcmPalletQueryStatus
 
-// 15o3ptvl3k2sj
+// 2usnldb1e5p8n
 type XcmVersionedResponse
 
-// 7p4okqh6qe3j7
+// 5v8ssv6fbnm1b
 type XcmVersionedAssetId
 
-// d58ivj3ds68ht
+// 4s86iefmp2rcu
 type XcmPalletError
 
-// 4iiukopdhct9f
+// 5iupade5ag2dp
 type MessageQueuePalletError
 
-// ot1gcn5btmm5
+// 3qgd61cgli6cp
 type AssetRatePalletError
 
 // 8d4epped9g7uv
