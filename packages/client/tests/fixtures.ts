@@ -1,10 +1,9 @@
 import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
 import {
+  Bytes,
   Option,
-  Tuple,
   blockHeader,
-  compact,
-  metadata,
+  metadata as metadataCodec,
 } from "@polkadot-api/substrate-bindings"
 import {
   BestBlockChanged,
@@ -126,22 +125,17 @@ export const initialize = async (
   }
 }
 
-const opaqueMeta = Option(Tuple(compact, metadata))
 const metadataValue = getKsmMetadata()
-const metadataHex = metadataValue.then((metadata) =>
-  toHex(
-    opaqueMeta.enc([
-      0,
-      {
-        magicNumber: 0,
-        metadata: {
-          tag: "v15",
-          value: metadata,
-        },
-      },
-    ]),
-  ),
-)
+const innerCodec = Option(Bytes())
+const metadataHex = metadataValue
+  .then((metadata) =>
+    metadataCodec.enc({
+      magicNumber: 0,
+      metadata: { tag: "v15", value: metadata },
+    }),
+  )
+  .then((array) => innerCodec.enc(array))
+  .then(toHex)
 export const initializeWithMetadata = async (
   mockClient: MockSubstrateClient,
   overrides?: Partial<InitializedWithRuntime>,
