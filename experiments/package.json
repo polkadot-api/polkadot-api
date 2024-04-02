@@ -31,7 +31,7 @@
     "@polkadot-api/codegen": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/metadata-fixtures": "workspace:*",
-    "@polkadot-api/node-polkadot-provider": "workspace:*",
+    "@polkadot-api/signer": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

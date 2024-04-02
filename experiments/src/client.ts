@@ -1,18 +1,11 @@
 import { getScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
-import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { createClient, Binary } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
 import { KsmQueries, ksm } from "@polkadot-api/descriptors"
 const scProvider = getScProvider()
 
-const polkadotChain = getChain({
-  provider: scProvider(WellKnownChain.ksmcc3).relayChain,
-  keyring: [],
-})
-
-const relayChain = createClient(polkadotChain)
-// const collectives = relayChain
+const relayChain = createClient(scProvider(WellKnownChain.ksmcc3).relayChain)
 
 const apis = relayChain.getTypedApi(ksm)
 

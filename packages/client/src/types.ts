@@ -29,16 +29,6 @@ export type CreateTx = (
   hintedSignedExtensions?: HintedSignedExtensions,
 ) => Promise<Uint8Array>
 
-export interface PolkadotConnection {
-  send: (message: string) => void
-  createTx: CreateTx
-  disconnect: () => void
-}
-
-export type PolkadotProvider = (
-  onMessage: (message: string) => void,
-) => PolkadotConnection
-
 export type StorageApi<
   A extends Record<
     string,

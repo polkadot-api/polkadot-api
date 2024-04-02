@@ -1,11 +1,10 @@
 import { expect, describe, it } from "vitest"
 import { start } from "smoldot"
 import { AccountId, createClient } from "@polkadot-api/client"
-import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { getSmProvider } from "@polkadot-api/sm-provider"
 import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
-import { accounts, keyring } from "./keyring"
+import { accounts } from "./keyring"
 import { MultiAddress, roc } from "@polkadot-api/descriptors"
 import { combineLatest, filter, firstValueFrom, map } from "rxjs"
 import { randomBytes } from "crypto"
@@ -36,12 +35,7 @@ console.log("got the chainspec")
 
 describe("E2E", async () => {
   console.log("starting the client")
-  const client = createClient(
-    getChain({
-      provider: getSmProvider(smoldot, chainspec),
-      keyring,
-    }),
-  )
+  const client = createClient(getSmProvider(smoldot, chainspec))
   const api = client.getTypedApi(roc)
 
   console.log("getting the latest runtime")
@@ -75,11 +69,13 @@ describe("E2E", async () => {
       .flat()
       .map((x) => accountIdDec(x.publicKey))
 
-    const alice = accountIdDec(accounts["alice"]["sr25519"].publicKey)
-    const bob = accountIdDec(accounts["bob"]["sr25519"].publicKey)
+    const alice = accounts["alice"]["sr25519"]
+    const bob = accounts["bob"]["sr25519"]
 
     const [aliceInitialNonce, bobInitialNonce] = await Promise.all(
-      [alice, bob].map((who) => api.apis.AccountNonceApi.account_nonce(who)),
+      [alice, bob].map((who) =>
+        api.apis.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
+      ),
     )
 
     const targetsInitialFreeBalances = await Promise.all(
@@ -106,7 +102,9 @@ describe("E2E", async () => {
     )
 
     const [alicePostNonce, bobPostNonce] = await Promise.all(
-      [alice, bob].map((who) => api.apis.AccountNonceApi.account_nonce(who)),
+      [alice, bob].map((who) =>
+        api.apis.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
+      ),
     )
 
     const targetsPostFreeBalances = await Promise.all(
@@ -125,16 +123,16 @@ describe("E2E", async () => {
   it.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(
     "%s transactions",
     async (type) => {
-      const alice = accountIdDec(accounts["alice"][type].publicKey)
-      const bob = accountIdDec(accounts["bob"][type].publicKey)
+      const alice = accounts["alice"][type]
+      const bob = accounts["bob"][type]
 
       // let's wait until they have enough balance
       await firstValueFrom(
         combineLatest(
           [alice, bob].map((from) =>
-            api.query.System.Account.watchValue(from).pipe(
-              map((x) => x.data.free),
-            ),
+            api.query.System.Account.watchValue(
+              accountIdDec(from.publicKey),
+            ).pipe(map((x) => x.data.free)),
           ),
         ).pipe(
           filter((balances) => balances.every((balance) => balance >= ED * 2n)),

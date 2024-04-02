@@ -11,7 +11,7 @@
     "@noble/curves": "^1.2.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/client": "workspace:*",
-    "@polkadot-api/node-polkadot-provider": "workspace:^",
+    "@polkadot-api/signer": "workspace:^",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

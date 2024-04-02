@@ -8,14 +8,13 @@ import {
   Codec,
   Decoder,
   SS58String,
-  Tuple,
   Option,
   V15,
-  compact,
-  metadata,
   u32,
   Encoder,
   _void,
+  Bytes,
+  metadata as metadataCodec,
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { Observable, map, shareReplay } from "rxjs"
@@ -36,6 +35,7 @@ export type SystemEvent = {
 }
 
 export interface RuntimeContext {
+  metadataRaw: Uint8Array
   metadata: V15
   checksumBuilder: ReturnType<typeof getChecksumBuilder>
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
@@ -55,7 +55,7 @@ export interface Runtime {
   usages: Set<string>
 }
 
-const opaqueMeta = Option(Tuple(compact, metadata))
+const opaqueMeta = Option(Bytes())
 
 const v15Args = toHex(u32.enc(15))
 export const getRuntimeCreator =
@@ -69,7 +69,8 @@ export const getRuntimeCreator =
       v15Args,
     ).pipe(
       map((response) => {
-        const metadata = opaqueMeta.dec(response)![1]
+        const metadataRaw = opaqueMeta.dec(response)!
+        const metadata = metadataCodec.dec(metadataRaw)
         if (metadata.metadata.tag !== "v15")
           throw new Error("Wrong metadata version")
         const v15 = metadata.metadata.value
@@ -104,6 +105,7 @@ export const getRuntimeCreator =
 
         return {
           asset,
+          metadataRaw,
           metadata: v15,
           checksumBuilder,
           dynamicBuilder,
