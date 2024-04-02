@@ -35,6 +35,18 @@ export class Binary {
   }
 }
 
+export class FixedSizeBinary<_L extends number> extends Binary {
+  constructor(data: Uint8Array) {
+    super(data)
+  }
+
+  static fromArray<L extends number, I extends Array<number> & { length: L }>(
+    input: I,
+  ) {
+    return new FixedSizeBinary<L>(new Uint8Array(input))
+  }
+}
+
 const enc = (nBytes?: number): Encoder<Binary> => {
   const _enc = Bytes.enc(nBytes)
   return (value) => _enc(value.asBytes())

@@ -8,4 +8,5 @@ export type {
   PolkadotProvider,
   PolkadotClient,
   TypedApi,
+  FixedSizeArray,
 } from "./types"

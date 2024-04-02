@@ -3,7 +3,7 @@ import {
   WellKnownChain,
   JsonRpcProvider,
 } from "@polkadot-api/sc-provider"
-import { createClient } from "@polkadot-api/substrate-client"
+import { Runtime, createClient } from "@polkadot-api/substrate-client"
 import {
   compact,
   metadata,
@@ -41,14 +41,24 @@ const withLogsProvider = (input: JsonRpcProvider): JsonRpcProvider => {
   }
 }
 
-export const { chainHead } = createClient(withLogsProvider(smProvider))
-
 type Metadata = CodecType<typeof metadata>
 
 const opaqueMeta = Option(Tuple(compact, metadata))
 
-export const getMetadata = (): Promise<Metadata> =>
-  new Promise<Metadata>((res, rej) => {
+export const getMetadataFromProvider = (
+  provider: JsonRpcProvider,
+): Promise<
+  Metadata & {
+    runtime: Runtime
+  }
+> =>
+  new Promise<
+    Metadata & {
+      runtime: Runtime
+    }
+  >((res, rej) => {
+    const { chainHead } = createClient(provider)
+
     let requested = false
     const chainHeadFollower = chainHead(
       true,
@@ -70,7 +80,7 @@ export const getMetadata = (): Promise<Metadata> =>
           )
           .then((response) => {
             const [, metadata] = opaqueMeta.dec(response)!
-            res(metadata)
+            res({ ...metadata, runtime: message.finalizedBlockRuntime })
           })
           .catch((e) => {
             console.log("error", e)
@@ -83,6 +93,9 @@ export const getMetadata = (): Promise<Metadata> =>
       () => {},
     )
   })
+
+export const getMetadata = () =>
+  getMetadataFromProvider(withLogsProvider(smProvider))
 
 /*
 const result = await getMetadata()

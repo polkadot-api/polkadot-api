@@ -47,6 +47,17 @@ describe("getChecksumBuilder properties", () => {
     )
   }
 
+  it("differentiates array of u8 to array of any other number", () => {
+    expectEqual(
+      { tag: "primitive", value: { tag: "u8", value: undefined } },
+      { tag: "primitive", value: { tag: "u32", value: undefined } },
+    )
+    expectNotEqual(
+      { tag: "array", value: { len: 4, type: knownIds.u8 } },
+      { tag: "array", value: { len: 4, type: knownIds.u32 } },
+    )
+  })
+
   it("gives the same result regardless of entry point", () => {
     const referenceBuilder = getChecksumBuilder(ksm as V15)
     ksm.lookup.map((x) => x.id).forEach(referenceBuilder.buildDefinition)
