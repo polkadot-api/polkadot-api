@@ -1,9 +1,10 @@
-import { getScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { getScProvider } from "@polkadot-api/sc-provider"
+import { WellKnownChain, createScClient } from "@substrate/connect"
 import { createClient, Binary } from "@polkadot-api/client"
 
 // hint: remember to run the `codegen` script
 import { KsmQueries, ksm } from "@polkadot-api/descriptors"
-const scProvider = getScProvider()
+const scProvider = getScProvider(createScClient())
 
 const relayChain = createClient(scProvider(WellKnownChain.ksmcc3).relayChain)
 

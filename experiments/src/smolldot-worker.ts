@@ -1,12 +1,14 @@
 import { Worker } from "node:worker_threads"
-import { JsonRpcProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { JsonRpcProvider } from "@polkadot-api/sc-provider"
+import type { WellKnownChain } from "@substrate/connect"
 
 const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
 const { getScProvider } = require("@polkadot-api/sc-provider")
+const { createScClient } = require("@substrate/connect")
 
 const chain = workerData
-const scProvider = getScProvider()
+const scProvider = getScProvider(createScClient())
 const getProvider = scProvider(chain).relayChain
 
 if (!parentPort) {

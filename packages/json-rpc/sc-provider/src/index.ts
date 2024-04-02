@@ -3,13 +3,16 @@ import type {
   JsonRpcConnection,
 } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
-import type { Config, Chain } from "@substrate/connect"
-import { WellKnownChain, createScClient } from "@substrate/connect"
+import type { WellKnownChain, Chain, ScClient } from "@substrate/connect"
 
-export { WellKnownChain }
 export type { JsonRpcProvider, JsonRpcConnection }
 
-export const wellKnownChains = new Set(Object.values(WellKnownChain))
+const wellKnownChains = new Set([
+  "polkadot",
+  "ksmcc3",
+  "rococo_v2_2",
+  "westend2",
+])
 const noop = () => {}
 type AddChain = (input: WellKnownChain | string) => {
   relayChain: JsonRpcProvider
@@ -48,9 +51,7 @@ const getProvider = (
     }
   })
 
-export const getScProvider = (config?: Config): AddChain => {
-  const client = createScClient(config)
-
+export const getScProvider = (client: ScClient): AddChain => {
   return (input: WellKnownChain | string) => {
     const getRelayChain = (onMessage?: (data: string) => void) =>
       wellKnownChains.has(input as any)
