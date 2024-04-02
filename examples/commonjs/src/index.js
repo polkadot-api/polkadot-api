@@ -1,12 +1,11 @@
 const { createClient } = require("@polkadot-api/client")
 const { ksm } = require("@polkadot-api/descriptors")
-const { getLegacyProvider } = require("@polkadot-api/legacy-polkadot-provider")
-const { createScClient } = require("@substrate/connect")
+const { WellKnownChain, getScProvider } = require("@polkadot-api/sc-provider")
 
-const { relayChains } = getLegacyProvider(createScClient())
+const scProvider = getScProvider()
 
-const chain = relayChains.ksmcc3
-const client = createClient(chain.provider)
+const client = createClient(scProvider(WellKnownChain.ksmcc3).relayChain)
+
 const testApi = client.getTypedApi(ksm)
 
 async function run() {

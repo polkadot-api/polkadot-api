@@ -53,12 +53,9 @@ importers:
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../../packages/client
-      '@polkadot-api/legacy-polkadot-provider':
+      '@polkadot-api/sc-provider':
         specifier: workspace:*
-        version: link:../../packages/legacy-polkadot-provider
-      '@polkadot-api/substrate-client':
-        specifier: workspace:*
-        version: link:../../packages/substrate-client
+        version: link:../../packages/json-rpc/sc-provider
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../packages/utils
