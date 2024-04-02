@@ -35,12 +35,9 @@ export class Binary {
   }
 }
 
-export class FixedSizeBinary<L extends number> extends Binary {
-  length: L
-
+export class FixedSizeBinary<_L extends number> extends Binary {
   constructor(data: Uint8Array) {
     super(data)
-    this.length = data.length as L
   }
 
   static fromArray<L extends number, I extends Array<number> & { length: L }>(

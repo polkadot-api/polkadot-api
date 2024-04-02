@@ -57,10 +57,10 @@ export const generateTypes = (
             }
           : T extends []
             ? []
-            : T extends FixedSizeArray<infer T, infer L>
+            : T extends FixedSizeArray<infer L, infer T>
               ? number extends L
                 ? Array<T>
-                : FixedSizeArray<T, L>
+                : FixedSizeArray<L, T>
               : {
                   [K in keyof T & string]: T[K]
                 }

@@ -122,4 +122,4 @@ export interface PolkadotClient {
   submitAndWatch: (transaction: HexString) => Observable<TxEvents>
 }
 
-export type FixedSizeArray<T, L extends number> = Array<T> & { length: L }
+export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }

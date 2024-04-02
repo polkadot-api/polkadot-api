@@ -186,7 +186,7 @@ const _buildSyntax = (
       addImport(innerType)
       declarations.imports.add("FixedSizeArray")
 
-      variable.type = `FixedSizeArray<${anonymize(innerType.type)}, ${length}>`
+      variable.type = `FixedSizeArray<${length}, ${anonymize(innerType.type)}>`
     }
 
     return typesImport(name)
