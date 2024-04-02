@@ -1,5 +1,5 @@
 import { Observable, combineLatest, mergeMap, of, take } from "rxjs"
-import { BlockInfo, getObservableClient } from "./observableClient"
+import { BlockInfo, ChainHead$ } from "./observableClient"
 import { HintedSignedExtensions } from "./types"
 import {
   ChargeAssetTxPayment,
@@ -12,7 +12,7 @@ import { _void } from "@polkadot-api/substrate-bindings"
 import { empty } from "./signed-extensions/utils"
 
 export const getCreateTx = (
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
 ): ((
   signer: PolkadotSigner,
   callData: Uint8Array,
