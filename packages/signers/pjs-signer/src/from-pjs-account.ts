@@ -94,7 +94,6 @@ export function getPolkadotSignerFromPjs(
     pjs.method = toHex(callData)
     pjs.version = version
 
-    console.log({ pjs })
     const result = await signPayload(pjs as SignerPayloadJSON)
 
     const preResult = mergeUint8(
