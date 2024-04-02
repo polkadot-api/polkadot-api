@@ -4,6 +4,7 @@ import {
 } from "@polkadot-api/metadata-builders"
 import { V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
+import knownTypesContent from "./known-types"
 import { getTypesBuilder } from "./types-builder"
 
 const isDocs = (x: any) => {
@@ -47,6 +48,9 @@ export const getKnownTypesFromFileContent = (fileContent: string) => {
   })
   return knownTypes
 }
+
+export const getBundledKnownTypes = () =>
+  getKnownTypesFromFileContent(knownTypesContent)
 
 export const generateDescriptors = (
   metadata: V15,
