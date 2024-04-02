@@ -1,5 +1,4 @@
 import { createClient } from "@polkadot-api/client"
-import { getChain } from "@polkadot-api/node-polkadot-provider"
 import { roc } from "@polkadot-api/descriptors"
 import { logsProvider } from "@polkadot-api/logs-provider"
 import { readFile } from "fs/promises"
@@ -8,12 +7,7 @@ const LOG_FILE = "./src/undefined-runtime/logs.txt"
 
 const logs = (await readFile(LOG_FILE, { encoding: "utf-8" })).split("\n")
 
-const client = createClient(
-  getChain({
-    provider: logsProvider(logs),
-    keyring: [],
-  }),
-)
+const client = createClient(logsProvider(logs))
 
 const api = client.getTypedApi(roc)
 

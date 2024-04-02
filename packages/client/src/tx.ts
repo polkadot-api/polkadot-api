@@ -3,7 +3,6 @@ import {
   Binary,
   Enum,
   HexString,
-  SS58String,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
 import {
@@ -16,8 +15,10 @@ import {
   of,
   startWith,
   take,
+  withLatestFrom,
 } from "rxjs"
 import {
+  BlockInfo,
   RuntimeContext,
   SystemEvent,
   getObservableClient,
@@ -29,6 +30,7 @@ import {
   Runtime,
   getRuntimeContext,
 } from "./runtime"
+import { PolkadotSigner } from "../../signers/polkadot-signer/dist/index.mjs"
 
 export type TxEvents =
   | { type: "broadcasted" }
@@ -59,7 +61,7 @@ const getTxSuccessFromSystemEvents = (
 }
 
 type TxFunction<Asset> = (
-  from: SS58String | Uint8Array,
+  from: PolkadotSigner,
   hintedSignExtensions?: Partial<
     void extends Asset
       ? {
@@ -75,7 +77,7 @@ type TxFunction<Asset> = (
 ) => Promise<TxFinalizedPayload>
 
 type TxObservable<Asset> = (
-  from: SS58String | Uint8Array,
+  from: PolkadotSigner,
   hintedSignExtensions?: Partial<
     void extends Asset
       ? {
@@ -96,7 +98,7 @@ interface TxCall {
 }
 
 type TxSigned<Asset> = (
-  from: SS58String | Uint8Array,
+  from: PolkadotSigner,
   hintedSignExtensions?: Partial<
     void extends Asset
       ? {
@@ -220,10 +222,11 @@ export const createTxEntry = <
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   submits: ReturnType<typeof getSubmitFns>,
   signer: (
-    from: string | Uint8Array,
+    from: PolkadotSigner,
     callData: Uint8Array,
+    atBlock: BlockInfo,
     hinted?: Partial<{}>,
-  ) => Promise<Uint8Array>,
+  ) => Observable<Uint8Array>,
   compatibilityHelper: CompatibilityHelper,
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
   const { isCompatible, compatibleRuntime$ } = compatibilityHelper((ctx) =>
@@ -269,31 +272,23 @@ export const createTxEntry = <
       return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
     }
 
-    const sign: TxSigned<Asset> = (from, _hinted) =>
-      firstValueFrom(
-        getCallData$(arg, _hinted as any).pipe(
-          mergeMap(({ callData, hinted }) =>
-            signer(from, callData.asBytes(), hinted),
-          ),
-          map(toHex),
+    const sign$ = (from: PolkadotSigner, _hinted: any) =>
+      getCallData$(arg, _hinted).pipe(
+        withLatestFrom(chainHead.finalized$),
+        take(1),
+        mergeMap(([{ callData, hinted }, finalized]) =>
+          signer(from, callData.asBytes(), finalized, hinted),
         ),
       )
 
+    const sign: TxSigned<Asset> = (from, _hinted) =>
+      firstValueFrom(sign$(from, _hinted)).then(toHex)
+
     const signAndSubmit: TxFunction<Asset> = (from, _hinted) =>
-      firstValueFrom(
-        getCallData$(arg, _hinted as any).pipe(
-          mergeMap(({ callData, hinted }) =>
-            signer(from, callData.asBytes(), hinted).then(toHex),
-          ),
-        ),
-      ).then(submits.submit)
+      sign(from, _hinted).then(submits.submit)
 
     const signSubmitAndWatch: TxObservable<Asset> = (from, _hinted) =>
-      getCallData$(arg, _hinted as any).pipe(
-        mergeMap(({ callData, hinted }) =>
-          signer(from, callData.asBytes(), hinted),
-        ),
-        take(1),
+      sign$(from, _hinted).pipe(
         mergeMap((result) => {
           const tx = toHex(result)
           return submits

@@ -3,9 +3,5 @@ export * from "./observableClient"
 export * from "./re-exports"
 export type { BlockInfo } from "./observableClient"
 export type { EventPhase } from "./event"
-export type {
-  PolkadotConnection,
-  PolkadotProvider,
-  PolkadotClient,
-  TypedApi,
-} from "./types"
+export type { PolkadotClient, TypedApi } from "./types"
+export type { PolkadotSigner } from "@polkadot-api/polkadot-signer"

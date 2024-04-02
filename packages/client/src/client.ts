@@ -3,28 +3,27 @@ import {
   SubstrateClient,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
-import { firstValueFrom } from "rxjs"
+import { Observable, firstValueFrom } from "rxjs"
 import { ConstantEntry, createConstantEntry } from "./constants"
 import { EvClient, createEventEntry } from "./event"
-import { getObservableClient } from "./observableClient"
+import { BlockInfo, getObservableClient } from "./observableClient"
 import { compatibilityHelper, getRuntimeApi } from "./runtime"
 import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry, type StorageEntry } from "./storage"
 import { TxEntry, createTxEntry, getSubmitFns } from "./tx"
-import {
-  CreateTx,
-  HintedSignedExtensions,
-  PolkadotClient,
-  PolkadotProvider,
-  TypedApi,
-} from "./types"
+import { HintedSignedExtensions, PolkadotClient, TypedApi } from "./types"
+import { getCreateTx } from "./get-create-tx"
+import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 
 const createTypedApi = <D extends Descriptors>(
   descriptors: D,
-  createTxFromAddress: (
-    address: string | Uint8Array,
+  createTxFromSigner: (
+    signer: PolkadotSigner,
     callData: Uint8Array,
-  ) => Promise<Uint8Array>,
+    atBlock: BlockInfo,
+    hinted?: HintedSignedExtensions,
+  ) => Observable<Uint8Array>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   submitFns: ReturnType<typeof getSubmitFns>,
 ): TypedApi<D> => {
@@ -56,7 +55,7 @@ const createTypedApi = <D extends Descriptors>(
         descriptors.asset,
         chainHead,
         submitFns,
-        createTxFromAddress,
+        createTxFromSigner,
         compatibilityHelper(runtimeApi, txEntries[name]),
       )
     }
@@ -114,36 +113,12 @@ const createTypedApi = <D extends Descriptors>(
   } as any
 }
 
-export function createClient(
-  polkadotProvider: PolkadotProvider,
-): PolkadotClient {
-  let createTx: CreateTx
-  const rawClient: SubstrateClient = createRawClient((onMsg) => {
-    const result = polkadotProvider(onMsg)
-    createTx = result.createTx
-    return result
-  })
+export function createClient(provider: JsonRpcProvider): PolkadotClient {
+  const rawClient: SubstrateClient = createRawClient(provider)
   const client = getObservableClient(rawClient)
   const chainHead = client.chainHead$()
 
-  const createTxFromAddress = async (
-    address: string | Uint8Array,
-    callData: Uint8Array,
-    hinted?: HintedSignedExtensions,
-  ) => {
-    let publicKey: Uint8Array
-
-    if (address instanceof Uint8Array) publicKey = address
-    else {
-      const { accountId } = await firstValueFrom(
-        chainHead.getRuntimeContext$(null),
-      )
-      publicKey = accountId.enc(address)
-    }
-
-    return createTx(publicKey, callData, hinted)
-  }
-
+  const createTxFromSigner = getCreateTx(chainHead)
   const submitFns = getSubmitFns(chainHead, client)
   const { submit, submit$: submitAndWatch } = submitFns
 
@@ -160,6 +135,6 @@ export function createClient(
     submit,
     submitAndWatch,
     getTypedApi: <D extends Descriptors>(descriptors: D) =>
-      createTypedApi(descriptors, createTxFromAddress, chainHead, submitFns),
+      createTypedApi(descriptors, createTxFromSigner, chainHead, submitFns),
   }
 }

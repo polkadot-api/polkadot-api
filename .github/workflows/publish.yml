@@ -47,8 +47,9 @@ jobs:
           pnpm pack --dir packages/json-rpc/logs-provider
           pnpm pack --dir packages/json-rpc/sm-provider
           pnpm pack --dir packages/json-rpc/ws-provider
-          pnpm pack --dir packages/legacy-polkadot-provider
-          pnpm pack --dir packages/node-polkadot-provider
+          pnpm pack --dir packages/signers/polkadot-signer
+          pnpm pack --dir packages/signers/signer
+          pnpm pack --dir packages/signers/pjs-signer
           pnpm pack --dir packages/substrate-bindings
           pnpm pack --dir packages/substrate-client
           pnpm pack --dir packages/metadata-builders
@@ -94,11 +95,15 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: package
-          path: ./packages/legacy-polkadot-provider/*.tgz
+          path: ./packages/signers/polkadot-signer/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
-          path: ./packages/node-polkadot-provider/*.tgz
+          path: ./packages/signers/signer/*.tgz
+      - uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: ./packages/signers/pjs-signer/*.tgz
       - uses: actions/upload-artifact@v3
         with:
           name: package
