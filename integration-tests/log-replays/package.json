@@ -27,7 +27,6 @@
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/tx-helper": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@substrate/connect-known-chains": "^1.0.6",
     "rxjs": "^7.8.1",
