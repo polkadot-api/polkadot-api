@@ -4,7 +4,6 @@ import {
 } from "@polkadot-api/metadata-builders"
 import { V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
-import knownTypesContent from "./known-types"
 import { getTypesBuilder } from "./types-builder"
 
 const isDocs = (x: any) => {
@@ -35,22 +34,6 @@ const customStringifyObject = (
     })
     .join(",\n")}}`
 }
-
-export const getKnownTypesFromFileContent = (fileContent: string) => {
-  const knownTypes = new Map<string, string>()
-  const checksumPattern = "// "
-  fileContent.split("\n").forEach((line, idx, parts) => {
-    if (line.startsWith(checksumPattern)) {
-      const checksum = line.slice(checksumPattern.length)
-      const name = parts[idx + 1].split(" ")[1]
-      knownTypes.set(checksum, name)
-    }
-  })
-  return knownTypes
-}
-
-export const getBundledKnownTypes = () =>
-  getKnownTypesFromFileContent(knownTypesContent)
 
 export const generateDescriptors = (
   metadata: V15,

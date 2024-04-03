@@ -87,16 +87,16 @@ const _buildSyntax = (
   stack: Set<number>,
   declarations: CodeDeclarations,
   getChecksum: (id: number | StructVar | TupleVar) => string | null,
-  knownTypes: Map<string, string>,
+  knownTypes: Record<string, string>,
 ): TypeForEntry => {
   const addImport = (entry: TypeForEntry) => {
     if (entry.import === "client") declarations.imports.add(entry.type)
   }
 
   const getName = (checksum: string) => {
-    if (!knownTypes.has(checksum)) return `I${checksum}`
+    if (!knownTypes[checksum]) return `I${checksum}`
 
-    const originalName = knownTypes.get(checksum)!
+    const originalName = knownTypes[checksum]
     let name = originalName
     let i = 1
     while (declarations.takenNames.has(name)) name = originalName + i++
@@ -271,7 +271,7 @@ const _buildSyntax = (
   }
 
   // it has to be an enum by now
-  const isKnown = knownTypes.has(checksum)
+  const isKnown = !!knownTypes[checksum]
 
   const name = getName(checksum)
   const variable: Variable = {
@@ -320,7 +320,7 @@ export const getTypesBuilder = (
   declarations: CodeDeclarations,
   metadata: V15,
   // checksum -> desired-name
-  knownTypes: Map<string, string>,
+  knownTypes: Record<string, string>,
 ) => {
   const typeFileImports = new Set<string>()
   const clientFileImports = new Set<string>()
@@ -361,7 +361,7 @@ export const getTypesBuilder = (
     if (!tmp.import || tmp.import === "client") return tmp.type
 
     const checksum = checksumBuilder.buildDefinition(id)!
-    if (knownTypes.has(checksum)) return tmp.type
+    if (knownTypes[checksum]) return tmp.type
 
     return `Anonymize<${tmp.type}>`
   }

@@ -1,4 +1,4 @@
-import { getBundledKnownTypes } from "@polkadot-api/codegen"
+import { knownTypesRepository } from "@polkadot-api/codegen"
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { getSmProvider } from "@polkadot-api/sm-provider"
 import { mapObject } from "@polkadot-api/utils"
@@ -39,6 +39,10 @@ const chains = {
   dot_col: [polkadot_collectives, polkadot],
   wnd_col: [westend2_collectives, westend2],
 } as Record<string, string[]>
+
+const bundledKnownTypes = mapObject(knownTypesRepository, (value) =>
+  typeof value === "string" ? { name: value } : value,
+)
 
 const STEP: number = 3
 
@@ -119,10 +123,7 @@ async function getCurrentKnownTypes() {
     ),
   )
 
-  const bundledKnownTypes = getBundledKnownTypes()
-  const missingChecksums = new Set(
-    Array.from(bundledKnownTypes.keys()).filter((key) => !key.includes(",")),
-  )
+  const missingChecksums = new Set(Object.keys(bundledKnownTypes))
 
   // checksum => [chain, idx]
   const result: Record<string, [string, number]> = {}
@@ -136,7 +137,7 @@ async function getCurrentKnownTypes() {
       if (!missingChecksums.has(checksum)) continue
       missingChecksums.delete(checksum)
 
-      const knownType = bundledKnownTypes.get(checksum)
+      const knownType = bundledKnownTypes[checksum]
       if (knownType) {
         result[checksum] = [key, idx]
       }
@@ -159,10 +160,12 @@ async function refreshTypes() {
     string,
     [string, number]
   >
-  const bundledKnownTypes = getBundledKnownTypes()
-  const paths = new Set(
-    Array.from(bundledKnownTypes.keys()).filter((key) => key.includes(",")),
+  const pathToChecksum = Object.fromEntries(
+    Object.entries(bundledKnownTypes)
+      .filter(([, v]) => v.path)
+      .map(([checksum, entry]) => [entry.path, checksum]),
   )
+  const paths = new Set(Object.keys(pathToChecksum))
 
   const metadatas = mapObject(chains, (_, key) =>
     readFile(getMetadataPath(key), "utf-8").then((r) => {
@@ -198,7 +201,7 @@ async function refreshTypes() {
       paths.delete(path)
 
       const checksum = builder.buildDefinition(idx)!
-      const oldChecksum = bundledKnownTypes.get(path)
+      const oldChecksum = pathToChecksum[path]
       if (oldChecksum && checksum !== oldChecksum) {
         knownTypes = knownTypes.replaceAll(oldChecksum, checksum)
       }
