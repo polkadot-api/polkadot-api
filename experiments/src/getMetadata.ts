@@ -1,8 +1,5 @@
-import {
-  getScProvider,
-  WellKnownChain,
-  JsonRpcProvider,
-} from "@polkadot-api/sc-provider"
+import { getScProvider, JsonRpcProvider } from "@polkadot-api/sc-provider"
+import { WellKnownChain, createScClient } from "@substrate/connect"
 import { Runtime, createClient } from "@polkadot-api/substrate-client"
 import {
   compact,
@@ -14,7 +11,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 
-const scProvider = getScProvider()
+const scProvider = getScProvider(createScClient())
 
 const smProvider = scProvider(
   WellKnownChain.polkadot /*, {

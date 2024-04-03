@@ -1,8 +1,9 @@
 const { createClient } = require("@polkadot-api/client")
 const { ksm } = require("@polkadot-api/descriptors")
-const { WellKnownChain, getScProvider } = require("@polkadot-api/sc-provider")
+const { getScProvider } = require("@polkadot-api/sc-provider")
+const { WellKnownChain, createScClient } = require("@substrate/connect")
 
-const scProvider = getScProvider()
+const scProvider = getScProvider(createScClient())
 
 const client = createClient(scProvider(WellKnownChain.ksmcc3).relayChain)
 

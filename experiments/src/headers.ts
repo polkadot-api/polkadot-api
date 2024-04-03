@@ -1,8 +1,9 @@
-import { getScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { getScProvider } from "@polkadot-api/sc-provider"
+import { WellKnownChain, createScClient } from "@substrate/connect"
 import { blockHeader } from "@polkadot-api/substrate-bindings"
 import { createClient } from "@polkadot-api/substrate-client"
 
-const scProvider = getScProvider()
+const scProvider = getScProvider(createScClient())
 const { relayChain } = scProvider(WellKnownChain.polkadot)
 
 const { chainHead } = createClient(relayChain)

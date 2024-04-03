@@ -38,6 +38,7 @@
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/view-builder": "workspace:*",
+    "@substrate/connect": "^0.8.8",
     "@substrate/connect-known-chains": "^1.1.2",
     "rxjs": "^7.8.1",
     "smoldot": "^2.0.21"

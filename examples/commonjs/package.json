@@ -16,6 +16,6 @@
     "@polkadot-api/client": "workspace:*",
     "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "@substrate/connect": "^0.8.4"
+    "@substrate/connect": "^0.8.8"
   }
 }

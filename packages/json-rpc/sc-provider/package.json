@@ -47,10 +47,13 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:*"
+  },
+  "peerDependencies": {
     "@substrate/connect": "^0.8.8"
   },
   "devDependencies": {
-    "@polkadot-api/json-rpc-provider": "workspace:*"
+    "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@substrate/connect": "^0.8.8"
   }
 }

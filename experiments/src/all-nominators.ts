@@ -1,4 +1,5 @@
-import { JsonRpcProvider, WellKnownChain } from "@polkadot-api/sc-provider"
+import { JsonRpcProvider } from "@polkadot-api/sc-provider"
+import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
 import { createProvider } from "./smolldot-worker"
 import { getObservableClient } from "@polkadot-api/client"

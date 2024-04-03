@@ -5,10 +5,11 @@ import {
   connectInjectedExtension,
   InjectedPolkadotAccount,
 } from "@polkadot-api/pjs-signer"
-import { WellKnownChain, getScProvider } from "@polkadot-api/sc-provider"
+import { getScProvider } from "@polkadot-api/sc-provider"
+import { WellKnownChain, createScClient } from "@substrate/connect"
 import "./style.css"
 
-const scProvider = getScProvider()
+const scProvider = getScProvider(createScClient({}))
 
 const connection: PolkadotClient = createClient(
   scProvider(WellKnownChain.westend2).relayChain,
