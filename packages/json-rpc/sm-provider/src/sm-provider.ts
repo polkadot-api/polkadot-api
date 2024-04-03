@@ -1,25 +1,19 @@
-import type { AddChainOptions, Client } from "smoldot"
+import type { Chain } from "smoldot"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
-const addChainOperations = new WeakMap<Client, Promise<unknown>>()
+let pending: Promise<Chain> | null
 
-export const getSmProvider = (
-  smoldot: Client,
-  chainSpecOrOptions: string | AddChainOptions,
-): JsonRpcProvider =>
+export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
   getSyncProvider(async () => {
-    const pending = addChainOperations.get(smoldot)
-    if (pending) await pending
+    while (pending) await pending
 
-    const addChainP = smoldot.addChain(
-      typeof chainSpecOrOptions === "string"
-        ? { chainSpec: chainSpecOrOptions }
-        : chainSpecOrOptions,
-    )
-    addChainOperations.set(smoldot, addChainP)
-    const chain = await addChainP
-    addChainOperations.delete(smoldot)
+    let resolvedChain: Chain
+    if (chain instanceof Promise) {
+      pending = chain
+      resolvedChain = await chain
+      pending = null
+    } else resolvedChain = chain
 
     return (listener, onError) => {
       let listening = true
@@ -27,7 +21,7 @@ export const getSmProvider = (
         do {
           let message = ""
           try {
-            message = await chain.nextJsonRpcResponse()
+            message = await resolvedChain.nextJsonRpcResponse()
           } catch (e) {
             if (listening) onError()
             return
@@ -39,11 +33,11 @@ export const getSmProvider = (
 
       return {
         send(msg: string) {
-          chain.sendJsonRpc(msg)
+          resolvedChain.sendJsonRpc(msg)
         },
         disconnect() {
           listening = false
-          chain.remove()
+          resolvedChain.remove()
         },
       }
     }

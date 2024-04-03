@@ -25,7 +25,7 @@ const getChainspec = async (count = 1): Promise<{}> => {
   }
 }
 
-const chainspec = JSON.stringify(await getChainspec())
+const chainSpec = JSON.stringify(await getChainspec())
 rawClient.destroy()
 
 const accountIdDec = AccountId().dec
@@ -35,7 +35,7 @@ console.log("got the chainspec")
 
 describe("E2E", async () => {
   console.log("starting the client")
-  const client = createClient(getSmProvider(smoldot, chainspec))
+  const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
   const api = client.getTypedApi(roc)
 
   console.log("getting the latest runtime")
