@@ -57,10 +57,12 @@ async function getMetadatas() {
       : undefined
 
     const result = await getMetadataFromProvider(
-      getSmProvider(smoldot, {
-        chainSpec: chain,
-        potentialRelayChains,
-      }),
+      getSmProvider(
+        smoldot.addChain({
+          chainSpec: chain,
+          potentialRelayChains,
+        }),
+      ),
     )
     smoldot.terminate()
     return result
