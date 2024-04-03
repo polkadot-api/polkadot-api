@@ -1,19 +1,16 @@
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { V15 } from "@polkadot-api/substrate-bindings"
-import {
-  generateDescriptors,
-  getKnownTypesFromFileContent,
-} from "./generate-descriptors"
+import { generateDescriptors } from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
 import { getUsedChecksums } from "./get-used-checksums"
-import knownTypesContent from "./known-types"
+import knownTypes, { KnownTypes } from "./known-types"
 import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
     key: string
     metadata: V15
-    knownDeclarations: string
+    knownTypes: KnownTypes
   }>,
   paths: {
     client: string
@@ -27,9 +24,10 @@ export const generateMultipleDescriptors = (
       ...chain,
       builder,
       checksums: getUsedChecksums(chain.metadata, builder),
-      knownTypes: getKnownTypesFromFileContent(
-        knownTypesContent + "\n\n" + chain.knownDeclarations,
-      ),
+      knownTypes: {
+        ...knownTypes,
+        ...chain.knownTypes,
+      },
     }
   })
   resolveConflicts(chainData)
@@ -68,14 +66,14 @@ function resolveConflicts(
   chainData: Array<{
     key: string
     checksums: Set<string>
-    knownTypes: Map<string, string>
+    knownTypes: KnownTypes
   }>,
 ) {
   const usedNames = new Map<string, Map<string, Set<string>>>()
 
   chainData.forEach((chain) =>
     chain.checksums.forEach((checksum) => {
-      const name = chain.knownTypes.get(checksum)
+      const name = chain.knownTypes[checksum]
       if (!name) return
       if (!usedNames.has(name)) {
         usedNames.set(name, new Map())
@@ -104,9 +102,9 @@ function resolveConflicts(
 
   Array.from(new Set(conflictedChecksums)).forEach((checksum) =>
     chainData.forEach((chain) => {
-      const name = chain.knownTypes.get(checksum)
+      const name = chain.knownTypes[checksum]
       if (name) {
-        chain.knownTypes.set(checksum, capitalize(chain.key) + name)
+        chain.knownTypes[checksum] = capitalize(chain.key) + name
       }
     }),
   )

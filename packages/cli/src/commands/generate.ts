@@ -25,7 +25,7 @@ export async function generate(opts: GenerateOptions) {
     Object.entries(sources).map(async ([key, source]) => ({
       key,
       metadata: (await getMetadata(source))!,
-      knownDeclarations: "",
+      knownTypes: {},
     })),
   )
 
@@ -67,7 +67,7 @@ async function outputCodegen(
   chains: Array<{
     key: string
     metadata: V15
-    knownDeclarations: string
+    knownTypes: Record<string, string>
   }>,
   outputFolder: string,
 ) {

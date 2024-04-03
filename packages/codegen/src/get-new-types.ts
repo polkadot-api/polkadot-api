@@ -3,13 +3,14 @@ import {
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
 import type { V15 } from "@polkadot-api/substrate-bindings"
+import { KnownTypes } from "./known-types"
 import { defaultDeclarations, getTypesBuilder } from "./types-builder"
 
 type ArraVal<T extends Array<any>> = T extends Array<infer V> ? V : unknown
 
 export const getNewTypes = (
   metadata: V15,
-  knownTypes: Map<string, string>,
+  knownTypes: KnownTypes,
   getTypeName: (data: ArraVal<V15["lookup"]>) => string | null,
 ) => {
   const checksumBuilder = getChecksumBuilder(metadata)
@@ -33,7 +34,7 @@ export const getNewTypes = (
       })
     })
 
-  const wannabes = new Map<string, string>()
+  const wannabes: KnownTypes = {}
   const nameToChecksum = new Map<string, { path: string[]; checksum: string }>()
 
   metadata.lookup.forEach((x) => {
@@ -44,7 +45,7 @@ export const getNewTypes = (
     if (
       !variable ||
       !variable.type.startsWith("AnonymousEnum<") ||
-      wannabes.has(variable.checksum)
+      variable.checksum in wannabes
     )
       return
 
@@ -55,7 +56,7 @@ export const getNewTypes = (
     for (let i = 1; nameToChecksum.has(finalTypeName); i++)
       finalTypeName = typeName + i
 
-    wannabes.set(variable.checksum, finalTypeName)
+    wannabes[variable.checksum] = finalTypeName
     nameToChecksum.set(finalTypeName, {
       checksum: variable.checksum,
       path: x.path,
