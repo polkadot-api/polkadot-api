@@ -16,7 +16,7 @@ Before you begin, ensure you have the following software installed on your syste
 1. Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/paritytech/polkadot-api
+git clone https://github.com/polkadot-api/polkadot-api
 ```
 
 1. Navigate to the project directory:
