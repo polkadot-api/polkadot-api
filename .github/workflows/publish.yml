@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  pack:
+  build:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -28,124 +28,75 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Install deps
         run: pnpm install
-      - name: Build, Test and Lint
-        run: pnpm turbo build test lint --cache-dir=.turbo
-      - name: Run Integration Tests
-        run: pnpm test:ci
       - name: Build
         run: pnpm turbo build --cache-dir=.turbo
-      - name: Pack
-        run: |
-          pnpm dlx lerna init
-          pnpm dlx lerna version prerelease --no-git-tag-version --yes --exact --preid ${{ github.sha }}.${{ github.run_attempt }}
-          pnpm pack --dir packages/cli
-          pnpm pack --dir packages/client
-          pnpm pack --dir packages/codegen
-          pnpm pack --dir packages/json-rpc/json-rpc-provider
-          pnpm pack --dir packages/json-rpc/json-rpc-provider-proxy
-          pnpm pack --dir packages/json-rpc/sc-provider
-          pnpm pack --dir packages/json-rpc/logs-provider
-          pnpm pack --dir packages/json-rpc/sm-provider
-          pnpm pack --dir packages/json-rpc/ws-provider
-          pnpm pack --dir packages/signers/polkadot-signer
-          pnpm pack --dir packages/signers/signer
-          pnpm pack --dir packages/signers/pjs-signer
-          pnpm pack --dir packages/substrate-bindings
-          pnpm pack --dir packages/substrate-client
-          pnpm pack --dir packages/metadata-builders
-          pnpm pack --dir packages/view-builder
-          pnpm pack --dir packages/utils
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/cli/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/client/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/codegen/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/json-rpc/json-rpc-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/json-rpc/json-rpc-provider-proxy/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/json-rpc/sc-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/json-rpc/logs-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/json-rpc/sm-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/json-rpc/ws-provider/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/signers/polkadot-signer/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/signers/signer/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/signers/pjs-signer/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/substrate-bindings/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/substrate-client/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/metadata-builders/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/view-builder/*.tgz
-      - uses: actions/upload-artifact@v3
-        with:
-          name: package
-          path: ./packages/utils/*.tgz
-
+      - name: Lint
+        run: pnpm lint
+      - name: Test
+        run: pnpm test
+      - name: Run Integration Tests
+        run: pnpm test:ci
   publish:
-    needs: pack
-    timeout-minutes: 10
+    needs: [build]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        value:
+          [
+            cli,
+            client,
+            codegen,
+            json-rpc/json-rpc-provider,
+            json-rpc/json-rpc-provider-proxy,
+            json-rpc/logs-provider,
+            json-rpc/sc-provider,
+            json-rpc/sm-provider,
+            json-rpc/ws-provider,
+            metadata-builders,
+            signers/pjs-signer,
+            signers/polkadot-signer,
+            signers/signer,
+            substrate-bindings,
+            substrate-client,
+            utils,
+            view-builder,
+          ]
     steps:
-      - name: Grab artifacts
-        uses: actions/download-artifact@v3
+      - uses: actions/checkout@v3.5.3
+      - name: Check if version has been updated
+        id: check
+        uses: EndBug/version-check@v2
         with:
-          name: package
-          path: artifacts
-      - name: List npm packages
-        run: ls -1 ./artifacts > artifacts-list.txt
-      - name: Configure registry
+          diff-search: true
+          file-name: ./packages/${{ matrix.value }}/package.json
+      - uses: actions/cache@v3
+        if: steps.check.outputs.changed == 'true'
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-20.x-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-20.x-turbo-
+      - uses: pnpm/action-setup@v2
+        if: steps.check.outputs.changed == 'true'
+        with:
+          version: 8
+      - name: Setup Node.js 20.x
+        if: steps.check.outputs.changed == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
+          cache: pnpm
           registry-url: https://registry.npmjs.org
-      - name: Publish npm packages
+      - name: Install deps
+        if: steps.check.outputs.changed == 'true'
+        run: pnpm install
+      - name: Build
+        if: steps.check.outputs.changed == 'true'
+        run: pnpm turbo build --cache-dir=.turbo
+      - name: Publish
+        if: steps.check.outputs.changed == 'true'
+        working-directory: packages/${{ matrix.value }}
         run: |
-          while IFS= read -r file; do
-            echo "Publishing $file"
-            npm publish "./artifacts/$file" --tag next
-          done < artifacts-list.txt
+          pnpm publish --no-git-checks --access=public --tag latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
