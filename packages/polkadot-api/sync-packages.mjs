@@ -53,11 +53,18 @@ for (const filename of packageFiles) {
       },
       null,
       2,
-    ),
+    ) + "\n",
   )
 }
 newExports["./package.json"] = packageJsonContent.exports["./packageJson"]
 
 packageJsonContent.exports = newExports
+packageJsonContent.files = [
+  "dist",
+  ...packageFiles.map((file) => file.replace(".ts", "")),
+]
 
-await writeFile("package.json", JSON.stringify(packageJsonContent, null, 2))
+await writeFile(
+  "package.json",
+  JSON.stringify(packageJsonContent, null, 2) + "\n",
+)

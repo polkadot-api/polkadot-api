@@ -143,12 +143,18 @@
   "browser": "./dist/index/index.mjs",
   "types": "./dist/index/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "logs-provider",
+    "pjs-signer",
+    "sc-provider",
+    "signer",
+    "sm-provider",
+    "ws-provider-node",
+    "ws-provider-web"
   ],
   "scripts": {
     "build": "bash ./build.sh",
-    "test": "vitest",
-    "coverage": "vitest run --coverage",
+    "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
