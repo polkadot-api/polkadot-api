@@ -60,6 +60,7 @@ jobs:
             substrate-client,
             utils,
             view-builder,
+            polkadot-api,
           ]
     steps:
       - uses: actions/checkout@v3.5.3
