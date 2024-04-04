@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2024-04-05
+
 ### Changed
 
 - `getInjectedExtensions` is now a synchronous function which returns
