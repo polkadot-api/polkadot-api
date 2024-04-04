@@ -30,7 +30,7 @@ program
       Object.keys(WellKnownChain) as WellKnownChain[],
     ),
   )
-  .option("-p, --persist", "Persist the metadata into the file {key}.scale")
+  .option("--no-persist", "Do not persist the metadata as a file")
   .action(add)
 
 program

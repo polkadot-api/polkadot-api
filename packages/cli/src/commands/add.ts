@@ -9,7 +9,7 @@ export interface AddOptions extends CommonOptions {
   wsUrl?: string
   chainSpec?: string
   name?: WellKnownChain
-  persist?: boolean
+  noPersist?: boolean
 }
 
 export async function add(key: string, options: AddOptions) {
@@ -26,7 +26,7 @@ export async function add(key: string, options: AddOptions) {
     const entry = entryFromOptions(options)
     entries[key] = entry
 
-    if (options.persist) {
+    if (!options.noPersist) {
       const spinner = ora(`Loading metadata`).start()
       const metadata = await getMetadata(entry)
 

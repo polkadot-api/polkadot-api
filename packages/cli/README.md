@@ -5,10 +5,10 @@
 Add a chain by using the add command
 
 ```sh
-polkadot-api add ksm -n ksmcc3 -p
+polkadot-api add ksm -n ksmcc3
 ```
 
-In this example, `ksm` is the key to be used to reference this chain, `-n ksmcc3` is to source from the "well-known chain" Kusama, and `-p` is to persist the metadata into a file so that it doesn't need to be re-fetched.
+In this example, `ksm` is the key to be used to reference this chain, `-n ksmcc3` is to source from the "well-known chain" Kusama.
 
 Then you can run the CLI without arguments to generate the descriptor files
 
@@ -81,7 +81,7 @@ Options:
   -w, --wsUrl <URL>           Source from websocket url
   -c, --chainSpec <filename>  Source from chain spec file
   -n, --name <name>           Source from a well-known chain
-  -p, --persist               Persist the metadata into the file {name}.scale
+  --no-persist                Do not persist the metadata as a file
   -h, --help                  display help for command
 ```
 
@@ -92,7 +92,7 @@ This command requires one of the options to specify a source:
 - From a chainSpect: `-c, --chainSpec`
 - From a well-known chain (as of this writing: polkadot, ksmcc3, rococo_v2_2 or westend2): `-n, --name`
 
-For the external sources (`-w`, `-c` and `-n`), there's the option `-p, --persist` which stores the chain metadata into a SCALE-encoded metadata file. This is useful if you want to keep the chain metadata on version control and have it more stable. Otherwise, every time the code is generated, it will re-fetch the metadata from the remote source.
+For the external sources (`-w`, `-c` and `-n`), the CLI automatically downloads the metadata and stores it as a file `{key}.scale` so that it can be added to source control, which is recommended. In case you want to re-fetch in on the fly every time you generate the descriptors, there's the option `--no-persist` which wil not create the metadata file.
 
 ### Update
 
