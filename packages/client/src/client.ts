@@ -6,7 +6,7 @@ import {
 import { Observable, firstValueFrom } from "rxjs"
 import { ConstantEntry, createConstantEntry } from "./constants"
 import { EvClient, createEventEntry } from "./event"
-import { BlockInfo, getObservableClient } from "./observableClient"
+import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
 import { compatibilityHelper, getRuntimeApi } from "./runtime"
 import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry, type StorageEntry } from "./storage"

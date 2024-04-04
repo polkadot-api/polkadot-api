@@ -3,7 +3,7 @@ import {
   ChainHead$,
   RuntimeContext,
   getObservableClient,
-} from "./observableClient"
+} from "@polkadot-api/observable-client"
 
 export class Runtime {
   protected _ctx: unknown

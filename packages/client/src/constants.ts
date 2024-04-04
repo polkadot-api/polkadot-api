@@ -1,5 +1,5 @@
 import { firstValueFrom, map } from "rxjs"
-import { ChainHead$, RuntimeContext } from "./observableClient"
+import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
 import {
   CompatibilityHelper,
   IsCompatible,

@@ -1,8 +1,5 @@
-import { BlockInfo, getObservableClient } from "@/observableClient"
-import {
-  BlockPrunedError,
-  NotBestBlockError,
-} from "@/observableClient/chainHead/errors"
+import { BlockInfo, getObservableClient } from "@/index"
+import { BlockPrunedError, NotBestBlockError } from "@/chainHead/errors"
 import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {

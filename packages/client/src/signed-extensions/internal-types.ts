@@ -1,6 +1,6 @@
 import { V15 } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
-import { getObservableClient } from ".."
+import { getObservableClient } from "@polkadot-api/observable-client"
 
 export interface ChainExtensionCtx {
   callData: Uint8Array

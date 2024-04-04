@@ -10,7 +10,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 import { EvClient } from "./event"
-import { BlockInfo } from "./observableClient"
+import { BlockInfo } from "@polkadot-api/observable-client"
 import { RuntimeApi } from "./runtime"
 import { StorageEntry } from "./storage"
 import { TxEntry, TxEvents, TxFinalizedPayload } from "./tx"

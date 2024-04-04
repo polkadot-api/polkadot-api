@@ -1,4 +1,4 @@
-import { BlockNotPinnedError, getObservableClient } from "@/observableClient"
+import { BlockNotPinnedError, getObservableClient } from "@/index"
 import {
   DisjointError,
   StopError,

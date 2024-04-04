@@ -61,6 +61,7 @@ jobs:
             utils,
             view-builder,
             polkadot-api,
+            observable-client,
           ]
     steps:
       - uses: actions/checkout@v3.5.3
