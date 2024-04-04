@@ -11,7 +11,7 @@ declare global {
 export type InjectedWeb3 = Record<
   string,
   | {
-      enable: () => Promise<InjectedExtension>
+      enable: () => Promise<PjsInjectedExtension>
     }
   | undefined
 >
@@ -33,25 +33,28 @@ export interface InjectedPolkadotAccount {
   type?: KeypairType
 }
 
-interface InjectedExtension {
+interface PjsInjectedExtension {
   signer: {
     signPayload: (payload: SignerPayloadJSON) => Promise<{ signature: string }>
   }
   accounts: {
-    get: () => Promise<Array<InjectedAccount>>
-    subscribe: (cb: (accounts: InjectedAccount[]) => void) => () => void
+    get: () => Promise<InjectedPolkadotAccount[]>
+    subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => () => void
   }
 }
 
 const getPublicKey = AccountId().enc
 
-export const connectInjectedExtension = async (
-  name: string,
-): Promise<{
+export interface InjectedExtension {
+  name: string
   getAccounts: () => InjectedPolkadotAccount[]
   subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => () => void
   disconnect: () => void
-}> => {
+}
+
+export const connectInjectedExtension = async (
+  name: string,
+): Promise<InjectedExtension> => {
   let entry = window.injectedWeb3?.[name]
 
   if (!entry) throw new Error(`Unavailable extension: "${name}"`)
@@ -88,6 +91,7 @@ export const connectInjectedExtension = async (
   })
 
   return {
+    name,
     getAccounts: () => currentAccounts,
     subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => {
       listeners.add(cb)
