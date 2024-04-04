@@ -1,5 +1,5 @@
 import { Observable, combineLatest, mergeMap, of, take } from "rxjs"
-import { BlockInfo, ChainHead$ } from "./observableClient"
+import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
 import { HintedSignedExtensions } from "./types"
 import {
   ChargeAssetTxPayment,

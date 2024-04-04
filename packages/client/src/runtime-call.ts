@@ -1,7 +1,7 @@
 import { firstValueFromWithSignal } from "@/utils"
 import { toHex } from "@polkadot-api/utils"
 import { map, mergeMap } from "rxjs"
-import { ChainHead$ } from "./observableClient"
+import { ChainHead$ } from "@polkadot-api/observable-client"
 import { CompatibilityHelper, IsCompatible } from "./runtime"
 
 type CallOptions = Partial<{

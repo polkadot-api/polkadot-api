@@ -1,4 +1,4 @@
-import { getObservableClient } from "@/observableClient"
+import { getObservableClient } from "@/index"
 import {
   OperationLimitError,
   StorageItemInput,

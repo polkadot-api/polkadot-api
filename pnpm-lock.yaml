@@ -190,6 +190,9 @@ importers:
       '@polkadot-api/metadata-fixtures':
         specifier: workspace:*
         version: link:../packages/metadata-fixtures
+      '@polkadot-api/observable-client':
+        specifier: workspace:*
+        version: link:../packages/observable-client
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../packages/json-rpc/sc-provider
@@ -340,6 +343,9 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
+      '@polkadot-api/observable-client':
+        specifier: workspace:*
+        version: link:../observable-client
       '@polkadot-api/sc-provider':
         specifier: workspace:*
         version: link:../json-rpc/sc-provider
@@ -410,6 +416,9 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
+      '@polkadot-api/observable-client':
+        specifier: workspace:*
+        version: link:../observable-client
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../signers/polkadot-signer
@@ -423,9 +432,6 @@ importers:
         specifier: workspace:*
         version: link:../utils
     devDependencies:
-      '@polkadot-api/metadata-fixtures':
-        specifier: workspace:*
-        version: link:../metadata-fixtures
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -522,6 +528,28 @@ importers:
       '@types/node':
         specifier: ^20.11.19
         version: 20.11.19
+
+  packages/observable-client:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../substrate-client
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+    devDependencies:
+      '@polkadot-api/metadata-fixtures':
+        specifier: workspace:*
+        version: link:../metadata-fixtures
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
 
   packages/polkadot-api:
     dependencies:

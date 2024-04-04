@@ -22,8 +22,8 @@ import {
   RuntimeContext,
   SystemEvent,
   getObservableClient,
-} from "./observableClient"
-import { TrackedTx } from "./observableClient/chainHead/track-tx"
+} from "@polkadot-api/observable-client"
+import { TrackedTx } from "@polkadot-api/observable-client"
 import {
   CompatibilityHelper,
   IsCompatible,

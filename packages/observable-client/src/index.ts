@@ -3,4 +3,5 @@ export {
   BlockNotPinnedError,
   BlockPrunedError,
   NotBestBlockError,
+  TrackedTx,
 } from "./chainHead"

@@ -7,7 +7,7 @@ import {
   exhaustMap,
   map,
 } from "rxjs"
-import { ChainHead$ } from "./observableClient"
+import { ChainHead$ } from "@polkadot-api/observable-client"
 import { CompatibilityHelper, IsCompatible } from "./runtime"
 
 type CallOptions = Partial<{

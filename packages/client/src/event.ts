@@ -1,5 +1,5 @@
 import { Observable, firstValueFrom, map, mergeMap } from "rxjs"
-import { BlockInfo, ChainHead$ } from "./observableClient"
+import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
 import { CompatibilityHelper, IsCompatible } from "./runtime"
 import { concatMapEager, shareLatest } from "./utils"
 
