@@ -1,7 +1,7 @@
 export const PROVIDER_WORKER_CODE = `
 const { parentPort, workerData } = require("node:worker_threads")
 const { getScProvider } = require("@polkadot-api/sc-provider")
-const { WellKnownChain } = require("@substrate/connect")
+const { WellKnownChain, createScClient } = require("@substrate/connect")
 const wellKnownChains = new Set(Object.values(WellKnownChain))
 const isWellKnownChain = (input) => wellKnownChains.has(input)
 
@@ -10,7 +10,7 @@ if (!parentPort) {
 }
 
 const chain = workerData
-const scProvider = getScProvider()
+const scProvider = getScProvider(createScClient())
 const getProvider = isWellKnownChain(chain)
   ? scProvider(chain).relayChain
   : (() => {
