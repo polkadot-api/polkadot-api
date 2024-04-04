@@ -1,3 +1,3 @@
-# polkadot-api
+# polkadot-connect
 
 Docs: coming soon(ish)!
