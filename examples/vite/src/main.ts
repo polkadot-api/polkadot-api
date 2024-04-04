@@ -16,9 +16,8 @@ const connection: PolkadotClient = createClient(
 )
 const testApi: TypedApi<typeof wnd> = connection.getTypedApi(wnd)
 
-while (!(await getInjectedExtensions()).includes("polkadot-js")) {
-  await new Promise((res) => setTimeout(res, 100))
-}
+while (!getInjectedExtensions()?.includes("polkadot-js"))
+  await new Promise((res) => setTimeout(res, 50))
 
 const pjs = await connectInjectedExtension("polkadot-js")
 const accounts = pjs.getAccounts()

@@ -105,16 +105,7 @@ export const connectInjectedExtension = async (
   }
 }
 
-const _getInjectedExtensions = async (nTries = 0): Promise<string[]> => {
+export const getInjectedExtensions = (): null | Array<string> => {
   const { injectedWeb3 } = window
-  if (injectedWeb3) return Object.keys(injectedWeb3)
-  if (nTries > 3) return []
-
-  await new Promise((res) => {
-    setTimeout(res, 50 * nTries)
-  })
-  return _getInjectedExtensions(nTries + 1)
+  return injectedWeb3 ? Object.keys(injectedWeb3) : null
 }
-
-export const getInjectedExtensions = (): Promise<string[]> =>
-  _getInjectedExtensions()
