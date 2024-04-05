@@ -327,7 +327,7 @@ importers:
     dependencies:
       '@commander-js/extra-typings':
         specifier: ^12.0.1
-        version: 12.0.1(commander@11.0.0)
+        version: 12.0.1(commander@12.0.0)
       '@polkadot-api/client':
         specifier: workspace:*
         version: link:../client
@@ -362,14 +362,14 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
       '@substrate/connect':
-        specifier: ^0.7.32
-        version: 0.7.35
+        specifier: ^0.8.8
+        version: 0.8.8
       '@types/node':
         specifier: ^20.9.0
         version: 20.9.0
       commander:
-        specifier: ^11.0.0
-        version: 11.0.0
+        specifier: ^12.0.0
+        version: 12.0.0
       fs.promises.exists:
         specifier: ^1.1.4
         version: 1.1.4
@@ -2064,12 +2064,12 @@ packages:
     dev: true
     optional: true
 
-  /@commander-js/extra-typings@12.0.1(commander@11.0.0):
+  /@commander-js/extra-typings@12.0.1(commander@12.0.0):
     resolution: {integrity: sha512-OvkMobb1eMqOCuJdbuSin/KJkkZr7n24/UNV+Lcz/0Dhepf3r2p9PaGwpRpAWej7A+gQnny4h8mGhpFl4giKkg==}
     peerDependencies:
       commander: ~12.0.0
     dependencies:
-      commander: 11.0.0
+      commander: 12.0.0
     dev: false
 
   /@cspotcode/source-map-support@0.8.1:
@@ -5106,7 +5106,9 @@ packages:
 
   /@substrate/connect-extension-protocol@1.0.1:
     resolution: {integrity: sha512-161JhCC1csjH3GE5mPLEd7HbWtwNSPJBg3p1Ksz9SFlTzj/bgEwudiRN2y5i0MoLGCIJRYKyKGMxVnd29PzNjg==}
+    requiresBuild: true
     dev: false
+    optional: true
 
   /@substrate/connect-extension-protocol@2.0.0:
     resolution: {integrity: sha512-nKu8pDrE3LNCEgJjZe1iGXzaD6OSIDD4Xzz/yo4KO9mQ6LBvf49BVrt4qxBFGL6++NneLiWUZGoh+VSd4PyVIg==}
@@ -5125,17 +5127,6 @@ packages:
       - utf-8-validate
     dev: false
     optional: true
-
-  /@substrate/connect@0.7.35:
-    resolution: {integrity: sha512-Io8vkalbwaye+7yXfG1Nj52tOOoJln2bMlc7Q9Yy3vEWqZEVkgKmcPVzbwV0CWL3QD+KMPDA2Dnw/X7EdwgoLw==}
-    requiresBuild: true
-    dependencies:
-      '@substrate/connect-extension-protocol': 1.0.1
-      smoldot: 2.0.23
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
 
   /@substrate/connect@0.8.8:
     resolution: {integrity: sha512-zwaxuNEVI9bGt0rT8PEJiXOyebLIo6QN1SyiAHRPBOl6g3Sy0KKdSN8Jmyn++oXhVRD8aIe75/V8ZkS81T+BPQ==}
@@ -6411,9 +6402,9 @@ packages:
       delayed-stream: 1.0.0
     dev: true
 
-  /commander@11.0.0:
-    resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
-    engines: {node: '>=16'}
+  /commander@12.0.0:
+    resolution: {integrity: sha512-MwVNWlYjDTtOjX5PiD7o5pK0UrFU/OYgcJfjjK4RaHZETNtjJqrZa9Y9ds88+A+f+d5lv+561eZ+yCKoS3gbAA==}
+    engines: {node: '>=18'}
     dev: false
 
   /commander@4.1.1:
