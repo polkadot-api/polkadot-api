@@ -12,6 +12,15 @@
   "files": [
     "/bin"
   ],
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./bin/main.js"
+      },
+      "module": "./bin/main.js",
+      "import": "./bin/main.js"
+    }
+  },
   "scripts": {
     "build": "tsc --noEmit && tsup-node src/main.ts --clean --out-dir bin --sourcemap --platform node --format esm",
     "start": "pnpm build && node --enable-source-maps bin/main.js",

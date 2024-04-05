@@ -8,6 +8,10 @@
   },
   "license": "MIT",
   "sideEffects": false,
+  "bin": {
+    "papi": "./bin/main.mjs",
+    "polkadot-api": "./bin/main.mjs"
+  },
   "exports": {
     ".": {
       "node": {

@@ -71,17 +71,18 @@ async function outputCodegen(
   }>,
   outputFolder: string,
 ) {
-  console.log(`Generating code`)
+  const clientPath = (globalThis as any).PAPI_CODEGEN_TOP_LEVEL
+    ? "polkadot-connect"
+    : "@polkadot-api/client"
 
   const { descriptorsFileContent, checksums, typesFileContent, publicTypes } =
     generateMultipleDescriptors(chains, {
-      client: "@polkadot-api/client",
+      client: clientPath,
       checksums: "./checksums.json",
       types: "./common-types",
     })
 
-  console.log("Writing code")
-  await fs.mkdir(outputFolder)
+  await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
     path.join(outputFolder, "checksums.json"),
     JSON.stringify(checksums),
