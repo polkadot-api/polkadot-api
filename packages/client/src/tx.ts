@@ -32,12 +32,13 @@ import {
 } from "./runtime"
 import { PolkadotSigner } from "../../signers/polkadot-signer/dist/index.mjs"
 
-export type TxEvents =
+export type TxBroadcastEvent =
   | { type: "broadcasted" }
   | { type: "bestChainBlockIncluded"; block: { hash: string; index: number } }
   | ({
       type: "finalized"
     } & TxFinalizedPayload)
+export type TxEvent = TxBroadcastEvent | { type: "signed"; tx: HexString }
 
 export type TxFinalizedPayload = {
   ok: boolean
@@ -90,7 +91,7 @@ type TxObservable<Asset> = (
           asset: Asset
         }
   >,
-) => Observable<TxEvents | { type: "signed"; tx: HexString }>
+) => Observable<TxEvent>
 
 interface TxCall {
   (): Promise<Binary>
@@ -171,7 +172,7 @@ export const getSubmitFns = (
       }),
     )
 
-  const submit$ = (transaction: HexString): Observable<TxEvents> =>
+  const submit$ = (transaction: HexString): Observable<TxBroadcastEvent> =>
     tx$(transaction).pipe(
       mergeMap((result) => {
         return result.type !== "finalized"

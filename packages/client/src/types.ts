@@ -13,7 +13,7 @@ import { EvClient } from "./event"
 import { BlockInfo } from "@polkadot-api/observable-client"
 import { RuntimeApi } from "./runtime"
 import { StorageEntry } from "./storage"
-import { TxEntry, TxEvents, TxFinalizedPayload } from "./tx"
+import { TxEntry, TxBroadcastEvent, TxFinalizedPayload } from "./tx"
 import { ConstantEntry } from "./constants"
 import { RuntimeCall } from "./runtime-call"
 
@@ -109,7 +109,7 @@ export interface PolkadotClient {
   getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
   destroy: () => void
   submit: (transaction: HexString) => Promise<TxFinalizedPayload>
-  submitAndWatch: (transaction: HexString) => Observable<TxEvents>
+  submitAndWatch: (transaction: HexString) => Observable<TxBroadcastEvent>
 }
 
 export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }
