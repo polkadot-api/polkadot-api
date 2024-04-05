@@ -8,8 +8,8 @@
     "lightclient": "bun run lightclient.ts",
     "rpc": "bun run rpc.ts",
     "build": "bun run compile:rpc && bun run compile:lightclient",
-    "compile:rpc": "bun build ./src/rpc.ts --compile --outfile ./out/rpc",
-    "compile:lightclient": "bun build ./src/lightclient.ts --compile --outfile ./out/lightclient"
+    "compile:rpc": "bun build ./src/rpc.ts --compile --outfile ./dist/rpc",
+    "compile:lightclient": "bun build ./src/lightclient.ts --compile --outfile ./dist/lightclient"
   },
   "devDependencies": {
     "@types/bun": "latest"
