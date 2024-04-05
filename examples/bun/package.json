@@ -1,0 +1,34 @@
+{
+  "name": "bun",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "codegen": "papi",
+    "start": "bun run lightclient.ts",
+    "lightclient": "bun run lightclient.ts",
+    "rpc": "bun run rpc.ts",
+    "build": "bun run compile:rpc && bun run compile:lightclient",
+    "compile:rpc": "bun build ./src/rpc.ts --compile --outfile ./out/rpc",
+    "compile:lightclient": "bun build ./src/lightclient.ts --compile --outfile ./out/lightclient"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/client": "workspace:*",
+    "@polkadot-api/node-polkadot-provider": "next",
+    "@polkadot-api/sc-provider": "workspace:*",
+    "@polkadot-api/ws-provider": "workspace:*",
+    "@substrate/connect": "^0.8.8"
+  },
+  "polkadot-api": {
+    "wnd": {
+      "metadata": "wnd-metadata.scale",
+      "outputFolder": "./codegen/"
+    }
+  }
+}
