@@ -260,7 +260,7 @@ describe("observableClient stopError recovery", () => {
     expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
 
     expect(runtimeObs.error).not.toHaveBeenCalled()
-    expect(runtimeObs.next).toHaveBeenCalledTimes(2)
+    expect(runtimeObs.next).toHaveBeenCalledTimes(1)
 
     await mockClient.chainHead.mock.body.reply(newBlock.blockHash, ["result"])
     expect(body.error).not.toHaveBeenCalled()

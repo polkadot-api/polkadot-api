@@ -105,7 +105,7 @@ export const initialize = async (
   overrides: Partial<InitializedWithRuntime> = newInitialized(),
 ) => {
   const initialized = sendInitialized(mockClient, overrides)
-  const initialHash = initialized.finalizedBlockHashes.at(-1)!
+  const initialHash = initialized.finalizedBlockHashes.at(0)!
 
   const header = createHeader({
     parentHash: newHash(),
