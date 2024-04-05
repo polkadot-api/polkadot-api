@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "../../packages/cli/bin/main.js",
-    "e2e": "../../packages/cli/bin/main.js update && ../../packages/cli/bin/main.js && vitest run --test-timeout=300000"
+    "build": "../../packages/cli/dist/main.js",
+    "e2e": "../../packages/cli/dist/main.js update && ../../packages/cli/dist/main.js && vitest run --test-timeout=300000"
   },
   "dependencies": {
     "@noble/curves": "^1.2.0",

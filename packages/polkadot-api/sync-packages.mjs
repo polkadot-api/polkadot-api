@@ -12,8 +12,9 @@ await Promise.all(
   ),
 )
 
+const blackList = ["index.ts", "cli.ts"]
 const packageFiles = (await readdir("./src")).filter(
-  (v) => v !== "index.ts" && v.endsWith(".ts"),
+  (v) => !blackList.includes(v) && v.endsWith(".ts"),
 )
 
 const newExports = {

@@ -6,24 +6,25 @@
   "sideEffects": true,
   "type": "module",
   "bin": {
-    "papi": "./bin/main.js",
-    "polkadot-api": "./bin/main.js"
+    "papi": "./dist/main.js",
+    "polkadot-api": "./dist/main.js"
   },
   "files": [
-    "/bin"
+    "/dist"
   ],
   "exports": {
     ".": {
       "node": {
-        "import": "./bin/main.js"
+        "import": "./dist/index.js"
       },
-      "module": "./bin/main.js",
-      "import": "./bin/main.js"
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.js",
+      "import": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "tsc --noEmit && tsup-node src/main.ts --clean --out-dir bin --sourcemap --platform node --format esm",
-    "start": "pnpm build && node --enable-source-maps bin/main.js",
+    "build": "tsc --noEmit && tsup-node src/main.ts src/index.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "start": "pnpm build && node --enable-source-maps dist/main.js",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""

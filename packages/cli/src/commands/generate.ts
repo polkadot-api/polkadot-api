@@ -11,6 +11,7 @@ import { CommonOptions } from "./commonOptions"
 
 export interface GenerateOptions extends CommonOptions {
   key?: string
+  clientLibrary?: string
 }
 
 export async function generate(opts: GenerateOptions) {
@@ -36,9 +37,11 @@ export async function generate(opts: GenerateOptions) {
     "descriptors",
   )
 
+  const clientPath = opts.clientLibrary ?? "@polkadot-api/client"
+
   await fs.mkdir(descriptorsDir, { recursive: true })
   await generatePackageJson(join(descriptorsDir, "package.json"))
-  await outputCodegen(chains, join(descriptorsDir, "src"))
+  await outputCodegen(chains, join(descriptorsDir, "src"), clientPath)
   await compileCodegen(descriptorsDir)
   await fs.rm(join(descriptorsDir, "src"), { recursive: true })
 }
@@ -70,11 +73,8 @@ async function outputCodegen(
     knownTypes: Record<string, string>
   }>,
   outputFolder: string,
+  clientPath: string,
 ) {
-  const clientPath = (globalThis as any).PAPI_CODEGEN_TOP_LEVEL
-    ? "polkadot-connect"
-    : "@polkadot-api/client"
-
   const { descriptorsFileContent, checksums, typesFileContent, publicTypes } =
     generateMultipleDescriptors(chains, {
       client: clientPath,
