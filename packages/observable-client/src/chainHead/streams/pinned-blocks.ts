@@ -229,12 +229,10 @@ const withInitializedNumber =
       concatMap((event) => {
         return event.type !== "initialized"
           ? of(event)
-          : getHeader(event.finalizedBlockHashes.slice(-1)[0]).then(
-              (header) => ({
-                ...event,
-                number: header.number,
-                parentHash: header.parentHash,
-              }),
-            )
+          : getHeader(event.finalizedBlockHashes[0]).then((header) => ({
+              ...event,
+              number: header.number,
+              parentHash: header.parentHash,
+            }))
       }),
     )
