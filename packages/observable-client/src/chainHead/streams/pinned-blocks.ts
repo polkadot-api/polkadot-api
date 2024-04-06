@@ -184,7 +184,10 @@ export const getPinnedBlocks$ = (
           acc.finalizedRuntime =
             acc.runtimes[acc.blocks.get(acc.finalized)!.runtime]
 
-          onUnpin(getBlocksToUnpin(acc, event.prunedBlockHashes))
+          // TODO: remove this once https://github.com/paritytech/polkadot-sdk/issues/3658 is fixed
+          const actuallyPruned = [...new Set(event.prunedBlockHashes)]
+
+          onUnpin(getBlocksToUnpin(acc, actuallyPruned))
           return acc
         }
 
