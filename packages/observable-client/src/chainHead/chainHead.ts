@@ -204,20 +204,22 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   )
 
   const bestBlocks$ = pinnedBlocks$.pipe(
-    distinctUntilChanged(
-      (prev, current) =>
-        prev.finalized === current.finalized && prev.best === current.best,
-    ),
+    distinctUntilChanged((prev, current) => prev.best === current.best),
     scan((acc, pinned) => {
-      let current = pinned.best
-      const result = new Map<string, BlockInfo>()
-      while (current !== pinned.finalized) {
-        const block =
-          acc.get(current) || toBlockInfo(pinned.blocks.get(current)!)
-        result.set(current, block)
-        current = block.parent
+      const getBlockInfo = (hash: string) =>
+        acc.get(hash) || toBlockInfo(pinned.blocks.get(hash)!)
+
+      const best = getBlockInfo(pinned.best)
+      const finalized = getBlockInfo(pinned.finalized)
+
+      const len = best.number - finalized.number + 1
+      const result = new Array<BlockInfo>(len)
+      for (let i = 0, hash = best.hash; i < len; i++) {
+        result[i] = getBlockInfo(hash)
+        hash = result[i].parent
       }
-      return result
+
+      return new Map(result.map((b) => [b.hash, b]))
     }, new Map<string, BlockInfo>()),
     map((x) => [...x.values()]),
     shareLatest,
