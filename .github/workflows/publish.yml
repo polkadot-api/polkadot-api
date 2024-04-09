@@ -60,7 +60,6 @@ jobs:
             substrate-client,
             utils,
             view-builder,
-            polkadot-api,
             observable-client,
           ]
     steps:
