@@ -1,5 +1,5 @@
 {
-  "name": "polkadot-api/sm-provider",
+  "name": "@polkadot-api/client-sm-provider",
   "types": "../dist/sm-provider/sm-provider.d.ts",
   "module": "../dist/sm-provider/sm-provider.mjs",
   "import": "../dist/sm-provider/sm-provider.mjs",

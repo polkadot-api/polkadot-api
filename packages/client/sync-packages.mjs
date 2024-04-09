@@ -13,7 +13,7 @@ await Promise.all(
 )
 
 const blackList = ["index.ts", "cli.ts"]
-const packageFiles = (await readdir("./src")).filter(
+const packageFiles = (await readdir("./src/reexports")).filter(
   (v) => !blackList.includes(v) && v.endsWith(".ts"),
 )
 
@@ -45,7 +45,7 @@ for (const filename of packageFiles) {
     join(".", packageName, "package.json"),
     JSON.stringify(
       {
-        name: `polkadot-api/${packageName}`,
+        name: `@polkadot-api/client-${packageName}`,
         types: `../dist/${packageName}/${packageName}.d.ts`,
         module: `../dist/${packageName}/${packageName}.mjs`,
         import: `../dist/${packageName}/${packageName}.mjs`,

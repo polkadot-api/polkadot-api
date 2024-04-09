@@ -1,5 +1,5 @@
 {
-  "name": "polkadot-api/ws-provider-web",
+  "name": "@polkadot-api/client-ws-provider-web",
   "types": "../dist/ws-provider-web/ws-provider-web.d.ts",
   "module": "../dist/ws-provider-web/ws-provider-web.mjs",
   "import": "../dist/ws-provider-web/ws-provider-web.mjs",
