@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2024-04-09
+
 ### Changed
 
 - Moved `getObservableClient` and all derived types into a separate `@polkadot-api/observable-client` package.
