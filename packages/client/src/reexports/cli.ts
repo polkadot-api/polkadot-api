@@ -4,11 +4,7 @@ import { add, generate, getCli, remove, update } from "@polkadot-api/cli"
 
 getCli({
   add,
-  generate: (opts) =>
-    generate({
-      clientLibrary: "polkadot-connect",
-      ...opts,
-    }),
+  generate,
   remove,
   update,
 }).parse()

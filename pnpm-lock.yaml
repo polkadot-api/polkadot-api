@@ -407,18 +407,36 @@ importers:
 
   packages/client:
     dependencies:
+      '@polkadot-api/cli':
+        specifier: workspace:*
+        version: link:../cli
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc/json-rpc-provider
+      '@polkadot-api/logs-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/logs-provider
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
       '@polkadot-api/observable-client':
         specifier: workspace:*
         version: link:../observable-client
+      '@polkadot-api/pjs-signer':
+        specifier: workspace:*
+        version: link:../signers/pjs-signer
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../signers/polkadot-signer
+      '@polkadot-api/sc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/sc-provider
+      '@polkadot-api/signer':
+        specifier: workspace:*
+        version: link:../signers/signer
+      '@polkadot-api/sm-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/sm-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
@@ -428,6 +446,9 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+      '@polkadot-api/ws-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/ws-provider
     devDependencies:
       rxjs:
         specifier: ^7.8.1
@@ -444,6 +465,8 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+
+  packages/descriptors: {}
 
   packages/json-rpc/json-rpc-provider: {}
 

@@ -27,7 +27,8 @@
     "start": "pnpm build && node --enable-source-maps dist/main.js",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
   },
   "prettier": {
     "printWidth": 80,
