@@ -5,6 +5,7 @@
 ### Changed
 
 - CLI can now be imported from another module.
+- `generate` cleans the output dir before compiling sources.
 
 ### Fixed
 
