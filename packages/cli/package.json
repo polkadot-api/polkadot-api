@@ -36,7 +36,6 @@
   },
   "dependencies": {
     "@commander-js/extra-typings": "^12.0.1",
-    "@polkadot-api/client": "workspace:*",
     "@polkadot-api/codegen": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
