@@ -8,6 +8,7 @@ import process from "process"
 import tsc from "tsc-prog"
 import tsup from "tsup"
 import { CommonOptions } from "./commonOptions"
+import fsExists from "fs.promises.exists"
 
 export interface GenerateOptions extends CommonOptions {
   key?: string
@@ -109,6 +110,10 @@ async function outputCodegen(
 async function compileCodegen(packageDir: string) {
   const srcDir = join(packageDir, "src")
   const outDir = join(packageDir, "dist")
+
+  if (await fsExists(outDir)) {
+    await fs.rm(outDir, { recursive: true })
+  }
 
   await tsup.build({
     format: ["cjs", "esm"],
