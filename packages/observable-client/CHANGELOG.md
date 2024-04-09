@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2024-04-09
+
 ### Changed
 
 - Improved the `bestBlocks$` observable API. For the sake of consistency, the first block of the list will always be the best-block, and the last item of the list will always be the finalized-block. When the best-block and the finalized-block are the same, then the list will contain just one item. Therefore, the observable will never emit an emtpy list.
