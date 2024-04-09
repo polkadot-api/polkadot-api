@@ -571,36 +571,6 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
 
-  packages/polkadot-api:
-    dependencies:
-      '@polkadot-api/cli':
-        specifier: workspace:*
-        version: link:../cli
-      '@polkadot-api/client':
-        specifier: workspace:*
-        version: link:../client
-      '@polkadot-api/logs-provider':
-        specifier: workspace:*
-        version: link:../json-rpc/logs-provider
-      '@polkadot-api/pjs-signer':
-        specifier: workspace:*
-        version: link:../signers/pjs-signer
-      '@polkadot-api/sc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc/sc-provider
-      '@polkadot-api/signer':
-        specifier: workspace:*
-        version: link:../signers/signer
-      '@polkadot-api/sm-provider':
-        specifier: workspace:*
-        version: link:../json-rpc/sm-provider
-      '@polkadot-api/ws-provider':
-        specifier: workspace:*
-        version: link:../json-rpc/ws-provider
-      rxjs:
-        specifier: '>=7.8.0'
-        version: 7.8.1
-
   packages/signers/pjs-signer:
     dependencies:
       '@polkadot-api/metadata-builders':
