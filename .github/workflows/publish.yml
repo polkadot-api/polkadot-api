@@ -49,7 +49,6 @@ jobs:
             json-rpc/json-rpc-provider,
             json-rpc/json-rpc-provider-proxy,
             json-rpc/logs-provider,
-            json-rpc/sc-provider,
             json-rpc/sm-provider,
             json-rpc/ws-provider,
             metadata-builders,

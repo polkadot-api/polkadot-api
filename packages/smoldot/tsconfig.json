@@ -1,8 +1,9 @@
 {
-  "extends": "../../../tsconfig.base",
-  "include": ["src", "tests"],
+  "extends": "../../tsconfig.base",
+  "include": ["src"],
   "compilerOptions": {
     "baseUrl": "src",
+    "resolveJsonModule": true,
     "paths": {
       "@/*": ["*"]
     }

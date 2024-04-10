@@ -2,6 +2,5 @@ packages:
   - packages/signers/*
   - packages/json-rpc/*
   - packages/*
-  - experiments
   - examples/*
   - integration-tests/*

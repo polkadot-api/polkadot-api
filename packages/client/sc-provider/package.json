@@ -1,8 +1,0 @@
-{
-  "name": "@polkadot-api/client-sc-provider",
-  "types": "../dist/sc-provider/sc-provider.d.ts",
-  "module": "../dist/sc-provider/sc-provider.mjs",
-  "import": "../dist/sc-provider/sc-provider.mjs",
-  "require": "../dist/sc-provider/sc-provider.js",
-  "default": "../dist/sc-provider/sc-provider.js"
-}

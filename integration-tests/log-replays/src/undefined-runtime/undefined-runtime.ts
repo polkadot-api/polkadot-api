@@ -1,6 +1,6 @@
 import { createClient } from "@polkadot-api/client"
+import { logsProvider } from "@polkadot-api/client/logs-provider"
 import { roc } from "@polkadot-api/descriptors"
-import { logsProvider } from "@polkadot-api/logs-provider"
 import { readFile } from "fs/promises"
 
 const LOG_FILE = "./src/undefined-runtime/logs.txt"
