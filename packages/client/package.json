@@ -412,6 +412,22 @@
       "import": "./dist/smoldot_from-worker/smoldot_from-worker.mjs",
       "require": "./dist/smoldot_from-worker/smoldot_from-worker.js",
       "default": "./dist/smoldot_from-worker/smoldot_from-worker.js"
+    },
+    "./utils": {
+      "node": {
+        "production": {
+          "import": "./dist/utils/utils.mjs",
+          "require": "./dist/utils/min/utils.js",
+          "default": "./dist/utils/utils.js"
+        },
+        "import": "./dist/utils/utils.mjs",
+        "require": "./dist/utils/utils.js",
+        "default": "./dist/utils/utils.js"
+      },
+      "module": "./dist/utils/utils.mjs",
+      "import": "./dist/utils/utils.mjs",
+      "require": "./dist/utils/utils.js",
+      "default": "./dist/utils/utils.js"
     }
   },
   "main": "./dist/index.js",
@@ -427,7 +443,8 @@
     "sm-provider",
     "ws-provider",
     "chains",
-    "smoldot"
+    "smoldot",
+    "utils"
   ],
   "scripts": {
     "build": "bash ./build.sh",
