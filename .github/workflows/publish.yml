@@ -61,6 +61,7 @@ jobs:
             utils,
             view-builder,
             observable-client,
+            known-chains,
           ]
     steps:
       - uses: actions/checkout@v3.5.3

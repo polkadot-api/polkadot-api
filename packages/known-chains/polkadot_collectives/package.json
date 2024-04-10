@@ -1,0 +1,8 @@
+{
+  "name": "@polkadot-api/known-chains-polkadot_collectives",
+  "types": "../dist/polkadot_collectives/polkadot_collectives.d.ts",
+  "module": "../dist/polkadot_collectives/polkadot_collectives.mjs",
+  "import": "../dist/polkadot_collectives/polkadot_collectives.mjs",
+  "require": "../dist/polkadot_collectives/polkadot_collectives.js",
+  "default": "../dist/polkadot_collectives/polkadot_collectives.js"
+}
