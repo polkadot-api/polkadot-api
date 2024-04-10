@@ -1,0 +1,30 @@
+body {
+  font-family: "Arial", sans-serif;
+}
+
+#root {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+select,
+input {
+  margin: 5px;
+  padding: 8px;
+}
+
+button {
+  background-color: #e6007a;
+  color: #fff;
+  padding: 10px;
+  cursor: pointer;
+  border: none;
+}
+
+button:hover {
+  background-color: #552bbf;
+}
+
+ul {
+  list-style-type: none;
+}
