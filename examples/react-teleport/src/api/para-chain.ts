@@ -1,7 +1,8 @@
 import { TypedApi, createClient } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
-import { smoldot, smoldotRelayChain } from "./relay-chain"
+import { smoldotRelayChain } from "./relay-chain"
 import { wndAssethub } from "@polkadot-api/descriptors"
+import { smoldot } from "./smoldot"
 
 const smoldotParaChain = Promise.all([
   smoldotRelayChain,

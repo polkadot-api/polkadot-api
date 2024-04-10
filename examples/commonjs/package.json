@@ -12,8 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "polkadot-api": "workspace:*",
-    "@polkadot-api/smoldot": "workspace:*",
-    "@polkadot-api/known-chains": "workspace:*"
+    "polkadot-api": "workspace:*"
   }
 }

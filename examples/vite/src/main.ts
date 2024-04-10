@@ -1,25 +1,22 @@
-import { PolkadotClient, TypedApi, createClient } from "polkadot-api"
+import "./style.css"
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
+import { createClient } from "polkadot-api"
 import {
   getInjectedExtensions,
   connectInjectedExtension,
   InjectedPolkadotAccount,
 } from "polkadot-api/pjs-signer"
-import SmWorker from "@polkadot-api/smoldot/worker?worker"
+import SmWorker from "polkadot-api/smoldot/worker?worker"
 import { getSmProvider } from "polkadot-api/sm-provider"
-import { startFromWorker } from "@polkadot-api/smoldot/from-worker"
-import "./style.css"
+import { startFromWorker } from "polkadot-api/smoldot/from-worker"
 
 const smoldot = startFromWorker(new SmWorker())
-
-const connection: PolkadotClient = createClient(
-  getSmProvider(
-    import("@polkadot-api/known-chains/westend2").then(({ chainSpec }) =>
-      smoldot.addChain({ chainSpec }),
-    ),
-  ),
+const smoldotWndChain = import("polkadot-api/chains/westend2").then(
+  ({ chainSpec }) => smoldot.addChain({ chainSpec }),
 )
-const testApi: TypedApi<typeof wnd> = connection.getTypedApi(wnd)
+const jsonRpcProvider = getSmProvider(smoldotWndChain)
+const connection = createClient(jsonRpcProvider)
+const testApi = connection.getTypedApi(wnd)
 
 while (!getInjectedExtensions()?.includes("polkadot-js"))
   await new Promise((res) => setTimeout(res, 50))
