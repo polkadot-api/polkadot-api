@@ -1,0 +1,29 @@
+{
+  "name": "bun",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "../../packages/cli/dist/main.js",
+    "lightclient": "bun run ./src/lightclient.ts",
+    "rpc": "bun run ./src/rpc.ts",
+    "compile:rpc": "bun build ./src/rpc.ts --compile --outfile ./dist/rpc",
+    "compile:lightclient": "bun build ./src/lightclient.ts --compile --outfile ./dist/lightclient"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@polkadot-api/client": "workspace:*",
+    "@polkadot-api/known-chains": "workspace:*",
+    "@polkadot-api/smoldot": "workspace:*"
+  },
+  "polkadot-api": {
+    "wnd": {
+      "chain": "westend2",
+      "metadata": "wnd.scale"
+    }
+  }
+}
