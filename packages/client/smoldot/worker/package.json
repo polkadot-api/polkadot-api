@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_smoldot_worker",
+  "types": "../../dist/smoldot_worker/smoldot_worker.d.ts",
+  "module": "../../dist/smoldot_worker/smoldot_worker.mjs",
+  "import": "../../dist/smoldot_worker/smoldot_worker.mjs",
+  "require": "../../dist/smoldot_worker/smoldot_worker.js",
+  "default": "../../dist/smoldot_worker/smoldot_worker.js"
+}

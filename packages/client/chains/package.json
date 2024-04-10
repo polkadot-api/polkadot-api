@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_chains",
+  "types": "../dist/chains/chains.d.ts",
+  "module": "../dist/chains/chains.mjs",
+  "import": "../dist/chains/chains.mjs",
+  "require": "../dist/chains/chains.js",
+  "default": "../dist/chains/chains.js"
+}

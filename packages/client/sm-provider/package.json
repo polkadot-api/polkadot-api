@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_sm-provider",
+  "types": "../dist/sm-provider/sm-provider.d.ts",
+  "module": "../dist/sm-provider/sm-provider.mjs",
+  "import": "../dist/sm-provider/sm-provider.mjs",
+  "require": "../dist/sm-provider/sm-provider.js",
+  "default": "../dist/sm-provider/sm-provider.js"
+}
