@@ -61,22 +61,6 @@
       "require": "./dist/pjs-signer/pjs-signer.js",
       "default": "./dist/pjs-signer/pjs-signer.js"
     },
-    "./sc-provider": {
-      "node": {
-        "production": {
-          "import": "./dist/sc-provider/sc-provider.mjs",
-          "require": "./dist/sc-provider/min/sc-provider.js",
-          "default": "./dist/sc-provider/sc-provider.js"
-        },
-        "import": "./dist/sc-provider/sc-provider.mjs",
-        "require": "./dist/sc-provider/sc-provider.js",
-        "default": "./dist/sc-provider/sc-provider.js"
-      },
-      "module": "./dist/sc-provider/sc-provider.mjs",
-      "import": "./dist/sc-provider/sc-provider.mjs",
-      "require": "./dist/sc-provider/sc-provider.js",
-      "default": "./dist/sc-provider/sc-provider.js"
-    },
     "./signer": {
       "node": {
         "production": {
@@ -150,7 +134,6 @@
     "dist",
     "logs-provider",
     "pjs-signer",
-    "sc-provider",
     "signer",
     "sm-provider",
     "ws-provider-node",
@@ -179,7 +162,6 @@
     "@polkadot-api/observable-client": "workspace:*",
     "@polkadot-api/pjs-signer": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
-    "@polkadot-api/sc-provider": "workspace:*",
     "@polkadot-api/signer": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

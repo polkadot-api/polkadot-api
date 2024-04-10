@@ -1,6 +1,6 @@
 import { Option, program } from "@commander-js/extra-typings"
-import { WellKnownChain } from "@substrate/connect"
 import type { add, generate, remove, update } from "./commands"
+import { WellKnownChain } from "./well-known-chains"
 
 export type Commands = {
   add: typeof add
