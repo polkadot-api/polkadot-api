@@ -46,6 +46,7 @@ jobs:
             cli,
             client,
             codegen,
+            known-chains,
             json-rpc/json-rpc-provider,
             json-rpc/json-rpc-provider-proxy,
             json-rpc/logs-provider,
@@ -55,12 +56,12 @@ jobs:
             signers/pjs-signer,
             signers/polkadot-signer,
             signers/signer,
+            smoldot,
             substrate-bindings,
             substrate-client,
             utils,
             view-builder,
             observable-client,
-            known-chains,
           ]
     steps:
       - uses: actions/checkout@v3.5.3
