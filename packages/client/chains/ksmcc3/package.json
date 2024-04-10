@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_chains_ksmcc3",
+  "types": "../../dist/chains_ksmcc3/chains_ksmcc3.d.ts",
+  "module": "../../dist/chains_ksmcc3/chains_ksmcc3.mjs",
+  "import": "../../dist/chains_ksmcc3/chains_ksmcc3.mjs",
+  "require": "../../dist/chains_ksmcc3/chains_ksmcc3.js",
+  "default": "../../dist/chains_ksmcc3/chains_ksmcc3.js"
+}

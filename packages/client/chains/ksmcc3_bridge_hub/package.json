@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_chains_ksmcc3_bridge_hub",
+  "types": "../../dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.d.ts",
+  "module": "../../dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.mjs",
+  "import": "../../dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.mjs",
+  "require": "../../dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.js",
+  "default": "../../dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.js"
+}

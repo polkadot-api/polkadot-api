@@ -47,15 +47,15 @@ importers:
 
   examples/bun:
     dependencies:
-      '@polkadot-api/client':
-        specifier: workspace:*
-        version: link:../../packages/client
       '@polkadot-api/known-chains':
         specifier: workspace:*
         version: link:../../packages/known-chains
       '@polkadot-api/smoldot':
         specifier: workspace:*
         version: link:../../packages/smoldot
+      polkadot-api:
+        specifier: workspace:*
+        version: link:../../packages/client
       typescript:
         specifier: ^5
         version: 5.4.3
@@ -66,27 +66,27 @@ importers:
 
   examples/commonjs:
     dependencies:
-      '@polkadot-api/client':
-        specifier: workspace:*
-        version: link:../../packages/client
       '@polkadot-api/known-chains':
         specifier: workspace:*
         version: link:../../packages/known-chains
       '@polkadot-api/smoldot':
         specifier: workspace:*
         version: link:../../packages/smoldot
+      polkadot-api:
+        specifier: workspace:*
+        version: link:../../packages/client
 
   examples/vite:
     dependencies:
-      '@polkadot-api/client':
-        specifier: workspace:*
-        version: link:../../packages/client
       '@polkadot-api/known-chains':
         specifier: workspace:*
         version: link:../../packages/known-chains
       '@polkadot-api/smoldot':
         specifier: workspace:*
         version: link:../../packages/smoldot
+      polkadot-api:
+        specifier: workspace:*
+        version: link:../../packages/client
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -109,7 +109,7 @@ importers:
       '@noble/curves':
         specifier: ^1.2.0
         version: 1.2.0
-      '@polkadot-api/client':
+      polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
       rxjs:
@@ -134,9 +134,6 @@ importers:
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@polkadot-api/client':
-        specifier: workspace:*
-        version: link:../../packages/client
       '@polkadot-api/signer':
         specifier: workspace:^
         version: link:../../packages/signers/signer
@@ -158,6 +155,9 @@ importers:
       '@unique-nft/sr25519':
         specifier: ^0.0.1
         version: 0.0.1
+      polkadot-api:
+        specifier: workspace:*
+        version: link:../../packages/client
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -262,6 +262,9 @@ importers:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc/json-rpc-provider
+      '@polkadot-api/known-chains':
+        specifier: workspace:*
+        version: link:../known-chains
       '@polkadot-api/logs-provider':
         specifier: workspace:*
         version: link:../json-rpc/logs-provider
@@ -283,6 +286,9 @@ importers:
       '@polkadot-api/sm-provider':
         specifier: workspace:*
         version: link:../json-rpc/sm-provider
+      '@polkadot-api/smoldot':
+        specifier: workspace:*
+        version: link:../smoldot
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings

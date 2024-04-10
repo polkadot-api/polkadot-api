@@ -10,8 +10,6 @@ for (const filename of specFiles) {
 
   await writeFile(
     join("src", "specs", `${packageName}.ts`),
-    `const ${packageName}: string = \`${fileContent}\`
-export default ${packageName}
-`,
+    `export const chainSpec: string = \`${fileContent}\`\n`,
   )
 }

@@ -1,4 +1,4 @@
-import type { PolkadotSigner } from "@polkadot-api/client"
+import type { PolkadotSigner } from "polkadot-api"
 import Sr25519Account from "@unique-nft/sr25519"
 import { fromHex } from "@polkadot-api/utils"
 import { ed25519 } from "@noble/curves/ed25519"

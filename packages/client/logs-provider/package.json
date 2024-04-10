@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/client-logs-provider",
+  "name": "polkadot-api_logs-provider",
   "types": "../dist/logs-provider/logs-provider.d.ts",
   "module": "../dist/logs-provider/logs-provider.mjs",
   "import": "../dist/logs-provider/logs-provider.mjs",

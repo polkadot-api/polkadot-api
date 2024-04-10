@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@noble/curves": "^1.2.0",
-    "@polkadot-api/client": "workspace:*",
+    "polkadot-api": "workspace:*",
     "rxjs": "^7.8.1",
     "smoldot": "^2.0.21"
   },

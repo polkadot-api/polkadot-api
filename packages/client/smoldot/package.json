@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_smoldot",
+  "types": "../dist/smoldot/smoldot.d.ts",
+  "module": "../dist/smoldot/smoldot.mjs",
+  "import": "../dist/smoldot/smoldot.mjs",
+  "require": "../dist/smoldot/smoldot.js",
+  "default": "../dist/smoldot/smoldot.js"
+}

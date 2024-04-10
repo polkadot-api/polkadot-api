@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/client-signer",
+  "name": "polkadot-api_signer",
   "types": "../dist/signer/signer.d.ts",
   "module": "../dist/signer/signer.mjs",
   "import": "../dist/signer/signer.mjs",

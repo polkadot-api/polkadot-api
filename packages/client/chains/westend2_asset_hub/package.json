@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_chains_westend2_asset_hub",
+  "types": "../../dist/chains_westend2_asset_hub/chains_westend2_asset_hub.d.ts",
+  "module": "../../dist/chains_westend2_asset_hub/chains_westend2_asset_hub.mjs",
+  "import": "../../dist/chains_westend2_asset_hub/chains_westend2_asset_hub.mjs",
+  "require": "../../dist/chains_westend2_asset_hub/chains_westend2_asset_hub.js",
+  "default": "../../dist/chains_westend2_asset_hub/chains_westend2_asset_hub.js"
+}

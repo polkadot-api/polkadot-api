@@ -1,12 +1,12 @@
-import { PolkadotClient, TypedApi, createClient } from "@polkadot-api/client"
+import { PolkadotClient, TypedApi, createClient } from "polkadot-api"
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
 import {
   getInjectedExtensions,
   connectInjectedExtension,
   InjectedPolkadotAccount,
-} from "@polkadot-api/client/pjs-signer"
+} from "polkadot-api/pjs-signer"
 import SmWorker from "@polkadot-api/smoldot/worker?worker"
-import { getSmProvider } from "@polkadot-api/client/sm-provider"
+import { getSmProvider } from "polkadot-api/sm-provider"
 import { startFromWorker } from "@polkadot-api/smoldot/from-worker"
 import "./style.css"
 
@@ -14,8 +14,8 @@ const smoldot = startFromWorker(new SmWorker())
 
 const connection: PolkadotClient = createClient(
   getSmProvider(
-    import("@polkadot-api/known-chains/westend2").then(
-      ({ default: chainSpec }) => smoldot.addChain({ chainSpec }),
+    import("@polkadot-api/known-chains/westend2").then(({ chainSpec }) =>
+      smoldot.addChain({ chainSpec }),
     ),
   ),
 )

@@ -1,7 +1,7 @@
-const { createClient } = require("@polkadot-api/client")
+const { createClient } = require("polkadot-api")
 const { ksm } = require("@polkadot-api/descriptors")
 const { start } = require("@polkadot-api/smoldot")
-const { getSmProvider } = require("@polkadot-api/client/sm-provider")
+const { getSmProvider } = require("polkadot-api/sm-provider")
 const chainSpec = require("@polkadot-api/known-chains/ksmcc3")
 
 const smoldot = start()
