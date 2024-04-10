@@ -1,5 +1,5 @@
-import { createClient } from "@polkadot-api/client"
-import { logsProvider } from "@polkadot-api/client/logs-provider"
+import { createClient } from "polkadot-api"
+import { logsProvider } from "polkadot-api/logs-provider"
 import { roc } from "@polkadot-api/descriptors"
 import { readFile } from "fs/promises"
 

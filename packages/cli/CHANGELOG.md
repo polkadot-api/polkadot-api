@@ -8,6 +8,7 @@
 
 - CLI can now be imported from another module.
 - `generate` cleans the output dir before compiling sources.
+- Generated code imports from `polkadot-api` instead of `@polkadot-api/client`
 
 ### Fixed
 

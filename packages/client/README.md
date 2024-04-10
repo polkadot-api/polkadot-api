@@ -1,1 +1,1 @@
-# @polkadot-api/client
+# polkadot-api

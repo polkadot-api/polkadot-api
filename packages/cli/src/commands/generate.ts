@@ -38,7 +38,7 @@ export async function generate(opts: GenerateOptions) {
     "descriptors",
   )
 
-  const clientPath = opts.clientLibrary ?? "@polkadot-api/client"
+  const clientPath = opts.clientLibrary ?? "polkadot-api"
 
   await fs.mkdir(descriptorsDir, { recursive: true })
   await generatePackageJson(join(descriptorsDir, "package.json"))
@@ -177,7 +177,7 @@ const generatePackageJson = async (path: string) => {
       "types": "./dist/index.d.ts",
       "sideEffects": false,
       "peerDependencies": {
-        "@polkadot-api/client": "*"
+        "polkadot-api": "*"
       }
     }`,
   )

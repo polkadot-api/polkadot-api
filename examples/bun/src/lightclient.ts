@@ -1,5 +1,5 @@
-import { createClient } from "@polkadot-api/client"
-import { getSmProvider } from "@polkadot-api/client/sm-provider"
+import { createClient } from "polkadot-api"
+import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "@polkadot-api/smoldot"
 import chainSpec from "@polkadot-api/known-chains/westend2"
 import { wnd } from "@polkadot-api/descriptors"

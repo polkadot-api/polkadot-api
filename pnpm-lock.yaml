@@ -47,15 +47,15 @@ importers:
 
   examples/bun:
     dependencies:
-      '@polkadot-api/client':
-        specifier: workspace:*
-        version: link:../../packages/client
       '@polkadot-api/known-chains':
         specifier: workspace:*
         version: link:../../packages/known-chains
       '@polkadot-api/smoldot':
         specifier: workspace:*
         version: link:../../packages/smoldot
+      polkadot-api:
+        specifier: workspace:*
+        version: link:../../packages/client
       typescript:
         specifier: ^5
         version: 5.4.3
