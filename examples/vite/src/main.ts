@@ -4,15 +4,20 @@ import {
   getInjectedExtensions,
   connectInjectedExtension,
   InjectedPolkadotAccount,
-} from "@polkadot-api/pjs-signer"
-import { getScProvider } from "@polkadot-api/sc-provider"
-import { WellKnownChain, createScClient } from "@substrate/connect"
+} from "@polkadot-api/client/pjs-signer"
+import SmWorker from "@polkadot-api/smoldot/worker?worker"
+import { getSmProvider } from "@polkadot-api/client/sm-provider"
+import { startFromWorker } from "@polkadot-api/smoldot/from-worker"
 import "./style.css"
 
-const scProvider = getScProvider(createScClient({}))
+const smoldot = startFromWorker(new SmWorker())
 
 const connection: PolkadotClient = createClient(
-  scProvider(WellKnownChain.westend2).relayChain,
+  getSmProvider(
+    import("@polkadot-api/known-chains/westend2").then(
+      ({ default: chainSpec }) => smoldot.addChain({ chainSpec }),
+    ),
+  ),
 )
 const testApi: TypedApi<typeof wnd> = connection.getTypedApi(wnd)
 

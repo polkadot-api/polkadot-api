@@ -1,0 +1,8 @@
+{
+  "name": "@polkadot-api/known-chains-polkadot_bridge_hub",
+  "types": "../dist/polkadot_bridge_hub/polkadot_bridge_hub.d.ts",
+  "module": "../dist/polkadot_bridge_hub/polkadot_bridge_hub.mjs",
+  "import": "../dist/polkadot_bridge_hub/polkadot_bridge_hub.mjs",
+  "require": "../dist/polkadot_bridge_hub/polkadot_bridge_hub.js",
+  "default": "../dist/polkadot_bridge_hub/polkadot_bridge_hub.js"
+}

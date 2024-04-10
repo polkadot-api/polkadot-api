@@ -1,4 +1,3 @@
-import { WellKnownChain } from "@substrate/connect"
 import { createClient } from "@polkadot-api/substrate-client"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
@@ -10,6 +9,7 @@ import { getObservableClient } from "@polkadot-api/observable-client"
 import { filter, firstValueFrom } from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
+import { WellKnownChain } from "./well-known-chains"
 
 const getMetadataCall = async (provider: JsonRpcProvider) => {
   const client = getObservableClient(createClient(provider))

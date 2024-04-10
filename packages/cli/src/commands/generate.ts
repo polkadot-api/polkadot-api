@@ -8,9 +8,11 @@ import process from "process"
 import tsc from "tsc-prog"
 import tsup from "tsup"
 import { CommonOptions } from "./commonOptions"
+import fsExists from "fs.promises.exists"
 
 export interface GenerateOptions extends CommonOptions {
   key?: string
+  clientLibrary?: string
 }
 
 export async function generate(opts: GenerateOptions) {
@@ -36,9 +38,11 @@ export async function generate(opts: GenerateOptions) {
     "descriptors",
   )
 
+  const clientPath = opts.clientLibrary ?? "@polkadot-api/client"
+
   await fs.mkdir(descriptorsDir, { recursive: true })
   await generatePackageJson(join(descriptorsDir, "package.json"))
-  await outputCodegen(chains, join(descriptorsDir, "src"))
+  await outputCodegen(chains, join(descriptorsDir, "src"), clientPath)
   await compileCodegen(descriptorsDir)
   await fs.rm(join(descriptorsDir, "src"), { recursive: true })
 }
@@ -70,18 +74,16 @@ async function outputCodegen(
     knownTypes: Record<string, string>
   }>,
   outputFolder: string,
+  clientPath: string,
 ) {
-  console.log(`Generating code`)
-
   const { descriptorsFileContent, checksums, typesFileContent, publicTypes } =
     generateMultipleDescriptors(chains, {
-      client: "@polkadot-api/client",
+      client: clientPath,
       checksums: "./checksums.json",
       types: "./common-types",
     })
 
-  console.log("Writing code")
-  await fs.mkdir(outputFolder)
+  await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
     path.join(outputFolder, "checksums.json"),
     JSON.stringify(checksums),
@@ -108,6 +110,10 @@ async function outputCodegen(
 async function compileCodegen(packageDir: string) {
   const srcDir = join(packageDir, "src")
   const outDir = join(packageDir, "dist")
+
+  if (await fsExists(outDir)) {
+    await fs.rm(outDir, { recursive: true })
+  }
 
   await tsup.build({
     format: ["cjs", "esm"],

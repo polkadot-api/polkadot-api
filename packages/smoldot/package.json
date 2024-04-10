@@ -1,0 +1,91 @@
+{
+  "name": "@polkadot-api/smoldot",
+  "private": true,
+  "version": "0.1.0",
+  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polkdaot-api/polkadot-api.git"
+  },
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "node": {
+        "production": {
+          "import": "./dist/index.mjs",
+          "require": "./dist/min/index.js",
+          "default": "./dist/index.js"
+        },
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./from-worker": {
+      "node": {
+        "production": {
+          "import": "./dist/from-worker/from-worker.js",
+          "require": "./dist/from-worker/min/from-worker.js",
+          "default": "./dist/from-worker/from-worker.js"
+        },
+        "import": "./dist/from-worker/from-worker.mjs",
+        "require": "./dist/from-worker/from-worker.js",
+        "default": "./dist/from-worker/from-worker.js"
+      },
+      "module": "./dist/from-worker/from-worker.mjs",
+      "import": "./dist/from-worker/from-worker.mjs",
+      "require": "./dist/from-worker/from-worker.js",
+      "default": "./dist/from-worker/from-worker.js"
+    },
+    "./worker": {
+      "node": {
+        "production": {
+          "import": "./dist/worker/worker.mjs",
+          "require": "./dist/worker/min/worker.js",
+          "default": "./dist/worker/worker.js"
+        },
+        "import": "./dist/worker/worker.mjs",
+        "require": "./dist/worker/worker.js",
+        "default": "./dist/worker/worker.js"
+      },
+      "module": "./dist/worker/worker.mjs",
+      "import": "./dist/worker/worker.mjs",
+      "require": "./dist/worker/worker.js",
+      "default": "./dist/worker/worker.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "from-worker",
+    "worker"
+  ],
+  "scripts": {
+    "build": "tsc --noEmit && pnpm run build:main && pnpm run build:worker && pnpm run build:from-worker",
+    "build:main": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
+    "build:worker": "tsup-node src/worker.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/worker && tsup-node src/worker.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/worker/min",
+    "build:from-worker": "tsup-node src/from-worker.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/from-worker && tsup-node src/from-worker.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/from-worker/min",
+    "test": "echo 'no tests'",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "smoldot": "2.0.22"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19"
+  }
+}

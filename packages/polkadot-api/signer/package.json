@@ -1,8 +1,0 @@
-{
-  "name": "polkadot-api/signer",
-  "types": "../dist/signer/signer.d.ts",
-  "module": "../dist/signer/signer.mjs",
-  "import": "../dist/signer/signer.mjs",
-  "require": "../dist/signer/signer.js",
-  "default": "../dist/signer/signer.js"
-}

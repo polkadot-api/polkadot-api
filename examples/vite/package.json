@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "codegen": "papi",
-    "start": "../../packages/cli/bin/main.js && vite",
-    "build": "../../packages/cli/bin/main.js && tsc && vite build",
+    "start": "../../packages/cli/dist/main.js && vite",
+    "build": "../../packages/cli/dist/main.js && tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
@@ -16,12 +16,9 @@
     "vite": "^4.4.4"
   },
   "dependencies": {
-    "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/client": "workspace:*",
-    "@polkadot-api/pjs-signer": "workspace:*",
-    "@polkadot-api/sc-provider": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
-    "@substrate/connect": "^0.8.8",
+    "@polkadot-api/known-chains": "workspace:*",
+    "@polkadot-api/smoldot": "workspace:*",
     "rxjs": "^7.8.1"
   },
   "polkadot-api": {

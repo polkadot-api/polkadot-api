@@ -1,23 +1,34 @@
 {
   "name": "@polkadot-api/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Ryan Lee (https://github.com/ryanleecode)",
   "license": "MIT",
   "sideEffects": true,
   "type": "module",
   "bin": {
-    "papi": "./bin/main.js",
-    "polkadot-api": "./bin/main.js"
+    "papi": "./dist/main.js",
+    "polkadot-api": "./dist/main.js"
   },
   "files": [
-    "/bin"
+    "/dist"
   ],
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/index.js"
+      },
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.js",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc --noEmit && tsup-node src/main.ts --clean --out-dir bin --sourcemap --platform node --format esm",
-    "start": "pnpm build && node --enable-source-maps bin/main.js",
+    "build": "tsc --noEmit && tsup-node src/main.ts src/index.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "start": "pnpm build && node --enable-source-maps dist/main.js",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
   },
   "prettier": {
     "printWidth": 80,
@@ -26,25 +37,25 @@
   },
   "dependencies": {
     "@commander-js/extra-typings": "^12.0.1",
-    "@polkadot-api/client": "workspace:*",
     "@polkadot-api/codegen": "workspace:*",
-    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
-    "@polkadot-api/sc-provider": "workspace:*",
+    "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@substrate/connect": "^0.7.32",
+    "@polkadot-api/known-chains": "workspace:*",
     "@types/node": "^20.9.0",
-    "commander": "^11.0.0",
+    "commander": "^12.0.0",
     "fs.promises.exists": "^1.1.4",
     "ora": "^7.0.1",
     "read-pkg": "^8.1.0",
     "rxjs": "^7.8.1",
     "scale-ts": "^1.4.2",
+    "smoldot": "2.0.23",
     "tsc-prog": "^2.3.0",
     "tsup": "^8.0.2",
     "typescript": "^5.3.2",

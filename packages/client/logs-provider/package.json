@@ -1,0 +1,8 @@
+{
+  "name": "@polkadot-api/client-logs-provider",
+  "types": "../dist/logs-provider/logs-provider.d.ts",
+  "module": "../dist/logs-provider/logs-provider.mjs",
+  "import": "../dist/logs-provider/logs-provider.mjs",
+  "require": "../dist/logs-provider/logs-provider.js",
+  "default": "../dist/logs-provider/logs-provider.js"
+}
