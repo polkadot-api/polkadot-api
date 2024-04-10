@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Renamed package to `polkadot-api`
+- Added subpaths for `@polkadot-api/smoldot` and `@polkadot-api/known-chains`
+
 ## 0.1.0 - 2024-04-09
 
 ### Changed
