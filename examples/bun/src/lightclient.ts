@@ -31,7 +31,6 @@ async function run() {
     console.log(testApi.constants.Auctions.EndingPeriod(runtime))
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1000))
   client.destroy()
   smoldot.terminate()
 }
