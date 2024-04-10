@@ -1,0 +1,10 @@
+{
+  "wnd": {
+    "chain": "westend2",
+    "metadata": "wnd.scale"
+  },
+  "wndAssethub": {
+    "wsUrl": "wss://westend-asset-hub-rpc.polkadot.io/",
+    "metadata": "wnd-assethub.scale"
+  }
+}
