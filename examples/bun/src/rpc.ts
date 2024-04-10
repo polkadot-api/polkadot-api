@@ -1,5 +1,5 @@
 import { createClient } from "polkadot-api"
-import { WebSocketProvider } from "polkadot-api/ws-provider-node"
+import { WebSocketProvider } from "polkadot-api/ws-provider/node"
 import { wnd } from "@polkadot-api/descriptors"
 
 const client = createClient(WebSocketProvider("wss://westend-rpc.polkadot.io"))

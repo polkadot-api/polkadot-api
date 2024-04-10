@@ -47,12 +47,6 @@ importers:
 
   examples/bun:
     dependencies:
-      '@polkadot-api/known-chains':
-        specifier: workspace:*
-        version: link:../../packages/known-chains
-      '@polkadot-api/smoldot':
-        specifier: workspace:*
-        version: link:../../packages/smoldot
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -66,12 +60,6 @@ importers:
 
   examples/commonjs:
     dependencies:
-      '@polkadot-api/known-chains':
-        specifier: workspace:*
-        version: link:../../packages/known-chains
-      '@polkadot-api/smoldot':
-        specifier: workspace:*
-        version: link:../../packages/smoldot
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -124,12 +112,6 @@ importers:
 
   examples/vite:
     dependencies:
-      '@polkadot-api/known-chains':
-        specifier: workspace:*
-        version: link:../../packages/known-chains
-      '@polkadot-api/smoldot':
-        specifier: workspace:*
-        version: link:../../packages/smoldot
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -180,12 +162,6 @@ importers:
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@polkadot-api/signer':
-        specifier: workspace:^
-        version: link:../../packages/signers/signer
-      '@polkadot-api/sm-provider':
-        specifier: workspace:*
-        version: link:../../packages/json-rpc/sm-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -195,9 +171,6 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../packages/utils
-      '@polkadot-api/ws-provider':
-        specifier: workspace:*
-        version: link:../../packages/json-rpc/ws-provider
       '@unique-nft/sr25519':
         specifier: ^0.0.1
         version: 0.0.1

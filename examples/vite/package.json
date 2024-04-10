@@ -16,8 +16,6 @@
   },
   "dependencies": {
     "polkadot-api": "workspace:*",
-    "@polkadot-api/known-chains": "workspace:*",
-    "@polkadot-api/smoldot": "workspace:*",
     "rxjs": "^7.8.1"
   },
   "polkadot-api": {

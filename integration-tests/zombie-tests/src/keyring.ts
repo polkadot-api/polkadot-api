@@ -1,10 +1,10 @@
 import type { PolkadotSigner } from "polkadot-api"
-import Sr25519Account from "@unique-nft/sr25519"
+import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
-import { ed25519 } from "@noble/curves/ed25519"
 import { Blake2256 } from "@polkadot-api/substrate-bindings"
+import Sr25519Account from "@unique-nft/sr25519"
+import { ed25519 } from "@noble/curves/ed25519"
 import { secp256k1 } from "@noble/curves/secp256k1"
-import { getPolkadotSigner } from "@polkadot-api/signer"
 
 const accounts: Record<
   "alice" | "bob",

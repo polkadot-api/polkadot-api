@@ -1,13 +1,13 @@
+import { randomBytes } from "crypto"
+import { combineLatest, filter, firstValueFrom, map } from "rxjs"
 import { expect, describe, it } from "vitest"
 import { start } from "smoldot"
 import { AccountId, createClient } from "polkadot-api"
-import { getSmProvider } from "@polkadot-api/sm-provider"
-import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
+import { getSmProvider } from "polkadot-api/sm-provider"
+import { WebSocketProvider } from "polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
-import { accounts } from "./keyring"
 import { MultiAddress, roc } from "@polkadot-api/descriptors"
-import { combineLatest, filter, firstValueFrom, map } from "rxjs"
-import { randomBytes } from "crypto"
+import { accounts } from "./keyring"
 
 const smoldot = start()
 

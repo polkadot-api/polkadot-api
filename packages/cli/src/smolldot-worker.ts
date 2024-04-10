@@ -29,7 +29,7 @@ const getProvider = (chainSpec) => {
     throw new Error("Relay chain " + relay_chain + " is not well-known")
 
   const relayP = smoldot.addChain({
-    chainSpec: require(WELL_KNOWN_CHAINS_LIB + relay_chain).default,
+    chainSpec: require(WELL_KNOWN_CHAINS_LIB + relay_chain).chainSpec,
     disableJsonRpc: true,
   })
 
@@ -45,7 +45,7 @@ const getProvider = (chainSpec) => {
 
 const provider = getProvider(
   wellKnownChains.has(workerData)
-    ? require(WELL_KNOWN_CHAINS_LIB + workerData).default
+    ? require(WELL_KNOWN_CHAINS_LIB + workerData).chainSpec
     : workerData,
 )((msg) => parentPort.postMessage(msg))
 

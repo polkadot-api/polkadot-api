@@ -16,9 +16,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "polkadot-api": "workspace:*",
-    "@polkadot-api/known-chains": "workspace:*",
-    "@polkadot-api/smoldot": "workspace:*"
+    "polkadot-api": "workspace:*"
   },
   "polkadot-api": {
     "wnd": {
