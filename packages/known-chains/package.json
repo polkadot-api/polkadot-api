@@ -1,0 +1,132 @@
+{
+  "name": "@polkadot-api/known-chains",
+  "version": "0.0.1",
+  "author": "Victor Oliva (https://github.com/voliva)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polkadot-api/polkadot-api.git"
+  },
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./ksmcc3": {
+      "module": "./dist/ksmcc3/ksmcc3.mjs",
+      "import": "./dist/ksmcc3/ksmcc3.mjs",
+      "require": "./dist/ksmcc3/ksmcc3.js",
+      "default": "./dist/ksmcc3/ksmcc3.js"
+    },
+    "./ksmcc3_asset_hub": {
+      "module": "./dist/ksmcc3_asset_hub/ksmcc3_asset_hub.mjs",
+      "import": "./dist/ksmcc3_asset_hub/ksmcc3_asset_hub.mjs",
+      "require": "./dist/ksmcc3_asset_hub/ksmcc3_asset_hub.js",
+      "default": "./dist/ksmcc3_asset_hub/ksmcc3_asset_hub.js"
+    },
+    "./ksmcc3_bridge_hub": {
+      "module": "./dist/ksmcc3_bridge_hub/ksmcc3_bridge_hub.mjs",
+      "import": "./dist/ksmcc3_bridge_hub/ksmcc3_bridge_hub.mjs",
+      "require": "./dist/ksmcc3_bridge_hub/ksmcc3_bridge_hub.js",
+      "default": "./dist/ksmcc3_bridge_hub/ksmcc3_bridge_hub.js"
+    },
+    "./polkadot": {
+      "module": "./dist/polkadot/polkadot.mjs",
+      "import": "./dist/polkadot/polkadot.mjs",
+      "require": "./dist/polkadot/polkadot.js",
+      "default": "./dist/polkadot/polkadot.js"
+    },
+    "./polkadot_asset_hub": {
+      "module": "./dist/polkadot_asset_hub/polkadot_asset_hub.mjs",
+      "import": "./dist/polkadot_asset_hub/polkadot_asset_hub.mjs",
+      "require": "./dist/polkadot_asset_hub/polkadot_asset_hub.js",
+      "default": "./dist/polkadot_asset_hub/polkadot_asset_hub.js"
+    },
+    "./polkadot_bridge_hub": {
+      "module": "./dist/polkadot_bridge_hub/polkadot_bridge_hub.mjs",
+      "import": "./dist/polkadot_bridge_hub/polkadot_bridge_hub.mjs",
+      "require": "./dist/polkadot_bridge_hub/polkadot_bridge_hub.js",
+      "default": "./dist/polkadot_bridge_hub/polkadot_bridge_hub.js"
+    },
+    "./polkadot_collectives": {
+      "module": "./dist/polkadot_collectives/polkadot_collectives.mjs",
+      "import": "./dist/polkadot_collectives/polkadot_collectives.mjs",
+      "require": "./dist/polkadot_collectives/polkadot_collectives.js",
+      "default": "./dist/polkadot_collectives/polkadot_collectives.js"
+    },
+    "./rococo_v2_2": {
+      "module": "./dist/rococo_v2_2/rococo_v2_2.mjs",
+      "import": "./dist/rococo_v2_2/rococo_v2_2.mjs",
+      "require": "./dist/rococo_v2_2/rococo_v2_2.js",
+      "default": "./dist/rococo_v2_2/rococo_v2_2.js"
+    },
+    "./rococo_v2_2_asset_hub": {
+      "module": "./dist/rococo_v2_2_asset_hub/rococo_v2_2_asset_hub.mjs",
+      "import": "./dist/rococo_v2_2_asset_hub/rococo_v2_2_asset_hub.mjs",
+      "require": "./dist/rococo_v2_2_asset_hub/rococo_v2_2_asset_hub.js",
+      "default": "./dist/rococo_v2_2_asset_hub/rococo_v2_2_asset_hub.js"
+    },
+    "./rococo_v2_2_bridge_hub": {
+      "module": "./dist/rococo_v2_2_bridge_hub/rococo_v2_2_bridge_hub.mjs",
+      "import": "./dist/rococo_v2_2_bridge_hub/rococo_v2_2_bridge_hub.mjs",
+      "require": "./dist/rococo_v2_2_bridge_hub/rococo_v2_2_bridge_hub.js",
+      "default": "./dist/rococo_v2_2_bridge_hub/rococo_v2_2_bridge_hub.js"
+    },
+    "./westend2": {
+      "module": "./dist/westend2/westend2.mjs",
+      "import": "./dist/westend2/westend2.mjs",
+      "require": "./dist/westend2/westend2.js",
+      "default": "./dist/westend2/westend2.js"
+    },
+    "./westend2_asset_hub": {
+      "module": "./dist/westend2_asset_hub/westend2_asset_hub.mjs",
+      "import": "./dist/westend2_asset_hub/westend2_asset_hub.mjs",
+      "require": "./dist/westend2_asset_hub/westend2_asset_hub.js",
+      "default": "./dist/westend2_asset_hub/westend2_asset_hub.js"
+    },
+    "./westend2_bridge_hub": {
+      "module": "./dist/westend2_bridge_hub/westend2_bridge_hub.mjs",
+      "import": "./dist/westend2_bridge_hub/westend2_bridge_hub.mjs",
+      "require": "./dist/westend2_bridge_hub/westend2_bridge_hub.js",
+      "default": "./dist/westend2_bridge_hub/westend2_bridge_hub.js"
+    },
+    "./westend2_collectives": {
+      "module": "./dist/westend2_collectives/westend2_collectives.mjs",
+      "import": "./dist/westend2_collectives/westend2_collectives.mjs",
+      "require": "./dist/westend2_collectives/westend2_collectives.js",
+      "default": "./dist/westend2_collectives/westend2_collectives.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "ksmcc3",
+    "ksmcc3_asset_hub",
+    "ksmcc3_bridge_hub",
+    "polkadot",
+    "polkadot_asset_hub",
+    "polkadot_bridge_hub",
+    "polkadot_collectives",
+    "rococo_v2_2",
+    "rococo_v2_2_asset_hub",
+    "rococo_v2_2_bridge_hub",
+    "westend2",
+    "westend2_asset_hub",
+    "westend2_bridge_hub",
+    "westend2_collectives"
+  ],
+  "scripts": {
+    "postinstall": "node prepare-specs.mjs",
+    "build": "bash build.sh",
+    "test": "echo 'no tests'",
+    "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
+  }
+}
