@@ -1,10 +1,19 @@
-import { type Client } from "smoldot"
+import type { Client } from "smoldot"
 import {
   type SmoldotBytecode,
+  type ClientOptionsWithBytecode,
   startWithBytecode,
 } from "smoldot/no-auto-bytecode"
 
-export const startFromWorker = (worker: Worker): Client => {
+export type SmoldotOptions = Omit<
+  ClientOptionsWithBytecode,
+  "bytecode" | "portToWorker"
+>
+
+export const startFromWorker = (
+  worker: Worker,
+  options: SmoldotOptions = {},
+): Client => {
   const bytecode = new Promise<SmoldotBytecode>((resolve) => {
     worker.onmessage = (event) => resolve(event.data)
   })
@@ -15,5 +24,6 @@ export const startFromWorker = (worker: Worker): Client => {
   return startWithBytecode({
     bytecode,
     portToWorker: port2,
+    ...options,
   })
 }
