@@ -51,7 +51,7 @@ await writeFile(
   specFiles
     .map((filename) => {
       const packageName = filename.replace(".json", "")
-      return `export { default as ${packageName} } from "../specs/${packageName}.json"`
+      return `export { chainSpec as ${packageName} } from "./specs/${packageName}"`
     })
     .join("\n") + "\n",
 )
