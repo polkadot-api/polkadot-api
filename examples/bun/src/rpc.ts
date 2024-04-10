@@ -1,14 +1,8 @@
 import { createClient } from "@polkadot-api/client"
+import { WebSocketProvider } from "@polkadot-api/client/ws-provider-node"
 import { wnd } from "@polkadot-api/descriptors"
-import { getChain } from "@polkadot-api/node-polkadot-provider"
-import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
 
-const polkadotProvider = await getChain({
-  provider: WebSocketProvider("wss://westend-rpc.polkadot.io"),
-  keyring: [],
-})
-
-const client = createClient(polkadotProvider)
+const client = createClient(WebSocketProvider("wss://westend-rpc.polkadot.io"))
 const testApi = client.getTypedApi(wnd)
 
 async function run() {
@@ -27,7 +21,6 @@ async function run() {
     console.log(testApi.constants.Auctions.EndingPeriod(runtime))
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1000))
   client.destroy()
 }
 

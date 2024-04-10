@@ -1,11 +1,18 @@
 import { createClient } from "@polkadot-api/client"
+import { getSmProvider } from "@polkadot-api/client/sm-provider"
+import { start } from "@polkadot-api/smoldot"
+import chainSpec from "@polkadot-api/known-chains/westend2"
 import { wnd } from "@polkadot-api/descriptors"
-import { getScProvider } from "@polkadot-api/sc-provider"
-import { WellKnownChain, createScClient } from "@substrate/connect"
 
-const scProvider = getScProvider(createScClient({}))
+const smoldot = start()
 
-const client = createClient(scProvider(WellKnownChain.westend2).relayChain)
+const client = createClient(
+  getSmProvider(
+    smoldot.addChain({
+      chainSpec,
+    }),
+  ),
+)
 const testApi = client.getTypedApi(wnd)
 
 async function run() {
@@ -26,6 +33,7 @@ async function run() {
 
   await new Promise((resolve) => setTimeout(resolve, 1000))
   client.destroy()
+  smoldot.terminate()
 }
 
 await run()
