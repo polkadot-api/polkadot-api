@@ -5,7 +5,7 @@
 - Light client first: built on top of the [new JSON-RPC spec](https://paritytech.github.io/json-rpc-interface-spec/) to fully leverage the potential of light-clients (i.e: [smoldot](https://www.npmjs.com/package/smoldot)).
 - Delightful TypeScript support with types and docs generated from on-chain metadata.
 - First class support for storage reads, constants, transactions, events and runtime-calls.
-- Performant and light-weight: ships with multiple sub-paths, so that dApp doesn't bundle unnecessary assets.
+- Performant and lightweight: ships with multiple subpaths, so dApps don't bundle unnecessary assets.
 - Browser native [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt), instead of large BigNumber libraries
 - Leverages dynamic imports to favour faster loading times.
 - Promise-based and Observable-based APIs: use the one that best suit your needs and/or coding style.

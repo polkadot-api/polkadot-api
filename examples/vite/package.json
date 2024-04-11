@@ -20,6 +20,7 @@
   },
   "polkadot-api": {
     "wnd": {
+      "chain": "westend2",
       "metadata": "wnd-metadata.scale"
     }
   }

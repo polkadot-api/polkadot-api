@@ -30,14 +30,14 @@ Usage: polkadot-api [options] [command]
 Polkadot API CLI
 
 Options:
-  -h, --help                  display help for command
+  -h, --help               display help for command
 
 Commands:
-  generate [options]          Generate file descriptors
-  add [options] <key> [dest]  Add a new chain spec to the list
-  update [options] [keys]     Update the metadata files
-  remove [options] <key>      Remove a chain spec to the list
-  help [command]              display help for command
+  generate [options]       Generate descriptor files
+  add [options] <key>      Add a new chain spec to the list
+  update [options] [keys]  Update the metadata files
+  remove [options] <key>   Remove a chain spec from the list
+  help [command]           display help for command
 ```
 
 ## Configuration file
@@ -58,9 +58,9 @@ Usage: polkadot-api generate [options]
 Generate descriptor files
 
 Options:
-  --config <filename>    Source for the config file
-  -k, --key <key>        Key of the descriptor to generate
-  -h, --help             display help for command
+  --config <filename>  Source for the config file
+  -k, --key <key>      Key of the descriptor to generate
+  -h, --help           display help for command
 ```
 
 By default, it generates the descriptor files for all of the chains defined in the config file. To generate only the ones for a specific chain, use the `-k, --key` parameter.
@@ -68,7 +68,7 @@ By default, it generates the descriptor files for all of the chains defined in t
 ### Add
 
 ```sh
-Usage: polkadot-api add [options] <key> [dest]
+Usage: polkadot-api add [options] <key>
 
 Add a new chain spec to the list
 
@@ -102,7 +102,8 @@ Usage: polkadot-api update [options] [keys]
 Update the metadata files
 
 Arguments:
-  keys                 Keys of the metadata files to update, separated by commas. Leave empty for all
+  keys                 Keys of the metadata files to update, separated by commas. Leave
+                       empty for all
 
 Options:
   --config <filename>  Source for the config file
