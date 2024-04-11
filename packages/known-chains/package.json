@@ -122,8 +122,7 @@
     "westend2_collectives"
   ],
   "scripts": {
-    "postinstall": "node prepare-specs.mjs",
-    "build": "bash build.sh",
+    "build": "node prepare-specs.mjs && bash build.sh",
     "test": "echo 'no tests'",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
