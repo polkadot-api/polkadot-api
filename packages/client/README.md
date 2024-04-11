@@ -6,7 +6,7 @@
 - Delightful TypeScript support with types and docs generated from on-chain metadata.
 - First class support for storage reads, constants, transactions, events and runtime-calls.
 - Performant and lightweight: ships with multiple subpaths, so dApps don't bundle unnecessary assets.
-- Browser native [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt), instead of large BigNumber libraries
+- Uses native [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt), instead of large BigNumber libraries
 - Leverages dynamic imports to favour faster loading times.
 - Promise-based and Observable-based APIs: use the one that best suit your needs and/or coding style.
 - Use signers from your browser extension, or from a private key.
