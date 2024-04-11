@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.2 - 2024-04-11
+
 ### Fixed
 
 - CLI: remove the descriptors folder if it exists before attempting to create it.
