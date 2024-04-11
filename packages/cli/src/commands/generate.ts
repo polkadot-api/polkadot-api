@@ -41,9 +41,10 @@ export async function generate(opts: GenerateOptions) {
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
-  if (!existsSync(descriptorsDir))
-    await fs.mkdir(descriptorsDir, { recursive: true })
+  if (existsSync(descriptorsDir))
+    await fs.rm(descriptorsDir, { recursive: true })
 
+  await fs.mkdir(descriptorsDir, { recursive: true })
   await generatePackageJson(join(descriptorsDir, "package.json"))
   await outputCodegen(chains, join(descriptorsDir, "src"), clientPath)
   await compileCodegen(descriptorsDir)

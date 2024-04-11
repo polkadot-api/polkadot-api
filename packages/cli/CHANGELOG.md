@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.2 - 2024-04-11
+
+### Fixed
+
+- Remove the descriptors folder if it exists before attempting to create it.
+
 ## 0.2.1 - 2024-04-11
 
 ### Fixed
