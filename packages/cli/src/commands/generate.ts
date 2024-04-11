@@ -9,6 +9,7 @@ import tsc from "tsc-prog"
 import tsup from "tsup"
 import { CommonOptions } from "./commonOptions"
 import fsExists from "fs.promises.exists"
+import { existsSync } from "fs"
 
 export interface GenerateOptions extends CommonOptions {
   key?: string
@@ -40,7 +41,9 @@ export async function generate(opts: GenerateOptions) {
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
-  await fs.mkdir(descriptorsDir, { recursive: true })
+  if (!existsSync(descriptorsDir))
+    await fs.mkdir(descriptorsDir, { recursive: true })
+
   await generatePackageJson(join(descriptorsDir, "package.json"))
   await outputCodegen(chains, join(descriptorsDir, "src"), clientPath)
   await compileCodegen(descriptorsDir)
