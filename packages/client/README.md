@@ -22,10 +22,10 @@
 import { startFromWorker } from "polkadot-api/smoldot/from-worker"
 import SmWorker from "polkadot-api/smoldot/worker?worker"
 
-// Let's start smoldot on a Worker
+// Starting smoldot on a Worker (strongly recommended)
 export const smoldot = startFromWorker(new SmWorker())
 
-// Alternatively you could have smoldot running on the main-thread, e.g:
+// Alternatively, we could have smoldot running on the main-thread, e.g:
 // import { start } from "polkadot-api/smoldot"
 // export const smoldot = start()
 ```
@@ -43,7 +43,7 @@ const smoldotRelayChain = import("polkadot-api/chains/polkadot").then(
   ({ chainSpec }) => smoldot.addChain({ chainSpec }),
 )
 
-// let's create a `JsonRpcProvider` from a `smoldot` chain.
+// getting a `JsonRpcProvider` from a `smoldot` chain.
 const jsonRpcProvider = getSmProvider(smoldotRelayChain)
 
 // we could also create a `JsonRpcProvider` from a WS connection, eg:
@@ -51,18 +51,24 @@ const jsonRpcProvider = getSmProvider(smoldotRelayChain)
 
 const polkadotClient = createClient(jsonRpcProvider)
 
-polkadotClient.subscribe((block) => {
+// logging blocks as they get finalized
+polkadotClient.finalizedBlock$.subscribe((block) => {
   console.log(`#${block.number} - ${block.hash} - parentHash: ${block.parent}`)
 })
 
+// pulling the latest finalized block
+const block = await polkadotClient.getFinalizedBlock()
+
+// obtaining a delightfully typed interface from the descriptors
+// previously generated from the metadata
 const polkadotApi = polkadotClient.getTypedApi(polkadotTypes)
 
+// presenting the transferrable amount of a given account
 const {
   data: { free, frozen },
 } = await polkadotApi.query.System.Account.getValue(
   "15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5",
 )
-
 console.log(`Transferrable amount: ${free - frozen}`)
 ```
 
