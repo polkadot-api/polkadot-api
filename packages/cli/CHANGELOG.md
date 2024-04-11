@@ -2,13 +2,18 @@
 
 ## Unreleased
 
+## 0.2.0 - 2024-04-11
+
+### Changed
+
+- Generated code imports from `polkadot-api` instead of `@polkadot-api/client`
+
 ## 0.1.0 - 2024-04-09
 
 ### Changed
 
 - CLI can now be imported from another module.
 - `generate` cleans the output dir before compiling sources.
-- Generated code imports from `polkadot-api` instead of `@polkadot-api/client`
 
 ### Fixed
 

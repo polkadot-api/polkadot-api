@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Ryan Lee (https://github.com/ryanleecode)",
   "license": "MIT",
   "sideEffects": true,

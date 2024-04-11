@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-### Changed
+## 0.1.0 - 2024-04-11
+
+### Breaking
 
 - Changed individual exports from `default` to `chainSpec`
 
