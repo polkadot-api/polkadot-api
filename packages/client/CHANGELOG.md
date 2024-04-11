@@ -9,6 +9,10 @@
 - Added subpath for `polkadot-api/chains/*`
 - Added subpath for `polkadot-api/utils`
 
+### Fixed
+
+- Codegen: generate struct types with property names that have special symbols.
+
 ## 0.1.0 - 2024-04-09
 
 ### Changed
