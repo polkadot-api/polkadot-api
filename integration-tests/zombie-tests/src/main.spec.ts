@@ -50,7 +50,7 @@ describe("E2E", async () => {
   })
 
   it("reads from storage", async () => {
-    const finalized = await firstValueFrom(client.finalized$)
+    const finalized = await firstValueFrom(client.finalizedBlock$)
     const number = await api.query.System.Number.getValue({
       at: finalized.hash,
     })
