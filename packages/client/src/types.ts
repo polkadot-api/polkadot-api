@@ -102,14 +102,23 @@ export type TypedApi<D extends Descriptors> = {
 }
 
 export interface PolkadotClient {
-  finalized$: Observable<BlockInfo>
+  finalizedBlock$: Observable<BlockInfo>
+  getFinalizedBlock: () => Promise<BlockInfo>
+
   bestBlocks$: Observable<BlockInfo[]>
+  getBestBlocks: () => Promise<BlockInfo[]>
+
+  watchBlockBlody: (hash: string) => Observable<HexString[]>
+  getBlockBody: (hash: string) => Promise<HexString[]>
+
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
-  getBlockBody: (hash: string) => Observable<HexString[]>
-  getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
-  destroy: () => void
+
   submit: (transaction: HexString) => Promise<TxFinalizedPayload>
   submitAndWatch: (transaction: HexString) => Observable<TxBroadcastEvent>
+
+  getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
+
+  destroy: () => void
 }
 
 export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }

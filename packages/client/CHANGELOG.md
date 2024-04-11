@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Breaking
+
+- Improve the `PolkadotClient` interface:
+  - Renamed `finalized$` -> `finalizedBlock$`
+  - Added `getFinalizedBlock`, which is the Promise-based counter-part of `finalizedBlocks$`
+  - Added `getBestBlocks`, which is the Promise-based counter-part of `bestBlocks$`
+  - Renamed `getBlockBody` -> `watchBlockBody`
+  - Added `getBlockBody`, which is the Promise-based counter-part of `watchBlockBody`
+
 ### Changed
 
 - Renamed package to `polkadot-api`

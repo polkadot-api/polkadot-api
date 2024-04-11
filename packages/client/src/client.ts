@@ -123,18 +123,27 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const { submit, submit$: submitAndWatch } = submitFns
 
   return {
-    finalized$: chainHead.finalized$,
+    finalizedBlock$: chainHead.finalized$,
+    getFinalizedBlock: () => firstValueFrom(chainHead.finalized$),
+
     bestBlocks$: chainHead.bestBlocks$,
+    getBestBlocks: () => firstValueFrom(chainHead.bestBlocks$),
+
+    watchBlockBlody: chainHead.body$,
+    getBlockBody: (hash: string) => firstValueFrom(chainHead.body$(hash)),
+
     getBlockHeader: (hash?: string) =>
       firstValueFrom(chainHead.header$(hash ?? null)),
-    getBlockBody: chainHead.body$,
+
+    submit,
+    submitAndWatch,
+
+    getTypedApi: <D extends Descriptors>(descriptors: D) =>
+      createTypedApi(descriptors, createTxFromSigner, chainHead, submitFns),
+
     destroy: () => {
       chainHead.unfollow()
       client.destroy()
     },
-    submit,
-    submitAndWatch,
-    getTypedApi: <D extends Descriptors>(descriptors: D) =>
-      createTypedApi(descriptors, createTxFromSigner, chainHead, submitFns),
   }
 }
