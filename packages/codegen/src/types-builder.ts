@@ -221,7 +221,7 @@ const _buildSyntax = (
     const deps = mapObject(value, buildNextSyntax)
     Object.values(deps).forEach(addImport)
     variable.type = `{${Object.entries(deps)
-      .map(([key, val]) => `${key}: ${anonymize(val.type)}`)
+      .map(([key, val]) => `${JSON.stringify(key)}: ${anonymize(val.type)}`)
       .join(", ")}}`
 
     return typesImport(name)
