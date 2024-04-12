@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- logs-provider: [Support logs with transactions](https://github.com/polkadot-api/polkadot-api/pull/414)
+
 ## 0.1.2 - 2024-04-11
 
 ### Fixed
