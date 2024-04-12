@@ -116,12 +116,16 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       key: string,
       ...args: [...A, ...[abortSignal: AbortSignal]]
     ) => Promise<T>,
-  ) =>
-    withInMemory(
+    excludeCanonicalChain = false,
+  ) => {
+    const canonicalChain = (_fn: (hash: string, ...args: A) => Observable<T>) =>
+      withEnsureCanonicalChain(pinnedBlocks$, follow$, _fn)
+
+    return withInMemory(
       withRefcount(
-        withEnsureCanonicalChain(
-          pinnedBlocks$,
-          follow$,
+        (excludeCanonicalChain
+          ? (x: (hash: string, ...args: A) => Observable<T>) => x
+          : canonicalChain)(
           withStopRecovery(
             pinnedBlocks$,
             withOperationInaccessibleRecovery(
@@ -131,6 +135,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         ),
       ),
     )
+  }
 
   const _call$ = withOperationInaccessibleRecovery(
     withRecoveryFn(fromAbortControllerFn(lazyFollower("call"))),
@@ -242,7 +247,14 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
   const _body$ = commonEnhancer(lazyFollower("body"))
   const body$ = (hash: string) => upsertCachedStream(hash, "body", _body$(hash))
-  const trackTx$ = getTrackTx(pinnedBlocks$, body$)
+
+  const innerBody$ = (hash: string) =>
+    upsertCachedStream(
+      hash,
+      "body",
+      commonEnhancer(lazyFollower("body"), true)(hash),
+    )
+  const trackTx$ = getTrackTx(pinnedBlocks$, innerBody$)
 
   const _storage$ = commonEnhancer(lazyFollower("storage"))
 
