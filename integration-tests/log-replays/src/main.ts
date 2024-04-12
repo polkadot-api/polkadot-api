@@ -1,19 +1,17 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process"
 
-function undefinedRuntime(childProcess: ChildProcessWithoutNullStreams) {
+function txWithCompetingForks(childProcess: ChildProcessWithoutNullStreams) {
   return new Promise<void>((resolve, reject) => {
     childProcess.on("exit", (e) => {
-      if (e !== null) {
-        reject(new Error("`undefined-runtime` errored"))
+      if (e !== 0) {
+        reject(new Error("`txWithCompetingForks` errored"))
       } else {
-        reject(
-          new Error("`undefined-runtime` exited when it wasnt supposed to"),
-        )
+        resolve()
       }
     })
 
     setTimeout(() => {
-      resolve()
+      reject(new Error("Timeout"))
       childProcess.unref()
       childProcess.kill()
     }, 5_000)
@@ -21,7 +19,10 @@ function undefinedRuntime(childProcess: ChildProcessWithoutNullStreams) {
 }
 
 const tests = {
-  undefinedRuntime: ["undefined-runtime", undefinedRuntime] as const,
+  txWithCompetingForks: [
+    "tx-with-competing-forks",
+    txWithCompetingForks,
+  ] as const,
 }
 
 try {
