@@ -37,6 +37,13 @@ const rawLogsToLogs = (rawLogs: string[]): Map<number, Log[]> => {
   return result
 }
 
+const extractTx = (msg: string) => {
+  const startTxt = 'TaggedTransactionQueue_validate_transaction","'
+  const start = msg.lastIndexOf(startTxt) + startTxt.length + 4
+  const end = msg.indexOf(`"`, start + 1)
+  return msg.substring(start, end - 64)
+}
+
 export const logsProvider = (rawLogs: Array<string>): JsonRpcProvider => {
   let nextClientId = 1
   const allLogs = rawLogsToLogs(
@@ -49,21 +56,38 @@ export const logsProvider = (rawLogs: Array<string>): JsonRpcProvider => {
     const pending = new Queue<string>()
     let idx = 0
 
+    let transactions = new Map<string, string>()
     const checkForIncommingMessages = async () => {
-      if (!pending.peek) return
+      if (!pending.peek()) return
 
       while (idx < logs.length && token !== undefined) {
         const expected = logs[idx]
+        transactions.forEach((value, key) => {
+          expected.msg = expected.msg.replace(key, value)
+        })
         if (expected.type === OUT) {
           if (!pending.peek()) {
             token = setTimeout(checkForIncommingMessages, 100)
             break
           }
+
           const received = pending.pop()
+
+          if (
+            expected.msg.includes(
+              "TaggedTransactionQueue_validate_transaction",
+            ) &&
+            received?.includes("TaggedTransactionQueue_validate_transaction")
+          ) {
+            transactions.set(extractTx(expected.msg), extractTx(received))
+            transactions.forEach((value, key) => {
+              expected.msg = expected.msg.replace(key, value)
+            })
+          }
+
           if (received !== expected.msg) {
-            console.log("recieved: ", received)
-            console.log(received)
-            console.log("expected: ", expected.msg)
+            console.log(`recieved: "${received}"`)
+            console.log(`expected: "${expected.msg}"`)
             throw new Error("unexpected messaged was received")
           }
         } else {
