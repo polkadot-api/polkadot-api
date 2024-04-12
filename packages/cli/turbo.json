@@ -4,7 +4,7 @@
   "pipeline": {
     "build": {
       "inputs": ["tsconfig.build.json", "tsconfig.build.json", "src/**"],
-      "outputs": ["bin/**"]
+      "outputs": ["dist/**"]
     },
     "test": {
       "inputs": ["vitest.config.ts", "test/**"]
