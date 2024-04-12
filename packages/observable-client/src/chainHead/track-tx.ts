@@ -1,7 +1,5 @@
 import {
-  EMPTY,
   Observable,
-  catchError,
   concat,
   concatMap,
   distinct,
@@ -41,7 +39,6 @@ export const getTrackTx =
           alreadyPresent.has(hash)
             ? of(-1)
             : getBody(hash).pipe(
-                catchError(() => EMPTY),
                 takeUntil(
                   blocks$.pipe(filter(({ blocks }) => !blocks.has(hash))),
                 ),

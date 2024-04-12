@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- [Tx with competing forks problem](https://github.com/polkadot-api/polkadot-api/pull/415)
+
 ## 0.1.0 - 2024-04-09
 
 ### Changed
