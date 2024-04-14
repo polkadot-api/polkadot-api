@@ -3,6 +3,11 @@ import {
   Binary,
   Enum,
   HexString,
+  Option,
+  Tuple,
+  compact,
+  u128,
+  u32,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
 import {
@@ -124,6 +129,7 @@ export type Transaction<
   signSubmitAndWatch: TxObservable<Asset>
   signAndSubmit: TxFunction<Asset>
   getEncodedData: TxCall
+  getEstimatedFees: () => Promise<bigint>
   decodedCall: Enum<{
     type: Pallet
     value: Enum<{
@@ -210,6 +216,8 @@ export const getSubmitFns = (
 
   return { submit$, submit }
 }
+
+const feeDetailsDec = Option(Tuple(u128, u128, u128)).dec
 
 export const createTxEntry = <
   Arg extends {} | undefined,
@@ -298,7 +306,27 @@ export const createTxEntry = <
         }),
       )
 
+    const getEstimatedFees = async () => {
+      const encoded = (await getEncodedData()).asBytes()
+      const preLen = encoded.length + 103 // TODO: `103` accounts for the extra aprox length that it's added into the extrinsic once it's signed. In the future we should improve this.
+      const len = preLen + compact.enc(preLen).length
+      const args = toHex(mergeUint8(encoded, u32.enc(len)))
+
+      return firstValueFrom(
+        chainHead
+          .call$(null, "TransactionPaymentCallApi_query_call_fee_details", args)
+          .pipe(
+            map((x) => {
+              const result = feeDetailsDec(x)
+              if (!result) throw new Error("Unable to calculate tx fees")
+              return result.reduce((a, b) => a + b)
+            }),
+          ),
+      )
+    }
+
     return {
+      getEstimatedFees,
       decodedCall: Enum(pallet, Enum(name, arg as any)) as Enum<{
         type: Pallet
         value: any
