@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2024-04-14
+
 ### Added
 
 - `getEstimatedFees` API to make it easier to query the fees of a given transaction.
