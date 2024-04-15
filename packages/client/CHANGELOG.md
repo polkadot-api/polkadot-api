@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.1 - 2024-04-15
+
+### Fixed
+
+- well-known-chains: removded `ws` bootnodes
+
 ## 0.2.0 - 2024-04-14
 
 ### Added
