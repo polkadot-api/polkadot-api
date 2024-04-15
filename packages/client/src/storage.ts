@@ -1,4 +1,4 @@
-import { firstValueFromWithSignal, lossLessExhaustMap } from "@/utils"
+import { firstValueFromWithSignal, raceMap } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { Observable, debounceTime, distinctUntilChanged, map } from "rxjs"
 import { ChainHead$ } from "@polkadot-api/observable-client"
@@ -82,12 +82,12 @@ export const createStorageEntry = (
     return chainHead[lastArg === "best" ? "best$" : "finalized$"].pipe(
       debounceTime(0),
       withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
-      lossLessExhaustMap(([block, ctx]) => {
+      raceMap(([block, ctx]) => {
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         return chainHead
           .storage$(block.hash, "value", () => codecs.enc(...actualArgs))
           .pipe(map((val) => ({ val, codecs })))
-      }),
+      }, 4),
       distinctUntilChanged((a, b) => a.val === b.val),
       map(({ val, codecs }) =>
         val === null ? codecs.fallback : codecs.dec(val),
