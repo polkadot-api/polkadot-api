@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.2 - 2024-04-15
+
+### Fixed
+
+- well-known-chains: Updated `lightSyncState` of relay-chain chainSpecs
+
 ## 0.2.1 - 2024-04-15
 
 ### Fixed
