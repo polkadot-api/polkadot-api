@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.3 - 2024-04-15
+
+### Fixed
+
+- client: Improve `watchValue` performance (using new `raceMap` operator)
+
 ## 0.2.2 - 2024-04-15
 
 ### Fixed
