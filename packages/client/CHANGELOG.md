@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- client: uncaught storage exception with incompatible runtime.
+
 ## 0.2.3 - 2024-04-15
 
 ### Fixed
