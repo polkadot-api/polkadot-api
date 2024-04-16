@@ -106,10 +106,10 @@ export const createStorageEntry = (
       at,
       "value",
       (ctx) => {
+        if (!isCompatible(ctx)) throw checksumError()
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         const actualArgs = args.length === codecs.len ? args : args.slice(0, -1)
         if (args !== actualArgs && !isLastArgOptional) throw invalidArgs(args)
-        if (!isCompatible(ctx)) throw checksumError()
         return codecs.enc(...actualArgs)
       },
       null,
@@ -132,13 +132,14 @@ export const createStorageEntry = (
       at,
       "descendantsValues",
       (ctx) => {
+        if (!isCompatible(ctx)) throw checksumError()
+
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         if (args.length > codecs.len) throw invalidArgs(args)
         const actualArgs =
           args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
         if (args.length === codecs.len && actualArgs === args)
           throw invalidArgs(args)
-        if (!isCompatible(ctx)) throw checksumError()
         return codecs.enc(...actualArgs)
       },
       null,
