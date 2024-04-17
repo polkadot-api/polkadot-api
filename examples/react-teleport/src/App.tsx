@@ -1,6 +1,6 @@
 import "./App.css"
 import { TransferrableBalance } from "./TransferrableBalance"
-import { BlockNumbers } from "./BlocNumbers"
+import { BlockNumbers } from "./BlockNumbers"
 import { ChainProvider, MainProvider } from "./context"
 import { Teleport } from "./Teleport"
 import { paraChainApi, paraChain, relayChain, relayChainApi } from "./api"
