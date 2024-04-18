@@ -2,6 +2,8 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process"
 
 function txWithCompetingForks(childProcess: ChildProcessWithoutNullStreams) {
   return new Promise<void>((resolve, reject) => {
+    childProcess.stderr.pipe(process.stderr)
+
     childProcess.on("exit", (e) => {
       if (e !== 0) {
         reject(new Error("`txWithCompetingForks` errored"))
