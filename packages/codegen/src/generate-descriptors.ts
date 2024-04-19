@@ -255,6 +255,7 @@ export const generateDescriptors = (
     "RuntimeDescriptor",
     "Enum",
     "_Enum",
+    "Binary",
     "FixedSizeBinary",
     "FixedSizeArray",
     "QueryFromDescriptors",
@@ -264,14 +265,6 @@ export const generateDescriptors = (
     "ConstFromDescriptors",
     ...typesBuilder.getClientFileImports(),
   ]
-
-  const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
-  import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
-    paths.types
-  }";
-
-  const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
-  `
 
   const assetPayment = metadata.extrinsic.signedExtensions.find(
     (x) => x.identifier === "ChargeAssetTxPayment",
@@ -293,6 +286,14 @@ export const generateDescriptors = (
           checksum: checksumBuilder.buildDefinition(_assetId),
           type: typesBuilder.buildTypeDefinition(_assetId),
         }
+
+  const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
+  import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
+    paths.types
+  }";
+
+  const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
+  `
 
   return `${imports}
 

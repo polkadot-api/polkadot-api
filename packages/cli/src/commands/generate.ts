@@ -2,18 +2,20 @@ import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
 import { V15 } from "@polkadot-api/substrate-bindings"
-import fs from "fs/promises"
+import fs, { mkdtemp, rm } from "fs/promises"
 import path, { join } from "path"
 import process from "process"
 import tsc from "tsc-prog"
-import tsup from "tsup"
+import tsup, { build } from "tsup"
 import { CommonOptions } from "./commonOptions"
 import fsExists from "fs.promises.exists"
 import { existsSync } from "fs"
+import { tmpdir } from "os"
 
 export interface GenerateOptions extends CommonOptions {
   key?: string
   clientLibrary?: string
+  whitelist?: string
 }
 
 export async function generate(opts: GenerateOptions) {
@@ -46,7 +48,14 @@ export async function generate(opts: GenerateOptions) {
 
   await fs.mkdir(descriptorsDir, { recursive: true })
   await generatePackageJson(join(descriptorsDir, "package.json"))
-  await outputCodegen(chains, join(descriptorsDir, "src"), clientPath)
+
+  const whitelist = opts.whitelist ? await readWhitelist(opts.whitelist) : null
+  await outputCodegen(
+    chains,
+    join(descriptorsDir, "src"),
+    clientPath,
+    whitelist,
+  )
   await compileCodegen(descriptorsDir)
   await fs.rm(join(descriptorsDir, "src"), { recursive: true })
 }
@@ -79,13 +88,20 @@ async function outputCodegen(
   }>,
   outputFolder: string,
   clientPath: string,
+  whitelist: string[] | null,
 ) {
   const { descriptorsFileContent, checksums, typesFileContent, publicTypes } =
-    generateMultipleDescriptors(chains, {
-      client: clientPath,
-      checksums: "./checksums.json",
-      types: "./common-types",
-    })
+    generateMultipleDescriptors(
+      chains,
+      {
+        client: clientPath,
+        checksums: "./checksums.json",
+        types: "./common-types",
+      },
+      {
+        whitelist: whitelist ?? undefined,
+      },
+    )
 
   await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
@@ -185,4 +201,29 @@ const generatePackageJson = async (path: string) => {
       }
     }`,
   )
+}
+
+async function readWhitelist(filename: string): Promise<string[] | null> {
+  if (!(await fsExists(filename))) {
+    throw new Error("Whitelist file not found: " + filename)
+  }
+
+  const tmpDir = await mkdtemp(join(tmpdir(), "papi-"))
+  try {
+    await build({
+      format: "esm",
+      entry: {
+        index: filename,
+      },
+      outDir: tmpDir,
+      outExtension() {
+        return { js: ".mjs" }
+      },
+      silent: true,
+    })
+    const { whitelist } = await import(join(tmpDir, "index.mjs"))
+    return whitelist
+  } finally {
+    await rm(tmpDir, { recursive: true }).catch(console.error)
+  }
 }

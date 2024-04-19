@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "start": "../../packages/cli/dist/main.js && vite",
-    "build": "../../packages/cli/dist/main.js && tsc && vite build",
+    "build": "../../packages/cli/dist/main.js --whitelist whitelist.ts && tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@polkadot-api/cli": "workspace:*",
     "@types/node": "^20.4.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2",

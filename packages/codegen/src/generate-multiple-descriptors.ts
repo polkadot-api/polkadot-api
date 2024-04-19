@@ -5,6 +5,7 @@ import { generateTypes } from "./generate-types"
 import { getUsedChecksums } from "./get-used-checksums"
 import knownTypes, { KnownTypes } from "./known-types"
 import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
+import { applyWhitelist } from "./whitelist"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
@@ -17,13 +18,20 @@ export const generateMultipleDescriptors = (
     checksums: string
     types: string
   },
+  options: {
+    whitelist?: string[]
+  } = {},
 ) => {
   const chainData = chains.map((chain) => {
-    const builder = getChecksumBuilder(chain.metadata)
+    const metadata = options.whitelist
+      ? applyWhitelist(chain.metadata, options.whitelist)
+      : chain.metadata
+    const builder = getChecksumBuilder(metadata)
     return {
       ...chain,
+      metadata,
       builder,
-      checksums: getUsedChecksums(chain.metadata, builder),
+      checksums: getUsedChecksums(metadata, builder),
       knownTypes: {
         ...knownTypes,
         ...chain.knownTypes,

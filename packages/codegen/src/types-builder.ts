@@ -132,7 +132,7 @@ const _buildSyntax = (
     input.value.type === "primitive" &&
     input.value.value === "u8"
   )
-    return clientImport("Binary")
+    return { type: "Binary" }
 
   const checksum = getChecksum(input.id)!
 
@@ -178,14 +178,10 @@ const _buildSyntax = (
     declarations.variables.set(id, variable)
 
     if (inner.type === "primitive" && inner.value === "u8") {
-      declarations.imports.add("FixedSizeBinary")
-
       variable.type = `FixedSizeBinary<${length}>`
     } else {
       const innerType = buildNextSyntax(inner)
       addImport(innerType)
-      declarations.imports.add("FixedSizeArray")
-
       variable.type = `FixedSizeArray<${length}, ${anonymize(innerType.type)}>`
     }
 

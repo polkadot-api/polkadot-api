@@ -21,6 +21,10 @@ export function getCli({ add, generate, remove, update }: Commands) {
     .description("Generate descriptor files")
     .addOption(config)
     .option("-k, --key <key>", "Key of the descriptor to generate")
+    .option(
+      "--whitelist <filename>",
+      "Use whitelist file to reduce descriptor size",
+    )
     .action(generate)
 
   program
