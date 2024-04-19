@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_chains_rococo_v2_2",
-  "types": "../../dist/chains_rococo_v2_2/chains_rococo_v2_2.d.ts",
-  "module": "../../dist/chains_rococo_v2_2/chains_rococo_v2_2.mjs",
-  "import": "../../dist/chains_rococo_v2_2/chains_rococo_v2_2.mjs",
-  "require": "../../dist/chains_rococo_v2_2/chains_rococo_v2_2.js",
-  "default": "../../dist/chains_rococo_v2_2/chains_rococo_v2_2.js"
+  "types": "../../dist/reexports/chains_rococo_v2_2.d.ts",
+  "module": "../../dist/reexports/chains_rococo_v2_2.mjs",
+  "import": "../../dist/reexports/chains_rococo_v2_2.mjs",
+  "require": "../../dist/reexports/chains_rococo_v2_2.js",
+  "default": "../../dist/reexports/chains_rococo_v2_2.js"
 }

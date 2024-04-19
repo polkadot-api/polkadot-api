@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_chains_westend2_bridge_hub",
-  "types": "../../dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.d.ts",
-  "module": "../../dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.mjs",
-  "import": "../../dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.mjs",
-  "require": "../../dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.js",
-  "default": "../../dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.js"
+  "types": "../../dist/reexports/chains_westend2_bridge_hub.d.ts",
+  "module": "../../dist/reexports/chains_westend2_bridge_hub.mjs",
+  "import": "../../dist/reexports/chains_westend2_bridge_hub.mjs",
+  "require": "../../dist/reexports/chains_westend2_bridge_hub.js",
+  "default": "../../dist/reexports/chains_westend2_bridge_hub.js"
 }

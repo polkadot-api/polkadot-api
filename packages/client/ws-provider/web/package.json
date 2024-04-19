@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_ws-provider_web",
-  "types": "../../dist/ws-provider_web/ws-provider_web.d.ts",
-  "module": "../../dist/ws-provider_web/ws-provider_web.mjs",
-  "import": "../../dist/ws-provider_web/ws-provider_web.mjs",
-  "require": "../../dist/ws-provider_web/ws-provider_web.js",
-  "default": "../../dist/ws-provider_web/ws-provider_web.js"
+  "types": "../../dist/reexports/ws-provider_web.d.ts",
+  "module": "../../dist/reexports/ws-provider_web.mjs",
+  "import": "../../dist/reexports/ws-provider_web.mjs",
+  "require": "../../dist/reexports/ws-provider_web.js",
+  "default": "../../dist/reexports/ws-provider_web.js"
 }
