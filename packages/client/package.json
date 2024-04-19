@@ -32,402 +32,402 @@
     "./logs-provider": {
       "node": {
         "production": {
-          "import": "./dist/logs-provider/logs-provider.mjs",
-          "require": "./dist/logs-provider/min/logs-provider.js",
-          "default": "./dist/logs-provider/logs-provider.js"
+          "import": "./dist/reexports/logs-provider.mjs",
+          "require": "./dist/min/reexports/logs-provider.js",
+          "default": "./dist/reexports/logs-provider.js"
         },
-        "import": "./dist/logs-provider/logs-provider.mjs",
-        "require": "./dist/logs-provider/logs-provider.js",
-        "default": "./dist/logs-provider/logs-provider.js"
+        "import": "./dist/reexports/logs-provider.mjs",
+        "require": "./dist/reexports/logs-provider.js",
+        "default": "./dist/reexports/logs-provider.js"
       },
-      "module": "./dist/logs-provider/logs-provider.mjs",
-      "import": "./dist/logs-provider/logs-provider.mjs",
-      "require": "./dist/logs-provider/logs-provider.js",
-      "default": "./dist/logs-provider/logs-provider.js"
+      "module": "./dist/reexports/logs-provider.mjs",
+      "import": "./dist/reexports/logs-provider.mjs",
+      "require": "./dist/reexports/logs-provider.js",
+      "default": "./dist/reexports/logs-provider.js"
     },
     "./pjs-signer": {
       "node": {
         "production": {
-          "import": "./dist/pjs-signer/pjs-signer.mjs",
-          "require": "./dist/pjs-signer/min/pjs-signer.js",
-          "default": "./dist/pjs-signer/pjs-signer.js"
+          "import": "./dist/reexports/pjs-signer.mjs",
+          "require": "./dist/min/reexports/pjs-signer.js",
+          "default": "./dist/reexports/pjs-signer.js"
         },
-        "import": "./dist/pjs-signer/pjs-signer.mjs",
-        "require": "./dist/pjs-signer/pjs-signer.js",
-        "default": "./dist/pjs-signer/pjs-signer.js"
+        "import": "./dist/reexports/pjs-signer.mjs",
+        "require": "./dist/reexports/pjs-signer.js",
+        "default": "./dist/reexports/pjs-signer.js"
       },
-      "module": "./dist/pjs-signer/pjs-signer.mjs",
-      "import": "./dist/pjs-signer/pjs-signer.mjs",
-      "require": "./dist/pjs-signer/pjs-signer.js",
-      "default": "./dist/pjs-signer/pjs-signer.js"
+      "module": "./dist/reexports/pjs-signer.mjs",
+      "import": "./dist/reexports/pjs-signer.mjs",
+      "require": "./dist/reexports/pjs-signer.js",
+      "default": "./dist/reexports/pjs-signer.js"
     },
     "./signer": {
       "node": {
         "production": {
-          "import": "./dist/signer/signer.mjs",
-          "require": "./dist/signer/min/signer.js",
-          "default": "./dist/signer/signer.js"
+          "import": "./dist/reexports/signer.mjs",
+          "require": "./dist/min/reexports/signer.js",
+          "default": "./dist/reexports/signer.js"
         },
-        "import": "./dist/signer/signer.mjs",
-        "require": "./dist/signer/signer.js",
-        "default": "./dist/signer/signer.js"
+        "import": "./dist/reexports/signer.mjs",
+        "require": "./dist/reexports/signer.js",
+        "default": "./dist/reexports/signer.js"
       },
-      "module": "./dist/signer/signer.mjs",
-      "import": "./dist/signer/signer.mjs",
-      "require": "./dist/signer/signer.js",
-      "default": "./dist/signer/signer.js"
+      "module": "./dist/reexports/signer.mjs",
+      "import": "./dist/reexports/signer.mjs",
+      "require": "./dist/reexports/signer.js",
+      "default": "./dist/reexports/signer.js"
     },
     "./sm-provider": {
       "node": {
         "production": {
-          "import": "./dist/sm-provider/sm-provider.mjs",
-          "require": "./dist/sm-provider/min/sm-provider.js",
-          "default": "./dist/sm-provider/sm-provider.js"
+          "import": "./dist/reexports/sm-provider.mjs",
+          "require": "./dist/min/reexports/sm-provider.js",
+          "default": "./dist/reexports/sm-provider.js"
         },
-        "import": "./dist/sm-provider/sm-provider.mjs",
-        "require": "./dist/sm-provider/sm-provider.js",
-        "default": "./dist/sm-provider/sm-provider.js"
+        "import": "./dist/reexports/sm-provider.mjs",
+        "require": "./dist/reexports/sm-provider.js",
+        "default": "./dist/reexports/sm-provider.js"
       },
-      "module": "./dist/sm-provider/sm-provider.mjs",
-      "import": "./dist/sm-provider/sm-provider.mjs",
-      "require": "./dist/sm-provider/sm-provider.js",
-      "default": "./dist/sm-provider/sm-provider.js"
+      "module": "./dist/reexports/sm-provider.mjs",
+      "import": "./dist/reexports/sm-provider.mjs",
+      "require": "./dist/reexports/sm-provider.js",
+      "default": "./dist/reexports/sm-provider.js"
     },
     "./ws-provider/node": {
       "node": {
         "production": {
-          "import": "./dist/ws-provider_node/ws-provider_node.mjs",
-          "require": "./dist/ws-provider_node/min/ws-provider_node.js",
-          "default": "./dist/ws-provider_node/ws-provider_node.js"
+          "import": "./dist/reexports/ws-provider_node.mjs",
+          "require": "./dist/min/reexports/ws-provider_node.js",
+          "default": "./dist/reexports/ws-provider_node.js"
         },
-        "import": "./dist/ws-provider_node/ws-provider_node.mjs",
-        "require": "./dist/ws-provider_node/ws-provider_node.js",
-        "default": "./dist/ws-provider_node/ws-provider_node.js"
+        "import": "./dist/reexports/ws-provider_node.mjs",
+        "require": "./dist/reexports/ws-provider_node.js",
+        "default": "./dist/reexports/ws-provider_node.js"
       },
-      "module": "./dist/ws-provider_node/ws-provider_node.mjs",
-      "import": "./dist/ws-provider_node/ws-provider_node.mjs",
-      "require": "./dist/ws-provider_node/ws-provider_node.js",
-      "default": "./dist/ws-provider_node/ws-provider_node.js"
+      "module": "./dist/reexports/ws-provider_node.mjs",
+      "import": "./dist/reexports/ws-provider_node.mjs",
+      "require": "./dist/reexports/ws-provider_node.js",
+      "default": "./dist/reexports/ws-provider_node.js"
     },
     "./ws-provider/web": {
       "node": {
         "production": {
-          "import": "./dist/ws-provider_web/ws-provider_web.mjs",
-          "require": "./dist/ws-provider_web/min/ws-provider_web.js",
-          "default": "./dist/ws-provider_web/ws-provider_web.js"
+          "import": "./dist/reexports/ws-provider_web.mjs",
+          "require": "./dist/min/reexports/ws-provider_web.js",
+          "default": "./dist/reexports/ws-provider_web.js"
         },
-        "import": "./dist/ws-provider_web/ws-provider_web.mjs",
-        "require": "./dist/ws-provider_web/ws-provider_web.js",
-        "default": "./dist/ws-provider_web/ws-provider_web.js"
+        "import": "./dist/reexports/ws-provider_web.mjs",
+        "require": "./dist/reexports/ws-provider_web.js",
+        "default": "./dist/reexports/ws-provider_web.js"
       },
-      "module": "./dist/ws-provider_web/ws-provider_web.mjs",
-      "import": "./dist/ws-provider_web/ws-provider_web.mjs",
-      "require": "./dist/ws-provider_web/ws-provider_web.js",
-      "default": "./dist/ws-provider_web/ws-provider_web.js"
+      "module": "./dist/reexports/ws-provider_web.mjs",
+      "import": "./dist/reexports/ws-provider_web.mjs",
+      "require": "./dist/reexports/ws-provider_web.js",
+      "default": "./dist/reexports/ws-provider_web.js"
     },
     "./chains": {
       "node": {
         "production": {
-          "import": "./dist/chains/chains.mjs",
-          "require": "./dist/chains/min/chains.js",
-          "default": "./dist/chains/chains.js"
+          "import": "./dist/reexports/chains.mjs",
+          "require": "./dist/min/reexports/chains.js",
+          "default": "./dist/reexports/chains.js"
         },
-        "import": "./dist/chains/chains.mjs",
-        "require": "./dist/chains/chains.js",
-        "default": "./dist/chains/chains.js"
+        "import": "./dist/reexports/chains.mjs",
+        "require": "./dist/reexports/chains.js",
+        "default": "./dist/reexports/chains.js"
       },
-      "module": "./dist/chains/chains.mjs",
-      "import": "./dist/chains/chains.mjs",
-      "require": "./dist/chains/chains.js",
-      "default": "./dist/chains/chains.js"
+      "module": "./dist/reexports/chains.mjs",
+      "import": "./dist/reexports/chains.mjs",
+      "require": "./dist/reexports/chains.js",
+      "default": "./dist/reexports/chains.js"
     },
     "./chains/ksmcc3": {
       "node": {
         "production": {
-          "import": "./dist/chains_ksmcc3/chains_ksmcc3.mjs",
-          "require": "./dist/chains_ksmcc3/min/chains_ksmcc3.js",
-          "default": "./dist/chains_ksmcc3/chains_ksmcc3.js"
+          "import": "./dist/reexports/chains_ksmcc3.mjs",
+          "require": "./dist/min/reexports/chains_ksmcc3.js",
+          "default": "./dist/reexports/chains_ksmcc3.js"
         },
-        "import": "./dist/chains_ksmcc3/chains_ksmcc3.mjs",
-        "require": "./dist/chains_ksmcc3/chains_ksmcc3.js",
-        "default": "./dist/chains_ksmcc3/chains_ksmcc3.js"
+        "import": "./dist/reexports/chains_ksmcc3.mjs",
+        "require": "./dist/reexports/chains_ksmcc3.js",
+        "default": "./dist/reexports/chains_ksmcc3.js"
       },
-      "module": "./dist/chains_ksmcc3/chains_ksmcc3.mjs",
-      "import": "./dist/chains_ksmcc3/chains_ksmcc3.mjs",
-      "require": "./dist/chains_ksmcc3/chains_ksmcc3.js",
-      "default": "./dist/chains_ksmcc3/chains_ksmcc3.js"
+      "module": "./dist/reexports/chains_ksmcc3.mjs",
+      "import": "./dist/reexports/chains_ksmcc3.mjs",
+      "require": "./dist/reexports/chains_ksmcc3.js",
+      "default": "./dist/reexports/chains_ksmcc3.js"
     },
     "./chains/ksmcc3_asset_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.mjs",
-          "require": "./dist/chains_ksmcc3_asset_hub/min/chains_ksmcc3_asset_hub.js",
-          "default": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.js"
+          "import": "./dist/reexports/chains_ksmcc3_asset_hub.mjs",
+          "require": "./dist/min/reexports/chains_ksmcc3_asset_hub.js",
+          "default": "./dist/reexports/chains_ksmcc3_asset_hub.js"
         },
-        "import": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.mjs",
-        "require": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.js",
-        "default": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.js"
+        "import": "./dist/reexports/chains_ksmcc3_asset_hub.mjs",
+        "require": "./dist/reexports/chains_ksmcc3_asset_hub.js",
+        "default": "./dist/reexports/chains_ksmcc3_asset_hub.js"
       },
-      "module": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.mjs",
-      "import": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.mjs",
-      "require": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.js",
-      "default": "./dist/chains_ksmcc3_asset_hub/chains_ksmcc3_asset_hub.js"
+      "module": "./dist/reexports/chains_ksmcc3_asset_hub.mjs",
+      "import": "./dist/reexports/chains_ksmcc3_asset_hub.mjs",
+      "require": "./dist/reexports/chains_ksmcc3_asset_hub.js",
+      "default": "./dist/reexports/chains_ksmcc3_asset_hub.js"
     },
     "./chains/ksmcc3_bridge_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.mjs",
-          "require": "./dist/chains_ksmcc3_bridge_hub/min/chains_ksmcc3_bridge_hub.js",
-          "default": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.js"
+          "import": "./dist/reexports/chains_ksmcc3_bridge_hub.mjs",
+          "require": "./dist/min/reexports/chains_ksmcc3_bridge_hub.js",
+          "default": "./dist/reexports/chains_ksmcc3_bridge_hub.js"
         },
-        "import": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.mjs",
-        "require": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.js",
-        "default": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.js"
+        "import": "./dist/reexports/chains_ksmcc3_bridge_hub.mjs",
+        "require": "./dist/reexports/chains_ksmcc3_bridge_hub.js",
+        "default": "./dist/reexports/chains_ksmcc3_bridge_hub.js"
       },
-      "module": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.mjs",
-      "import": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.mjs",
-      "require": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.js",
-      "default": "./dist/chains_ksmcc3_bridge_hub/chains_ksmcc3_bridge_hub.js"
+      "module": "./dist/reexports/chains_ksmcc3_bridge_hub.mjs",
+      "import": "./dist/reexports/chains_ksmcc3_bridge_hub.mjs",
+      "require": "./dist/reexports/chains_ksmcc3_bridge_hub.js",
+      "default": "./dist/reexports/chains_ksmcc3_bridge_hub.js"
     },
     "./chains/polkadot": {
       "node": {
         "production": {
-          "import": "./dist/chains_polkadot/chains_polkadot.mjs",
-          "require": "./dist/chains_polkadot/min/chains_polkadot.js",
-          "default": "./dist/chains_polkadot/chains_polkadot.js"
+          "import": "./dist/reexports/chains_polkadot.mjs",
+          "require": "./dist/min/reexports/chains_polkadot.js",
+          "default": "./dist/reexports/chains_polkadot.js"
         },
-        "import": "./dist/chains_polkadot/chains_polkadot.mjs",
-        "require": "./dist/chains_polkadot/chains_polkadot.js",
-        "default": "./dist/chains_polkadot/chains_polkadot.js"
+        "import": "./dist/reexports/chains_polkadot.mjs",
+        "require": "./dist/reexports/chains_polkadot.js",
+        "default": "./dist/reexports/chains_polkadot.js"
       },
-      "module": "./dist/chains_polkadot/chains_polkadot.mjs",
-      "import": "./dist/chains_polkadot/chains_polkadot.mjs",
-      "require": "./dist/chains_polkadot/chains_polkadot.js",
-      "default": "./dist/chains_polkadot/chains_polkadot.js"
+      "module": "./dist/reexports/chains_polkadot.mjs",
+      "import": "./dist/reexports/chains_polkadot.mjs",
+      "require": "./dist/reexports/chains_polkadot.js",
+      "default": "./dist/reexports/chains_polkadot.js"
     },
     "./chains/polkadot_asset_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.mjs",
-          "require": "./dist/chains_polkadot_asset_hub/min/chains_polkadot_asset_hub.js",
-          "default": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.js"
+          "import": "./dist/reexports/chains_polkadot_asset_hub.mjs",
+          "require": "./dist/min/reexports/chains_polkadot_asset_hub.js",
+          "default": "./dist/reexports/chains_polkadot_asset_hub.js"
         },
-        "import": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.mjs",
-        "require": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.js",
-        "default": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.js"
+        "import": "./dist/reexports/chains_polkadot_asset_hub.mjs",
+        "require": "./dist/reexports/chains_polkadot_asset_hub.js",
+        "default": "./dist/reexports/chains_polkadot_asset_hub.js"
       },
-      "module": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.mjs",
-      "import": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.mjs",
-      "require": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.js",
-      "default": "./dist/chains_polkadot_asset_hub/chains_polkadot_asset_hub.js"
+      "module": "./dist/reexports/chains_polkadot_asset_hub.mjs",
+      "import": "./dist/reexports/chains_polkadot_asset_hub.mjs",
+      "require": "./dist/reexports/chains_polkadot_asset_hub.js",
+      "default": "./dist/reexports/chains_polkadot_asset_hub.js"
     },
     "./chains/polkadot_bridge_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.mjs",
-          "require": "./dist/chains_polkadot_bridge_hub/min/chains_polkadot_bridge_hub.js",
-          "default": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.js"
+          "import": "./dist/reexports/chains_polkadot_bridge_hub.mjs",
+          "require": "./dist/min/reexports/chains_polkadot_bridge_hub.js",
+          "default": "./dist/reexports/chains_polkadot_bridge_hub.js"
         },
-        "import": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.mjs",
-        "require": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.js",
-        "default": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.js"
+        "import": "./dist/reexports/chains_polkadot_bridge_hub.mjs",
+        "require": "./dist/reexports/chains_polkadot_bridge_hub.js",
+        "default": "./dist/reexports/chains_polkadot_bridge_hub.js"
       },
-      "module": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.mjs",
-      "import": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.mjs",
-      "require": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.js",
-      "default": "./dist/chains_polkadot_bridge_hub/chains_polkadot_bridge_hub.js"
+      "module": "./dist/reexports/chains_polkadot_bridge_hub.mjs",
+      "import": "./dist/reexports/chains_polkadot_bridge_hub.mjs",
+      "require": "./dist/reexports/chains_polkadot_bridge_hub.js",
+      "default": "./dist/reexports/chains_polkadot_bridge_hub.js"
     },
     "./chains/polkadot_collectives": {
       "node": {
         "production": {
-          "import": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.mjs",
-          "require": "./dist/chains_polkadot_collectives/min/chains_polkadot_collectives.js",
-          "default": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.js"
+          "import": "./dist/reexports/chains_polkadot_collectives.mjs",
+          "require": "./dist/min/reexports/chains_polkadot_collectives.js",
+          "default": "./dist/reexports/chains_polkadot_collectives.js"
         },
-        "import": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.mjs",
-        "require": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.js",
-        "default": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.js"
+        "import": "./dist/reexports/chains_polkadot_collectives.mjs",
+        "require": "./dist/reexports/chains_polkadot_collectives.js",
+        "default": "./dist/reexports/chains_polkadot_collectives.js"
       },
-      "module": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.mjs",
-      "import": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.mjs",
-      "require": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.js",
-      "default": "./dist/chains_polkadot_collectives/chains_polkadot_collectives.js"
+      "module": "./dist/reexports/chains_polkadot_collectives.mjs",
+      "import": "./dist/reexports/chains_polkadot_collectives.mjs",
+      "require": "./dist/reexports/chains_polkadot_collectives.js",
+      "default": "./dist/reexports/chains_polkadot_collectives.js"
     },
     "./chains/rococo_v2_2": {
       "node": {
         "production": {
-          "import": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.mjs",
-          "require": "./dist/chains_rococo_v2_2/min/chains_rococo_v2_2.js",
-          "default": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.js"
+          "import": "./dist/reexports/chains_rococo_v2_2.mjs",
+          "require": "./dist/min/reexports/chains_rococo_v2_2.js",
+          "default": "./dist/reexports/chains_rococo_v2_2.js"
         },
-        "import": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.mjs",
-        "require": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.js",
-        "default": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.js"
+        "import": "./dist/reexports/chains_rococo_v2_2.mjs",
+        "require": "./dist/reexports/chains_rococo_v2_2.js",
+        "default": "./dist/reexports/chains_rococo_v2_2.js"
       },
-      "module": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.mjs",
-      "import": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.mjs",
-      "require": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.js",
-      "default": "./dist/chains_rococo_v2_2/chains_rococo_v2_2.js"
+      "module": "./dist/reexports/chains_rococo_v2_2.mjs",
+      "import": "./dist/reexports/chains_rococo_v2_2.mjs",
+      "require": "./dist/reexports/chains_rococo_v2_2.js",
+      "default": "./dist/reexports/chains_rococo_v2_2.js"
     },
     "./chains/rococo_v2_2_asset_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.mjs",
-          "require": "./dist/chains_rococo_v2_2_asset_hub/min/chains_rococo_v2_2_asset_hub.js",
-          "default": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.js"
+          "import": "./dist/reexports/chains_rococo_v2_2_asset_hub.mjs",
+          "require": "./dist/min/reexports/chains_rococo_v2_2_asset_hub.js",
+          "default": "./dist/reexports/chains_rococo_v2_2_asset_hub.js"
         },
-        "import": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.mjs",
-        "require": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.js",
-        "default": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.js"
+        "import": "./dist/reexports/chains_rococo_v2_2_asset_hub.mjs",
+        "require": "./dist/reexports/chains_rococo_v2_2_asset_hub.js",
+        "default": "./dist/reexports/chains_rococo_v2_2_asset_hub.js"
       },
-      "module": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.mjs",
-      "import": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.mjs",
-      "require": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.js",
-      "default": "./dist/chains_rococo_v2_2_asset_hub/chains_rococo_v2_2_asset_hub.js"
+      "module": "./dist/reexports/chains_rococo_v2_2_asset_hub.mjs",
+      "import": "./dist/reexports/chains_rococo_v2_2_asset_hub.mjs",
+      "require": "./dist/reexports/chains_rococo_v2_2_asset_hub.js",
+      "default": "./dist/reexports/chains_rococo_v2_2_asset_hub.js"
     },
     "./chains/rococo_v2_2_bridge_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.mjs",
-          "require": "./dist/chains_rococo_v2_2_bridge_hub/min/chains_rococo_v2_2_bridge_hub.js",
-          "default": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.js"
+          "import": "./dist/reexports/chains_rococo_v2_2_bridge_hub.mjs",
+          "require": "./dist/min/reexports/chains_rococo_v2_2_bridge_hub.js",
+          "default": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js"
         },
-        "import": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.mjs",
-        "require": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.js",
-        "default": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.js"
+        "import": "./dist/reexports/chains_rococo_v2_2_bridge_hub.mjs",
+        "require": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js",
+        "default": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js"
       },
-      "module": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.mjs",
-      "import": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.mjs",
-      "require": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.js",
-      "default": "./dist/chains_rococo_v2_2_bridge_hub/chains_rococo_v2_2_bridge_hub.js"
+      "module": "./dist/reexports/chains_rococo_v2_2_bridge_hub.mjs",
+      "import": "./dist/reexports/chains_rococo_v2_2_bridge_hub.mjs",
+      "require": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js",
+      "default": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js"
     },
     "./chains/westend2": {
       "node": {
         "production": {
-          "import": "./dist/chains_westend2/chains_westend2.mjs",
-          "require": "./dist/chains_westend2/min/chains_westend2.js",
-          "default": "./dist/chains_westend2/chains_westend2.js"
+          "import": "./dist/reexports/chains_westend2.mjs",
+          "require": "./dist/min/reexports/chains_westend2.js",
+          "default": "./dist/reexports/chains_westend2.js"
         },
-        "import": "./dist/chains_westend2/chains_westend2.mjs",
-        "require": "./dist/chains_westend2/chains_westend2.js",
-        "default": "./dist/chains_westend2/chains_westend2.js"
+        "import": "./dist/reexports/chains_westend2.mjs",
+        "require": "./dist/reexports/chains_westend2.js",
+        "default": "./dist/reexports/chains_westend2.js"
       },
-      "module": "./dist/chains_westend2/chains_westend2.mjs",
-      "import": "./dist/chains_westend2/chains_westend2.mjs",
-      "require": "./dist/chains_westend2/chains_westend2.js",
-      "default": "./dist/chains_westend2/chains_westend2.js"
+      "module": "./dist/reexports/chains_westend2.mjs",
+      "import": "./dist/reexports/chains_westend2.mjs",
+      "require": "./dist/reexports/chains_westend2.js",
+      "default": "./dist/reexports/chains_westend2.js"
     },
     "./chains/westend2_asset_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.mjs",
-          "require": "./dist/chains_westend2_asset_hub/min/chains_westend2_asset_hub.js",
-          "default": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.js"
+          "import": "./dist/reexports/chains_westend2_asset_hub.mjs",
+          "require": "./dist/min/reexports/chains_westend2_asset_hub.js",
+          "default": "./dist/reexports/chains_westend2_asset_hub.js"
         },
-        "import": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.mjs",
-        "require": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.js",
-        "default": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.js"
+        "import": "./dist/reexports/chains_westend2_asset_hub.mjs",
+        "require": "./dist/reexports/chains_westend2_asset_hub.js",
+        "default": "./dist/reexports/chains_westend2_asset_hub.js"
       },
-      "module": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.mjs",
-      "import": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.mjs",
-      "require": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.js",
-      "default": "./dist/chains_westend2_asset_hub/chains_westend2_asset_hub.js"
+      "module": "./dist/reexports/chains_westend2_asset_hub.mjs",
+      "import": "./dist/reexports/chains_westend2_asset_hub.mjs",
+      "require": "./dist/reexports/chains_westend2_asset_hub.js",
+      "default": "./dist/reexports/chains_westend2_asset_hub.js"
     },
     "./chains/westend2_bridge_hub": {
       "node": {
         "production": {
-          "import": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.mjs",
-          "require": "./dist/chains_westend2_bridge_hub/min/chains_westend2_bridge_hub.js",
-          "default": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.js"
+          "import": "./dist/reexports/chains_westend2_bridge_hub.mjs",
+          "require": "./dist/min/reexports/chains_westend2_bridge_hub.js",
+          "default": "./dist/reexports/chains_westend2_bridge_hub.js"
         },
-        "import": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.mjs",
-        "require": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.js",
-        "default": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.js"
+        "import": "./dist/reexports/chains_westend2_bridge_hub.mjs",
+        "require": "./dist/reexports/chains_westend2_bridge_hub.js",
+        "default": "./dist/reexports/chains_westend2_bridge_hub.js"
       },
-      "module": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.mjs",
-      "import": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.mjs",
-      "require": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.js",
-      "default": "./dist/chains_westend2_bridge_hub/chains_westend2_bridge_hub.js"
+      "module": "./dist/reexports/chains_westend2_bridge_hub.mjs",
+      "import": "./dist/reexports/chains_westend2_bridge_hub.mjs",
+      "require": "./dist/reexports/chains_westend2_bridge_hub.js",
+      "default": "./dist/reexports/chains_westend2_bridge_hub.js"
     },
     "./chains/westend2_collectives": {
       "node": {
         "production": {
-          "import": "./dist/chains_westend2_collectives/chains_westend2_collectives.mjs",
-          "require": "./dist/chains_westend2_collectives/min/chains_westend2_collectives.js",
-          "default": "./dist/chains_westend2_collectives/chains_westend2_collectives.js"
+          "import": "./dist/reexports/chains_westend2_collectives.mjs",
+          "require": "./dist/min/reexports/chains_westend2_collectives.js",
+          "default": "./dist/reexports/chains_westend2_collectives.js"
         },
-        "import": "./dist/chains_westend2_collectives/chains_westend2_collectives.mjs",
-        "require": "./dist/chains_westend2_collectives/chains_westend2_collectives.js",
-        "default": "./dist/chains_westend2_collectives/chains_westend2_collectives.js"
+        "import": "./dist/reexports/chains_westend2_collectives.mjs",
+        "require": "./dist/reexports/chains_westend2_collectives.js",
+        "default": "./dist/reexports/chains_westend2_collectives.js"
       },
-      "module": "./dist/chains_westend2_collectives/chains_westend2_collectives.mjs",
-      "import": "./dist/chains_westend2_collectives/chains_westend2_collectives.mjs",
-      "require": "./dist/chains_westend2_collectives/chains_westend2_collectives.js",
-      "default": "./dist/chains_westend2_collectives/chains_westend2_collectives.js"
+      "module": "./dist/reexports/chains_westend2_collectives.mjs",
+      "import": "./dist/reexports/chains_westend2_collectives.mjs",
+      "require": "./dist/reexports/chains_westend2_collectives.js",
+      "default": "./dist/reexports/chains_westend2_collectives.js"
     },
     "./smoldot": {
       "node": {
         "production": {
-          "import": "./dist/smoldot/smoldot.mjs",
-          "require": "./dist/smoldot/min/smoldot.js",
-          "default": "./dist/smoldot/smoldot.js"
+          "import": "./dist/reexports/smoldot.mjs",
+          "require": "./dist/min/reexports/smoldot.js",
+          "default": "./dist/reexports/smoldot.js"
         },
-        "import": "./dist/smoldot/smoldot.mjs",
-        "require": "./dist/smoldot/smoldot.js",
-        "default": "./dist/smoldot/smoldot.js"
+        "import": "./dist/reexports/smoldot.mjs",
+        "require": "./dist/reexports/smoldot.js",
+        "default": "./dist/reexports/smoldot.js"
       },
-      "module": "./dist/smoldot/smoldot.mjs",
-      "import": "./dist/smoldot/smoldot.mjs",
-      "require": "./dist/smoldot/smoldot.js",
-      "default": "./dist/smoldot/smoldot.js"
+      "module": "./dist/reexports/smoldot.mjs",
+      "import": "./dist/reexports/smoldot.mjs",
+      "require": "./dist/reexports/smoldot.js",
+      "default": "./dist/reexports/smoldot.js"
     },
     "./smoldot/worker": {
       "node": {
         "production": {
-          "import": "./dist/smoldot_worker/smoldot_worker.mjs",
-          "require": "./dist/smoldot_worker/min/smoldot_worker.js",
-          "default": "./dist/smoldot_worker/smoldot_worker.js"
+          "import": "./dist/reexports/smoldot_worker.mjs",
+          "require": "./dist/min/reexports/smoldot_worker.js",
+          "default": "./dist/reexports/smoldot_worker.js"
         },
-        "import": "./dist/smoldot_worker/smoldot_worker.mjs",
-        "require": "./dist/smoldot_worker/smoldot_worker.js",
-        "default": "./dist/smoldot_worker/smoldot_worker.js"
+        "import": "./dist/reexports/smoldot_worker.mjs",
+        "require": "./dist/reexports/smoldot_worker.js",
+        "default": "./dist/reexports/smoldot_worker.js"
       },
-      "module": "./dist/smoldot_worker/smoldot_worker.mjs",
-      "import": "./dist/smoldot_worker/smoldot_worker.mjs",
-      "require": "./dist/smoldot_worker/smoldot_worker.js",
-      "default": "./dist/smoldot_worker/smoldot_worker.js"
+      "module": "./dist/reexports/smoldot_worker.mjs",
+      "import": "./dist/reexports/smoldot_worker.mjs",
+      "require": "./dist/reexports/smoldot_worker.js",
+      "default": "./dist/reexports/smoldot_worker.js"
     },
     "./smoldot/from-worker": {
       "node": {
         "production": {
-          "import": "./dist/smoldot_from-worker/smoldot_from-worker.mjs",
-          "require": "./dist/smoldot_from-worker/min/smoldot_from-worker.js",
-          "default": "./dist/smoldot_from-worker/smoldot_from-worker.js"
+          "import": "./dist/reexports/smoldot_from-worker.mjs",
+          "require": "./dist/min/reexports/smoldot_from-worker.js",
+          "default": "./dist/reexports/smoldot_from-worker.js"
         },
-        "import": "./dist/smoldot_from-worker/smoldot_from-worker.mjs",
-        "require": "./dist/smoldot_from-worker/smoldot_from-worker.js",
-        "default": "./dist/smoldot_from-worker/smoldot_from-worker.js"
+        "import": "./dist/reexports/smoldot_from-worker.mjs",
+        "require": "./dist/reexports/smoldot_from-worker.js",
+        "default": "./dist/reexports/smoldot_from-worker.js"
       },
-      "module": "./dist/smoldot_from-worker/smoldot_from-worker.mjs",
-      "import": "./dist/smoldot_from-worker/smoldot_from-worker.mjs",
-      "require": "./dist/smoldot_from-worker/smoldot_from-worker.js",
-      "default": "./dist/smoldot_from-worker/smoldot_from-worker.js"
+      "module": "./dist/reexports/smoldot_from-worker.mjs",
+      "import": "./dist/reexports/smoldot_from-worker.mjs",
+      "require": "./dist/reexports/smoldot_from-worker.js",
+      "default": "./dist/reexports/smoldot_from-worker.js"
     },
     "./utils": {
       "node": {
         "production": {
-          "import": "./dist/utils/utils.mjs",
-          "require": "./dist/utils/min/utils.js",
-          "default": "./dist/utils/utils.js"
+          "import": "./dist/reexports/utils.mjs",
+          "require": "./dist/min/reexports/utils.js",
+          "default": "./dist/reexports/utils.js"
         },
-        "import": "./dist/utils/utils.mjs",
-        "require": "./dist/utils/utils.js",
-        "default": "./dist/utils/utils.js"
+        "import": "./dist/reexports/utils.mjs",
+        "require": "./dist/reexports/utils.js",
+        "default": "./dist/reexports/utils.js"
       },
-      "module": "./dist/utils/utils.mjs",
-      "import": "./dist/utils/utils.mjs",
-      "require": "./dist/utils/utils.js",
-      "default": "./dist/utils/utils.js"
+      "module": "./dist/reexports/utils.mjs",
+      "import": "./dist/reexports/utils.mjs",
+      "require": "./dist/reexports/utils.js",
+      "default": "./dist/reexports/utils.js"
     }
   },
   "main": "./dist/index.js",

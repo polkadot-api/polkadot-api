@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_chains_westend2_collectives",
-  "types": "../../dist/chains_westend2_collectives/chains_westend2_collectives.d.ts",
-  "module": "../../dist/chains_westend2_collectives/chains_westend2_collectives.mjs",
-  "import": "../../dist/chains_westend2_collectives/chains_westend2_collectives.mjs",
-  "require": "../../dist/chains_westend2_collectives/chains_westend2_collectives.js",
-  "default": "../../dist/chains_westend2_collectives/chains_westend2_collectives.js"
+  "types": "../../dist/reexports/chains_westend2_collectives.d.ts",
+  "module": "../../dist/reexports/chains_westend2_collectives.mjs",
+  "import": "../../dist/reexports/chains_westend2_collectives.mjs",
+  "require": "../../dist/reexports/chains_westend2_collectives.js",
+  "default": "../../dist/reexports/chains_westend2_collectives.js"
 }
