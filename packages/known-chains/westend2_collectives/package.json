@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-westend2_collectives",
-  "types": "../dist/westend2_collectives/westend2_collectives.d.ts",
-  "module": "../dist/westend2_collectives/westend2_collectives.mjs",
-  "import": "../dist/westend2_collectives/westend2_collectives.mjs",
-  "require": "../dist/westend2_collectives/westend2_collectives.js",
-  "default": "../dist/westend2_collectives/westend2_collectives.js"
+  "types": "../dist/specs/westend2_collectives.d.ts",
+  "module": "../dist/specs/westend2_collectives.mjs",
+  "import": "../dist/specs/westend2_collectives.mjs",
+  "require": "../dist/specs/westend2_collectives.js",
+  "default": "../dist/specs/westend2_collectives.js"
 }
