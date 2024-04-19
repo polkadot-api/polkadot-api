@@ -364,5 +364,42 @@ export type ${prefix}Calls = TxFromDescriptors<IDescriptors>
 export type ${prefix}Events = EventsFromDescriptors<IDescriptors>
 export type ${prefix}Errors = ErrorsFromDescriptors<IDescriptors>
 export type ${prefix}Constants = ConstFromDescriptors<IDescriptors>
+
+export type ${prefix}WhitelistEntry =
+  | PalletKey
+  | ApiKey<IDescriptors>
+  | \`query.\${NestedKey<PickDescriptors<0, IPallets>>}\`
+  | \`tx.\${NestedKey<PickDescriptors<1, IPallets>>}\`
+  | \`event.\${NestedKey<PickDescriptors<2, IPallets>>}\`
+  | \`error.\${NestedKey<PickDescriptors<3, IPallets>>}\`
+  | \`const.\${NestedKey<PickDescriptors<4, IPallets>>}\`
+
+type PalletKey = \`*.\${keyof IPallets & string}\`
+type NestedKey<D extends Record<string, Record<string, any>>> =
+  | "*"
+  | {
+      [P in keyof D & string]:
+        | \`\${P}.*\`
+        | {
+            [N in keyof D[P] & string]: \`\${P}.\${N}\`
+          }[keyof D[P] & string]
+    }[keyof D & string]
+
+type ApiKey<D extends { apis: Record<string, Record<string, any>>}> =
+  | "api.*"
+  | {
+      [P in keyof D["apis"] & string]:
+        | \`api.\${P}.*\`
+        | {
+            [N in keyof D["apis"][P] & string]: \`api.\${P}.\${N}\`
+          }[keyof (keyof D["apis"][P]) & string]
+    }[keyof D["apis"] & string]
+
+type PickDescriptors<
+  Idx extends 0 | 1 | 2 | 3 | 4,
+  T extends Record<string, Record<number, any>>
+> = {
+  [K in keyof T]: T[K][Idx]
+}
 `
 }

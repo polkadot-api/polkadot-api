@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- cli: Specify a whitelist file through `generate --whitelist filename` command.
+
 ## 0.2.4 - 2024-04-15
 
 ### Fixed
