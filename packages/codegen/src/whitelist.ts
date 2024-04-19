@@ -1,6 +1,4 @@
-import { Descriptors, V15 } from "@polkadot-api/substrate-bindings"
-
-export type Whitelist<D extends Descriptors> = Array<DescriptorKey<D>>
+import { V15 } from "@polkadot-api/substrate-bindings"
 
 export function applyWhitelist(metadata: V15, whitelist: string[] | null): V15 {
   if (!whitelist) return metadata
@@ -126,41 +124,4 @@ export function applyWhitelist(metadata: V15, whitelist: string[] | null): V15 {
     apis,
     pallets,
   }
-}
-
-type DescriptorKey<D extends Descriptors> =
-  | PalletKey<D>
-  | ApiKey<D>
-  | `query.${NestedKey<PickDescriptors<0, D["pallets"]>>}`
-  | `tx.${NestedKey<PickDescriptors<1, D["pallets"]>>}`
-  | `event.${NestedKey<PickDescriptors<2, D["pallets"]>>}`
-  | `error.${NestedKey<PickDescriptors<3, D["pallets"]>>}`
-  | `const.${NestedKey<PickDescriptors<4, D["pallets"]>>}`
-
-type PalletKey<D extends Descriptors> = `*.${keyof D["pallets"] & string}`
-type NestedKey<D extends Record<string, Record<string, any>>> =
-  | "*"
-  | {
-      [P in keyof D & string]:
-        | `${P}.*`
-        | {
-            [N in keyof D[P] & string]: `${P}.${N}`
-          }[keyof D[P] & string]
-    }[keyof D & string]
-
-type ApiKey<D extends Descriptors> =
-  | "api.*"
-  | {
-      [P in keyof D["apis"] & string]:
-        | `api.${P}.*`
-        | {
-            [N in keyof D["apis"][P] & string]: `api.${P}.${N}`
-          }[keyof (keyof D["apis"][P]) & string]
-    }[keyof D["apis"] & string]
-
-type PickDescriptors<
-  Idx extends 0 | 1 | 2 | 3 | 4,
-  T extends Descriptors["pallets"],
-> = {
-  [K in keyof T]: T[K][Idx]
 }

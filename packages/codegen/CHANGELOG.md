@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Descriptor files now includes a `WhitelistEntry` type to build whitelists.
+
 ## 0.0.2 - 2024-04-11
 
 ### Fixed
