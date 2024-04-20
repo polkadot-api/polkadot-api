@@ -62,7 +62,7 @@ export const createStorageCb =
                   break
                 }
                 default:
-                  request("chainHead_unstable_continue", [])
+                  request("chainHead_unstable_continue", [event.operationId])
               }
             },
             error: onError,
