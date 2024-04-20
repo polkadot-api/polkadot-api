@@ -140,6 +140,9 @@ describe.each([
         ],
       },
       {
+        event: "operationWaitingForContinue",
+      },
+      {
         event: "operationStorageDone",
       },
     ],
