@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.4 - 2024-04-15
+
+### Fixed
+
+- substrate-client: `operationWaitingForContinue` response was missing the `operationId`
+
 ### Fixed
 
 - client: uncaught storage exception with incompatible runtime.
