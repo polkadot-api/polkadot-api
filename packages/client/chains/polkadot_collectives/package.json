@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_chains_polkadot_collectives",
-  "types": "../../dist/chains_polkadot_collectives/chains_polkadot_collectives.d.ts",
-  "module": "../../dist/chains_polkadot_collectives/chains_polkadot_collectives.mjs",
-  "import": "../../dist/chains_polkadot_collectives/chains_polkadot_collectives.mjs",
-  "require": "../../dist/chains_polkadot_collectives/chains_polkadot_collectives.js",
-  "default": "../../dist/chains_polkadot_collectives/chains_polkadot_collectives.js"
+  "types": "../../dist/reexports/chains_polkadot_collectives.d.ts",
+  "module": "../../dist/reexports/chains_polkadot_collectives.mjs",
+  "import": "../../dist/reexports/chains_polkadot_collectives.mjs",
+  "require": "../../dist/reexports/chains_polkadot_collectives.js",
+  "default": "../../dist/reexports/chains_polkadot_collectives.js"
 }

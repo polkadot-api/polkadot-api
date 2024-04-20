@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-westend2_bridge_hub",
-  "types": "../dist/westend2_bridge_hub/westend2_bridge_hub.d.ts",
-  "module": "../dist/westend2_bridge_hub/westend2_bridge_hub.mjs",
-  "import": "../dist/westend2_bridge_hub/westend2_bridge_hub.mjs",
-  "require": "../dist/westend2_bridge_hub/westend2_bridge_hub.js",
-  "default": "../dist/westend2_bridge_hub/westend2_bridge_hub.js"
+  "types": "../dist/specs/westend2_bridge_hub.d.ts",
+  "module": "../dist/specs/westend2_bridge_hub.mjs",
+  "import": "../dist/specs/westend2_bridge_hub.mjs",
+  "require": "../dist/specs/westend2_bridge_hub.js",
+  "default": "../dist/specs/westend2_bridge_hub.js"
 }

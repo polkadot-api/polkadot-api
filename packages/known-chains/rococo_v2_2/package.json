@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-rococo_v2_2",
-  "types": "../dist/rococo_v2_2/rococo_v2_2.d.ts",
-  "module": "../dist/rococo_v2_2/rococo_v2_2.mjs",
-  "import": "../dist/rococo_v2_2/rococo_v2_2.mjs",
-  "require": "../dist/rococo_v2_2/rococo_v2_2.js",
-  "default": "../dist/rococo_v2_2/rococo_v2_2.js"
+  "types": "../dist/specs/rococo_v2_2.d.ts",
+  "module": "../dist/specs/rococo_v2_2.mjs",
+  "import": "../dist/specs/rococo_v2_2.mjs",
+  "require": "../dist/specs/rococo_v2_2.js",
+  "default": "../dist/specs/rococo_v2_2.js"
 }

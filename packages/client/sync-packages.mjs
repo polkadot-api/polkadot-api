@@ -18,6 +18,7 @@ export const reexports = [
   fromId("smoldot"),
   fromId("smoldot/worker"),
   fromId("smoldot/from-worker"),
+  fromId("utils"),
 ]
 
 const packageJsonContent = JSON.parse(await readFile("./package.json", "utf-8"))
@@ -39,39 +40,37 @@ const newExports = {
 }
 for (const [packageName, source] of reexports) {
   const fileName = packageName.replaceAll("/", "_")
-  const distPath = `./dist/${fileName}`
   newExports["./" + packageName] = {
     node: {
       production: {
-        import: `${distPath}/${fileName}.mjs`,
-        require: `${distPath}/min/${fileName}.js`,
-        default: `${distPath}/${fileName}.js`,
+        import: `./dist/reexports/${fileName}.mjs`,
+        require: `./dist/min/reexports/${fileName}.js`,
+        default: `./dist/reexports/${fileName}.js`,
       },
-      import: `${distPath}/${fileName}.mjs`,
-      require: `${distPath}/${fileName}.js`,
-      default: `${distPath}/${fileName}.js`,
+      import: `./dist/reexports/${fileName}.mjs`,
+      require: `./dist/reexports/${fileName}.js`,
+      default: `./dist/reexports/${fileName}.js`,
     },
-    module: `${distPath}/${fileName}.mjs`,
-    import: `${distPath}/${fileName}.mjs`,
-    require: `${distPath}/${fileName}.js`,
-    default: `${distPath}/${fileName}.js`,
+    module: `./dist/reexports/${fileName}.mjs`,
+    import: `./dist/reexports/${fileName}.mjs`,
+    require: `./dist/reexports/${fileName}.js`,
+    default: `./dist/reexports/${fileName}.js`,
   }
 
   const packageDir = join(...packageName.split("/"))
   const subpaths = packageName.split("/").length
-  const toRoot =
-    new Array(subpaths - 1).fill("..").join("/") + (subpaths === 1 ? "." : "/.")
+  const toRoot = new Array(subpaths).fill("..").join("/") || "."
   await mkdir(packageDir, { recursive: true })
   await writeFile(
     join(packageDir, "package.json"),
     JSON.stringify(
       {
         name: `polkadot-api_${packageName.replaceAll("/", "_")}`,
-        types: `${toRoot}${distPath}/${fileName}.d.ts`,
-        module: `${toRoot}${distPath}/${fileName}.mjs`,
-        import: `${toRoot}${distPath}/${fileName}.mjs`,
-        require: `${toRoot}${distPath}/${fileName}.js`,
-        default: `${toRoot}${distPath}/${fileName}.js`,
+        types: `${toRoot}/dist/reexports/${fileName}.d.ts`,
+        module: `${toRoot}/dist/reexports/${fileName}.mjs`,
+        import: `${toRoot}/dist/reexports/${fileName}.mjs`,
+        require: `${toRoot}/dist/reexports/${fileName}.js`,
+        default: `${toRoot}/dist/reexports/${fileName}.js`,
       },
       null,
       2,
