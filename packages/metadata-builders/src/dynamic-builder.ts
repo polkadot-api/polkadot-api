@@ -16,6 +16,7 @@ const _buildCodec = (
   if (input.type === "primitive") return scale[input.value]
   if (input.type === "void") return scale._void
   if (input.type === "AccountId32") return _accountId
+  if (input.type === "AccountId20") return scale.ethAccount
   if (input.type === "compact") return scale.compact
   if (input.type === "bitSequence") return scale.bitSequence
 

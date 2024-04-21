@@ -100,6 +100,7 @@ const _buildShapedDecoder = (
 ): ShapedDecoder => {
   if (input.type === "primitive") return primitives[input.value]
   if (input.type === "void") return primitives._void
+  if (input.type === "AccountId20") return primitives.ethAccount
   if (input.type === "AccountId32") return _accountId
   if (input.type === "compact")
     return input.isBig || input.isBig === null

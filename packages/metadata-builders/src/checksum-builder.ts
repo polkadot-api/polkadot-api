@@ -51,7 +51,8 @@ type RuntimePrimitives =
   | "boolean"
   | "bitSequence"
   | "byteSequence"
-  | "accountId"
+  | "accountId32"
+  | "accountId20"
 
 const runtimePrimitiveIds: Record<RuntimePrimitives, bigint> = {
   undefined: 0n,
@@ -61,7 +62,8 @@ const runtimePrimitiveIds: Record<RuntimePrimitives, bigint> = {
   boolean: 4n,
   bitSequence: 5n, // {bitsLen: number, bytes: Uint8Array}
   byteSequence: 6n, // Binary
-  accountId: 7n, // SS58String
+  accountId32: 7n, // SS58String
+  accountId20: 8n, // EthAccount
 }
 
 const metadataPrimitiveIds: Record<MetadataPrimitives, bigint> = {
@@ -168,7 +170,11 @@ const _buildChecksum = (
     return getChecksum([shapeIds.primitive, runtimePrimitiveIds.bitSequence])
 
   if (input.type === "AccountId32") {
-    return getChecksum([shapeIds.primitive, runtimePrimitiveIds.accountId])
+    return getChecksum([shapeIds.primitive, runtimePrimitiveIds.accountId32])
+  }
+
+  if (input.type === "AccountId20") {
+    return getChecksum([shapeIds.primitive, runtimePrimitiveIds.accountId20])
   }
 
   if (input.type === "array") {

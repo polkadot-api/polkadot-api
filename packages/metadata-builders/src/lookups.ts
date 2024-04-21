@@ -26,12 +26,14 @@ export type VoidVar = { type: "void" }
 export type CompactVar = { type: "compact"; isBig: boolean | null }
 export type BitSequenceVar = { type: "bitSequence" }
 export type AccountId32 = { type: "AccountId32" }
+export type AccountId20 = { type: "AccountId20" }
 export type TerminalVar =
   | PrimitiveVar
   | VoidVar
   | CompactVar
   | BitSequenceVar
   | AccountId32
+  | AccountId20
 
 /* Array-like vars:
  * - TupleVar: Mixed types, fixed length
@@ -93,6 +95,12 @@ export type LookupEntry = {
   id: number
 } & Var
 
+const isBytes = (value: LookupEntry, nBytes: number) =>
+  value.type === "array" &&
+  value.len === nBytes &&
+  value.value.type === "primitive" &&
+  value.value.value === "u8"
+
 export const getLookupFn = (lookupData: V14Lookup) => {
   const lookups = new Map<number, LookupEntry>()
   const from = new Set<number>()
@@ -133,6 +141,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
   }
 
   let isAccountId32SearchOn = true
+  let isAccountId20SearchOn = true
   const getLookupEntryDef = withCache((id): Var => {
     const { def, path, params } = lookupData[id]
 
@@ -141,14 +150,27 @@ export const getLookupFn = (lookupData: V14Lookup) => {
 
       // used to be a "pointer"
       if (def.value.length === 1) {
+        const inner = getLookupEntryDef(def.value[0].type as number)
+
         if (
           isAccountId32SearchOn &&
-          path.join(",") === "sp_core,crypto,AccountId32"
+          path.at(-1) === "AccountId32" &&
+          isBytes(inner, 32)
         ) {
           isAccountId32SearchOn = false
           return { type: "AccountId32" }
         }
-        return getLookupEntryDef(def.value[0].type as number)
+
+        if (
+          isAccountId20SearchOn &&
+          path.at(-1) === "AccountId20" &&
+          isBytes(inner, 20)
+        ) {
+          isAccountId20SearchOn = false
+          return { type: "AccountId20" }
+        }
+
+        return inner
       }
 
       let allKey = true
