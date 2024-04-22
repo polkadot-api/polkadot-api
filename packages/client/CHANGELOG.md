@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-04-22
+
 ### Added
 
+- Added support for `AccountId20`
 - cli: Specify a whitelist file through `generate --whitelist filename` command.
 
 ## 0.2.4 - 2024-04-15
