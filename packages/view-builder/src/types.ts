@@ -90,6 +90,11 @@ export type BitSequenceDecoded = WithInputAndPath<{
   }
 }>
 
+export type EthAccountDecoded = WithInputAndPath<{
+  codec: "ethAccount"
+  value: HexString
+}>
+
 export type BytesSequenceDecoded = WithInputAndPath<{
   codec: "Bytes"
   value: HexString
@@ -119,6 +124,7 @@ export type PrimitiveDecoded =
   | BytesSequenceDecoded
   | BytesArrayDecoded
   | AccountIdDecoded
+  | EthAccountDecoded
 
 export type SequenceDecoded = WithInputAndPath<{
   codec: "Sequence"

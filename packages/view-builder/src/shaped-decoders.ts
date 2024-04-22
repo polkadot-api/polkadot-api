@@ -182,6 +182,7 @@ const _primitives = [
   "compactNumber",
   "compactBn",
   "bitSequence",
+  "ethAccount",
 ] as const
 
 type PrimitivesList = typeof _primitives

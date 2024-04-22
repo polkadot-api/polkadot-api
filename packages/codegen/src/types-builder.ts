@@ -115,6 +115,7 @@ const _buildSyntax = (
 
   if (input.type === "primitive") return { type: primitiveTypes[input.value] }
   if (input.type === "void") return { type: "undefined" }
+  if (input.type === "AccountId20") return clientImport("HexString")
   if (input.type === "AccountId32") return clientImport("SS58String")
   if (input.type === "compact")
     return {
