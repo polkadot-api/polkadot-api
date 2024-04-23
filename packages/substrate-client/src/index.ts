@@ -10,11 +10,13 @@ import type { ChainHead } from "./chainhead"
 import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"
 import { abortablePromiseFn, noop } from "./internal-utils"
+import { ChainSpecData, createGetChainSpec } from "./chainspec"
 
 export type * from "./common-types"
 export type * from "./client"
 export type * from "./transaction"
 export type * from "./chainhead"
+export type * from "./chainspec"
 
 export { RpcError, DestroyedError } from "./client"
 export {
@@ -29,6 +31,7 @@ export interface SubstrateClient {
   chainHead: ChainHead
   transaction: Transaction
   destroy: UnsubscribeFn
+  getChainSpecData: () => Promise<ChainSpecData>
   request: <T>(
     method: string,
     params: any[],
@@ -66,6 +69,7 @@ export const createClient = (provider: JsonRpcProvider): SubstrateClient => {
       client.request as ClientRequest<string, any>,
       rpcMethods,
     ),
+    getChainSpecData: createGetChainSpec(request, rpcMethods),
     destroy: () => {
       client.disconnect()
     },
