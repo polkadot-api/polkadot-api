@@ -296,13 +296,10 @@ const _buildSyntax = (
     return anonymize(inner.type)
   })
 
-  variable.type = isKnown
-    ? `Enum<${Object.keys(input.value)
-        .map((key, idx) => `{ type: "${key}", value: ${dependencies[idx]} }`)
-        .join(" | ")}>`
-    : `AnonymousEnum<{${Object.keys(input.value)
-        .map((key, idx) => `"${key}": ${dependencies[idx]}`)
-        .join(" , ")}}>`
+  const obj = Object.keys(input.value)
+    .map((key, idx) => `"${key}": ${dependencies[idx]}`)
+    .join(", ")
+  variable.type = isKnown ? `Enum<{${obj}}>` : `AnonymousEnum<{${obj}}>`
   return typesImport(name)
 }
 

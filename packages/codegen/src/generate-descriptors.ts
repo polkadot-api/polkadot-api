@@ -254,6 +254,7 @@ export const generateDescriptors = (
     "TxDescriptor",
     "RuntimeDescriptor",
     "Enum",
+    "OutputEnum",
     "_Enum",
     "Binary",
     "FixedSizeBinary",
@@ -301,10 +302,6 @@ type AnonymousEnum<T extends {}> = T & {
   __anonymous: true
 }
 
-type IEnum<T extends {}> = Enum<{
-  [K in keyof T & string]: { type: K, value: T[K] }
-}[keyof T & string]>
-
 type MyTuple<T> = [T, ...T[]]
 
 type SeparateUndefined<T> = undefined extends T
@@ -324,10 +321,10 @@ type Anonymize<T> = SeparateUndefined<
     | symbol
     | Binary
     | Uint8Array
-    | Enum<{ type: string; value: any }>
+    | OutputEnum<Enum<any>>
     ? T
     : T extends AnonymousEnum<infer V>
-      ? IEnum<V>
+      ? Enum<V>
       : T extends MyTuple<any>
         ? {
             [K in keyof T]: T[K]
