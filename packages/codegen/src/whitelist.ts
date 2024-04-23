@@ -1,6 +1,9 @@
-import { V15 } from "@polkadot-api/substrate-bindings"
+import type { V14, V15 } from "@polkadot-api/substrate-bindings"
 
-export function applyWhitelist(metadata: V15, whitelist: string[] | null): V15 {
+export function applyWhitelist(
+  metadata: V14 | V15,
+  whitelist: string[] | null,
+): V14 | V15 {
   if (!whitelist) return metadata
 
   const allApis = whitelist.includes("api.*")

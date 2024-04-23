@@ -1,8 +1,8 @@
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
-import { V15 } from "@polkadot-api/substrate-bindings"
+import { V14, V15 } from "@polkadot-api/substrate-bindings"
 
 export const getUsedChecksums = (
-  metadata: V15,
+  metadata: V14 | V15,
   builder = getChecksumBuilder(metadata),
 ) => {
   const buildEnum = (val: number | undefined, cb: (name: string) => void) => {

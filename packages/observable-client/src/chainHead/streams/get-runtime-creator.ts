@@ -15,9 +15,13 @@ import {
   _void,
   Bytes,
   metadata as metadataCodec,
+  V14,
+  Vector,
+  Tuple,
+  compact,
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
-import { Observable, map, shareReplay } from "rxjs"
+import { Observable, catchError, map, mergeMap, of, shareReplay } from "rxjs"
 
 export type SystemEvent = {
   phase:
@@ -36,7 +40,7 @@ export type SystemEvent = {
 
 export interface RuntimeContext {
   metadataRaw: Uint8Array
-  metadata: V15
+  metadata: V15 | V14
   checksumBuilder: ReturnType<typeof getChecksumBuilder>
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
   events: {
@@ -55,39 +59,59 @@ export interface Runtime {
   usages: Set<string>
 }
 
-const opaqueMeta = Option(Bytes())
-
 const v15Args = toHex(u32.enc(15))
-export const getRuntimeCreator =
-  (call$: (hash: string, method: string, args: string) => Observable<string>) =>
-  (hash: string): Runtime => {
+const opaqueMeta14 = Tuple(compact, Bytes())
+const opaqueMeta15 = Option(Bytes())
+const u32ListDecoder = Vector(u32).dec
+
+export const getRuntimeCreator = (
+  call$: (hash: string, method: string, args: string) => Observable<string>,
+) => {
+  const getMetadata$ = (
+    hash: string,
+  ): Observable<{ metadataRaw: Uint8Array; metadata: V14 | V15 }> => {
+    const versions = call$(hash, "Metadata_metadata_versions", "").pipe(
+      map(u32ListDecoder),
+    )
+
+    const v14 = call$(hash, "Metadata_metadata", "").pipe(
+      map((x) => {
+        const [, metadataRaw] = opaqueMeta14.dec(x)!
+        const metadata = metadataCodec.dec(metadataRaw)
+        return { metadata: metadata.metadata.value as V14, metadataRaw }
+      }),
+    )
+
+    const v15 = call$(hash, "Metadata_metadata_at_version", v15Args).pipe(
+      map((x) => {
+        const metadataRaw = opaqueMeta15.dec(x)!
+        const metadata = metadataCodec.dec(metadataRaw)
+        return { metadata: metadata.metadata.value as V15, metadataRaw }
+      }),
+    )
+
+    return versions.pipe(
+      catchError(() => of([14])),
+      mergeMap((v) => (v.includes(15) ? v15 : v14)),
+    )
+  }
+
+  return (hash: string): Runtime => {
     const usages = new Set<string>([hash])
 
-    const runtimeContext$: Observable<RuntimeContext> = call$(
-      hash,
-      "Metadata_metadata_at_version",
-      v15Args,
-    ).pipe(
-      map((response) => {
-        const metadataRaw = opaqueMeta.dec(response)!
-        const metadata = metadataCodec.dec(metadataRaw)
-        if (metadata.metadata.tag !== "v15")
-          throw new Error("Wrong metadata version")
-        const v15 = metadata.metadata.value
-        const checksumBuilder = getChecksumBuilder(v15)
-        const dynamicBuilder = getDynamicBuilder(v15)
+    const runtimeContext$: Observable<RuntimeContext> = getMetadata$(hash).pipe(
+      map(({ metadata, metadataRaw }) => {
+        const checksumBuilder = getChecksumBuilder(metadata)
+        const dynamicBuilder = getDynamicBuilder(metadata)
         const events = dynamicBuilder.buildStorage("System", "Events")
 
-        const assetPayment =
-          metadata.metadata.value.extrinsic.signedExtensions.find(
-            (x) => x.identifier === "ChargeAssetTxPayment",
-          )
+        const assetPayment = metadata.extrinsic.signedExtensions.find(
+          (x) => x.identifier === "ChargeAssetTxPayment",
+        )
 
         let _assetId: null | number = null
         if (assetPayment) {
-          const assetTxPayment = getLookupFn(metadata.metadata.value.lookup)(
-            assetPayment.type,
-          )
+          const assetTxPayment = getLookupFn(metadata.lookup)(assetPayment.type)
           if (assetTxPayment.type === "struct") {
             const optionalAssetId = assetTxPayment.value.asset_id
             if (optionalAssetId.type === "option")
@@ -106,7 +130,7 @@ export const getRuntimeCreator =
         return {
           asset,
           metadataRaw,
-          metadata: v15,
+          metadata,
           checksumBuilder,
           dynamicBuilder,
           events: {
@@ -138,3 +162,4 @@ export const getRuntimeCreator =
 
     return result
   }
+}

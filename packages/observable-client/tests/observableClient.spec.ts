@@ -6,6 +6,7 @@ import {
   createHeader,
   encodeHeader,
   initialize,
+  initializeWithMetadata,
   newHash,
   sendBestBlockChanged,
   sendFinalized,
@@ -123,7 +124,7 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initialize(mockClient)
+      const { initialHash } = await initializeWithMetadata(mockClient)
       await wait(0)
 
       const firstChain = sendNewBlockBranch(mockClient, initialHash, 3)
@@ -172,7 +173,7 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initialize(mockClient)
+      const { initialHash } = await initializeWithMetadata(mockClient)
       await wait(0)
 
       const bestChain = sendNewBlockBranch(mockClient, initialHash, 5)

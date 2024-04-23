@@ -2,14 +2,14 @@ import {
   getChecksumBuilder,
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
-import type { V15 } from "@polkadot-api/substrate-bindings"
+import type { V14, V15 } from "@polkadot-api/substrate-bindings"
 import { KnownTypes } from "./known-types"
 import { defaultDeclarations, getTypesBuilder } from "./types-builder"
 
 type ArraVal<T extends Array<any>> = T extends Array<infer V> ? V : unknown
 
 export const getNewTypes = (
-  metadata: V15,
+  metadata: V14 | V15,
   knownTypes: KnownTypes,
   getTypeName: (data: ArraVal<V15["lookup"]>) => string | null,
 ) => {
@@ -18,13 +18,20 @@ export const getNewTypes = (
   let typesBuilder = getTypesBuilder(declarations, metadata, knownTypes)
   const lookup = getLookupFn(metadata.lookup)
 
-  let ignoredIds = new Set<number>([
-    metadata.outerEnums.call,
-    metadata.outerEnums.error,
-    metadata.outerEnums.event,
-  ])
+  let ignoredIds = new Set<number>(
+    "outerEnums" in metadata
+      ? [
+          metadata.outerEnums.call,
+          metadata.outerEnums.error,
+          metadata.outerEnums.event,
+        ]
+      : [],
+  )
 
-  ;[metadata.outerEnums.call, metadata.outerEnums.event]
+  ;("outerEnums" in metadata
+    ? [metadata.outerEnums.call, metadata.outerEnums.event]
+    : []
+  )
     .map(lookup)
     .forEach((entry) => {
       if (entry.type !== "enum") throw null

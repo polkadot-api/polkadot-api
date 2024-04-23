@@ -2,7 +2,7 @@ import {
   getChecksumBuilder,
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
-import { V15 } from "@polkadot-api/substrate-bindings"
+import type { V14, V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import { getTypesBuilder } from "./types-builder"
 
@@ -36,7 +36,7 @@ const customStringifyObject = (
 }
 
 export const generateDescriptors = (
-  metadata: V15,
+  metadata: V14 | V15,
   checksums: string[],
   typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,

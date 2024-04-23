@@ -11,12 +11,18 @@ export function withStopRecovery<A extends Array<any>, T>(
 
     return new Observable<ObservedValueOf<typeof source$>>((observer) => {
       let sourceSub: Subscription | null = null
+      let isSubscribed = false
       const performSourceSub = () => {
-        if (sourceSub) return
+        if (isSubscribed) return
+        isSubscribed = true
         sourceSub = source$.subscribe({
           next: (v) => observer.next(v),
           error: (e) => observer.error(e),
           complete: () => observer.complete(),
+        })
+        sourceSub.add(() => {
+          isSubscribed = false
+          sourceSub = null
         })
       }
 
@@ -33,7 +39,6 @@ export function withStopRecovery<A extends Array<any>, T>(
           } else if (block.recovering) {
             // Pause while it's recovering, as we don't know if the block is there
             sourceSub?.unsubscribe()
-            sourceSub = null
           } else {
             performSourceSub()
           }

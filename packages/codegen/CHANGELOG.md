@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Support for metadata V14
+
 ## 0.1.0 - 2024-04-22
 
 ### Added

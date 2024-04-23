@@ -1,4 +1,4 @@
-import { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
+import { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
 import {
   LookupEntry,
   getLookupFn,
@@ -315,7 +315,7 @@ const buildSyntax = withCache(
 
 export const getTypesBuilder = (
   declarations: CodeDeclarations,
-  metadata: V15,
+  metadata: V14 | V15,
   // checksum -> desired-name
   knownTypes: Record<string, string>,
 ) => {

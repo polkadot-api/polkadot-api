@@ -199,7 +199,7 @@ describe("observableClient stopError recovery", () => {
     expect(runtimeObs.error).not.toHaveBeenCalled()
 
     await initializeWithMetadata(mockClient)
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
 
     expect(runtimeObs.error).not.toHaveBeenCalled()
     expect(runtimeObs.next).toHaveBeenCalled()
@@ -244,7 +244,7 @@ describe("observableClient stopError recovery", () => {
         newFinalized.blockHash,
       ],
     })
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
 
     // We haven't received a new runtime yet
     expect(runtimeObs.next).toHaveBeenCalledOnce()
@@ -257,7 +257,7 @@ describe("observableClient stopError recovery", () => {
         newFinalized.blockHash,
       ],
     })
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(4)
 
     expect(runtimeObs.error).not.toHaveBeenCalled()
     expect(runtimeObs.next).toHaveBeenCalledTimes(1)

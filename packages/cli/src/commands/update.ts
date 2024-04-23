@@ -42,7 +42,7 @@ export async function update(
     }
 
     spinner.text = `Writing ${key} metadata`
-    await writeMetadataToDisk(metadata, filename)
+    await writeMetadataToDisk(metadata.metadataRaw, filename)
 
     spinner.succeed(`${key} metadata updated`)
   }

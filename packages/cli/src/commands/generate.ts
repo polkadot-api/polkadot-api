@@ -1,7 +1,7 @@
 import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
-import { V15 } from "@polkadot-api/substrate-bindings"
+import { V14, V15 } from "@polkadot-api/substrate-bindings"
 import fs, { mkdtemp, rm } from "fs/promises"
 import path, { join } from "path"
 import process from "process"
@@ -29,7 +29,7 @@ export async function generate(opts: GenerateOptions) {
   const chains = await Promise.all(
     Object.entries(sources).map(async ([key, source]) => ({
       key,
-      metadata: (await getMetadata(source))!,
+      metadata: (await getMetadata(source))!.metadata,
       knownTypes: {},
     })),
   )
@@ -83,7 +83,7 @@ async function getSources(
 async function outputCodegen(
   chains: Array<{
     key: string
-    metadata: V15
+    metadata: V14 | V15
     knownTypes: Record<string, string>
   }>,
   outputFolder: string,
