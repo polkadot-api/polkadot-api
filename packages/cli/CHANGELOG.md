@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-04-23
+
 ### Added
 
 - Specify a whitelist file through `generate --whitelist filename` command.

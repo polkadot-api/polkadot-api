@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-04-23
+
 ### Added
 
 - Support for metadata V14
