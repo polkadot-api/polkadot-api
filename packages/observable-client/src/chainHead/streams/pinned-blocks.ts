@@ -1,7 +1,16 @@
 import { shareLatest } from "@/utils"
 import { BlockHeader } from "@polkadot-api/substrate-bindings"
 import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
-import { Observable, Subject, concatMap, map, merge, of, scan } from "rxjs"
+import {
+  Observable,
+  Subject,
+  concatMap,
+  filter,
+  map,
+  merge,
+  of,
+  scan,
+} from "rxjs"
 import { retryOnStopError } from "./follow"
 import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
 import { withStopRecovery } from "../enhancers"
@@ -186,7 +195,6 @@ export const getPinnedBlocks$ = (
 
           // TODO: remove this once https://github.com/paritytech/polkadot-sdk/issues/3658 is fixed
           const actuallyPruned = [...new Set(event.prunedBlockHashes)]
-
           onUnpin(getBlocksToUnpin(acc, actuallyPruned))
           return acc
         }
@@ -207,6 +215,7 @@ export const getPinnedBlocks$ = (
         }
       }
     }, getInitialPinnedBlocks()),
+    filter((x) => !!x.finalizedRuntime.runtime),
     map((x) => ({ ...x })),
     shareLatest,
   )

@@ -1,5 +1,5 @@
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
-import { V15 } from "@polkadot-api/substrate-bindings"
+import type { V14, V15 } from "@polkadot-api/substrate-bindings"
 import { generateDescriptors } from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
 import { getUsedChecksums } from "./get-used-checksums"
@@ -10,7 +10,7 @@ import { applyWhitelist } from "./whitelist"
 export const generateMultipleDescriptors = (
   chains: Array<{
     key: string
-    metadata: V15
+    metadata: V14 | V15
     knownTypes: KnownTypes
   }>,
   paths: {

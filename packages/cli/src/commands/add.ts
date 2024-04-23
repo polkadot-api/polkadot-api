@@ -28,11 +28,11 @@ export async function add(key: string, options: AddOptions) {
 
     if (!options.noPersist) {
       const spinner = ora(`Loading metadata`).start()
-      const metadata = await getMetadata(entry)
+      const { metadataRaw } = (await getMetadata(entry))!
 
       spinner.text = "Writing metadata"
       const filename = `${key}.scale`
-      await writeMetadataToDisk(metadata!, filename)
+      await writeMetadataToDisk(metadataRaw, filename)
 
       spinner.succeed(`Metadata saved as ${filename}`)
       entry.metadata = filename

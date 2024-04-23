@@ -145,7 +145,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     getHeader,
-    _call$,
+    withRefcount(_call$),
     blockUsage$,
     (blocks) => {
       unpin(blocks)

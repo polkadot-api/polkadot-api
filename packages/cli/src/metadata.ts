@@ -1,7 +1,7 @@
 import { createClient } from "@polkadot-api/substrate-client"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
-import { V15, v15 } from "@polkadot-api/substrate-bindings"
+import { V14, V15, metadata, v15 } from "@polkadot-api/substrate-bindings"
 import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
 import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
@@ -13,13 +13,13 @@ import { WellKnownChain } from "./well-known-chains"
 
 const getMetadataCall = async (provider: JsonRpcProvider) => {
   const client = getObservableClient(createClient(provider))
-  const { metadata$, unfollow } = client.chainHead$()
-  const metadata = await firstValueFrom(metadata$.pipe(filter(Boolean)))
+  const { runtime$, unfollow } = client.chainHead$()
+  const runtime = await firstValueFrom(runtime$.pipe(filter(Boolean)))
 
   unfollow()
   client.destroy()
 
-  return metadata
+  return { metadata: runtime.metadata, metadataRaw: runtime.metadataRaw }
 }
 
 const getMetadataFromProvider = async (chain: WellKnownChain | string) => {
@@ -51,12 +51,26 @@ const getMetadataFromProvider = async (chain: WellKnownChain | string) => {
 const getMetadataFromWsURL = async (wsURL: string) =>
   getMetadataCall(WebSocketProvider(wsURL))
 
-export async function getMetadata(entry: EntryConfig): Promise<V15 | null> {
+export async function getMetadata(
+  entry: EntryConfig,
+): Promise<{ metadata: V15 | V14; metadataRaw: Uint8Array } | null> {
   // metadata file always prevails over other entries.
   // cli's update will update the metadata file when the user requests it.
   if (entry.metadata) {
     const data = await fs.readFile(entry.metadata)
-    return v15.dec(data)
+    const metadataRaw = new Uint8Array(data)
+
+    let meta: V14 | V15
+    try {
+      meta = metadata.dec(metadataRaw).metadata.value as V14 | V15
+    } catch (_) {
+      meta = v15.dec(metadataRaw)
+    }
+
+    return {
+      metadata: meta,
+      metadataRaw,
+    }
   }
 
   if ("chain" in entry) {
@@ -75,9 +89,10 @@ export async function getMetadata(entry: EntryConfig): Promise<V15 | null> {
   return null
 }
 
-export async function writeMetadataToDisk(metadata: V15, outFile: string) {
-  const encoded = v15.enc(metadata)
-
+export async function writeMetadataToDisk(
+  metadataRaw: Uint8Array,
+  outFile: string,
+) {
   await fs.mkdir(dirname(outFile), { recursive: true })
-  await fs.writeFile(outFile, encoded)
+  await fs.writeFile(outFile, metadataRaw)
 }

@@ -2,8 +2,10 @@ import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
 import {
   Bytes,
   Option,
+  Vector,
   blockHeader,
   metadata as metadataCodec,
+  u32,
 } from "@polkadot-api/substrate-bindings"
 import {
   BestBlockChanged,
@@ -136,11 +138,19 @@ const metadataHex = metadataValue
   )
   .then((array) => innerCodec.enc(array))
   .then(toHex)
+
+const metadataVersions = toHex(Vector(u32).enc([14, 15]))
+
 export const initializeWithMetadata = async (
   mockClient: MockSubstrateClient,
   overrides?: Partial<InitializedWithRuntime>,
 ) => {
   const result = await initialize(mockClient, overrides)
+
+  await mockClient.chainHead.mock.call.reply(
+    result.initialHash,
+    metadataVersions,
+  )
 
   await mockClient.chainHead.mock.call.reply(
     result.initialHash,

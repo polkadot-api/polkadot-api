@@ -1,14 +1,6 @@
 import { Hex, compactNumber } from "@/codecs/scale"
-import {
-  Struct,
-  Option,
-  Vector,
-  u8,
-  str,
-  Enum,
-  _void,
-  CodecType,
-} from "scale-ts"
+import { Struct, Option, Vector, u8, str, Enum, _void } from "scale-ts"
+import { docs } from "./docs"
 
 const hashType = Enum({
   Blake2128: _void,
@@ -36,7 +28,7 @@ const storageItem = Struct({
     map: storageMap,
   }),
   fallback: Hex(),
-  docs: Vector(str),
+  docs,
 })
 
 const storage = Option(
@@ -46,24 +38,24 @@ const storage = Option(
   }),
 )
 
-export const pallets = Vector(
-  Struct({
-    name: str,
-    storage,
-    calls: Option(compactNumber),
-    events: Option(compactNumber),
-    constants: Vector(
-      Struct({
-        name: str,
-        type: compactNumber,
-        value: Hex(),
-        docs: Vector(str),
-      }),
-    ),
-    errors: Option(compactNumber),
-    index: u8,
-    docs: Vector(str),
-  }),
-)
+export const v14Pallet = {
+  name: str,
+  storage,
+  calls: Option(compactNumber),
+  events: Option(compactNumber),
+  constants: Vector(
+    Struct({
+      name: str,
+      type: compactNumber,
+      value: Hex(),
+      docs,
+    }),
+  ),
+  errors: Option(compactNumber),
+  index: u8,
+}
 
-export type V15Pallets = CodecType<typeof pallets>
+export const v15Pallet = {
+  ...v14Pallet,
+  docs,
+}

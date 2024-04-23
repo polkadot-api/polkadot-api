@@ -1,4 +1,4 @@
-import type { StringRecord, V15 } from "@polkadot-api/substrate-bindings"
+import type { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
 import {
   LookupEntry,
@@ -399,7 +399,7 @@ const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
   return recursiveBuildChecksum(entry, (id, value) => cache.set(id, value))
 }
 
-export const getChecksumBuilder = (metadata: V15) => {
+export const getChecksumBuilder = (metadata: V14 | V15) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
 

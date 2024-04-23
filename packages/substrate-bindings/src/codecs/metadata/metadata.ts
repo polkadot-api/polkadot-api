@@ -1,5 +1,6 @@
 import { Enum, Struct, u32, Codec, createCodec } from "scale-ts"
 import { v15 } from "./v15"
+import { v14 } from "./v14"
 
 const unsupportedFn = () => {
   throw new Error("Unsupported metadata version!")
@@ -27,7 +28,7 @@ export const metadata = Struct({
     v11: unsupported,
     v12: unsupported,
     v13: unsupported,
-    v14: unsupported,
+    v14,
     v15,
   }),
 })

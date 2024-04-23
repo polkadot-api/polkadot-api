@@ -1,4 +1,4 @@
-import { compactNumber } from "../../scale/compact"
+import { compactNumber } from "../scale/compact"
 import {
   CodecType,
   Enum,
@@ -10,9 +10,9 @@ import {
   u32,
   u8,
 } from "scale-ts"
+import { docs } from "./docs"
 
 const oStr = Option(str)
-const strs = Vector(str)
 
 const primitive = Enum({
   bool: _void,
@@ -37,7 +37,7 @@ const fields = Vector(
     name: oStr,
     type: compactNumber,
     typeName: oStr,
-    docs: strs,
+    docs,
   }),
 )
 
@@ -56,7 +56,7 @@ const variant = Vector(
     name: str,
     fields,
     index: u8,
-    docs: strs,
+    docs,
   }),
 )
 
@@ -79,10 +79,10 @@ const params = Vector(param)
 
 const entry = Struct({
   id: compactNumber,
-  path: strs,
+  path: docs,
   params,
   def,
-  docs: strs,
+  docs,
 })
 
 export const lookup = Vector(entry)

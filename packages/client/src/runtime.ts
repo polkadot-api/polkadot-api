@@ -41,11 +41,12 @@ export const getRuntimeApi = (
   const runtimeWithChecksums$ = combineLatest([chainHead.runtime$, checksums])
   runtimeWithChecksums$.subscribe(([x, checksums]) => {
     if (x) {
+      const runtime = createRuntime(x, checksums)
       if (resolve) {
-        resolve(createRuntime(x, checksums))
+        resolve(runtime)
         resolve = null
       } else {
-        latestRuntime = Promise.resolve(createRuntime(x, checksums))
+        latestRuntime = Promise.resolve(runtime)
       }
     } else if (!resolve) {
       latestRuntime = new Promise<Runtime>((res) => {
