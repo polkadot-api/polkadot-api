@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `getChainSpecData: () => Promise<{name: string, genesisHash: string, properties: any}>`.
+
 ## 0.4.0 - 2024-04-23
 
 ### Added

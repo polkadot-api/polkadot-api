@@ -10,12 +10,15 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 import { EvClient } from "./event"
+import { ChainSpecData } from "@polkadot-api/substrate-client"
 import { BlockInfo } from "@polkadot-api/observable-client"
 import { RuntimeApi } from "./runtime"
 import { StorageEntry } from "./storage"
 import { TxEntry, TxBroadcastEvent, TxFinalizedPayload } from "./tx"
 import { ConstantEntry } from "./constants"
 import { RuntimeCall } from "./runtime-call"
+
+export type { ChainSpecData }
 
 export type HintedSignedExtensions = Partial<{
   tip: bigint
@@ -102,6 +105,8 @@ export type TypedApi<D extends Descriptors> = {
 }
 
 export interface PolkadotClient {
+  getChainSpecData: () => Promise<ChainSpecData>
+
   finalizedBlock$: Observable<BlockInfo>
   getFinalizedBlock: () => Promise<BlockInfo>
 

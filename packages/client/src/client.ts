@@ -121,8 +121,11 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const createTxFromSigner = getCreateTx(chainHead)
   const submitFns = getSubmitFns(chainHead, client)
   const { submit, submit$: submitAndWatch } = submitFns
+  const { getChainSpecData } = rawClient
 
   return {
+    getChainSpecData,
+
     finalizedBlock$: chainHead.finalized$,
     getFinalizedBlock: () => firstValueFrom(chainHead.finalized$),
 
