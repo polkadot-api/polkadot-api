@@ -1,5 +1,5 @@
 export const PROVIDER_WORKER_CODE = `
-const { start } = require("smoldot")
+const { start } = require("@polkadot-api/smoldot")
 const { parentPort, workerData } = require("node:worker_threads")
 const { getSmProvider } = require("@polkadot-api/sm-provider")
 
