@@ -6,6 +6,7 @@ import {
 } from "@/."
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as vitest from "vitest"
+import * as allMethods from "@/methods"
 
 const vi = vitest.vi
 
@@ -115,10 +116,16 @@ export const createMockProvider = (): MockProvider => {
   })
 }
 
+const methods = Object.values(allMethods)
+  .map((x) => Object.values(x))
+  .flat()
+
 export const createTestClient = () => {
   const provider = createMockProvider()
+  //
   const client = createClient(provider)
   // Clear out initial rpc_methods call, as it's internal
+  provider.replyLast({ result: methods })
   provider.getNewMessages()
 
   return {
@@ -127,7 +134,7 @@ export const createTestClient = () => {
   }
 }
 
-export function setupChainHead(
+export async function setupChainHead(
   withRuntime: boolean = true,
   onMsgFn?: (event: FollowEventWithRuntime) => void,
   onErrorFn?: (error: any) => void,
@@ -138,6 +145,8 @@ export function setupChainHead(
 
   const chainHead = client.chainHead(withRuntime, onMsg as any, onError)
 
+  await new Promise((res) => setTimeout(res, 0))
+
   return {
     client,
     chainHead,
@@ -147,16 +156,20 @@ export function setupChainHead(
   }
 }
 
-export function setupChainHeadWithSubscription(
+export async function setupChainHeadWithSubscription(
   withRuntime?: boolean,
   onMsgFn?: (event: FollowEventWithRuntime) => void,
   onErrorFn?: (error: any) => void,
 ) {
-  const { provider, ...rest } = setupChainHead(withRuntime, onMsgFn, onErrorFn)
+  const { provider, ...rest } = await setupChainHead(
+    withRuntime,
+    onMsgFn,
+    onErrorFn,
+  )
   provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
-  provider.reply("chainHead_unstable_follow", () => ({
+  provider.reply(allMethods.chainHead.follow, () => ({
     result: SUBSCRIPTION_ID,
   }))
 
@@ -164,7 +177,7 @@ export function setupChainHeadWithSubscription(
     msg: { result: any } | { error: IRpcError },
   ): void => {
     provider.sendMessage({
-      method: "chainHead_unstable_followEvent",
+      method: allMethods.chainHead.followEvent,
       params: {
         subscription: SUBSCRIPTION_ID,
         ...msg,
@@ -180,10 +193,11 @@ export function setupChainHeadWithSubscription(
   }
 }
 
-export function setupChainHeadOperation<
+export async function setupChainHeadOperation<
   Name extends "body" | "call" | "storage",
 >(name: Name, ...args: Parameters<FollowResponse[Name]>) {
-  const { provider, chainHead, ...rest } = setupChainHeadWithSubscription()
+  const { provider, chainHead, ...rest } =
+    await setupChainHeadWithSubscription()
   provider.getNewMessages()
 
   const operationPromise = (chainHead[name] as any)(
@@ -199,11 +213,11 @@ export type ChainHeadOperation =
   | { name: "call" }
   | { name: "storage"; discardedItems: number }
 
-export function setupChainHeadOperationSubscription<
+export async function setupChainHeadOperationSubscription<
   Name extends ChainHeadOperation,
 >(op: Name, ...args: Parameters<FollowResponse[ChainHeadOperation["name"]]>) {
   const { name, ...extras } = op
-  const { provider, sendSubscription, ...rest } = setupChainHeadOperation(
+  const { provider, sendSubscription, ...rest } = await setupChainHeadOperation(
     name,
     ...args,
   )
@@ -211,7 +225,7 @@ export function setupChainHeadOperationSubscription<
 
   const OPERATION_ID = `${nextOperationId++}`
   provider.replyLast({
-    method: "chainHead_unstable_followEvent",
+    method: allMethods.chainHead.followEvent,
     result: {
       result: "started",
       operationId: OPERATION_ID,

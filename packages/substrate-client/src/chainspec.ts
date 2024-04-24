@@ -1,30 +1,30 @@
+import { ClientRequest } from "./client"
+import { abortablePromiseFn } from "./internal-utils"
+import { chainSpec } from "./methods"
+
 export interface ChainSpecData {
   name: string
   genesisHash: string
   properties: any
 }
 
-export const createGetChainSpec = (
-  request: <T>(
-    method: string,
-    params: any[],
-    abortSignal?: AbortSignal,
-  ) => Promise<T>,
-  rpcMethods: Promise<Set<string>> | Set<string>,
-) => {
+export const createGetChainSpec = (clientRequest: ClientRequest<any, any>) => {
+  const request = abortablePromiseFn(
+    <T>(
+      onSuccess: (value: T) => void,
+      onError: (e: any) => void,
+      method: string,
+      params: any[],
+    ) => clientRequest(method, params, { onSuccess, onError }),
+  )
   let cachedPromise: null | Promise<ChainSpecData> = null
 
   return async (): Promise<ChainSpecData> => {
     if (cachedPromise) return cachedPromise
-
-    const methods: Set<string> =
-      rpcMethods instanceof Promise ? await rpcMethods : rpcMethods
-    const version = methods.has("chainSpec_v1_chainName") ? "v1" : "unstable"
-
     return (cachedPromise = Promise.all([
-      request<string>(`chainSpec_${version}_chainName`, []),
-      request<string>(`chainSpec_${version}_genesisHash`, []),
-      request<any>(`chainSpec_${version}_properties`, []),
+      request<string>(chainSpec.chainName, []),
+      request<string>(chainSpec.genesisHash, []),
+      request<any>(chainSpec.properties, []),
     ]).then(([name, genesisHash, properties]) => ({
       name,
       genesisHash,

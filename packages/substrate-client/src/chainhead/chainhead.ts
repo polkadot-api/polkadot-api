@@ -26,6 +26,7 @@ import { createUnpinFn } from "./unpin"
 import { DisjointError, StopError } from "./errors"
 import { createStorageCb } from "./storage-subscription"
 import { DestroyedError } from "@/client/DestroyedError"
+import { chainHead } from "@/methods"
 
 type FollowEventRpc =
   | FollowEventWithRuntimeRpc
@@ -92,7 +93,7 @@ export function getChainHead(
       subscriptionId: string,
       follow: FollowSubscriptionCb<FollowEventRpc>,
     ) => {
-      const done = follow("chainHead_unstable_followEvent", subscriptionId, {
+      const done = follow(chainHead.followEvent, subscriptionId, {
         next: onAllFollowEventsNext,
         error: onAllFollowEventsError,
       })
@@ -101,7 +102,7 @@ export function getChainHead(
         followSubscription = null
         unfollow = noop
         done()
-        sendUnfollow && request("chainHead_unstable_unfollow", [subscriptionId])
+        sendUnfollow && request(chainHead.unfollow, [subscriptionId])
         subscriptions.errorAll(new DisjointError())
         ongoingRequests.forEach((cb) => {
           cb()
@@ -124,7 +125,7 @@ export function getChainHead(
     }
 
     let unfollow: (internal?: boolean) => void = request(
-      "chainHead_unstable_follow",
+      chainHead.follow,
       [withRuntime],
       { onSuccess: onFollowRequestSuccess, onError: onFollowRequestError },
     )
