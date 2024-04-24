@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto"
 import { combineLatest, filter, firstValueFrom, map } from "rxjs"
 import { expect, describe, it } from "vitest"
-import { start } from "smoldot"
+import { start } from "polkadot-api/smoldot"
 import { AccountId, createClient } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { WebSocketProvider } from "polkadot-api/ws-provider/node"

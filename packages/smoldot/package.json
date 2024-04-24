@@ -82,7 +82,7 @@
     "trailingComma": "all"
   },
   "dependencies": {
-    "smoldot": "2.0.22"
+    "smoldot": "2.0.24"
   },
   "devDependencies": {
     "@types/node": "^20.11.19"
