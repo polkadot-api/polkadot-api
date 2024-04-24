@@ -9,10 +9,11 @@ import {
   OperationLimitError,
 } from "./errors"
 import { ClientInnerRequest } from "./public-types"
+import { chainHead } from "@/methods"
 
 export const createOperationPromise =
   <I extends { operationId: string; event: string }, O, A extends Array<any>>(
-    operationName: string,
+    operationName: () => string,
     factory: (
       ...args: A
     ) => [
@@ -28,7 +29,7 @@ export const createOperationPromise =
   ) =>
     abortablePromiseFn<O, A>((res, rej, ...args) => {
       const [requestArgs, logicCb] = factory(...args)
-      let cancel = request(operationName, requestArgs, {
+      let cancel = request(operationName(), requestArgs, {
         onSuccess: (response, followSubscription) => {
           if (response.result === "limitReached") {
             cancel = noop
@@ -65,7 +66,7 @@ export const createOperationPromise =
           cancel = () => {
             if (!isOperationGoing) return
             done()
-            request("chainHead_unstable_stopOperation", [response.operationId])
+            request(chainHead.stopOperation, [response.operationId])
           }
         },
         onError: rej,

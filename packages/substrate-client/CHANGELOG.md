@@ -6,6 +6,10 @@
 
 - `getChainSpecData: () => Promise<{name: string, genesisHash: string, properties: any}>`.
 
+### Fixed
+
+- Improve the compatibility handling with the different versions of the JSON-RPC methods.
+
 ## 0.0.2 - 2024-04-20
 
 ### Fixed

@@ -14,21 +14,21 @@ const eventToType = (input: { event: string }) => {
 const nilHash =
   "0x0000000000000000000000000000000000000000000000000000000000000000"
 describe("chainHead", () => {
-  it("sends the correct follow message", () => {
+  it("sends the correct follow message", async () => {
     const withRuntime = true
-    const { provider } = setupChainHead(withRuntime)
+    const { provider } = await setupChainHead(withRuntime)
 
     expect(provider.getNewMessages()).toMatchObject([
       {
-        method: "chainHead_unstable_follow",
+        method: "chainHead_v1_follow",
         params: [withRuntime],
       },
     ])
   })
 
-  it("receives its corresponding subscription messages", () => {
+  it("receives its corresponding subscription messages", async () => {
     const { sendSubscription, onMsg, onError } =
-      setupChainHeadWithSubscription()
+      await setupChainHeadWithSubscription()
 
     const initialized = {
       event: "initialized",
@@ -70,9 +70,9 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  it("doesn't emit events belonging to an operation", () => {
+  it("doesn't emit events belonging to an operation", async () => {
     const { sendSubscription, onMsg, onError } =
-      setupChainHeadWithSubscription()
+      await setupChainHeadWithSubscription()
 
     sendSubscription({
       result: {
@@ -85,9 +85,9 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  it("stops receiving messages upon cancelation", () => {
+  it("stops receiving messages upon cancelation", async () => {
     const { sendSubscription, onMsg, onError, chainHead, provider } =
-      setupChainHeadWithSubscription(true, (evt) => {
+      await setupChainHeadWithSubscription(true, (evt) => {
         if (evt.type === "initialized") {
           chainHead.unfollow()
         }
@@ -112,14 +112,14 @@ describe("chainHead", () => {
 
     expect(provider.getNewMessages()).toMatchObject([
       {
-        method: "chainHead_unstable_unfollow",
+        method: "chainHead_v1_unfollow",
       },
     ])
     expect(onMsg).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
   })
 
-  it("sends an unsubscription message when necessary", () => {
+  it("sends an unsubscription message when necessary", async () => {
     const {
       chainHead,
       provider,
@@ -127,13 +127,13 @@ describe("chainHead", () => {
       SUBSCRIPTION_ID,
       onMsg,
       onError,
-    } = setupChainHeadWithSubscription()
+    } = await setupChainHeadWithSubscription()
 
     chainHead.unfollow()
 
     expect(provider.getNewMessages()).toMatchObject([
       {
-        method: "chainHead_unstable_unfollow",
+        method: "chainHead_v1_unfollow",
         params: [SUBSCRIPTION_ID],
       },
     ])
@@ -150,9 +150,9 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  test("`stop` event triggers an `StopError` and automatically cancels the subscription", () => {
+  test("`stop` event triggers an `StopError` and automatically cancels the subscription", async () => {
     const { chainHead, provider, sendSubscription, onMsg, onError } =
-      setupChainHeadWithSubscription()
+      await setupChainHeadWithSubscription()
 
     sendSubscription({
       result: { event: "stop" },
@@ -177,9 +177,9 @@ describe("chainHead", () => {
     expect(provider.getNewMessages()).toEqual([])
   })
 
-  test("`stop` event triggers a `DisjointError` on all running active operations", () => {
+  test("`stop` event triggers a `DisjointError` on all running active operations", async () => {
     const { chainHead, sendSubscription, provider } =
-      setupChainHeadWithSubscription()
+      await setupChainHeadWithSubscription()
 
     const bodyPromise = chainHead.body("")
     provider.replyLast({
@@ -216,8 +216,9 @@ describe("chainHead", () => {
     )
   })
 
-  test("`stop` event triggers a `DisjointError` on all pending requests", () => {
-    const { chainHead, sendSubscription } = setupChainHeadWithSubscription()
+  test("`stop` event triggers a `DisjointError` on all pending requests", async () => {
+    const { chainHead, sendSubscription } =
+      await setupChainHeadWithSubscription()
 
     const allPromises = [
       chainHead.header(""),
@@ -235,8 +236,8 @@ describe("chainHead", () => {
     )
   })
 
-  it("propagates the JSON-RPC Error when the initial request fails", () => {
-    const { provider, onMsg, onError } = setupChainHead()
+  it("propagates the JSON-RPC Error when the initial request fails", async () => {
+    const { provider, onMsg, onError } = await setupChainHead()
 
     provider.replyLast({
       error: parseError,
@@ -247,9 +248,9 @@ describe("chainHead", () => {
     expect(onError).toHaveBeenCalledWith(new RpcError(parseError))
   })
 
-  it("propagates the JSON-RPC Error on the subscription and cancels the subscription", () => {
+  it("propagates the JSON-RPC Error on the subscription and cancels the subscription", async () => {
     const { provider, SUBSCRIPTION_ID, sendSubscription, onMsg, onError } =
-      setupChainHeadWithSubscription()
+      await setupChainHeadWithSubscription()
 
     sendSubscription({
       error: parseError,
@@ -261,14 +262,15 @@ describe("chainHead", () => {
 
     expect(provider.getNewMessages()).toMatchObject([
       {
-        method: "chainHead_unstable_unfollow",
+        method: "chainHead_v1_unfollow",
         params: [SUBSCRIPTION_ID],
       },
     ])
   })
 
   it("propagates the JSON-RPC Error when an operation can't be initiated without canceling the subscription", async () => {
-    const { chainHead, provider, onError } = setupChainHeadWithSubscription()
+    const { chainHead, provider, onError } =
+      await setupChainHeadWithSubscription()
 
     const allOperations = [
       () => chainHead.header(""),
@@ -287,8 +289,8 @@ describe("chainHead", () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  test("destroying the client triggers a `DisjointError` on all pending requests", () => {
-    const { client, chainHead, provider } = setupChainHead()
+  test("destroying the client triggers a `DisjointError` on all pending requests", async () => {
+    const { client, chainHead, provider } = await setupChainHead()
     const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
     provider.replyLast({
       result: SUBSCRIPTION_ID,
@@ -308,8 +310,8 @@ describe("chainHead", () => {
     )
   })
 
-  test("destroying the client triggers a `DisjointError` on all pending requests before JSON-RPC server confirmed subscription", () => {
-    const { client, chainHead } = setupChainHead()
+  test("destroying the client triggers a `DisjointError` on all pending requests before JSON-RPC server confirmed subscription", async () => {
+    const { client, chainHead } = await setupChainHead()
 
     const allPromises = [
       chainHead.header(""),

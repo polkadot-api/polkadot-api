@@ -9,8 +9,10 @@ import {
 import type { ChainHead } from "./chainhead"
 import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"
-import { abortablePromiseFn, noop } from "./internal-utils"
+import { abortablePromiseFn } from "./internal-utils"
 import { ChainSpecData, createGetChainSpec } from "./chainspec"
+import { getCompatibilityEnhancer } from "./request-compatibility-enhancer"
+import { chainHead, chainSpec, transaction } from "./methods"
 
 export type * from "./common-types"
 export type * from "./client"
@@ -56,20 +58,28 @@ export const createClient = (provider: JsonRpcProvider): SubstrateClient => {
     ) => client.request(method, params, { onSuccess, onError }),
   )
 
-  let rpcMethods: Promise<Set<string>> | Set<string> = request<
+  const rpcMethods: Promise<Set<string>> = request<
     { methods: Array<string> } | Array<string>
   >("rpc_methods", []).then(
-    (x) => (rpcMethods = new Set(Array.isArray(x) ? x : x.methods)),
+    (x) => new Set(Array.isArray(x) ? x : x.methods),
+    () => new Set(),
   )
-  rpcMethods.catch(noop)
+
+  const compatibilityEnhancer = getCompatibilityEnhancer(
+    rpcMethods,
+    client.request,
+  )
 
   return {
-    chainHead: getChainHead(client.request as ClientRequest<any, any>),
-    transaction: getTransaction(
-      client.request as ClientRequest<string, any>,
-      rpcMethods,
+    chainHead: getChainHead(
+      compatibilityEnhancer(chainHead) as ClientRequest<any, any>,
     ),
-    getChainSpecData: createGetChainSpec(request, rpcMethods),
+    transaction: getTransaction(
+      compatibilityEnhancer(transaction) as ClientRequest<string, any>,
+    ),
+    getChainSpecData: createGetChainSpec(
+      compatibilityEnhancer(chainSpec) as ClientRequest<any, any>,
+    ),
     destroy: () => {
       client.disconnect()
     },

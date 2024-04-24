@@ -199,24 +199,27 @@ describe.each([
 ] satisfies Array<[string, ChainHeadOperation, any[], any[], any, any]>)(
   "chainhead: %s",
   (_, op, args, expectedMsgArgs, operationNotifications, expectedResult) => {
-    it("sends the correct operation message", () => {
-      const { provider, SUBSCRIPTION_ID } = setupChainHeadOperation(
+    it("sends the correct operation message", async () => {
+      const { provider, SUBSCRIPTION_ID } = await setupChainHeadOperation(
         op.name,
         ...args,
       )
 
       expect(provider.getNewMessages()).toMatchObject([
         {
-          method: `chainHead_unstable_${op.name}`,
+          method: `chainHead_v1_${op.name}`,
           params: [SUBSCRIPTION_ID, ...expectedMsgArgs],
         },
       ])
     })
 
-    it("processes its operation notifications and resolves the correct value", () => {
+    it("processes its operation notifications and resolves the correct value", async () => {
       const controller = new AbortController()
       const { sendOperationNotification, operationPromise } =
-        setupChainHeadOperationSubscription(op, ...[...args, controller.signal])
+        await setupChainHeadOperationSubscription(
+          op,
+          ...[...args, controller.signal],
+        )
 
       operationNotifications.forEach(sendOperationNotification)
 
@@ -226,13 +229,16 @@ describe.each([
     it("cancels the ongoing operation", async () => {
       const controller = new AbortController()
       const { operationPromise, provider, OPERATION_ID, SUBSCRIPTION_ID } =
-        setupChainHeadOperationSubscription(op, ...[...args, controller.signal])
+        await setupChainHeadOperationSubscription(
+          op,
+          ...[...args, controller.signal],
+        )
 
       controller.abort()
 
       expect(provider.getNewMessages()).toMatchObject([
         {
-          method: `chainHead_unstable_stopOperation`,
+          method: `chainHead_v1_stopOperation`,
           params: [SUBSCRIPTION_ID, OPERATION_ID],
         },
       ])
@@ -244,7 +250,7 @@ describe.each([
 
     it("cancels the ongoing operation before receiving its operationId", async () => {
       const controller = new AbortController()
-      const { provider, chainHead } = setupChainHead()
+      const { provider, chainHead } = await setupChainHead()
       provider.getNewMessages()
 
       const operationPromise = (chainHead[op.name] as any)(
@@ -264,8 +270,8 @@ describe.each([
       })
     })
 
-    it("rejects with an `OperationLimitError` when receiving its event", () => {
-      const { provider, operationPromise } = setupChainHeadOperation(
+    it("rejects with an `OperationLimitError` when receiving its event", async () => {
+      const { provider, operationPromise } = await setupChainHeadOperation(
         op.name,
         ...args,
       )
@@ -277,9 +283,9 @@ describe.each([
       return expect(operationPromise).rejects.toEqual(new OperationLimitError())
     })
 
-    it("rejects with an `OperationInaccessibleError` when receiving its event", () => {
+    it("rejects with an `OperationInaccessibleError` when receiving its event", async () => {
       const { sendOperationNotification, operationPromise } =
-        setupChainHeadOperationSubscription(op, ...args)
+        await setupChainHeadOperationSubscription(op, ...args)
 
       sendOperationNotification({
         event: "operationInaccessible",
@@ -290,9 +296,9 @@ describe.each([
       )
     })
 
-    it("rejects with an `OperationError` when receiving its event", () => {
+    it("rejects with an `OperationError` when receiving its event", async () => {
       const { sendOperationNotification, operationPromise } =
-        setupChainHeadOperationSubscription(op, ...args)
+        await setupChainHeadOperationSubscription(op, ...args)
 
       const error = "something went wrong"
       sendOperationNotification({
@@ -303,8 +309,8 @@ describe.each([
       return expect(operationPromise).rejects.toEqual(new OperationError(error))
     })
 
-    test("it rejects with an `DisjointError` when the operation is created after `unfollow`", () => {
-      const { chainHead } = setupChainHead()
+    test("it rejects with an `DisjointError` when the operation is created after `unfollow`", async () => {
+      const { chainHead } = await setupChainHead()
 
       chainHead.unfollow()
 
@@ -314,7 +320,7 @@ describe.each([
     })
 
     it("rejects an `DisjointError` error when the follow subscription fails and the operation is pending", async () => {
-      const { provider, chainHead } = setupChainHead()
+      const { provider, chainHead } = await setupChainHead()
 
       const promise = (chainHead[op.name] as any)(...(args as any[]))
 
@@ -326,7 +332,7 @@ describe.each([
     })
 
     it("rejects an `DisjointError` error when the follow subscription fails for any subsequent operation", async () => {
-      const { provider, chainHead } = setupChainHead()
+      const { provider, chainHead } = await setupChainHead()
 
       provider.replyLast({
         error: parseError,

@@ -14,6 +14,7 @@ import {
   OperationWaitingForContinueRpc,
   OperationStorageStartedRpc,
 } from "./json-rpc-types"
+import { chainHead } from "@/methods"
 
 export const createStorageCb =
   (
@@ -31,65 +32,61 @@ export const createStorageCb =
       return noop
     }
 
-    let cancel = request(
-      "chainHead_unstable_storage",
-      [hash, inputs, childTrie],
-      {
-        onSuccess: (response, followSubscription) => {
-          if (
-            response.result === "limitReached" ||
-            response.discardedItems === inputs.length
-          )
-            return onError(new OperationLimitError())
+    let cancel = request(chainHead.storage, [hash, inputs, childTrie], {
+      onSuccess: (response, followSubscription) => {
+        if (
+          response.result === "limitReached" ||
+          response.discardedItems === inputs.length
+        )
+          return onError(new OperationLimitError())
 
-          const doneListening = followSubscription(response.operationId, {
-            next: (event) => {
-              switch (event.event) {
-                case "operationStorageItems": {
-                  onItems(event.items)
-                  break
-                }
-                case "operationStorageDone": {
-                  _onDone()
-                  break
-                }
-                case "operationError": {
-                  _onError(new OperationError(event.error))
-                  break
-                }
-                case "operationInaccessible": {
-                  _onError(new OperationInaccessibleError())
-                  break
-                }
-                default:
-                  request("chainHead_unstable_continue", [event.operationId])
+        const doneListening = followSubscription(response.operationId, {
+          next: (event) => {
+            switch (event.event) {
+              case "operationStorageItems": {
+                onItems(event.items)
+                break
               }
-            },
-            error: onError,
-          })
+              case "operationStorageDone": {
+                _onDone()
+                break
+              }
+              case "operationError": {
+                _onError(new OperationError(event.error))
+                break
+              }
+              case "operationInaccessible": {
+                _onError(new OperationInaccessibleError())
+                break
+              }
+              default:
+                request(chainHead.continue, [event.operationId])
+            }
+          },
+          error: onError,
+        })
 
-          cancel = () => {
-            doneListening()
-            request("chainHead_unstable_stopOperation", [response.operationId])
-          }
+        cancel = () => {
+          doneListening()
+          request(chainHead.stopOperation, [response.operationId])
+        }
 
-          const _onError = (e: Error) => {
-            cancel = noop
-            doneListening()
-            onError(e)
-          }
+        const _onError = (e: Error) => {
+          cancel = noop
+          doneListening()
+          onError(e)
+        }
 
-          const _onDone = () => {
-            cancel = noop
-            doneListening()
-            onDone()
-          }
+        const _onDone = () => {
+          cancel = noop
+          doneListening()
+          onDone()
+        }
 
-          onDiscardedItems(response.discardedItems)
-        },
-        onError,
+        onDiscardedItems(response.discardedItems)
       },
-    )
+      onError,
+    })
 
     return () => {
       cancel()
