@@ -6,6 +6,13 @@
 
 - `getChainSpecData: () => Promise<{name: string, genesisHash: string, properties: any}>`.
 
+### Breaking
+
+- Remove discriminant utilities (`is`, `as`) from `Enum`s. They have been moved to the `Enum(type, value)` function:
+  - `result.is('V2')` becomes `Enum.is(result, 'V2')`
+  - `result.as('V2')` becomes `Enum.as(result, 'V2')`
+- The generic for `Enum<T>` is now an object of `{ [type: string]: any }`, rather than a union of `{ type: string, value: any } | ... | { type: string, value: any }`
+
 ## 0.4.0 - 2024-04-23
 
 ### Added

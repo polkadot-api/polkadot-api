@@ -254,7 +254,6 @@ export const generateDescriptors = (
     "TxDescriptor",
     "RuntimeDescriptor",
     "Enum",
-    "OutputEnum",
     "_Enum",
     "Binary",
     "FixedSizeBinary",
@@ -321,7 +320,7 @@ type Anonymize<T> = SeparateUndefined<
     | symbol
     | Binary
     | Uint8Array
-    | OutputEnum<Enum<any>>
+    | Enum<any>
     ? T
     : T extends AnonymousEnum<infer V>
       ? Enum<V>

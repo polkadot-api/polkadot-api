@@ -7,34 +7,60 @@ export type ExtractEnumValue<
   K extends string,
 > = (T & { type: K })["value"]
 
-export interface Discriminant<T extends Enum<any>> {
-  is<K extends T["type"]>(this: T, type: K): this is T & { type: K }
-  as<K extends T["type"]>(type: K): ExtractEnumValue<T, K>
+type ValueArg<V> = undefined extends V ? [value?: V] : [value: V]
+
+interface EnumFn {
+  <T extends { type: string; value: any }, K extends T["type"]>(
+    type: K,
+    ...[value]: ValueArg<ExtractEnumValue<T, K>>
+  ): T & { type: K }
 }
-
-export type OutputEnum<T extends Enum<any>> = T & Discriminant<T>
-
-type ValueArg<V> = V extends undefined ? [value?: undefined] : [value: V]
-
-export function Enum<
-  T extends { type: string; value: any },
-  K extends T["type"],
->(type: K, ...[value]: ValueArg<ExtractEnumValue<T, K>>): T & { type: K } {
+const enumFn: EnumFn = (type, value?) => {
   return {
     type,
     value,
   } as any
 }
 
+interface EnumDiscriminant {
+  is<T extends Enum<any>, K extends T["type"]>(
+    enumValue: T,
+    type: K,
+  ): enumValue is T & { type: K }
+  as<T extends Enum<any>, K extends T["type"]>(
+    enumValue: T,
+    type: K,
+  ): ExtractEnumValue<T, K>
+}
+const enumDiscriminant: EnumDiscriminant = {
+  as: (enumValue, type) => {
+    if (type !== enumValue.type)
+      // TODO: fix error
+      throw new Error(
+        `Enum.as(enum, ${type}) used with actual type ${enumValue.type}`,
+      )
+    return enumValue.value
+  },
+  is: ((enumValue: Enum<any>, type: string) =>
+    type === enumValue.type) as EnumDiscriminant["is"],
+}
+
+export const Enum = Object.assign(enumFn, enumDiscriminant)
+
+// type Bar = Enum<{
+//   Kaka: 1
+//   Bar: 2
+// }>
+
 // type FooInput = Enum<{
-//   foo: "foo"
-//   bar: "bar" | undefined
+//   foo: "foo" | undefined
+//   bar: Bar
 //   baz: number
 //   wtf: boolean
 // }>
 
 // declare function foo(foo: FooInput): void
-// foo(Enum("bar"))
+// foo(enumFn("bar", enumFn("Bar", 2)))
 
 // well-known enums
 export type GetEnum<T extends Enum<any>> = {
@@ -42,7 +68,7 @@ export type GetEnum<T extends Enum<any>> = {
     ...args: ExtractEnumValue<T, K> extends undefined
       ? []
       : [value: ExtractEnumValue<T, K>]
-  ) => T
+  ) => T & { type: K }
 }
 export const _Enum = new Proxy(
   {},

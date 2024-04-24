@@ -8,7 +8,6 @@ export const generateTypes = (
 ) => {
   const clientImports = [
     "Enum",
-    "OutputEnum",
     "_Enum",
     "GetEnum",
     "FixedSizeBinary",
@@ -52,7 +51,7 @@ export const generateTypes = (
       | symbol
       | Binary
       | Uint8Array
-      | OutputEnum<{ type: string; value: any }>
+      | Enum<any>
       ? T
       : T extends AnonymousEnum<infer V>
         ? Enum<V>
