@@ -5,6 +5,7 @@ import { noop } from "./internal-utils"
 export const getCompatibilityEnhancer =
   <T, E>(rpcMethodsP: Promise<Set<string>>, request: ClientRequest<T, E>) =>
   (methods: Record<string, string>): ClientRequest<T, E> => {
+    let translations: Record<string, string> = {}
     let enhancedRequest: ClientRequest<T, E> | null = null
 
     return ((method, ...rest) => {
@@ -17,7 +18,8 @@ export const getCompatibilityEnhancer =
 
       rpcMethodsP
         .then((rpcMethods) => {
-          enhancedRequest = (method, ...iRest) => {
+          enhancedRequest = (method_, ...iRest) => {
+            const method = translations[method_] ?? method_
             if (rpcMethods.has(method)) return request(method, ...iRest)
             iRest[1]?.onError(new Error(`Unsupported method ${method}`))
             return noop
@@ -29,11 +31,10 @@ export const getCompatibilityEnhancer =
           if (parts[1] !== "v1") return
 
           parts[1] = "unstable"
-          method = parts.join("_")
 
-          if (rpcMethods.has(method))
-            Object.entries(methods).forEach(([key, value]) => {
-              methods[key] = value.replace("_v1_", "_unstable_")
+          if (rpcMethods.has(parts.join("_")))
+            Object.values(methods).forEach((value) => {
+              translations[value] = value.replace("_v1_", "_unstable_")
             })
           else if (parts[0] === "transaction") {
             // old versions of smoldot and Polkadot-SDK don't support transaction_xx_broadcast
@@ -52,8 +53,9 @@ export const getCompatibilityEnhancer =
             )
 
             if (txGroup) {
-              methods.broadcast = `${txGroup}_${version}_submitAndWatch`
-              methods.stop = unwatch!
+              translations[methods.broadcast] =
+                `${txGroup}_${version}_submitAndWatch`
+              translations[methods.stop] = unwatch!
             }
           }
         })

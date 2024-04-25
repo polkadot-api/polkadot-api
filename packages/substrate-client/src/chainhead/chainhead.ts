@@ -93,7 +93,7 @@ export function getChainHead(
       subscriptionId: string,
       follow: FollowSubscriptionCb<FollowEventRpc>,
     ) => {
-      const done = follow(chainHead.followEvent, subscriptionId, {
+      const done = follow(subscriptionId, {
         next: onAllFollowEventsNext,
         error: onAllFollowEventsError,
       })

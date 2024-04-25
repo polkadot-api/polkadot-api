@@ -8,7 +8,6 @@ import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
 import { DestroyedError } from "./DestroyedError"
 
 export type FollowSubscriptionCb<T> = (
-  methodName: string,
   subscriptionId: string,
   cb: Subscriber<T>,
 ) => UnsubscribeFn
@@ -71,8 +70,8 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
 
         return error
           ? cb.onError(new RpcError(error))
-          : cb.onSuccess(result, (methodName, opaqueId, subscriber) => {
-              const subscriptionId = methodName + opaqueId
+          : cb.onSuccess(result, (opaqueId, subscriber) => {
+              const subscriptionId = opaqueId
               subscriptions.subscribe(subscriptionId, subscriber)
               return () => {
                 subscriptions.unsubscribe(subscriptionId)
@@ -84,7 +83,7 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
       ;({ subscription, result, error } = params)
       if (!subscription || (!error && !Object.hasOwn(params, "result"))) throw 0
 
-      const subscriptionId = parsed.method + subscription
+      const subscriptionId = subscription
 
       if (error) {
         subscriptions.error(subscriptionId, new RpcError(error!))

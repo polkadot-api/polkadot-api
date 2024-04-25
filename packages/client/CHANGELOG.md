@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.5.1 - 2024-04-25
+
+### Fixed
+
+- update `@polkadot-api/codegen`
+- fixed: compatibility enhancer
+
 ## 0.5.0 - 2024-04-25
 
 ### Breaking

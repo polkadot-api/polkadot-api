@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-04-25
+
+### Breaking
+
+- The generic for `Enum<T>` is now an object of `{ [type: string]: any }`, rather than a union of `{ type: string, value: any } | ... | { type: string, value: any }`
+
 ## 0.2.0 - 2024-04-23
 
 ### Added

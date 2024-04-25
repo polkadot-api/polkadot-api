@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.1 - 2024-04-25
+
+### Fixed
+
+- fixed: compatibility enhancer
+
 ## 0.2.0 - 2024-04-23
 
 ### Added
