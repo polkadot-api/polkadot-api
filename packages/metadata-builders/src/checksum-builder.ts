@@ -1,6 +1,7 @@
 import type { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
 import {
+  ArrayVar,
   LookupEntry,
   MetadataPrimitives,
   StructVar,
@@ -177,6 +178,15 @@ const _buildChecksum = (
     return getChecksum([shapeIds.primitive, runtimePrimitiveIds.accountId20])
   }
 
+  const buildVector = (entry: LookupEntry, length?: number) => {
+    const innerChecksum = buildNextChecksum(entry)
+    return getChecksum(
+      length !== undefined
+        ? [shapeIds.vector, innerChecksum, BigInt(length)]
+        : [shapeIds.vector, innerChecksum],
+    )
+  }
+
   if (input.type === "array") {
     const innerValue = input.value
     if (innerValue.type === "primitive" && innerValue.value === "u8") {
@@ -186,9 +196,7 @@ const _buildChecksum = (
         BigInt(input.len),
       ])
     }
-    const innerChecksum = buildNextChecksum(innerValue)
-
-    return getChecksum([shapeIds.vector, innerChecksum, BigInt(input.len)])
+    return buildVector(innerValue, input.len)
   }
 
   if (input.type === "sequence") {
@@ -196,9 +204,7 @@ const _buildChecksum = (
     if (innerValue.type === "primitive" && innerValue.value === "u8") {
       return getChecksum([shapeIds.primitive, runtimePrimitiveIds.byteSequence])
     }
-    const innerChecksum = buildNextChecksum(innerValue)
-
-    return getChecksum([shapeIds.vector, innerChecksum])
+    return buildVector(innerValue)
   }
 
   const buildTuple = (entries: LookupEntry[]) =>
@@ -230,6 +236,8 @@ const _buildChecksum = (
         return buildTuple(entry.value)
       case "struct":
         return buildStruct(entry.value)
+      case "array":
+        return buildVector(entry.value, entry.len)
     }
   })
 }
@@ -447,7 +455,9 @@ export const getChecksumBuilder = (metadata: V14 | V15) => {
     }
   }
 
-  const buildComposite = (input: TupleVar | StructVar | VoidVar): bigint => {
+  const buildComposite = (
+    input: TupleVar | StructVar | VoidVar | ArrayVar,
+  ): bigint => {
     if (input.type === "void") return getChecksum([0n])
 
     if (input.type === "tuple") {
@@ -456,6 +466,14 @@ export const getChecksumBuilder = (metadata: V14 | V15) => {
       )
 
       return getChecksum([shapeIds.tuple, ...values])
+    }
+
+    if (input.type === "array") {
+      return getChecksum([
+        shapeIds.vector,
+        buildDefinition(input.value.id),
+        BigInt(input.len),
+      ])
     }
 
     // Otherwise struct
