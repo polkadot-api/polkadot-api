@@ -146,6 +146,8 @@ async function getCurrentKnownTypes() {
     if (missingChecksums.size === 0) break
   }
 
+  console.log("missingChecksums", missingChecksums)
+
   await writeFile(mapPath, JSON.stringify(result))
 }
 

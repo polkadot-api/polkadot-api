@@ -19,7 +19,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  g5c5925ajuhf: {
+  cenmqk68rcank: {
     name: "PolkadotRuntimeEvent",
     path: "polkadot_runtime,RuntimeEvent",
     type: [
@@ -255,7 +255,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "}>",
     ],
   },
-  fclbekcgm4i69: {
+  "3bd4nvc4e2g3p": {
     name: "StakingEvent",
     path: "pallet_staking,pallet,pallet,Event",
     type: [
@@ -346,7 +346,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "7tae00r2its65": {
+  ajkhn97prklo5: {
     name: "ConvictionVotingEvent",
     path: "pallet_conviction_voting,pallet,Event",
     type: [
@@ -391,7 +391,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  ba8llnk6vilc1: {
+  "7rhf8qtr526dr": {
     name: "PolkadotRuntimeRuntimeCall",
     path: "polkadot_runtime,RuntimeCall",
     type: [
@@ -487,7 +487,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "63lttqq192u3u": {
+  "77dbr1gubj25d": {
     name: "SchedulerPalletCall",
     path: "pallet_scheduler,pallet,Call",
     type: [
@@ -598,7 +598,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "4gpetiocnudbl": {
+  "2trgcqe1efv42": {
     name: "StakingPalletCall",
     path: "pallet_staking,pallet,pallet,Call",
     type: [
@@ -778,7 +778,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "1fed1h86s1adc": {
+  bnvffgg4ckmsj: {
     name: "PolkadotRuntimeOriginCaller",
     path: "polkadot_runtime,OriginCaller",
     type: [
@@ -808,7 +808,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "86j1nib528oqi": {
+  c0rsdcbsdt7kf: {
     name: "GovernanceOrigin",
     path: "polkadot_runtime,governance,origins,pallet_custom_origins,Origin",
     type: [
@@ -835,7 +835,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     path: "polkadot_runtime_parachains,origin,pallet,Origin",
     type: ["Enum<{", "  type: 'Parachain'", "  value: Anonymize<number>", "}>"],
   },
-  "30af8rr48c0nq": {
+  "1r9hjo7723qso": {
     name: "XcmPalletOrigin",
     path: "pallet_xcm,pallet,Origin",
     type: [
@@ -845,7 +845,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "2vq47ejc4o36c": {
+  "86spl6bcfm5it": {
     name: "XcmV3Junctions",
     path: "xcm,v3,junctions,Junctions",
     type: [
@@ -939,7 +939,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "9djtho2ujkjru": {
+  "3qn2e5m9u3h6p": {
     name: "WhitelistPalletCall",
     path: "pallet_whitelist,pallet,Call",
     type: [
@@ -989,7 +989,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "1do24ko4ttjjh": {
+  "96cn0dq8vsorm": {
     name: "UtilityPalletCall",
     path: "pallet_utility,pallet,Call",
     type: [
@@ -1103,7 +1103,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  ee51a0b95ro6t: {
+  "3i4vchtb59b0s": {
     name: "ProxyPalletCall",
     path: "pallet_proxy,pallet,Call",
     type: [
@@ -1137,7 +1137,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "6b144vgnnj706": {
+  egbb1pilpkeal: {
     name: "MultisigPalletCall",
     path: "pallet_multisig,pallet,Call",
     type: [
@@ -1289,7 +1289,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  f8hb8migh37h9: {
+  "9p1qu8c4vjki6": {
     name: "ParachainsConfigurationPalletCall",
     path: "polkadot_runtime_parachains,configuration,pallet,Call",
     type: [
@@ -1604,7 +1604,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "5jnu77ehu4bfu": {
+  "27ev92qgostl6": {
     name: "XcmPalletCall",
     path: "pallet_xcm,pallet,Call",
     type: [
@@ -1629,7 +1629,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  fso6iqf887gac: {
+  dbg08q7edq40c: {
     name: "XcmVersionedMultiLocation",
     path: "xcm,VersionedMultiLocation",
     type: [
@@ -1639,7 +1639,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  du33014qjqdr2: {
+  aquvu9nu2es05: {
     name: "XcmV2MultilocationJunctions",
     path: "xcm,v2,multilocation,Junctions",
     type: [
@@ -1703,7 +1703,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "69sdq9h61mcjv": {
+  "5f1g9rtdd19nm": {
     name: "XcmVersionedXcm",
     path: "xcm,VersionedXcm",
     type: [
@@ -1713,7 +1713,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  fn5bbkq9rcm83: {
+  ml0q5vk4ei4e: {
     name: "XcmV2Instruction",
     path: "xcm,v2,Instruction",
     type: [
@@ -1749,7 +1749,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "2kuvuc3c51k00": {
+  es1oivk962n6f: {
     name: "XcmV2MultiassetAssetId",
     path: "xcm,v2,multiasset,AssetId",
     type: [
@@ -1784,7 +1784,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "7cgekabf482c4": {
+  "30v4njes1avsr": {
     name: "XcmV2Response",
     path: "xcm,v2,Response",
     type: [
@@ -1842,7 +1842,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  e4sgpst2e3uke: {
+  fddrr93rdab23: {
     name: "XcmV2MultiAssetFilter",
     path: "xcm,v2,multiasset,MultiAssetFilter",
     type: [
@@ -1852,7 +1852,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  d9gnfbqterb30: {
+  "3jnpd4dmb650": {
     name: "XcmV2MultiassetWildMultiAsset",
     path: "xcm,v2,multiasset,WildMultiAsset",
     type: [
@@ -1882,7 +1882,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "590ugg567qnb0": {
+  css00hl25cgl4: {
     name: "XcmV3Instruction",
     path: "xcm,v3,Instruction",
     type: [
@@ -1938,7 +1938,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  d4ai9oreddetp: {
+  c00osfu517iss: {
     name: "XcmV3MultiassetAssetId",
     path: "xcm,v3,multiasset,AssetId",
     type: [
@@ -1972,7 +1972,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "42ng32a5771l6": {
+  "4e56rm9p07o27": {
     name: "XcmV3Response",
     path: "xcm,v3,Response",
     type: [
@@ -2045,7 +2045,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "6b08ikcf19cj0": {
+  "9enf1rh4u3kii": {
     name: "XcmV3MultiAssetFilter",
     path: "xcm,v3,multiasset,MultiAssetFilter",
     type: [
@@ -2055,7 +2055,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "229oojecaod2j": {
+  dhb8s9d0ie70f: {
     name: "XcmV3WildMultiAsset",
     path: "xcm,v3,multiasset,WildMultiAsset",
     type: [
@@ -2077,7 +2077,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "85l50t95kraik": {
+  k93katrmbiat: {
     name: "XcmVersionedMultiAssets",
     path: "xcm,VersionedMultiAssets",
     type: [
@@ -2087,7 +2087,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "27oeif4on5jk1": {
+  "3c4a8k2oha1ud": {
     name: "XcmVersionedXcm1",
     path: "xcm,VersionedXcm",
     type: [
@@ -2097,7 +2097,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  f1981q9hna52f: {
+  faq5qk07k96kk: {
     name: "XcmV2Instruction1",
     path: "xcm,v2,Instruction",
     type: [
@@ -2133,7 +2133,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "4so8crc3ps5sk": {
+  "769uhag9pjttp": {
     name: "XcmV3Instruction1",
     path: "xcm,v3,Instruction",
     type: [
@@ -2429,7 +2429,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "5dmbh5kq5novn": {
+  cb4i7efmuhik2: {
     name: "ParachainsParasEvent",
     path: "polkadot_runtime_parachains,paras,pallet,Event",
     type: [
@@ -2542,7 +2542,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "83jrjk78nrqg0": {
+  "4r0b7tct6o9ht": {
     name: "XcmEvent",
     path: "pallet_xcm,pallet,Event",
     type: [
@@ -2745,7 +2745,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  br8ob0iqlr7cl: {
+  bc76n3snbepig: {
     name: "StakingPalletError",
     path: "pallet_staking,pallet,pallet,Error",
     type: [
@@ -3473,7 +3473,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "70hv9q4f7l6lo": {
+  "9us7218h9qeio": {
     name: "XcmPalletQueryStatus",
     path: "pallet_xcm,pallet,QueryStatus",
     type: [
@@ -3484,7 +3484,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "6j42g3504c9ir": {
+  fjsumieiq38rh: {
     name: "XcmVersionedResponse",
     path: "xcm,VersionedResponse",
     type: [
@@ -3506,7 +3506,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "5d3g5d2drdfrc": {
+  "9j0cetcqgjtaf": {
     name: "XcmVersionedAssetId",
     path: "xcm,VersionedAssetId",
     type: [
@@ -3926,7 +3926,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  etl8s4bnnlm8n: {
+  "5lqhrmabiigof": {
     name: "RuntimeError",
     path: "polkadot_runtime,RuntimeError",
     type: [
@@ -4039,11 +4039,10 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
   annvvkuhf73hh: "NominationPoolsPalletCall",
   "4n17hls1edfih": "ReferendaPalletCall",
   "4iujedjoq34sc": "WhitelistPalletCall",
-  e61dae9rhc6h9: "TreasuryPalletCall",
-  bg4htetmc9ijl: "PolkadotRuntimeCommonImplsVersionedLocatableAsset",
-  "6g50r303ureo1": "XcmV3Junctions",
-  evr61550o2b5r: "XcmV3MultiassetAssetId",
-  "9kia9e3c30f2q": "XcmVersionedLocation",
+  "1q39env8llhck": "TreasuryPalletCall",
+  cc0rvpoin8ucr: "PolkadotRuntimeCommonImplsVersionedLocatableAsset",
+  "4cajo1lbs9cmt": "XcmV3MultiassetAssetId",
+  ap9sokavcmq5o: "XcmVersionedLocation",
   "5bn08pbgv7o6l": "PolkadotRuntimeParachainsConfigurationPalletCall",
   "9fihu1euvgfa": "PolkadotPrimitivesV6ExecutorParamsExecutorParam",
   c7d5cscq9c6gi: "PolkadotPrimitivesV6PvfPrepKind",
@@ -4052,12 +4051,12 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
   bta4mfoh73fpt: "PolkadotPrimitivesV6ValidDisputeStatementKind",
   "2vev2224bc186": "PolkadotRuntimeParachainsHrmpPalletCall",
   "9s7urueli180g": "PolkadotRuntimeParachainsAssignerOnDemandPalletCall",
-  bttqq10i7n2oi: "PolkadotRuntimeCommonParasSudoWrapperPalletCall",
-  "9do7mabokdub7": "XcmVersionedXcm",
-  "72g8jajh3f07q": "XcmV3Instruction",
-  "6tjgvbhdp6u37": "XcmV3Response",
-  "7kciqhufi9efg": "XcmV3MultiassetMultiAssetFilter",
-  cmduam81snutq: "XcmV3MultiassetWildMultiAsset",
+  "8tnfu4hpnpsg": "PolkadotRuntimeCommonParasSudoWrapperPalletCall",
+  m2dj93rjj6ks: "XcmVersionedXcm",
+  "8c614g2bc4iej": "XcmV3Instruction",
+  "7ffbrur6hobca": "XcmV3Response",
+  ukot04uppvug: "XcmV3MultiassetMultiAssetFilter",
+  "332pk9bjbk7p3": "XcmV3MultiassetWildMultiAsset",
   andndh150vhd7: "XcmV4Instruction",
   csmfdagrgtkj5: "XcmV4Response",
   biemf2h6nh9pa: "XcmV4AssetAssetFilter",
@@ -4067,22 +4066,22 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
   em08ilhcfie6v: "PolkadotRuntimeParachainsCoretimePalletCall",
   cgoc620vdl0ci: "BrokerCoretimeInterfaceCoreAssignment",
   depofgn4a4b4b: "XcmPalletCall",
-  euovokrvq9if6: "XcmVersionedAssets",
-  as92ddpgmu2iq: "XcmVersionedXcm1",
-  "9pburd1ur9ru2": "XcmV3Instruction1",
+  "7vujittrav0br": "XcmVersionedAssets",
+  "52jin2ovcpptk": "XcmVersionedXcm1",
+  "41ufdqotrjkho": "XcmV3Instruction1",
   ch16j3eggp2rk: "XcmV4Instruction1",
-  "1arg0adfjutke": "AssetRatePalletCall",
+  "85dm8mgt48css": "AssetRatePalletCall",
   "9rkc7eqejp3rj": "RootTestingPalletCall",
   "918ie8roegt3d": "BeefyPalletCall",
   "67t4bps9r5c4k": "PolkadotRuntimeCommonIdentityMigratorPalletCall",
-  f6gbfd96s6jd9: "TreasuryEvent",
+  "68cld6q6s1gvo": "TreasuryEvent",
   c4alvt16n58rg: "PolkadotRuntimeParachainsHrmpEvent",
   "9ct52rvkkel07": "PolkadotRuntimeParachainsAssignerOnDemandEvent",
   cn24k411b4s6t: "PolkadotRuntimeCommonAssignedSlotsEvent",
   "7t5v4k056sf3d": "PolkadotRuntimeParachainsCoretimeEvent",
-  ceudajfn32ki2: "XcmEvent",
+  "5ce1ru810vv9d": "XcmEvent",
   bnmfm52c5n7nq: "XcmV4TraitsOutcome",
-  "12mt5ojqi246n": "AssetRateEvent",
+  "890aui9hh0f9q": "AssetRateEvent",
   tofo38uukr3h: "RootTestingEvent",
   "43e3ummb3h5dn": "PolkadotRuntimeCommonIdentityMigratorEvent",
   "3bjnl897tu8j2": "PalletError",
@@ -4115,9 +4114,9 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
   eq0677kv2oqb2: "PolkadotRuntimeCommonParasSudoWrapperPalletError",
   "40te5bcfc046n": "PolkadotRuntimeCommonAssignedSlotsPalletError",
   "53h5rnv8hd3qi": "PolkadotRuntimeParachainsCoretimePalletError",
-  "2o3sscokodbdt": "XcmPalletQueryStatus",
-  "2usnldb1e5p8n": "XcmVersionedResponse",
-  "5v8ssv6fbnm1b": "XcmVersionedAssetId",
+  "1pja0i3r5p1gp": "XcmPalletQueryStatus",
+  "543plq9vh7s3m": "XcmVersionedResponse",
+  fou8ip7o6q00t: "XcmVersionedAssetId",
   "4s86iefmp2rcu": "XcmPalletError",
   "5iupade5ag2dp": "MessageQueuePalletError",
   "3qgd61cgli6cp": "AssetRatePalletError",
