@@ -20,6 +20,6 @@ export {
   AccountId,
   Binary,
   Enum,
-  EnumVariant,
+  type EnumVariant,
   _Enum,
 } from "@polkadot-api/substrate-bindings"
