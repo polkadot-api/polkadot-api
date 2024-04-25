@@ -130,13 +130,7 @@ export type Transaction<
   signAndSubmit: TxFunction<Asset>
   getEncodedData: TxCall
   getEstimatedFees: () => Promise<bigint>
-  decodedCall: {
-    type: Pallet
-    value: {
-      type: Name
-      value: Arg
-    }
-  }
+  decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
 }
 
 export interface TxEntry<
