@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-04-25
+
 ### Added
 
 - New type `EnumVariant<T, K>` to select one specific variant from an enum.

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.1 - 2024-04-25
+
+### Fixed
+
+- Upgraded to `smoldot@2.0.24`
+
 ## 0.3.0 - 2024-04-23
 
 ### Added
