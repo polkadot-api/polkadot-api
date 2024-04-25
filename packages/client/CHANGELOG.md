@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.5.2 - 2024-04-25
+
+### Fixed
+
+- Fixed types of `transaction['decodedCall']`
+
 ## 0.5.1 - 2024-04-25
 
 ### Fixed
