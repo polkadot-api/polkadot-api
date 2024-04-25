@@ -10,6 +10,7 @@ import {
   createCodec,
 } from "scale-ts"
 import { mapObject } from "@polkadot-api/utils"
+import { Enum } from "@/types/enum"
 
 type Tuple<T, N extends number> = readonly [T, ...T[]] & { length: N }
 
@@ -37,69 +38,12 @@ type RestrictedLenTuple<T, O extends StringRecord<any>> = Tuple<
   TuplifyUnion<keyof O> extends Tuple<any, infer V> ? V : 0
 >
 
-export type ExtractEnumValue<
-  T extends { type: string; value?: any },
-  K extends string,
-> = T extends { type: K; value: infer R } ? R : never
-
-export interface Discriminant<T extends { type: string; value?: any }> {
-  is<K extends T["type"]>(
-    this: Enum<T>,
-    type: K,
-  ): this is Enum<{ type: K; value: ExtractEnumValue<T, K> }>
-  as<K extends T["type"]>(type: K): ExtractEnumValue<T, K>
-}
-
-export type Enum<T extends { type: string; value?: any }> = T & Discriminant<T>
-
-export const _Enum = new Proxy(
-  {},
-  {
-    get(_, prop: string) {
-      return (value: string) => (Enum as any)(prop, value)
-    },
-  },
-)
-
-export const Enum: <
-  T extends { type: string; value?: any },
-  Key extends T["type"],
->(
-  type: Key,
-  ...args: ExtractEnumValue<T, Key> extends undefined
-    ? []
-    : [value: ExtractEnumValue<T, Key>]
-) => Enum<
-  ExtractEnumValue<T, Key> extends undefined
-    ? T
-    : ExtractEnumValue<T, Key> extends never
-      ? T
-      : {
-          type: Key
-          value: ExtractEnumValue<T, Key>
-        }
-> = ((_type: string, _value: any) => ({
-  as: (type: string) => {
-    if (type !== _type)
-      // TODO: fix error
-      throw new Error(`Enum.as(${type}) used with actual type ${_type}`)
-    return _value
-  },
-  is: (type: string) => type === _type,
-  type: _type,
-  value: _value,
-})) as any
-
 const VariantEnc = <O extends StringRecord<Encoder<any>>>(
   ...args: [inner: O, x?: RestrictedLenTuple<number, O>]
 ): Encoder<
-  Enum<
-    {
-      [K in keyof O]: K extends string
-        ? { type: K; value: EncoderType<O[K]> }
-        : never
-    }[keyof O]
-  >
+  Enum<{
+    [K in keyof O]: EncoderType<O[K]>
+  }>
 > => {
   const enc = ScaleEnum.enc<O>(...(args as [any, any]))
   return (v) => enc({ tag: v.type, value: v.value })
@@ -108,13 +52,9 @@ const VariantEnc = <O extends StringRecord<Encoder<any>>>(
 const VariantDec = <O extends StringRecord<Decoder<any>>>(
   ...args: [inner: O, x?: RestrictedLenTuple<number, O>]
 ): Decoder<
-  Enum<
-    {
-      [K in keyof O]: K extends string
-        ? { type: K; value: DecoderType<O[K]> }
-        : never
-    }[keyof O]
-  >
+  Enum<{
+    [K in keyof O]: DecoderType<O[K]>
+  }>
 > => {
   const dec = ScaleEnum.dec<O>(...(args as [any, any]))
   return (v) => {
@@ -127,13 +67,9 @@ export const Variant = <O extends StringRecord<Codec<any>>>(
   inner: O,
   ...args: [indexes?: RestrictedLenTuple<number, O>]
 ): Codec<
-  Enum<
-    {
-      [K in keyof O]: K extends string
-        ? { type: K; value: CodecType<O[K]> }
-        : never
-    }[keyof O]
-  >
+  Enum<{
+    [K in keyof O]: CodecType<O[K]>
+  }>
 > =>
   createCodec(
     VariantEnc(
@@ -142,13 +78,9 @@ export const Variant = <O extends StringRecord<Codec<any>>>(
       >,
       ...(args as any[]),
     ) as Encoder<
-      Enum<
-        {
-          [K in keyof O]: K extends string
-            ? { type: K; value: CodecType<O[K]> }
-            : never
-        }[keyof O]
-      >
+      Enum<{
+        [K in keyof O]: CodecType<O[K]>
+      }>
     >,
     VariantDec(
       mapObject(inner, ([, decoder]) => decoder) as StringRecord<
@@ -156,13 +88,9 @@ export const Variant = <O extends StringRecord<Codec<any>>>(
       >,
       ...(args as any[]),
     ) as Decoder<
-      Enum<
-        {
-          [K in keyof O]: K extends string
-            ? { type: K; value: CodecType<O[K]> }
-            : never
-        }[keyof O]
-      >
+      Enum<{
+        [K in keyof O]: CodecType<O[K]>
+      }>
     >,
   )
 

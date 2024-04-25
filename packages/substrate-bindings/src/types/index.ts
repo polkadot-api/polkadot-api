@@ -1,2 +1,2 @@
 export * from "./descriptors"
-export * from "./GetEnum"
+export * from "./enum"
