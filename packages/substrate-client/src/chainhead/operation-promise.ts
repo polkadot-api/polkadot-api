@@ -13,7 +13,7 @@ import { chainHead } from "@/methods"
 
 export const createOperationPromise =
   <I extends { operationId: string; event: string }, O, A extends Array<any>>(
-    operationName: () => string,
+    operationName: string,
     factory: (
       ...args: A
     ) => [
@@ -29,7 +29,7 @@ export const createOperationPromise =
   ) =>
     abortablePromiseFn<O, A>((res, rej, ...args) => {
       const [requestArgs, logicCb] = factory(...args)
-      let cancel = request(operationName(), requestArgs, {
+      let cancel = request(operationName, requestArgs, {
         onSuccess: (response, followSubscription) => {
           if (response.result === "limitReached") {
             cancel = noop
