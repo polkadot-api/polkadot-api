@@ -400,6 +400,40 @@ importers:
         specifier: ^20.11.19
         version: 20.11.19
 
+  packages/migrate-known-types:
+    dependencies:
+      '@polkadot-api/codegen':
+        specifier: workspace:*
+        version: link:../codegen
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/json-rpc-provider
+      '@polkadot-api/known-chains':
+        specifier: workspace:*
+        version: link:../known-chains
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/sm-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/sm-provider
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../substrate-client
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+      smoldot:
+        specifier: ^2.0.24
+        version: 2.0.24
+    devDependencies:
+      '@types/node':
+        specifier: ^20.11.19
+        version: 20.12.7
+
   packages/observable-client:
     dependencies:
       '@polkadot-api/metadata-builders':

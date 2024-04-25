@@ -1,0 +1,39 @@
+{
+  "name": "@polkadot-api/migrate-known-types",
+  "private": true,
+  "version": "0.0.0",
+  "author": "Victor Oliva (https://github.com/voliva)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polkdaot-api/polkadot-api.git"
+  },
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "tsup-node src/index.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/index.mjs\"",
+    "test": "echo 'no tests'",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "@polkadot-api/codegen": "workspace:*",
+    "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/known-chains": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
+    "@polkadot-api/sm-provider": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/utils": "workspace:*",
+    "smoldot": "^2.0.24"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19"
+  }
+}
