@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.3 - 2024-04-26
+
 ### Fixed
 
 - `pjs-signer`: [SignerPayloadJSON type mismatch - #499](https://github.com/polkadot-api/polkadot-api/issues/449).
