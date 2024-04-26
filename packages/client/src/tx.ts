@@ -66,36 +66,27 @@ const getTxSuccessFromSystemEvents = (
   return { ok, events }
 }
 
+type HintedSignExtensions<Asset> = Partial<
+  void extends Asset
+    ? {
+        tip: bigint
+        mortality: { mortal: false } | { mortal: true; period: number }
+      }
+    : {
+        tip: bigint
+        mortality: { mortal: false } | { mortal: true; period: number }
+        asset: Asset
+      }
+>
+
 type TxFunction<Asset> = (
   from: PolkadotSigner,
-  hintedSignExtensions?: Partial<
-    void extends Asset
-      ? {
-          tip: bigint
-          mortal: { mortal: false } | { mortal: true; period: number }
-        }
-      : {
-          tip: bigint
-          mortal: { mortal: false } | { mortal: true; period: number }
-          asset: Asset
-        }
-  >,
+  hintedSignExtensions?: HintedSignExtensions<Asset>,
 ) => Promise<TxFinalizedPayload>
 
 type TxObservable<Asset> = (
   from: PolkadotSigner,
-  hintedSignExtensions?: Partial<
-    void extends Asset
-      ? {
-          tip: bigint
-          mortal: { mortal: false } | { mortal: true; period: number }
-        }
-      : {
-          tip: bigint
-          mortal: { mortal: false } | { mortal: true; period: number }
-          asset: Asset
-        }
-  >,
+  hintedSignExtensions?: HintedSignExtensions<Asset>,
 ) => Observable<TxEvent>
 
 interface TxCall {
@@ -105,18 +96,7 @@ interface TxCall {
 
 type TxSigned<Asset> = (
   from: PolkadotSigner,
-  hintedSignExtensions?: Partial<
-    void extends Asset
-      ? {
-          tip: bigint
-          mortal: { mortal: false } | { mortal: true; period: number }
-        }
-      : {
-          tip: bigint
-          mortal: { mortal: false } | { mortal: true; period: number }
-          asset: Asset
-        }
-  >,
+  hintedSignExtensions?: HintedSignExtensions<Asset>,
 ) => Promise<string>
 
 export type Transaction<

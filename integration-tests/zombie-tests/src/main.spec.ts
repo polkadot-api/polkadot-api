@@ -156,7 +156,10 @@ describe("E2E", async () => {
           api.tx.Balances.transfer_allow_death({
             dest: MultiAddress.Id(to[idx]),
             value: ED,
-          }).signAndSubmit(from),
+          }).signAndSubmit(from, {
+            mortality: { mortal: true, period: 64 },
+            tip: 5n,
+          }),
         ),
       )
 
