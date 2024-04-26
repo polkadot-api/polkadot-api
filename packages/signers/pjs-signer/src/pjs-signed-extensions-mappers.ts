@@ -1,3 +1,4 @@
+import { HexString } from "@polkadot-api/substrate-bindings"
 import {
   Bytes,
   Struct,
@@ -13,6 +14,11 @@ type SignedExtension = {
   additionalSigned: Uint8Array
 }
 
+const toPjsHex = (value: number | bigint) => {
+  const inner = value.toString(16)
+  return "0x" + (inner.length % 2 ? "0" : "") + inner
+}
+
 export const CheckGenesis = ({
   additionalSigned,
 }: SignedExtension): { genesisHash: string } => ({
@@ -21,14 +27,14 @@ export const CheckGenesis = ({
 
 export const CheckNonce = ({
   value,
-}: SignedExtension): { nonce: number | bigint } => {
-  return { nonce: compact.dec(value) }
+}: SignedExtension): { nonce: HexString } => {
+  return { nonce: toPjsHex(compact.dec(value)) }
 }
 
 export const CheckTxVersion = ({
   additionalSigned,
-}: SignedExtension): { transactionVersion: number } => {
-  return { transactionVersion: u32.dec(additionalSigned) }
+}: SignedExtension): { transactionVersion: HexString } => {
+  return { transactionVersion: toPjsHex(u32.dec(additionalSigned)) }
 }
 
 const assetTxPaymentDec = Struct({
@@ -43,28 +49,34 @@ export const ChargeAssetTxPayment = ({
 
   return {
     ...(asset ? { assetId: toHex(asset) } : {}),
-    ...(tip > 0n ? { tip: "0x" + tip.toString(16) } : {}),
+    ...(tip > 0n ? { tip: toPjsHex(tip) } : {}),
   }
 }
 
 export const ChargeTransactionPayment = ({
   value,
-}: SignedExtension): { tip: string } => ({
-  tip: "0x" + compactBn.dec(value).toString(16),
+}: SignedExtension): { tip: HexString } => ({
+  tip: toPjsHex(compactBn.dec(value)),
 })
 
 export const CheckMortality = (
   { value, additionalSigned }: SignedExtension,
   blockNumber: number,
-) => {
-  const result: { era: string; blockHash: string; blockNumber?: number } = {
+): { era: HexString; blockHash: HexString; blockNumber?: HexString } => {
+  const result: {
+    era: HexString
+    blockHash: HexString
+    blockNumber?: HexString
+  } = {
     era: toHex(value),
     blockHash: toHex(additionalSigned),
   }
-  if (value.length > 1) result.blockNumber = blockNumber
+  if (value.length > 1) result.blockNumber = toPjsHex(blockNumber)
   return result
 }
 
-export const CheckSpecVersion = ({ additionalSigned }: SignedExtension) => ({
-  specVersion: u32.dec(additionalSigned),
+export const CheckSpecVersion = ({
+  additionalSigned,
+}: SignedExtension): { specVersion: HexString } => ({
+  specVersion: toPjsHex(u32.dec(additionalSigned)),
 })
