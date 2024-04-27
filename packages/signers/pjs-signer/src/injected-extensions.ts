@@ -67,16 +67,18 @@ export const connectInjectedExtension = async (
   const toPolkadotInjected = (
     accounts: InjectedAccount[],
   ): InjectedPolkadotAccount[] =>
-    accounts.map((x) => {
-      const polkadotSigner = getPolkadotSignerFromPjs(
-        getPublicKey(x.address),
-        signPayload,
-      )
-      return {
-        ...x,
-        polkadotSigner,
-      }
-    })
+    accounts
+      .filter((x) => ["ed25519", "sr25519", "ecdsa"].includes(x.type ?? ""))
+      .map((x) => {
+        const polkadotSigner = getPolkadotSignerFromPjs(
+          getPublicKey(x.address),
+          signPayload,
+        )
+        return {
+          ...x,
+          polkadotSigner,
+        }
+      })
 
   let currentAccounts: InjectedPolkadotAccount[] = toPolkadotInjected(
     await enabledExtension.accounts.get(),
