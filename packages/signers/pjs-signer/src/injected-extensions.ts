@@ -17,6 +17,11 @@ export type InjectedWeb3 = Record<
 >
 
 export type KeypairType = "ed25519" | "sr25519" | "ecdsa"
+const supportedAccountTypes = new Set<KeypairType>([
+  "ed25519",
+  "sr25519",
+  "ecdsa",
+])
 
 interface InjectedAccount {
   address: string
@@ -67,16 +72,18 @@ export const connectInjectedExtension = async (
   const toPolkadotInjected = (
     accounts: InjectedAccount[],
   ): InjectedPolkadotAccount[] =>
-    accounts.map((x) => {
-      const polkadotSigner = getPolkadotSignerFromPjs(
-        getPublicKey(x.address),
-        signPayload,
-      )
-      return {
-        ...x,
-        polkadotSigner,
-      }
-    })
+    accounts
+      .filter(({ type }) => supportedAccountTypes.has(type!))
+      .map((x) => {
+        const polkadotSigner = getPolkadotSignerFromPjs(
+          getPublicKey(x.address),
+          signPayload,
+        )
+        return {
+          ...x,
+          polkadotSigner,
+        }
+      })
 
   let currentAccounts: InjectedPolkadotAccount[] = toPolkadotInjected(
     await enabledExtension.accounts.get(),
