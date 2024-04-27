@@ -5,6 +5,7 @@
 ### Fixed
 
 - `polkadot-signer`: ignore unsupported account types
+- `chains`: fixed rococo-asset-hub chainSpec
 
 ## 0.5.3 - 2024-04-26
 
