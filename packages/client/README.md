@@ -72,6 +72,4 @@ const {
 console.log(`Transferrable amount: ${free - frozen}`)
 ```
 
-## Documentation
-
-Comming **very** soon!
+## [Documentation](https://polkadot-api.github.io/polkadot-api-docs/)

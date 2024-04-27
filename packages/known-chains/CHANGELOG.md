@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.3 - 2024-04-27
+
 ### Fixed
 
 - fixed rococo-asset-hub chainSpec
