@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.4 - 2024-04-27
+
 ### Fixed
 
 - `polkadot-signer`: ignore unsupported account types

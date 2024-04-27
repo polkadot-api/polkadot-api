@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.2 - 2024-04-27
+
+### Fixed
+
+- Ignore unsupported account types
+
 ## 0.1.1 - 2024-04-26
 
 ### Fixed
