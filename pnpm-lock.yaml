@@ -363,8 +363,8 @@ importers:
         version: link:../json-rpc-provider-proxy
     devDependencies:
       smoldot:
-        specifier: ^2.0.21
-        version: 2.0.24
+        specifier: 2.0.25
+        version: 2.0.25
 
   packages/json-rpc/ws-provider:
     dependencies:
@@ -467,8 +467,8 @@ importers:
   packages/smoldot:
     dependencies:
       smoldot:
-        specifier: 2.0.24
-        version: 2.0.24
+        specifier: 2.0.25
+        version: 2.0.25
     devDependencies:
       '@types/node':
         specifier: ^20.11.19
@@ -4142,8 +4142,8 @@ packages:
       is-fullwidth-code-point: 4.0.0
     dev: true
 
-  /smoldot@2.0.24:
-    resolution: {integrity: sha512-KUlpUTsUT+WzEZj1byc6YiJ0mAsxMaq53bkFNDa3H2R+sTxAnmtmz7OPg8o71gSDGnIo/S1KWWakBG6liNH86A==}
+  /smoldot@2.0.25:
+    resolution: {integrity: sha512-48fUFXWUQUTlf5dXIPhA4XCznBXqKwl6ir8wEWG9HUOd/U591VqcFgUJOs2lUQxTG53pY05PHez0CEk4aLpwAw==}
     dependencies:
       ws: 8.14.2
     transitivePeerDependencies:
