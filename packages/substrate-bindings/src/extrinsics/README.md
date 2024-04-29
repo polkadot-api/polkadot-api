@@ -254,7 +254,7 @@ To create an extrinsic, the following data is needed
 - `blockHash`, from any finalized block reported by [`chainHead_v1_follow`](https://paritytech.github.io/json-rpc-interface-spec/api/chainHead_v1_follow.html)
 - `nonce`, from storage `System.Account(AccountId32)` at a given finalized block
 - `blockNumber`, from storage `System.Number` at a given finalized block
-- `genesisHash`, from RPC [`chainHead_unstable_genesisHash`](https://paritytech.github.io/json-rpc-interface-spec/api/chainHead_unstable_genesisHash.html)
+- `genesisHash`, from RPC [`chainhead_v1_genesisHash`](https://paritytech.github.io/json-rpc-interface-spec/api/chainhead_v1_genesisHash.html)
 - `specVersion`, from `finalizedBlockRuntime.specVersion` reported by a `chainHead_v1_follow` event
 - `transactionVersion`, from `finalizedBlockRuntime.transactionVersion` reported by a `chainHead_v1_follow` event
 
@@ -264,9 +264,9 @@ This [sample code](https://stackblitz.com/edit/extrinsic-new-json-rpc-api?file=s
 
 # Accessing Storage
 
-The storage is a key-value database and it can be queried with the [`chainHead_unstable_storage`](https://paritytech.github.io/json-rpc-interface-spec/api/chainHead_unstable_storage.html) RPC.
+The storage is a key-value database and it can be queried with the [`chainhead_v1_storage`](https://paritytech.github.io/json-rpc-interface-spec/api/chainhead_v1_storage.html) RPC.
 
-[`chainHead_unstable_storage`](https://paritytech.github.io/json-rpc-interface-spec/api/chainHead_unstable_storage.html) needs
+[`chainhead_v1_storage`](https://paritytech.github.io/json-rpc-interface-spec/api/chainhead_v1_storage.html) needs
 
 - a finalized block hash reported by `chainHead_v1_follow`
 - a storage key to query

@@ -46,7 +46,7 @@ const chainHead = client.chainHead(
 )
 ```
 
-The handle provides one method per each of the functions defined inside `chainHead`: `chainHead_unstable_body`, `chainHead_unstable_call`, `chainHead_unstable_header`, `chainHead_unstable_storage`, and `chainHead_unstable_unpin`.
+The handle provides one method per each of the functions defined inside `chainHead`: `chainhead_v1_body`, `chainhead_v1_call`, `chainhead_v1_header`, `chainhead_v1_storage`, and `chainhead_v1_unpin`.
 
 The JSON-RPC Spec for chainHead specifies that these functions return an `operationId`, and that the resolved response for the call will come through the `chainHead_v1_follow` subscription, linking it through this `operationId`.
 
@@ -72,7 +72,7 @@ const chainHead = client.chainHead(
 
 #### header
 
-Calls `chainHead_unstable_call` and returns a promise that resolves with the SCALE-encoded header of the block
+Calls `chainhead_v1_call` and returns a promise that resolves with the SCALE-encoded header of the block
 
 ```ts
 const header = await chainHead.header(blockHash)
@@ -80,7 +80,7 @@ const header = await chainHead.header(blockHash)
 
 #### body
 
-Calls `chainHead_unstable_body` and returns a promise that will resolve with an array of strings containing the SCALE-encoded extrinsics found in the block
+Calls `chainhead_v1_body` and returns a promise that will resolve with an array of strings containing the SCALE-encoded extrinsics found in the block
 
 ```ts
 const body = await chainHead.body(blockHash)
@@ -88,7 +88,7 @@ const body = await chainHead.body(blockHash)
 
 #### call
 
-Calls `chainHead_unstable_header` and returns a promise that resolves with the encoded output of the runtime function call
+Calls `chainhead_v1_header` and returns a promise that resolves with the encoded output of the runtime function call
 
 ```ts
 const result = await chainHead.call(blockHash, fnName, callParameters)
@@ -96,7 +96,7 @@ const result = await chainHead.call(blockHash, fnName, callParameters)
 
 #### storage
 
-Calls `chainHead_unstable_storage` and returns a promise that resolves with the value returned by the JSON-RPC server, which depends on the `type` parameter. See the [JSON-RPC spec for chainHead_unstable_storage](https://paritytech.github.io/json-rpc-interface-spec/api/chainHead_unstable_storage.html) for the details on the usage.
+Calls `chainhead_v1_storage` and returns a promise that resolves with the value returned by the JSON-RPC server, which depends on the `type` parameter. See the [JSON-RPC spec for chainhead_v1_storage](https://paritytech.github.io/json-rpc-interface-spec/api/chainhead_v1_storage.html) for the details on the usage.
 
 ```ts
 // string with the SCALE-encoded value
@@ -157,7 +157,7 @@ const abort = chainHead.storageSubscription(
 
 #### unpin
 
-Calls `chainHead_unstable_unpin` and returns a promise that will resolve after the operation is done.
+Calls `chainhead_v1_unpin` and returns a promise that will resolve after the operation is done.
 
 ```ts
 chainHead.unpin(blockHashes)
