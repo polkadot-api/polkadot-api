@@ -1,8 +1,8 @@
 import { SubscriptionId, SubscriptionLogic } from "@/internal-types"
 
-const START_METHOD = "chainHead_unstable_follow"
-const STOP_METHOD = "chainHead_unstable_unfollow"
-const NOTIFICATION_METHOD = "chainHead_unstable_followEvent"
+const START_METHOD = "chainHead_v1_follow"
+const STOP_METHOD = "chainHead_v1_unfollow"
+const NOTIFICATION_METHOD = "chainHead_v1_followEvent"
 const ABORT_EVENT = "stop"
 
 const terminalEvents = new Set([

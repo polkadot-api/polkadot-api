@@ -32,7 +32,7 @@ All promise-returning functions exported by this package accept an [AbortSignal]
 
 Operations within the [`chainHead` group of functions](https://paritytech.github.io/json-rpc-interface-spec/api/chainHead.html) involve subscriptions and interdependencies between methods. The client has a function that simplifies the interaction with these group.
 
-Calling `client.chainHead(withRuntime, onFollowEvent, onFollowError)` will start a `chainHead_unstable_follow` subscription, and will return a handle to perform operations with the chainHead.
+Calling `client.chainHead(withRuntime, onFollowEvent, onFollowError)` will start a `chainHead_v1_follow` subscription, and will return a handle to perform operations with the chainHead.
 
 ```ts
 const chainHead = client.chainHead(
@@ -48,7 +48,7 @@ const chainHead = client.chainHead(
 
 The handle provides one method per each of the functions defined inside `chainHead`: `chainHead_unstable_body`, `chainHead_unstable_call`, `chainHead_unstable_header`, `chainHead_unstable_storage`, and `chainHead_unstable_unpin`.
 
-The JSON-RPC Spec for chainHead specifies that these functions return an `operationId`, and that the resolved response for the call will come through the `chainHead_unstable_follow` subscription, linking it through this `operationId`.
+The JSON-RPC Spec for chainHead specifies that these functions return an `operationId`, and that the resolved response for the call will come through the `chainHead_v1_follow` subscription, linking it through this `operationId`.
 
 **`substrate-client`'s chainHead is an abstraction over this**: The events emitted through the `client.chainHead()` callback are only the ones initiated from the JSON-RPC Server. The promise returned by any of the `chainHead`'s handle functions will resolve with the respective event.
 
