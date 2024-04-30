@@ -391,7 +391,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "7rhf8qtr526dr": {
+  "60a08att731k3": {
     name: "PolkadotRuntimeRuntimeCall",
     path: "polkadot_runtime,RuntimeCall",
     type: [
@@ -487,7 +487,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "77dbr1gubj25d": {
+  bis90opk1q3dv: {
     name: "SchedulerPalletCall",
     path: "pallet_scheduler,pallet,Call",
     type: [
@@ -939,7 +939,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "3qn2e5m9u3h6p": {
+  a61vpolk7ekct: {
     name: "WhitelistPalletCall",
     path: "pallet_whitelist,pallet,Call",
     type: [
@@ -989,7 +989,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "96cn0dq8vsorm": {
+  dhhvot7hsmg8r: {
     name: "UtilityPalletCall",
     path: "pallet_utility,pallet,Call",
     type: [
@@ -1103,7 +1103,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "3i4vchtb59b0s": {
+  "5i8b0g5f5hlhh": {
     name: "ProxyPalletCall",
     path: "pallet_proxy,pallet,Call",
     type: [
@@ -1137,7 +1137,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  egbb1pilpkeal: {
+  eoqrqg72vm1ue: {
     name: "MultisigPalletCall",
     path: "pallet_multisig,pallet,Call",
     type: [
@@ -1604,7 +1604,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "27ev92qgostl6": {
+  "31e92o4qn3nku": {
     name: "XcmPalletCall",
     path: "pallet_xcm,pallet,Call",
     type: [
@@ -2097,42 +2097,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  faq5qk07k96kk: {
-    name: "XcmV2Instruction1",
-    path: "xcm,v2,Instruction",
-    type: [
-      "Enum<",
-      "  | { type: 'WithdrawAsset'; value: Anonymize<Ia3ggl9eghkufh> }",
-      "  | { type: 'ReserveAssetDeposited'; value: Anonymize<Ia3ggl9eghkufh> }",
-      "  | { type: 'ReceiveTeleportedAsset'; value: Anonymize<Ia3ggl9eghkufh> }",
-      "  | { type: 'QueryResponse'; value: Anonymize<I7adp6ofrfskbq> }",
-      "  | { type: 'TransferAsset'; value: Anonymize<I55b7rvmacg132> }",
-      "  | { type: 'TransferReserveAsset'; value: Anonymize<I87p6gu1rs00b9> }",
-      "  | { type: 'Transact'; value: Anonymize<I61kq38r93nm9u> }",
-      "  | { type: 'HrmpNewChannelOpenRequest'; value: Anonymize<I5uhhrjqfuo4e5> }",
-      "  | { type: 'HrmpChannelAccepted'; value: Anonymize<Ifij4jam0o7sub> }",
-      "  | { type: 'HrmpChannelClosing'; value: Anonymize<Ieeb4svd9i8fji> }",
-      "  | { type: 'ClearOrigin'; value: undefined }",
-      "  | { type: 'DescendOrigin'; value: Anonymize<XcmV2MultilocationJunctions> }",
-      "  | { type: 'ReportError'; value: Anonymize<I99o59cf77uo81> }",
-      "  | { type: 'DepositAsset'; value: Anonymize<I2fdiqplld7l4b> }",
-      "  | { type: 'DepositReserveAsset'; value: Anonymize<I4e86ltq2coupq> }",
-      "  | { type: 'ExchangeAsset'; value: Anonymize<I8i9t5akp4s2qr> }",
-      "  | { type: 'InitiateReserveWithdraw'; value: Anonymize<I3rvvq2i351pp4> }",
-      "  | { type: 'InitiateTeleport'; value: Anonymize<I2eh04tsbsec6v> }",
-      "  | { type: 'QueryHolding'; value: Anonymize<Iih6kp60v9gan> }",
-      "  | { type: 'BuyExecution'; value: Anonymize<I2u6ut68eoldqa> }",
-      "  | { type: 'RefundSurplus'; value: undefined }",
-      "  | { type: 'SetErrorHandler'; value: Anonymize<I6gdh0i5feh6sm> }",
-      "  | { type: 'SetAppendix'; value: Anonymize<I6gdh0i5feh6sm> }",
-      "  | { type: 'ClearError'; value: undefined }",
-      "  | { type: 'ClaimAsset'; value: Anonymize<I60l7lelr2s5kd> }",
-      "  | { type: 'Trap'; value: Anonymize<bigint> }",
-      "  | { type: 'SubscribeVersion'; value: Anonymize<Ido2s48ntevurj> }",
-      "  | { type: 'UnsubscribeVersion'; value: undefined }",
-      ">",
-    ],
-  },
   "769uhag9pjttp": {
     name: "XcmV3Instruction1",
     path: "xcm,v3,Instruction",
@@ -2620,7 +2584,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       ">",
     ],
   },
-  "2b5jj3f5ebo54": {
+  "1s2t6elcah93o": {
     name: "PalletError",
     path: "frame_system,pallet,Error",
     type: [
@@ -4067,9 +4031,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
   cgoc620vdl0ci: "BrokerCoretimeInterfaceCoreAssignment",
   depofgn4a4b4b: "XcmPalletCall",
   "7vujittrav0br": "XcmVersionedAssets",
-  "52jin2ovcpptk": "XcmVersionedXcm1",
-  "41ufdqotrjkho": "XcmV3Instruction1",
-  ch16j3eggp2rk: "XcmV4Instruction1",
   "85dm8mgt48css": "AssetRatePalletCall",
   "9rkc7eqejp3rj": "RootTestingPalletCall",
   "918ie8roegt3d": "BeefyPalletCall",
