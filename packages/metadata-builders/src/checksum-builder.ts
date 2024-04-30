@@ -274,6 +274,46 @@ function iterateChecksums(
   return groupReadCache
 }
 
+function getMirroredNodes(
+  cyclicGroups: Array<Set<number>>,
+  graph: LookupGraph,
+) {
+  const maxSize = cyclicGroups.reduce(
+    (acc, group) => Math.max(acc, group.size),
+    0,
+  )
+  const allEntries = new Set([...graph.values()].map((v) => v.entry.id))
+
+  const resultingChecksums = iterateChecksums(
+    allEntries,
+    maxSize,
+    // Cache won't be used, since it's using the internal one for every node.
+    new Map(),
+    graph,
+  )
+
+  const checksumToNodes = new Map<bigint, number[]>()
+  for (const id of allEntries) {
+    const checksum = resultingChecksums.get(id)
+    if (checksum == undefined) throw new Error("Unreachable")
+    if (!checksumToNodes.has(checksum)) {
+      checksumToNodes.set(checksum, [])
+    }
+    checksumToNodes.get(checksum)!.push(id)
+  }
+
+  const checksumsWithDuplicates = [...checksumToNodes.entries()].filter(
+    ([, nodes]) => nodes.length > 1,
+  )
+
+  const duplicatesMap: Record<number, number[]> = {}
+  checksumsWithDuplicates.forEach(([, nodes]) => {
+    nodes.forEach((n) => (duplicatesMap[n] = nodes))
+  })
+
+  return duplicatesMap
+}
+
 const buildChecksum = (
   entry: LookupEntry,
   cache: Map<number, bigint>,
@@ -284,18 +324,31 @@ const buildChecksum = (
   const subGraph = getSubgraph(entry.id, graph)
 
   const cycles = getStronglyConnectedComponents(subGraph)
-  const cyclicGroups = mergeSCCsWithCommonNodes(cycles)
+  const cyclicGroups = mergeSCCsWithCommonNodes(cycles).filter((group) => {
+    // Exclude groups that were previously calculated
+    return !cache.has(group.values().next().value)
+  })
+  const mirrored = getMirroredNodes(cyclicGroups, subGraph)
   const sortedCyclicGroups = sortCyclicGroups(
-    cyclicGroups.filter((group) => {
-      // Exclude groups that were previously calculated
-      return !cache.has(group.values().next().value)
-    }),
+    cyclicGroups.filter((group) => group.size > 1),
     subGraph,
   )
 
   sortedCyclicGroups.forEach((group) => {
+    if (cache.has(group.values().next().value)) {
+      // exclude mirrored groups
+      return
+    }
+
     const result = iterateChecksums(group, group.size, cache, graph)
-    group.forEach((id) => cache.set(id, result.get(id)!))
+    group.forEach((id) => {
+      const checksum = result.get(id)!
+      if (id in mirrored) {
+        mirrored[id].forEach((id) => cache.set(id, checksum))
+      } else {
+        cache.set(id, checksum)
+      }
+    })
   })
 
   const getChecksum = (entry: LookupEntry) => {

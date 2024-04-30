@@ -247,22 +247,27 @@ describe("getChecksumBuilder properties", () => {
     expect(aChecksum).not.toEqual(optionChecksum)
   })
 
-  it.skip("can detect mirrored circular types", () => {
+  it("can detect mirrored circular types", () => {
     /**
      * Creating the following case
-     * a <=> b <- c
-     * where `a` and `c` are identical.
+     * d <=> a <=> b <- c <=> e
+     *
+     * where `a` and `c` are identical, and `d` and `e` are also identical.
      * In this case, `a` and `c` are mirrored. The cycle is in `a <=> b`, but
      * from the perspective of `c`, it's also going through a "loop" where it
      * goes to `b` and then another node which is identical to `c`.
      * Meaning `a` and `c` have to have the same checksum.
      */
+    const dId = lookupPush({
+      tag: "sequence",
+      value: 0,
+    })
     const aId = lookupPush({
       tag: "composite",
       value: [
         createCompositeEntry({
-          name: "id",
-          type: knownIds.u32,
+          name: "list",
+          type: dId,
         }),
         createCompositeEntry({
           name: "next",
@@ -270,6 +275,10 @@ describe("getChecksumBuilder properties", () => {
         }),
       ],
     })
+    const dDef = lookup[dId].def
+    if (dDef.tag === "sequence") {
+      dDef.value = aId
+    }
     const bId = lookupPush({
       tag: "variant",
       value: [
@@ -296,10 +305,30 @@ describe("getChecksumBuilder properties", () => {
       aDef.value[1].type = bId
     }
     const cId = lookupPush({
-      ...aDef,
+      tag: "composite",
+      value: [
+        createCompositeEntry({
+          name: "list",
+          type: 0,
+        }),
+        createCompositeEntry({
+          name: "next",
+          type: bId,
+        }),
+      ],
     })
+    const eId = lookupPush({
+      tag: "sequence",
+      value: cId,
+    })
+    const cDef = lookup[cId].def
+    if (cDef.tag === "composite") {
+      cDef.value[0].type = eId
+    }
+    const builder = getChecksumBuilder({ lookup } as any)
 
     expect(builder.buildDefinition(aId)).toEqual(builder.buildDefinition(cId))
+    expect(builder.buildDefinition(dId)).toEqual(builder.buildDefinition(eId))
   })
 
   it("gives the same checksum when there are circular references after multiple levels", () => {
