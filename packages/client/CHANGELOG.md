@@ -6,6 +6,10 @@
 
 - `client`: rename `watchBlockBlody` to `watchBlockBody`
 
+### Fixed
+
+- json-rpc-proxy: Ensure that the proxy works with all the known versions of the JSON-RPC spec
+
 ## 0.5.5 - 2024-04-29
 
 ### Fixed
