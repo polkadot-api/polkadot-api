@@ -247,6 +247,61 @@ describe("getChecksumBuilder properties", () => {
     expect(aChecksum).not.toEqual(optionChecksum)
   })
 
+  it.skip("can detect mirrored circular types", () => {
+    /**
+     * Creating the following case
+     * a <=> b <- c
+     * where `a` and `c` are identical.
+     * In this case, `a` and `c` are mirrored. The cycle is in `a <=> b`, but
+     * from the perspective of `c`, it's also going through a "loop" where it
+     * goes to `b` and then another node which is identical to `c`.
+     * Meaning `a` and `c` have to have the same checksum.
+     */
+    const aId = lookupPush({
+      tag: "composite",
+      value: [
+        createCompositeEntry({
+          name: "id",
+          type: knownIds.u32,
+        }),
+        createCompositeEntry({
+          name: "next",
+          type: 0,
+        }),
+      ],
+    })
+    const bId = lookupPush({
+      tag: "variant",
+      value: [
+        {
+          docs: [],
+          index: 0,
+          name: "Some",
+          fields: [
+            createCompositeEntry({
+              type: aId,
+            }),
+          ],
+        },
+        {
+          docs: [],
+          index: 1,
+          name: "None",
+          fields: [],
+        },
+      ],
+    })
+    const aDef = lookup[aId].def
+    if (aDef.tag === "composite") {
+      aDef.value[1].type = bId
+    }
+    const cId = lookupPush({
+      ...aDef,
+    })
+
+    expect(builder.buildDefinition(aId)).toEqual(builder.buildDefinition(cId))
+  })
+
   it("gives the same checksum when there are circular references after multiple levels", () => {
     const aId = lookupPush({
       tag: "sequence",

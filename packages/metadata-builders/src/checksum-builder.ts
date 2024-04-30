@@ -233,6 +233,47 @@ const sortCyclicGroups = (groups: Array<Set<number>>, graph: LookupGraph) => {
   return result
 }
 
+function iterateChecksums(
+  group: Set<number>,
+  iterations: number,
+  cache: Map<number, bigint>,
+  graph: LookupGraph,
+) {
+  // Keep the values that are getting changed on each iteration in a separate
+  // cache, because two nodes referencing the same one should read the same
+  // previous iteration checksum for that node.
+  const groupReadCache = new Map([...group].map((id) => [id, 0n]))
+  const groupWriteCache = new Map<number, bigint>()
+
+  const recursiveBuildChecksum = (
+    entry: LookupEntry,
+    // The first call has to skip the cache, otherwise it would return the
+    // previous iteration result.
+    skipCache = true,
+  ): bigint => {
+    if (!skipCache && (groupReadCache.has(entry.id) || cache.has(entry.id))) {
+      return groupReadCache.get(entry.id) ?? cache.get(entry.id)!
+    }
+    const result = _buildChecksum(entry, (nextEntry) =>
+      recursiveBuildChecksum(nextEntry, false),
+    )
+    if (group.has(entry.id)) {
+      groupWriteCache.set(entry.id, result)
+    } else {
+      cache.set(entry.id, result)
+    }
+    return result
+  }
+
+  for (let i = 0; i < iterations; i++) {
+    group.forEach((id) => recursiveBuildChecksum(graph.get(id)!.entry))
+
+    group.forEach((id) => groupReadCache.set(id, groupWriteCache.get(id)!))
+  }
+
+  return groupReadCache
+}
+
 const buildChecksum = (
   entry: LookupEntry,
   cache: Map<number, bigint>,
@@ -252,53 +293,17 @@ const buildChecksum = (
     subGraph,
   )
 
-  // separate writeCache since we might want to not override the current cache to ensure deterministic result regardless of order
-  const recursiveBuildChecksum = (
-    entry: LookupEntry,
-    writeCache: (id: number, value: bigint) => void,
-    // The first call has to skip the cache, otherwise it would return the
-    // previous iteration result.
-    skipCache = true,
-  ): bigint => {
-    if (!skipCache && cache.has(entry.id)) {
-      return cache.get(entry.id)!
-    }
-    const result = _buildChecksum(entry, (nextEntry) =>
-      recursiveBuildChecksum(nextEntry, writeCache, false),
-    )
-    writeCache(entry.id, result)
-    return result
-  }
-
   sortedCyclicGroups.forEach((group) => {
-    group.forEach((id) => cache.set(id, 0n))
-
-    // Keep the values that are getting changed on each iteration in a separate
-    // cache, because two nodes referencing the same one should read the same
-    // previous iteration checksum for that node.
-    const groupCache = new Map<number, bigint>(
-      Array.from(group.values()).map((id) => [id, 0n]),
-    )
-
-    for (let i = 0; i < group.size; i++) {
-      group.forEach((id) =>
-        recursiveBuildChecksum(subGraph.get(id)!.entry, (id, value) => {
-          // only store onto the actual cache results from other nodes
-          // cyclic nodes would depend on sorting order.
-          const cacheToWrite = group.has(id) ? groupCache : cache
-          cacheToWrite.set(id, value)
-        }),
-      )
-
-      group.forEach((id) => cache.set(id, groupCache.get(id)!))
-    }
+    const result = iterateChecksums(group, group.size, cache, graph)
+    group.forEach((id) => cache.set(id, result.get(id)!))
   })
 
-  return recursiveBuildChecksum(
-    entry,
-    (id, value) => cache.set(id, value),
-    false,
-  )
+  const getChecksum = (entry: LookupEntry) => {
+    if (cache.has(entry.id)) return cache.get(entry.id)!
+    return _buildChecksum(entry, getChecksum)
+  }
+
+  return getChecksum(entry)
 }
 
 export const getChecksumBuilder = (metadata: V14 | V15) => {
