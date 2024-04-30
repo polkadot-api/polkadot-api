@@ -9,6 +9,13 @@ import {
   VoidVar,
   getLookupFn,
 } from "./lookups"
+import {
+  LookupGraph,
+  buildLookupGraph,
+  getStronglyConnectedComponents,
+  getSubgraph,
+  mergeSCCsWithCommonNodes,
+} from "./lookup-graph"
 
 const textEncoder = new TextEncoder()
 const encodeText = textEncoder.encode.bind(textEncoder)
@@ -99,55 +106,6 @@ const structLikeBuilder = <T>(
   )
 
   return getChecksum([shapeId, keysChecksum, valuesChecksum])
-}
-
-type Graph = Map<number, [LookupEntry, Set<number>]>
-const buildGraph = (entry: LookupEntry, result: Graph = new Map()) => {
-  if (result.has(entry.id)) return result
-
-  switch (entry.type) {
-    case "array":
-    case "option":
-    case "sequence":
-      result.set(entry.id, [entry, new Set([entry.value.id])])
-      buildGraph(entry.value, result)
-      break
-    case "enum": {
-      const children = Object.values(entry.value).flatMap((value) => {
-        if (value.type === "void") return []
-        if (value.type === "lookupEntry") return value.value
-        if (value.type === "struct") return Object.values(value.value)
-        return value.value
-      })
-      result.set(entry.id, [entry, new Set(children.map((child) => child.id))])
-      children.forEach((child) => buildGraph(child, result))
-      break
-    }
-    case "result":
-      result.set(entry.id, [
-        entry,
-        new Set([entry.value.ok.id, entry.value.ko.id]),
-      ])
-      buildGraph(entry.value.ok, result)
-      buildGraph(entry.value.ko, result)
-      break
-    case "struct": {
-      const children = Object.values(entry.value)
-      result.set(entry.id, [entry, new Set(children.map((child) => child.id))])
-      children.forEach((child) => buildGraph(child, result))
-      break
-    }
-    case "tuple":
-      result.set(entry.id, [
-        entry,
-        new Set(entry.value.map((child) => child.id)),
-      ])
-      entry.value.forEach((child) => buildGraph(child, result))
-      break
-    default:
-      result.set(entry.id, [entry, new Set()])
-  }
-  return result
 }
 
 const _buildChecksum = (
@@ -242,102 +200,19 @@ const _buildChecksum = (
   })
 }
 
-const getCycles = (graph: Graph) => {
-  // Tarjan's strongly connected components
-  const tarjanState = new Map<
-    number,
-    {
-      index: number
-      lowLink: number
-      onStack: boolean
-    }
-  >()
-  let index = 0
-  const stack: number[] = []
-  const result: Array<Set<number>> = []
-
-  function strongConnect(v: number): void {
-    const state = {
-      index: index,
-      lowLink: index,
-      onStack: true,
-    }
-    tarjanState.set(v, state)
-    index++
-    stack.push(v)
-
-    const edges = graph.get(v)![1]
-    for (let w of edges) {
-      const edgeState = tarjanState.get(w)
-      if (!edgeState) {
-        strongConnect(w)
-        state.lowLink = Math.min(state.lowLink, tarjanState.get(w)!.lowLink)
-      } else if (edgeState.onStack) {
-        state.lowLink = Math.min(state.lowLink, edgeState.index)
-      }
-    }
-
-    if (state.lowLink === state.index) {
-      const component = new Set<number>()
-
-      let poppedNode = -1
-      do {
-        poppedNode = stack.pop()!
-        tarjanState.get(poppedNode)!.onStack = false
-        component.add(poppedNode)
-      } while (poppedNode !== v)
-
-      if (component.size > 1) result.push(component)
-    }
-  }
-
-  for (const node of graph.keys()) {
-    if (!tarjanState.has(node)) {
-      strongConnect(node)
-    }
-  }
-
-  return result
-}
-
-const getCyclicGroups = (cycles: Array<Set<number>>) => {
-  const ungroupedCycles = new Set(cycles.map((_, i) => i))
-  const edges = new Map(cycles.map((_, i) => [i, new Set<number>()]))
-  cycles.forEach((cycle, i) => {
-    cycles.slice(i + 1).forEach((otherCycle, _j) => {
-      const j = _j + i + 1
-      const combined = new Set([...cycle, ...otherCycle])
-      if (combined.size !== cycle.size + otherCycle.size) {
-        edges.get(i)!.add(j)
-        edges.get(j)!.add(i)
-      }
-    })
-  })
-  const groups: Array<Set<number>> = []
-
-  while (ungroupedCycles.size) {
-    const group = new Set<number>()
-    const toVisit = [ungroupedCycles.values().next().value]
-    while (toVisit.length) {
-      const idx = toVisit.pop()
-      if (!ungroupedCycles.has(idx)) continue
-      ungroupedCycles.delete(idx)
-
-      const cycle = cycles[idx]
-      cycle.forEach((v) => group.add(Number(v)))
-      edges.get(idx)!.forEach((n) => toVisit.push(n))
-    }
-    groups.push(group)
-  }
-
-  return groups
-}
-
-const sortCyclicGroups = (groups: Array<Set<number>>, graph: Graph) => {
+const sortCyclicGroups = (groups: Array<Set<number>>, graph: LookupGraph) => {
   const getReachableNodes = (group: Set<number>) => {
-    const first = group.values().next().value as number
-    const entry = graph.get(first)![0]
-    return Array.from(buildGraph(entry).keys())
+    const result = new Set<number>()
+    const toVisit = Array.from(group)
+    while (toVisit.length) {
+      const id = toVisit.pop()!
+      if (result.has(id)) continue
+      result.add(id)
+
+      graph.get(id)?.refs.forEach((id) => toVisit.push(id))
+    }
+
+    return Array.from(result)
   }
 
   const result: Array<Set<number>> = new Array()
@@ -358,25 +233,38 @@ const sortCyclicGroups = (groups: Array<Set<number>>, graph: Graph) => {
   return result
 }
 
-const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
+const buildChecksum = (
+  entry: LookupEntry,
+  cache: Map<number, bigint>,
+  graph: LookupGraph,
+) => {
   if (cache.has(entry.id)) return cache.get(entry.id)!
 
-  const graph = buildGraph(entry)
-  const cycles = getCycles(graph)
-  const cyclicGroups = getCyclicGroups(cycles)
-  const sortedCyclicGroups = sortCyclicGroups(cyclicGroups, graph)
+  const subGraph = getSubgraph(entry.id, graph)
+
+  const cycles = getStronglyConnectedComponents(subGraph)
+  const cyclicGroups = mergeSCCsWithCommonNodes(cycles)
+  const sortedCyclicGroups = sortCyclicGroups(
+    cyclicGroups.filter((group) => {
+      // Exclude groups that were previously calculated
+      return !cache.has(group.values().next().value)
+    }),
+    subGraph,
+  )
 
   // separate writeCache since we might want to not override the current cache to ensure deterministic result regardless of order
   const recursiveBuildChecksum = (
     entry: LookupEntry,
     writeCache: (id: number, value: bigint) => void,
-    skipCache = false,
+    // The first call has to skip the cache, otherwise it would return the
+    // previous iteration result.
+    skipCache = true,
   ): bigint => {
     if (!skipCache && cache.has(entry.id)) {
       return cache.get(entry.id)!
     }
     const result = _buildChecksum(entry, (nextEntry) =>
-      recursiveBuildChecksum(nextEntry, writeCache),
+      recursiveBuildChecksum(nextEntry, writeCache, false),
     )
     writeCache(entry.id, result)
     return result
@@ -384,37 +272,44 @@ const buildChecksum = (entry: LookupEntry, cache: Map<number, bigint>) => {
 
   sortedCyclicGroups.forEach((group) => {
     group.forEach((id) => cache.set(id, 0n))
+
+    // Keep the values that are getting changed on each iteration in a separate
+    // cache, because two nodes referencing the same one should read the same
+    // previous iteration checksum for that node.
+    const groupCache = new Map<number, bigint>(
+      Array.from(group.values()).map((id) => [id, 0n]),
+    )
+
     for (let i = 0; i < group.size; i++) {
-      const results = new Map<number, bigint>()
       group.forEach((id) =>
-        recursiveBuildChecksum(
-          graph.get(id)![0],
-          (id, value) => {
-            // only store onto the actual cache results from other nodes
-            // cyclic nodes would depend on sorting order.
-            const writeCache = group.has(id) ? results : cache
-            writeCache.set(id, value)
-          },
-          true,
-        ),
+        recursiveBuildChecksum(subGraph.get(id)!.entry, (id, value) => {
+          // only store onto the actual cache results from other nodes
+          // cyclic nodes would depend on sorting order.
+          const cacheToWrite = group.has(id) ? groupCache : cache
+          cacheToWrite.set(id, value)
+        }),
       )
-      Array.from(results.entries()).forEach(([id, checksum]) =>
-        cache.set(id, checksum),
-      )
+
+      group.forEach((id) => cache.set(id, groupCache.get(id)!))
     }
   })
 
-  return recursiveBuildChecksum(entry, (id, value) => cache.set(id, value))
+  return recursiveBuildChecksum(
+    entry,
+    (id, value) => cache.set(id, value),
+    false,
+  )
 }
 
 export const getChecksumBuilder = (metadata: V14 | V15) => {
   const lookupData = metadata.lookup
   const getLookupEntryDef = getLookupFn(lookupData)
+  const graph = buildLookupGraph(getLookupEntryDef, lookupData.length)
 
   const cache = new Map<number, bigint>()
 
   const buildDefinition = (id: number): bigint =>
-    buildChecksum(getLookupEntryDef(id), cache)
+    buildChecksum(getLookupEntryDef(id), cache, graph)
 
   const buildStorage = (pallet: string, entry: string): bigint | null => {
     try {

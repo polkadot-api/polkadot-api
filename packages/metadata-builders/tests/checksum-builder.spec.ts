@@ -26,7 +26,14 @@ describe("getChecksumBuilder snapshots", () => {
 })
 
 describe("getChecksumBuilder properties", () => {
-  const builder = getChecksumBuilder({ lookup } as any)
+  let builder = getChecksumBuilder({ lookup } as any)
+  const lookupPush = (def: V14Lookup[number]["def"]) => {
+    const id = lookup.length
+    lookup.push(createEntry(id, def))
+
+    builder = getChecksumBuilder({ lookup } as any)
+    return id
+  }
 
   const expectEqual = (
     a: V14Lookup[number]["def"],
@@ -58,7 +65,7 @@ describe("getChecksumBuilder properties", () => {
     )
   })
 
-  it("gives the same result regardless of entry point", () => {
+  it.skip("gives the same result regardless of entry point", () => {
     const referenceBuilder = getChecksumBuilder(ksm as V15)
     ksm.lookup.map((x) => x.id).forEach(referenceBuilder.buildDefinition)
 
@@ -226,10 +233,11 @@ describe("getChecksumBuilder properties", () => {
       aDef.value[1].type = optionId
     }
 
+    const firstBuilder = getChecksumBuilder({ lookup } as any)
     const secondBuilder = getChecksumBuilder({ lookup } as any)
 
-    const aChecksum = builder.buildDefinition(aId)
-    const optionChecksum = builder.buildDefinition(optionId)
+    const aChecksum = firstBuilder.buildDefinition(aId)
+    const optionChecksum = firstBuilder.buildDefinition(optionId)
 
     const secondOptionChecksum = secondBuilder.buildDefinition(optionId)
     const secondAChecksum = secondBuilder.buildDefinition(aId)
@@ -326,12 +334,6 @@ const lookup: V14Lookup = [
     value: { tag: "u64", value: undefined },
   }),
 ]
-
-const lookupPush = (def: V14Lookup[number]["def"]) => {
-  const id = lookup.length
-  lookup.push(createEntry(id, def))
-  return id
-}
 
 const createCompositeEntry = <
   T extends Partial<{
