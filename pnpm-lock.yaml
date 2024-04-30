@@ -349,9 +349,6 @@ importers:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
-      '@polkadot-api/json-rpc-provider-proxy':
-        specifier: workspace:*
-        version: link:../json-rpc-provider-proxy
 
   packages/json-rpc/sm-provider:
     dependencies:

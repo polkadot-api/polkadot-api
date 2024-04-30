@@ -1,58 +1,64 @@
 import { SubscriptionId, SubscriptionLogic } from "@/internal-types"
 
-const START_METHOD = "chainHead_unstable_follow"
-const STOP_METHOD = "chainHead_unstable_unfollow"
-const NOTIFICATION_METHOD = "chainHead_unstable_followEvent"
-const ABORT_EVENT = "stop"
-
-const terminalEvents = new Set([
-  ABORT_EVENT,
-  "operationInaccessible",
-  "operationError",
-])
+const [START_METHODS, STOP_METHODS, NOTIFICATION_METHODS] = [
+  "follow",
+  "unfollow",
+  "followEvent",
+].map(
+  (name) =>
+    new Set(
+      ["v1", "unstable"].map((version) => `chainHead_${version}_${name}`),
+    ),
+)
+const STOP_EVENT = "stop"
 
 export const chainHeadFollow = (
   onMessage: (msg: string) => void,
-): SubscriptionLogic => ({
-  onSent(parsed) {
-    if (parsed.method === START_METHOD)
-      return {
-        type: "subscribe",
-        id: parsed.id,
-        onRes: (innerParsed) =>
-          innerParsed.id === parsed.id ? { id: innerParsed.result } : null,
-      }
-
-    if (parsed.method === STOP_METHOD)
-      return {
-        type: "unsubscribe",
-        id: Object.values(parsed.params)[0] as string,
-      }
-
-    return null
-  },
-  onNotification(parsed) {
-    if (parsed.method !== NOTIFICATION_METHOD) return null
-
-    return terminalEvents.has(parsed.params.result.event)
-      ? {
-          type: "end",
-          id: parsed.params.subscription as SubscriptionId,
+): SubscriptionLogic => {
+  let notificationMethod = ""
+  return {
+    onSent(parsed) {
+      if (START_METHODS.has(parsed.method)) {
+        notificationMethod = parsed.method + "Event"
+        return {
+          type: "subscribe",
+          id: parsed.id,
+          onRes: (innerParsed) =>
+            innerParsed.id === parsed.id ? { id: innerParsed.result } : null,
         }
-      : null
-  },
-  onAbort: (id) => {
-    onMessage(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        method: NOTIFICATION_METHOD,
-        params: {
-          subscription: id,
-          result: {
-            event: ABORT_EVENT,
+      }
+
+      if (STOP_METHODS.has(parsed.method))
+        return {
+          type: "unsubscribe",
+          id: Object.values(parsed.params)[0] as string,
+        }
+
+      return null
+    },
+    onNotification(parsed) {
+      if (!NOTIFICATION_METHODS.has(parsed.method)) return null
+
+      return parsed.params.result.event === STOP_EVENT
+        ? {
+            type: "end",
+            id: parsed.params.subscription as SubscriptionId,
+          }
+        : null
+    },
+    onAbort: (id) => {
+      onMessage(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          method: notificationMethod,
+          params: {
+            subscription: id,
+            result: {
+              event: STOP_EVENT,
+            },
           },
-        },
-      }),
-    )
-  },
-})
+        }),
+      )
+    },
+  }
+}
