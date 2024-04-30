@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking
+
+- `client`: rename `watchBlockBlody` to `watchBlockBody`
+
 ## 0.5.5 - 2024-04-29
 
 ### Fixed

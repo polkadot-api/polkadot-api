@@ -132,7 +132,7 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     bestBlocks$: chainHead.bestBlocks$,
     getBestBlocks: () => firstValueFrom(chainHead.bestBlocks$),
 
-    watchBlockBlody: chainHead.body$,
+    watchBlockBody: chainHead.body$,
     getBlockBody: (hash: string) => firstValueFrom(chainHead.body$(hash)),
 
     getBlockHeader: (hash?: string) =>

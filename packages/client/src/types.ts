@@ -113,7 +113,7 @@ export interface PolkadotClient {
   bestBlocks$: Observable<BlockInfo[]>
   getBestBlocks: () => Promise<BlockInfo[]>
 
-  watchBlockBlody: (hash: string) => Observable<HexString[]>
+  watchBlockBody: (hash: string) => Observable<HexString[]>
   getBlockBody: (hash: string) => Promise<HexString[]>
 
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
