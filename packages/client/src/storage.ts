@@ -1,7 +1,7 @@
 import { firstValueFromWithSignal, raceMap } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { Observable, debounceTime, distinctUntilChanged, map } from "rxjs"
-import { ChainHead$ } from "@polkadot-api/observable-client"
+import { ChainHead$, NotBestBlockError } from "@polkadot-api/observable-client"
 import { CompatibilityHelper, IsCompatible } from "./runtime"
 
 type CallOptions = Partial<{
@@ -66,6 +66,7 @@ export const createStorageEntry = (
   chainHead: ChainHead$,
   compatibilityHelper: CompatibilityHelper,
 ): StorageEntry<any, any> => {
+  const isSystemNumber = pallet === "System" && name === "Number"
   const { isCompatible, waitChecksums, withCompatibleRuntime } =
     compatibilityHelper((ctx) => ctx.checksumBuilder.buildStorage(pallet, name))
 
@@ -75,11 +76,17 @@ export const createStorageEntry = (
     new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
   const watchValue = (...args: Array<any>) => {
-    const lastArg = args[args.length - 1]
+    const target = args[args.length - 1]
     const actualArgs =
-      lastArg === "best" || lastArg === "finalized" ? args.slice(0, -1) : args
+      target === "best" || target === "finalized" ? args.slice(0, -1) : args
 
-    return chainHead[lastArg === "best" ? "best$" : "finalized$"].pipe(
+    if (isSystemNumber)
+      return chainHead.bestBlocks$.pipe(
+        map((blocks) => blocks.at(target === "best" ? 0 : -1)!.number),
+        distinctUntilChanged(),
+      )
+
+    return chainHead[target === "best" ? "best$" : "finalized$"].pipe(
       debounceTime(0),
       withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
       raceMap(([block, ctx]) => {
@@ -101,23 +108,41 @@ export const createStorageEntry = (
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const isCompatible = await waitChecksums()
-    const result$ = chainHead.storage$(
-      at,
-      "value",
-      (ctx) => {
-        if (!isCompatible(ctx)) throw checksumError()
-        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
-        const actualArgs = args.length === codecs.len ? args : args.slice(0, -1)
-        if (args !== actualArgs && !isLastArgOptional) throw invalidArgs(args)
-        return codecs.enc(...actualArgs)
-      },
-      null,
-      (data, ctx) => {
-        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
-        return data === null ? codecs.fallback : codecs.dec(data)
-      },
-    )
+    let result$: Observable<any>
+    if (isSystemNumber) {
+      result$ = chainHead.bestBlocks$.pipe(
+        map((blocks) => {
+          if (at === "finalized" || !at) return blocks.at(-1)
+          if (at === "best") return blocks.at(0)
+          return blocks.find((block) => block.hash === at)
+        }),
+        map((block) => {
+          if (!block) throw new NotBestBlockError()
+          return block.number
+        }),
+        distinctUntilChanged(),
+      )
+    } else {
+      const isCompatible = await waitChecksums()
+      result$ = chainHead.storage$(
+        at,
+        "value",
+        (ctx) => {
+          if (!isCompatible(ctx)) throw checksumError()
+          const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+          const actualArgs =
+            args.length === codecs.len ? args : args.slice(0, -1)
+          if (args !== actualArgs && !isLastArgOptional) throw invalidArgs(args)
+          return codecs.enc(...actualArgs)
+        },
+        null,
+        (data, ctx) => {
+          const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+          return data === null ? codecs.fallback : codecs.dec(data)
+        },
+      )
+    }
+
     return firstValueFromWithSignal(result$, signal)
   }
 
