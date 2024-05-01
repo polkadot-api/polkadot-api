@@ -13,6 +13,8 @@
 ### Fixed
 
 - json-rpc-proxy: Ensure that the proxy works with all the known versions of the JSON-RPC spec
+- `cli/codegen`: `Anonymize` is now able to properly distinguish `Binary` types,
+  which were previously being anonymized as`FixedSizeBinary<number>`
 
 ## 0.5.5 - 2024-04-29
 

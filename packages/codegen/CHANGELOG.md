@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- `Anonymize` is now able to properly distinguish `Binary` types,
+  which were previously being anonymized as `FixedSizeBinary<number>`
+
 ## 0.3.0 - 2024-04-25
 
 ### Breaking
