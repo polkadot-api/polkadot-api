@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Breaking
+
+- lookup: Normalize `Enum.Variant([T,T,T,T])` into `Enum.Variant([4;T])`
+- checksum-builder: Detect mirror types, make them have equivalent checksums
+
 ## 0.2.0 - 2024-04-23
 
 ### Added
