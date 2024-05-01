@@ -6,6 +6,10 @@
 
 - `client`: rename `watchBlockBlody` to `watchBlockBody`
 
+### Changed
+
+- performance optimization: avoid creating a storage operation on `System.Number` storage entry.
+
 ### Fixed
 
 - json-rpc-proxy: Ensure that the proxy works with all the known versions of the JSON-RPC spec
