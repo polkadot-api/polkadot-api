@@ -5,6 +5,7 @@
 ### Breaking
 
 - `client`: rename `watchBlockBlody` to `watchBlockBody`
+- `getEstimatedFee` takes as input a PolkadotSigner and optionally the "hinted-sign-extensions"
 
 ### Changed
 
@@ -15,6 +16,7 @@
 - json-rpc-proxy: Ensure that the proxy works with all the known versions of the JSON-RPC spec
 - `cli/codegen`: `Anonymize` is now able to properly distinguish `Binary` types,
   which were previously being anonymized as`FixedSizeBinary<number>`
+- `getEstimatedFee` now uses the more comon runtime-call: `TransactionPaymentApi_query_info`
 
 ## 0.5.5 - 2024-04-29
 
