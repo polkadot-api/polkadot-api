@@ -31,9 +31,12 @@ export const getCreateTx = (
           from: signer.publicKey,
         }
 
-        const mortality = hinted?.mortality?.mortal
-          ? { period: hinted.mortality.period, blockNumber: atBlock.number }
-          : undefined
+        const mortality: Parameters<typeof CheckMortality>[0] =
+          !hinted?.mortality
+            ? { period: 64, blockNumber: atBlock.number }
+            : hinted.mortality.mortal
+              ? { period: hinted.mortality.period, blockNumber: atBlock.number }
+              : undefined // immortal
 
         return combineLatest(
           ctx.metadata.extrinsic.signedExtensions.map(
