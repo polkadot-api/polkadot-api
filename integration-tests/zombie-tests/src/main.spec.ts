@@ -33,6 +33,8 @@ const ED = 10_000_000_000n
 
 console.log("got the chainspec")
 
+const FEE_VARIATION_TOLERANCE = 1_000_000n
+
 describe("E2E", async () => {
   console.log("starting the client")
   const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
@@ -95,10 +97,26 @@ describe("E2E", async () => {
     const aliceTransfer = api.tx.Utility.batch_all({ calls: calls.slice(0, 2) })
     const bobTransfer = api.tx.Utility.batch_all({ calls: calls.slice(2) })
 
-    await Promise.all(
+    const [aliceEstimatedFee, bobEstimatedFee] = await Promise.all(
       [aliceTransfer, bobTransfer].map((call, idx) =>
-        call.signAndSubmit(idx === 0 ? alice : bob),
+        call.getEstimatedFees(idx === 0 ? alice : bob),
       ),
+    )
+
+    const [aliceActualFee, bobActualFee] = await Promise.all(
+      [aliceTransfer, bobTransfer].map(async (call, idx) => {
+        const result = await call.signAndSubmit(idx === 0 ? alice : bob)
+        const [{ actual_fee }] =
+          api.event.TransactionPayment.TransactionFeePaid.filter(result.events)
+        return actual_fee
+      }),
+    )
+
+    expect(aliceEstimatedFee / FEE_VARIATION_TOLERANCE).toEqual(
+      aliceActualFee / FEE_VARIATION_TOLERANCE,
+    )
+    expect(bobEstimatedFee / FEE_VARIATION_TOLERANCE).toEqual(
+      bobActualFee / FEE_VARIATION_TOLERANCE,
     )
 
     const [alicePostNonce, bobPostNonce] = await Promise.all(

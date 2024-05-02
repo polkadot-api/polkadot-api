@@ -3,13 +3,13 @@ import {
   Binary,
   Enum,
   HexString,
-  Option,
   Tuple,
   compact,
   u128,
   u32,
+  u8,
 } from "@polkadot-api/substrate-bindings"
-import { mergeUint8, toHex } from "@polkadot-api/utils"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   Observable,
   concat,
@@ -36,6 +36,7 @@ import {
   getRuntimeContext,
 } from "./runtime"
 import { PolkadotSigner } from "../../signers/polkadot-signer/dist/index.mjs"
+import { getPolkadotSigner } from "@polkadot-api/signer"
 
 export type TxBroadcastEvent =
   | { type: "broadcasted" }
@@ -109,7 +110,10 @@ export type Transaction<
   signSubmitAndWatch: TxObservable<Asset>
   signAndSubmit: TxFunction<Asset>
   getEncodedData: TxCall
-  getEstimatedFees: () => Promise<bigint>
+  getEstimatedFees: (
+    from: PolkadotSigner,
+    hintedSignExtensions?: HintedSignExtensions<Asset>,
+  ) => Promise<bigint>
   decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
 }
 
@@ -191,7 +195,10 @@ export const getSubmitFns = (
   return { submit$, submit }
 }
 
-const feeDetailsDec = Option(Tuple(u128, u128, u128)).dec
+const queryInfoRawDec = Tuple(compact, compact, u8, u128).dec
+const queryInfoDec = (input: string): bigint => queryInfoRawDec(input)[3]
+const fakeSignature = new Uint8Array(64)
+const getFakeSignature = () => fakeSignature
 
 export const createTxEntry = <
   Arg extends {} | undefined,
@@ -280,22 +287,19 @@ export const createTxEntry = <
         }),
       )
 
-    const getEstimatedFees = async () => {
-      const encoded = (await getEncodedData()).asBytes()
-      const preLen = encoded.length + 103 // TODO: `103` accounts for the extra aprox length that it's added into the extrinsic once it's signed. In the future we should improve this.
-      const len = preLen + compact.enc(preLen).length
-      const args = toHex(mergeUint8(encoded, u32.enc(len)))
+    const getEstimatedFees = async (from: PolkadotSigner, _hinted?: any) => {
+      const fakeSigner = getPolkadotSigner(
+        from.publicKey,
+        "Sr25519",
+        getFakeSignature,
+      )
+      const encoded = fromHex(await sign(fakeSigner, _hinted))
+      const args = toHex(mergeUint8(encoded, u32.enc(encoded.length)))
 
       return firstValueFrom(
         chainHead
-          .call$(null, "TransactionPaymentCallApi_query_call_fee_details", args)
-          .pipe(
-            map((x) => {
-              const result = feeDetailsDec(x)
-              if (!result) throw new Error("Unable to calculate tx fees")
-              return result.reduce((a, b) => a + b)
-            }),
-          ),
+          .call$(null, "TransactionPaymentApi_query_info", args)
+          .pipe(map(queryInfoDec)),
       )
     }
 
