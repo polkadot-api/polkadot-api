@@ -17,6 +17,7 @@
 - `cli/codegen`: `Anonymize` is now able to properly distinguish `Binary` types,
   which were previously being anonymized as`FixedSizeBinary<number>`
 - `getEstimatedFee` now uses the more comon runtime-call: `TransactionPaymentApi_query_info`
+- `pjs-signer`: Ensure blockNumber in SignerPayloadJSON
 
 ## 0.5.5 - 2024-04-29
 
