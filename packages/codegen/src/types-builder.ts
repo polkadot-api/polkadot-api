@@ -5,6 +5,7 @@ import {
   getChecksumBuilder,
   TupleVar,
   StructVar,
+  ArrayVar,
 } from "@polkadot-api/metadata-builders"
 import { withCache } from "./with-cache"
 import { mapObject } from "@polkadot-api/utils"
@@ -86,7 +87,7 @@ const _buildSyntax = (
   cache: Map<number, TypeForEntry>,
   stack: Set<number>,
   declarations: CodeDeclarations,
-  getChecksum: (id: number | StructVar | TupleVar) => string | null,
+  getChecksum: (id: number | StructVar | TupleVar | ArrayVar) => string | null,
   knownTypes: Record<string, string>,
 ): TypeForEntry => {
   const addImport = (entry: TypeForEntry) => {
@@ -290,8 +291,16 @@ const _buildSyntax = (
 
     let innerChecksum = getChecksum(value)!
 
-    const builder = value.type === "tuple" ? buildTuple : buildStruct
-    const inner = builder(innerChecksum, value.value as any)
+    const inner = (() => {
+      switch (value.type) {
+        case "array":
+          return buildArray(innerChecksum, value.value, value.len)
+        case "struct":
+          return buildStruct(innerChecksum, value.value)
+        case "tuple":
+          return buildTuple(innerChecksum, value.value)
+      }
+    })()
     addImport(inner)
     return anonymize(inner.type)
   })
@@ -332,7 +341,7 @@ export const getTypesBuilder = (
   const getLookupEntryDef = getLookupFn(lookupData)
   const checksumBuilder = getChecksumBuilder(metadata)
 
-  const getChecksum = (id: number | StructVar | TupleVar): string =>
+  const getChecksum = (id: number | StructVar | TupleVar | ArrayVar): string =>
     typeof id === "number"
       ? checksumBuilder.buildDefinition(id)!
       : checksumBuilder.buildComposite(id)!

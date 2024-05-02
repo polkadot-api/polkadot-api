@@ -4,7 +4,7 @@ import {
   XcmV3MultiassetAssetId,
   XcmV3MultiassetFungibility,
   XcmV3WeightLimit,
-  XcmV4Junction,
+  XcmV3Junction,
   XcmVersionedAssets,
   XcmVersionedLocation,
 } from "@polkadot-api/descriptors"
@@ -18,7 +18,7 @@ const getBeneficiary = (address: SS58String) =>
   XcmVersionedLocation.V3({
     parents: 0,
     interior: XcmV3Junctions.X1(
-      XcmV4Junction.AccountId32({
+      XcmV3Junction.AccountId32({
         network: undefined,
         id: Binary.fromBytes(encodeAccount(address)),
       }),
@@ -40,7 +40,7 @@ export const teleportToParaChain = (address: SS58String, amount: bigint) =>
   relayChainApi.tx.XcmPallet.limited_teleport_assets({
     dest: XcmVersionedLocation.V3({
       parents: 0,
-      interior: XcmV3Junctions.X1(XcmV4Junction.Parachain(PARACHAIN_ID)),
+      interior: XcmV3Junctions.X1(XcmV3Junction.Parachain(PARACHAIN_ID)),
     }),
     beneficiary: getBeneficiary(address),
     assets: getNativeAsset(amount, 0),

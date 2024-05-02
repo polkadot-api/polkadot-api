@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking
+
+- [Deduplicate equivalent known types](https://github.com/polkadot-api/polkadot-api/pull/448)
+
 ### Fixed
 
 - `Anonymize` is now able to properly distinguish `Binary` types,

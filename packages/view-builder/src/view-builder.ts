@@ -163,7 +163,9 @@ const _buildShapedDecoder = (
     }
     return v.type === "tuple"
       ? buildTuple(v.value, v.innerDocs)
-      : buildStruct(v.value, v.innerDocs)
+      : v.type === "array"
+        ? buildVector(v.value, v.len)
+        : buildStruct(v.value, v.innerDocs)
   })
 
   const inner = Object.fromEntries(
@@ -277,11 +279,13 @@ export const getViewBuilder: GetViewBuilder = (metadata: V15 | V14) => {
         ? complex.Tuple(
             ...Object.values(entry.value).map((l) => getDecoder(l.id)),
           )
-        : complex.Struct(
-            mapObject(entry.value, (x) =>
-              getDecoder(x.id),
-            ) as StringRecord<ShapedDecoder>,
-          )
+        : entry.type === "array"
+          ? complex.Array(getDecoder(entry.value.id), entry.len)
+          : complex.Struct(
+              mapObject(entry.value, (x) =>
+                getDecoder(x.id),
+              ) as StringRecord<ShapedDecoder>,
+            )
     },
   )
 

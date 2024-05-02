@@ -2,6 +2,7 @@
   "name": "bun",
   "module": "index.ts",
   "type": "module",
+  "private": true,
   "scripts": {
     "build": "../../packages/cli/dist/main.js",
     "lightclient": "bun run ./src/lightclient.ts",

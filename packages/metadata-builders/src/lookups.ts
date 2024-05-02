@@ -58,6 +58,7 @@ export type EnumVar = {
       | VoidVar
       | TupleVar
       | StructVar
+      | ArrayVar
     ) & { idx: number }
   >
   innerDocs: StringRecord<string[]>
@@ -266,19 +267,32 @@ export const getLookupFn = (lookupData: V14Lookup) => {
           innerDocs[key] = x.docs
         })
 
-        enumValue[key] = allKey
-          ? {
-              type: "struct",
-              value: values as StringRecord<LookupEntry>,
-              innerDocs: innerDocs as StringRecord<string[]>,
-              idx: x.index,
-            }
-          : {
-              type: "tuple",
-              value: Object.values(values),
-              innerDocs: Object.values(innerDocs),
-              idx: x.index,
-            }
+        if (allKey) {
+          enumValue[key] = {
+            type: "struct",
+            value: values as StringRecord<LookupEntry>,
+            innerDocs: innerDocs as StringRecord<string[]>,
+            idx: x.index,
+          }
+        } else {
+          const valuesArr = Object.values(values)
+          const innerDocsArr = Object.values(innerDocs)
+          const areAllSame = valuesArr.every((v) => v.id === valuesArr[0].id)
+          enumValue[key] =
+            areAllSame && innerDocsArr.every((doc) => doc.length === 0)
+              ? {
+                  type: "array",
+                  value: valuesArr[0],
+                  len: valuesArr.length,
+                  idx: x.index,
+                }
+              : {
+                  type: "tuple",
+                  value: valuesArr,
+                  innerDocs: innerDocsArr,
+                  idx: x.index,
+                }
+        }
       })
 
       return {

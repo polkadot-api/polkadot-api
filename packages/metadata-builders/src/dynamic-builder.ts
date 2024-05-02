@@ -73,9 +73,18 @@ const _buildCodec = (
 
   // it has to be an enum by now
   const dependencies = Object.values(input.value).map((v) => {
-    if (v.type === "void") return scale._void
-    if (v.type === "lookupEntry") return buildNextCodec(v.value)
-    return v.type === "tuple" ? buildTuple(v.value) : buildStruct(v.value)
+    switch (v.type) {
+      case "void":
+        return scale._void
+      case "lookupEntry":
+        return buildNextCodec(v.value)
+      case "tuple":
+        return buildTuple(v.value)
+      case "struct":
+        return buildStruct(v.value)
+      case "array":
+        return buildVector(v.value, v.len)
+    }
   })
 
   const inner = Object.fromEntries(
@@ -169,17 +178,24 @@ export const getDynamicBuilder = (metadata: V14 | V15) => {
   const buildEnumEntry = (
     entry: EnumVar["value"][keyof EnumVar["value"]],
   ): Codec<any> => {
-    if (entry.type === "void") return scale._void
-    if (entry.type === "lookupEntry") return buildDefinition(entry.value.id)
-    return entry.type === "tuple"
-      ? scale.Tuple(
+    switch (entry.type) {
+      case "void":
+        return scale._void
+      case "lookupEntry":
+        return buildDefinition(entry.value.id)
+      case "tuple":
+        return scale.Tuple(
           ...Object.values(entry.value).map((l) => buildDefinition(l.id)),
         )
-      : scale.Struct(
+      case "struct":
+        return scale.Struct(
           mapObject(entry.value, (x) => buildDefinition(x.id)) as StringRecord<
             Codec<any>
           >,
         )
+      case "array":
+        return scale.Vector(buildDefinition(entry.value.id), entry.len)
+    }
   }
 
   const buildConstant = (pallet: string, constantName: string) => {
