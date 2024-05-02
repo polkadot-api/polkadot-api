@@ -62,18 +62,11 @@ export const ChargeTransactionPayment = ({
 export const CheckMortality = (
   { value, additionalSigned }: SignedExtension,
   blockNumber: number,
-): { era: HexString; blockHash: HexString; blockNumber?: HexString } => {
-  const result: {
-    era: HexString
-    blockHash: HexString
-    blockNumber?: HexString
-  } = {
-    era: toHex(value),
-    blockHash: toHex(additionalSigned),
-  }
-  if (value.length > 1) result.blockNumber = toPjsHex(blockNumber)
-  return result
-}
+): { era: HexString; blockHash: HexString; blockNumber: HexString } => ({
+  era: toHex(value),
+  blockHash: toHex(additionalSigned),
+  blockNumber: toPjsHex(blockNumber),
+})
 
 export const CheckSpecVersion = ({
   additionalSigned,
