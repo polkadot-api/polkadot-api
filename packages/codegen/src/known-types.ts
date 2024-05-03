@@ -13,29 +13,12 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["sp_runtime.generic.digest.DigestItem"],
     type: "Enum(PreRuntime, Consensus, Seal, Other, RuntimeEnvironmentUpdated)",
   },
-  "15jjq0jj438cq": {
-    name: "PalletEvent",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["frame_system.pallet.Event"],
-    type: "Enum(ExtrinsicSuccess, ExtrinsicFailed, CodeUpdated, NewAccount, KilledAccount, Remarked, UpgradeAuthorized)",
-  },
   "90bksimft5ia2": {
     name: "DispatchClass",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["frame_support.dispatch.DispatchClass"],
     type: "Enum(Normal, Operational, Mandatory)",
-  },
-  ehg04bj71rkd: {
-    name: "",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: [
-      "frame_support.dispatch.Pays",
-      "polkadot_runtime_parachains.paras.SetGoAhead",
-    ],
-    type: "Enum(Yes, No)",
   },
   edh5jo3t7dgka: {
     name: "DispatchError",
@@ -65,13 +48,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["sp_runtime.TransactionalError"],
     type: "Enum(LimitReached, NoLayer)",
   },
-  ao8h4hv7atnq3: {
-    name: "BalancesEvent",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_balances.pallet.Event"],
-    type: "Enum(Endowed, DustLost, Transfer, BalanceSet, Reserved, Unreserved, ReserveRepatriated, Deposit, Withdraw, Slashed, Minted, Burned, Suspended, Restored, Upgraded, Issued, Rescinded, Locked, Unlocked, Frozen, Thawed, TotalIssuanceForced)",
-  },
   "7u481jea1442o": {
     name: "BalanceStatus",
     chains:
@@ -92,13 +68,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["pallet_session.pallet.Event"],
     type: "Enum(NewSession)",
-  },
-  "5ce1ru810vv9d": {
-    name: "XcmEvent",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_xcm.pallet.Event"],
-    type: "Enum(Attempted, Sent, UnexpectedResponse, ResponseReady, Notified, NotifyOverweight, NotifyDispatchError, NotifyDecodeFailed, InvalidResponder, InvalidResponderVersion, ResponseTaken, AssetsTrapped, VersionChangeNotified, SupportedVersionChanged, NotifyTargetSendFail, NotifyTargetMigrationFail, InvalidQuerierVersion, InvalidQuerier, VersionNotifyStarted, VersionNotifyRequested, VersionNotifyUnrequested, FeesPaid, AssetsClaimed, VersionMigrationFinished)",
   },
   bnmfm52c5n7nq: {
     name: "XcmV4TraitsOutcome",
@@ -327,12 +296,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_preimage.pallet.Event"],
     type: "Enum(Noted, Requested, Cleared)",
   },
-  cvnn3223kutus: {
-    name: "SchedulerEvent",
-    chains: "polkadot, polkadot.collectives, kusama",
-    paths: ["pallet_scheduler.pallet.Event"],
-    type: "Enum(Scheduled, Canceled, Dispatched, CallUnavailable, PeriodicFailed, PermanentlyOverweight)",
-  },
   "890aui9hh0f9q": {
     name: "AssetRateEvent",
     chains:
@@ -354,39 +317,12 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_vesting.Releases", "pallet_alliance.types.Version"],
     type: "Enum(V0, V1)",
   },
-  // "28aoa43r171jt": {
-  //   name: "ReferendaEvent",
-  //   chains: "polkadot.collectives, kusama, rococo, westend.collectives",
-  //   paths: ["pallet_referenda.pallet.Event"],
-  //   type: "Enum(Submitted, DecisionDepositPlaced, DecisionDepositRefunded, DepositSlashed, DecisionStarted, ConfirmStarted, ConfirmAborted, Confirmed, Approved, Rejected, TimedOut, Cancelled, Killed, SubmissionDepositRefunded, MetadataSet, MetadataCleared)",
-  // },
   cgde8bg5ldqpa: {
     name: "PreimagesBounded",
     chains:
       "polkadot, polkadot.collectives, kusama, rococo, westend, westend.collectives",
     paths: ["frame_support.traits.preimages.Bounded"],
     type: "Enum(Legacy, Inline, Lookup)",
-  },
-  ekve0i6djpd9f: {
-    name: "PalletCall",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["frame_system.pallet.Call"],
-    type: "Enum(remark, set_heap_pages, set_code, set_code_without_checks, set_storage, kill_storage, kill_prefix, remark_with_event, authorize_upgrade, authorize_upgrade_without_checks, apply_authorized_upgrade)",
-  },
-  "7d75gqfg6jh9c": {
-    name: "TimestampPalletCall",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_timestamp.pallet.Call"],
-    type: "Enum(set)",
-  },
-  "68md1shlobg68": {
-    name: "BalancesPalletCall",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_balances.pallet.Call"],
-    type: "Enum(transfer_allow_death, force_transfer, transfer_keep_alive, transfer_all, force_unreserve, upgrade_accounts, force_set_balance, force_adjust_total_issuance)",
   },
   "5a3qnpcq081o6": {
     name: "MultiAddress",
@@ -401,20 +337,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["pallet_balances.types.AdjustmentDirection"],
     type: "Enum(Increase, Decrease)",
-  },
-  "77dda7hps0u37": {
-    name: "SessionPalletCall",
-    chains:
-      "polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo.assetHub, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_session.pallet.Call"],
-    type: "Enum(set_keys, purge_keys)",
-  },
-  "31e92o4qn3nku": {
-    name: "XcmPalletCall",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub",
-    paths: ["pallet_xcm.pallet.Call"],
-    type: "Enum(send, teleport_assets, reserve_transfer_assets, execute, force_xcm_version, force_default_xcm_version, force_subscribe_version_notify, force_unsubscribe_version_notify, limited_reserve_transfer_assets, limited_teleport_assets, force_suspension, transfer_assets, claim_assets)",
   },
   m2dj93rjj6ks: {
     name: "XcmVersionedXcm",
@@ -507,33 +429,12 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_xcm.pallet.Origin"],
     type: "Enum(Xcm, Response)",
   },
-  f81ks88t5mpk5: {
-    name: "PreimagePalletCall",
-    chains:
-      "polkadot, polkadot.collectives, kusama, rococo, westend, westend.collectives",
-    paths: ["pallet_preimage.pallet.Call"],
-    type: "Enum(note_preimage, unnote_preimage, request_preimage, unrequest_preimage, ensure_updated)",
-  },
-  "85dm8mgt48css": {
-    name: "AssetRatePalletCall",
-    chains:
-      "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
-    paths: ["pallet_asset_rate.pallet.Call"],
-    type: "Enum(create, update, remove)",
-  },
   e3otks9vj8a3b: {
     name: "TraitsScheduleDispatchTime",
     chains:
       "polkadot, polkadot.collectives, kusama, rococo, westend, westend.collectives",
     paths: ["frame_support.traits.schedule.DispatchTime"],
     type: "Enum(At, After)",
-  },
-  "1q39env8llhck": {
-    name: "TreasuryPalletCall",
-    chains:
-      "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
-    paths: ["pallet_treasury.pallet.Call"],
-    type: "Enum(propose_spend, reject_proposal, approve_proposal, spend_local, remove_approval, spend, payout, check_status, void_spend)",
   },
   "68cld6q6s1gvo": {
     name: "TreasuryEvent",
@@ -548,13 +449,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["frame_system.Phase"],
     type: "Enum(ApplyExtrinsic, Finalization, Initialization)",
-  },
-  "1s2t6elcah93o": {
-    name: "PalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub",
-    paths: ["frame_system.pallet.Error"],
-    type: "Enum(InvalidSpecName, SpecVersionNeedsToIncrease, FailedToExtractRuntimeVersion, NonDefaultComposite, NonZeroRefCount, CallFiltered, NothingAuthorized, Unauthorized)",
   },
   f331um1stp6g0: {
     name: "UpgradeGoAhead",
@@ -600,26 +494,12 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_preimage.pallet.HoldReason"],
     type: "Enum(Preimage)",
   },
-  dj13i7adlomht: {
-    name: "BalancesPalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_balances.pallet.Error"],
-    type: "Enum(VestingBalance, LiquidityRestrictions, InsufficientBalance, ExistentialDeposit, Expendability, ExistingVestingSchedule, DeadAccount, TooManyReserves, TooManyHolds, TooManyFreezes, IssuanceDeactivated, DeltaZero)",
-  },
   fcqan2gt5adqc: {
     name: "TransactionPaymentReleases",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["pallet_transaction_payment.Releases"],
     type: "Enum(V1Ancient, V2)",
-  },
-  "1e07dgbaqd1sq": {
-    name: "SessionPalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_session.pallet.Error"],
-    type: "Enum(InvalidProof, NoAssociatedValidatorId, DuplicatedKey, NoKeys, NoAccount)",
   },
   "1pja0i3r5p1gp": {
     name: "XcmPalletQueryStatus",
@@ -649,41 +529,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.VersionedAssetId"],
     type: "Enum(V3, V4)",
   },
-  "4s86iefmp2rcu": {
-    name: "XcmPalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub",
-    paths: ["pallet_xcm.pallet.Error"],
-    type: "Enum(Unreachable, SendFailure, Filtered, UnweighableMessage, DestinationNotInvertible, Empty, CannotReanchor, TooManyAssets, InvalidOrigin, BadVersion, BadLocation, NoSubscription, AlreadySubscribed, CannotCheckOutTeleport, LowBalance, TooManyLocks, AccountNotSovereign, FeesNotMet, LockNotFound, InUse, InvalidAssetNotConcrete, InvalidAssetUnknownReserve, InvalidAssetUnsupportedReserve, TooManyReserves, LocalExecutionIncomplete)",
-  },
-  "5iupade5ag2dp": {
-    name: "MessageQueuePalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_message_queue.pallet.Error"],
-    type: "Enum(NotReapable, NoPage, NoMessage, AlreadyProcessed, Queued, InsufficientWeight, TemporarilyUnprocessable, QueuePaused, RecursiveDisallowed)",
-  },
-  "8dt2g2hcrgh36": {
-    name: "UtilityPalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_utility.pallet.Error"],
-    type: "Enum(TooManyCalls)",
-  },
-  a76qmhhg4jvb9: {
-    name: "MultisigPalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_multisig.pallet.Error"],
-    type: "Enum(MinimumThreshold, AlreadyApproved, NoApprovalsNeeded, TooFewSignatories, TooManySignatories, SignatoriesOutOfOrder, SenderInSignatories, NotFound, NotOwner, NoTimepoint, WrongTimepoint, UnexpectedTimepoint, MaxWeightTooLow, AlreadyStored)",
-  },
-  uvt54ei4cehc: {
-    name: "ProxyPalletError",
-    chains:
-      "polkadot, polkadot.assetHub, polkadot.collectives, kusama, kusama.assetHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.collectives",
-    paths: ["pallet_proxy.pallet.Error"],
-    type: "Enum(TooMany, NotFound, NotProxy, Unproxyable, Duplicate, NoPermission, Unannounced, NoSelfProxy)",
-  },
   "515gfvv2a6c4o": {
     name: "PreimageOldRequestStatus",
     chains:
@@ -698,26 +543,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_preimage.RequestStatus"],
     type: "Enum(Unrequested, Requested)",
   },
-  "4cfhml1prt4lu": {
-    name: "PreimagePalletError",
-    chains:
-      "polkadot, polkadot.collectives, kusama, rococo, westend, westend.collectives",
-    paths: ["pallet_preimage.pallet.Error"],
-    type: "Enum(TooBig, AlreadyNoted, NotAuthorized, NotNoted, Requested, NotRequested, TooMany, TooFew)",
-  },
-  f7oa8fprnilo5: {
-    name: "SchedulerPalletError",
-    chains:
-      "polkadot, polkadot.collectives, kusama, rococo, westend, westend.collectives",
-    paths: ["pallet_scheduler.pallet.Error"],
-    type: "Enum(FailedToSchedule, NotFound, TargetBlockNumberInPast, RescheduleNoChange, Named)",
-  },
-  "499e4gfi00j30": {
-    name: "AssetRatePalletError",
-    chains: "polkadot, polkadot.collectives, kusama",
-    paths: ["pallet_asset_rate.pallet.Error"],
-    type: "Enum(UnknownAssetKind, AlreadyExists)",
-  },
   "926pkc9itkbdk": {
     name: "ReferendaTypesCurve",
     chains:
@@ -725,25 +550,12 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_referenda.types.Curve"],
     type: "Enum(LinearDecreasing, SteppedDecreasing, Reciprocal)",
   },
-  "8oq2c4augjrlt": {
-    name: "ReferendaPalletError",
-    chains: "polkadot, polkadot.collectives, kusama",
-    paths: ["pallet_referenda.pallet.Error"],
-    type: "Enum(NotOngoing, HasDeposit, BadTrack, Full, QueueEmpty, BadReferendum, NothingToDo, NoTrack, Unfinished, NoPermission, NoDeposit, BadStatus, PreimageNotExist)",
-  },
   "8mdo9fqa201s6": {
     name: "TreasuryPaymentState",
     chains:
       "polkadot, polkadot.collectives, kusama, rococo, westend, westend.collectives",
     paths: ["pallet_treasury.PaymentState"],
     type: "Enum(Pending, Attempted, Failed)",
-  },
-  "7dodf8ccnun1b": {
-    name: "TreasuryPalletError",
-    chains:
-      "polkadot, polkadot.collectives, kusama, rococo, westend, westend.collectives",
-    paths: ["pallet_treasury.pallet.Error"],
-    type: "Enum(InsufficientProposersBalance, InvalidIndex, TooManyApprovals, InsufficientPermission, ProposalNotApproved, FailedToConvertBalance, SpendExpired, EarlyPayout, AlreadyAttempted, PayoutError, NotAttempted, Inconclusive)",
   },
   bkbo8vqdq5g5a: {
     name: "MultiSignature",
@@ -787,54 +599,12 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["sp_runtime.transaction_validity.TransactionSource"],
     type: "Enum(InBlock, Local, External)",
   },
-  "8g2s9dnb88h5": {
-    name: "ProxyEvent",
-    chains:
-      "polkadot.assetHub, kusama.assetHub, rococo.assetHub, westend.assetHub",
-    paths: ["pallet_proxy.pallet.Event"],
-    type: "Enum(ProxyExecuted, PureCreated, Announced, ProxyAdded, ProxyRemoved)",
-  },
   e4o50pgs5mq4e: {
     name: "AssetsEvent",
     chains:
       "polkadot.assetHub, kusama.assetHub, rococo.assetHub, westend.assetHub",
     paths: ["pallet_assets.pallet.Event"],
     type: "Enum(Created, Issued, Transferred, Burned, TeamChanged, OwnerChanged, Frozen, Thawed, AssetFrozen, AssetThawed, AccountsDestroyed, ApprovalsDestroyed, DestructionStarted, Destroyed, ForceCreated, MetadataSet, MetadataCleared, ApprovedTransfer, ApprovalCancelled, TransferredApproved, AssetStatusChanged, AssetMinBalanceChanged, Touched, Blocked)",
-  },
-  e28eun9h9q5hd: {
-    name: "AssetsPalletCall",
-    chains:
-      "polkadot.assetHub, kusama.assetHub, rococo.assetHub, westend.assetHub",
-    paths: ["pallet_assets.pallet.Call"],
-    type: "Enum(create, force_create, start_destroy, destroy_accounts, destroy_approvals, finish_destroy, mint, burn, transfer, transfer_keep_alive, force_transfer, freeze, thaw, freeze_asset, thaw_asset, transfer_ownership, set_team, set_metadata, clear_metadata, force_set_metadata, force_clear_metadata, force_asset_status, approve_transfer, cancel_approval, force_cancel_approval, transfer_approved, touch, refund, set_min_balance, touch_other, refund_other, block)",
-  },
-  fn5p2ma236tv1: {
-    name: "AssetsPalletError",
-    chains:
-      "polkadot.assetHub, kusama.assetHub, rococo.assetHub, westend.assetHub",
-    paths: ["pallet_assets.pallet.Error"],
-    type: "Enum(BalanceLow, NoAccount, NoPermission, Unknown, Frozen, InUse, BadWitness, MinBalanceZero, UnavailableConsumer, BadMetadata, Unapproved, WouldDie, AlreadyExists, NoDeposit, WouldBurn, LiveAsset, AssetNotLive, IncorrectStatus, NotFrozen, CallbackFailed)",
-  },
-  "5o0s7c8q1cc9b": {
-    name: "PalletError",
-    chains:
-      "rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["frame_system.pallet.Error"],
-    type: "Enum(InvalidSpecName, SpecVersionNeedsToIncrease, FailedToExtractRuntimeVersion, NonDefaultComposite, NonZeroRefCount, CallFiltered, MultiBlockMigrationsOngoing, NothingAuthorized, Unauthorized)",
-  },
-  "69acthsqnju1b": {
-    name: "XcmPalletCall",
-    chains:
-      "rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_xcm.pallet.Call"],
-    type: "Enum(send, teleport_assets, reserve_transfer_assets, execute, force_xcm_version, force_default_xcm_version, force_subscribe_version_notify, force_unsubscribe_version_notify, limited_reserve_transfer_assets, limited_teleport_assets, force_suspension, transfer_assets, claim_assets, execute_blob, send_blob)",
-  },
-  f4pgh470sjqmu: {
-    name: "XcmPalletError",
-    chains:
-      "rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
-    paths: ["pallet_xcm.pallet.Error"],
-    type: "Enum(Unreachable, SendFailure, Filtered, UnweighableMessage, DestinationNotInvertible, Empty, CannotReanchor, TooManyAssets, InvalidOrigin, BadVersion, BadLocation, NoSubscription, AlreadySubscribed, CannotCheckOutTeleport, LowBalance, TooManyLocks, AccountNotSovereign, FeesNotMet, LockNotFound, InUse, InvalidAssetNotConcrete, InvalidAssetUnknownReserve, InvalidAssetUnsupportedReserve, TooManyReserves, LocalExecutionIncomplete, UnableToDecode, XcmTooLarge)",
   },
   cenmqk68rcank: {
     name: "PolkadotRuntimeEvent",
@@ -893,29 +663,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_conviction_voting.pallet.Event"],
     type: "Enum(Delegated, Undelegated)",
   },
-  dfraa3b4eu018: {
-    name: "ReferendaEvent",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_referenda.pallet.Event"],
-    type: "Enum(Submitted, DecisionDepositPlaced, DecisionDepositRefunded, DepositSlashed, DecisionStarted, ConfirmStarted, ConfirmAborted, Confirmed, Approved, Rejected, TimedOut, Cancelled, Killed, SubmissionDepositRefunded, MetadataSet, MetadataCleared)",
-  },
   "60a08att731k3": {
     name: "PolkadotRuntimeRuntimeCall",
     chains: "polkadot",
     paths: ["polkadot_runtime.RuntimeCall"],
     type: "Enum(System, Scheduler, Preimage, Babe, Timestamp, Indices, Balances, Staking, Session, Grandpa, Treasury, ConvictionVoting, Referenda, Whitelist, Claims, Vesting, Utility, Identity, Proxy, Multisig, Bounties, ChildBounties, ElectionProviderMultiPhase, VoterList, NominationPools, FastUnstake, Configuration, ParasShared, ParaInclusion, ParaInherent, Paras, Initializer, Hrmp, ParasDisputes, ParasSlashing, Registrar, Slots, Auctions, Crowdloan, StateTrieMigration, XcmPallet, MessageQueue, AssetRate, Beefy)",
-  },
-  bis90opk1q3dv: {
-    name: "SchedulerPalletCall",
-    chains: "polkadot",
-    paths: ["pallet_scheduler.pallet.Call"],
-    type: "Enum(schedule, cancel, schedule_named, cancel_named, schedule_after, schedule_named_after)",
-  },
-  "1jeo0dpbkma5g": {
-    name: "BabePalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_babe.pallet.Call"],
-    type: "Enum(report_equivocation, report_equivocation_unsigned, plan_config_change)",
   },
   ek17d55ubjjm9: {
     name: "BabeDigestsNextConfigDescriptor",
@@ -928,18 +680,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     chains: "polkadot, kusama, rococo, westend",
     paths: ["sp_consensus_babe.AllowedSlots"],
     type: "Enum(PrimarySlots, PrimaryAndSecondaryPlainSlots, PrimaryAndSecondaryVRFSlots)",
-  },
-  "4gfcs0af6e39j": {
-    name: "IndicesPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_indices.pallet.Call"],
-    type: "Enum(claim, transfer, free, force_transfer, freeze)",
-  },
-  "2trgcqe1efv42": {
-    name: "StakingPalletCall",
-    chains: "polkadot",
-    paths: ["pallet_staking.pallet.pallet.Call"],
-    type: "Enum(bond, bond_extra, unbond, withdraw_unbonded, validate, nominate, chill, set_payee, set_controller, set_validator_count, increase_validator_count, scale_validator_count, force_no_eras, force_new_era, set_invulnerables, force_unstake, force_new_era_always, cancel_deferred_slash, payout_stakers, rebond, reap_stash, kick, set_staking_configs, chill_other, force_apply_min_commission, set_min_commission, payout_stakers_by_page, update_payee, deprecate_controller_batch, restore_ledger)",
   },
   fms5l9j358vie: {
     name: "StakingPalletConfigOpBig",
@@ -959,29 +699,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     ],
     type: "Enum(Noop, Set, Remove)",
   },
-  ceajactc9a8pc: {
-    name: "SessionPalletCall",
-    chains: "polkadot, rococo, westend",
-    paths: ["pallet_session.pallet.Call"],
-    type: "Enum(set_keys, purge_keys)",
-  },
-  "5u9ggmn8umfqm": {
-    name: "GrandpaPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_grandpa.pallet.Call"],
-    type: "Enum(report_equivocation, report_equivocation_unsigned, note_stalled)",
-  },
   brvqfk00lp42n: {
     name: "GrandpaEquivocation",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["sp_consensus_grandpa.Equivocation"],
     type: "Enum(Prevote, Precommit)",
-  },
-  "7t0ikq66tic1d": {
-    name: "ConvictionVotingPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_conviction_voting.pallet.Call"],
-    type: "Enum(vote, delegate, undelegate, unlock, remove_vote, remove_other_vote)",
   },
   cee77qkk3c81t: {
     name: "ConvictionVotingVoteAccountVote",
@@ -1013,41 +735,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime_parachains.origin.pallet.Origin"],
     type: "Enum(Parachain)",
   },
-  a61vpolk7ekct: {
-    name: "WhitelistPalletCall",
-    chains: "polkadot",
-    paths: ["pallet_whitelist.pallet.Call"],
-    type: "Enum(whitelist_call, remove_whitelisted_call, dispatch_whitelisted_call, dispatch_whitelisted_call_with_preimage)",
-  },
-  d0dj18ct09hlp: {
-    name: "ClaimsPalletCall",
-    chains: "polkadot, kusama, rococo",
-    paths: ["polkadot_runtime_common.claims.pallet.Call"],
-    type: "Enum(claim, mint_claim, claim_attest, attest, move_claim)",
-  },
   "9lvi13skegcil": {
     name: "ClaimsStatementKind",
     chains: "polkadot, kusama, rococo",
     paths: ["polkadot_runtime_common.claims.StatementKind"],
     type: "Enum(Regular, Saft)",
-  },
-  "27bisdosp4kdo": {
-    name: "VestingPalletCall",
-    chains: "polkadot, rococo, westend",
-    paths: ["pallet_vesting.pallet.Call"],
-    type: "Enum(vest, vest_other, vested_transfer, force_vested_transfer, merge_schedules, force_remove_vesting_schedule)",
-  },
-  dhhvot7hsmg8r: {
-    name: "UtilityPalletCall",
-    chains: "polkadot",
-    paths: ["pallet_utility.pallet.Call"],
-    type: "Enum(batch, as_derivative, batch_all, dispatch_as, force_batch, with_weight)",
-  },
-  bd2atep95irq3: {
-    name: "IdentityPalletCall",
-    chains: "polkadot, rococo, westend",
-    paths: ["pallet_identity.pallet.Call"],
-    type: "Enum(add_registrar, set_identity, set_subs, clear_identity, request_judgement, cancel_request, set_fee, set_account_id, set_fields, provide_judgement, kill_identity, add_sub, rename_sub, remove_sub, quit_sub, add_username_authority, remove_username_authority, set_username_for, accept_username, remove_expired_approval, set_primary_username, remove_dangling_username)",
   },
   "629bfqn3u6tle": {
     name: "IdentityData",
@@ -1061,53 +753,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_identity.types.Judgement"],
     type: "Enum(Unknown, FeePaid, Reasonable, KnownGood, OutOfDate, LowQuality, Erroneous)",
   },
-  "5i8b0g5f5hlhh": {
-    name: "ProxyPalletCall",
-    chains: "polkadot",
-    paths: ["pallet_proxy.pallet.Call"],
-    type: "Enum(proxy, add_proxy, remove_proxy, remove_proxies, create_pure, kill_pure, announce, remove_announcement, reject_announcement, proxy_announced)",
-  },
   "3tnqcv58l4e62": {
     name: "ProxyType",
     chains: "polkadot",
     paths: ["polkadot_runtime.ProxyType"],
     type: "Enum(Any, NonTransfer, Governance, Staking, IdentityJudgement, CancelProxy, Auction, NominationPools)",
-  },
-  eoqrqg72vm1ue: {
-    name: "MultisigPalletCall",
-    chains: "polkadot",
-    paths: ["pallet_multisig.pallet.Call"],
-    type: "Enum(as_multi_threshold_1, as_multi, approve_as_multi, cancel_as_multi)",
-  },
-  id6a5f1ss4bc: {
-    name: "BountiesPalletCall",
-    chains: "polkadot, kusama, rococo",
-    paths: ["pallet_bounties.pallet.Call"],
-    type: "Enum(propose_bounty, approve_bounty, propose_curator, unassign_curator, accept_curator, award_bounty, claim_bounty, close_bounty, extend_bounty_expiry)",
-  },
-  "9rps5u7cv97of": {
-    name: "ChildBountiesPalletCall",
-    chains: "polkadot, kusama, rococo",
-    paths: ["pallet_child_bounties.pallet.Call"],
-    type: "Enum(add_child_bounty, propose_curator, accept_curator, unassign_curator, award_child_bounty, claim_child_bounty, close_child_bounty)",
-  },
-  "15soeogelbbbh": {
-    name: "ElectionProviderMultiPhasePalletCall",
-    chains: "polkadot, westend",
-    paths: ["pallet_election_provider_multi_phase.pallet.Call"],
-    type: "Enum(submit_unsigned, set_minimum_untrusted_score, set_emergency_election_result, submit, governance_fallback)",
-  },
-  "613rol2spf5hd": {
-    name: "BagsListPalletCall",
-    chains: "polkadot, kusama, westend",
-    paths: ["pallet_bags_list.pallet.Call"],
-    type: "Enum(rebag, put_in_front_of, put_in_front_of_other)",
-  },
-  annvvkuhf73hh: {
-    name: "NominationPoolsPalletCall",
-    chains: "polkadot, westend",
-    paths: ["pallet_nomination_pools.pallet.Call"],
-    type: "Enum(join, bond_extra, claim_payout, unbond, pool_withdraw_unbonded, withdraw_unbonded, create, create_with_pool_id, nominate, set_state, set_metadata, set_configs, update_roles, chill, bond_extra_other, set_claim_permission, claim_payout_other, set_commission, set_commission_max, set_commission_change_rate, claim_commission, adjust_pool_deposit, set_commission_claim_permission)",
   },
   "2bvq1blgrln1s": {
     name: "NominationPoolsBondExtra",
@@ -1139,18 +789,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_nomination_pools.CommissionClaimPermission"],
     type: "Enum(Permissionless, Account)",
   },
-  "44snhj1gahvrd": {
-    name: "FastUnstakePalletCall",
-    chains: "polkadot, kusama, westend",
-    paths: ["pallet_fast_unstake.pallet.Call"],
-    type: "Enum(register_fast_unstake, deregister, control)",
-  },
-  "9p1qu8c4vjki6": {
-    name: "ParachainsConfigurationPalletCall",
-    chains: "polkadot",
-    paths: ["polkadot_runtime_parachains.configuration.pallet.Call"],
-    type: "Enum(set_validation_upgrade_cooldown, set_validation_upgrade_delay, set_code_retention_period, set_max_code_size, set_max_pov_size, set_max_head_data_size, set_coretime_cores, set_on_demand_retries, set_group_rotation_frequency, set_paras_availability_period, set_scheduling_lookahead, set_max_validators_per_core, set_max_validators, set_dispute_period, set_dispute_post_conclusion_acceptance_period, set_no_show_slots, set_n_delay_tranches, set_zeroth_delay_tranche_width, set_needed_approvals, set_relay_vrf_modulo_samples, set_max_upward_queue_count, set_max_upward_queue_size, set_max_downward_message_size, set_max_upward_message_size, set_max_upward_message_num_per_candidate, set_hrmp_open_request_ttl, set_hrmp_sender_deposit, set_hrmp_recipient_deposit, set_hrmp_channel_max_capacity, set_hrmp_channel_max_total_size, set_hrmp_max_parachain_inbound_channels, set_hrmp_channel_max_message_size, set_hrmp_max_parachain_outbound_channels, set_hrmp_max_message_num_per_candidate, set_pvf_voting_ttl, set_minimum_validation_upgrade_delay, set_bypass_consistency_check, set_async_backing_params, set_executor_params, set_on_demand_base_fee, set_on_demand_fee_variability, set_on_demand_queue_max_size, set_on_demand_target_queue_utilization, set_on_demand_ttl, set_minimum_backing_votes, set_node_feature, set_approval_voting_params)",
-  },
   "9fihu1euvgfa": {
     name: "PolkadotPrimitivesV6ExecutorParamsExecutorParam",
     chains: "polkadot, rococo, westend",
@@ -1178,12 +816,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "polkadot_primitives.v7.PvfExecKind",
     ],
     type: "Enum(Backing, Approval)",
-  },
-  d5l4f3jqtnb0u: {
-    name: "PolkadotRuntimeParachainsParasInherentPalletCall",
-    chains: "polkadot, rococo, westend",
-    paths: ["polkadot_runtime_parachains.paras_inherent.pallet.Call"],
-    type: "Enum(enter)",
   },
   fqkhvelo2q77o: {
     name: "ValidityAttestation",
@@ -1221,36 +853,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     ],
     type: "Enum(Explicit)",
   },
-  e2dden5k4kk7t: {
-    name: "ParachainsParasPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.paras.pallet.Call"],
-    type: "Enum(force_set_current_code, force_set_current_head, force_schedule_code_upgrade, force_note_new_head, force_queue_action, add_trusted_validation_code, poke_unused_validation_code, include_pvf_check_statement, force_set_most_recent_context)",
-  },
-  eggtnkc96vvt7: {
-    name: "ParachainsInitializerPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.initializer.pallet.Call"],
-    type: "Enum(force_approve)",
-  },
-  "2vev2224bc186": {
-    name: "ParachainsHrmpPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.hrmp.pallet.Call"],
-    type: "Enum(hrmp_init_open_channel, hrmp_accept_open_channel, hrmp_close_channel, force_clean_hrmp, force_process_hrmp_open, force_process_hrmp_close, hrmp_cancel_open_request, force_open_hrmp_channel, establish_system_channel, poke_channel_deposits)",
-  },
-  fkh1ep7g9h3rv: {
-    name: "ParachainsDisputesPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.disputes.pallet.Call"],
-    type: "Enum(force_unfreeze)",
-  },
-  "3jj054kp2bjol": {
-    name: "ParachainsDisputesSlashingPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.disputes.slashing.pallet.Call"],
-    type: "Enum(report_dispute_lost_unsigned)",
-  },
   "8jjr2rgj6aa2v": {
     name: "SlashingOffenceKind",
     chains: "polkadot, kusama, rococo, westend",
@@ -1260,53 +862,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     ],
     type: "Enum(ForInvalid, AgainstValid)",
   },
-  cclqj5sge2nc7: {
-    name: "CommonParasRegistrarPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_common.paras_registrar.pallet.Call"],
-    type: "Enum(register, force_register, deregister, swap, remove_lock, reserve, add_lock, schedule_code_upgrade, set_current_head)",
-  },
-  afhis924j14hg: {
-    name: "CommonSlotsPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_common.slots.pallet.Call"],
-    type: "Enum(force_lease, clear_all_leases, trigger_onboard)",
-  },
-  "4a8qeimc5p3qn": {
-    name: "CommonAuctionsPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_common.auctions.pallet.Call"],
-    type: "Enum(new_auction, bid, cancel_auction)",
-  },
-  aj4q75nu5v2i2: {
-    name: "CommonCrowdloanPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_common.crowdloan.pallet.Call"],
-    type: "Enum(create, contribute, withdraw, refund, dissolve, edit, add_memo, poke, contribute_all)",
-  },
   d7em8997pfm92: {
     name: "MultiSigner",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["sp_runtime.MultiSigner"],
     type: "Enum(Ed25519, Sr25519, Ecdsa)",
-  },
-  "39l72gdmkk30t": {
-    name: "",
-    chains: "polkadot, kusama, rococo",
-    paths: ["pallet_state_trie_migration.pallet.Call"],
-    type: "Enum(control_auto_migration, continue_migrate, migrate_custom_top, migrate_custom_child, set_signed_max_limits, force_set_progress)",
-  },
-  "1ufmh6d8psvik": {
-    name: "",
-    chains: "polkadot, kusama, rococo",
-    paths: ["pallet_state_trie_migration.pallet.Progress"],
-    type: "Enum(ToStart, LastKey, Complete)",
-  },
-  "3lic4llm6egbr": {
-    name: "MessageQueuePalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_message_queue.pallet.Call"],
-    type: "Enum(reap_page, execute_overweight)",
   },
   "4sjnuvedkqa2r": {
     name: "ParachainsInclusionAggregateMessageOrigin",
@@ -1319,12 +879,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     chains: "polkadot, kusama, rococo, westend",
     paths: ["polkadot_runtime_parachains.inclusion.UmpQueueId"],
     type: "Enum(Para)",
-  },
-  "918ie8roegt3d": {
-    name: "BeefyPalletCall",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_beefy.pallet.Call"],
-    type: "Enum(report_equivocation, report_equivocation_unsigned, set_new_genesis)",
   },
   "9iria2mpol0si": {
     name: "WhitelistEvent",
@@ -1343,12 +897,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     chains: "polkadot, kusama, rococo, westend",
     paths: ["pallet_vesting.pallet.Event"],
     type: "Enum(VestingUpdated, VestingCompleted)",
-  },
-  bju6hjiipokne: {
-    name: "IdentityEvent",
-    chains: "polkadot, rococo, westend",
-    paths: ["pallet_identity.pallet.Event"],
-    type: "Enum(IdentitySet, IdentityCleared, IdentityKilled, JudgementRequested, JudgementUnrequested, JudgementGiven, RegistrarAdded, SubIdentityAdded, SubIdentityRemoved, SubIdentityRevoked, AuthorityAdded, AuthorityRemoved, UsernameSet, UsernameQueued, PreapprovalExpired, PrimaryUsernameSet, DanglingUsernameRemoved)",
   },
   "11i3h84sudutq": {
     name: "ProxyEvent",
@@ -1464,12 +1012,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime_common.crowdloan.pallet.Event"],
     type: "Enum(Created, Contributed, Withdrew, PartiallyRefunded, AllRefunded, Dissolved, HandleBidResult, Edited, MemoUpdated, AddedToNewRaise)",
   },
-  "61dksvl51aujo": {
-    name: "",
-    chains: "polkadot, kusama, rococo",
-    paths: ["pallet_state_trie_migration.pallet.Event"],
-    type: "Enum(Migrated, Slashed, AutoMigrationFinished, Halted)",
-  },
   eknqsk8t6a8oo: {
     name: "MessageQueueEvent",
     chains: "polkadot, kusama, rococo, westend",
@@ -1481,18 +1023,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     chains: "polkadot, rococo, westend",
     paths: ["sp_consensus_babe.digests.PreDigest"],
     type: "Enum(Primary, SecondaryPlain, SecondaryVRF)",
-  },
-  b6q602k6o213a: {
-    name: "BabePalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_babe.pallet.Error", "pallet_beefy.pallet.Error"],
-    type: "Enum(InvalidEquivocationProof, InvalidKeyOwnershipProof, DuplicateOffenceReport, InvalidConfiguration)",
-  },
-  cq1825fru3di2: {
-    name: "IndicesPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_indices.pallet.Error"],
-    type: "Enum(NotAssigned, NotOwner, InUse, NotTransfer, Permanent)",
   },
   c1jnealhlqk0n: {
     name: "WestendRuntimeRuntimeFreezeReason",
@@ -1510,23 +1040,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_nomination_pools.pallet.FreezeReason"],
     type: "Enum(PoolMinBalance)",
   },
-  bc76n3snbepig: {
-    name: "StakingPalletError",
-    chains: "polkadot, westend",
-    paths: ["pallet_staking.pallet.pallet.Error"],
-    type: "Enum(NotController, NotStash, AlreadyBonded, AlreadyPaired, EmptyTargets, DuplicateIndex, InvalidSlashIndex, InsufficientBond, NoMoreChunks, NoUnlockChunk, FundedTarget, InvalidEraToReward, InvalidNumberOfNominations, NotSortedAndUnique, AlreadyClaimed, InvalidPage, IncorrectHistoryDepth, IncorrectSlashingSpans, BadState, TooManyTargets, BadTarget, CannotChillOther, TooManyNominators, TooManyValidators, CommissionTooLow, BoundNotMet, ControllerDeprecated, CannotRestoreLedger)",
-  },
   "66mc66cqnpat1": {
     name: "GrandpaStoredState",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["pallet_grandpa.StoredState"],
     type: "Enum(Live, PendingPause, Paused, PendingResume)",
-  },
-  "7q8i0pp1gkas6": {
-    name: "GrandpaPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_grandpa.pallet.Error"],
-    type: "Enum(PauseFailed, ResumeFailed, ChangePending, TooSoon, InvalidKeyOwnershipProof, InvalidEquivocationProof, DuplicateOffenceReport)",
   },
   e5ojv0odma80: {
     name: "ConvictionVotingVoteVoting",
@@ -1534,47 +1052,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_conviction_voting.vote.Voting"],
     type: "Enum(Casting, Delegating)",
   },
-  dfa8k8ikssbsf: {
-    name: "ConvictionVotingPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_conviction_voting.pallet.Error"],
-    type: "Enum(NotOngoing, NotVoter, NoPermission, NoPermissionYet, AlreadyDelegating, AlreadyVoting, InsufficientFunds, NotDelegating, Nonsense, MaxVotesReached, ClassNeeded, BadClass)",
-  },
-  "15nctscutpbeh": {
-    name: "WhitelistPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_whitelist.pallet.Error"],
-    type: "Enum(UnavailablePreImage, UndecodableCall, InvalidCallWeightWitness, CallIsNotWhitelisted, CallAlreadyWhitelisted)",
-  },
-  jh2jbbqvb176: {
-    name: "CommonClaimsPalletError",
-    chains: "polkadot, kusama, rococo",
-    paths: ["polkadot_runtime_common.claims.pallet.Error"],
-    type: "Enum(InvalidEthereumSignature, SignerHasNoClaim, SenderHasNoClaim, PotUnderflow, InvalidStatement, VestedBalanceExists)",
-  },
-  cof2acl69lq3c: {
-    name: "VestingPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["pallet_vesting.pallet.Error"],
-    type: "Enum(NotVesting, AtMaxVestingSchedules, AmountLow, ScheduleIndexOutOfBounds, InvalidScheduleParams)",
-  },
-  "9mq328955mgb8": {
-    name: "IdentityPalletError",
-    chains: "polkadot, rococo, westend",
-    paths: ["pallet_identity.pallet.Error"],
-    type: "Enum(TooManySubAccounts, NotFound, NotNamed, EmptyIndex, FeeChanged, NoIdentity, StickyJudgement, JudgementGiven, InvalidJudgement, InvalidIndex, InvalidTarget, TooManyRegistrars, AlreadyClaimed, NotSub, NotOwned, JudgementForDifferentIdentity, JudgementPaymentFailed, InvalidSuffix, NotUsernameAuthority, NoAllocation, InvalidSignature, RequiresSignature, InvalidUsername, UsernameTaken, NoUsername, NotExpired)",
-  },
   "8eicfpc71dtp2": {
     name: "BountiesBountyStatus",
     chains: "polkadot, kusama, rococo",
     paths: ["pallet_bounties.BountyStatus"],
     type: "Enum(Proposed, Approved, Funded, CuratorProposed, Active, PendingPayout)",
-  },
-  bfvjqqblobf53: {
-    name: "BountiesPalletError",
-    chains: "polkadot, kusama, rococo",
-    paths: ["pallet_bounties.pallet.Error"],
-    type: "Enum(InsufficientProposersBalance, InvalidIndex, ReasonTooBig, UnexpectedStatus, RequireCurator, InvalidValue, InvalidFee, PendingPayout, Premature, HasActiveChildBounty, TooManyQueued)",
   },
   "8fgf6e6g02u7k": {
     name: "ChildBountyStatus",
@@ -1582,65 +1064,17 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_child_bounties.ChildBountyStatus"],
     type: "Enum(Added, CuratorProposed, Active, PendingPayout)",
   },
-  "4u5ou5u3tthff": {
-    name: "ChildBountiesPalletError",
-    chains: "polkadot, kusama, rococo",
-    paths: ["pallet_child_bounties.pallet.Error"],
-    type: "Enum(ParentBountyNotActive, InsufficientBountyBalance, TooManyChildBounties)",
-  },
-  db84kfjd998sl: {
-    name: "ElectionProviderMultiPhasePalletError",
-    chains: "polkadot, westend",
-    paths: ["pallet_election_provider_multi_phase.pallet.Error"],
-    type: "Enum(PreDispatchEarlySubmission, PreDispatchWrongWinnerCount, PreDispatchWeakSubmission, SignedQueueFull, SignedCannotPayDeposit, SignedInvalidWitness, SignedTooMuchWeight, OcwCallWrongEra, MissingSnapshotMetadata, InvalidSubmissionIndex, CallNotAllowed, FallbackFailed, BoundNotMet, TooManyWinners, PreDispatchDifferentRound)",
-  },
-  c35l5bgiij29p: {
-    name: "BagsListPalletError",
-    chains: "polkadot, kusama, westend",
-    paths: ["pallet_bags_list.pallet.Error"],
-    type: "Enum(List)",
-  },
   "5h5t0elhnbseq": {
     name: "BagsListListListError",
     chains: "polkadot, kusama, westend",
     paths: ["pallet_bags_list.list.ListError"],
     type: "Enum(Duplicate, NotHeavier, NotInSameBag, NodeNotFound)",
   },
-  "823cj5ecot4us": {
-    name: "NominationPoolsPalletError",
-    chains: "polkadot, kusama, westend",
-    paths: ["pallet_nomination_pools.pallet.Error"],
-    type: "Enum(PoolNotFound, PoolMemberNotFound, RewardPoolNotFound, SubPoolsNotFound, AccountBelongsToOtherPool, FullyUnbonding, MaxUnbondingLimit, CannotWithdrawAny, MinimumBondNotMet, OverflowRisk, NotDestroying, NotNominator, NotKickerOrDestroying, NotOpen, MaxPools, MaxPoolMembers, CanNotChangeState, DoesNotHavePermission, MetadataExceedsMaxLen, Defensive, PartialUnbondNotAllowedPermissionlessly, MaxCommissionRestricted, CommissionExceedsMaximum, CommissionExceedsGlobalMaximum, CommissionChangeThrottled, CommissionChangeRateNotAllowed, NoPendingCommission, NoCommissionCurrentSet, PoolIdInUse, InvalidPoolId, BondExtraRestricted, NothingToAdjust)",
-  },
   "8s9terlv6i0tr": {
     name: "NominationPoolsPalletDefensiveError",
     chains: "polkadot, kusama, westend",
     paths: ["pallet_nomination_pools.pallet.DefensiveError"],
     type: "Enum(NotEnoughSpaceInUnbondPool, PoolNotFound, RewardPoolNotFound, SubPoolsNotFound, BondedStashKilledPrematurely)",
-  },
-  au9bur8dc3bec: {
-    name: "FastUnstakePalletError",
-    chains: "polkadot, kusama, westend",
-    paths: ["pallet_fast_unstake.pallet.Error"],
-    type: "Enum(NotController, AlreadyQueued, NotFullyBonded, NotQueued, AlreadyHead, CallNotAllowed)",
-  },
-  n1jctfv299lm: {
-    name: "ParachainsConfigurationPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.configuration.pallet.Error"],
-    type: "Enum(InvalidNewValue)",
-  },
-  dp335n5ul2mnv: {
-    name: "ParachainsInclusionPalletError",
-    chains: "polkadot, kusama",
-    paths: ["polkadot_runtime_parachains.inclusion.pallet.Error"],
-    type: "Enum(UnsortedOrDuplicateValidatorIndices, UnsortedOrDuplicateDisputeStatementSet, UnsortedOrDuplicateBackedCandidates, UnexpectedRelayParent, WrongBitfieldSize, BitfieldAllZeros, BitfieldDuplicateOrUnordered, ValidatorIndexOutOfBounds, InvalidBitfieldSignature, UnscheduledCandidate, CandidateScheduledBeforeParaFree, ScheduledOutOfOrder, HeadDataTooLarge, PrematureCodeUpgrade, NewCodeTooLarge, DisallowedRelayParent, InvalidAssignment, InvalidGroupIndex, InsufficientBacking, InvalidBacking, NotCollatorSigned, ValidationDataHashMismatch, IncorrectDownwardMessageHandling, InvalidUpwardMessages, HrmpWatermarkMishandling, InvalidOutboundHrmp, InvalidValidationCodeHash, ParaHeadMismatch, BitfieldReferencesFreedCore)",
-  },
-  dr9omiep0prh9: {
-    name: "PolkadotRuntimeParachainsParasInherentPalletError",
-    chains: "polkadot",
-    paths: ["polkadot_runtime_parachains.paras_inherent.pallet.Error"],
-    type: "Enum(TooManyInclusionInherents, InvalidParentHeader, CandidateConcludedInvalid, InherentOverweight, DisputeStatementsUnsortedOrDuplicates, DisputeInvalid, BackedByDisabled, BackedOnUnscheduledCore, UnscheduledCandidate)",
   },
   d7hag4aqiaqqv: {
     name: "PolkadotRuntimeParachainsSchedulerPalletCoreOccupied",
@@ -1666,59 +1100,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime_parachains.paras.ParaLifecycle"],
     type: "Enum(Onboarding, Parathread, Parachain, UpgradingParathread, DowngradingParachain, OffboardingParathread, OffboardingParachain)",
   },
-  bkrdj74n62tfq: {
-    name: "ParachainsParasPalletError",
-    chains: "polkadot, kusama",
-    paths: ["polkadot_runtime_parachains.paras.pallet.Error"],
-    type: "Enum(NotRegistered, CannotOnboard, CannotOffboard, CannotUpgrade, CannotDowngrade, PvfCheckStatementStale, PvfCheckStatementFuture, PvfCheckValidatorIndexOutOfBounds, PvfCheckInvalidSignature, PvfCheckDoubleVote, PvfCheckSubjectInvalid, CannotUpgradeCode)",
-  },
-  bns95nfmm92df: {
-    name: "ParachainsHrmpPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.hrmp.pallet.Error"],
-    type: "Enum(OpenHrmpChannelToSelf, OpenHrmpChannelInvalidRecipient, OpenHrmpChannelZeroCapacity, OpenHrmpChannelCapacityExceedsLimit, OpenHrmpChannelZeroMessageSize, OpenHrmpChannelMessageSizeExceedsLimit, OpenHrmpChannelAlreadyExists, OpenHrmpChannelAlreadyRequested, OpenHrmpChannelLimitExceeded, AcceptHrmpChannelDoesntExist, AcceptHrmpChannelAlreadyConfirmed, AcceptHrmpChannelLimitExceeded, CloseHrmpChannelUnauthorized, CloseHrmpChannelDoesntExist, CloseHrmpChannelAlreadyUnderway, CancelHrmpOpenChannelUnauthorized, OpenHrmpChannelDoesntExist, OpenHrmpChannelAlreadyConfirmed, WrongWitness, ChannelCreationNotAuthorized)",
-  },
-  akburbqot4g58: {
-    name: "ParachainsDisputesPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.disputes.pallet.Error"],
-    type: "Enum(DuplicateDisputeStatementSets, AncientDisputeStatement, ValidatorIndexOutOfBounds, InvalidSignature, DuplicateStatement, SingleSidedDispute, MaliciousBacker, MissingBackingVotes, UnconfirmedDispute)",
-  },
-  "1v70p1j0r2q1j": {
-    name: "ParachainsDisputesSlashingPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_parachains.disputes.slashing.pallet.Error"],
-    type: "Enum(InvalidKeyOwnershipProof, InvalidSessionIndex, InvalidCandidateHash, InvalidValidatorIndex, ValidatorIndexIdMismatch, DuplicateSlashingReport)",
-  },
-  "2dgbmoac0j5l9": {
-    name: "CommonParasRegistrarPalletError",
-    chains: "polkadot, kusama",
-    paths: ["polkadot_runtime_common.paras_registrar.pallet.Error"],
-    type: "Enum(NotRegistered, AlreadyRegistered, NotOwner, CodeTooLarge, HeadDataTooLarge, NotParachain, NotParathread, CannotDeregister, CannotDowngrade, CannotUpgrade, ParaLocked, NotReserved, EmptyCode, CannotSwap)",
-  },
-  ers095sa65pbg: {
-    name: "CommonSlotsPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_common.slots.pallet.Error"],
-    type: "Enum(ParaNotOnboarding, LeaseError)",
-  },
-  "4kgo47o2v3701": {
-    name: "CommonAuctionsPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_common.auctions.pallet.Error"],
-    type: "Enum(AuctionInProgress, LeasePeriodInPast, ParaNotRegistered, NotCurrentAuction, NotAuction, AuctionEnded, AlreadyLeasedOut)",
-  },
   "1rjg0rh02tt4m": {
     name: "CommonCrowdloanLastContribution",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["polkadot_runtime_common.crowdloan.LastContribution"],
     type: "Enum(Never, PreEnding, Ending)",
-  },
-  "9o6l1c4r4qc3s": {
-    name: "CommonCrowdloanPalletError",
-    chains: "polkadot, kusama, rococo, westend",
-    paths: ["polkadot_runtime_common.crowdloan.pallet.Error"],
-    type: "Enum(FirstPeriodInPast, FirstPeriodTooFarInFuture, LastPeriodBeforeFirstPeriod, LastPeriodTooFarInFuture, CannotEndInPast, EndTooFarInFuture, Overflow, ContributionTooSmall, InvalidParaId, CapExceeded, ContributionPeriodOver, InvalidOrigin, NotParachain, LeaseActive, BidOrLeaseActive, FundNotEnded, NoContributions, NotReadyToDissolve, InvalidSignature, MemoTooLarge, AlreadyInNewRaise, VrfDelayInProgress, NoLeasePeriod)",
   },
   b5fd0r2ju9g0l: {
     name: "CoreState",
@@ -1759,38 +1145,26 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime.RuntimeError"],
     type: "Enum(System, Scheduler, Preimage, Babe, Indices, Balances, Staking, Session, Grandpa, Treasury, ConvictionVoting, Referenda, Whitelist, Claims, Vesting, Utility, Identity, Proxy, Multisig, Bounties, ChildBounties, ElectionProviderMultiPhase, VoterList, NominationPools, FastUnstake, Configuration, ParaInclusion, ParaInherent, Paras, Hrmp, ParasDisputes, ParasSlashing, Registrar, Slots, Auctions, Crowdloan, StateTrieMigration, XcmPallet, MessageQueue, AssetRate, Beefy)",
   },
-  "5qmbgbglg3djl": {
-    name: "PalletEvent",
-    chains: "kusama",
-    paths: ["frame_system.pallet.Event"],
-    type: "Enum(ExtrinsicSuccess, ExtrinsicFailed, CodeUpdated, NewAccount, KilledAccount, Remarked)",
-  },
-  pa3jfc46ilad: {
-    name: "BalancesEvent",
-    chains: "kusama",
-    paths: ["pallet_balances.pallet.Event"],
-    type: "Enum(Endowed, DustLost, Transfer, BalanceSet, Reserved, Unreserved, ReserveRepatriated, Deposit, Withdraw, Slashed, Minted, Burned, Suspended, Restored, Upgraded, Issued, Rescinded, Locked, Unlocked, Frozen, Thawed)",
-  },
   "86spl6bcfm5it": {
-    name: "XcmV3Junctions",
+    name: "KsmXcmV3Junctions",
     chains: "kusama",
     paths: ["xcm.v3.junctions.Junctions"],
     type: "Enum(Here, X1, X2, X3, X4, X5, X6, X7, X8)",
   },
   aqrmqn3umgltq: {
-    name: "XcmV3Junction",
+    name: "KsmXcmV3Junction",
     chains: "kusama",
     paths: ["xcm.v3.junction.Junction"],
     type: "Enum(Parachain, AccountId32, AccountIndex64, AccountKey20, PalletInstance, GeneralIndex, GeneralKey, OnlyChild, Plurality, GlobalConsensus)",
   },
   "4k01tahcim329": {
-    name: "XcmV3JunctionNetworkId",
+    name: "KsmXcmV3JunctionNetworkId",
     chains: "kusama",
     paths: ["xcm.v3.junction.NetworkId"],
     type: "Enum(ByGenesis, ByFork, Polkadot, Kusama, Westend, Rococo, Wococo, Ethereum, BitcoinCore, BitcoinCash)",
   },
   c00osfu517iss: {
-    name: "XcmV3MultiassetAssetId",
+    name: "KsmXcmV3MultiassetAssetId",
     chains: "kusama",
     paths: ["xcm.v3.multiasset.AssetId"],
     type: "Enum(Concrete, Abstract)",
@@ -1800,18 +1174,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     chains: "kusama",
     paths: ["xcm.VersionedMultiLocation"],
     type: "Enum(V2, V3)",
-  },
-  ccjej82b2j3c5: {
-    name: "SystemPalletCall",
-    chains: "kusama",
-    paths: ["frame_system.pallet.Call"],
-    type: "Enum(remark, set_heap_pages, set_code, set_code_without_checks, set_storage, kill_storage, kill_prefix, remark_with_event)",
-  },
-  "7ubsrnb7nbvds": {
-    name: "ImOnlinePalletCall",
-    chains: "kusama",
-    paths: ["pallet_im_online.pallet.Call"],
-    type: "Enum(heartbeat)",
   },
   "3f4te0335d8h1": {
     name: "WestendRuntimeGovernanceOriginsPalletCustomOriginsOrigin",
@@ -1824,28 +1186,16 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     type: "Enum(StakingAdmin, Treasurer, FellowshipAdmin, GeneralAdmin, AuctionAdmin, LeaseAdmin, ReferendumCanceller, ReferendumKiller, SmallTipper, BigTipper, SmallSpender, MediumSpender, BigSpender, WhitelistedCaller, FellowshipInitiates, Fellows, FellowshipExperts, FellowshipMasters, Fellowship1Dan, Fellowship2Dan, Fellowship3Dan, Fellowship4Dan, Fellowship5Dan, Fellowship6Dan, Fellowship7Dan, Fellowship8Dan, Fellowship9Dan)",
   },
   "1r9hjo7723qso": {
-    name: "XcmPalletOrigin",
+    name: "KsmXcmPalletOrigin",
     chains: "kusama",
     paths: ["pallet_xcm.pallet.Origin"],
     type: "Enum(Xcm, Response)",
-  },
-  ciintj40nctsg: {
-    name: "IdentityPalletCall",
-    chains: "kusama",
-    paths: ["pallet_identity.pallet.Call"],
-    type: "Enum(add_registrar, set_identity, set_subs, clear_identity, request_judgement, cancel_request, set_fee, set_account_id, set_fields, provide_judgement, kill_identity, add_sub, rename_sub, remove_sub, quit_sub)",
   },
   apijri6pqtqte: {
     name: "IdentityField",
     chains: "kusama",
     paths: ["pallet_identity.simple.IdentityField"],
     type: "Enum(Display, Legal, Web, Riot, Email, PgpFingerprint, Image, Twitter)",
-  },
-  "4kol6ak3n4pb6": {
-    name: "VestingPalletCall",
-    chains: "kusama",
-    paths: ["pallet_vesting.pallet.Call"],
-    type: "Enum(vest, vest_other, vested_transfer, force_vested_transfer, merge_schedules)",
   },
   "2s1qfdh76bati": {
     name: "PolkadotPrimitivesV5ExecutorParam",
@@ -1858,12 +1208,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     chains: "kusama",
     paths: ["polkadot_primitives.v6.PvfPrepTimeoutKind"],
     type: "Enum(Precheck, Lenient)",
-  },
-  din60jmik27o9: {
-    name: "ParachainsParasInherentPalletCall",
-    chains: "kusama",
-    paths: ["polkadot_runtime_parachains.paras_inherent.pallet.Call"],
-    type: "Enum(enter)",
   },
   b7nns1qbu48af: {
     name: "PolkadotPrimitivesV5DisputeStatement",
@@ -1878,19 +1222,19 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     type: "Enum(Explicit, BackingSeconded, BackingValid, ApprovalChecking)",
   },
   "5f1g9rtdd19nm": {
-    name: "XcmVersionedXcm",
+    name: "KsmXcmVersionedXcm",
     chains: "kusama",
     paths: ["xcm.VersionedXcm"],
     type: "Enum(V2, V3)",
   },
   css00hl25cgl4: {
-    name: "XcmV3Instruction",
+    name: "KsmXcmV3Instruction",
     chains: "kusama",
     paths: ["xcm.v3.Instruction"],
     type: "Enum(WithdrawAsset, ReserveAssetDeposited, ReceiveTeleportedAsset, QueryResponse, TransferAsset, TransferReserveAsset, Transact, HrmpNewChannelOpenRequest, HrmpChannelAccepted, HrmpChannelClosing, ClearOrigin, DescendOrigin, ReportError, DepositAsset, DepositReserveAsset, ExchangeAsset, InitiateReserveWithdraw, InitiateTeleport, ReportHolding, BuyExecution, RefundSurplus, SetErrorHandler, SetAppendix, ClearError, ClaimAsset, Trap, SubscribeVersion, UnsubscribeVersion, BurnAsset, ExpectAsset, ExpectOrigin, ExpectError, ExpectTransactStatus, QueryPallet, ExpectPallet, ReportTransactStatus, ClearTransactStatus, UniversalOrigin, ExportMessage, LockAsset, UnlockAsset, NoteUnlockable, RequestUnlock, SetFeesMode, SetTopic, ClearTopic, AliasOrigin, UnpaidExecution)",
   },
   "4e56rm9p07o27": {
-    name: "XcmV3Response",
+    name: "KsmXcmV3Response",
     chains: "kusama",
     paths: ["xcm.v3.Response"],
     type: "Enum(Null, Assets, ExecutionResult, Version, PalletsInfo, DispatchResult)",
@@ -1913,23 +1257,11 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.VersionedMultiAssets"],
     type: "Enum(V2, V3)",
   },
-  fugjudpfm708s: {
-    name: "IdentityEvent",
-    chains: "kusama",
-    paths: ["pallet_identity.pallet.Event"],
-    type: "Enum(IdentitySet, IdentityCleared, IdentityKilled, JudgementRequested, JudgementUnrequested, JudgementGiven, RegistrarAdded, SubIdentityAdded, SubIdentityRemoved, SubIdentityRevoked)",
-  },
   a4b928jbpau7j: {
     name: "RecoveryEvent",
     chains: "kusama, rococo, westend",
     paths: ["pallet_recovery.pallet.Event"],
     type: "Enum(RecoveryCreated, RecoveryInitiated, RecoveryVouched, RecoveryClosed, AccountRecovered, RecoveryRemoved)",
-  },
-  "4r0b7tct6o9ht": {
-    name: "XcmEvent",
-    chains: "kusama",
-    paths: ["pallet_xcm.pallet.Event"],
-    type: "Enum(Attempted, Sent, UnexpectedResponse, ResponseReady, Notified, NotifyOverweight, NotifyDispatchError, NotifyDecodeFailed, InvalidResponder, InvalidResponderVersion, ResponseTaken, AssetsTrapped, VersionChangeNotified, SupportedVersionChanged, NotifyTargetSendFail, NotifyTargetMigrationFail, InvalidQuerierVersion, InvalidQuerier, VersionNotifyStarted, VersionNotifyRequested, VersionNotifyUnrequested, FeesPaid, AssetsClaimed)",
   },
   b01fvb3ofrhi8: {
     name: "XcmV3TraitsOutcome",
@@ -1938,46 +1270,10 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     type: "Enum(Complete, Incomplete, Error)",
   },
   arof15is9j858: {
-    name: "BabeDigestsPreDigest",
+    name: "KsmBabeDigestsPreDigest",
     chains: "kusama",
     paths: ["sp_consensus_babe.digests.PreDigest"],
     type: "Enum(Primary, SecondaryPlain, SecondaryVRF)",
-  },
-  fe9031aj6on0k: {
-    name: "BalancesPalletError",
-    chains: "kusama",
-    paths: ["pallet_balances.pallet.Error"],
-    type: "Enum(VestingBalance, LiquidityRestrictions, InsufficientBalance, ExistentialDeposit, Expendability, ExistingVestingSchedule, DeadAccount, TooManyReserves, TooManyHolds, TooManyFreezes)",
-  },
-  "8kh6j0q1r930d": {
-    name: "ImOnlinePalletError",
-    chains: "kusama",
-    paths: ["pallet_im_online.pallet.Error"],
-    type: "Enum(InvalidKey, DuplicatedHeartbeat)",
-  },
-  "4burhm31qmut2": {
-    name: "IdentityPalletError",
-    chains: "kusama",
-    paths: ["pallet_identity.pallet.Error"],
-    type: "Enum(TooManySubAccounts, NotFound, NotNamed, EmptyIndex, FeeChanged, NoIdentity, StickyJudgement, JudgementGiven, InvalidJudgement, InvalidIndex, InvalidTarget, TooManyFields, TooManyRegistrars, AlreadyClaimed, NotSub, NotOwned, JudgementForDifferentIdentity, JudgementPaymentFailed)",
-  },
-  "29mqdjoga49c9": {
-    name: "RecoveryPalletError",
-    chains: "kusama, rococo, westend",
-    paths: ["pallet_recovery.pallet.Error"],
-    type: "Enum(NotAllowed, ZeroThreshold, NotEnoughFriends, MaxFriends, NotSorted, NotRecoverable, AlreadyRecoverable, AlreadyStarted, NotStarted, NotFriend, DelayPeriod, AlreadyVouched, Threshold, StillActive, AlreadyProxy, BadState)",
-  },
-  aldi0cb4r5uls: {
-    name: "ElectionProviderMultiPhasePalletError",
-    chains: "kusama",
-    paths: ["pallet_election_provider_multi_phase.pallet.Error"],
-    type: "Enum(PreDispatchEarlySubmission, PreDispatchWrongWinnerCount, PreDispatchWeakSubmission, SignedQueueFull, SignedCannotPayDeposit, SignedInvalidWitness, SignedTooMuchWeight, OcwCallWrongEra, MissingSnapshotMetadata, InvalidSubmissionIndex, CallNotAllowed, FallbackFailed, BoundNotMet, TooManyWinners)",
-  },
-  au1n8bje17hl9: {
-    name: "ParachainsParasInherentPalletError",
-    chains: "kusama",
-    paths: ["polkadot_runtime_parachains.paras_inherent.pallet.Error"],
-    type: "Enum(TooManyInclusionInherents, InvalidParentHeader, CandidateConcludedInvalid, InherentOverweight, DisputeStatementsUnsortedOrDuplicates, DisputeInvalid)",
   },
   b19964q7gq7o9: {
     name: "PolkadotPrimitivesV5CoreOccupied",
@@ -1986,40 +1282,22 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     type: "Enum(Free, Paras)",
   },
   "9us7218h9qeio": {
-    name: "XcmPalletQueryStatus",
+    name: "KsmXcmPalletQueryStatus",
     chains: "kusama",
     paths: ["pallet_xcm.pallet.QueryStatus"],
     type: "Enum(Pending, VersionNotifier, Ready)",
   },
   fjsumieiq38rh: {
-    name: "XcmVersionedResponse",
+    name: "KsmXcmVersionedResponse",
     chains: "kusama",
     paths: ["xcm.VersionedResponse"],
     type: "Enum(V2, V3)",
   },
   "9j0cetcqgjtaf": {
-    name: "XcmVersionedAssetId",
+    name: "KsmXcmVersionedAssetId",
     chains: "kusama",
     paths: ["xcm.VersionedAssetId"],
     type: "Enum(V3)",
-  },
-  "93avf3rpkhb2d": {
-    name: "XcmPalletError",
-    chains: "kusama",
-    paths: ["pallet_xcm.pallet.Error"],
-    type: "Enum(Unreachable, SendFailure, Filtered, UnweighableMessage, DestinationNotInvertible, Empty, CannotReanchor, TooManyAssets, InvalidOrigin, BadVersion, BadLocation, NoSubscription, AlreadySubscribed, InvalidAsset, LowBalance, TooManyLocks, AccountNotSovereign, FeesNotMet, LockNotFound, InUse)",
-  },
-  "3a4cqqjs0cj3s": {
-    name: "MessageQueuePalletError",
-    chains: "kusama",
-    paths: ["pallet_message_queue.pallet.Error"],
-    type: "Enum(NotReapable, NoPage, NoMessage, AlreadyProcessed, Queued, InsufficientWeight, TemporarilyUnprocessable, QueuePaused)",
-  },
-  "4n17hls1edfih": {
-    name: "ReferendaPalletCall",
-    chains: "rococo, westend",
-    paths: ["pallet_referenda.pallet.Call"],
-    type: "Enum(submit, place_decision_deposit, refund_decision_deposit, cancel, kill, nudge_referendum, one_fewer_deciding, refund_submission_deposit, set_metadata)",
   },
   j50joavafcok: {
     name: "WestendRuntimeOriginCaller",
@@ -2027,59 +1305,17 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["rococo_runtime.OriginCaller", "westend_runtime.OriginCaller"],
     type: "Enum(system, Origins, ParachainsOrigin, XcmPallet, Void)",
   },
-  "9s7urueli180g": {
-    name: "PolkadotRuntimeParachainsAssignerOnDemandPalletCall",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_parachains.assigner_on_demand.pallet.Call"],
-    type: "Enum(place_order_allow_death, place_order_keep_alive)",
-  },
-  em08ilhcfie6v: {
-    name: "PolkadotRuntimeParachainsCoretimePalletCall",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_parachains.coretime.pallet.Call"],
-    type: "Enum(request_core_count, assign_core)",
-  },
   cgoc620vdl0ci: {
     name: "BrokerCoretimeInterfaceCoreAssignment",
     chains: "rococo, westend",
     paths: ["pallet_broker.coretime_interface.CoreAssignment"],
     type: "Enum(Idle, Pool, Task)",
   },
-  "67t4bps9r5c4k": {
-    name: "PolkadotRuntimeCommonIdentityMigratorPalletCall",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_common.identity_migrator.pallet.Call"],
-    type: "Enum(reap_identity, poke_deposit)",
-  },
-  "8tnfu4hpnpsg": {
-    name: "PolkadotRuntimeCommonParasSudoWrapperPalletCall",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_common.paras_sudo_wrapper.pallet.Call"],
-    type: "Enum(sudo_schedule_para_initialize, sudo_schedule_para_cleanup, sudo_schedule_parathread_upgrade, sudo_schedule_parachain_downgrade, sudo_queue_downward_xcm, sudo_establish_hrmp_channel)",
-  },
-  dlqs78vqqscm0: {
-    name: "PolkadotRuntimeCommonAssignedSlotsPalletCall",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_common.assigned_slots.pallet.Call"],
-    type: "Enum(assign_perm_parachain_slot, assign_temp_parachain_slot, unassign_parachain_slot, set_max_permanent_slots, set_max_temporary_slots)",
-  },
   "910lmkjcsvii": {
     name: "PolkadotRuntimeCommonAssignedSlotsSlotLeasePeriodStart",
     chains: "rococo, westend",
     paths: ["polkadot_runtime_common.assigned_slots.SlotLeasePeriodStart"],
     type: "Enum(Current, Next)",
-  },
-  "9rkc7eqejp3rj": {
-    name: "RootTestingPalletCall",
-    chains: "rococo, westend",
-    paths: ["pallet_root_testing.pallet.Call"],
-    type: "Enum(fill_block, trigger_defensive)",
-  },
-  "9d4cj2o3vj1d8": {
-    name: "SchedulerEvent",
-    chains: "rococo, westend, westend.collectives",
-    paths: ["pallet_scheduler.pallet.Event"],
-    type: "Enum(Scheduled, Canceled, Dispatched, RetrySet, RetryCancelled, CallUnavailable, PeriodicFailed, RetryFailed, PermanentlyOverweight)",
   },
   "9ct52rvkkel07": {
     name: "PolkadotRuntimeParachainsAssignerOnDemandEvent",
@@ -2122,66 +1358,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     chains: "rococo, westend",
     paths: ["pallet_referenda.types.ReferendumInfo"],
     type: "Enum(Ongoing, Approved, Rejected, Cancelled, TimedOut, Killed)",
-  },
-  "84u4ul208g742": {
-    name: "ReferendaPalletError",
-    chains: "rococo, westend, westend.collectives",
-    paths: ["pallet_referenda.pallet.Error"],
-    type: "Enum(NotOngoing, HasDeposit, BadTrack, Full, QueueEmpty, BadReferendum, NothingToDo, NoTrack, Unfinished, NoPermission, NoDeposit, BadStatus, PreimageNotExist, PreimageStoredWithDifferentLength)",
-  },
-  "3qgd61cgli6cp": {
-    name: "AssetRatePalletError",
-    chains: "rococo, westend, westend.collectives",
-    paths: ["pallet_asset_rate.pallet.Error"],
-    type: "Enum(UnknownAssetKind, AlreadyExists, Overflow)",
-  },
-  eo97unb4d08rl: {
-    name: "PolkadotRuntimeParachainsParasPalletError",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_parachains.paras.pallet.Error"],
-    type: "Enum(NotRegistered, CannotOnboard, CannotOffboard, CannotUpgrade, CannotDowngrade, PvfCheckStatementStale, PvfCheckStatementFuture, PvfCheckValidatorIndexOutOfBounds, PvfCheckInvalidSignature, PvfCheckDoubleVote, PvfCheckSubjectInvalid, CannotUpgradeCode, InvalidCode)",
-  },
-  e3b9qd0nd59gs: {
-    name: "PolkadotRuntimeParachainsAssignerCoretimePalletError",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_parachains.assigner_coretime.pallet.Error"],
-    type: "Enum(AssignmentsEmpty, OverScheduled, UnderScheduled, DisallowedInsert, DuplicateInsert, AssignmentsNotSorted)",
-  },
-  "97vkspnd0b8bh": {
-    name: "PolkadotRuntimeCommonParasRegistrarPalletError",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_common.paras_registrar.pallet.Error"],
-    type: "Enum(NotRegistered, AlreadyRegistered, NotOwner, CodeTooLarge, HeadDataTooLarge, NotParachain, NotParathread, CannotDeregister, CannotDowngrade, CannotUpgrade, ParaLocked, NotReserved, InvalidCode, CannotSwap)",
-  },
-  "53h5rnv8hd3qi": {
-    name: "PolkadotRuntimeParachainsCoretimePalletError",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_parachains.coretime.pallet.Error"],
-    type: "Enum(NotBroker)",
-  },
-  eq0677kv2oqb2: {
-    name: "PolkadotRuntimeCommonParasSudoWrapperPalletError",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_common.paras_sudo_wrapper.pallet.Error"],
-    type: "Enum(ParaDoesntExist, ParaAlreadyExists, ExceedsMaxMessageSize, CouldntCleanup, NotParathread, NotParachain, CannotUpgrade, CannotDowngrade, TooManyCores)",
-  },
-  "40te5bcfc046n": {
-    name: "PolkadotRuntimeCommonAssignedSlotsPalletError",
-    chains: "rococo, westend",
-    paths: ["polkadot_runtime_common.assigned_slots.pallet.Error"],
-    type: "Enum(ParaDoesntExist, NotParathread, CannotUpgrade, CannotDowngrade, SlotAlreadyAssigned, SlotNotAssigned, OngoingLeaseExists, MaxPermanentSlotsExceeded, MaxTemporarySlotsExceeded)",
-  },
-  aug04qjhbli00: {
-    name: "SudoPalletError",
-    chains: "rococo, westend",
-    paths: ["pallet_sudo.pallet.Error"],
-    type: "Enum(RequireSudo)",
-  },
-  "8rdpads1sa84": {
-    name: "ProxyEvent",
-    chains: "westend",
-    paths: ["pallet_proxy.pallet.Event"],
-    type: "Enum(ProxyExecuted, PureCreated, Announced, ProxyAdded, ProxyRemoved)",
   },
   fbiij71gdkvth: {
     name: "WestendRuntimeProxyType",
