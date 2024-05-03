@@ -1,18 +1,9 @@
-export interface Discriminant<T extends {}> {
-  is<K extends keyof T>(
-    this: { type: keyof T; value: T[keyof T] },
-    type: K,
-  ): this is { type: K; value: T[K] }
-  as<K extends keyof T>(type: K): T[K]
-}
-
 export type Enum<T extends {}> = {
   [K in keyof T & string]: {
     type: K
     value: T[K]
   }
-}[keyof T & string] &
-  Discriminant<T>
+}[keyof T & string]
 
 export type EnumVariant<
   T extends { type: string; value?: any },
@@ -28,27 +19,43 @@ export type ExtractEnumValue<
 
 type ValueArg<V> = undefined extends V ? [value?: V] : [value: V]
 
-interface EnumFn {
+interface Discriminant {
+  is<T extends { type: string; value: any }, K extends T["type"]>(
+    value: T,
+    type: K,
+  ): value is T & { type: K }
+  as<T extends { type: string; value: any }, K extends T["type"]>(
+    value: T,
+    type: K,
+  ): ExtractEnumValue<T, K>
+}
+const discriminant: Discriminant = {
+  is<T extends { type: string; value: any }, K extends T["type"]>(
+    value: T,
+    type: K,
+  ): value is T & { type: K } {
+    return value.type === type
+  },
+  as(value, type) {
+    if (type !== value.type)
+      throw new Error(
+        `Enum.as(enum, ${type}) used with actual type ${value.type}`,
+      )
+    return value
+  },
+}
+interface EnumFn extends Discriminant {
   <T extends { type: string; value: any }, K extends T["type"]>(
     type: K,
     ...[value]: ValueArg<ExtractEnumValue<T, K>>
   ): EnumVariant<T, K>
 }
-export const Enum: EnumFn = (type, value?) => {
+export const Enum: EnumFn = Object.assign((type: string, value?: any) => {
   return {
     type,
     value,
-    as(_type: string) {
-      if (type !== _type)
-        // TODO: fix error
-        throw new Error(`Enum.as(${_type}) used with actual type ${type}`)
-      return value
-    },
-    is(_type: string) {
-      return type === _type
-    },
   } as any
-}
+}, discriminant)
 
 // well-known enums
 export type GetEnum<T extends Enum<any>> = {

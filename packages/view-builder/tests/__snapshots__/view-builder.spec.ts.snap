@@ -23,8 +23,6 @@ exports[`getViewBuilder > batched call 1`] = `
                 "RuntimeCall",
               ],
               "value": {
-                "as": [Function],
-                "is": [Function],
                 "type": "Balances",
                 "value": {
                   "codec": "Enum",
@@ -38,8 +36,6 @@ exports[`getViewBuilder > batched call 1`] = `
                     "Call",
                   ],
                   "value": {
-                    "as": [Function],
-                    "is": [Function],
                     "type": "transfer",
                     "value": {
                       "codec": "Struct",
@@ -59,8 +55,6 @@ exports[`getViewBuilder > batched call 1`] = `
                             "MultiAddress",
                           ],
                           "value": {
-                            "as": [Function],
-                            "is": [Function],
                             "type": "Id",
                             "value": {
                               "codec": "AccountId",
@@ -97,8 +91,6 @@ exports[`getViewBuilder > batched call 1`] = `
                 "RuntimeCall",
               ],
               "value": {
-                "as": [Function],
-                "is": [Function],
                 "type": "Staking",
                 "value": {
                   "codec": "Enum",
@@ -113,8 +105,6 @@ exports[`getViewBuilder > batched call 1`] = `
                     "Call",
                   ],
                   "value": {
-                    "as": [Function],
-                    "is": [Function],
                     "type": "nominate",
                     "value": {
                       "codec": "Struct",
@@ -137,8 +127,6 @@ exports[`getViewBuilder > batched call 1`] = `
                                 "MultiAddress",
                               ],
                               "value": {
-                                "as": [Function],
-                                "is": [Function],
                                 "type": "Id",
                                 "value": {
                                   "codec": "AccountId",
@@ -211,8 +199,6 @@ exports[`getViewBuilder > felloship referenda submit 1`] = `
             "DispatchTime",
           ],
           "value": {
-            "as": [Function],
-            "is": [Function],
             "type": "After",
             "value": {
               "codec": "u32",
@@ -232,8 +218,6 @@ exports[`getViewBuilder > felloship referenda submit 1`] = `
             "Bounded",
           ],
           "value": {
-            "as": [Function],
-            "is": [Function],
             "type": "Inline",
             "value": {
               "codec": "Bytes",
@@ -251,8 +235,6 @@ exports[`getViewBuilder > felloship referenda submit 1`] = `
             "OriginCaller",
           ],
           "value": {
-            "as": [Function],
-            "is": [Function],
             "type": "Origins",
             "value": {
               "codec": "Enum",
@@ -266,8 +248,6 @@ exports[`getViewBuilder > felloship referenda submit 1`] = `
                 "Origin",
               ],
               "value": {
-                "as": [Function],
-                "is": [Function],
                 "type": "Fellows",
                 "value": {
                   "codec": "_void",

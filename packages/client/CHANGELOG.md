@@ -8,6 +8,7 @@
 - `getEstimatedFee` takes as input the sender's address and optionally the "hinted-sign-extensions"
 - `tx`: now transactions are mortal by default with a 64 blocks period
 - `codegen`: [deduplicate equivalent known types](https://github.com/polkadot-api/polkadot-api/pull/448)
+- Move the `is` and `as` methods from enum values to `Enum`: `Enum.is(value, tag)`, `Enum.as(value, tag)`.
 
 ### Changed
 
