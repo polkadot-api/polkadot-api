@@ -4,17 +4,11 @@ exports[`getDynamicBuilder > batched call 1`] = `
 {
   "calls": [
     {
-      "as": [Function],
-      "is": [Function],
       "type": "Balances",
       "value": {
-        "as": [Function],
-        "is": [Function],
         "type": "transfer",
         "value": {
           "dest": {
-            "as": [Function],
-            "is": [Function],
             "type": "Id",
             "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
           },
@@ -23,18 +17,12 @@ exports[`getDynamicBuilder > batched call 1`] = `
       },
     },
     {
-      "as": [Function],
-      "is": [Function],
       "type": "Staking",
       "value": {
-        "as": [Function],
-        "is": [Function],
         "type": "nominate",
         "value": {
           "targets": [
             {
-              "as": [Function],
-              "is": [Function],
               "type": "Id",
               "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
             },
@@ -49,14 +37,10 @@ exports[`getDynamicBuilder > batched call 1`] = `
 exports[`getDynamicBuilder > felloship referenda submit 1`] = `
 {
   "enactment_moment": {
-    "as": [Function],
-    "is": [Function],
     "type": "After",
     "value": 1,
   },
   "proposal": {
-    "as": [Function],
-    "is": [Function],
     "type": "Inline",
     "value": _Binary {
       "asBytes": [Function],
@@ -65,12 +49,8 @@ exports[`getDynamicBuilder > felloship referenda submit 1`] = `
     },
   },
   "proposal_origin": {
-    "as": [Function],
-    "is": [Function],
     "type": "Origins",
     "value": {
-      "as": [Function],
-      "is": [Function],
       "type": "Fellows",
       "value": undefined,
     },

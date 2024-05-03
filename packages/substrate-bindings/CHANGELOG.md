@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking
+
+- Move the `is` and `as` methods from enum values to `Enum`: `Enum.is(value, tag)`, `Enum.as(value, tag)`.
+
 ## 0.3.0 - 2024-04-25
 
 ### Added
