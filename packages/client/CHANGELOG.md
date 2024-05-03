@@ -15,6 +15,7 @@
 
 ### Fixed
 
+- properly export `FixedSizeBinary` (only the type was being exported).
 - json-rpc-proxy: Ensure that the proxy works with all the known versions of the JSON-RPC spec
 - `cli/codegen`: `Anonymize` is now able to properly distinguish `Binary` types,
   which were previously being anonymized as`FixedSizeBinary<number>`
