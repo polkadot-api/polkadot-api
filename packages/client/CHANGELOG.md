@@ -5,7 +5,7 @@
 ### Breaking
 
 - `client`: rename `watchBlockBlody` to `watchBlockBody`
-- `getEstimatedFee` takes as input a PolkadotSigner and optionally the "hinted-sign-extensions"
+- `getEstimatedFee` takes as input the sender's address and optionally the "hinted-sign-extensions"
 - `tx`: now transactions are mortal by default with a 64 blocks period
 - `codegen`: [deduplicate equivalent known types](https://github.com/polkadot-api/polkadot-api/pull/448)
 

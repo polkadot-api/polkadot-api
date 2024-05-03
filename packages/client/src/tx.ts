@@ -1,8 +1,10 @@
 import {
+  AccountId,
   AssetDescriptor,
   Binary,
   Enum,
   HexString,
+  SS58String,
   Tuple,
   compact,
   u128,
@@ -111,7 +113,7 @@ export type Transaction<
   signAndSubmit: TxFunction<Asset>
   getEncodedData: TxCall
   getEstimatedFees: (
-    from: PolkadotSigner,
+    from: Uint8Array | SS58String,
     hintedSignExtensions?: HintedSignExtensions<Asset>,
   ) => Promise<bigint>
   decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
@@ -128,6 +130,8 @@ export interface TxEntry<
   ): Transaction<Arg, Pallet, Name, Asset>
   isCompatible: IsCompatible
 }
+
+const accountIdEnc = AccountId().enc
 
 export const getSubmitFns = (
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
@@ -287,9 +291,12 @@ export const createTxEntry = <
         }),
       )
 
-    const getEstimatedFees = async (from: PolkadotSigner, _hinted?: any) => {
+    const getEstimatedFees = async (
+      from: Uint8Array | SS58String,
+      _hinted?: any,
+    ) => {
       const fakeSigner = getPolkadotSigner(
-        from.publicKey,
+        from instanceof Uint8Array ? from : accountIdEnc(from),
         "Sr25519",
         getFakeSignature,
       )
