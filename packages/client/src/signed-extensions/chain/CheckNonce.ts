@@ -1,4 +1,4 @@
-import { map } from "rxjs"
+import { map, mergeMap, take } from "rxjs"
 import { compact, u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
 import type { GetChainSignedExtension } from "../internal-types"
 import { empty } from "../utils"
@@ -12,15 +12,22 @@ const lenToDecoder = {
 }
 
 export const CheckNonce: GetChainSignedExtension = (ctx) =>
-  ctx.chainHead
-    .call$(ctx.at, "AccountNonceApi_account_nonce", toHex(ctx.from))
-    .pipe(
-      map((result) => {
-        const bytes = fromHex(result)
-        const decoder = lenToDecoder[bytes.length as 2 | 4 | 8]
-        if (!decoder)
-          throw new Error("AccountNonceApi_account_nonce retrieved wrong data")
-        return compact.enc(decoder(bytes))
-      }),
-      map((value) => ({ value, additionalSigned: empty })),
-    )
+  ctx.chainHead.best$.pipe(
+    take(1),
+    mergeMap((best) =>
+      ctx.chainHead
+        .call$(best.hash, "AccountNonceApi_account_nonce", toHex(ctx.from))
+        .pipe(
+          map((result) => {
+            const bytes = fromHex(result)
+            const decoder = lenToDecoder[bytes.length as 2 | 4 | 8]
+            if (!decoder)
+              throw new Error(
+                "AccountNonceApi_account_nonce retrieved wrong data",
+              )
+            return compact.enc(decoder(bytes))
+          }),
+          map((value) => ({ value, additionalSigned: empty })),
+        ),
+    ),
+  )
