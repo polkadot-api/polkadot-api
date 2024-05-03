@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.3 - 2024-05-03
+
 ### Fixed
 
 - Ensure blockNumber in SignerPayloadJSON

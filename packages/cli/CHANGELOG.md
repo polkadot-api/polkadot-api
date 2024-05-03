@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.3 - 2024-05-03
+
 ### Fixed
 
 - patch codegen

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2024-05-03
+
 ### Breaking
 
 - `client`: rename `watchBlockBlody` to `watchBlockBody`

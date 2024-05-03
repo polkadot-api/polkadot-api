@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-05-03
+
 ### Breaking
 
 - [Deduplicate equivalent known types](https://github.com/polkadot-api/polkadot-api/pull/448)
