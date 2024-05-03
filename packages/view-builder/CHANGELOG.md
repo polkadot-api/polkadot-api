@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- patch dependencies
+
 ## 0.2.0 - 2024-04-23
 
 ### Added

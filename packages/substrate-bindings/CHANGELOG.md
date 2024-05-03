@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Improve behaviour of a dynamic `Binary` codec, so that if what it receives as an argument
+  is a `FixedSizedBinary` it will honour its size, rather than pre-pepending its len.
+
 ## 0.3.0 - 2024-04-25
 
 ### Added

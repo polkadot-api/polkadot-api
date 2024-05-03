@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- patch dependencies
+
 ### Breaking
 
 - lookup: Normalize `Enum.Variant([T,T,T,T])` into `Enum.Variant([4;T])`

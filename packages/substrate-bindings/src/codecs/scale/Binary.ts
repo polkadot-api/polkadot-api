@@ -49,7 +49,12 @@ export class FixedSizeBinary<_L extends number> extends Binary {
 
 const enc = (nBytes?: number): Encoder<Binary> => {
   const _enc = Bytes.enc(nBytes)
-  return (value) => _enc(value.asBytes())
+  return (value) => {
+    const bytes = value.asBytes()
+    return value instanceof FixedSizeBinary && nBytes == null
+      ? bytes
+      : _enc(bytes)
+  }
 }
 
 const dec = (nBytes?: number): Decoder<Binary> => {

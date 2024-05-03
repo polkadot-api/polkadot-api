@@ -21,6 +21,8 @@
   which were previously being anonymized as`FixedSizeBinary<number>`
 - `getEstimatedFee` now uses the more comon runtime-call: `TransactionPaymentApi_query_info`
 - `pjs-signer`: Ensure blockNumber in SignerPayloadJSON
+- Improve behaviour of a dynamic `Binary` codec, so that if what it receives as an argument
+  is a `FixedSizedBinary` it will honour its size, rather than pre-pepending its len.
 
 ## 0.5.5 - 2024-04-29
 
