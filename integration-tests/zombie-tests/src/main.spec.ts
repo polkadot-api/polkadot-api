@@ -99,7 +99,7 @@ describe("E2E", async () => {
 
     const [aliceEstimatedFee, bobEstimatedFee] = await Promise.all(
       [aliceTransfer, bobTransfer].map((call, idx) =>
-        call.getEstimatedFees(idx === 0 ? alice : bob),
+        call.getEstimatedFees((idx === 0 ? alice : bob).publicKey),
       ),
     )
 
