@@ -14,11 +14,11 @@ export type {
   ConstFromDescriptors,
   RuntimeDescriptor,
   ResultPayload,
-  FixedSizeBinary,
 } from "@polkadot-api/substrate-bindings"
 export {
   AccountId,
   Binary,
+  FixedSizeBinary,
   Enum,
   type EnumVariant,
   _Enum,
