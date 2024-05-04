@@ -129,8 +129,7 @@ export interface PolkadotClient {
    * This API is meant as an "escape hatch" to allow access to debug endpoitns such
    * as `system_version`, and other useful endpoints that are not spec compliant.
    *
-   * Example:
-   *
+   * @example
    * ```ts
    * const systemVersion = await client._request<string>("system_version", [])
    *
