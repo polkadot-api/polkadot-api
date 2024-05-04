@@ -124,6 +124,23 @@ export interface PolkadotClient {
   getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
 
   destroy: () => void
+
+  /**
+   * This API is meant as an "escape hatch" to allow access to debug endpoitns such
+   * as `system_version`, and other useful endpoints that are not spec compliant.
+   *
+   * @example
+   * ```ts
+   * const systemVersion = await client._request<string>("system_version", [])
+   *
+   * const myFancyThhing await client
+   *   ._request<{value: string}, [id: number]>('very_fancy', [1714])
+   * ```
+   */
+  _request: <Reply = any, Params extends Array<any> = any[]>(
+    method: string,
+    params: Params,
+  ) => Promise<Reply>
 }
 
 export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }
