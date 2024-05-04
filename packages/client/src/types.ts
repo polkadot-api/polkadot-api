@@ -126,7 +126,7 @@ export interface PolkadotClient {
   destroy: () => void
 
   /**
-   * This API is meant as an "ecape hatch" to allow access to debug endpoitns such
+   * This API is meant as an "escape hatch" to allow access to debug endpoitns such
    * as `system_version`, and other useful endpoints that are not spec compliant.
    *
    * Example:
