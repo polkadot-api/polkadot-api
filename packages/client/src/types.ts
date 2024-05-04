@@ -132,10 +132,10 @@ export interface PolkadotClient {
    * Example:
    *
    * ```ts
-   * const systemVersion = await client.request<string>("system_version", [])
+   * const systemVersion = await client._request<string>("system_version", [])
    *
    * const myFancyThhing await client
-   *   .request<{value: string}, [id: number]>('very_fancy', [1714])
+   *   ._request<{value: string}, [id: number]>('very_fancy', [1714])
    * ```
    */
   _request: <Reply = any, Params extends Array<any> = any[]>(
