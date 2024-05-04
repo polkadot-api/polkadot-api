@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- The `client` now exposes a `_request` method, which is meant as an "ecape hatch"
+  to allow the consumers of the JSON-RPC provider have access to debugging endpoints
+  such as `system_version`, and other useful endpoints that are not spec compliant.
+
 ## 0.6.0 - 2024-05-03
 
 ### Breaking

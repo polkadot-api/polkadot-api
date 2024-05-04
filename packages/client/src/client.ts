@@ -123,6 +123,11 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const { submit, submit$: submitAndWatch } = submitFns
   const { getChainSpecData } = rawClient
 
+  const _request: <Reply = any, Params extends Array<any> = any[]>(
+    method: string,
+    params: Params,
+  ) => Promise<Reply> = rawClient.request
+
   return {
     getChainSpecData,
 
@@ -148,5 +153,7 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
       chainHead.unfollow()
       client.destroy()
     },
+
+    _request,
   }
 }
