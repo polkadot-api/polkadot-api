@@ -4,7 +4,7 @@
 
 ### Added
 
-- The `client` now exposes a `_request` method, which is meant as an "ecape hatch"
+- The `client` now exposes a `_request` method, which is meant as an "escape hatch"
   to allow the consumers of the JSON-RPC provider have access to debugging endpoints
   such as `system_version`, and other useful endpoints that are not spec compliant.
 
