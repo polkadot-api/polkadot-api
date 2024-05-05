@@ -20,9 +20,8 @@ import {
   map,
   mergeMap,
   of,
-  startWith,
   take,
-  withLatestFrom,
+  throwError,
 } from "rxjs"
 import {
   BlockInfo,
@@ -69,13 +68,15 @@ const getTxSuccessFromSystemEvents = (
   return { ok, events }
 }
 
-type HintedSignExtensions<Asset> = Partial<
+type TxOptions<Asset> = Partial<
   void extends Asset
     ? {
+        at: HexString | "best" | "finalized"
         tip: bigint
         mortality: { mortal: false } | { mortal: true; period: number }
       }
     : {
+        at: HexString | "best" | "finalized"
         tip: bigint
         mortality: { mortal: false } | { mortal: true; period: number }
         asset: Asset
@@ -84,12 +85,12 @@ type HintedSignExtensions<Asset> = Partial<
 
 type TxFunction<Asset> = (
   from: PolkadotSigner,
-  hintedSignExtensions?: HintedSignExtensions<Asset>,
+  txOptions?: TxOptions<Asset>,
 ) => Promise<TxFinalizedPayload>
 
 type TxObservable<Asset> = (
   from: PolkadotSigner,
-  hintedSignExtensions?: HintedSignExtensions<Asset>,
+  txOptions?: TxOptions<Asset>,
 ) => Observable<TxEvent>
 
 interface TxCall {
@@ -99,7 +100,7 @@ interface TxCall {
 
 type TxSigned<Asset> = (
   from: PolkadotSigner,
-  hintedSignExtensions?: HintedSignExtensions<Asset>,
+  txOptions?: TxOptions<Asset>,
 ) => Promise<string>
 
 export type Transaction<
@@ -114,7 +115,7 @@ export type Transaction<
   getEncodedData: TxCall
   getEstimatedFees: (
     from: Uint8Array | SS58String,
-    hintedSignExtensions?: HintedSignExtensions<Asset>,
+    txOptions?: TxOptions<Asset>,
   ) => Promise<bigint>
   decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
 }
@@ -137,15 +138,23 @@ export const getSubmitFns = (
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   client: ReturnType<typeof getObservableClient>,
 ) => {
-  const tx$ = (tx: string) =>
+  const tx$ = (tx: string, _at?: HexString) =>
     concat(
-      chainHead.finalized$.pipe(
-        take(1),
-        mergeMap((finalized) => chainHead.validateTx$(tx, finalized.hash)),
-        map((isValid) => {
-          if (!isValid) throw new Error("Invalid")
-          return { type: "broadcasted" as "broadcasted" }
-        }),
+      (_at
+        ? of(_at)
+        : chainHead.finalized$.pipe(
+            take(1),
+            map((x) => x.hash),
+          )
+      ).pipe(
+        mergeMap((at) =>
+          chainHead.validateTx$(tx, at).pipe(
+            map((isValid) => {
+              if (!isValid) throw new Error("Invalid")
+              return { type: "broadcasted" as "broadcasted" }
+            }),
+          ),
+        ),
       ),
       new Observable<TrackedTx>((observer) => {
         const subscription = chainHead.trackTx$(tx).subscribe(observer)
@@ -160,8 +169,11 @@ export const getSubmitFns = (
       }),
     )
 
-  const submit$ = (transaction: HexString): Observable<TxBroadcastEvent> =>
-    tx$(transaction).pipe(
+  const submit$ = (
+    transaction: HexString,
+    at?: HexString,
+  ): Observable<TxBroadcastEvent> =>
+    tx$(transaction, at).pipe(
       mergeMap((result) => {
         return result.type !== "finalized"
           ? of(result)
@@ -179,12 +191,13 @@ export const getSubmitFns = (
 
   const submit = async (
     transaction: HexString,
+    at?: HexString,
   ): Promise<{
     ok: boolean
     events: Array<SystemEvent["event"]>
     block: { hash: string; index: number }
   }> =>
-    lastValueFrom(submit$(transaction)).then((x) => {
+    lastValueFrom(submit$(transaction, at)).then((x) => {
       if (x.type !== "finalized") throw null
       const result: {
         ok: boolean
@@ -219,7 +232,7 @@ export const createTxEntry = <
     from: PolkadotSigner,
     callData: Uint8Array,
     atBlock: BlockInfo,
-    hinted?: Partial<{}>,
+    options?: Partial<{}>,
   ) => Observable<Uint8Array>,
   compatibilityHelper: CompatibilityHelper,
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
@@ -233,13 +246,13 @@ export const createTxEntry = <
     const getCallDataWithContext = (
       { dynamicBuilder, asset: [assetEnc, assetCheck] }: RuntimeContext,
       arg: any,
-      hinted: Partial<{ asset: any }> = {},
+      txOptions: Partial<{ asset: any }> = {},
     ) => {
-      let returnHinted = hinted
-      if (hinted.asset) {
+      let returnOptions = txOptions
+      if (txOptions.asset) {
         if (assetChecksum !== assetCheck)
           throw new Error(`Incompatible runtime asset`)
-        returnHinted = { ...hinted, asset: assetEnc(hinted.asset) }
+        returnOptions = { ...txOptions, asset: assetEnc(txOptions.asset) }
       }
 
       const { location, codec } = dynamicBuilder.buildCall(pallet, name)
@@ -247,13 +260,13 @@ export const createTxEntry = <
         callData: Binary.fromBytes(
           mergeUint8(new Uint8Array(location), codec.enc(arg)),
         ),
-        hinted: returnHinted,
+        options: returnOptions,
       }
     }
 
-    const getCallData$ = (arg: any, hinted: Partial<{ asset: any }> = {}) =>
+    const getCallData$ = (arg: any, options: Partial<{ asset: any }> = {}) =>
       compatibleRuntime$(chainHead, null, checksumError).pipe(
-        map((ctx) => getCallDataWithContext(ctx, arg, hinted)),
+        map((ctx) => getCallDataWithContext(ctx, arg, options)),
       )
 
     const getEncodedData: TxCall = (runtime?: Runtime): any => {
@@ -266,41 +279,67 @@ export const createTxEntry = <
       return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
     }
 
-    const sign$ = (from: PolkadotSigner, _hinted: any) =>
-      getCallData$(arg, _hinted).pipe(
-        withLatestFrom(chainHead.finalized$),
-        take(1),
-        mergeMap(([{ callData, hinted }, finalized]) =>
-          signer(from, callData.asBytes(), finalized, hinted),
+    const sign$ = (
+      from: PolkadotSigner,
+      { ..._options }: Omit<TxOptions<{}>, "at">,
+      atBlock: BlockInfo,
+    ) =>
+      getCallData$(arg, _options).pipe(
+        mergeMap(({ callData, options }) =>
+          signer(from, callData.asBytes(), atBlock, options),
         ),
       )
 
-    const sign: TxSigned<Asset> = (from, _hinted) =>
-      firstValueFrom(sign$(from, _hinted)).then(toHex)
+    const _sign = (
+      from: PolkadotSigner,
+      { at, ..._options }: TxOptions<{}> = {},
+    ) => {
+      return (
+        !at || at === "finalized"
+          ? chainHead.finalized$
+          : at === "best"
+            ? chainHead.best$
+            : chainHead.bestBlocks$.pipe(
+                map((x) => x.find((b) => b.hash === at)),
+              )
+      ).pipe(
+        take(1),
+        mergeMap((atBlock) =>
+          atBlock
+            ? sign$(from, _options, atBlock).pipe(
+                map((signed) => ({
+                  tx: toHex(signed),
+                  block: atBlock,
+                })),
+              )
+            : throwError(() => new Error(`Uknown block ${at}`)),
+        ),
+      )
+    }
 
-    const signAndSubmit: TxFunction<Asset> = (from, _hinted) =>
-      sign(from, _hinted).then(submits.submit)
+    const sign: TxSigned<Asset> = (from, options) =>
+      firstValueFrom(_sign(from, options)).then((x) => x.tx)
 
-    const signSubmitAndWatch: TxObservable<Asset> = (from, _hinted) =>
-      sign$(from, _hinted).pipe(
-        mergeMap((result) => {
-          const tx = toHex(result)
-          return submits
-            .submit$(tx)
-            .pipe(startWith({ type: "signed" as const, tx }))
-        }),
+    const signAndSubmit: TxFunction<Asset> = (from, _options) =>
+      firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
+        submits.submit(tx, block.hash),
+      )
+
+    const signSubmitAndWatch: TxObservable<Asset> = (from, _options) =>
+      _sign(from, _options).pipe(
+        mergeMap(({ tx, block }) => submits.submit$(tx, block.hash)),
       )
 
     const getEstimatedFees = async (
       from: Uint8Array | SS58String,
-      _hinted?: any,
+      _options?: any,
     ) => {
       const fakeSigner = getPolkadotSigner(
         from instanceof Uint8Array ? from : accountIdEnc(from),
         "Sr25519",
         getFakeSignature,
       )
-      const encoded = fromHex(await sign(fakeSigner, _hinted))
+      const encoded = fromHex(await sign(fakeSigner, _options))
       const args = toHex(mergeUint8(encoded, u32.enc(encoded.length)))
 
       return firstValueFrom(
