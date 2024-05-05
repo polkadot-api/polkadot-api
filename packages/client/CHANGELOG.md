@@ -7,6 +7,9 @@
 - The `client` now exposes a `_request` method, which is meant as an "escape hatch"
   to allow the consumers of the JSON-RPC provider have access to debugging endpoints
   such as `system_version`, and other useful endpoints that are not spec compliant.
+- Suppot for "optimistic" transactions via the `at` option when creating/broadcasting
+  transactions. This makes it possible to create transactions against blocks that are
+  not yet finalized. [#486](https://github.com/polkadot-api/polkadot-api/pull/486)
 
 ## 0.6.0 - 2024-05-03
 
