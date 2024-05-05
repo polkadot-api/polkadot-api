@@ -8,6 +8,10 @@
   to allow the consumers of the JSON-RPC provider have access to debugging endpoints
   such as `system_version`, and other useful endpoints that are not spec compliant.
 
+### Fixed
+
+- `substrate-client`: improve the cancelation logic on operations that have not yet received its operationId [#484](https://github.com/polkadot-api/polkadot-api/pull/484)
+
 ## 0.6.0 - 2024-05-03
 
 ### Breaking
