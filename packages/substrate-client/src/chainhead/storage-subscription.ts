@@ -32,13 +32,25 @@ export const createStorageCb =
       return noop
     }
 
-    let cancel = request(chainHead.storage, [hash, inputs, childTrie], {
+    let isRunning = true
+    let cancel = () => {
+      isRunning = false
+    }
+
+    request(chainHead.storage, [hash, inputs, childTrie], {
       onSuccess: (response, followSubscription) => {
         if (
           response.result === "limitReached" ||
           response.discardedItems === inputs.length
         )
           return onError(new OperationLimitError())
+
+        const { operationId } = response
+        const stopOperation = () => {
+          request(chainHead.stopOperation, [operationId])
+        }
+
+        if (!isRunning) return stopOperation()
 
         const doneListening = followSubscription(response.operationId, {
           next: (event) => {

@@ -250,20 +250,30 @@ describe.each([
 
     it("cancels the ongoing operation before receiving its operationId", async () => {
       const controller = new AbortController()
-      const { provider, chainHead } = await setupChainHead()
+      const { provider, operationPromise, SUBSCRIPTION_ID } =
+        await setupChainHeadOperation(
+          op.name,
+          ...([...args, controller.signal] as any),
+        )
+
       provider.getNewMessages()
-
-      const operationPromise = (chainHead[op.name] as any)(
-        ...([...args, controller.signal] as any[]),
-      )
-
       controller.abort()
 
+      const OPERATION_ID = "someOperationId"
       provider.replyLast({
-        result: "someSubscription",
+        result: {
+          result: "started",
+          operationId: OPERATION_ID,
+          discardedItems: 0,
+        },
       })
 
-      expect(provider.getNewMessages()).toEqual([])
+      const messages = provider.getNewMessages()
+      expect(messages.length).toEqual(1)
+      expect(messages[0]).toMatchObject({
+        method: `chainHead_v1_stopOperation`,
+        params: [SUBSCRIPTION_ID, OPERATION_ID],
+      })
 
       await expect(operationPromise).rejects.toMatchObject({
         name: "AbortError",

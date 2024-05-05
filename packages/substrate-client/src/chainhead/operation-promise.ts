@@ -28,45 +28,53 @@ export const createOperationPromise =
     >,
   ) =>
     abortablePromiseFn<O, A>((res, rej, ...args) => {
+      let isRunning = true
+      let cancel = () => {
+        isRunning = false
+      }
+
       const [requestArgs, logicCb] = factory(...args)
-      let cancel = request(operationName, requestArgs, {
+      request(operationName, requestArgs, {
         onSuccess: (response, followSubscription) => {
-          if (response.result === "limitReached") {
-            cancel = noop
+          if (response.result === "limitReached")
             return rej(new OperationLimitError())
+
+          const { operationId } = response
+          const stopOperation = () => {
+            request(chainHead.stopOperation, [operationId])
           }
 
-          let isOperationGoing = true
+          if (!isRunning) return stopOperation()
+
           let done = noop
           const _res = (x: O) => {
-            isOperationGoing = false
+            isRunning = false
             done()
             res(x)
           }
           const _rej = (x: Error) => {
-            isOperationGoing = false
+            isRunning = false
             done()
             rej(x)
           }
 
-          done = followSubscription(response.operationId, {
+          done = followSubscription(operationId, {
             next: (e) => {
               const _e = e as CommonOperationEventsRpc
-              if (_e.event === "operationError") {
+              if (_e.event === "operationError")
                 rej(new OperationError(_e.error))
-              } else if (_e.event === "operationInaccessible") {
+              else if (_e.event === "operationInaccessible")
                 rej(new OperationInaccessibleError())
-              } else {
-                logicCb(e as I, _res, _rej)
-              }
+              else logicCb(e as I, _res, _rej)
             },
             error: _rej,
           })
 
           cancel = () => {
-            if (!isOperationGoing) return
-            done()
-            request(chainHead.stopOperation, [response.operationId])
+            if (isRunning) {
+              done()
+              stopOperation()
+            }
           }
         },
         onError: rej,
