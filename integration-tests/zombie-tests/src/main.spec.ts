@@ -1,8 +1,15 @@
 import { randomBytes } from "crypto"
-import { combineLatest, filter, firstValueFrom, map } from "rxjs"
+import {
+  combineLatest,
+  filter,
+  firstValueFrom,
+  lastValueFrom,
+  map,
+  switchMap,
+} from "rxjs"
 import { expect, describe, it } from "vitest"
 import { start } from "polkadot-api/smoldot"
-import { AccountId, createClient } from "polkadot-api"
+import { AccountId, TxEvent, createClient } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { WebSocketProvider } from "polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
@@ -192,4 +199,37 @@ describe("E2E", async () => {
       expect(balancesPro).toEqual(balancesPre.map((x) => x + ED))
     },
   )
+
+  it("optimistic transactions", async () => {
+    const amount = ED * 10n
+    const target = AccountId().dec(randomBytes(32))
+
+    const alice = accounts["alice"]["sr25519"]
+    const transfer = api.tx.Balances.transfer_allow_death({
+      dest: MultiAddress.Id(target),
+      value: amount,
+    })
+
+    const targetPreFreeBalance = await api.query.System.Account.getValue(
+      target,
+    ).then((x) => x.data.free)
+
+    await lastValueFrom(
+      transfer.signSubmitAndWatch(alice).pipe(
+        filter(
+          (e): e is TxEvent & { type: "bestChainBlockIncluded" } =>
+            e.type === "bestChainBlockIncluded",
+        ),
+        switchMap(({ block: { hash: at } }) =>
+          transfer.signSubmitAndWatch(alice, { at }),
+        ),
+      ),
+    )
+
+    const targetPostFreeBalance = await api.query.System.Account.getValue(
+      target,
+    ).then((x) => x.data.free)
+
+    expect(targetPostFreeBalance).toEqual(targetPreFreeBalance + amount * 2n)
+  })
 })

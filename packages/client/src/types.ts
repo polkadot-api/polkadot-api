@@ -26,12 +26,6 @@ export type HintedSignedExtensions = Partial<{
   asset: Uint8Array
 }>
 
-export type CreateTx = (
-  publicKey: Uint8Array,
-  callData: Uint8Array,
-  hintedSignedExtensions?: HintedSignedExtensions,
-) => Promise<Uint8Array>
-
 export type StorageApi<
   A extends Record<
     string,
@@ -118,8 +112,14 @@ export interface PolkadotClient {
 
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
 
-  submit: (transaction: HexString) => Promise<TxFinalizedPayload>
-  submitAndWatch: (transaction: HexString) => Observable<TxBroadcastEvent>
+  submit: (
+    transaction: HexString,
+    at?: HexString,
+  ) => Promise<TxFinalizedPayload>
+  submitAndWatch: (
+    transaction: HexString,
+    at?: HexString,
+  ) => Observable<TxBroadcastEvent>
 
   getTypedApi: <D extends Descriptors>(descriptors: D) => TypedApi<D>
 
