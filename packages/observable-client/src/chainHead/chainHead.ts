@@ -209,7 +209,10 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   )
 
   const bestBlocks$ = pinnedBlocks$.pipe(
-    distinctUntilChanged((prev, current) => prev.best === current.best),
+    distinctUntilChanged(
+      (prev, current) =>
+        prev.finalized === current.finalized && prev.best === current.best,
+    ),
     scan((acc, pinned) => {
       const getBlockInfo = (hash: string) =>
         acc.get(hash) || toBlockInfo(pinned.blocks.get(hash)!)
