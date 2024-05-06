@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- ensure `bestBlocks$` always start with latest known `finalizedBlock` [#491](https://github.com/polkadot-api/polkadot-api/pull/491)
+
 ## 0.2.2 - 2024-05-03
 
 ### Fixed
