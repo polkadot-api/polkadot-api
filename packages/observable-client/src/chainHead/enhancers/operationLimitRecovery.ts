@@ -1,6 +1,6 @@
 import { OperationLimitError } from "@polkadot-api/substrate-client"
 import type { Subscriber } from "rxjs"
-import { Observable } from "rxjs"
+import { Observable, noop } from "rxjs"
 
 interface PendingTaskNode<T> {
   value: T
@@ -121,28 +121,30 @@ export const getWithRecovery = () => {
   }) => {
     const { source$, observer } = data
 
+    let innerOnEmptySlot = onEmptySlot
     const subscription = source$.subscribe({
       next(x) {
         observer.next(x)
       },
       error(e) {
-        teardown(source$)
-        if (e instanceof OperationLimitError) return addTask(data, true)
+        if (!(e instanceof OperationLimitError)) return observer.error(e)
 
-        observer.error(e)
-        onEmptySlot()
+        // ensure that we don't trigger an empty slot when there are no available slots
+        innerOnEmptySlot = noop
+        teardown(source$)
+        addTask(data, true)
       },
       complete() {
         observer.complete()
-        onEmptySlot()
       },
     })
 
-    if (!observer.closed) {
+    if (!subscription.closed) {
       setTeardown(source$, () => {
         subscription.unsubscribe()
+        innerOnEmptySlot()
       })
-    }
+    } else innerOnEmptySlot()
   }
 
   const withRecovery =
