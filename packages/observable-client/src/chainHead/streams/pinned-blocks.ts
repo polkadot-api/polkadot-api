@@ -11,9 +11,9 @@ import {
   of,
   scan,
 } from "rxjs"
+import { withStopRecovery } from "../enhancers"
 import { retryOnStopError } from "./follow"
 import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
-import { withStopRecovery } from "../enhancers"
 
 export interface PinnedBlock {
   hash: string
@@ -206,7 +206,8 @@ export const getPinnedBlocks$ = (
           block.refCount += event.value.type === "hold" ? 1 : -1
           if (
             block.refCount === 0 &&
-            block.number < acc.blocks.get(acc.finalized)!.number
+            block.number < acc.blocks.get(acc.finalized)!.number &&
+            !block.recovering
           ) {
             block.unpinned = true
             onUnpin([block.hash])

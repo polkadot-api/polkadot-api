@@ -67,6 +67,47 @@ describe("observableClient stopError recovery", () => {
     cleanup(chainHead.unfollow)
   })
 
+  it("doesn't unpin blocks from the previous session", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    const chainHead = client.chainHead$()
+
+    const { initialHash } = await initializeWithMetadata(mockClient)
+
+    const newBlocks = sendNewBlockBranch(mockClient, initialHash, 3)
+    sendBestBlockChanged(mockClient, {
+      bestBlockHash: newBlocks.at(-1)!.blockHash,
+    })
+
+    const requestedBodyHash = newBlocks[0].blockHash
+    const body = observe(chainHead.body$(requestedBodyHash))
+
+    expect(body.next).not.toHaveBeenCalled()
+    expect(mockClient.chainHead.mock.body).toHaveBeenCalledOnce()
+
+    mockClient.chainHead.mock.sendError(new StopError())
+    await mockClient.chainHead.mock.body.reply(
+      requestedBodyHash,
+      Promise.reject(new DisjointError()),
+    )
+
+    await initialize(
+      mockClient,
+      newInitialized({
+        finalizedBlockHashes: newBlocks
+          .slice(0, 1)
+          .map((block) => block.blockHash),
+      }),
+    )
+
+    // unpinning happened after releasing a refcount, which is done in a macrotask
+    await wait()
+
+    expect(mockClient.chainHead.mock.unpin).not.toHaveBeenCalled()
+
+    cleanup(chainHead.unfollow)
+  })
+
   it("recovers ongoing operations if it continues existing after recovering", async () => {
     const mockClient = createMockSubstrateClient()
     const client = getObservableClient(mockClient)
