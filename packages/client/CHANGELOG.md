@@ -15,6 +15,7 @@
 
 - `substrate-client`: improve the cancelation logic on operations that have not yet received its operationId [#484](https://github.com/polkadot-api/polkadot-api/pull/484)
 - `observable-client`: ensure `bestBlocks$` always start with latest known `finalizedBlock` [#491](https://github.com/polkadot-api/polkadot-api/pull/491)
+- Stop-recovery: blocks from previous session getting unpinned
 
 ## 0.6.0 - 2024-05-03
 
