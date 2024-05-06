@@ -21,7 +21,17 @@ import {
   compact,
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
-import { Observable, catchError, map, mergeMap, of, shareReplay } from "rxjs"
+import {
+  Observable,
+  catchError,
+  map,
+  mergeMap,
+  of,
+  shareReplay,
+  switchMap,
+  take,
+} from "rxjs"
+import { BlockNotPinnedError } from "../errors"
 
 export type SystemEvent = {
   phase:
@@ -66,15 +76,33 @@ const u32ListDecoder = Vector(u32).dec
 
 export const getRuntimeCreator = (
   call$: (hash: string, method: string, args: string) => Observable<string>,
+  finalized$: Observable<string>,
 ) => {
   const getMetadata$ = (
     hash: string,
   ): Observable<{ metadataRaw: Uint8Array; metadata: V14 | V15 }> => {
-    const versions = call$(hash, "Metadata_metadata_versions", "").pipe(
+    const recoverCall$ = (
+      hash: string,
+      method: string,
+      args: string,
+    ): Observable<string> =>
+      call$(hash, method, args).pipe(
+        catchError((e) => {
+          if (e instanceof BlockNotPinnedError) {
+            return finalized$.pipe(
+              take(1),
+              switchMap((newHash) => recoverCall$(newHash, method, args)),
+            )
+          }
+          throw e
+        }),
+      )
+
+    const versions = recoverCall$(hash, "Metadata_metadata_versions", "").pipe(
       map(u32ListDecoder),
     )
 
-    const v14 = call$(hash, "Metadata_metadata", "").pipe(
+    const v14 = recoverCall$(hash, "Metadata_metadata", "").pipe(
       map((x) => {
         const [, metadataRaw] = opaqueMeta14.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)
@@ -82,7 +110,11 @@ export const getRuntimeCreator = (
       }),
     )
 
-    const v15 = call$(hash, "Metadata_metadata_at_version", v15Args).pipe(
+    const v15 = recoverCall$(
+      hash,
+      "Metadata_metadata_at_version",
+      v15Args,
+    ).pipe(
       map((x) => {
         const metadataRaw = opaqueMeta15.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)

@@ -129,7 +129,7 @@ export const initialize = async (
 
 const metadataValue = getKsmMetadata()
 const innerCodec = Option(Bytes())
-const metadataHex = metadataValue
+export const metadataHex = metadataValue
   .then((metadata) =>
     metadataCodec.enc({
       magicNumber: 0,
@@ -139,7 +139,7 @@ const metadataHex = metadataValue
   .then((array) => innerCodec.enc(array))
   .then(toHex)
 
-const metadataVersions = toHex(Vector(u32).enc([14, 15]))
+export const metadataVersions = toHex(Vector(u32).enc([14, 15]))
 
 export const initializeWithMetadata = async (
   mockClient: MockSubstrateClient,
