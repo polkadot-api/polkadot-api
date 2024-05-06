@@ -9,7 +9,7 @@ import {
 } from "rxjs"
 import { expect, describe, it } from "vitest"
 import { start } from "polkadot-api/smoldot"
-import { AccountId, TxEvent, createClient } from "polkadot-api"
+import { AccountId, SS58String, TxEvent, createClient } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { WebSocketProvider } from "polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
@@ -231,5 +231,17 @@ describe("E2E", async () => {
     ).then((x) => x.data.free)
 
     expect(targetPostFreeBalance).toEqual(targetPreFreeBalance + amount * 2n)
+  })
+
+  it("operation-limit recovery", async () => {
+    const addresses = Array(70)
+      .fill(null)
+      .map(() => AccountId().dec(randomBytes(32)))
+
+    console.log(`querying ${addresses.length} identities`)
+    const result = await api.query.Identity.IdentityOf.getValues(
+      addresses.map((address) => [address] as [SS58String]),
+    )
+    expect(result.length).toEqual(addresses.length)
   })
 })
