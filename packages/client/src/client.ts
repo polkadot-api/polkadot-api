@@ -1,20 +1,20 @@
+import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
+import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { Descriptors } from "@polkadot-api/substrate-bindings"
 import {
   SubstrateClient,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
 import { Observable, firstValueFrom } from "rxjs"
-import { ConstantEntry, createConstantEntry } from "./constants"
-import { EvClient, createEventEntry } from "./event"
-import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
-import { compatibilityHelper, getRuntimeApi } from "./runtime"
-import { RuntimeCall, createRuntimeCallEntry } from "./runtime-call"
-import { createStorageEntry, type StorageEntry } from "./storage"
-import { TxEntry, createTxEntry, getSubmitFns } from "./tx"
-import { HintedSignedExtensions, PolkadotClient, TypedApi } from "./types"
+import { createConstantEntry } from "./constants"
+import { createEventEntry } from "./event"
 import { getCreateTx } from "./get-create-tx"
-import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { compatibilityHelper, getRuntimeApi } from "./runtime"
+import { createRuntimeCallEntry } from "./runtime-call"
+import { createStorageEntry } from "./storage"
+import { createTxEntry, getSubmitFns } from "./tx"
+import { HintedSignedExtensions, PolkadotClient, TypedApi } from "./types"
 
 const createTypedApi = <D extends Descriptors>(
   descriptors: D,
@@ -27,89 +27,82 @@ const createTypedApi = <D extends Descriptors>(
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   submitFns: ReturnType<typeof getSubmitFns>,
 ): TypedApi<D> => {
-  const runtimeApi = getRuntimeApi(descriptors.checksums, chainHead)
+  const runtime = getRuntimeApi(descriptors.checksums, chainHead)
+
+  const target = {}
+  const createProxy = (propCall: (prop: string) => unknown) =>
+    new Proxy(target, {
+      get(_, prop) {
+        return propCall(prop as string)
+      },
+    })
+  const createProxyPath = <T>(pathCall: (a: string, b: string) => T) => {
+    const cache: Record<string, Record<string, T>> = {}
+    return createProxy((a) => {
+      if (!cache[a]) cache[a] = {}
+      return createProxy((b) => {
+        if (!cache[a][b]) cache[a][b] = pathCall(a, b)
+        return cache[a][b]
+      })
+    }) as Record<string, Record<string, T>>
+  }
 
   const { pallets, apis: runtimeApis } = descriptors
-  const query = {} as Record<string, Record<string, StorageEntry<any, any>>>
-  for (const pallet in pallets) {
-    query[pallet] ||= {}
-    const [stgEntries] = pallets[pallet]
-    for (const name in stgEntries) {
-      query[pallet][name] = createStorageEntry(
-        pallet,
-        name,
-        chainHead,
-        compatibilityHelper(runtimeApi, stgEntries[name]),
-      )
-    }
-  }
+  const query = createProxyPath((pallet, name) =>
+    createStorageEntry(
+      pallet,
+      name,
+      chainHead,
+      compatibilityHelper(runtime, pallets[pallet][0][name]),
+    ),
+  )
 
-  const tx = {} as Record<string, Record<string, TxEntry<any, any, any, any>>>
-  for (const pallet in pallets) {
-    tx[pallet] ||= {}
-    const [, txEntries] = pallets[pallet]
-    for (const name in txEntries) {
-      tx[pallet][name] = createTxEntry(
-        pallet,
-        name,
-        descriptors.asset,
-        chainHead,
-        submitFns,
-        createTxFromSigner,
-        compatibilityHelper(runtimeApi, txEntries[name]),
-      )
-    }
-  }
+  const tx = createProxyPath((pallet, name) =>
+    createTxEntry(
+      pallet,
+      name,
+      descriptors.asset,
+      chainHead,
+      submitFns,
+      createTxFromSigner,
+      compatibilityHelper(runtime, pallets[pallet][1][name]),
+    ),
+  )
 
-  const events = {} as Record<string, Record<string, EvClient<any>>>
-  for (const pallet in pallets) {
-    events[pallet] ||= {}
-    const [, , evEntries] = pallets[pallet]
-    for (const name in evEntries) {
-      events[pallet][name] = createEventEntry(
-        pallet,
-        name,
-        chainHead,
-        compatibilityHelper(runtimeApi, evEntries[name]),
-      )
-    }
-  }
+  const event = createProxyPath((pallet, name) =>
+    createEventEntry(
+      pallet,
+      name,
+      chainHead,
+      compatibilityHelper(runtime, pallets[pallet][2][name]),
+    ),
+  )
 
-  const constants = {} as Record<string, Record<string, ConstantEntry<any>>>
-  for (const pallet in pallets) {
-    constants[pallet] ||= {}
-    const [, , , , ctEntries] = pallets[pallet]
-    for (const name in ctEntries) {
-      constants[pallet][name] = createConstantEntry(
-        pallet,
-        name,
-        chainHead,
-        compatibilityHelper(runtimeApi, ctEntries[name]),
-      )
-    }
-  }
+  const constants = createProxyPath((pallet, name) =>
+    createConstantEntry(
+      pallet,
+      name,
+      chainHead,
+      compatibilityHelper(runtime, pallets[pallet][4][name]),
+    ),
+  )
 
-  const apis = {} as Record<string, Record<string, RuntimeCall<any, any>>>
-  for (const api in runtimeApis) {
-    apis[api] ||= {}
-    const methods = runtimeApis[api]
-    for (const method in methods) {
-      apis[api][method] = createRuntimeCallEntry(
-        api,
-        method,
-        chainHead,
-        compatibilityHelper(runtimeApi, methods[method]),
-      )
-    }
-  }
+  const apis = createProxyPath((api, method) =>
+    createRuntimeCallEntry(
+      api,
+      method,
+      chainHead,
+      compatibilityHelper(runtime, runtimeApis[api][method]),
+    ),
+  )
 
   return {
-    query: query,
-    tx: tx,
-    event: events,
+    query,
+    tx,
+    event,
     apis,
     constants,
-    runtime: runtimeApi,
+    runtime,
   } as any
 }
 
