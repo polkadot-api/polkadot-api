@@ -1,6 +1,5 @@
 import {
   AccountId,
-  AssetDescriptor,
   Binary,
   Enum,
   HexString,
@@ -43,6 +42,7 @@ import {
 import { PolkadotSigner } from "../../signers/polkadot-signer/dist/index.mjs"
 import { getPolkadotSigner } from "@polkadot-api/signer"
 import { withLogs } from "./utils"
+import { AssetDescriptor } from "./descriptors"
 
 export type TxBroadcastEvent =
   | { type: "broadcasted" }

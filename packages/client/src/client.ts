@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { Descriptors } from "@polkadot-api/substrate-bindings"
+import { ChainDefinition } from "./descriptors"
 import {
   SubstrateClient,
   createClient as createRawClient,
@@ -16,8 +16,8 @@ import { createStorageEntry } from "./storage"
 import { createTxEntry, getSubmitFns } from "./tx"
 import { HintedSignedExtensions, PolkadotClient, TypedApi } from "./types"
 
-const createTypedApi = <D extends Descriptors>(
-  descriptors: D,
+const createTypedApi = <D extends ChainDefinition>(
+  chainDefinition: D,
   createTxFromSigner: (
     signer: PolkadotSigner,
     callData: Uint8Array,
@@ -27,7 +27,7 @@ const createTypedApi = <D extends Descriptors>(
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   submitFns: ReturnType<typeof getSubmitFns>,
 ): TypedApi<D> => {
-  const runtime = getRuntimeApi(descriptors.checksums, chainHead)
+  const runtime = getRuntimeApi(chainDefinition.checksums, chainHead)
 
   const target = {}
   const createProxy = (propCall: (prop: string) => unknown) =>
@@ -47,7 +47,7 @@ const createTypedApi = <D extends Descriptors>(
     }) as Record<string, Record<string, T>>
   }
 
-  const { pallets, apis: runtimeApis } = descriptors
+  const { pallets, apis: runtimeApis } = chainDefinition.descriptors
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,
@@ -61,7 +61,7 @@ const createTypedApi = <D extends Descriptors>(
     createTxEntry(
       pallet,
       name,
-      descriptors.asset,
+      chainDefinition.asset,
       chainHead,
       submitFns,
       createTxFromSigner,
@@ -160,8 +160,8 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     submit,
     submitAndWatch,
 
-    getTypedApi: <D extends Descriptors>(descriptors: D) =>
-      createTypedApi(descriptors, createTxFromSigner, chainHead, submitFns),
+    getTypedApi: <D extends ChainDefinition>(chainDefinition: D) =>
+      createTypedApi(chainDefinition, createTxFromSigner, chainHead, submitFns),
 
     destroy: () => {
       chainHead.unfollow()

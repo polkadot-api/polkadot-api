@@ -3,16 +3,6 @@ export type {
   SS58String,
   HexString,
   GetEnum,
-  PlainDescriptor,
-  AssetDescriptor,
-  TxDescriptor,
-  StorageDescriptor,
-  QueryFromDescriptors,
-  TxFromDescriptors,
-  EventsFromDescriptors,
-  ErrorsFromDescriptors,
-  ConstFromDescriptors,
-  RuntimeDescriptor,
   ResultPayload,
 } from "@polkadot-api/substrate-bindings"
 export {

@@ -16,7 +16,7 @@ const isDocs = (x: any) => {
 const customStringifyObject = (
   input: string | Record<string, any> | Array<any>,
 ): string => {
-  if (typeof input === "string") return input
+  if (typeof input === "string" || typeof input === "number") return input
 
   if (Array.isArray(input))
     return `[${input.map(customStringifyObject).join(", ")}]`
@@ -45,6 +45,7 @@ export const generateDescriptors = (
     client: string
     checksums: string
     types: string
+    descriptorValues: string
   },
 ) => {
   const buildEnumObj = <T>(
@@ -168,8 +169,6 @@ export const generateDescriptors = (
     }),
   )
 
-  const descriptorDeclarations: string[] = []
-
   const runtimeCalls = Object.fromEntries(
     metadata.apis.map((api) => [
       api.name,
@@ -198,23 +197,6 @@ export const generateDescriptors = (
     ]),
   )
 
-  ;[
-    storage,
-    calls,
-    events,
-    errors,
-    constants,
-    mapObject(runtimeCalls, (x) => x.methods),
-  ].forEach((entryType) => {
-    Object.values(entryType).forEach((x) =>
-      Object.values(x).forEach(({ checksum, type, name }) => {
-        descriptorDeclarations.push(
-          `const ${name}: ${type} = ${checksum} as ${type};`,
-        )
-      }),
-    )
-  })
-
   const iPallets = mapObject(storage, (_, pallet) => {
     return [
       mapObject(storage[pallet], ({ docs, type: value }) => ({ docs, value })),
@@ -230,11 +212,11 @@ export const generateDescriptors = (
 
   const pallets = mapObject(storage, (_, pallet) => {
     return [
-      mapObject(storage[pallet], (x) => x.name),
-      mapObject(calls[pallet], (x) => x.name),
-      mapObject(events[pallet], (x) => x.name),
-      mapObject(errors[pallet], (x) => x.name),
-      mapObject(constants[pallet], (x) => x.name),
+      mapObject(storage[pallet], (x) => x.checksum),
+      mapObject(calls[pallet], (x) => x.checksum),
+      mapObject(events[pallet], (x) => x.checksum),
+      mapObject(errors[pallet], (x) => x.checksum),
+      mapObject(constants[pallet], (x) => x.checksum),
     ]
   })
 
@@ -244,7 +226,7 @@ export const generateDescriptors = (
   }))
 
   const runtimeCallsObj = mapObject(runtimeCalls, (api) =>
-    mapObject(api.methods, (x) => x.name),
+    mapObject(api.methods, (x) => x.checksum),
   )
 
   const clientImports = [
@@ -258,11 +240,11 @@ export const generateDescriptors = (
     "Binary",
     "FixedSizeBinary",
     "FixedSizeArray",
-    "QueryFromDescriptors",
-    "TxFromDescriptors",
-    "EventsFromDescriptors",
-    "ErrorsFromDescriptors",
-    "ConstFromDescriptors",
+    "QueryFromPalletsDef",
+    "TxFromPalletsDef",
+    "EventsFromPalletsDef",
+    "ErrorsFromPalletsDef",
+    "ConstFromPalletsDef",
     ...typesBuilder.getClientFileImports(),
   ]
 
@@ -287,15 +269,23 @@ export const generateDescriptors = (
           type: typesBuilder.buildTypeDefinition(_assetId),
         }
 
+  const descriptorValues = `
+    export const ${prefix} = {
+      pallets: ${customStringifyObject(pallets)},
+      apis: ${customStringifyObject(runtimeCallsObj)}
+    };
+  `
+
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
     paths.types
   }";
+  import { ${prefix} as descriptorValues } from "${paths.descriptorValues}";
 
   const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
   `
 
-  return `${imports}
+  const descriptorTypes = `${imports}
 
 type AnonymousEnum<T extends {}> = T & {
   __anonymous: true
@@ -342,31 +332,23 @@ type Anonymize<T> = SeparateUndefined<
                 }
 >
 
-${descriptorDeclarations.join("\n")}
-
 type IPallets = ${customStringifyObject(iPallets)};
-const pallets: IPallets = ${customStringifyObject(pallets)};
-
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-const apis: IRuntimeCalls = ${customStringifyObject(runtimeCallsObj)};
-
 type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
 const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
 
-type IDescriptors = { pallets: IPallets, apis: IRuntimeCalls, asset: IAsset, checksums: Promise<string[]> };
-const _allDescriptors: IDescriptors = { pallets, apis, asset, checksums };
+const _allDescriptors = { descriptors: descriptorValues, asset, checksums };
 export default _allDescriptors;
 
-
-export type ${prefix}Queries = QueryFromDescriptors<IDescriptors>
-export type ${prefix}Calls = TxFromDescriptors<IDescriptors>
-export type ${prefix}Events = EventsFromDescriptors<IDescriptors>
-export type ${prefix}Errors = ErrorsFromDescriptors<IDescriptors>
-export type ${prefix}Constants = ConstFromDescriptors<IDescriptors>
+export type ${prefix}Queries = QueryFromPalletsDef<IPallets>
+export type ${prefix}Calls = TxFromPalletsDef<IPallets>
+export type ${prefix}Events = EventsFromPalletsDef<IPallets>
+export type ${prefix}Errors = ErrorsFromPalletsDef<IPallets>
+export type ${prefix}Constants = ConstFromPalletsDef<IPallets>
 
 export type ${prefix}WhitelistEntry =
   | PalletKey
-  | ApiKey<IDescriptors>
+  | ApiKey<IRuntimeCalls>
   | \`query.\${NestedKey<PickDescriptors<0, IPallets>>}\`
   | \`tx.\${NestedKey<PickDescriptors<1, IPallets>>}\`
   | \`event.\${NestedKey<PickDescriptors<2, IPallets>>}\`
@@ -384,15 +366,15 @@ type NestedKey<D extends Record<string, Record<string, any>>> =
           }[keyof D[P] & string]
     }[keyof D & string]
 
-type ApiKey<D extends { apis: Record<string, Record<string, any>>}> =
+type ApiKey<D extends Record<string, Record<string, any>>> =
   | "api.*"
   | {
-      [P in keyof D["apis"] & string]:
+      [P in keyof D & string]:
         | \`api.\${P}.*\`
         | {
-            [N in keyof D["apis"][P] & string]: \`api.\${P}.\${N}\`
-          }[keyof (keyof D["apis"][P]) & string]
-    }[keyof D["apis"] & string]
+            [N in keyof D[P] & string]: \`api.\${P}.\${N}\`
+          }[keyof (keyof D[P]) & string]
+    }[keyof D & string]
 
 type PickDescriptors<
   Idx extends 0 | 1 | 2 | 3 | 4,
@@ -401,4 +383,6 @@ type PickDescriptors<
   [K in keyof T]: T[K][Idx]
 }
 `
+
+  return { descriptorTypes, descriptorValues }
 }

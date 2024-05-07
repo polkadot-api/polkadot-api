@@ -14,26 +14,26 @@ export type RuntimeDescriptor<Args extends Array<any>, T> = number & {
   __: [Args, T]
 }
 
-export type Descriptors = {
-  pallets: Record<
-    string,
-    [
-      Record<string, StorageDescriptor<any, any, any>>,
-      Record<string, TxDescriptor<any>>,
-      Record<string, PlainDescriptor<any>>,
-      Record<string, PlainDescriptor<any>>,
-      Record<string, PlainDescriptor<any>>,
-    ]
-  >
-  apis: Record<string, Record<string, RuntimeDescriptor<any, any>>>
+export type PalletsDef = Record<
+  string,
+  [
+    Record<string, StorageDescriptor<any, any, any>>,
+    Record<string, TxDescriptor<any>>,
+    Record<string, PlainDescriptor<any>>,
+    Record<string, PlainDescriptor<any>>,
+    Record<string, PlainDescriptor<any>>,
+  ]
+>
+export type ChainDefinition = {
+  descriptors: {
+    pallets: PalletsDef
+    apis: Record<string, Record<string, RuntimeDescriptor<any, any>>>
+  }
   asset: AssetDescriptor<any>
   checksums: Promise<string[]>
 }
 
-type PickDescriptors<
-  Idx extends 0 | 1 | 2 | 3 | 4,
-  T extends Descriptors["pallets"],
-> = {
+type PickDescriptors<Idx extends 0 | 1 | 2 | 3 | 4, T extends PalletsDef> = {
   [K in keyof T]: T[K][Idx]
 }
 
@@ -73,22 +73,22 @@ type ExtractPlain<
   }
 }
 
-export type QueryFromDescriptors<T extends Descriptors> = ExtractStorage<
-  PickDescriptors<0, T["pallets"]>
+export type QueryFromPalletsDef<T extends PalletsDef> = ExtractStorage<
+  PickDescriptors<0, T>
 >
 
-export type TxFromDescriptors<T extends Descriptors> = ExtractTx<
-  PickDescriptors<1, T["pallets"]>
+export type TxFromPalletsDef<T extends PalletsDef> = ExtractTx<
+  PickDescriptors<1, T>
 >
 
-export type EventsFromDescriptors<T extends Descriptors> = ExtractPlain<
-  PickDescriptors<2, T["pallets"]>
+export type EventsFromPalletsDef<T extends PalletsDef> = ExtractPlain<
+  PickDescriptors<2, T>
 >
 
-export type ErrorsFromDescriptors<T extends Descriptors> = ExtractPlain<
-  PickDescriptors<3, T["pallets"]>
+export type ErrorsFromPalletsDef<T extends PalletsDef> = ExtractPlain<
+  PickDescriptors<3, T>
 >
 
-export type ConstFromDescriptors<T extends Descriptors> = ExtractPlain<
-  PickDescriptors<4, T["pallets"]>
+export type ConstFromPalletsDef<T extends PalletsDef> = ExtractPlain<
+  PickDescriptors<4, T>
 >
