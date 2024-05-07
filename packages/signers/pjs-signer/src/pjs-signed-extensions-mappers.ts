@@ -17,10 +17,8 @@ type SignedExtension = {
 const toPjsHex = (value: number | bigint, minByteLen?: number) => {
   let inner = value.toString(16)
   inner = (inner.length % 2 ? "0" : "") + inner
-  if (minByteLen && minByteLen - inner.length / 2 > 0) {
-    inner = "00".repeat(minByteLen - inner.length / 2) + inner
-  }
-  return "0x" + inner
+  const nPaddedBytes = Math.max(0, (minByteLen || 0) - inner.length / 2)
+  return "0x" + "00".repeat(nPaddedBytes) + inner
 }
 
 export const CheckGenesis = ({
