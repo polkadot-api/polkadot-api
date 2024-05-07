@@ -37,11 +37,12 @@ export async function readPapiConfig(
 }
 
 /**
- * Writes config to configFile.
- * If configFile is not specified, it writes to the default path, by this priority order:
- * 1. default config file (polkadot-api.json)
- * 2. package.json
- * If no pre-existing config exists, then it creates a polkadot-api.json file.
+ * Writes config to configFile. If configFile is not specified, it writes to the
+ * default path, by this priority order:
+ *
+ * 1. Default config file (polkadot-api.json)
+ * 2. Package.json If no pre-existing config exists, then it creates a
+ *    polkadot-api.json file.
  */
 export async function writePapiConfig(
   configFile: string | undefined,

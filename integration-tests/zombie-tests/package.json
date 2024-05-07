@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "../../packages/cli/dist/main.js",
+    "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "e2e": "../../packages/cli/dist/main.js update && ../../packages/cli/dist/main.js && vitest run --test-timeout=300000"
   },
   "dependencies": {
@@ -19,11 +21,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.6.0"
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": false,
-    "trailingComma": "all"
   },
   "license": "MIT"
 }

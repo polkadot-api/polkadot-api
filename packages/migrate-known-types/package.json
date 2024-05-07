@@ -17,11 +17,6 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
-  "prettier": {
-    "printWidth": 80,
-    "semi": false,
-    "trailingComma": "all"
-  },
   "dependencies": {
     "@polkadot-api/codegen": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",

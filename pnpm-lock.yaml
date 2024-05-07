@@ -11,6 +11,9 @@ importers:
       '@fast-check/vitest':
         specifier: ^0.1.1
         version: 0.1.1(vitest@1.6.0(@types/node@20.12.8))
+      '@homer0/prettier-plugin-jsdoc':
+        specifier: ^9.0.0
+        version: 9.0.0
       '@vitest/coverage-v8':
         specifier: ^1.6.0
         version: 1.6.0(vitest@1.6.0(@types/node@20.12.8))
@@ -150,9 +153,6 @@ importers:
       '@types/node':
         specifier: ^20.4.7
         version: 20.12.8
-      prettier:
-        specifier: ^3.1.0
-        version: 3.2.5
 
   integration-tests/zombie-tests:
     dependencies:
@@ -1106,6 +1106,10 @@ packages:
     peerDependencies:
       vitest: '>=0.28.1 <1.0.0 || ^1'
 
+  '@homer0/prettier-plugin-jsdoc@9.0.0':
+    resolution: {integrity: sha512-MZwkVlvtiUjLjtpH7QLw1q0DijzFph5nMZ8z8altH/NDgQD+moiicES6oY2A8+1MhrayIqfOcJ58z/BDrrUXJQ==}
+    engines: {node: '>=18.17 <21'}
+
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
     engines: {node: '>=10.10.0'}
@@ -1637,6 +1641,10 @@ packages:
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
     engines: {node: '>= 6'}
+
+  comment-parser@1.4.1:
+    resolution: {integrity: sha512-buhp5kePrmda3vhc5B9t7pUQXAb2Tnd0qgpkIhPhkHXxJpiPJ11H0ZEU0oBpJ2QztSbzG/ZxMj/CHsYJqRHmyg==}
+    engines: {node: '>= 12.0.0'}
 
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
@@ -2482,6 +2490,9 @@ packages:
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  ramda@0.29.1:
+    resolution: {integrity: sha512-OfxIeWzd4xdUNxlWhgFazxsA/nl3mS4/jGZI5n00uWOoSSFRhC1b6gl6xvmzUamgmqELraWp0J/qqVlXYPDPyA==}
 
   react-dom@18.3.1:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
@@ -3478,6 +3489,12 @@ snapshots:
       fast-check: 3.18.0
       vitest: 1.6.0(@types/node@20.12.8)
 
+  '@homer0/prettier-plugin-jsdoc@9.0.0':
+    dependencies:
+      comment-parser: 1.4.1
+      prettier: 3.2.5
+      ramda: 0.29.1
+
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
@@ -4046,6 +4063,8 @@ snapshots:
   commander@12.0.0: {}
 
   commander@4.1.1: {}
+
+  comment-parser@1.4.1: {}
 
   concat-map@0.0.1: {}
 
@@ -4931,6 +4950,8 @@ snapshots:
   pure-rand@6.1.0: {}
 
   queue-microtask@1.2.3: {}
+
+  ramda@0.29.1: {}
 
   react-dom@18.3.1(react@18.3.1):
     dependencies:

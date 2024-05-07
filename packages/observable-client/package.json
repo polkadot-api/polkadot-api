@@ -42,11 +42,6 @@
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
   },
-  "prettier": {
-    "printWidth": 80,
-    "semi": false,
-    "trailingComma": "all"
-  },
   "peerDependencies": {
     "rxjs": ">=7.8.0"
   },

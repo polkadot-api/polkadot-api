@@ -115,21 +115,24 @@ const createTypedApi = <D extends Descriptors>(
 
 /**
  * This is the top-level export for `polkadot-api`.
- * @param provider - A `JsonRpcProvider` compliant with the [JSON-RPC spec](https://paritytech.github.io/json-rpc-interface-spec/), which must support the `chainHead`, `transaction` and `chainSpec` groups.
  *
+ * @param provider  A `JsonRpcProvider` compliant with the [JSON-RPC
+ *                  spec](https://paritytech.github.io/json-rpc-interface-spec/),
+ *                  which must support the `chainHead`, `transaction` and
+ *                  `chainSpec` groups.
  * @example
- * ```ts
- * import { createClient } from "polkadot-api";
- * import { getSmProvider } from "polkadot-api/sm-provider";
- * import { chainSpec } from "polkadot-api/chains/polkadot";
- * import { start } from "polkadot-api/smoldot";
  *
- * const smoldot = start();
- * const chain = await smoldot.addChain({ chainSpec });
+ *   import { createClient } from "polkadot-api"
+ *   import { getSmProvider } from "polkadot-api/sm-provider"
+ *   import { chainSpec } from "polkadot-api/chains/polkadot"
+ *   import { start } from "polkadot-api/smoldot"
  *
- * // Connect to the polkadot relay chain.
- * const client = createClient(getSmProvider(chain));
- * ```
+ *   const smoldot = start()
+ *   const chain = await smoldot.addChain({ chainSpec })
+ *
+ *   // Connect to the polkadot relay chain.
+ *   const client = createClient(getSmProvider(chain))
+ *
  */
 export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const rawClient: SubstrateClient = createRawClient(provider)

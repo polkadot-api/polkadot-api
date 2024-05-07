@@ -18,10 +18,14 @@
   "prettier": {
     "printWidth": 80,
     "semi": false,
-    "trailingComma": "all"
+    "trailingComma": "all",
+    "plugins": [
+      "@homer0/prettier-plugin-jsdoc"
+    ]
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.1.1",
+    "@homer0/prettier-plugin-jsdoc": "^9.0.0",
     "@vitest/coverage-v8": "^1.6.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
