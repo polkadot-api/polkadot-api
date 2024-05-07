@@ -10,6 +10,7 @@
 - Suppot for "optimistic" transactions via the `at` option when creating/broadcasting
   transactions. This makes it possible to create transactions against blocks that are
   not yet finalized. [#486](https://github.com/polkadot-api/polkadot-api/pull/486)
+- Allow users to manually pass the `nonce` when creating a transaction. [#498](https://github.com/polkadot-api/polkadot-api/pull/498)
 
 ### Fixed
 
