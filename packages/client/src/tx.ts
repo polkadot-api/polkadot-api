@@ -74,12 +74,14 @@ type TxOptions<Asset> = Partial<
         at: HexString | "best" | "finalized"
         tip: bigint
         mortality: { mortal: false } | { mortal: true; period: number }
+        nonce: number
       }
     : {
         at: HexString | "best" | "finalized"
         tip: bigint
         mortality: { mortal: false } | { mortal: true; period: number }
         asset: Asset
+        nonce: number
       }
 >
 

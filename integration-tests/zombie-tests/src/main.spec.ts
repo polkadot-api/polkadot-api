@@ -233,6 +233,39 @@ describe("E2E", async () => {
     expect(targetPostFreeBalance).toEqual(targetPreFreeBalance + amount * 2n)
   })
 
+  it("custom nonce transactions", async () => {
+    const alice = accounts["alice"]["sr25519"]
+    const bob = accounts["bob"]["sr25519"]
+    const bobAddress = accountIdDec(bob.publicKey)
+
+    const [aliceInitialNonce, bobInitialBalance] = await Promise.all([
+      api.apis.AccountNonceApi.account_nonce(accountIdDec(alice.publicKey)),
+      api.query.System.Account.getValue(bobAddress).then((x) => x.data.free),
+    ])
+
+    const transsferTx = api.tx.Balances.transfer_allow_death({
+      dest: MultiAddress.Id(bobAddress),
+      value: ED,
+    })
+
+    const N_PARALLEL_TRANSACTIONS = 3
+    await Promise.all(
+      Array(N_PARALLEL_TRANSACTIONS)
+        .fill(null)
+        .map((_, diff) =>
+          transsferTx.signAndSubmit(alice, { nonce: aliceInitialNonce + diff }),
+        ),
+    )
+
+    const bobCurrentBalance = await api.query.System.Account.getValue(
+      bobAddress,
+    ).then((x) => x.data.free)
+
+    expect(bobCurrentBalance).toEqual(
+      bobInitialBalance + ED * BigInt(N_PARALLEL_TRANSACTIONS),
+    )
+  })
+
   it("operation-limit recovery", async () => {
     const addresses = Array(70)
       .fill(null)

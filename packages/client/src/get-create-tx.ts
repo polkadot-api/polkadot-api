@@ -19,7 +19,7 @@ export const getCreateTx = (
   atBlock: BlockInfo,
   hinted?: HintedSignedExtensions,
 ) => Observable<Uint8Array>) => {
-  return (signer, callData, atBlock, hinted) => {
+  return (signer, callData, atBlock, hinted = {}) => {
     return chainHead.getRuntimeContext$(atBlock.hash).pipe(
       take(1),
       mergeMap((ctx) => {
@@ -32,7 +32,7 @@ export const getCreateTx = (
         }
 
         const mortality: Parameters<typeof CheckMortality>[0] =
-          !hinted?.mortality
+          !hinted.mortality
             ? { period: 64, blockNumber: atBlock.number }
             : hinted.mortality.mortal
               ? { period: hinted.mortality.period, blockNumber: atBlock.number }
@@ -45,10 +45,13 @@ export const getCreateTx = (
                 return CheckMortality(mortality, signedExtensionsCtx)
 
               if (identifier === "ChargeTransactionPayment")
-                return ChargeTransactionPayment(hinted?.tip ?? 0n)
+                return ChargeTransactionPayment(hinted.tip ?? 0n)
 
               if (identifier === "ChargeAssetTxPayment")
-                return ChargeAssetTxPayment(hinted?.tip ?? 0n, hinted?.asset)
+                return ChargeAssetTxPayment(hinted.tip ?? 0n, hinted.asset)
+
+              if (identifier === "CheckNonce" && "nonce" in hinted)
+                return chainSignedExtensions.getNonce(hinted.nonce!)
 
               const fn = chainSignedExtensions[identifier as "CheckGenesis"]
               if (!fn) {
