@@ -11,6 +11,11 @@ export interface SignerPayloadJSON {
   blockHash: HexString
 
   /**
+   * @description The checkpoint block number, in hex
+   */
+  blockNumber: HexString
+
+  /**
    * @description The era for this transaction, in hex
    */
   era: HexString
@@ -20,8 +25,6 @@ export interface SignerPayloadJSON {
    */
   genesisHash: HexString
 
-  blockNumber: number | bigint
-
   /**
    * @description The encoded method (with arguments) in hex
    */
@@ -30,7 +33,7 @@ export interface SignerPayloadJSON {
   /**
    * @description The nonce for this transaction, in hex
    */
-  nonce: number | bigint
+  nonce: HexString
 
   /**
    * @description The current spec version for the runtime

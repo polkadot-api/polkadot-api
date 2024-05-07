@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Ensure SignerPayloadJSON to be the same as PJS api
+
 ## 0.1.3 - 2024-05-03
 
 ### Fixed

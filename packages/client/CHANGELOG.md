@@ -20,6 +20,7 @@
 - `observable-client`: `operationLimit`-recovery: properly recover from `operationLimit` responses [#494](https://github.com/polkadot-api/polkadot-api/pull/494)
   Closes [#492](https://github.com/polkadot-api/polkadot-api/issues/492)
 - Recover from stop events when runtime hasn't loaded and finalized block changes
+- `pjs-signer`: Ensure SignerPayloadJSON to be the same as PJS api
 
 ## 0.6.0 - 2024-05-03
 
