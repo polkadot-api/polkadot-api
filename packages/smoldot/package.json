@@ -76,11 +76,6 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
-  "prettier": {
-    "printWidth": 80,
-    "semi": false,
-    "trailingComma": "all"
-  },
   "dependencies": {
     "smoldot": "2.0.25"
   },

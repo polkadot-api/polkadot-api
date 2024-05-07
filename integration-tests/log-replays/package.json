@@ -7,6 +7,8 @@
   "main": "index.js",
   "scripts": {
     "build": "../../packages/cli/dist/main.js",
+    "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "tx-with-competing-forks": "tsup-node src/tx-with-competing-forks/tx-with-competing-forks.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/tx-with-competing-forks.js\"",
     "test": "tsup-node src/main.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\""
   },
@@ -14,8 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.4.7",
-    "prettier": "^3.1.0"
+    "@types/node": "^20.4.7"
   },
   "dependencies": {
     "@noble/curves": "^1.2.0",
@@ -23,11 +24,6 @@
     "@polkadot-labs/hdkd-helpers": "^0.0.6",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.1"
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": false,
-    "trailingComma": "all"
   },
   "polkadot-api": {
     "roc": {
