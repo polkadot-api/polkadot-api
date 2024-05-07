@@ -135,9 +135,11 @@ export const getPinnedBlocks$ = (
           const finalizedRuntime = Object.values(acc.runtimes).find((runtime) =>
             runtime.usages.has(finalizedHash),
           )
+
           acc.finalizedRuntime =
             finalizedRuntime ??
             (acc.runtimes[finalizedHash] = getRuntime(finalizedHash))
+
           return acc
 
         case "stop-error":
@@ -221,7 +223,10 @@ export const getPinnedBlocks$ = (
     shareLatest,
   )
 
-  const getRuntime = getRuntimeCreator(withStopRecovery(pinnedBlocks$, call$))
+  const getRuntime = getRuntimeCreator(
+    withStopRecovery(pinnedBlocks$, call$),
+    pinnedBlocks$.pipe(map((v) => v.finalized)),
+  )
 
   return pinnedBlocks$
 }

@@ -12,6 +12,8 @@ import {
   encodeHeader,
   initialize,
   initializeWithMetadata,
+  metadataHex,
+  metadataVersions,
   newHash,
   newInitialized,
   sendBestBlockChanged,
@@ -246,6 +248,37 @@ describe("observableClient stopError recovery", () => {
     expect(runtimeObs.next).toHaveBeenCalled()
 
     cleanup(chainHead.unfollow)
+  })
+
+  it("recovers after a stop error happens while fetching the runtime and the finalized block changes", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    client.chainHead$()
+
+    const { initialHash } = await initialize(mockClient)
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledOnce()
+
+    const newBlock = sendNewBlock(mockClient, {
+      parentBlockHash: initialHash,
+    })
+    sendBestBlockChanged(mockClient, { bestBlockHash: newBlock.blockHash })
+
+    await mockClient.chainHead.mock.call.reply(initialHash, metadataVersions)
+
+    mockClient.chainHead.mock.sendError(new StopError())
+
+    await initialize(mockClient, {
+      finalizedBlockHashes: [newBlock.blockHash],
+    })
+
+    sendBestBlockChanged(mockClient, {
+      bestBlockHash: newBlock.blockHash,
+    })
+
+    await mockClient.chainHead.mock.call.reply(
+      newBlock.blockHash,
+      await metadataHex,
+    )
   })
 
   it("recovers after a stop error happens while recovering from another stop event", async () => {
