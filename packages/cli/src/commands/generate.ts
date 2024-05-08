@@ -57,7 +57,7 @@ export async function generate(opts: GenerateOptions) {
     whitelist,
   )
   await compileCodegen(descriptorsDir)
-  // await fs.rm(join(descriptorsDir, "src"), { recursive: true })
+  await fs.rm(join(descriptorsDir, "src"), { recursive: true })
 }
 
 async function getSources(
