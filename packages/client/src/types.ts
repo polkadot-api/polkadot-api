@@ -6,8 +6,10 @@ import { ConstantEntry } from "./constants"
 import {
   ChainDefinition,
   ConstFromPalletsDef,
+  EventsFromPalletsDef,
   QueryFromPalletsDef,
   RuntimeDescriptor,
+  TxFromPalletsDef,
 } from "./descriptors"
 import { EvClient } from "./event"
 import { RuntimeApi } from "./runtime"
@@ -89,11 +91,8 @@ export type ConstApi<A extends Record<string, Record<string, any>>> = {
 
 export type TypedApi<D extends ChainDefinition> = {
   query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
-  tx: TxApi<
-    ConstFromPalletsDef<D["descriptors"]["pallets"]>,
-    D["asset"]["_type"]
-  >
-  event: EvApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
+  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>, D["asset"]["_type"]>
+  event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
   apis: RuntimeCallsApi<D["descriptors"]["apis"]>
   constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   runtime: RuntimeApi

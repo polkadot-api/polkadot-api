@@ -1,44 +1,66 @@
-export type PlainDescriptor<T> = number & { _type?: T }
+export type PlainDescriptor<T> = { _type?: T }
 export type AssetDescriptor<T> = string & { _type?: T }
 export type StorageDescriptor<
   Args extends Array<any>,
   T,
   Optional extends true | false,
-> = number & { _type: T; _args: Args; _optional: Optional }
+> = { _type: T; _args: Args; _optional: Optional }
 
-export type TxDescriptor<Args extends {} | undefined> = number & {
+export type TxDescriptor<Args extends {} | undefined> = {
   ___: Args
 }
 
-export type RuntimeDescriptor<Args extends Array<any>, T> = number & {
-  __: [Args, T]
-}
+export type RuntimeDescriptor<Args extends Array<any>, T> = [Args, T]
 
-export type PalletsDef = Record<
+// pallet -> name -> descriptor
+export type DescriptorEntry<T> = Record<string, Record<string, T>>
+
+export type PalletDescriptors = Record<
   string,
   [
-    Record<string, StorageDescriptor<any, any, any>>,
-    Record<string, TxDescriptor<any>>,
-    Record<string, PlainDescriptor<any>>,
-    Record<string, PlainDescriptor<any>>,
-    Record<string, PlainDescriptor<any>>,
+    // storage
+    Record<string, number>,
+    // tx
+    Record<string, number>,
+    // event
+    Record<string, number>,
+    // error
+    Record<string, number>,
+    // const
+    Record<string, number>,
   ]
 >
+
+export type PalletsTypedef<
+  St extends DescriptorEntry<StorageDescriptor<any, any, any>>,
+  Tx extends DescriptorEntry<TxDescriptor<any>>,
+  Ev extends DescriptorEntry<PlainDescriptor<any>>,
+  Err extends DescriptorEntry<PlainDescriptor<any>>,
+  Ct extends DescriptorEntry<PlainDescriptor<any>>,
+> = {
+  __storage: St
+  __tx: Tx
+  __event: Ev
+  __error: Err
+  __const: Ct
+}
+
+export type ApisDescriptors = DescriptorEntry<number>
+export type ApisTypedef<
+  T extends DescriptorEntry<RuntimeDescriptor<any, any>>,
+> = T
+
 export type ChainDefinition = {
   descriptors: {
-    pallets: PalletsDef
-    apis: Record<string, Record<string, RuntimeDescriptor<any, any>>>
+    pallets: PalletsTypedef<any, any, any, any, any>
+    apis: ApisTypedef<any>
   }
   asset: AssetDescriptor<any>
   checksums: Promise<string[]>
 }
 
-type PickDescriptors<Idx extends 0 | 1 | 2 | 3 | 4, T extends PalletsDef> = {
-  [K in keyof T]: T[K][Idx]
-}
-
 type ExtractStorage<
-  T extends Record<string, Record<string, StorageDescriptor<any, any, any>>>,
+  T extends DescriptorEntry<StorageDescriptor<any, any, any>>,
 > = {
   [K in keyof T]: {
     [KK in keyof T[K]]: T[K][KK] extends StorageDescriptor<
@@ -55,7 +77,7 @@ type ExtractStorage<
   }
 }
 
-type ExtractTx<T extends Record<string, Record<string, TxDescriptor<any>>>> = {
+type ExtractTx<T extends DescriptorEntry<TxDescriptor<any>>> = {
   [K in keyof T]: {
     [KK in keyof T[K]]: T[K][KK] extends TxDescriptor<infer Args>
       ? Args
@@ -63,9 +85,7 @@ type ExtractTx<T extends Record<string, Record<string, TxDescriptor<any>>>> = {
   }
 }
 
-type ExtractPlain<
-  T extends Record<string, Record<string, PlainDescriptor<any>>>,
-> = {
+type ExtractPlain<T extends DescriptorEntry<PlainDescriptor<any>>> = {
   [K in keyof T]: {
     [KK in keyof T[K]]: T[K][KK] extends PlainDescriptor<infer Value>
       ? Value
@@ -73,22 +93,22 @@ type ExtractPlain<
   }
 }
 
-export type QueryFromPalletsDef<T extends PalletsDef> = ExtractStorage<
-  PickDescriptors<0, T>
->
+export type QueryFromPalletsDef<
+  T extends PalletsTypedef<any, any, any, any, any>,
+> = ExtractStorage<T["__storage"]>
 
-export type TxFromPalletsDef<T extends PalletsDef> = ExtractTx<
-  PickDescriptors<1, T>
->
+export type TxFromPalletsDef<
+  T extends PalletsTypedef<any, any, any, any, any>,
+> = ExtractTx<T["__tx"]>
 
-export type EventsFromPalletsDef<T extends PalletsDef> = ExtractPlain<
-  PickDescriptors<2, T>
->
+export type EventsFromPalletsDef<
+  T extends PalletsTypedef<any, any, any, any, any>,
+> = ExtractPlain<T["__event"]>
 
-export type ErrorsFromPalletsDef<T extends PalletsDef> = ExtractPlain<
-  PickDescriptors<3, T>
->
+export type ErrorsFromPalletsDef<
+  T extends PalletsTypedef<any, any, any, any, any>,
+> = ExtractPlain<T["__error"]>
 
-export type ConstFromPalletsDef<T extends PalletsDef> = ExtractPlain<
-  PickDescriptors<4, T>
->
+export type ConstFromPalletsDef<
+  T extends PalletsTypedef<any, any, any, any, any>,
+> = ExtractPlain<T["__const"]>

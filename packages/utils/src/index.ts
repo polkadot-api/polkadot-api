@@ -1,5 +1,6 @@
 export { fromHex, toHex } from "./hex"
 export { mapObject, mapStringRecord } from "./mapObject"
+export { filterObject } from "./filterObject"
 export { mergeUint8 } from "./mergeUint8"
 export { noop } from "./noop"
 export { AbortError } from "./AbortError"

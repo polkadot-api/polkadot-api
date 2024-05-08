@@ -1,7 +1,11 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { ChainDefinition } from "./descriptors"
+import {
+  ApisDescriptors,
+  ChainDefinition,
+  PalletDescriptors,
+} from "./descriptors"
 import {
   SubstrateClient,
   createClient as createRawClient,
@@ -47,7 +51,10 @@ const createTypedApi = <D extends ChainDefinition>(
     }) as Record<string, Record<string, T>>
   }
 
-  const { pallets, apis: runtimeApis } = chainDefinition.descriptors
+  const { pallets, apis: runtimeApis } = chainDefinition.descriptors as {
+    pallets: PalletDescriptors
+    apis: ApisDescriptors
+  }
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,

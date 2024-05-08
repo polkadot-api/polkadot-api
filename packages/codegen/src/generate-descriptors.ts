@@ -3,7 +3,7 @@ import {
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
 import type { V14, V15 } from "@polkadot-api/substrate-bindings"
-import { mapObject } from "@polkadot-api/utils"
+import { filterObject, mapObject } from "@polkadot-api/utils"
 import { getTypesBuilder } from "./types-builder"
 
 const isDocs = (x: any) => {
@@ -197,18 +197,27 @@ export const generateDescriptors = (
     ]),
   )
 
-  const iPallets = mapObject(storage, (_, pallet) => {
-    return [
-      mapObject(storage[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(calls[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(events[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(errors[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(constants[pallet], ({ docs, type: value }) => ({
-        docs,
-        value,
-      })),
-    ]
+  const mapDescriptor = <T, R>(
+    descriptor: Record<string, Record<string, T>>,
+    mapFn: (value: T, pallet: string, name: string) => R,
+  ): Record<string, Record<string, R>> =>
+    filterObject(
+      mapObject(descriptor, (v, pallet) =>
+        mapObject(v, (value, name) => mapFn(value, pallet, name)),
+      ),
+      (v) => Object.keys(v).length > 0,
+    )
+
+  const extractValue = (input: { docs: string[]; type: string }) => ({
+    docs: input.docs,
+    value: input.type,
   })
+
+  const iStorage = mapDescriptor(storage, extractValue)
+  const iCalls = mapDescriptor(calls, extractValue)
+  const iEvents = mapDescriptor(events, extractValue)
+  const iErrors = mapDescriptor(errors, extractValue)
+  const iConstants = mapDescriptor(constants, extractValue)
 
   const pallets = mapObject(storage, (_, pallet) => {
     return [
@@ -332,30 +341,50 @@ type Anonymize<T> = SeparateUndefined<
                 }
 >
 
-type IPallets = ${customStringifyObject(iPallets)};
+type IStorage = ${customStringifyObject(iStorage)};
+type ICalls = ${customStringifyObject(iCalls)};
+type IEvent = ${customStringifyObject(iEvents)};
+type IError = ${customStringifyObject(iErrors)};
+type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
 const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
 
-const _allDescriptors = { descriptors: descriptorValues, asset, checksums };
+type PalletsTypedef = {
+  __storage: IStorage,
+  __tx: ICalls,
+  __event: IEvent,
+  __error: IError,
+  __const: IConstants
+}
+
+type IDescriptors = {
+  descriptors: {
+    pallets: PalletsTypedef,
+    apis: IRuntimeCalls
+  },
+  asset: IAsset,
+  checksums: Promise<string[]>
+};
+const _allDescriptors = { descriptors: descriptorValues, asset, checksums } as any as IDescriptors;
 export default _allDescriptors;
 
-export type ${prefix}Queries = QueryFromPalletsDef<IPallets>
-export type ${prefix}Calls = TxFromPalletsDef<IPallets>
-export type ${prefix}Events = EventsFromPalletsDef<IPallets>
-export type ${prefix}Errors = ErrorsFromPalletsDef<IPallets>
-export type ${prefix}Constants = ConstFromPalletsDef<IPallets>
+export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
+export type ${prefix}Calls = TxFromPalletsDef<PalletsTypedef>
+export type ${prefix}Events = EventsFromPalletsDef<PalletsTypedef>
+export type ${prefix}Errors = ErrorsFromPalletsDef<PalletsTypedef>
+export type ${prefix}Constants = ConstFromPalletsDef<PalletsTypedef>
 
 export type ${prefix}WhitelistEntry =
   | PalletKey
   | ApiKey<IRuntimeCalls>
-  | \`query.\${NestedKey<PickDescriptors<0, IPallets>>}\`
-  | \`tx.\${NestedKey<PickDescriptors<1, IPallets>>}\`
-  | \`event.\${NestedKey<PickDescriptors<2, IPallets>>}\`
-  | \`error.\${NestedKey<PickDescriptors<3, IPallets>>}\`
-  | \`const.\${NestedKey<PickDescriptors<4, IPallets>>}\`
+  | \`query.\${NestedKey<PalletsTypedef['__storage']>}\`
+  | \`tx.\${NestedKey<PalletsTypedef['__tx']>}\`
+  | \`event.\${NestedKey<PalletsTypedef['__event']>}\`
+  | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
+  | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
 
-type PalletKey = \`*.\${keyof IPallets & string}\`
+type PalletKey = \`*.\${keyof typeof descriptorValues & string}\`
 type NestedKey<D extends Record<string, Record<string, any>>> =
   | "*"
   | {
