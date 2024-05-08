@@ -15,16 +15,9 @@ import { EvClient } from "./event"
 import { RuntimeApi } from "./runtime"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
-import { TxBroadcastEvent, TxEntry, TxEventsPayload } from "./tx"
+import type { TxBroadcastEvent, TxEntry, TxEventsPayload } from "./tx"
 
 export type { ChainSpecData }
-
-export type HintedSignedExtensions = Partial<{
-  tip: bigint
-  mortality: { mortal: false } | { mortal: true; period: number }
-  asset: Uint8Array
-  nonce: number
-}>
 
 export type StorageApi<
   A extends Record<
