@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- `trackTx`: has a more granular and useful API
+- expose `isBestOrFinalizedBlock` helper
+
 ### Fixed
 
 - ensure `bestBlocks$` always start with latest known `finalizedBlock` [#491](https://github.com/polkadot-api/polkadot-api/pull/491)

@@ -12,6 +12,10 @@
   not yet finalized. [#486](https://github.com/polkadot-api/polkadot-api/pull/486)
 - Allow users to manually pass the `nonce` when creating a transaction. [#498](https://github.com/polkadot-api/polkadot-api/pull/498)
 
+### Changed
+
+- The payload of the transaction `bestChainBlockIncluded` event is now consistent with the payload of the `finalized` event. [#500](https://github.com/polkadot-api/polkadot-api/pull/500)
+
 ### Fixed
 
 - `substrate-client`: improve the cancelation logic on operations that have not yet received its operationId [#484](https://github.com/polkadot-api/polkadot-api/pull/484)
@@ -21,6 +25,7 @@
   Closes [#492](https://github.com/polkadot-api/polkadot-api/issues/492)
 - Recover from stop events when runtime hasn't loaded and finalized block changes
 - `pjs-signer`: Ensure SignerPayloadJSON to be the same as PJS api
+- Keeps on validating transactions after they have been broadcasted. [#500](https://github.com/polkadot-api/polkadot-api/pull/500)
 
 ## 0.6.0 - 2024-05-03
 
