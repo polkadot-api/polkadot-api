@@ -14,7 +14,7 @@ export const getValidateTx =
       parameters: string,
     ) => Observable<string>,
   ) =>
-  (tx: string, blockHash: string) =>
+  (blockHash: string, tx: string) =>
     call$(
       blockHash,
       "TaggedTransactionQueue_validate_transaction",

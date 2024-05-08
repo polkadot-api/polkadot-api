@@ -1,7 +1,5 @@
 import {
   Observable,
-  concat,
-  concatMap,
   distinct,
   filter,
   map,
@@ -9,81 +7,89 @@ import {
   of,
   take,
   takeUntil,
-  takeWhile,
 } from "rxjs"
 import { PinnedBlocks } from "./streams"
-import { isBestOrFinalizedBlock, isFinalized } from "./streams/block-operations"
+import { HexString } from "@polkadot-api/substrate-bindings"
 
-export type TrackedTx =
-  | {
-      type: "bestChainBlockIncluded"
-      block: { hash: string; index: number }
-    }
-  | {
-      type: "finalized"
-      block: { hash: string; index: number }
-    }
+export type AnalyzedBlock = {
+  hash: HexString
+  found:
+    | {
+        type: true
+        index: number
+        events: Observable<any>
+      }
+    | {
+        type: false
+        isValid: boolean
+      }
+}
 
-export const getTrackTx =
-  (
-    blocks$: Observable<PinnedBlocks>,
-    getBody: (block: string) => Observable<string[]>,
-  ) =>
-  (tx: string): Observable<TrackedTx> =>
+export const getTrackTx = (
+  blocks$: Observable<PinnedBlocks>,
+  getBody: (block: string) => Observable<string[]>, // Returns an observable that should emit just once and complete
+  getIsValid: (block: string, tx: string) => Observable<boolean>, // Returns an observable that should emit just once and complete
+  getEvents: (block: string) => Observable<any>, // Returns an observable that should emit just once and complete
+) => {
+  const whileBlockPresent = <TT>(
+    hash: string,
+  ): (<T = TT>(base: Observable<T>) => Observable<T>) =>
+    takeUntil(blocks$.pipe(filter(({ blocks }) => !blocks.has(hash))))
+
+  const analyzeBlock = (
+    hash: string,
+    tx: string,
+    alreadyPresent: boolean,
+  ): Observable<AnalyzedBlock> => {
+    if (alreadyPresent)
+      return of({ hash, found: { type: false, isValid: true } })
+
+    const whilePresent = whileBlockPresent(hash)
+    return getBody(hash).pipe(
+      mergeMap((txs) => {
+        const index = txs.indexOf(tx)
+        return index > -1
+          ? of({
+              hash,
+              found: {
+                type: true as true,
+                index,
+                events: whilePresent(getEvents(hash)),
+              },
+            })
+          : getIsValid(hash, tx).pipe(
+              map((isValid) => ({
+                hash,
+                found: { type: false as false, isValid },
+              })),
+            )
+      }),
+      whilePresent,
+    )
+  }
+
+  const findInBranch = (
+    hash: string,
+    tx: string,
+    alreadyPresent: Set<string>,
+  ): Observable<AnalyzedBlock> =>
+    analyzeBlock(hash, tx, alreadyPresent.has(hash)).pipe(
+      mergeMap((analyzed) => {
+        const { found } = analyzed
+        return found.type || !found.isValid
+          ? of(analyzed)
+          : blocks$.pipe(
+              whileBlockPresent(hash),
+              mergeMap((x) => x.blocks.get(hash)!.children),
+              distinct(),
+              mergeMap((hash) => findInBranch(hash, tx, alreadyPresent)),
+            )
+      }),
+    )
+
+  return (tx: string): Observable<AnalyzedBlock> =>
     blocks$.pipe(
       take(1),
-      concatMap((x) => {
-        const alreadyPresent = new Set(x.blocks.keys())
-
-        const findInBody = (hash: string): Observable<number> =>
-          alreadyPresent.has(hash)
-            ? of(-1)
-            : getBody(hash).pipe(
-                takeUntil(
-                  blocks$.pipe(filter(({ blocks }) => !blocks.has(hash))),
-                ),
-                map((txs) => txs.indexOf(tx)),
-              )
-
-        const findInBranch = (
-          hash: string,
-        ): Observable<{ hash: string; idx: number }> =>
-          findInBody(hash).pipe(
-            concatMap((idx) =>
-              idx > -1
-                ? of({ hash, idx })
-                : blocks$.pipe(
-                    takeWhile((x) => x.blocks.has(hash)),
-                    mergeMap((x) => x.blocks.get(hash)!.children),
-                    distinct(),
-                    mergeMap(findInBranch),
-                  ),
-            ),
-          )
-
-        return findInBranch(x.finalized).pipe(
-          mergeMap(({ hash, idx }) =>
-            concat(
-              blocks$.pipe(
-                isBestOrFinalizedBlock(hash),
-                filter(Boolean),
-                take(1),
-                map(() => ({
-                  type: "bestChainBlockIncluded" as const,
-                  block: { hash, index: idx },
-                })),
-              ),
-              blocks$.pipe(
-                isFinalized(hash),
-                filter(Boolean),
-                map(() => ({
-                  type: "finalized" as const,
-                  block: { hash, index: idx },
-                })),
-              ),
-            ),
-          ),
-        )
-      }),
-      takeWhile((x) => x.type !== "finalized", true),
+      mergeMap((x) => findInBranch(x.finalized, tx, new Set(x.blocks.keys()))),
     )
+}

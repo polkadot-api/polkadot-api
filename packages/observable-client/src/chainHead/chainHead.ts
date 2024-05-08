@@ -43,6 +43,7 @@ import type {
 import { getFollow$, getPinnedBlocks$ } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
+import { isBestOrFinalizedBlock } from "./streams/block-operations"
 
 export type { FollowEventWithRuntime, RuntimeContext, SystemEvent }
 
@@ -116,16 +117,13 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       key: string,
       ...args: [...A, ...[abortSignal: AbortSignal]]
     ) => Promise<T>,
-    excludeCanonicalChain = false,
   ) => {
     const canonicalChain = (_fn: (hash: string, ...args: A) => Observable<T>) =>
       withEnsureCanonicalChain(pinnedBlocks$, follow$, _fn)
 
     return withInMemory(
       withRefcount(
-        (excludeCanonicalChain
-          ? (x: (hash: string, ...args: A) => Observable<T>) => x
-          : canonicalChain)(
+        canonicalChain(
           withStopRecovery(
             pinnedBlocks$,
             withOperationInaccessibleRecovery(
@@ -136,6 +134,18 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       ),
     )
   }
+
+  const withCanonicalChain: <Args extends Array<any>, T>(
+    fn: (
+      hash: string | null,
+      withCanonical: boolean,
+      ...args: Args
+    ) => Observable<T>,
+    withCanonicalChain?: boolean,
+  ) => (hash: string | null, ...args: Args) => Observable<T> =
+    (fn, withCanonicalChain = true) =>
+    (hash, ...args) =>
+      fn(hash, withCanonicalChain, ...args)
 
   const _call$ = withOperationInaccessibleRecovery(
     withRecoveryFn(fromAbortControllerFn(lazyFollower("call"))),
@@ -249,21 +259,15 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   )
 
   const _body$ = commonEnhancer(lazyFollower("body"))
-  const body$ = (hash: string) => upsertCachedStream(hash, "body", _body$(hash))
-
-  const innerBody$ = (hash: string) =>
-    upsertCachedStream(
-      hash,
-      "body",
-      commonEnhancer(lazyFollower("body"), true)(hash),
-    )
-  const trackTx$ = getTrackTx(pinnedBlocks$, innerBody$)
+  const body$ = (hash: string) =>
+    upsertCachedStream(hash, "body", _body$(hash, true))
 
   const _storage$ = commonEnhancer(lazyFollower("storage"))
 
   const storage$ = withOptionalHash$(
     <Type extends StorageItemInput["type"], T>(
       hash: string,
+      withCanonicalChain: boolean,
       type: Type,
       keyMapper: (ctx: RuntimeContext) => string,
       childTrie: string | null = null,
@@ -279,7 +283,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
           const unMapped$ = upsertCachedStream(
             hash,
             `storage-${type}-${key}-${childTrie ?? ""}`,
-            _storage$(hash, type, key, childTrie),
+            _storage$(hash, withCanonicalChain, type, key, childTrie),
           )
 
           return mapper
@@ -322,20 +326,32 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   // also complete (or error, in the case of ongoing operations)
   merge(runtime$, bestBlocks$).subscribe()
 
-  const eventsAt$ = (hash: string | null) =>
+  const eventsAt$ = (hash: string | null, canonical = false) =>
     storage$(
       hash,
+      canonical,
       "value",
       (ctx) => ctx.events.key,
       null,
       (x, ctx) => ctx.events.dec(x!),
     )
 
+  const __call$ = commonEnhancer(lazyFollower("call"))
   const call$ = withOptionalHash$(
-    withRefcount(withStopRecovery(pinnedBlocks$, _call$)),
+    (hash: string, canonical: boolean, fn: string, args: string) =>
+      upsertCachedStream(
+        hash,
+        `call-${fn}-${args}`,
+        __call$(hash, canonical, fn, args),
+      ),
   )
 
-  const validateTx$ = getValidateTx(call$)
+  const validateTx$ = getValidateTx(withCanonicalChain(call$, false))
+
+  const innerBody$ = (hash: string) =>
+    upsertCachedStream(hash, "body", _body$(hash, false))
+
+  const trackTx$ = getTrackTx(pinnedBlocks$, innerBody$, validateTx$, eventsAt$)
 
   return {
     follow$,
@@ -347,13 +363,15 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
     header$,
     body$,
-    call$,
-    storage$,
+    call$: withCanonicalChain(call$),
+    storage$: withCanonicalChain(storage$),
     storageQueries$,
-    eventsAt$,
+    eventsAt$: withCanonicalChain(eventsAt$),
 
-    validateTx$,
     trackTx$,
+    validateTx$,
+    isBestOrFinalizedBlock: (hash: string) =>
+      isBestOrFinalizedBlock(hash)(pinnedBlocks$),
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
     unfollow,

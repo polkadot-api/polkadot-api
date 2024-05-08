@@ -13,14 +13,18 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
+  EMPTY,
   Observable,
+  combineLatest,
   concat,
+  filter,
   firstValueFrom,
   lastValueFrom,
   map,
   mergeMap,
   of,
   take,
+  takeWhile,
   throwError,
 } from "rxjs"
 import {
@@ -29,7 +33,7 @@ import {
   SystemEvent,
   getObservableClient,
 } from "@polkadot-api/observable-client"
-import { TrackedTx } from "@polkadot-api/observable-client"
+import { AnalyzedBlock } from "@polkadot-api/observable-client"
 import {
   CompatibilityHelper,
   IsCompatible,
@@ -38,16 +42,19 @@ import {
 } from "./runtime"
 import { PolkadotSigner } from "../../signers/polkadot-signer/dist/index.mjs"
 import { getPolkadotSigner } from "@polkadot-api/signer"
+import { withLogs } from "./utils"
 
 export type TxBroadcastEvent =
   | { type: "broadcasted" }
-  | { type: "bestChainBlockIncluded"; block: { hash: string; index: number } }
+  | ({
+      type: "bestChainBlockIncluded"
+    } & TxEventsPayload)
   | ({
       type: "finalized"
-    } & TxFinalizedPayload)
+    } & TxEventsPayload)
 export type TxEvent = TxBroadcastEvent | { type: "signed"; tx: HexString }
 
-export type TxFinalizedPayload = {
+export type TxEventsPayload = {
   ok: boolean
   events: Array<SystemEvent["event"]>
   block: { hash: string; index: number }
@@ -56,7 +63,7 @@ export type TxFinalizedPayload = {
 const getTxSuccessFromSystemEvents = (
   systemEvents: Array<SystemEvent>,
   txIdx: number,
-): Omit<TxFinalizedPayload, "block"> => {
+): Omit<TxEventsPayload, "block"> => {
   const events = systemEvents
     .filter((x) => x.phase.type === "ApplyExtrinsic" && x.phase.value === txIdx)
     .map((x) => x.event)
@@ -88,7 +95,7 @@ type TxOptions<Asset> = Partial<
 type TxFunction<Asset> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset>,
-) => Promise<TxFinalizedPayload>
+) => Promise<TxEventsPayload>
 
 type TxObservable<Asset> = (
   from: PolkadotSigner,
@@ -150,7 +157,7 @@ export const getSubmitFns = (
           )
       ).pipe(
         mergeMap((at) =>
-          chainHead.validateTx$(tx, at).pipe(
+          chainHead.validateTx$(at, tx).pipe(
             map((isValid) => {
               if (!isValid) throw new Error("Invalid")
               return { type: "broadcasted" as "broadcasted" }
@@ -158,8 +165,11 @@ export const getSubmitFns = (
           ),
         ),
       ),
-      new Observable<TrackedTx>((observer) => {
-        const subscription = chainHead.trackTx$(tx).subscribe(observer)
+      new Observable<{ type: "analyzed"; value: AnalyzedBlock }>((observer) => {
+        const subscription = chainHead
+          .trackTx$(tx)
+          .pipe(map((value) => ({ type: "analyzed" as const, value })))
+          .subscribe(observer)
         subscription.add(
           client.broadcastTx$(tx).subscribe({
             error(e) {
@@ -177,18 +187,37 @@ export const getSubmitFns = (
   ): Observable<TxBroadcastEvent> =>
     tx$(transaction, at).pipe(
       mergeMap((result) => {
-        return result.type !== "finalized"
-          ? of(result)
-          : chainHead.eventsAt$(result.block.hash).pipe(
-              map((events) => ({
-                ...result,
-                ...getTxSuccessFromSystemEvents(
-                  events,
-                  Number(result.block.index),
-                ),
-              })),
-            )
+        if (result.type === "broadcasted") return of(result)
+
+        if (!result.value.found.type) {
+          if (result.value.found.isValid) return EMPTY
+
+          return chainHead.isBestOrFinalizedBlock(result.value.hash).pipe(
+            filter((x) => x === "finalized"),
+            map(() => {
+              throw new Error("Invalid")
+            }),
+          )
+        }
+
+        const { index } = result.value.found
+        return combineLatest([
+          chainHead
+            .isBestOrFinalizedBlock(result.value.hash)
+            .pipe(filter(Boolean)),
+          result.value.found.events as Observable<Array<SystemEvent>>,
+        ]).pipe(
+          map(([type, events]) => ({
+            type: type === "best" ? ("bestChainBlockIncluded" as const) : type,
+            block: {
+              hash: result.value.hash,
+              index,
+            },
+            ...getTxSuccessFromSystemEvents(events, index),
+          })),
+        )
       }),
+      takeWhile((e) => e.type !== "finalized", true),
     )
 
   const submit = async (
@@ -347,7 +376,7 @@ export const createTxEntry = <
       return firstValueFrom(
         chainHead
           .call$(null, "TransactionPaymentApi_query_info", args)
-          .pipe(map(queryInfoDec)),
+          .pipe(withLogs("queryInfo"), map(queryInfoDec)),
       )
     }
 
