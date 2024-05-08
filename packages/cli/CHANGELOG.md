@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Generate descriptor values into a separate file.
+
 ## 0.3.3 - 2024-05-03
 
 ### Fixed

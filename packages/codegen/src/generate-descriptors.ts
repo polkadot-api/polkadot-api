@@ -3,7 +3,7 @@ import {
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
 import type { V14, V15 } from "@polkadot-api/substrate-bindings"
-import { mapObject } from "@polkadot-api/utils"
+import { filterObject, mapObject } from "@polkadot-api/utils"
 import { getTypesBuilder } from "./types-builder"
 
 const isDocs = (x: any) => {
@@ -16,7 +16,7 @@ const isDocs = (x: any) => {
 const customStringifyObject = (
   input: string | Record<string, any> | Array<any>,
 ): string => {
-  if (typeof input === "string") return input
+  if (typeof input === "string" || typeof input === "number") return input
 
   if (Array.isArray(input))
     return `[${input.map(customStringifyObject).join(", ")}]`
@@ -45,6 +45,7 @@ export const generateDescriptors = (
     client: string
     checksums: string
     types: string
+    descriptorValues: string
   },
 ) => {
   const buildEnumObj = <T>(
@@ -168,8 +169,6 @@ export const generateDescriptors = (
     }),
   )
 
-  const descriptorDeclarations: string[] = []
-
   const runtimeCalls = Object.fromEntries(
     metadata.apis.map((api) => [
       api.name,
@@ -198,43 +197,35 @@ export const generateDescriptors = (
     ]),
   )
 
-  ;[
-    storage,
-    calls,
-    events,
-    errors,
-    constants,
-    mapObject(runtimeCalls, (x) => x.methods),
-  ].forEach((entryType) => {
-    Object.values(entryType).forEach((x) =>
-      Object.values(x).forEach(({ checksum, type, name }) => {
-        descriptorDeclarations.push(
-          `const ${name}: ${type} = ${checksum} as ${type};`,
-        )
-      }),
+  const mapDescriptor = <T, R>(
+    descriptor: Record<string, Record<string, T>>,
+    mapFn: (value: T, pallet: string, name: string) => R,
+  ): Record<string, Record<string, R>> =>
+    filterObject(
+      mapObject(descriptor, (v, pallet) =>
+        mapObject(v, (value, name) => mapFn(value, pallet, name)),
+      ),
+      (v) => Object.keys(v).length > 0,
     )
+
+  const extractValue = (input: { docs: string[]; type: string }) => ({
+    docs: input.docs,
+    value: input.type,
   })
 
-  const iPallets = mapObject(storage, (_, pallet) => {
-    return [
-      mapObject(storage[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(calls[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(events[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(errors[pallet], ({ docs, type: value }) => ({ docs, value })),
-      mapObject(constants[pallet], ({ docs, type: value }) => ({
-        docs,
-        value,
-      })),
-    ]
-  })
+  const iStorage = mapDescriptor(storage, extractValue)
+  const iCalls = mapDescriptor(calls, extractValue)
+  const iEvents = mapDescriptor(events, extractValue)
+  const iErrors = mapDescriptor(errors, extractValue)
+  const iConstants = mapDescriptor(constants, extractValue)
 
   const pallets = mapObject(storage, (_, pallet) => {
     return [
-      mapObject(storage[pallet], (x) => x.name),
-      mapObject(calls[pallet], (x) => x.name),
-      mapObject(events[pallet], (x) => x.name),
-      mapObject(errors[pallet], (x) => x.name),
-      mapObject(constants[pallet], (x) => x.name),
+      mapObject(storage[pallet], (x) => x.checksum),
+      mapObject(calls[pallet], (x) => x.checksum),
+      mapObject(events[pallet], (x) => x.checksum),
+      mapObject(errors[pallet], (x) => x.checksum),
+      mapObject(constants[pallet], (x) => x.checksum),
     ]
   })
 
@@ -244,7 +235,7 @@ export const generateDescriptors = (
   }))
 
   const runtimeCallsObj = mapObject(runtimeCalls, (api) =>
-    mapObject(api.methods, (x) => x.name),
+    mapObject(api.methods, (x) => x.checksum),
   )
 
   const clientImports = [
@@ -258,11 +249,11 @@ export const generateDescriptors = (
     "Binary",
     "FixedSizeBinary",
     "FixedSizeArray",
-    "QueryFromDescriptors",
-    "TxFromDescriptors",
-    "EventsFromDescriptors",
-    "ErrorsFromDescriptors",
-    "ConstFromDescriptors",
+    "QueryFromPalletsDef",
+    "TxFromPalletsDef",
+    "EventsFromPalletsDef",
+    "ErrorsFromPalletsDef",
+    "ConstFromPalletsDef",
     ...typesBuilder.getClientFileImports(),
   ]
 
@@ -287,15 +278,23 @@ export const generateDescriptors = (
           type: typesBuilder.buildTypeDefinition(_assetId),
         }
 
+  const descriptorValues = `
+    export const ${prefix} = {
+      pallets: ${customStringifyObject(pallets)},
+      apis: ${customStringifyObject(runtimeCallsObj)}
+    };
+  `
+
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
     paths.types
   }";
+  import { ${prefix} as descriptorValues } from "${paths.descriptorValues}";
 
   const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
   `
 
-  return `${imports}
+  const descriptorTypes = `${imports}
 
 type AnonymousEnum<T extends {}> = T & {
   __anonymous: true
@@ -342,38 +341,50 @@ type Anonymize<T> = SeparateUndefined<
                 }
 >
 
-${descriptorDeclarations.join("\n")}
-
-type IPallets = ${customStringifyObject(iPallets)};
-const pallets: IPallets = ${customStringifyObject(pallets)};
-
+type IStorage = ${customStringifyObject(iStorage)};
+type ICalls = ${customStringifyObject(iCalls)};
+type IEvent = ${customStringifyObject(iEvents)};
+type IError = ${customStringifyObject(iErrors)};
+type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-const apis: IRuntimeCalls = ${customStringifyObject(runtimeCallsObj)};
-
 type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
 const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
 
-type IDescriptors = { pallets: IPallets, apis: IRuntimeCalls, asset: IAsset, checksums: Promise<string[]> };
-const _allDescriptors: IDescriptors = { pallets, apis, asset, checksums };
+type PalletsTypedef = {
+  __storage: IStorage,
+  __tx: ICalls,
+  __event: IEvent,
+  __error: IError,
+  __const: IConstants
+}
+
+type IDescriptors = {
+  descriptors: {
+    pallets: PalletsTypedef,
+    apis: IRuntimeCalls
+  },
+  asset: IAsset,
+  checksums: Promise<string[]>
+};
+const _allDescriptors = { descriptors: descriptorValues, asset, checksums } as any as IDescriptors;
 export default _allDescriptors;
 
-
-export type ${prefix}Queries = QueryFromDescriptors<IDescriptors>
-export type ${prefix}Calls = TxFromDescriptors<IDescriptors>
-export type ${prefix}Events = EventsFromDescriptors<IDescriptors>
-export type ${prefix}Errors = ErrorsFromDescriptors<IDescriptors>
-export type ${prefix}Constants = ConstFromDescriptors<IDescriptors>
+export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
+export type ${prefix}Calls = TxFromPalletsDef<PalletsTypedef>
+export type ${prefix}Events = EventsFromPalletsDef<PalletsTypedef>
+export type ${prefix}Errors = ErrorsFromPalletsDef<PalletsTypedef>
+export type ${prefix}Constants = ConstFromPalletsDef<PalletsTypedef>
 
 export type ${prefix}WhitelistEntry =
   | PalletKey
-  | ApiKey<IDescriptors>
-  | \`query.\${NestedKey<PickDescriptors<0, IPallets>>}\`
-  | \`tx.\${NestedKey<PickDescriptors<1, IPallets>>}\`
-  | \`event.\${NestedKey<PickDescriptors<2, IPallets>>}\`
-  | \`error.\${NestedKey<PickDescriptors<3, IPallets>>}\`
-  | \`const.\${NestedKey<PickDescriptors<4, IPallets>>}\`
+  | ApiKey<IRuntimeCalls>
+  | \`query.\${NestedKey<PalletsTypedef['__storage']>}\`
+  | \`tx.\${NestedKey<PalletsTypedef['__tx']>}\`
+  | \`event.\${NestedKey<PalletsTypedef['__event']>}\`
+  | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
+  | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
 
-type PalletKey = \`*.\${keyof IPallets & string}\`
+type PalletKey = \`*.\${keyof (typeof descriptorValues)['pallets'] & string}\`
 type NestedKey<D extends Record<string, Record<string, any>>> =
   | "*"
   | {
@@ -384,15 +395,15 @@ type NestedKey<D extends Record<string, Record<string, any>>> =
           }[keyof D[P] & string]
     }[keyof D & string]
 
-type ApiKey<D extends { apis: Record<string, Record<string, any>>}> =
+type ApiKey<D extends Record<string, Record<string, any>>> =
   | "api.*"
   | {
-      [P in keyof D["apis"] & string]:
+      [P in keyof D & string]:
         | \`api.\${P}.*\`
         | {
-            [N in keyof D["apis"][P] & string]: \`api.\${P}.\${N}\`
-          }[keyof (keyof D["apis"][P]) & string]
-    }[keyof D["apis"] & string]
+            [N in keyof D[P] & string]: \`api.\${P}.\${N}\`
+          }[keyof (keyof D[P]) & string]
+    }[keyof D & string]
 
 type PickDescriptors<
   Idx extends 0 | 1 | 2 | 3 | 4,
@@ -401,4 +412,6 @@ type PickDescriptors<
   [K in keyof T]: T[K][Idx]
 }
 `
+
+  return { descriptorTypes, descriptorValues }
 }

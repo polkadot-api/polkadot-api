@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking
+
+- Remove descriptor types (moved to client package)
+
 ## 0.4.0 - 2024-05-03
 
 ### Breaking

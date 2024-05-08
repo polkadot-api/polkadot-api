@@ -17,6 +17,7 @@ export const generateMultipleDescriptors = (
     client: string
     checksums: string
     types: string
+    descriptorValues: string
   },
   options: {
     whitelist?: string[]
@@ -45,7 +46,7 @@ export const generateMultipleDescriptors = (
   )
 
   const declarations = defaultDeclarations()
-  const descriptorsFileContent = chainData.map((chain) =>
+  const chainFiles = chainData.map((chain) =>
     generateDescriptors(
       chain.metadata,
       checksums,
@@ -56,8 +57,13 @@ export const generateMultipleDescriptors = (
     ),
   )
 
+  const descriptorsFileContent = chainFiles
+    .map((file) => file.descriptorValues)
+    .join("\n")
+
   return {
     descriptorsFileContent,
+    descriptorTypesFileContent: chainFiles.map((file) => file.descriptorTypes),
     checksums,
     typesFileContent: generateTypes(declarations, paths),
     publicTypes: getPublicTypes(declarations.variables),

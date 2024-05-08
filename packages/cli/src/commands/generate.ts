@@ -90,23 +90,33 @@ async function outputCodegen(
   clientPath: string,
   whitelist: string[] | null,
 ) {
-  const { descriptorsFileContent, checksums, typesFileContent, publicTypes } =
-    generateMultipleDescriptors(
-      chains,
-      {
-        client: clientPath,
-        checksums: "./checksums.json",
-        types: "./common-types",
-      },
-      {
-        whitelist: whitelist ?? undefined,
-      },
-    )
+  const {
+    descriptorsFileContent,
+    descriptorTypesFileContent,
+    checksums,
+    typesFileContent,
+    publicTypes,
+  } = generateMultipleDescriptors(
+    chains,
+    {
+      client: clientPath,
+      checksums: "./checksums.json",
+      types: "./common-types",
+      descriptorValues: "./descriptors",
+    },
+    {
+      whitelist: whitelist ?? undefined,
+    },
+  )
 
   await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
     path.join(outputFolder, "checksums.json"),
     JSON.stringify(checksums),
+  )
+  await fs.writeFile(
+    path.join(outputFolder, "descriptors.ts"),
+    descriptorsFileContent,
   )
   await fs.writeFile(
     path.join(outputFolder, "common-types.ts"),
@@ -116,7 +126,7 @@ async function outputCodegen(
     chains.map((chain, i) =>
       fs.writeFile(
         join(outputFolder, `${chain.key}.ts`),
-        descriptorsFileContent[i],
+        descriptorTypesFileContent[i],
       ),
     ),
   )
