@@ -7,6 +7,6 @@ export type { PolkadotClient, TypedApi, FixedSizeArray } from "./types"
 export type {
   TxBroadcastEvent,
   TxEvent,
-  TxEventsPayload as TxFinalizedPayload,
+  TxEventsPayload,
   Transaction,
 } from "./tx"

@@ -1,6 +1,5 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
-import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { getObservableClient } from "@polkadot-api/observable-client"
 import {
   ApisDescriptors,
   ChainDefinition,
@@ -13,23 +12,16 @@ import {
 import { Observable, firstValueFrom } from "rxjs"
 import { createConstantEntry } from "./constants"
 import { createEventEntry } from "./event"
-import { getCreateTx } from "./get-create-tx"
 import { compatibilityHelper, getRuntimeApi } from "./runtime"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
-import { createTxEntry, getSubmitFns } from "./tx"
-import { HintedSignedExtensions, PolkadotClient, TypedApi } from "./types"
+import { PolkadotClient, TypedApi } from "./types"
+import { createTxEntry, submit, submit$ } from "./tx"
 
 const createTypedApi = <D extends ChainDefinition>(
   chainDefinition: D,
-  createTxFromSigner: (
-    signer: PolkadotSigner,
-    callData: Uint8Array,
-    atBlock: BlockInfo,
-    hinted?: HintedSignedExtensions,
-  ) => Observable<Uint8Array>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-  submitFns: ReturnType<typeof getSubmitFns>,
+  broadcast$: (tx: string) => Observable<never>,
 ): TypedApi<D> => {
   const runtime = getRuntimeApi(chainDefinition.checksums, chainHead)
 
@@ -70,8 +62,7 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainDefinition.asset,
       chainHead,
-      submitFns,
-      createTxFromSigner,
+      broadcast$,
       compatibilityHelper(runtime, pallets[pallet][1][name]),
     ),
   )
@@ -139,9 +130,6 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const client = getObservableClient(rawClient)
   const chainHead = client.chainHead$()
 
-  const createTxFromSigner = getCreateTx(chainHead)
-  const submitFns = getSubmitFns(chainHead, client)
-  const { submit, submit$: submitAndWatch } = submitFns
   const { getChainSpecData } = rawClient
 
   const _request: <Reply = any, Params extends Array<any> = any[]>(
@@ -149,6 +137,7 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     params: Params,
   ) => Promise<Reply> = rawClient.request
 
+  const { broadcastTx$ } = client
   return {
     getChainSpecData,
 
@@ -164,11 +153,11 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     getBlockHeader: (hash?: string) =>
       firstValueFrom(chainHead.header$(hash ?? null)),
 
-    submit,
-    submitAndWatch,
+    submit: (...args) => submit(chainHead, broadcastTx$, ...args),
+    submitAndWatch: (...args) => submit$(chainHead, broadcastTx$, ...args),
 
     getTypedApi: <D extends ChainDefinition>(chainDefinition: D) =>
-      createTypedApi(chainDefinition, createTxFromSigner, chainHead, submitFns),
+      createTypedApi(chainDefinition, chainHead, broadcastTx$),
 
     destroy: () => {
       chainHead.unfollow()
