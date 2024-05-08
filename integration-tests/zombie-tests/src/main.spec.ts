@@ -6,6 +6,7 @@ import {
   lastValueFrom,
   map,
   switchMap,
+  tap,
 } from "rxjs"
 import { expect, describe, it } from "vitest"
 import { start } from "polkadot-api/smoldot"
@@ -119,11 +120,11 @@ describe("E2E", async () => {
       }),
     )
 
-    expect(aliceEstimatedFee / FEE_VARIATION_TOLERANCE).toEqual(
-      aliceActualFee / FEE_VARIATION_TOLERANCE,
+    expect(Number(aliceEstimatedFee / FEE_VARIATION_TOLERANCE)).toBeCloseTo(
+      Number(aliceActualFee / FEE_VARIATION_TOLERANCE),
     )
-    expect(bobEstimatedFee / FEE_VARIATION_TOLERANCE).toEqual(
-      bobActualFee / FEE_VARIATION_TOLERANCE,
+    expect(Number(bobEstimatedFee / FEE_VARIATION_TOLERANCE)).toBeCloseTo(
+      Number(bobActualFee / FEE_VARIATION_TOLERANCE),
     )
 
     const [alicePostNonce, bobPostNonce] = await Promise.all(
@@ -264,6 +265,52 @@ describe("E2E", async () => {
     expect(bobCurrentBalance).toEqual(
       bobInitialBalance + ED * BigInt(N_PARALLEL_TRANSACTIONS),
     )
+  })
+
+  it("keeps on validating transactions after they have been broadcasted", async () => {
+    const alice = accounts["alice"]["sr25519"]
+    const bob = accounts["bob"]["sr25519"]
+    const bobAddress = accountIdDec(bob.publicKey)
+
+    const bobInitialBalance = await api.query.System.Account.getValue(
+      bobAddress,
+    ).then((x) => x.data.free)
+
+    const transsferTx = api.tx.Balances.transfer_allow_death({
+      dest: MultiAddress.Id(bobAddress),
+      value: ED,
+    })
+
+    let nBroadcasted = 0
+    let nError = 0
+    let nSuccess = 0
+
+    await Promise.all(
+      Array(3)
+        .fill(null)
+        .map(() =>
+          lastValueFrom(
+            transsferTx.signSubmitAndWatch(alice).pipe(
+              tap((x) => {
+                if (x.type === "broadcasted") nBroadcasted++
+              }),
+            ),
+          ).then(
+            () => nSuccess++,
+            () => nError++,
+          ),
+        ),
+    )
+
+    expect(nBroadcasted).toBe(3)
+    expect(nError).toBe(2)
+    expect(nSuccess).toBe(1)
+
+    const bobCurrentBalance = await api.query.System.Account.getValue(
+      bobAddress,
+    ).then((x) => x.data.free)
+
+    expect(bobCurrentBalance).toEqual(bobInitialBalance + ED)
   })
 
   it("operation-limit recovery", async () => {

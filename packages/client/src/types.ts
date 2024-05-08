@@ -14,7 +14,7 @@ import { ChainSpecData } from "@polkadot-api/substrate-client"
 import { BlockInfo } from "@polkadot-api/observable-client"
 import { RuntimeApi } from "./runtime"
 import { StorageEntry } from "./storage"
-import { TxEntry, TxBroadcastEvent, TxFinalizedPayload } from "./tx"
+import { TxEntry, TxBroadcastEvent, TxEventsPayload } from "./tx"
 import { ConstantEntry } from "./constants"
 import { RuntimeCall } from "./runtime-call"
 
@@ -172,10 +172,7 @@ export interface PolkadotClient {
    *                     and create the mortality taking that block into
    *                     account.
    */
-  submit: (
-    transaction: HexString,
-    at?: HexString,
-  ) => Promise<TxFinalizedPayload>
+  submit: (transaction: HexString, at?: HexString) => Promise<TxEventsPayload>
   /**
    * Broadcast a transaction and returns an Observable. The observable will
    * complete as soon as the transaction is in a finalized block.
