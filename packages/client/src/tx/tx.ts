@@ -23,7 +23,7 @@ import {
   RuntimeContext,
   getObservableClient,
 } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, Runtime, getRuntimeContext } from "../runtime"
+import { CompatibilityHelper, Runtime } from "../runtime"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { getPolkadotSigner } from "@polkadot-api/signer"
 import { AssetDescriptor } from "../descriptors"
@@ -97,7 +97,7 @@ export const createTxEntry = <
         if (!isCompatible(runtime)) {
           throw checksumError()
         }
-        return getCallDataWithContext(getRuntimeContext(runtime), arg).callData
+        return getCallDataWithContext(runtime._getCtx(), arg).callData
       }
       return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
     }

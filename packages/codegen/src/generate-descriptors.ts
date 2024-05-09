@@ -289,8 +289,8 @@ export const generateDescriptors = (
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
     paths.types
   }";
-  import { ${prefix} as descriptorValues } from "${paths.descriptorValues}";
 
+  const descriptorValues = import("${paths.descriptorValues}").then(module => module["${prefix}"]);
   const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
   `
 
@@ -362,7 +362,7 @@ type IDescriptors = {
   descriptors: {
     pallets: PalletsTypedef,
     apis: IRuntimeCalls
-  },
+  } & Promise<any>,
   asset: IAsset,
   checksums: Promise<string[]>
 };
@@ -384,7 +384,7 @@ export type ${prefix}WhitelistEntry =
   | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
   | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
 
-type PalletKey = \`*.\${keyof (typeof descriptorValues)['pallets'] & string}\`
+type PalletKey = \`*.\${keyof PalletsTypedef & string}\`
 type NestedKey<D extends Record<string, Record<string, any>>> =
   | "*"
   | {
@@ -404,13 +404,6 @@ type ApiKey<D extends Record<string, Record<string, any>>> =
             [N in keyof D[P] & string]: \`api.\${P}.\${N}\`
           }[keyof (keyof D[P]) & string]
     }[keyof D & string]
-
-type PickDescriptors<
-  Idx extends 0 | 1 | 2 | 3 | 4,
-  T extends Record<string, Record<number, any>>
-> = {
-  [K in keyof T]: T[K][Idx]
-}
 `
 
   return { descriptorTypes, descriptorValues }

@@ -50,8 +50,13 @@ export type ApisTypedef<
   T extends DescriptorEntry<RuntimeDescriptor<any, any>>,
 > = T
 
+export type DescriptorsValue = {
+  pallets: PalletDescriptors
+  apis: ApisDescriptors
+}
+
 export type ChainDefinition = {
-  descriptors: {
+  descriptors: Promise<DescriptorsValue> & {
     pallets: PalletsTypedef<any, any, any, any, any>
     apis: ApisTypedef<any>
   }

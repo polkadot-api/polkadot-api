@@ -1,11 +1,6 @@
 import { firstValueFrom, map } from "rxjs"
 import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
-import {
-  CompatibilityHelper,
-  IsCompatible,
-  Runtime,
-  getRuntimeContext,
-} from "./runtime"
+import { CompatibilityHelper, IsCompatible, Runtime } from "./runtime"
 
 export interface ConstantEntry<T> {
   (): Promise<T>
@@ -43,7 +38,7 @@ export const createConstantEntry = <T>(
   const fn = (runtime?: Runtime): any => {
     if (runtime) {
       if (!isCompatible(runtime)) throw checksumError()
-      return getValueWithContext(getRuntimeContext(runtime))
+      return getValueWithContext(runtime._getCtx())
     }
     return firstValueFrom(
       compatibleRuntime$(chainHead, null, checksumError).pipe(

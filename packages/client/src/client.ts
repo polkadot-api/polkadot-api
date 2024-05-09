@@ -1,29 +1,29 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getObservableClient } from "@polkadot-api/observable-client"
 import {
-  ApisDescriptors,
-  ChainDefinition,
-  PalletDescriptors,
-} from "./descriptors"
-import {
   SubstrateClient,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
 import { Observable, firstValueFrom } from "rxjs"
 import { createConstantEntry } from "./constants"
+import { ChainDefinition } from "./descriptors"
 import { createEventEntry } from "./event"
-import { compatibilityHelper, getRuntimeApi } from "./runtime"
+import { OpType, compatibilityHelper, getRuntimeApi } from "./runtime"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
-import { PolkadotClient, TypedApi } from "./types"
 import { createTxEntry, submit, submit$ } from "./tx"
+import { PolkadotClient, TypedApi } from "./types"
 
 const createTypedApi = <D extends ChainDefinition>(
   chainDefinition: D,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast$: (tx: string) => Observable<never>,
 ): TypedApi<D> => {
-  const runtime = getRuntimeApi(chainDefinition.checksums, chainHead)
+  const runtime = getRuntimeApi(
+    chainDefinition.checksums,
+    chainDefinition.descriptors,
+    chainHead,
+  )
 
   const target = {}
   const createProxy = (propCall: (prop: string) => unknown) =>
@@ -43,16 +43,14 @@ const createTypedApi = <D extends ChainDefinition>(
     }) as Record<string, Record<string, T>>
   }
 
-  const { pallets, apis: runtimeApis } = chainDefinition.descriptors as {
-    pallets: PalletDescriptors
-    apis: ApisDescriptors
-  }
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,
       name,
       chainHead,
-      compatibilityHelper(runtime, pallets[pallet][0][name]),
+      compatibilityHelper(runtime, (r) =>
+        r._getPalletChecksum(OpType.Storage, pallet, name),
+      ),
     ),
   )
 
@@ -63,7 +61,9 @@ const createTypedApi = <D extends ChainDefinition>(
       chainDefinition.asset,
       chainHead,
       broadcast$,
-      compatibilityHelper(runtime, pallets[pallet][1][name]),
+      compatibilityHelper(runtime, (r) =>
+        r._getPalletChecksum(OpType.Tx, pallet, name),
+      ),
     ),
   )
 
@@ -72,7 +72,9 @@ const createTypedApi = <D extends ChainDefinition>(
       pallet,
       name,
       chainHead,
-      compatibilityHelper(runtime, pallets[pallet][2][name]),
+      compatibilityHelper(runtime, (r) =>
+        r._getPalletChecksum(OpType.Event, pallet, name),
+      ),
     ),
   )
 
@@ -81,7 +83,9 @@ const createTypedApi = <D extends ChainDefinition>(
       pallet,
       name,
       chainHead,
-      compatibilityHelper(runtime, pallets[pallet][4][name]),
+      compatibilityHelper(runtime, (r) =>
+        r._getPalletChecksum(OpType.Const, pallet, name),
+      ),
     ),
   )
 
@@ -90,7 +94,7 @@ const createTypedApi = <D extends ChainDefinition>(
       api,
       method,
       chainHead,
-      compatibilityHelper(runtime, runtimeApis[api][method]),
+      compatibilityHelper(runtime, (r) => r._getApiChecksum(api, method)),
     ),
   )
 
