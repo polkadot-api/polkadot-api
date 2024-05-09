@@ -12,6 +12,7 @@
   not yet finalized. [#486](https://github.com/polkadot-api/polkadot-api/pull/486)
 - Allow users to manually pass the `nonce` when creating a transaction. [#498](https://github.com/polkadot-api/polkadot-api/pull/498)
 - Decouple descriptor types from descriptor values: Now operations won't show empty pallets.
+- Lazy load descriptor values
 
 ### Changed
 

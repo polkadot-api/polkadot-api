@@ -5,6 +5,7 @@
 ### Breaking
 
 - Decouple descriptor types from descriptor values
+- Lazy load descriptor values
 
 ## 0.4.0 - 2024-05-03
 
