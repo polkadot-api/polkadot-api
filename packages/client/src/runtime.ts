@@ -14,7 +14,7 @@ import {
 } from "rxjs"
 import { DescriptorsValue } from "./descriptors"
 
-export enum OpType {
+export const enum OpType {
   Storage = 0,
   Tx = 1,
   Event = 2,
@@ -30,7 +30,7 @@ export class Runtime {
   ) {}
 
   /**
-   * Internal implementation detail. Do not use
+   * @access package  - Internal implementation detail. Do not use.
    */
   static _create(
     ctx: RuntimeContext,
@@ -41,21 +41,21 @@ export class Runtime {
   }
 
   /**
-   * Internal implementation detail. Do not use
+   * @access package  - Internal implementation detail. Do not use.
    */
   _getCtx() {
     return this._ctx
   }
 
   /**
-   * Internal implementation detail. Do not use
+   * @access package  - Internal implementation detail. Do not use.
    */
   _getPalletChecksum(opType: OpType, pallet: string, name: string) {
     return this._checksums[this._descriptors.pallets[pallet][opType][name]]
   }
 
   /**
-   * Internal implementation detail. Do not use
+   * @access package  - Internal implementation detail. Do not use.
    */
   _getApiChecksum(name: string, method: string) {
     return this._checksums[this._descriptors.apis[name][method]]
