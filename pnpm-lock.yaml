@@ -360,8 +360,8 @@ importers:
         version: link:../json-rpc-provider-proxy
     devDependencies:
       smoldot:
-        specifier: 2.0.25
-        version: 2.0.25
+        specifier: 2.0.26
+        version: 2.0.26
 
   packages/json-rpc/ws-provider:
     dependencies:
@@ -498,11 +498,11 @@ importers:
   packages/smoldot:
     dependencies:
       smoldot:
-        specifier: 2.0.25
-        version: 2.0.25
+        specifier: 2.0.26
+        version: 2.0.26
     devDependencies:
       '@types/node':
-        specifier: ^20.11.19
+        specifier: ^20.12.11
         version: 20.12.11
 
   packages/substrate-bindings:
@@ -2583,9 +2583,6 @@ packages:
   slice-ansi@7.1.0:
     resolution: {integrity: sha512-bSiSngZ/jWeX93BqeIAbImyTbEihizcwNjFoRUIY/T1wWQsfsm2Vw1agPKylXvQTU7iASGdHhyqRlqQzfz+Htg==}
     engines: {node: '>=18'}
-
-  smoldot@2.0.25:
-    resolution: {integrity: sha512-48fUFXWUQUTlf5dXIPhA4XCznBXqKwl6ir8wEWG9HUOd/U591VqcFgUJOs2lUQxTG53pY05PHez0CEk4aLpwAw==}
 
   smoldot@2.0.26:
     resolution: {integrity: sha512-F+qYmH4z2s2FK+CxGj8moYcd1ekSIKH8ywkdqlOz88Dat35iB1DIYL11aILN46YSGMzQW/lbJNS307zBSDN5Ig==}
@@ -4999,13 +4996,6 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.1
       is-fullwidth-code-point: 5.0.0
-
-  smoldot@2.0.25:
-    dependencies:
-      ws: 8.17.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   smoldot@2.0.26:
     dependencies:
