@@ -28,6 +28,7 @@
 - Recover from stop events when runtime hasn't loaded and finalized block changes
 - `pjs-signer`: Ensure SignerPayloadJSON to be the same as PJS api
 - Keeps on validating transactions after they have been broadcasted. [#500](https://github.com/polkadot-api/polkadot-api/pull/500)
+- `smoldot`: Upgraded to `smoldot@2.0.26`
 
 ## 0.6.0 - 2024-05-03
 

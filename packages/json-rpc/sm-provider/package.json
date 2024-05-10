@@ -42,13 +42,13 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
-    "@polkadot-api/json-rpc-provider": "workspace:*"
+    "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:*"
   },
   "peerDependencies": {
     "smoldot": ">=2"
   },
   "devDependencies": {
-    "smoldot": "2.0.25"
+    "smoldot": "2.0.26"
   }
 }
