@@ -6,6 +6,7 @@
 
 - `trackTx`: has a more granular and useful API
 - expose `isBestOrFinalizedBlock` helper
+- expose `pinnedBlocks$`
 
 ### Fixed
 
