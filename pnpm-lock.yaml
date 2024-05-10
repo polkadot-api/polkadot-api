@@ -318,6 +318,9 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
     devDependencies:
+      '@polkadot-api/codegen':
+        specifier: workspace:*
+        version: link:../codegen
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1

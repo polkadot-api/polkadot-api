@@ -474,6 +474,7 @@
     "@polkadot-api/smoldot": "workspace:*"
   },
   "devDependencies": {
+    "@polkadot-api/codegen": "workspace:*",
     "rxjs": "^7.8.1"
   }
 }

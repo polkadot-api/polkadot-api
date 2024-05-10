@@ -35,6 +35,12 @@ const customStringifyObject = (
     .join(",\n")}}`
 }
 
+// type -> pallet -> name
+export type DescriptorValues = Record<
+  "storage" | "tx" | "events" | "errors" | "constants" | "apis",
+  Record<string, Record<string, number>>
+>
+
 export const generateDescriptors = (
   metadata: V14 | V15,
   checksums: string[],
@@ -219,14 +225,36 @@ export const generateDescriptors = (
   const iErrors = mapDescriptor(errors, extractValue)
   const iConstants = mapDescriptor(constants, extractValue)
 
-  const pallets = mapObject(storage, (_, pallet) => {
-    return [
-      mapObject(storage[pallet], (x) => x.checksum),
-      mapObject(calls[pallet], (x) => x.checksum),
-      mapObject(events[pallet], (x) => x.checksum),
-      mapObject(errors[pallet], (x) => x.checksum),
-      mapObject(constants[pallet], (x) => x.checksum),
-    ]
+  const descriptorValues: DescriptorValues = {
+    storage: {},
+    tx: {},
+    events: {},
+    errors: {},
+    constants: {},
+    apis: {},
+  }
+  const mapObjStr = mapObject as <I, O>(
+    input: Record<string, I>,
+    mapper: (i: I, k: string) => O,
+  ) => Record<string, O>
+  Object.keys(storage).forEach((pallet) => {
+    descriptorValues["storage"][pallet] = mapObjStr(
+      storage[pallet],
+      (x, _: string) => x.checksum,
+    )
+    descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.checksum)
+    descriptorValues["events"][pallet] = mapObjStr(
+      events[pallet],
+      (x) => x.checksum,
+    )
+    descriptorValues["errors"][pallet] = mapObjStr(
+      errors[pallet],
+      (x) => x.checksum,
+    )
+    descriptorValues["constants"][pallet] = mapObjStr(
+      constants[pallet],
+      (x) => x.checksum,
+    )
   })
 
   const iRuntimeCalls = mapObject(runtimeCalls, (api) => ({
@@ -234,7 +262,7 @@ export const generateDescriptors = (
     value: mapObject(api.methods, ({ docs, type: value }) => ({ docs, value })),
   }))
 
-  const runtimeCallsObj = mapObject(runtimeCalls, (api) =>
+  descriptorValues["apis"] = mapObject(runtimeCalls, (api) =>
     mapObject(api.methods, (x) => x.checksum),
   )
 
@@ -277,13 +305,6 @@ export const generateDescriptors = (
           checksum: checksumBuilder.buildDefinition(_assetId),
           type: typesBuilder.buildTypeDefinition(_assetId),
         }
-
-  const descriptorValues = `
-    export const ${prefix} = {
-      pallets: ${customStringifyObject(pallets)},
-      apis: ${customStringifyObject(runtimeCallsObj)}
-    };
-  `
 
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
