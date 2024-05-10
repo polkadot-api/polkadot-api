@@ -31,10 +31,10 @@ import { createTx } from "./create-tx"
 import {
   TxCall,
   TxEntry,
-  TxFunction,
+  TxPromise,
   TxObservable,
   TxOptions,
-  TxSigned,
+  TxSignFn,
 } from "./types"
 import { submit, submit$ } from "./submit-fns"
 
@@ -93,13 +93,11 @@ export const createTxEntry = <
       )
 
     const getEncodedData: TxCall = (runtime?: Runtime): any => {
-      if (runtime) {
-        if (!isCompatible(runtime)) {
-          throw checksumError()
-        }
-        return getCallDataWithContext(runtime._getCtx(), arg).callData
-      }
-      return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
+      if (!runtime)
+        return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
+
+      if (!isCompatible(runtime)) throw checksumError()
+      return getCallDataWithContext(runtime._getCtx(), arg).callData
     }
 
     const sign$ = (
@@ -140,10 +138,10 @@ export const createTxEntry = <
       )
     }
 
-    const sign: TxSigned<Asset> = (from, options) =>
+    const sign: TxSignFn<Asset> = (from, options) =>
       firstValueFrom(_sign(from, options)).then((x) => x.tx)
 
-    const signAndSubmit: TxFunction<Asset> = (from, _options) =>
+    const signAndSubmit: TxPromise<Asset> = (from, _options) =>
       firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
         submit(chainHead, broadcast, tx, block.hash),
       )
@@ -151,7 +149,7 @@ export const createTxEntry = <
     const signSubmitAndWatch: TxObservable<Asset> = (from, _options) =>
       _sign(from, _options).pipe(
         mergeMap(({ tx, block }) =>
-          submit$(chainHead, broadcast, tx, block.hash),
+          submit$(chainHead, broadcast, tx, block.hash, true),
         ),
       )
 

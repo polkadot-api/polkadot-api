@@ -16,6 +16,7 @@ import {
   map,
   merge,
   mergeMap,
+  of,
   scan,
   share,
   switchMap,
@@ -36,6 +37,7 @@ import { BlockNotPinnedError } from "./errors"
 import { getRecoveralStorage$ } from "./storage-queries"
 import type {
   BlockUsageEvent,
+  PinnedBlocks,
   PinnedBlock,
   RuntimeContext,
   SystemEvent,
@@ -43,9 +45,14 @@ import type {
 import { getFollow$, getPinnedBlocks$ } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
-import { isBestOrFinalizedBlock } from "./streams/block-operations"
 
-export type { FollowEventWithRuntime, RuntimeContext, SystemEvent }
+export type {
+  PinnedBlocks,
+  PinnedBlock,
+  FollowEventWithRuntime,
+  RuntimeContext,
+  SystemEvent,
+}
 
 export type BlockInfo = {
   hash: string
@@ -352,6 +359,12 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     upsertCachedStream(hash, "body", _body$(hash, false))
 
   const trackTx$ = getTrackTx(pinnedBlocks$, innerBody$, validateTx$, eventsAt$)
+  const trackTxWithoutEvents$ = getTrackTx(
+    pinnedBlocks$,
+    innerBody$,
+    validateTx$,
+    () => of(),
+  )
 
   return {
     follow$,
@@ -369,9 +382,9 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     eventsAt$: withCanonicalChain(eventsAt$),
 
     trackTx$,
+    trackTxWithoutEvents$,
     validateTx$,
-    isBestOrFinalizedBlock: (hash: string) =>
-      isBestOrFinalizedBlock(hash)(pinnedBlocks$),
+    pinnedBlocks$,
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
     unfollow,

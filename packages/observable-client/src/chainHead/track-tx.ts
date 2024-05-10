@@ -17,7 +17,7 @@ export type AnalyzedBlock = {
     | {
         type: true
         index: number
-        events: Observable<any>
+        events: any
       }
     | {
         type: false
@@ -49,14 +49,16 @@ export const getTrackTx = (
       mergeMap((txs) => {
         const index = txs.indexOf(tx)
         return index > -1
-          ? of({
-              hash,
-              found: {
-                type: true as true,
-                index,
-                events: whilePresent(getEvents(hash)),
-              },
-            })
+          ? whilePresent(getEvents(hash)).pipe(
+              map((events) => ({
+                hash,
+                found: {
+                  type: true as true,
+                  index,
+                  events,
+                },
+              })),
+            )
           : getIsValid(hash, tx).pipe(
               map((isValid) => ({
                 hash,

@@ -219,7 +219,7 @@ describe("E2E", async () => {
       transfer.signSubmitAndWatch(alice).pipe(
         filter(
           (e): e is TxEvent & { type: "bestChainBlockIncluded" } =>
-            e.type === "bestChainBlockIncluded",
+            e.type === "txBestBlocksState" && e.found,
         ),
         switchMap(({ block: { hash: at } }) =>
           transfer.signSubmitAndWatch(alice, { at }),

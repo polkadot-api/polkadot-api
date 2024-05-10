@@ -10,12 +10,23 @@ const teleportFns = {
 
 const TxStatus: React.FC<{ status: TxEvent | null }> = ({ status }) => {
   if (!status) return null
-  if (status.type === "signed") return <div>Tx Signed</div>
-  if (status.type === "broadcasted") return <div>Tx Broadcasted</div>
-  if (status.type === "bestChainBlockIncluded")
-    return <div>Tx included in best block {status.block?.hash}</div>
+  if (status.type === "signed") return <div>Tx Signed {status.txHash}</div>
+  if (status.type === "broadcasted")
+    return <div>Tx Broadcasted {status.txHash}</div>
+  if (status.type === "txBestBlocksState")
+    return status.found ? (
+      <div>
+        Tx included in best block {status.block.hash}-{status.block.index}
+      </div>
+    ) : (
+      <div>Tx Broadcasted {status.txHash}</div>
+    )
 
-  return <div>Tx finalized {status.block?.hash}</div>
+  return (
+    <div>
+      Tx finalized in: {status.block.hash}-{status.block.index}
+    </div>
+  )
 }
 
 export const Teleport: React.FC = () => {

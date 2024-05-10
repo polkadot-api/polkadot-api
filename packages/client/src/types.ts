@@ -15,7 +15,7 @@ import { EvClient } from "./event"
 import { RuntimeApi } from "./runtime"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
-import type { TxBroadcastEvent, TxEntry, TxEventsPayload } from "./tx"
+import type { TxBroadcastEvent, TxEntry, TxFinalizedPayload } from "./tx"
 
 export type { ChainSpecData }
 
@@ -164,7 +164,10 @@ export interface PolkadotClient {
    *                     and create the mortality taking that block into
    *                     account.
    */
-  submit: (transaction: HexString, at?: HexString) => Promise<TxEventsPayload>
+  submit: (
+    transaction: HexString,
+    at?: HexString,
+  ) => Promise<TxFinalizedPayload>
   /**
    * Broadcast a transaction and returns an Observable. The observable will
    * complete as soon as the transaction is in a finalized block.
