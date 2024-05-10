@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2024-05-10
+
 - feat: add `filterObject` utility
 
 ## 0.0.1 - 2024-04-03
