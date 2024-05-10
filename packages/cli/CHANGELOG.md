@@ -5,6 +5,7 @@
 ### Added
 
 - Generate descriptor values into a separate file.
+- Generate descriptors if `papi update` is executed.
 
 ## 0.3.3 - 2024-05-03
 
