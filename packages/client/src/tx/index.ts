@@ -1,8 +1,2 @@
-export type {
-  TxBroadcastEvent,
-  TxEvent,
-  TxEventsPayload,
-  Transaction,
-  TxEntry,
-} from "./types"
+export type * from "./types"
 export { createTxEntry, submit, submit$ } from "./tx"

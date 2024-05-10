@@ -4,4 +4,5 @@ export {
   BlockPrunedError,
   NotBestBlockError,
   AnalyzedBlock,
+  PinnedBlock,
 } from "./chainHead"

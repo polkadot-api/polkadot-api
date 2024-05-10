@@ -9,21 +9,41 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
+export type TxEvent = TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
 export type TxBroadcastEvent =
-  | { type: "broadcasted" }
-  | ({
-      type: "bestChainBlockIncluded"
-    } & TxEventsPayload)
-  | ({
-      type: "finalized"
-    } & TxEventsPayload)
-export type TxEvent = TxBroadcastEvent | { type: "signed"; tx: HexString }
+  | TxSigned
+  | TxBroadcasted
+  | TxBestBlocksState
+  | TxFinalized
+
+export type TxSigned = { type: "signed"; txHash: HexString }
+
+export type TxBroadcasted = { type: "broadcasted"; txHash: HexString }
+
+export type TxBestBlocksState = {
+  type: "txBestBlocksState"
+  txHash: HexString
+} & (TxInBestBlocksNotFound | TxInBestBlocksFound)
+
+export type TxInBestBlocksNotFound = {
+  found: false
+  isValid: boolean
+}
+
+export type TxInBestBlocksFound = {
+  found: true
+} & TxEventsPayload
 
 export type TxEventsPayload = {
   ok: boolean
   events: Array<SystemEvent["event"]>
   block: { hash: string; index: number }
 }
+
+export type TxFinalized = {
+  type: "finalized"
+  txHash: HexString
+} & TxEventsPayload
 
 export type TxOptions<Asset> = Partial<
   void extends Asset
@@ -42,10 +62,11 @@ export type TxOptions<Asset> = Partial<
       }
 >
 
-export type TxFunction<Asset> = (
+export type TxFinalizedPayload = Omit<TxFinalized, "type">
+export type TxPromise<Asset> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset>,
-) => Promise<TxEventsPayload>
+) => Promise<TxFinalizedPayload>
 
 export type TxObservable<Asset> = (
   from: PolkadotSigner,
@@ -57,10 +78,10 @@ export interface TxCall {
   (runtime: Runtime): Binary
 }
 
-export type TxSigned<Asset> = (
+export type TxSignFn<Asset> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset>,
-) => Promise<string>
+) => Promise<HexString>
 
 export type Transaction<
   Arg extends {} | undefined,
@@ -68,9 +89,9 @@ export type Transaction<
   Name extends string,
   Asset,
 > = {
-  sign: TxSigned<Asset>
+  sign: TxSignFn<Asset>
   signSubmitAndWatch: TxObservable<Asset>
-  signAndSubmit: TxFunction<Asset>
+  signAndSubmit: TxPromise<Asset>
   getEncodedData: TxCall
   getEstimatedFees: (
     from: Uint8Array | SS58String,

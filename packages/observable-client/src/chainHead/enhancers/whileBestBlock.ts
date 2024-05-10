@@ -42,8 +42,7 @@ export function withEnsureCanonicalChain<A extends Array<any>, T>(
 const onlyIfIsBestOrFinalized =
   <T>(hash: string, blocks$: Observable<PinnedBlocks>) =>
   (source$: Observable<T>) =>
-    blocks$.pipe(
-      isBestOrFinalizedBlock(hash),
+    isBestOrFinalizedBlock(blocks$, hash).pipe(
       take(1),
       switchMap((isBest) =>
         isBest ? source$ : throwError(() => new NotBestBlockError()),

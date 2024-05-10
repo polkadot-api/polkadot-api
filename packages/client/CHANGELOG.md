@@ -17,6 +17,7 @@
 ### Changed
 
 - The payload of the transaction `bestChainBlockIncluded` event is now consistent with the payload of the `finalized` event. [#500](https://github.com/polkadot-api/polkadot-api/pull/500)
+- Improve transaction events and return payloads as described in [#497](https://github.com/polkadot-api/polkadot-api/issues/497#issuecomment-2101197782). [#507](https://github.com/polkadot-api/polkadot-api/pull/507#issue-2289908187)
 
 ### Fixed
 
