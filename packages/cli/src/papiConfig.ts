@@ -1,6 +1,6 @@
 import fsExists from "fs.promises.exists"
 import { readPackage } from "read-pkg"
-import { updatePackage, writePackage } from "write-pkg"
+import { updatePackage } from "write-package"
 import { readFile, writeFile } from "node:fs/promises"
 import { WellKnownChain } from "./well-known-chains"
 

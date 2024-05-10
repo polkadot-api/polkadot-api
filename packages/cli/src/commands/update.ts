@@ -2,6 +2,7 @@ import { getMetadata, writeMetadataToDisk } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
+import { generate } from "./generate"
 
 export async function update(
   keysInput: string | undefined,
@@ -45,5 +46,8 @@ export async function update(
     await writeMetadataToDisk(metadata.metadataRaw, filename)
 
     spinner.succeed(`${key} metadata updated`)
+
+    console.log(`Updating ${key} descriptors`)
+    await generate({ key, config: options.config })
   }
 }

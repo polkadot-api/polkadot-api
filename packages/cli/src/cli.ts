@@ -45,7 +45,7 @@ export function getCli({ add, generate, remove, update }: Commands) {
 
   program
     .command("update")
-    .description("Update the metadata files")
+    .description("Update the metadata files and generate descriptor files")
     .argument(
       "[keys]",
       "Keys of the metadata files to update, separated by commas. Leave empty for all",
