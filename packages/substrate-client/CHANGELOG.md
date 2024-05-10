@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.2 - 2024-05-10
+
 ### Fixed
 
 - fixed: improve the cancelation logic on operations that have not yet received its operationId [#484](https://github.com/polkadot-api/polkadot-api/pull/484)

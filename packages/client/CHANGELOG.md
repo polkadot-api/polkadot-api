@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.0 - 2024-05-10
+
 ### Added
 
 - The `client` now exposes a `_request` method, which is meant as an "escape hatch"

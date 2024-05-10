@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-05-10
+
 ### Changed
 
 - `trackTx`: has a more granular and useful API
