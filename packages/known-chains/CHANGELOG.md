@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.4 - 2024-05-11
+
+- update relay-chain chainSpecs
+
 ## 0.1.3 - 2024-04-27
 
 ### Fixed

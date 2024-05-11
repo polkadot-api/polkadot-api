@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.2 - 2024-05-11
+
+- `chains`: update relay-chain chainSpecs
+
 ## 0.7.1 - 2024-05-11
 
 - `cli`: Update metadata files in parallel and perform a single `generate` afterwords.
