@@ -12,12 +12,10 @@ export async function update(
   const keys =
     keysInput === undefined ? Object.keys(entries) : keysInput.split(",")
 
-  for (let key of keys) {
+  const updateByKey = async (key: string) => {
     if (!(key in entries)) {
       throw new Error(`Key ${key} not set in polkadot-api config`)
     }
-
-    const spinner = ora(`Updating ${key}`).start()
 
     // Exclude metadata file from the entry, otherwise getMetadata would load from the file
     const { metadata: filename, ...entry } = entries[key]
@@ -26,8 +24,7 @@ export async function update(
         console.warn(`Key ${key} doesn't have a metadata file to update`)
       }
 
-      spinner.stop()
-      continue
+      return
     }
 
     const metadata = await getMetadata(entry as EntryConfig)
@@ -38,16 +35,19 @@ export async function update(
           `Key ${key} doesn't have any external source to update from`,
         )
       }
-      spinner.stop()
-      continue
+      return
     }
 
     spinner.text = `Writing ${key} metadata`
     await writeMetadataToDisk(metadata.metadataRaw, filename)
-
     spinner.succeed(`${key} metadata updated`)
-
-    console.log(`Updating ${key} descriptors`)
-    await generate({ key, config: options.config })
   }
+
+  const spinner = ora(`Updating`).start()
+  await Promise.all(keys.map(updateByKey))
+
+  console.log(`Updating descriptors`)
+  await generate({ config: options.config })
+
+  spinner.stop()
 }
