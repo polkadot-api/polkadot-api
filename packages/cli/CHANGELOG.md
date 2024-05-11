@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.4.1 - 2024-05-11
+
+### Fixed
+
+- Update metadata files in parallel and perform a single `generate` afterwords.
+
 ## 0.4.0 - 2024-05-10
 
 ### Added
