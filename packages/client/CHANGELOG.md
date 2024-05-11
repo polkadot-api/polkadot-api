@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.1 - 2024-05-11
+
+- `cli`: Update metadata files in parallel and perform a single `generate` afterwords.
+
 ## 0.7.0 - 2024-05-10
 
 ### Added
