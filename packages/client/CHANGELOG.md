@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Compact the data when generating descriptor from multiple chains [#516](https://github.com/polkadot-api/polkadot-api/pull/516)
+
 ## 0.7.2 - 2024-05-11
 
 - `chains`: update relay-chain chainSpecs
