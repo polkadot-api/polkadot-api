@@ -1,0 +1,12 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "pipeline": {
+    "build": {
+      "outputs": ["node_modules/@polkadot-api/descriptors/**"]
+    },
+    "test": {
+      "inputs": ["src/**", "node_modules/@polkadot-api/descriptors/**"]
+    }
+  }
+}

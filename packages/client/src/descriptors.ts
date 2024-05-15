@@ -1,3 +1,5 @@
+import type { DescriptorValues } from "@polkadot-api/codegen"
+
 export type PlainDescriptor<T> = { _type?: T }
 export type AssetDescriptor<T> = string & { _type?: T }
 export type StorageDescriptor<
@@ -15,22 +17,6 @@ export type RuntimeDescriptor<Args extends Array<any>, T> = [Args, T]
 // pallet -> name -> descriptor
 export type DescriptorEntry<T> = Record<string, Record<string, T>>
 
-export type PalletDescriptors = Record<
-  string,
-  [
-    // storage
-    Record<string, number>,
-    // tx
-    Record<string, number>,
-    // event
-    Record<string, number>,
-    // error
-    Record<string, number>,
-    // const
-    Record<string, number>,
-  ]
->
-
 export type PalletsTypedef<
   St extends DescriptorEntry<StorageDescriptor<any, any, any>>,
   Tx extends DescriptorEntry<TxDescriptor<any>>,
@@ -45,18 +31,14 @@ export type PalletsTypedef<
   __const: Ct
 }
 
-export type ApisDescriptors = DescriptorEntry<number>
 export type ApisTypedef<
   T extends DescriptorEntry<RuntimeDescriptor<any, any>>,
 > = T
 
-export type DescriptorsValue = {
-  pallets: PalletDescriptors
-  apis: ApisDescriptors
-}
+export { DescriptorValues }
 
 export type ChainDefinition = {
-  descriptors: Promise<DescriptorsValue> & {
+  descriptors: Promise<DescriptorValues> & {
     pallets: PalletsTypedef<any, any, any, any, any>
     apis: ApisTypedef<any>
   }

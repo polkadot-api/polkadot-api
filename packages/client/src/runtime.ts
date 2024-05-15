@@ -12,21 +12,21 @@ import {
   firstValueFrom,
   map,
 } from "rxjs"
-import { DescriptorsValue } from "./descriptors"
+import { DescriptorValues } from "./descriptors"
 
 export const enum OpType {
-  Storage = 0,
-  Tx = 1,
-  Event = 2,
-  Error = 3,
-  Const = 4,
+  Storage = "storage",
+  Tx = "tx",
+  Event = "events",
+  Error = "errors",
+  Const = "constants",
 }
 
 export class Runtime {
   private constructor(
     private _ctx: RuntimeContext,
     private _checksums: string[],
-    private _descriptors: DescriptorsValue,
+    private _descriptors: DescriptorValues,
   ) {}
 
   /**
@@ -35,7 +35,7 @@ export class Runtime {
   static _create(
     ctx: RuntimeContext,
     checksums: string[],
-    descriptors: DescriptorsValue,
+    descriptors: DescriptorValues,
   ) {
     return new Runtime(ctx, checksums, descriptors)
   }
@@ -51,7 +51,7 @@ export class Runtime {
    * @access package  - Internal implementation detail. Do not use.
    */
   _getPalletChecksum(opType: OpType, pallet: string, name: string) {
-    return this._checksums[this._descriptors.pallets[pallet][opType][name]]
+    return this._checksums[this._descriptors[opType][pallet][name]]
   }
 
   /**
@@ -68,7 +68,7 @@ export type RuntimeApi = Observable<Runtime> & {
 
 export const getRuntimeApi = (
   checksums: Promise<string[]>,
-  descriptors: Promise<DescriptorsValue>,
+  descriptors: Promise<DescriptorValues>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ): RuntimeApi => {
   const runtimeWithChecksums$ = connectable(

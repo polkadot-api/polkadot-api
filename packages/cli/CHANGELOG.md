@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update patch dependencies
+
 ## 0.4.1 - 2024-05-11
 
 ### Fixed
