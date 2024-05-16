@@ -3,13 +3,36 @@ import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
 import { V14, V15, metadata, v15 } from "@polkadot-api/substrate-bindings"
 import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
-import { PROVIDER_WORKER_CODE } from "./smolldot-worker"
 import { Worker } from "node:worker_threads"
 import { getObservableClient } from "@polkadot-api/observable-client"
 import { filter, firstValueFrom } from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
-import { WellKnownChain } from "./well-known-chains"
+import { fileURLToPath } from "url"
+import * as knownChains from "@polkadot-api/known-chains"
+import type {
+  MetadataWithRaw,
+  WorkerRequestMessage,
+  WorkerResponseMessage,
+} from "./metadataWorker"
+
+const workerPath = fileURLToPath(import.meta.resolve("./metadataWorker.js"))
+
+let metadataWorker: Worker | null
+let workerRefCount = 0
+async function getMetadataWorker() {
+  if (!metadataWorker) {
+    metadataWorker = new Worker(workerPath, {
+      stdout: true,
+      stderr: true,
+    })
+    await new Promise((resolve) => {
+      metadataWorker?.once("message", resolve)
+      metadataWorker?.postMessage("ready")
+    })
+  }
+  return metadataWorker
+}
 
 const getMetadataCall = async (provider: JsonRpcProvider) => {
   const client = getObservableClient(createClient(provider))
@@ -22,30 +45,54 @@ const getMetadataCall = async (provider: JsonRpcProvider) => {
   return { metadata: runtime.metadata, metadataRaw: runtime.metadataRaw }
 }
 
-const getMetadataFromProvider = async (chain: WellKnownChain | string) => {
-  const provider: JsonRpcProvider = (onMsg) => {
-    let worker: Worker | null = new Worker(PROVIDER_WORKER_CODE, {
-      eval: true,
-      workerData: chain,
-      stderr: true,
-      stdout: true,
-    })
-    worker.on("message", onMsg)
-
+const getWorkerMessage = (chain: string): Omit<WorkerRequestMessage, "id"> => {
+  if (!(chain in knownChains)) {
     return {
-      send: (msg) => worker?.postMessage({ type: "send", value: msg }),
-      disconnect: () => {
-        if (!worker) return
-
-        worker.postMessage({ type: "disconnect" })
-        worker.removeAllListeners()
-        worker.terminate()
-        worker = null
-      },
+      potentialRelayChainSpecs: [],
+      chainSpec: chain,
     }
   }
+  const relayChainName = Object.keys(knownChains).find(
+    (c) => c !== chain && chain.startsWith(c),
+  )
+  const potentialRelayChainSpecs = relayChainName
+    ? [knownChains[relayChainName as keyof typeof knownChains]]
+    : []
+  const chainSpec = knownChains[chain as keyof typeof knownChains]
 
-  return getMetadataCall(provider)
+  return {
+    potentialRelayChainSpecs,
+    chainSpec,
+  }
+}
+
+let id = 0
+const getMetadataFromSmoldot = async (chain: string) => {
+  workerRefCount++
+  try {
+    const reqId = id++
+    const metadataWorker = await getMetadataWorker()
+    const message: WorkerRequestMessage = {
+      ...getWorkerMessage(chain),
+      id: reqId,
+    }
+    const metadata = await new Promise<MetadataWithRaw>((resolve) => {
+      const listener = (data: WorkerResponseMessage) => {
+        if (data.id !== reqId) return
+        metadataWorker.off("message", listener)
+        resolve(data.metadata)
+      }
+      metadataWorker.on("message", listener)
+      metadataWorker.postMessage(message)
+    })
+    return metadata
+  } finally {
+    workerRefCount--
+    if (workerRefCount === 0) {
+      metadataWorker?.terminate()
+      metadataWorker = null
+    }
+  }
 }
 
 const getMetadataFromWsURL = async (wsURL: string) =>
@@ -74,12 +121,12 @@ export async function getMetadata(
   }
 
   if ("chain" in entry) {
-    return getMetadataFromProvider(entry.chain)
+    return getMetadataFromSmoldot(entry.chain)
   }
 
   if ("chainSpec" in entry) {
     const chainSpec = await fs.readFile(entry.chainSpec, "utf8")
-    return getMetadataFromProvider(chainSpec)
+    return getMetadataFromSmoldot(chainSpec)
   }
 
   if ("wsUrl" in entry) {

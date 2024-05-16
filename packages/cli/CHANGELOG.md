@@ -5,10 +5,11 @@
 ### Added
 
 - Add support to add chain using runtime WASM [#517](https://github.com/polkadot-api/polkadot-api/pull/517)
+- Add all known-chains from `@polkadot-api/known-chains` to the `-n` option [#518](https://github.com/polkadot-api/polkadot-api/pull/518)
 
 ### Fixed
 
-- Update patch dependencies
+- Fix high memory usage when running update with multiple chains [#518](https://github.com/polkadot-api/polkadot-api/pull/518)
 
 ## 0.4.1 - 2024-05-11
 
