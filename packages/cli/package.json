@@ -43,6 +43,7 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
+    "@polkadot-api/wasm-executor": "^0.1.0",
     "@polkadot-api/ws-provider": "workspace:*",
     "@types/node": "^20.12.11",
     "commander": "^12.0.0",

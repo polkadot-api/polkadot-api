@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add support to add chain using runtime WASM [#517](https://github.com/polkadot-api/polkadot-api/pull/517)
+
 ### Fixed
 
 - Update patch dependencies
