@@ -40,6 +40,7 @@ export function getCli({ add, generate, remove, update }: Commands) {
         Object.keys(WellKnownChain) as WellKnownChain[],
       ),
     )
+    .option("--wasm <filename>", "Source from runtime wasm file")
     .option("--no-persist", "Do not persist the metadata as a file")
     .action(add)
 

@@ -223,6 +223,9 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+      '@polkadot-api/wasm-executor':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@polkadot-api/ws-provider':
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
@@ -1182,6 +1185,9 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@polkadot-api/wasm-executor@0.1.0':
+    resolution: {integrity: sha512-nXQnfTxL662RZ3xS2pDGEo9pIsIFnpekTbTdGnMnjk9XXsvL67IdmwpPDYYJSYCNnyRXK31YEbBhFixw7D357w==}
 
   '@polkadot-labs/hdkd-helpers@0.0.6':
     resolution: {integrity: sha512-Gbyf1+aQERjOVWmfCEbnuW0VYvv3pFfjBJOISeGmmAiC6tlH9zCUht/STCCEduyA6ShnjSFXELBX2H1A2D72Sw==}
@@ -3527,6 +3533,8 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@polkadot-api/wasm-executor@0.1.0': {}
 
   '@polkadot-labs/hdkd-helpers@0.0.6':
     dependencies:

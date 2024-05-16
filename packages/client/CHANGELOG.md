@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `cli`: Add support to add chain using runtime WASM [#517](https://github.com/polkadot-api/polkadot-api/pull/517)
+
 ### Changed
 
 - Compact the data when generating descriptor from multiple chains [#516](https://github.com/polkadot-api/polkadot-api/pull/516)

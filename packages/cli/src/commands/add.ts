@@ -1,5 +1,9 @@
 import { getMetadata, writeMetadataToDisk } from "@/metadata"
 import { EntryConfig, readPapiConfig, writePapiConfig } from "@/papiConfig"
+import { compactNumber } from "@polkadot-api/substrate-bindings"
+import { fromHex } from "@polkadot-api/utils"
+import { getMetadataFromRuntime } from "@polkadot-api/wasm-executor"
+import * as fs from "node:fs/promises"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
 import { WellKnownChain } from "../well-known-chains"
@@ -9,6 +13,7 @@ export interface AddOptions extends CommonOptions {
   wsUrl?: string
   chainSpec?: string
   name?: WellKnownChain
+  wasm?: string
   noPersist?: boolean
 }
 
@@ -21,6 +26,27 @@ export async function add(key: string, options: AddOptions) {
   if (options.file) {
     entries[key] = {
       metadata: options.file,
+    }
+  } else if (options.wasm) {
+    const spinner = ora(`Loading metadata from runtime`).start()
+    const metadataHex = (await fs.readFile(options.wasm)).toString("hex")
+    const opaqueMeta = fromHex(getMetadataFromRuntime(`0x${metadataHex}`))
+
+    // metadata comes with compact length prepended
+    const metadataLen = compactNumber.dec(opaqueMeta)
+    const compactLen = compactNumber.enc(metadataLen).length
+    // verify we got all data
+    if (opaqueMeta.length - compactLen !== metadataLen)
+      throw new Error("Not able to retrieve runtime metadata")
+
+    spinner.text = "Writing metadata"
+    const metadataRaw = opaqueMeta.slice(compactLen)
+    const filename = `${key}.scale`
+    await writeMetadataToDisk(metadataRaw, filename)
+    spinner.succeed(`Metadata saved as ${filename}`)
+
+    entries[key] = {
+      metadata: filename,
     }
   } else {
     const entry = entryFromOptions(options)
