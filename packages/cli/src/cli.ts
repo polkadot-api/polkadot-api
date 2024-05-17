@@ -1,6 +1,6 @@
 import { Option, program } from "@commander-js/extra-typings"
 import type { add, generate, remove, update } from "./commands"
-import { WellKnownChain } from "./well-known-chains"
+import * as knownChains from "@polkadot-api/known-chains"
 
 export type Commands = {
   add: typeof add
@@ -37,7 +37,7 @@ export function getCli({ add, generate, remove, update }: Commands) {
     .option("-c, --chainSpec <filename>", "Source from chain spec file")
     .addOption(
       new Option("-n, --name <name>", "Source from a well-known chain").choices(
-        Object.keys(WellKnownChain) as WellKnownChain[],
+        Object.keys(knownChains),
       ),
     )
     .option("--wasm <filename>", "Source from runtime wasm file")

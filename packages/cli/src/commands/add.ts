@@ -6,13 +6,13 @@ import { getMetadataFromRuntime } from "@polkadot-api/wasm-executor"
 import * as fs from "node:fs/promises"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
-import { WellKnownChain } from "../well-known-chains"
 
 export interface AddOptions extends CommonOptions {
   file?: string
   wsUrl?: string
   chainSpec?: string
-  name?: WellKnownChain
+  // well-known chains
+  name?: string
   wasm?: string
   noPersist?: boolean
 }
@@ -82,7 +82,7 @@ const entryFromOptions = (options: AddOptions): EntryConfig => {
   }
   if (options.name) {
     return {
-      chain: options.name as WellKnownChain,
+      chain: options.name,
     }
   }
 

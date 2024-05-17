@@ -2,7 +2,6 @@ import fsExists from "fs.promises.exists"
 import { readPackage } from "read-pkg"
 import { updatePackage } from "write-package"
 import { readFile, writeFile } from "node:fs/promises"
-import { WellKnownChain } from "./well-known-chains"
 
 export type EntryConfig =
   | {
@@ -17,7 +16,7 @@ export type EntryConfig =
       metadata?: string
     }
   | {
-      chain: WellKnownChain
+      chain: string
       metadata?: string
     }
 export type PapiConfig = Record<string, EntryConfig>
