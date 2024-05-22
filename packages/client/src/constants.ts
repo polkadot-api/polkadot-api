@@ -3,8 +3,23 @@ import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
 import { CompatibilityHelper, IsCompatible, Runtime } from "./runtime"
 
 export interface ConstantEntry<T> {
+  /**
+   * Constants are simple key-value structures found in the runtime metadata.
+   *
+   * @returns Promise that will resolve in the value of the constant.
+   */
   (): Promise<T>
+  /**
+   * @param runtime  Runtime from got with `typedApi.runtime`
+   * @returns Synchronously returns value of the constant.
+   */
   (runtime: Runtime): T
+  /**
+   * `isCompatible` enables you to check whether or not the call you're trying
+   * to make is compatible with the descriptors you generated on dev time.
+   * In this case the function waits for `Runtime` to load, and returns
+   * asynchronously.
+   */
   isCompatible: IsCompatible
 }
 

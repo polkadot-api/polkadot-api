@@ -14,7 +14,20 @@ type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   : [...args: Args, options?: CallOptions]
 
 export interface RuntimeCall<Args extends Array<any>, Payload> {
+  /**
+   * Get `Payload` (Promise-based) for the runtime call.
+   *
+   * @param args  All keys needed for that runtime call.
+   *              At the end, optionally set which block to target (latest
+   *              known finalized is the default) and an AbortSignal.
+   */
   (...args: WithCallOptions<Args>): Promise<Payload>
+  /**
+   * `isCompatible` enables you to check whether or not the call you're trying
+   * to make is compatible with the descriptors you generated on dev time.
+   * In this case the function waits for `Runtime` to load, and returns
+   * asynchronously.
+   */
   isCompatible: IsCompatible
 }
 

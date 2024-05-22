@@ -63,6 +63,10 @@ export class Runtime {
 }
 
 export type RuntimeApi = Observable<Runtime> & {
+  /**
+   * @returns Promise that resolves in the `Runtime` as soon as it's
+   *          loaded.
+   */
   latest: () => Promise<Runtime>
 }
 
@@ -92,7 +96,21 @@ export const getRuntimeApi = (
 }
 
 export interface IsCompatible {
+  /**
+   * `isCompatible` enables you to check whether or not the call you're trying
+   * to make is compatible with the descriptors you generated on dev time.
+   * In this case the function waits for `Runtime` to load, and returns
+   * asynchronously.
+   *
+   * @returns Promise that resolves with the result of the compatibility
+   *          check.
+   */
   (): Promise<boolean>
+  /**
+   * Passing the runtime makes the function to return synchronously.
+   *
+   * @returns Result of the compatibility check.
+   */
   (runtime: Runtime): boolean
 }
 
