@@ -5,7 +5,15 @@ import { ChainHead$, NotBestBlockError } from "@polkadot-api/observable-client"
 import { CompatibilityHelper, IsCompatible } from "./runtime"
 
 type CallOptions = Partial<{
+  /**
+   * `at` could be a blockHash, `best`, or `finalized` (default)
+   */
   at: string
+  /**
+   * `signal` allows you to abort an ongoing Promise. See [MDN
+   * docs](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) for
+   * more information
+   */
   signal: AbortSignal
 }>
 
@@ -19,21 +27,83 @@ type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
   : []
 
 type StorageEntryWithoutKeys<Payload> = {
+  /**
+   * `isCompatible` enables you to check whether or not the call you're trying
+   * to make is compatible with the descriptors you generated on dev time.
+   * In this case the function waits for `Runtime` to load, and returns
+   * asynchronously.
+   */
   isCompatible: IsCompatible
+  /**
+   * Get `Payload` (Promise-based) for the storage entry.
+   *
+   * @param options  Optionally set which block to target (latest known
+   *                 finalized is the default) and an AbortSignal.
+   */
   getValue: (options?: CallOptions) => Promise<Payload>
+  /**
+   * Watch changes in `Payload` (observable-based) for the storage entry.
+   *
+   * @param bestOrFinalized  Optionally choose which block to query and watch
+   *                         changes, `best` or `finalized` (default)
+   */
   watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
 }
 
 type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
+  /**
+   * `isCompatible` enables you to check whether or not the call you're trying
+   * to make is compatible with the descriptors you generated on dev time.
+   * In this case the function waits for `Runtime` to load, and returns
+   * asynchronously.
+   */
   isCompatible: IsCompatible
+  /**
+   * Get `Payload` (Promise-based) for the storage entry with a specific set of
+   * `Args`.
+   *
+   * @param args  All keys needed for that storage entry.
+   *              At the end, optionally set which block to target (latest
+   *              known finalized is the default) and an AbortSignal.
+   */
   getValue: (...args: [...WithCallOptions<Args>]) => Promise<Payload>
+  /**
+   * Watch changes in `Payload` (observable-based) for the storage entry.
+   *
+   * @param args  All keys needed for that storage entry.
+   *              At the end, optionally choose which block to query and
+   *              watch changes, `best` or `finalized` (default)
+   */
   watchValue: (
     ...args: [...Args, bestOrFinalized?: "best" | "finalized"]
   ) => Observable<Payload>
+  /**
+   * Get an Array of `Payload` (Promise-based) for the storage entry with
+   * several sets of `Args`.
+   *
+   * @param keys     Array of sets of keys needed for the storage entry.
+   * @param options  Optionally set which block to target (latest known
+   *                 finalized is the default) and an AbortSignal.
+   */
   getValues: (
     keys: Array<[...Args]>,
     options?: CallOptions,
   ) => Promise<Array<Payload>>
+  /**
+   * Get an Array of `Payload` (Promise-based) for the storage entry with a
+   * subset of `Args`.
+   *
+   * @param args  Subset of keys needed for the storage entry.
+   *              At the end, optionally set which block to target (latest
+   *              known finalized is the default) and an AbortSignal.
+   * @example
+   *
+   *   // this is a query with 3 keys
+   *   typedApi.query.Pallet.Query.getEntries({ at: "best" }) // no keys
+   *   typedApi.query.Pallet.Query.getEntries(arg1, { at: "finalized" }) // 1/3 keys
+   *   typedApi.query.Pallet.Query.getEntries(arg1, arg2, { at: "0x12345678" }) // 2/3 keys
+   *
+   */
   getEntries: (
     ...args: WithCallOptions<PossibleParents<Args>>
   ) => Promise<Array<{ keyArgs: Args; value: NonNullable<Payload> }>>
