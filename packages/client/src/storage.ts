@@ -30,8 +30,6 @@ type StorageEntryWithoutKeys<Payload> = {
   /**
    * `isCompatible` enables you to check whether or not the call you're trying
    * to make is compatible with the descriptors you generated on dev time.
-   * In this case the function waits for `Runtime` to load, and returns
-   * asynchronously.
    */
   isCompatible: IsCompatible
   /**
@@ -54,8 +52,6 @@ type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
   /**
    * `isCompatible` enables you to check whether or not the call you're trying
    * to make is compatible with the descriptors you generated on dev time.
-   * In this case the function waits for `Runtime` to load, and returns
-   * asynchronously.
    */
   isCompatible: IsCompatible
   /**
