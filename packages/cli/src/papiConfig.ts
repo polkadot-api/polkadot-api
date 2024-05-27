@@ -41,7 +41,7 @@ export async function readPapiConfig(
  *
  * 1. Default config file (polkadot-api.json)
  * 2. Package.json If no pre-existing config exists, then it creates a
- *    polkadot-api.json file.
+ * polkadot-api.json file.
  */
 export async function writePapiConfig(
   configFile: string | undefined,

@@ -93,8 +93,8 @@ export type TypedApi<D extends ChainDefinition> = {
 
 export interface PolkadotClient {
   /**
-   * Retrieve the ChainSpecData as it comes from the
-   * [JSON-RPC spec](https://paritytech.github.io/json-rpc-interface-spec/api/chainSpec.html)
+   * Retrieve the ChainSpecData as it comes from the [JSON-RPC
+   * spec](https://paritytech.github.io/json-rpc-interface-spec/api/chainSpec.html)
    */
   getChainSpecData: () => Promise<ChainSpecData>
 
