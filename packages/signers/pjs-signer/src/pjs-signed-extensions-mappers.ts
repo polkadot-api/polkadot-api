@@ -76,3 +76,6 @@ export const CheckSpecVersion = ({
 }: SignedExtension): { specVersion: HexString } => ({
   specVersion: toPjsHex(u32.dec(additionalSigned), 4),
 })
+
+// we create the tx without metadata hash, it's optional for PJS
+export const CheckMetadataHash = () => ({})

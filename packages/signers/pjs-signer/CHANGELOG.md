@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add support to `CheckMetadataHash` signed extension [#526](https://github.com/polkadot-api/polkadot-api/pull/526)
+
 ## 0.1.4 - 2024-05-10
 
 ### Fixed
