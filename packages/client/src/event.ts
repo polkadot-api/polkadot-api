@@ -29,9 +29,30 @@ export type EvPull<T> = () => Promise<
 export type EvFilter<T> = (collection: SystemEvent["event"][]) => Array<T>
 
 export type EvClient<T> = {
+  /**
+   * Multicast and stateful Observable watching for new events (matching the
+   * event kind chosen) in the latest known `finalized` block.
+   *
+   * @param filter  Optional filter function to only emit events complying
+   *                with the function.
+   */
   watch: EvWatch<T>
+  /**
+   * Fetch (Promise-based) all events (matching the event kind chosen) available
+   * in the latest known `finalized` block.
+   */
   pull: EvPull<T>
+  /**
+   * Filter a bunch of `SystemEvent` and return the decoded `payload` of every
+   * of them.
+   *
+   * @param collection  Array of `SystemEvent` to filter.
+   */
   filter: EvFilter<T>
+  /**
+   * `isCompatible` enables you to check whether or not the call you're trying
+   * to make is compatible with the descriptors you generated on dev time.
+   */
   isCompatible: IsCompatible
 }
 

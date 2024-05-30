@@ -169,7 +169,9 @@ function generateDescriptorValuesContent(
       .join("")
 
   type Transformed = Record<string, number | Record<string, number>>
-  /** Modifies in-place, changes type to Transformed */
+  /**
+   * Modifies in-place, changes type to Transformed.
+   */
   const findCommonTrees = (
     values: Array<Record<string, Record<string, unknown>>>,
   ) => {
