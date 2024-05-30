@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update `lightSyncState` and `bootnodes` [#524](https://github.com/polkadot-api/polkadot-api/pull/524)
+
 ## 0.1.4 - 2024-05-11
 
 - update relay-chain chainSpecs
