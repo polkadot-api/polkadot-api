@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2024-05-30
+
 ### Changed
 
 - Compact the data when generating descriptor from multiple chains [#516](https://github.com/polkadot-api/polkadot-api/pull/516)
