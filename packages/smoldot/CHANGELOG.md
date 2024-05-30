@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Bump to `smoldot@2.0.28`
+
 ## 0.2.3 - 2024-05-10
 
 ### Fixed
