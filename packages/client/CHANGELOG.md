@@ -5,6 +5,7 @@
 ### Added
 
 - `cli`: Add support to add chain using runtime WASM [#517](https://github.com/polkadot-api/polkadot-api/pull/517)
+- `client`: Add support to `CheckMetadataHash` signed extension [#526](https://github.com/polkadot-api/polkadot-api/pull/526)
 
 ### Changed
 
