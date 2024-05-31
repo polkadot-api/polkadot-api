@@ -37,7 +37,7 @@ export type TxInBestBlocksFound = {
 export type TxEventsPayload = {
   ok: boolean
   events: Array<SystemEvent["event"]>
-  block: { hash: string; index: number }
+  block: { hash: string; number: number; index: number }
 }
 
 export type TxFinalized = {

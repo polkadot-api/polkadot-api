@@ -31,6 +31,7 @@ const computeState = (
   new Observable<
     | {
         hash: string
+        number: number
         index: number
         events: any
       }
@@ -41,6 +42,7 @@ const computeState = (
     let latestState:
       | {
           hash: string
+          number: number
           index: number
           events: any
         }
@@ -58,8 +60,9 @@ const computeState = (
 
       if (!analyzed) return // this shouldn't happen, though
 
+      const analyzedNumber = pinnedBlocks.blocks.get(analyzed.hash)!.number
       const isFinalized =
-        pinnedBlocks.blocks.get(analyzed.hash)!.number <=
+        analyzedNumber <=
         pinnedBlocks.blocks.get(pinnedBlocks.finalized)!.number
 
       const found = analyzed.found.type
@@ -76,6 +79,7 @@ const computeState = (
         (latestState = found
           ? {
               hash: analyzed.hash,
+              number: analyzedNumber,
               ...analyzed.found,
             }
           : analyzed.found.isValid),
@@ -195,6 +199,7 @@ export const submit$ = (
         found: true,
         block: {
           index: x.index,
+          number: x.number,
           hash: x.hash,
         },
         ...getTxSuccessFromSystemEvents(x.events, x.index),

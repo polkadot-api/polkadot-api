@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `client`: Add `blockNumber` to `TxEvents` payload [#530](https://github.com/polkadot-api/polkadot-api/pull/530)
+
 ## 0.8.0 - 2024-05-30
 
 ### Added
