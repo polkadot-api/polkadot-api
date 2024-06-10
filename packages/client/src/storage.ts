@@ -26,7 +26,7 @@ type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
   ? Left | PossibleParents<Left>
   : []
 
-type StorageEntryWithoutKeys<Payload> = {
+export type StorageEntryWithoutKeys<Payload> = {
   /**
    * `isCompatible` enables you to check whether or not the call you're trying
    * to make is compatible with the descriptors you generated on dev time.
@@ -48,7 +48,7 @@ type StorageEntryWithoutKeys<Payload> = {
   watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
 }
 
-type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
+export type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
   /**
    * `isCompatible` enables you to check whether or not the call you're trying
    * to make is compatible with the descriptors you generated on dev time.
