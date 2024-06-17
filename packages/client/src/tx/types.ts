@@ -153,9 +153,9 @@ export type Transaction<
    */
   sign: TxSignFn<Asset>
   /**
-   * Observable-based all-in-one transaction submitting. It'll sign, broadcast,
+   * Observable-based all-in-one transaction submitting. It will sign, broadcast,
    * and track the transaction. The observable is singlecast, i.e. it'll sign,
-   * broadcast, etc at every subscription. It'll complete once the transaction
+   * broadcast, etc at every subscription. It will complete once the transaction
    * is found in a `finalizedBlock`.
    *
    * @param from       `PolkadotSigner`-compliant signer.
