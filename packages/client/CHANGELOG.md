@@ -9,6 +9,7 @@
 ### Fixed
 
 - `chains`: Update `lightSyncState` and `bootnodes` [#535](https://github.com/polkadot-api/polkadot-api/pull/535)
+- `smoldot`: Bump to `smoldot@2.0.29`
 
 ## 0.8.0 - 2024-05-30
 
