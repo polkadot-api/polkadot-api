@@ -192,8 +192,9 @@ export interface PolkadotClient {
    */
   getTypedApi: <D extends ChainDefinition>(descriptors: D) => TypedApi<D>
 
-  /*
-   * This will `unfollow` the provider, disconnect and error every subscription. After calling it nothing can be done with the client.
+  /**
+   * This will `unfollow` the provider, disconnect and error every subscription.
+   * After calling it nothing can be done with the client.
    */
   destroy: () => void
 
