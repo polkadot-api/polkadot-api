@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.6 - 2024-06-17
+
 ### Fixed
 
 - Update `lightSyncState` and `bootnodes` [#535](https://github.com/polkadot-api/polkadot-api/pull/535)
