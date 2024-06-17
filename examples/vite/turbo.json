@@ -3,7 +3,9 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "inputs": ["vite.config.js"]
+      "dependsOn": ["^build"],
+      "inputs": ["vite.config.js", "tsconfig.json", "src/**"],
+      "outputs": ["dist/**"]
     }
   }
 }
