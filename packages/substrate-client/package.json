@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/substrate-client",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -42,8 +42,10 @@
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
   },
-  "devDependencies": {
-    "@polkadot-api/json-rpc-provider": "workspace:*",
+  "dependencies": {
     "@polkadot-api/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@polkadot-api/json-rpc-provider": "workspace:*"
   }
 }

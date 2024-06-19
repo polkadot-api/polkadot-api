@@ -1,4 +1,4 @@
-import {
+import type {
   JsonRpcConnection,
   JsonRpcProvider,
 } from "@polkadot-api/json-rpc-provider"

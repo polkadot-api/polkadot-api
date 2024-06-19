@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.3 - 2024-06-19
+
+### Fixed
+
+- Add `@polkadot-api/utils` as `dependecy`.
+
 ## 0.1.2 - 2024-05-10
 
 ### Fixed

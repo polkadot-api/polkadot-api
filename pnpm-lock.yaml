@@ -534,13 +534,14 @@ importers:
         version: 4.11.0
 
   packages/substrate-client:
+    dependencies:
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
     devDependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc/json-rpc-provider
-      '@polkadot-api/utils':
-        specifier: workspace:*
-        version: link:../utils
 
   packages/utils: {}
 
