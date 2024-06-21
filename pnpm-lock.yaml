@@ -406,6 +406,19 @@ importers:
         specifier: ^20.11.19
         version: 20.14.2
 
+  packages/metadata-hash:
+    dependencies:
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+    devDependencies:
+      '@polkadot-api/metadata-fixtures':
+        specifier: workspace:*
+        version: link:../metadata-fixtures
+
   packages/migrate-known-types:
     dependencies:
       '@polkadot-api/codegen':

@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getChecksumBuilder snapshots > generates metadata hash 1`] = `
+Uint8Array [
+  184,
+  178,
+  23,
+  143,
+  51,
+  255,
+  30,
+  57,
+  173,
+  177,
+  0,
+  244,
+  198,
+  0,
+  95,
+  218,
+  107,
+  66,
+  94,
+  93,
+  216,
+  143,
+  90,
+  110,
+  194,
+  169,
+  216,
+  40,
+  248,
+  95,
+  98,
+  198,
+]
+`;
