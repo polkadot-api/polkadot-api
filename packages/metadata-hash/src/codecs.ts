@@ -4,6 +4,7 @@ import {
   Option,
   ScaleEnum,
   Struct,
+  V15,
   Vector,
   _void,
   bool,
@@ -131,3 +132,4 @@ export const extrinsicMetadata = Struct({
   ),
 })
 export type ExtrinsicMetadata = CodecType<typeof extrinsicMetadata>
+export type LookupValue = V15["lookup"] extends Array<infer T> ? T : never
