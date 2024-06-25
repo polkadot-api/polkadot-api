@@ -82,14 +82,20 @@ export const buildMetadataHash = (
   if (cached) return cached
 
   // let's build the lookup hash
-  const nodes = trimmedTree.map(Blake3256)
-  while (nodes.length > 1) {
-    const right = nodes.pop()!
-    const left = nodes.pop()!
-    nodes.unshift(Blake3256(mergeUint8([left, right])))
+  const hashesTree = new Array(trimmedTree.length * 2 - 1)
+  let leavesStartIdx = trimmedTree.length - 1
+  for (let i = 0; i < trimmedTree.length; i++)
+    hashesTree[leavesStartIdx + i] = Blake3256(trimmedTree[i])
+
+  for (let i = hashesTree.length - 2; i > 0; i -= 2) {
+    const left = hashesTree[i]
+    const right = hashesTree[i + 1]
+    hashesTree[(i - 1) / 2] = Blake3256(mergeUint8([left, right]))
   }
   // if no types in the tree, we need to return 0's array
-  const rootLookupHash = !nodes.length ? new Uint8Array(32).fill(0) : nodes[0]
+  const rootLookupHash = !hashesTree.length
+    ? new Uint8Array(32).fill(0)
+    : hashesTree[0]
 
   const extrinsic: ExtrinsicMetadata = {
     version: metadata.extrinsic.version,
