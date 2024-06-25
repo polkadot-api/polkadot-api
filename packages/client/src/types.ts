@@ -218,4 +218,12 @@ export interface PolkadotClient {
   ) => Promise<Reply>
 }
 
-export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }
+type _FixedSizeArray<
+  L extends number,
+  T,
+  A extends unknown[],
+> = A["length"] extends L ? A : _FixedSizeArray<L, T, [T, ...A]>
+
+export type FixedSizeArray<L extends number, T> = (number extends L
+  ? T[]
+  : _FixedSizeArray<L, T, []>) & { length: L }
