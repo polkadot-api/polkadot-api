@@ -1,5 +1,4 @@
-import { Blake3256, V15, h64, v15 } from "@polkadot-api/substrate-bindings"
-import { mergeUint8 } from "@polkadot-api/utils"
+import { Blake3256, HexString, h64 } from "@polkadot-api/substrate-bindings"
 import {
   ExtraInfo,
   ExtrinsicMetadata,
@@ -14,9 +13,8 @@ import {
 } from "./codecs"
 import { getAccessibleTypes } from "./get-accessible-types"
 import { getTypeTree } from "./get-type-tree"
-
-// h64(scale(metadata|tokenSymbol|tokenDecimals)): metadataDigest
-const cache = new Map<bigint, Uint8Array>()
+import { getMetadata } from "./get-metadata"
+import { mergeUint8 } from "./merge-bytes"
 
 const compactTypeRefs = {
   null: "void" as const,
@@ -28,12 +26,12 @@ const compactTypeRefs = {
   u256: "compactU256" as const,
 }
 
+const cache = new Map<bigint, Uint8Array>()
 export const buildMetadataHash = (
-  metadata: V15,
+  metadataBytes: Uint8Array | HexString,
   info: ExtraInfo,
 ): Uint8Array => {
-  const keyHash = h64(mergeUint8(v15.enc(metadata), extraInfo.enc(info)))
-  if (cache.has(keyHash)) return cache.get(keyHash)!
+  const metadata = getMetadata(metadataBytes)
 
   const definitions = new Map<number, LookupValue>(
     metadata.lookup.map((value) => [value.id, value]),
@@ -72,19 +70,23 @@ export const buildMetadataHash = (
       : { tag: "void", value: undefined }
   }
 
-  const typeTree = getTypeTree(
+  const trimmedTree = getTypeTree(
     definitions,
     accessibleTypes,
     getTypeRef,
     getPrimitive,
-  )
+  ).map(lookupType.enc)
+
+  const cachedKey = h64(mergeUint8([...trimmedTree, extraInfo.enc(info)]))
+  const cached = cache.get(cachedKey)
+  if (cached) return cached
 
   // let's build the lookup hash
-  const nodes = typeTree.map((x) => Blake3256(lookupType.enc(x)))
+  const nodes = trimmedTree.map(Blake3256)
   while (nodes.length > 1) {
     const right = nodes.pop()!
     const left = nodes.pop()!
-    nodes.unshift(Blake3256(mergeUint8(left, right)))
+    nodes.unshift(Blake3256(mergeUint8([left, right])))
   }
   // if no types in the tree, we need to return 0's array
   const rootLookupHash = !nodes.length ? new Uint8Array(32).fill(0) : nodes[0]
@@ -109,5 +111,8 @@ export const buildMetadataHash = (
       ...info,
     },
   }
-  return Blake3256(metadataDigest.enc(digest))
+
+  const result = Blake3256(metadataDigest.enc(digest))
+  cache.set(cachedKey, result)
+  return result
 }

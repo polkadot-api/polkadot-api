@@ -411,9 +411,6 @@ importers:
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
-      '@polkadot-api/utils':
-        specifier: workspace:*
-        version: link:../utils
     devDependencies:
       '@polkadot-api/metadata-fixtures':
         specifier: workspace:*
