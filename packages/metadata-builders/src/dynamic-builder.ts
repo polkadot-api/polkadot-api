@@ -4,7 +4,7 @@ import type {
   V15,
   V14,
 } from "@polkadot-api/substrate-bindings"
-import type { EnumVar, LookupEntry, TupleVar } from "./lookups"
+import type { EnumVar, LookupEntry } from "./lookups"
 import { getLookupFn } from "./lookups"
 import * as scale from "@polkadot-api/substrate-bindings"
 import { withCache } from "./with-cache"
@@ -163,15 +163,26 @@ export const getDynamicBuilder = (metadata: V14 | V15) => {
     const val = buildDefinition(value)
     const hashes = hashers.map((x) => scale[x.tag])
 
-    const hashArgs: Array<scale.EncoderWithHash<any>> =
-      hashes.length === 1
-        ? [[buildDefinition(key), hashes[0]]]
-        : (getLookupEntryDef(key) as TupleVar).value.map(
-            (x, idx): scale.EncoderWithHash<any> => [
-              buildDefinition(x.id),
-              hashes[idx],
-            ],
-          )
+    const hashArgs: scale.EncoderWithHash<unknown>[] = (() => {
+      if (hashes.length === 1) {
+        return [[buildDefinition(key), hashes[0]]]
+      }
+
+      const keyDef = getLookupEntryDef(key)
+
+      switch (keyDef.type) {
+        case "array":
+          return hashes.map((hash) => [buildDefinition(keyDef.value.id), hash])
+        case "tuple":
+          return keyDef.value.map((x, idx) => [
+            buildDefinition(x.id),
+            hashes[idx],
+          ])
+        default:
+          throw new Error("Invalid key type")
+      }
+    })()
+
     return storageWithFallback(hashes.length, entry, val.dec, ...hashArgs)
   }
 
