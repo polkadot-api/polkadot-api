@@ -24,7 +24,20 @@ type WithCallOptions<Args extends Array<any>> = [
 
 type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
   ? Left | PossibleParents<Left>
-  : []
+  : ArrayPossibleParents<A>
+
+// Fixed-size arrays values can't be extracted one-by-one, so that's a specific case
+type ArrayPossibleParents<
+  A extends Array<any>,
+  Count extends Array<any> = [],
+  R = [],
+> = A extends Array<infer T> & { length: infer L }
+  ? number extends L
+    ? Array<T> // Case variable-size array it's an unknown amount of entries
+    : L extends Count["length"]
+      ? R
+      : ArrayPossibleParents<A, [...Count, T], R | Count>
+  : never
 
 type StorageEntryWithoutKeys<Payload> = {
   /**
