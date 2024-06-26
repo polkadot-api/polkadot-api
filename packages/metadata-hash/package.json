@@ -42,8 +42,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/substrate-bindings": "workspace:*"
   },
   "devDependencies": {
     "@polkadot-api/metadata-fixtures": "workspace:*"
