@@ -1,4 +1,9 @@
-import type { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
+import type {
+  Enum,
+  StringRecord,
+  V14,
+  V15,
+} from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
 import {
   ArrayVar,
@@ -495,5 +500,145 @@ export const getChecksumBuilder = (metadata: V14 | V15) => {
     buildNamedTuple: toStringEnhancer(buildNamedTuple),
     getAllGeneratedChecksums: () =>
       Array.from(cache.values()).map((v) => v.toString(32)),
+  }
+}
+
+interface StructNode {
+  type: "struct"
+  id: number
+  values: {
+    [key: string]: number
+  }
+}
+interface TerminalNode {
+  type: "terminal"
+  id: number
+}
+interface EnumNode {
+  type: "enum"
+  id: number
+  variants: {
+    [key: string]: number
+  }
+}
+interface TupleNode {
+  type: "tuple"
+  id: number
+  values: number[]
+}
+interface ArrayNode {
+  type: "array"
+  id: number
+  value: number
+  length?: number
+}
+interface OptionNode {
+  type: "option"
+  id: number
+  value: number
+}
+
+type CompatNode =
+  | StructNode
+  | TerminalNode
+  | EnumNode
+  | TupleNode
+  | ArrayNode
+  | OptionNode
+
+// Descriptors: pallet + name => index (this._descriptors[opType][pallet][name])
+// index will be for both checksums and compatLookup
+
+// Origin type: describes types of related `value` (what will be sent)
+// Dest type: describes types of the receiving end.
+function isCompatible(
+  value: any,
+  originType: number,
+  originCompatLookup: CompatNode[],
+  originChecksums: string[],
+  destType: number,
+  destCompatLookup: CompatNode[],
+  destChecksums: string[],
+): boolean {
+  const checksumsAreEq =
+    originChecksums[originType] === destChecksums[originType]
+  const originNode = originCompatLookup[originType]
+  const destNode = destCompatLookup[destType]
+
+  if (checksumsAreEq) {
+    return true
+  }
+
+  // Is this ok? This will cover for structs with optional keys
+  if (destNode.type === "option" && value == undefined) {
+    return true
+  }
+
+  // we're leading through destNode, as it's the one that specifies what is expected
+  // with one of the recursive calls, we might actually go in a path that originNode didn't have it
+  // We have already covered the case `destNode` expects an option. Otherwise, it's just not compatible.
+  if (originNode?.type !== destNode.type) {
+    return false
+  }
+
+  const nextCall = (value: any, originType: number, destType: number) =>
+    isCompatible(
+      value,
+      originType,
+      originCompatLookup,
+      originChecksums,
+      destType,
+      destCompatLookup,
+      destChecksums,
+    )
+
+  switch (destNode.type) {
+    case "terminal":
+      return checksumsAreEq
+    case "array":
+      const valueArr = value as Array<any>
+      // TODO check passing an array with greater length sends in truncated to destNode.length
+      if (destNode.length !== undefined && valueArr.length < destNode.length) {
+        return false
+      }
+      return valueArr
+        .slice(0, destNode.length)
+        .every((value) =>
+          nextCall(value, (originNode as ArrayNode).value, destNode.value),
+        )
+    case "enum":
+      const valueEnum = value as { type: string; value: any }
+      if (!(valueEnum.type in destNode.variants)) {
+        return false
+      }
+      return nextCall(
+        valueEnum.value,
+        (originNode as EnumNode).variants[valueEnum.type],
+        destNode.variants[valueEnum.type],
+      )
+    case "option":
+      // TODO check that on option, value is `T | undefined` instead of an enum
+      // TODO ackchyually, this case is already covered up top
+      if (value == undefined) {
+        return true
+      }
+      return nextCall(value, (originNode as OptionNode).value, destNode.value)
+    case "struct":
+      return Object.keys(destNode.values).every((key) =>
+        nextCall(
+          value[key],
+          (originNode as StructNode).values[key],
+          destNode.values[key],
+        ),
+      )
+    case "tuple":
+      // length will be checked indirectly
+      return destNode.values.every((idx) =>
+        nextCall(
+          value[idx],
+          (originNode as TupleNode).values[idx],
+          destNode.values[idx],
+        ),
+      )
   }
 }
