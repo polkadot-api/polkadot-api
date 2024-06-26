@@ -5,8 +5,6 @@ const bitSequenceBytes = {
   u16: 2,
   u32: 4,
   u64: 8,
-  u128: 16,
-  u256: 32,
 }
 
 const constructTypeDef = (
