@@ -4,13 +4,14 @@ import type {
   V14,
   V15,
 } from "@polkadot-api/substrate-bindings"
-import { h64 } from "@polkadot-api/substrate-bindings"
+import { Binary, h64 } from "@polkadot-api/substrate-bindings"
 import {
   ArrayVar,
   LookupEntry,
   MetadataPrimitives,
   StructVar,
   TupleVar,
+  Var,
   VoidVar,
   getLookupFn,
 } from "./lookups"
@@ -21,6 +22,7 @@ import {
   getSubgraph,
   mergeSCCsWithCommonNodes,
 } from "./lookup-graph"
+import { mapObject } from "@polkadot-api/utils"
 
 const textEncoder = new TextEncoder()
 const encodeText = textEncoder.encode.bind(textEncoder)
@@ -505,96 +507,200 @@ export const getChecksumBuilder = (metadata: V14 | V15) => {
 
 interface StructNode {
   type: "struct"
-  id: number
   values: {
     [key: string]: number
   }
 }
 interface TerminalNode {
   type: "terminal"
-  id: number
+  value:
+    | "bool"
+    | "string"
+    | "number"
+    | "bigint"
+    | "numeric"
+    | "bitseq"
+    | "binary"
 }
 interface EnumNode {
   type: "enum"
-  id: number
   variants: {
-    [key: string]: number
+    [key: string]: TypedefNode | null
   }
 }
 interface TupleNode {
   type: "tuple"
-  id: number
   values: number[]
 }
 interface ArrayNode {
   type: "array"
-  id: number
   value: number
   length?: number
 }
 interface OptionNode {
   type: "option"
-  id: number
   value: number
 }
+interface ResultNode {
+  type: "result"
+  ok: number
+  ko: number
+}
 
-type CompatNode =
+type TypedefNode =
   | StructNode
   | TerminalNode
   | EnumNode
   | TupleNode
   | ArrayNode
   | OptionNode
+  | ResultNode
+
+const primitiveToTerminal: Record<MetadataPrimitives, TerminalNode["value"]> = {
+  i256: "bigint",
+  i128: "bigint",
+  i64: "bigint",
+  i32: "number",
+  i16: "number",
+  i8: "number",
+  u256: "bigint",
+  u128: "bigint",
+  u64: "bigint",
+  u32: "number",
+  u16: "number",
+  u8: "number",
+  bool: "bool",
+  char: "string",
+  str: "string",
+}
+
+function mapLookupToTypedef(entry: Var): TypedefNode | null {
+  switch (entry.type) {
+    case "AccountId20":
+    case "AccountId32":
+      return {
+        type: "terminal",
+        value: "string",
+      }
+    case "array":
+      if (entry.value.type === "primitive" && entry.value.value === "u8") {
+        return {
+          type: "terminal",
+          value: "binary",
+        }
+      }
+      return {
+        type: "array",
+        value: entry.value.id,
+        length: entry.len,
+      }
+    case "bitSequence":
+      return {
+        type: "terminal",
+        value: "bitseq",
+      }
+    case "compact":
+      return {
+        type: "terminal",
+        value:
+          entry.isBig === null ? "numeric" : entry.isBig ? "bigint" : "number",
+      }
+    case "enum":
+      return {
+        type: "enum",
+        variants: mapObject(entry.value, (params) =>
+          params.type === "lookupEntry"
+            ? mapLookupToTypedef(params.value)
+            : mapLookupToTypedef(params),
+        ),
+      }
+    case "struct":
+      return {
+        type: "struct",
+        values: mapObject(entry.value, (prop) => prop.id),
+      }
+    case "tuple":
+      return {
+        type: "tuple",
+        values: entry.value.map((v) => v.id),
+      }
+    case "option":
+      return {
+        type: "option",
+        value: entry.value.id,
+      }
+    case "primitive":
+      return {
+        type: "terminal",
+        value: primitiveToTerminal[entry.value],
+      }
+    case "result":
+      return {
+        type: "result",
+        ok: entry.value.ok.id,
+        ko: entry.value.ko.id,
+      }
+    case "sequence":
+      if (entry.value.type === "primitive" && entry.value.value === "u8") {
+        return {
+          type: "terminal",
+          value: "binary",
+        }
+      }
+      return {
+        type: "array",
+        value: entry.value.id,
+      }
+    case "void":
+      return null
+  }
+}
 
 // Descriptors: pallet + name => index (this._descriptors[opType][pallet][name])
 // index will be for both checksums and compatLookup
 
-// Origin type: describes types of related `value` (what will be sent)
 // Dest type: describes types of the receiving end.
 function isCompatible(
   value: any,
-  originType: number,
-  originCompatLookup: CompatNode[],
-  originChecksums: string[],
-  destType: number,
-  destCompatLookup: CompatNode[],
-  destChecksums: string[],
+  destNode: TypedefNode,
+  destCompatLookup: TypedefNode[],
 ): boolean {
-  const checksumsAreEq =
-    originChecksums[originType] === destChecksums[originType]
-  const originNode = originCompatLookup[originType]
-  const destNode = destCompatLookup[destType]
-
-  if (checksumsAreEq) {
-    return true
-  }
-
   // Is this ok? This will cover for structs with optional keys
   if (destNode.type === "option" && value == undefined) {
     return true
   }
 
-  // we're leading through destNode, as it's the one that specifies what is expected
-  // with one of the recursive calls, we might actually go in a path that originNode didn't have it
-  // We have already covered the case `destNode` expects an option. Otherwise, it's just not compatible.
-  if (originNode?.type !== destNode.type) {
-    return false
-  }
+  const nextCall = (value: any, destNode: TypedefNode) =>
+    isCompatible(value, destNode, destCompatLookup)
 
-  const nextCall = (value: any, originType: number, destType: number) =>
-    isCompatible(
-      value,
-      originType,
-      originCompatLookup,
-      originChecksums,
-      destType,
-      destCompatLookup,
-      destChecksums,
-    )
+  const checkTerminal = (terminal: TerminalNode) => {
+    switch (terminal.value) {
+      case "string":
+        return typeof value === "string"
+      case "bigint":
+        return typeof value === "bigint"
+      case "bitseq":
+        return (
+          typeof value === "object" &&
+          value != null &&
+          typeof value.bitsLen === "number" &&
+          value.bytes instanceof Uint8Array
+        )
+      case "bool":
+        return typeof value === "boolean"
+      case "number":
+        return typeof value === "number"
+      case "numeric":
+        return typeof value === "number" || typeof value === "bigint"
+      case "binary":
+        // TODO
+        return value instanceof Uint8Array || value instanceof Binary
+    }
+  }
 
   switch (destNode.type) {
     case "terminal":
-      return checksumsAreEq
+      return checkTerminal(destNode)
     case "array":
       const valueArr = value as Array<any>
       // TODO check passing an array with greater length sends in truncated to destNode.length
@@ -603,42 +709,36 @@ function isCompatible(
       }
       return valueArr
         .slice(0, destNode.length)
-        .every((value) =>
-          nextCall(value, (originNode as ArrayNode).value, destNode.value),
-        )
+        .every((value) => nextCall(value, destCompatLookup[destNode.value]))
     case "enum":
       const valueEnum = value as { type: string; value: any }
       if (!(valueEnum.type in destNode.variants)) {
         return false
       }
-      return nextCall(
-        valueEnum.value,
-        (originNode as EnumNode).variants[valueEnum.type],
-        destNode.variants[valueEnum.type],
-      )
+      const variantValue = destNode.variants[valueEnum.type]
+      if (variantValue === null) {
+        return true
+      }
+      return nextCall(valueEnum.value, variantValue)
     case "option":
-      // TODO check that on option, value is `T | undefined` instead of an enum
-      // TODO ackchyually, this case is already covered up top
       if (value == undefined) {
         return true
       }
-      return nextCall(value, (originNode as OptionNode).value, destNode.value)
+      return nextCall(value, destCompatLookup[destNode.value])
     case "struct":
       return Object.keys(destNode.values).every((key) =>
-        nextCall(
-          value[key],
-          (originNode as StructNode).values[key],
-          destNode.values[key],
-        ),
+        nextCall(value[key], destCompatLookup[destNode.values[key]]),
       )
     case "tuple":
       // length will be checked indirectly
       return destNode.values.every((idx) =>
-        nextCall(
-          value[idx],
-          (originNode as TupleNode).values[idx],
-          destNode.values[idx],
-        ),
+        nextCall(value[idx], destCompatLookup[destNode.values[idx]]),
+      )
+    case "result":
+      if (!("success" in value && "value" in value)) return false
+      return nextCall(
+        value.value,
+        destCompatLookup[value.success ? destNode.ok : destNode.ko],
       )
   }
 }
