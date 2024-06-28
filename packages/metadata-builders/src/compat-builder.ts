@@ -71,7 +71,10 @@ const primitiveToTerminal: Record<MetadataPrimitives, TerminalNode["value"]> = {
   str: "string",
 }
 
-export function mapLookupToTypedef(entry: Var): TypedefNode | null {
+export function mapLookupToTypedef(
+  entry: Var,
+  resolve: (id: number) => void = () => {},
+): TypedefNode | null {
   switch (entry.type) {
     case "AccountId20":
     case "AccountId32":
@@ -86,6 +89,7 @@ export function mapLookupToTypedef(entry: Var): TypedefNode | null {
           value: "binary",
         }
       }
+      resolve(entry.value.id)
       return {
         type: "array",
         value: entry.value.id,
@@ -107,21 +111,28 @@ export function mapLookupToTypedef(entry: Var): TypedefNode | null {
         type: "enum",
         variants: mapObject(entry.value, (params) =>
           params.type === "lookupEntry"
-            ? mapLookupToTypedef(params.value)
-            : mapLookupToTypedef(params),
+            ? mapLookupToTypedef(params.value, resolve)
+            : mapLookupToTypedef(params, resolve),
         ),
       }
-    case "struct":
+    case "struct": {
+      const values = mapObject(entry.value, (prop) => prop.id)
+      Object.values(values).forEach(resolve)
       return {
         type: "struct",
-        values: mapObject(entry.value, (prop) => prop.id),
+        values,
       }
-    case "tuple":
+    }
+    case "tuple": {
+      const values = entry.value.map((v) => v.id)
+      values.forEach(resolve)
       return {
         type: "tuple",
-        values: entry.value.map((v) => v.id),
+        values,
       }
+    }
     case "option":
+      resolve(entry.value.id)
       return {
         type: "option",
         value: entry.value.id,
@@ -132,6 +143,8 @@ export function mapLookupToTypedef(entry: Var): TypedefNode | null {
         value: primitiveToTerminal[entry.value],
       }
     case "result":
+      resolve(entry.value.ok.id)
+      resolve(entry.value.ko.id)
       return {
         type: "result",
         ok: entry.value.ok.id,
@@ -144,6 +157,7 @@ export function mapLookupToTypedef(entry: Var): TypedefNode | null {
           value: "binary",
         }
       }
+      resolve(entry.value.id)
       return {
         type: "array",
         value: entry.value.id,
@@ -159,16 +173,19 @@ export function mapLookupToTypedef(entry: Var): TypedefNode | null {
 // Dest type: describes types of the receiving end.
 export function isCompatible(
   value: any,
-  destNode: TypedefNode,
-  destCompatLookup: TypedefNode[],
+  destNode: TypedefNode | null,
+  getNode: (id: number) => TypedefNode | null,
 ): boolean {
+  // A void node is always compatible
+  if (!destNode) return true
+
   // Is this ok? This will cover for structs with optional keys
   if (destNode.type === "option" && value == undefined) {
     return true
   }
 
-  const nextCall = (value: any, destNode: TypedefNode) =>
-    isCompatible(value, destNode, destCompatLookup)
+  const nextCall = (value: any, destNode: TypedefNode | null) =>
+    isCompatible(value, destNode, getNode)
 
   const checkTerminal = (terminal: TerminalNode) => {
     switch (terminal.value) {
@@ -206,7 +223,7 @@ export function isCompatible(
       }
       return valueArr
         .slice(0, destNode.length)
-        .every((value) => nextCall(value, destCompatLookup[destNode.value]))
+        .every((value) => nextCall(value, getNode(destNode.value)))
     case "enum":
       const valueEnum = value as { type: string; value: any }
       if (!(valueEnum.type in destNode.variants)) {
@@ -221,21 +238,21 @@ export function isCompatible(
       if (value == undefined) {
         return true
       }
-      return nextCall(value, destCompatLookup[destNode.value])
+      return nextCall(value, getNode(destNode.value))
     case "struct":
       return Object.keys(destNode.values).every((key) =>
-        nextCall(value[key], destCompatLookup[destNode.values[key]]),
+        nextCall(value[key], getNode(destNode.values[key])),
       )
     case "tuple":
       // length will be checked indirectly
       return destNode.values.every((idx) =>
-        nextCall(value[idx], destCompatLookup[destNode.values[idx]]),
+        nextCall(value[idx], getNode(destNode.values[idx])),
       )
     case "result":
       if (!("success" in value && "value" in value)) return false
       return nextCall(
         value.value,
-        destCompatLookup[value.success ? destNode.ok : destNode.ko],
+        getNode(value.success ? destNode.ok : destNode.ko),
       )
   }
 }
