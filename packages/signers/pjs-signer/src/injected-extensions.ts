@@ -40,7 +40,9 @@ export interface InjectedPolkadotAccount {
 
 interface PjsInjectedExtension {
   signer: {
-    signPayload: (payload: SignerPayloadJSON) => Promise<{ signature: string }>
+    signPayload: (
+      payload: SignerPayloadJSON,
+    ) => Promise<{ signature: string; signedTransaction?: string | Uint8Array }>
   }
   accounts: {
     get: () => Promise<InjectedPolkadotAccount[]>
