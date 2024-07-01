@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- compat-builder: Data structure optimized to perform granular compatibility checks.
+
 ## 0.3.0 - 2024-05-03
 
 ### Breaking

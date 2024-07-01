@@ -393,7 +393,7 @@ const strictMerge = (
     isPartially ||= result === "partially"
   }
 
-  return isPartially ? "partially" : false
+  return isPartially ? "partially" : true
 }
 
 /**
