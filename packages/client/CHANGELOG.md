@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `codegen`: Remove redundant checksums [#547](https://github.com/polkadot-api/polkadot-api/pull/547)
+
 ## 0.9.0 - 2024-06-17
 
 ### Added
