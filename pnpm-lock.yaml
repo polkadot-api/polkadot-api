@@ -383,6 +383,15 @@ importers:
 
   packages/known-chains: {}
 
+  packages/merkleize-metadata:
+    dependencies:
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+
   packages/metadata-builders:
     dependencies:
       '@polkadot-api/substrate-bindings':

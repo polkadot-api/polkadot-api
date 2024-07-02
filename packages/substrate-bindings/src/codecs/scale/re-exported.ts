@@ -21,6 +21,7 @@ export {
   Tuple,
   Struct,
   Bytes,
+  Enum as ScaleEnum,
   enhanceCodec,
   enhanceEncoder,
   enhanceDecoder,
