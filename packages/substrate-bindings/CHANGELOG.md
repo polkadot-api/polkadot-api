@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- Add `blake3` helper functions
+- Re-export `Enum` from `scale-ts` as `ScaleEnum`
+
 ## 0.5.0 - 2024-05-10
 
 ### Breaking
