@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/metadata-hash",
+  "name": "@polkadot-api/merkleize-metadata",
   "version": "0.0.1",
   "author": "Carlo Sala (https://github.com/carlosala)",
   "repository": {
@@ -42,9 +42,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@polkadot-api/substrate-bindings": "workspace:*"
-  },
-  "devDependencies": {
-    "@polkadot-api/metadata-fixtures": "workspace:*"
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/utils": "workspace:*"
   }
 }

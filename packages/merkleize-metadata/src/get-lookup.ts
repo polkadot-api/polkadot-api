@@ -88,7 +88,7 @@ const constructTypeDef = (
   throw new Error(`FrameId(${frameId}) should have been filtered out`)
 }
 
-export const getTypeTree = (
+export const getLookup = (
   definitions: Map<number, LookupValue>,
   accessibleTypes: Map<number, number>,
   getTypeRef: (frameId: number) => TypeRef,

@@ -4,37 +4,37 @@ import {
   Option,
   ScaleEnum,
   Struct,
+  Tuple,
   V15,
   Vector,
   _void,
   bool,
+  compact,
   compactNumber,
+  enhanceDecoder,
   str,
   u16,
   u32,
   u8,
 } from "@polkadot-api/substrate-bindings"
 
-export const extraInfo = Struct({
+const extraInfoInner = {
   specVersion: u32,
   specName: str,
   base58Prefix: u16,
   decimals: u8,
   tokenSymbol: str,
-})
+}
+export const extraInfo = Struct(extraInfoInner)
 export type ExtraInfo = CodecType<typeof extraInfo>
 
-const hash = Bytes(32)
+export const hash = Bytes(32)
 export const metadataDigest = ScaleEnum({
   V0: _void,
   V1: Struct({
     typeInformationTreeRoot: hash,
     extrinsicMetadataHash: hash,
-    specVersion: u32,
-    specName: str,
-    base58Prefix: u16,
-    decimals: u8,
-    tokenSymbol: str,
+    ...extraInfoInner,
   }),
 })
 export type MetadataDigest = CodecType<typeof metadataDigest>
@@ -133,3 +133,22 @@ export const extrinsicMetadata = Struct({
 })
 export type ExtrinsicMetadata = CodecType<typeof extrinsicMetadata>
 export type LookupValue = V15["lookup"] extends Array<infer T> ? T : never
+
+const versionDecoder = enhanceDecoder(u8[1], (value) => ({
+  version: value & ~(1 << 7),
+  signed: !!(value & (1 << 7)),
+}))
+
+export const extrinsicDec = Tuple.dec(
+  compact[1],
+  versionDecoder,
+  Bytes(Infinity)[1],
+)
+
+export const proof = Struct({
+  leaves: lookup,
+  leafIdxs: Vector(u32),
+  proofs: Vector(hash),
+  extrinsic: extrinsicMetadata,
+  info: extraInfo,
+})
