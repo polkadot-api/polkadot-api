@@ -24,10 +24,28 @@ import { compactTypeRefs, mergeUint8, toBytes } from "./utils"
 import { decodeAndCollectKnownLeafs } from "./decode-and-collect"
 import { getProofData } from "./proof"
 
+export interface MetadataMerkleizer {
+  // it returns the digest value of the metadata (aka its merkleized root-hash)
+  digest: () => Uint8Array
+
+  // given an extrinsic, it returns an encoded `Proof`
+  getProofForExtrinsic: (
+    transaction: Uint8Array | HexString,
+    txAdditionalSigned?: Uint8Array | HexString,
+  ) => Uint8Array
+
+  // given the extrinsic parts, it returns an encoded `Proof`
+  getProofForExtrinsicParts: (
+    callData: Uint8Array | HexString,
+    includedInExtrinsic: Uint8Array | HexString,
+    includedInSignedData: Uint8Array | HexString,
+  ) => Uint8Array
+}
+
 export const merkleizeMetadata = (
   metadataBytes: Uint8Array | HexString,
   info: ExtraInfo,
-) => {
+): MetadataMerkleizer => {
   const metadata = getMetadata(metadataBytes)
 
   const definitions = new Map<number, LookupValue>(

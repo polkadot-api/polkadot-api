@@ -1,5 +1,6 @@
 import {
   Bytes,
+  Codec,
   CodecType,
   Option,
   ScaleEnum,
@@ -115,8 +116,9 @@ export const lookupType = Struct({
   typeDef: typeDef,
   typeId: compactNumber,
 })
-export const lookup = Vector(lookupType)
-export type Lookup = CodecType<typeof lookup>
+export type LookupEntry = CodecType<typeof lookupType>
+export type Lookup = Array<LookupEntry>
+export const lookup: Codec<Lookup> = Vector(lookupType)
 
 export const extrinsicMetadata = Struct({
   version: u8,
@@ -152,3 +154,4 @@ export const proof = Struct({
   extrinsic: extrinsicMetadata,
   info: extraInfo,
 })
+export type Proof = CodecType<typeof proof>
