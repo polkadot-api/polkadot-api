@@ -31,7 +31,9 @@ const versionCodec = enhanceEncoder(
 
 export function getPolkadotSignerFromPjs(
   publicKey: Uint8Array,
-  signPayload: (payload: SignerPayloadJSON) => Promise<{ signature: string }>,
+  signPayload: (
+    payload: SignerPayloadJSON,
+  ) => Promise<{ signature: string; signedTransaction?: string | Uint8Array }>,
 ): PolkadotSigner {
   const sign = async (
     callData: Uint8Array,
@@ -93,19 +95,24 @@ export function getPolkadotSignerFromPjs(
     pjs.address = AccountId(getAddressFormat(decMeta)).dec(publicKey)
     pjs.method = toHex(callData)
     pjs.version = version
+    pjs.withSignedTransaction = true // we allow the wallet to change the payload
 
     const result = await signPayload(pjs as SignerPayloadJSON)
 
-    const preResult = mergeUint8(
-      versionCodec({ signed: true, version }),
-      // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
-      new Uint8Array([0, ...publicKey]),
-      fromHex(result.signature),
-      ...extra,
-      callData,
-    )
-
-    return mergeUint8(compact.enc(preResult.length), preResult)
+    if (!result.signedTransaction) {
+      const preResult = mergeUint8(
+        versionCodec({ signed: true, version }),
+        // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
+        new Uint8Array([0, ...publicKey]),
+        fromHex(result.signature),
+        ...extra,
+        callData,
+      )
+      return mergeUint8(compact.enc(preResult.length), preResult)
+    }
+    return typeof result.signedTransaction === "string"
+      ? fromHex(result.signedTransaction)
+      : result.signedTransaction
   }
 
   return { publicKey, sign }

@@ -39,5 +39,5 @@ export const getUsedChecksums = (
     ),
   )
 
-  return new Set([...checksums, ...builder.getAllGeneratedChecksums()])
+  return checksums
 }

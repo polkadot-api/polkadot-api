@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Remove redundant checksums [#547](https://github.com/polkadot-api/polkadot-api/pull/547)
+
 ## 0.6.0 - 2024-05-30
 
 ### Changed

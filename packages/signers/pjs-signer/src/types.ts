@@ -74,4 +74,10 @@ export interface SignerPayloadJSON {
    * The version of the extrinsic we are dealing with.
    */
   version: number
+
+  /**
+   * Optional flag that enables the use of the `signedTransaction` field in
+   * `singAndSend`, `signAsync`, and `dryRun`.
+   */
+  withSignedTransaction?: boolean
 }
