@@ -86,28 +86,30 @@ export const merkleizeMetadata = (
   )
   const lookupEncoded = lookup.map(lookupType.enc)
 
-  let _proofs: Array<Uint8Array> | undefined
-  const getProofs = (): Array<Uint8Array> => {
-    if (_proofs) return _proofs
+  let hashTree: Array<Uint8Array> | undefined
+  const getHashTree = (): Array<Uint8Array> => {
+    if (hashTree) return hashTree
 
-    if (!lookupEncoded.length) return (_proofs = [new Uint8Array(32).fill(0)])
+    if (!lookupEncoded.length) return (hashTree = [new Uint8Array(32).fill(0)])
 
-    _proofs = new Array(lookupEncoded.length * 2 - 1)
+    hashTree = new Array(lookupEncoded.length * 2 - 1)
 
     let leavesStartIdx = lookupEncoded.length - 1
     for (let i = 0; i < lookupEncoded.length; i++)
-      _proofs[leavesStartIdx + i] = Blake3256(lookupEncoded[i])
+      hashTree[leavesStartIdx + i] = Blake3256(lookupEncoded[i])
 
-    for (let i = _proofs.length - 2; i > 0; i -= 2)
-      _proofs[(i - 1) / 2] = Blake3256(mergeUint8([_proofs[i], _proofs[i + 1]]))
+    for (let i = hashTree.length - 2; i > 0; i -= 2)
+      hashTree[(i - 1) / 2] = Blake3256(
+        mergeUint8([hashTree[i], hashTree[i + 1]]),
+      )
 
-    return _proofs
+    return hashTree
   }
 
   let digested: undefined | Uint8Array
   const digest = () => {
     if (digested) return digested
-    const rootLookupHash = getProofs()[0]
+    const rootLookupHash = getHashTree()[0]
 
     const digest: MetadataDigest = {
       tag: "V1",
@@ -124,8 +126,8 @@ export const merkleizeMetadata = (
   const generateProof = (knownIndexes: number[]) => {
     const proofData = getProofData(lookupEncoded, knownIndexes)
 
-    const allProofs = getProofs()
-    const proofs = proofData.proofIdxs.map((idx) => allProofs[idx])
+    const hashTree = getHashTree()
+    const proofs = proofData.proofIdxs.map((idx) => hashTree[idx])
 
     return mergeUint8([
       compact.enc(proofData.leaves.length),
