@@ -50,6 +50,7 @@ jobs:
             json-rpc/logs-provider,
             json-rpc/sm-provider,
             json-rpc/ws-provider,
+            merkleize-metadata,
             metadata-builders,
             signers/pjs-signer,
             signers/polkadot-signer,
