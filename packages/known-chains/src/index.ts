@@ -1,6 +1,7 @@
 export { chainSpec as ksmcc3 } from "./specs/ksmcc3"
 export { chainSpec as ksmcc3_asset_hub } from "./specs/ksmcc3_asset_hub"
 export { chainSpec as ksmcc3_bridge_hub } from "./specs/ksmcc3_bridge_hub"
+export { chainSpec as paseo } from "./specs/paseo"
 export { chainSpec as polkadot } from "./specs/polkadot"
 export { chainSpec as polkadot_asset_hub } from "./specs/polkadot_asset_hub"
 export { chainSpec as polkadot_bridge_hub } from "./specs/polkadot_bridge_hub"

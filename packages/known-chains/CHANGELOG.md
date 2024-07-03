@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add Paseo testnet
+
 ### Fixed
 
 - Update `lightSyncState` and `bootnodes`

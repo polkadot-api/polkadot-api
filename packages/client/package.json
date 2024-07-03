@@ -134,6 +134,17 @@
       "require": "./dist/reexports/chains_ksmcc3_bridge_hub.js",
       "default": "./dist/reexports/chains_ksmcc3_bridge_hub.js"
     },
+    "./chains/paseo": {
+      "node": {
+        "import": "./dist/esm/reexports/chains_paseo.mjs",
+        "require": "./dist/reexports/chains_paseo.js",
+        "default": "./dist/reexports/chains_paseo.js"
+      },
+      "module": "./dist/esm/reexports/chains_paseo.mjs",
+      "import": "./dist/esm/reexports/chains_paseo.mjs",
+      "require": "./dist/reexports/chains_paseo.js",
+      "default": "./dist/reexports/chains_paseo.js"
+    },
     "./chains/polkadot": {
       "node": {
         "import": "./dist/esm/reexports/chains_polkadot.mjs",
