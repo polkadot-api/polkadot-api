@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `client`: `createTx` and `createTx$` APIs [#554](https://github.com/polkadot-api/polkadot-api/pull/554)
+
 ## 0.9.1 - 2024-07-03
 
 ### Fixed
