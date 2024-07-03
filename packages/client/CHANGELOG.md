@@ -2,10 +2,13 @@
 
 ## Unreleased
 
+## 0.9.1 - 2024-07-03
+
 ### Fixed
 
 - `codegen`: Remove redundant checksums [#547](https://github.com/polkadot-api/polkadot-api/pull/547)
 - `pjs-signer`: Allow wallet to modify signed payload through [PJS PR](https://github.com/polkadot-js/api/pull/5920) [#551](https://github.com/polkadot-api/polkadot-api/pull/551)
+- update dependencies
 
 ## 0.9.0 - 2024-06-17
 

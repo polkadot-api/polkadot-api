@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.1 - 2024-07-03
+
 ### Fixed
 
 - Allow wallet to modify signed payload through [PJS PR](https://github.com/polkadot-js/api/pull/5920) [#551](https://github.com/polkadot-api/polkadot-api/pull/551)

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.1 - 2024-07-03
+
+- update dependencies
+
 ## 0.3.0 - 2024-05-03
 
 ### Breaking
