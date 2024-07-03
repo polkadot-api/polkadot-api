@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2024-07-03
+
 ### Added
 
 - Add `blake3` helper functions
