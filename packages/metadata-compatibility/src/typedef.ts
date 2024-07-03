@@ -217,11 +217,57 @@ export function mapLookupToTypedef(
   }
 }
 
+export function mapReferences(
+  node: TypedefNode,
+  mapFn: (id: number) => number,
+): TypedefNode {
+  switch (node.type) {
+    case "array":
+      return {
+        ...node,
+        value: {
+          ...node.value,
+          typeRef: mapFn(node.value.typeRef),
+        },
+      }
+    case "option":
+      return { ...node, value: mapFn(node.value) }
+    case "result":
+      return {
+        ...node,
+        value: { ok: mapFn(node.value.ok), ko: mapFn(node.value.ko) },
+      }
+    case "tuple":
+      return { ...node, value: node.value.map(mapFn) }
+    case "struct":
+      return {
+        ...node,
+        value: node.value.map(([k, v]) => [k, mapFn(v)] as [string, number]),
+      }
+    case "enum":
+      return {
+        ...node,
+        value: node.value.map(
+          ([k, v]) =>
+            [k, v == undefined ? undefined : mapReferences(v, mapFn)] as [
+              string,
+              TypedefNode | undefined,
+            ],
+        ),
+      }
+    case "terminal":
+      return node
+  }
+}
+
 export interface EntryPoint {
-  type: "entryPoint"
   args: number[]
   value: number
 }
+export const EntryPointCodec = Struct({
+  args: Vector(compact),
+  value: compact,
+})
 
 export function storageEntryPoint(
   storageEntry: Exclude<
@@ -231,14 +277,12 @@ export function storageEntryPoint(
 ): EntryPoint {
   if (storageEntry.type.tag === "plain")
     return {
-      type: "entryPoint",
       args: [],
       value: storageEntry.type.value,
     }
 
   const { key, value } = storageEntry.type.value
   return {
-    type: "entryPoint",
     args: [key],
     value,
   }
@@ -248,7 +292,6 @@ export function runtimeCallEntryPoint(
   entry: (V15 | V14)["apis"][number]["methods"][number],
 ): EntryPoint {
   return {
-    type: "entryPoint",
     args: entry.inputs.map((v) => v.type),
     value: entry.output,
   }

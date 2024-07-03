@@ -93,14 +93,12 @@ async function outputCodegen(
   const {
     descriptorsFileContent,
     descriptorTypesFileContent,
-    checksums,
     typesFileContent,
     publicTypes,
   } = generateMultipleDescriptors(
     chains,
     {
       client: clientPath,
-      checksums: "./checksums.json",
       types: "./common-types",
       descriptorValues: "./descriptors",
     },
@@ -110,10 +108,6 @@ async function outputCodegen(
   )
 
   await fs.mkdir(outputFolder, { recursive: true })
-  await fs.writeFile(
-    path.join(outputFolder, "checksums.json"),
-    JSON.stringify(checksums),
-  )
   await fs.writeFile(
     path.join(outputFolder, "descriptors.ts"),
     descriptorsFileContent,

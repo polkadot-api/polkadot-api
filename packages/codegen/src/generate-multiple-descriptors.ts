@@ -2,11 +2,12 @@ import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import type { V14, V15 } from "@polkadot-api/substrate-bindings"
 import { DescriptorValues, generateDescriptors } from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
-import { getUsedChecksums } from "./get-used-checksums"
+import { getUsedTypes } from "./get-used-types"
 import knownTypes, { KnownTypes } from "./known-types"
 import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
 import { applyWhitelist } from "./whitelist"
 import { mapObject } from "@polkadot-api/utils"
+import { EntryPoint, TypedefNode } from "@polkadot-api/metadata-compatibility"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
@@ -16,7 +17,6 @@ export const generateMultipleDescriptors = (
   }>,
   paths: {
     client: string
-    checksums: string
     types: string
     descriptorValues: string
   },
@@ -29,11 +29,13 @@ export const generateMultipleDescriptors = (
       ? applyWhitelist(chain.metadata, options.whitelist)
       : chain.metadata
     const builder = getChecksumBuilder(metadata)
+    const { checksums, types } = getUsedTypes(metadata, builder)
     return {
       ...chain,
       metadata,
       builder,
-      checksums: getUsedChecksums(metadata, builder),
+      checksums,
+      types,
       knownTypes: {
         ...knownTypes,
         ...chain.knownTypes,
@@ -41,16 +43,17 @@ export const generateMultipleDescriptors = (
     }
   })
   resolveConflicts(chainData)
+  const types = mergeTypes(chainData)
 
   const checksums = Array.from(
-    new Set(chainData.flatMap((chain) => Array.from(chain.checksums))),
+    new Set(chainData.flatMap((chain) => chain.checksums)),
   )
 
   const declarations = defaultDeclarations()
   const chainFiles = chainData.map((chain) =>
     generateDescriptors(
       chain.metadata,
-      checksums,
+      types.checksumToIdx,
       getTypesBuilder(declarations, chain.metadata, chain.knownTypes),
       chain.builder,
       capitalize(chain.key),
@@ -82,7 +85,7 @@ function getPublicTypes(variables: Map<string, Variable>) {
 function resolveConflicts(
   chainData: Array<{
     key: string
-    checksums: Set<string>
+    checksums: string[]
     knownTypes: KnownTypes
   }>,
 ) {
@@ -125,6 +128,32 @@ function resolveConflicts(
       }
     }),
   )
+}
+
+function mergeTypes(
+  chainData: Array<{
+    types: Map<string, TypedefNode | EntryPoint | null>
+  }>,
+) {
+  const typedefs: Array<TypedefNode> = []
+  const entryPoints: Array<EntryPoint> = []
+  const checksumToIdx: Map<string, number> = new Map()
+
+  chainData.forEach(({ types }) => {
+    for (const entry of types.entries()) {
+      const [checksum, value] = entry
+      if (checksumToIdx.has(checksum) || !value) continue
+      if ("type" in value) {
+        checksumToIdx.set(checksum, typedefs.length)
+        typedefs.push(value)
+      } else {
+        checksumToIdx.set(checksum, typedefs.length)
+        entryPoints.push(value)
+      }
+    }
+  })
+
+  return { typedefs, entryPoints, checksumToIdx }
 }
 
 function capitalize(value: string) {

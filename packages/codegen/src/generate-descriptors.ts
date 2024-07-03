@@ -38,18 +38,17 @@ const customStringifyObject = (
 // type -> pallet -> name
 export type DescriptorValues = Record<
   "storage" | "tx" | "events" | "errors" | "constants" | "apis",
-  Record<string, Record<string, number>>
+  Record<string, Record<string, number | undefined>>
 >
 
 export const generateDescriptors = (
   metadata: V14 | V15,
-  checksums: string[],
+  checksumToIdx: Map<string, number>,
   typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
   prefix: string,
   paths: {
     client: string
-    checksums: string
     types: string
     descriptorValues: string
   },
@@ -81,7 +80,7 @@ export const generateDescriptors = (
             return [
               name,
               {
-                checksum: checksums.indexOf(checksum),
+                checksum: checksumToIdx.get(checksum),
                 type,
                 name: `stg_${pallet.name}_${name}`,
                 docs,
@@ -107,7 +106,7 @@ export const generateDescriptors = (
             return [
               name,
               {
-                checksum: checksums.indexOf(checksum),
+                checksum: checksumToIdx.get(checksum),
                 type,
                 name: `const_${pallet.name}_${name}`,
                 docs,
@@ -124,7 +123,7 @@ export const generateDescriptors = (
       return [
         pallet.name,
         buildEnumObj(pallet.calls, (name, docs) => ({
-          checksum: checksums.indexOf(
+          checksum: checksumToIdx.get(
             checksumBuilder.buildCall(pallet.name, name)!,
           ),
           type: `TxDescriptor<${typesBuilder.buildCall(pallet.name, name)}>`,
@@ -140,7 +139,7 @@ export const generateDescriptors = (
       return [
         pallet.name,
         buildEnumObj(pallet.events, (name, docs) => ({
-          checksum: checksums.indexOf(
+          checksum: checksumToIdx.get(
             checksumBuilder.buildEvent(pallet.name, name)!,
           ),
           type: `PlainDescriptor<${typesBuilder.buildEvent(
@@ -160,7 +159,7 @@ export const generateDescriptors = (
         pallet.name,
         buildEnumObj(pallet.errors, (name, docs) => {
           return {
-            checksum: checksums.indexOf(
+            checksum: checksumToIdx.get(
               checksumBuilder.buildError(pallet.name, name)!,
             ),
             type: `PlainDescriptor<${typesBuilder.buildError(
@@ -189,7 +188,7 @@ export const generateDescriptors = (
             return [
               method.name,
               {
-                checksum: checksums.indexOf(
+                checksum: checksumToIdx.get(
                   checksumBuilder.buildRuntimeCall(api.name, method.name)!,
                 ),
                 type: `RuntimeDescriptor<${args}, ${value}>`,
@@ -312,7 +311,6 @@ export const generateDescriptors = (
   }";
 
   const descriptorValues = import("${paths.descriptorValues}").then(module => module["${prefix}"]);
-  const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
   `
 
   const descriptorTypes = `${imports}
@@ -384,10 +382,9 @@ type IDescriptors = {
     pallets: PalletsTypedef,
     apis: IRuntimeCalls
   } & Promise<any>,
-  asset: IAsset,
-  checksums: Promise<string[]>
+  asset: IAsset
 };
-const _allDescriptors = { descriptors: descriptorValues, asset, checksums } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, asset } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
