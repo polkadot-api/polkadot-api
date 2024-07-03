@@ -10,7 +10,7 @@ import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { _void } from "@polkadot-api/substrate-bindings"
 import { empty } from "./signed-extensions/utils"
 
-type HintedSignedExtensions = Partial<{
+export type HintedSignedExtensions = Partial<{
   tip: bigint
   mortality: { mortal: false } | { mortal: true; period: number }
   asset: Uint8Array

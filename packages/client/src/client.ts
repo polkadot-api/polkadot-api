@@ -4,7 +4,7 @@ import {
   SubstrateClient,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
-import { Observable, firstValueFrom } from "rxjs"
+import { Observable, firstValueFrom, map, mergeMap, take } from "rxjs"
 import { createConstantEntry } from "./constants"
 import { ChainDefinition } from "./descriptors"
 import { createEventEntry } from "./event"
@@ -12,7 +12,11 @@ import { OpType, compatibilityHelper, getRuntimeApi } from "./runtime"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
-import { PolkadotClient, TypedApi } from "./types"
+import { CreateTxOptions, PolkadotClient, TypedApi } from "./types"
+import { Binary, HexString } from "@polkadot-api/substrate-bindings"
+import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { createTx } from "./tx/create-tx"
+import { toHex } from "@polkadot-api/utils"
 
 const createTypedApi = <D extends ChainDefinition>(
   chainDefinition: D,
@@ -141,6 +145,33 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     params: Params,
   ) => Promise<Reply> = rawClient.request
 
+  const createTx$ = (
+    callData: Binary,
+    signer: PolkadotSigner,
+    options: CreateTxOptions = {},
+  ): Observable<HexString> => {
+    const { at, ...otherOptions } = options
+    const at$ =
+      !at || at === "finalized"
+        ? chainHead.finalized$
+        : at === "best"
+          ? chainHead.best$
+          : chainHead.bestBlocks$.pipe(
+              map((x) => x.find((b) => b.hash === at)!),
+            )
+
+    return at$.pipe(
+      take(1),
+      mergeMap((atBlock) =>
+        createTx(chainHead, signer, callData.asBytes(), atBlock, otherOptions),
+      ),
+      map(toHex),
+    )
+  }
+
+  const _createTx = (...args: Parameters<typeof createTx$>) =>
+    firstValueFrom(createTx$(...args))
+
   const { broadcastTx$ } = client
   return {
     getChainSpecData,
@@ -156,6 +187,9 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
 
     getBlockHeader: (hash?: string) =>
       firstValueFrom(chainHead.header$(hash ?? null)),
+
+    createTx$,
+    createTx: _createTx,
 
     submit: (...args) => submit(chainHead, broadcastTx$, ...args),
     submitAndWatch: (...args) => submit$(chainHead, broadcastTx$, ...args),

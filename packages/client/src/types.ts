@@ -1,5 +1,9 @@
 import { BlockInfo } from "@polkadot-api/observable-client"
-import { BlockHeader, HexString } from "@polkadot-api/substrate-bindings"
+import {
+  Binary,
+  BlockHeader,
+  HexString,
+} from "@polkadot-api/substrate-bindings"
 import { ChainSpecData } from "@polkadot-api/substrate-client"
 import { Observable } from "rxjs"
 import { ConstantEntry } from "./constants"
@@ -16,6 +20,7 @@ import { RuntimeApi } from "./runtime"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
 import type { TxBroadcastEvent, TxEntry, TxFinalizedPayload } from "./tx"
+import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 
 export type { ChainSpecData }
 
@@ -91,6 +96,14 @@ export type TypedApi<D extends ChainDefinition> = {
   runtime: RuntimeApi
 }
 
+export type CreateTxOptions = Partial<{
+  tip: bigint
+  mortality: { mortal: false } | { mortal: true; period: number }
+  asset: Uint8Array
+  nonce: number
+  at?: HexString | "best" | "finalized"
+}>
+
 export interface PolkadotClient {
   /**
    * Retrieve the ChainSpecData as it comes from the [JSON-RPC
@@ -153,6 +166,40 @@ export interface PolkadotClient {
    * @returns Block hash.
    */
   getBlockHeader: (hash?: string) => Promise<BlockHeader>
+
+  /**
+   * Creates a transaction from a binary call-data (Observable-based)
+   *
+   * @param callData  The "raw" call-data of the transaction.
+   * @param signer    The `PolkdatoSigner` used for signing the transaction.
+   * @param options   These options are "hints" for the signed-extensions
+   *                  values.
+   *                  Keep in mind that the user (via the `PolkadotSigner`)
+   *                  has the final say into what gets signed.
+   * @returns An Observable which emits the transaction and completes.
+   */
+  createTx$: (
+    callData: Binary,
+    signer: PolkadotSigner,
+    options?: CreateTxOptions,
+  ) => Observable<HexString>
+
+  /**
+   * Creates a transaction from a binary call-data (Observable-based)
+   *
+   * @param callData  The "raw" call-data of the transaction.
+   * @param signer    The `PolkdatoSigner` used for signing the transaction.
+   * @param options   These options are "hints" for the signed-extensions
+   *                  values.
+   *                  Keep in mind that the user (via the `PolkadotSigner`)
+   *                  has the final say into what gets signed.
+   * @returns An Promise which resolves the transaction.
+   */
+  createTx: (
+    callData: Binary,
+    signer: PolkadotSigner,
+    options?: CreateTxOptions,
+  ) => Promise<HexString>
 
   /**
    * Broadcast a transaction (Promise-based)
