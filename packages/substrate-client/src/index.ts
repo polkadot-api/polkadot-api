@@ -14,6 +14,9 @@ import { ChainSpecData, createGetChainSpec } from "./chainspec"
 import { getCompatibilityEnhancer } from "./request-compatibility-enhancer"
 import { chainHead, chainSpec, transaction } from "./methods"
 
+export { AbortError } from "@polkadot-api/utils"
+export type * from "@polkadot-api/json-rpc-provider"
+
 export type * from "./common-types"
 export type * from "./client"
 export type * from "./transaction"

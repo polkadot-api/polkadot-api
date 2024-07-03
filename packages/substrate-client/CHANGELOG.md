@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.4 - 2024-07-03
+
+### Fixed
+
+- Export JSON-RPC Provider types and AbortError
+
 ## 0.1.3 - 2024-06-19
 
 ### Fixed

@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-## 0.3.0 - 2024-05-10
+## 0.3.1 - 2024-07-03
+
+- Declare `@polkadot-api/substrate-client` as a peer-dependency
+
+## 0.3.0 - 2024-05-10
 
 ### Changed
 
