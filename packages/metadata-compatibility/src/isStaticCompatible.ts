@@ -78,24 +78,25 @@ function getIsStaticCompatible(
     case "array":
       const arrayOrigin = originNode as ArrayNode
       const lengthCheck: StaticCompatibleResult =
-        destNode.length === undefined
+        destNode.value.length === undefined
           ? true
-          : arrayOrigin.length === undefined
+          : arrayOrigin.value.length === undefined
             ? "partially"
-            : arrayOrigin.length >= destNode.length
+            : arrayOrigin.value.length >= destNode.value.length
       return strictMerge([
         () => lengthCheck,
-        () => nextCall(arrayOrigin.value, destNode.value),
+        () => nextCall(arrayOrigin.value.typeRef, destNode.value.typeRef),
       ])
     case "enum":
       const enumOrigin = originNode as EnumNode
+      const destVariants = Object.fromEntries(destNode.value)
       // check whether every possible `origin` value is compatible with dest
       return mergeResults(
-        Object.entries(enumOrigin.variants).map(
+        enumOrigin.value.map(
           ([type, value]) =>
             () =>
-              type in destNode.variants
-                ? nextCall(value, destNode.variants[type])
+              type in destVariants
+                ? nextCall(value ?? null, destVariants[type] ?? null)
                 : false,
         ),
       )
@@ -103,26 +104,27 @@ function getIsStaticCompatible(
       return nextCall((originNode as OptionNode).value, destNode.value)
     case "struct":
       const structOrigin = originNode as StructNode
+      const originProperties = Object.fromEntries(structOrigin.value)
       return strictMerge(
-        Object.entries(destNode.values).map(
+        destNode.value.map(
           ([key, value]) =>
             () =>
-              nextCall(structOrigin.values[key], value),
+              nextCall(originProperties[key], value),
         ),
       )
     case "tuple":
       const tupleOrigin = originNode as TupleNode
       return strictMerge([
-        destNode.values.length <= tupleOrigin.values.length,
-        ...destNode.values.map(
-          (value, idx) => () => nextCall(tupleOrigin.values[idx], value),
+        destNode.value.length <= tupleOrigin.value.length,
+        ...destNode.value.map(
+          (value, idx) => () => nextCall(tupleOrigin.value[idx], value),
         ),
       ])
     case "result":
       const resultOrigin = originNode as ResultNode
       return mergeResults([
-        nextCall(resultOrigin.ok, destNode.ok),
-        nextCall(resultOrigin.ko, destNode.ko),
+        nextCall(resultOrigin.value.ok, destNode.value.ok),
+        nextCall(resultOrigin.value.ko, destNode.value.ko),
       ])
   }
 }

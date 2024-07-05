@@ -22,7 +22,7 @@ export function isCompatible(
     isCompatible(value, destNode, getNode)
 
   const checkTerminal = (terminal: TerminalNode) => {
-    switch (terminal.value) {
+    switch (terminal.value.type) {
       case "string":
         return typeof value === "string"
       case "bigint":
@@ -50,21 +50,27 @@ export function isCompatible(
     case "terminal":
       return checkTerminal(destNode)
     case "array":
+      if (!Array.isArray(value)) return false
       const valueArr = value as Array<any>
       // TODO check passing an array with greater length sends in truncated to destNode.length
-      if (destNode.length !== undefined && valueArr.length < destNode.length) {
+      if (
+        destNode.value.length !== undefined &&
+        valueArr.length < destNode.value.length
+      ) {
         return false
       }
       return valueArr
-        .slice(0, destNode.length)
-        .every((value) => nextCall(value, getNode(destNode.value)))
+        .slice(0, destNode.value.length)
+        .every((value) => nextCall(value, getNode(destNode.value.typeRef)))
     case "enum":
+      if (!value) return false
       const valueEnum = value as { type: string; value: any }
-      if (!(valueEnum.type in destNode.variants)) {
+      const destVariants = Object.fromEntries(destNode.value)
+      if (!(valueEnum.type in destVariants)) {
         return false
       }
-      const variantValue = destNode.variants[valueEnum.type]
-      if (variantValue === null) {
+      const variantValue = destVariants[valueEnum.type]
+      if (variantValue == null) {
         return true
       }
       return nextCall(valueEnum.value, variantValue)
@@ -74,19 +80,21 @@ export function isCompatible(
       }
       return nextCall(value, getNode(destNode.value))
     case "struct":
-      return Object.keys(destNode.values).every((key) =>
-        nextCall(value[key], getNode(destNode.values[key])),
+      if (!value) return false
+      return destNode.value.every(([key, typeRef]) =>
+        nextCall(value[key], getNode(typeRef)),
       )
     case "tuple":
+      if (!value) return false
       // length will be checked indirectly
-      return destNode.values.every((idx) =>
-        nextCall(value[idx], getNode(destNode.values[idx])),
+      return destNode.value.every((typeRef, idx) =>
+        nextCall(value[idx], getNode(typeRef)),
       )
     case "result":
       if (!("success" in value && "value" in value)) return false
       return nextCall(
         value.value,
-        getNode(value.success ? destNode.ok : destNode.ko),
+        getNode(value.success ? destNode.value.ok : destNode.value.ko),
       )
   }
 }
