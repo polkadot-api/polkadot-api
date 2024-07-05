@@ -21,6 +21,7 @@ import {
   share,
   switchMap,
   take,
+  tap,
 } from "rxjs"
 
 import { withDefaultValue } from "@/utils"
@@ -195,20 +196,24 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     key: string,
     stream: Observable<T>,
   ): Observable<T> => {
-    const cached = cache.get(hash)?.get(key)
+    const hashCache = cache.get(hash) ?? new Map()
+    const cached = hashCache.get(key)
     if (cached) return cached
 
-    if (!cache.has(hash)) cache.set(hash, new Map())
+    cache.set(hash, hashCache)
 
+    const connector = new ReplaySubject<T>()
     const result = stream.pipe(
       share({
-        connector: () => new ReplaySubject<T>(),
-        resetOnError: true,
-        resetOnRefCountZero: true,
-        resetOnComplete: false,
+        connector: () => connector,
+      }),
+      tap({
+        complete() {
+          hashCache.set(key, connector)
+        },
       }),
     )
-    cache.get(hash)!.set(key, result)
+    hashCache.set(key, result)
 
     return result
   }

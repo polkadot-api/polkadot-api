@@ -39,6 +39,87 @@ describe("observableClient chainHead", () => {
       cleanup(chainHead.unfollow)
     })
 
+    it("caches ongoing requests", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+
+      const { initialHash } = await initializeWithMetadata(mockClient)
+
+      const key = "foo"
+      const observer = observe(
+        chainHead.storage$(initialHash, "value", () => key),
+      )
+
+      expect(mockClient.chainHead.mock.storage).toHaveBeenCalledOnce()
+      expect(mockClient.chainHead.mock.storage).toHaveBeenCalledWith(
+        initialHash,
+        "value",
+        key,
+        null,
+        expect.objectContaining({}),
+      )
+
+      const observer2 = observe(
+        chainHead.storage$(initialHash, "value", () => key),
+      )
+      expect(mockClient.chainHead.mock.storage).toHaveBeenCalledOnce()
+
+      const result = "value"
+      await mockClient.chainHead.mock.storage.reply(initialHash, result)
+
+      expect(observer.next).toHaveBeenCalledWith(result)
+      expect(observer.error).not.toHaveBeenCalled()
+      expect(observer.complete).toHaveBeenCalled()
+
+      expect(observer2.next).toHaveBeenCalledWith(result)
+      expect(observer2.error).not.toHaveBeenCalled()
+      expect(observer2.complete).toHaveBeenCalled()
+
+      cleanup(chainHead.unfollow)
+    })
+
+    it("caches completed requests", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+
+      const { initialHash } = await initializeWithMetadata(mockClient)
+
+      const key = "foo"
+      const observer = observe(
+        chainHead.storage$(initialHash, "value", () => key),
+      )
+
+      expect(mockClient.chainHead.mock.storage).toHaveBeenCalledOnce()
+      expect(mockClient.chainHead.mock.storage).toHaveBeenCalledWith(
+        initialHash,
+        "value",
+        key,
+        null,
+        expect.objectContaining({}),
+      )
+
+      const observer2 = observe(
+        chainHead.storage$(initialHash, "value", () => key),
+      )
+
+      const result = "value"
+      await mockClient.chainHead.mock.storage.reply(initialHash, result)
+
+      expect(mockClient.chainHead.mock.storage).toHaveBeenCalledOnce()
+
+      expect(observer.next).toHaveBeenCalledWith(result)
+      expect(observer.error).not.toHaveBeenCalled()
+      expect(observer.complete).toHaveBeenCalled()
+
+      expect(observer2.next).toHaveBeenCalledWith(result)
+      expect(observer2.error).not.toHaveBeenCalled()
+      expect(observer2.complete).toHaveBeenCalled()
+
+      cleanup(chainHead.unfollow)
+    })
+
     it("provides the runtime context on to the mapper functions", async () => {
       const mockClient = createMockSubstrateClient()
       const client = getObservableClient(mockClient)
