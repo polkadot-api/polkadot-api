@@ -157,7 +157,7 @@ function getIsStaticCompatible(
   switch (destNode.type) {
     case "terminal":
       return unconditional(
-        destNode.value === (originNode as TerminalNode).value
+        destNode.value.type === (originNode as TerminalNode).value.type
           ? CompatibilityLevel.Identical
           : CompatibilityLevel.Incompatible,
       )
@@ -293,7 +293,10 @@ const mergeResults = (
   let merged = unconditional(CompatibilityLevel.Identical)
   for (const resultFn of results) {
     const result = typeof resultFn === "function" ? resultFn() : resultFn
-    if (result.level === CompatibilityLevel.Incompatible) continue
+    if (result.level === CompatibilityLevel.Incompatible) {
+      merged.level = Math.min(merged.level, CompatibilityLevel.Partial)
+      continue
+    }
     hasCompatibles = true
 
     merged.assumptions.addAll(result.assumptions.values)

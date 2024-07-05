@@ -1,4 +1,8 @@
-import { isStaticCompatible, mapLookupToTypedef } from "@/index"
+import {
+  CompatibilityLevel,
+  isStaticCompatible,
+  mapLookupToTypedef,
+} from "@/index"
 import { LookupEntry, Var } from "@polkadot-api/metadata-builders"
 import { describe, expect, it } from "vitest"
 
@@ -85,8 +89,8 @@ describe("isStaticCompatible", () => {
         mapLookupToTypedef(modifiedEnum),
         getNode,
         new Map(),
-      ),
-    ).toBe("partially")
+      ).level,
+    ).toBe(CompatibilityLevel.Partial)
   })
 
   it("marks an enum as compatible if it didn't change", () => {
@@ -97,8 +101,8 @@ describe("isStaticCompatible", () => {
         mapLookupToTypedef(originalEnum),
         getNode,
         new Map(),
-      ),
-    ).toBe(true)
+      ).level,
+    ).toBe(CompatibilityLevel.Identical)
   })
 
   it("marks an enum as incompatible if all of the branches are incompatible", () => {
@@ -120,8 +124,8 @@ describe("isStaticCompatible", () => {
         mapLookupToTypedef(modifiedEnum),
         getNode,
         new Map(),
-      ),
-    ).toBe(false)
+      ).level,
+    ).toBe(CompatibilityLevel.Incompatible)
   })
 
   it("marks a struct as incompatible if a new property was added", () => {
@@ -141,8 +145,8 @@ describe("isStaticCompatible", () => {
         mapLookupToTypedef(modifiedStruct),
         getNode,
         new Map(),
-      ),
-    ).toBe(false)
+      ).level,
+    ).toBe(CompatibilityLevel.Incompatible)
   })
 
   it("marks a struct as partially compatible if an optional property was made mandatory", () => {
@@ -161,11 +165,11 @@ describe("isStaticCompatible", () => {
         mapLookupToTypedef(modifiedStruct),
         getNode,
         new Map(),
-      ),
-    ).toBe("partially")
+      ).level,
+    ).toBe(CompatibilityLevel.Partial)
   })
 
-  it("marks a struct as compatible if a property was removed", () => {
+  it("marks a struct as backwards compatible if a property was removed", () => {
     const modifiedStruct = addEntry({
       innerDocs: {},
       type: "struct",
@@ -180,7 +184,7 @@ describe("isStaticCompatible", () => {
         mapLookupToTypedef(modifiedStruct),
         getNode,
         new Map(),
-      ),
-    ).toBe(true)
+      ).level,
+    ).toBe(CompatibilityLevel.BackwardsCompatible)
   })
 })
