@@ -2,7 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix caching bug [#556](https://github.com/polkadot-api/polkadot-api/pull/556)
+
 ## 0.3.1 - 2024-07-03
+
+### Fixed
 
 - Declare `@polkadot-api/substrate-client` as a peer-dependency
 
