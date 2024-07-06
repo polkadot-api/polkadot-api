@@ -44,16 +44,22 @@ export const getUsedTypes = (
   const addTypeFromEntryPoint = (checksum: string, entry: EntryPoint) => {
     types.set(checksum, entry)
     entry.args.forEach(addTypeFromLookup)
-    addTypeFromLookup(entry.value)
+    if (entry.value !== undefined) {
+      addTypeFromLookup(entry.value)
+    }
   }
 
-  const buildEnum = (val: number | undefined, cb: (name: string) => void) => {
+  const buildEnum = (val: number | undefined, cb: (name: string) => string) => {
     if (val === undefined) return
 
     const lookup = metadata.lookup[val]
     if (lookup.def.tag !== "variant") throw null
     lookup.def.value.forEach((x) => {
-      cb(x.name)
+      const checksum = cb(x.name)
+      const args = x.fields.map((f) => f.type)
+      addTypeFromEntryPoint(checksum, {
+        args,
+      })
       x.fields.map((f) => f.type).forEach(addTypeFromLookup)
     })
   }

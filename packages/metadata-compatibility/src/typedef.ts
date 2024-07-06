@@ -262,7 +262,7 @@ export function mapReferences(
 
 export interface EntryPoint {
   args: number[]
-  value: number
+  value?: number
 }
 export const EntryPointCodec = Struct({
   args: Vector(compact),
