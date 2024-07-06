@@ -266,8 +266,8 @@ export interface EntryPoint {
 }
 export const EntryPointCodec = Struct({
   args: Vector(compact),
-  value: compact,
-})
+  value: Option(compact),
+}) as Codec<EntryPoint>
 
 export function storageEntryPoint(
   storageEntry: Exclude<

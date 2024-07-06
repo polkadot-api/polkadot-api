@@ -37,6 +37,7 @@
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@polkadot-api/known-chains": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
+    "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/smoldot": "workspace:*",

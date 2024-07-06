@@ -17,6 +17,7 @@ export const generateMultipleDescriptors = (
   }>,
   paths: {
     client: string
+    metadataTypes: string
     types: string
     descriptorValues: string
   },
@@ -45,10 +46,6 @@ export const generateMultipleDescriptors = (
   resolveConflicts(chainData)
   const types = mergeTypes(chainData)
 
-  const checksums = Array.from(
-    new Set(chainData.flatMap((chain) => chain.checksums)),
-  )
-
   const declarations = defaultDeclarations()
   const chainFiles = chainData.map((chain) =>
     generateDescriptors(
@@ -69,8 +66,8 @@ export const generateMultipleDescriptors = (
 
   return {
     descriptorsFileContent,
+    metadataTypes: types,
     descriptorTypesFileContent: chainFiles.map((file) => file.descriptorTypes),
-    checksums,
     typesFileContent: generateTypes(declarations, paths),
     publicTypes: getPublicTypes(declarations.variables),
   }
