@@ -1,3 +1,11 @@
+import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+
+declare global {
+  interface Window {
+    injectedWeb3?: InjectedWeb3
+  }
+}
+
 type HexString = string
 export interface SignerPayloadJSON {
   /**
@@ -80,4 +88,57 @@ export interface SignerPayloadJSON {
    * `singAndSend`, `signAsync`, and `dryRun`.
    */
   withSignedTransaction?: boolean
+}
+
+export type InjectedWeb3 = Record<
+  string,
+  | {
+      enable: () => Promise<PjsInjectedExtension>
+    }
+  | undefined
+>
+
+export type KeypairType = "ed25519" | "sr25519" | "ecdsa"
+
+export interface InjectedAccount {
+  address: string
+  genesisHash?: string | null
+  name?: string
+  type?: KeypairType
+}
+
+export interface InjectedPolkadotAccount {
+  polkadotSigner: PolkadotSigner
+  address: string
+  genesisHash?: string | null
+  name?: string
+  type?: KeypairType
+}
+
+export type SignPayload = (
+  payload: SignerPayloadJSON,
+) => Promise<{ signature: string; signedTransaction?: string | Uint8Array }>
+
+export type SignRaw = (payload: {
+  address: string
+  data: HexString
+  type: "bytes"
+}) => Promise<{ id: number; signature: HexString }>
+
+export interface PjsInjectedExtension {
+  signer: {
+    signPayload: SignPayload
+    signRaw: SignRaw
+  }
+  accounts: {
+    get: () => Promise<InjectedPolkadotAccount[]>
+    subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => () => void
+  }
+}
+
+export interface InjectedExtension {
+  name: string
+  getAccounts: () => InjectedPolkadotAccount[]
+  subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => () => void
+  disconnect: () => void
 }

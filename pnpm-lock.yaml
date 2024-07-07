@@ -521,6 +521,10 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
+    devDependencies:
+      '@noble/curves':
+        specifier: ^1.2.0
+        version: 1.4.0
 
   packages/smoldot:
     dependencies:
