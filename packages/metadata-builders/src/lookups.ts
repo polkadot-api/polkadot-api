@@ -102,6 +102,8 @@ const isBytes = (value: LookupEntry, nBytes: number) =>
   value.value.type === "primitive" &&
   value.value.value === "u8"
 
+const _void: VoidVar = { type: "void" }
+
 export const getLookupFn = (lookupData: V14Lookup) => {
   const lookups = new Map<number, LookupEntry>()
   const from = new Set<number>()
@@ -147,7 +149,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     const { def, path, params } = lookupData[id]
 
     if (def.tag === "composite") {
-      if (def.value.length === 0) return { type: "void" }
+      if (def.value.length === 0) return _void
 
       // used to be a "pointer"
       if (def.value.length === 1) {
@@ -174,28 +176,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
         return inner
       }
 
-      let allKey = true
-
-      const values: Record<string | number, LookupEntry> = {}
-      const innerDocs: Record<string | number, string[]> = {}
-      def.value.forEach((x, idx) => {
-        allKey = allKey && !!x.name
-        const key = x.name || idx
-        values[key] = getLookupEntryDef(x.type)
-        innerDocs[key] = x.docs
-      })
-
-      return allKey
-        ? {
-            type: "struct",
-            value: values as StringRecord<LookupEntry>,
-            innerDocs: innerDocs as StringRecord<string[]>,
-          }
-        : {
-            type: "tuple",
-            value: Object.values(values),
-            innerDocs: Object.values(innerDocs),
-          }
+      return getComplexVar(def.value)
     }
 
     if (def.tag === "variant") {
@@ -231,7 +212,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
           },
         }
       }
-      if (def.value.length === 0) return { type: "void" }
+      if (def.value.length === 0) return _void
 
       const enumValue: StringRecord<EnumVar["value"][keyof EnumVar["value"]]> =
         {}
@@ -242,7 +223,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
         enumDocs[key] = x.docs
 
         if (x.fields.length === 0) {
-          enumValue[key] = { type: "void", idx: x.index }
+          enumValue[key] = { ..._void, idx: x.index }
           return
         }
 
@@ -255,44 +236,7 @@ export const getLookupFn = (lookupData: V14Lookup) => {
           return
         }
 
-        let allKey = true
-
-        const values: Record<string | number, LookupEntry> = {}
-        const innerDocs: Record<string | number, string[]> = {}
-
-        x.fields.forEach((x, idx) => {
-          allKey = allKey && !!x.name
-          const key = x.name || idx
-          values[key] = getLookupEntryDef(x.type as number)
-          innerDocs[key] = x.docs
-        })
-
-        if (allKey) {
-          enumValue[key] = {
-            type: "struct",
-            value: values as StringRecord<LookupEntry>,
-            innerDocs: innerDocs as StringRecord<string[]>,
-            idx: x.index,
-          }
-        } else {
-          const valuesArr = Object.values(values)
-          const innerDocsArr = Object.values(innerDocs)
-          const areAllSame = valuesArr.every((v) => v.id === valuesArr[0].id)
-          enumValue[key] =
-            areAllSame && innerDocsArr.every((doc) => doc.length === 0)
-              ? {
-                  type: "array",
-                  value: valuesArr[0],
-                  len: valuesArr.length,
-                  idx: x.index,
-                }
-              : {
-                  type: "tuple",
-                  value: valuesArr,
-                  innerDocs: innerDocsArr,
-                  idx: x.index,
-                }
-        }
+        enumValue[key] = { ...getComplexVar(x.fields), idx: x.index }
       })
 
       return {
@@ -302,52 +246,36 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       }
     }
 
-    if (def.tag === "sequence") {
-      const value = getLookupEntryDef(def.value as number)
+    if (def.tag === "sequence")
       return {
         type: "sequence",
-        value,
+        value: getLookupEntryDef(def.value as number),
       }
-    }
 
     if (def.tag === "array") {
       const { len } = def.value
       const value = getLookupEntryDef(def.value.type)
 
-      if (len === 0) return { type: "void" }
-      if (len === 1) return value
-
-      return {
-        type: "array",
-        value,
-        len: def.value.len,
-      }
+      return !len || value.type === "void"
+        ? _void
+        : len > 0
+          ? {
+              type: "array",
+              value,
+              len: def.value.len,
+            }
+          : value
     }
 
     if (def.tag === "tuple") {
-      if (def.value.length === 0) return { type: "void" }
+      if (def.value.length === 0) return _void
 
-      // use to be a "pointer"
-      if (def.value.length === 1)
-        return getLookupEntryDef(def.value[0] as number)
-
-      const value = def.value.map((x) => getLookupEntryDef(x as number))
-      const innerDocs = def.value.map((x) => lookupData[x].docs)
-
-      const areAllSame = value.every((v) => v.id === value[0].id)
-      if (areAllSame && innerDocs.every((doc) => doc.length === 0)) {
-        return {
-          type: "array",
-          value: value[0],
-          len: value.length,
-        }
-      }
-
-      return {
-        type: "tuple",
-        value,
-        innerDocs,
-      }
+      return def.value.length > 1
+        ? getArrayOrTuple(
+            def.value.map((x) => getLookupEntryDef(x as number)),
+            def.value.map((x) => lookupData[x].docs),
+          )
+        : getLookupEntryDef(def.value[0] as number) // use to be a "pointer"
     }
 
     if (def.tag === "primitive") {
@@ -374,6 +302,56 @@ export const getLookupFn = (lookupData: V14Lookup) => {
       type: def.tag,
     }
   })
+
+  const getComplexVar = (
+    input: Array<{ type: number; name?: string; docs: string[] }>,
+  ): TupleVar | StructVar | ArrayVar | VoidVar => {
+    let allKey = true
+
+    const values: Record<string | number, LookupEntry> = {}
+    const innerDocs: Record<string | number, string[]> = {}
+
+    input.forEach((x, idx) => {
+      allKey = allKey && !!x.name
+      const key = x.name || idx
+      const value = getLookupEntryDef(x.type as number)
+      if (value.type !== "void") {
+        values[key] = value
+        innerDocs[key] = x.docs
+      }
+    })
+    return allKey
+      ? {
+          type: "struct",
+          value: values as StringRecord<LookupEntry>,
+          innerDocs: innerDocs as StringRecord<string[]>,
+        }
+      : getArrayOrTuple(Object.values(values), Object.values(innerDocs))
+  }
+
+  const getArrayOrTuple = (
+    values: Array<LookupEntry>,
+    innerDocs: Array<string[]>,
+  ): TupleVar | ArrayVar | VoidVar => {
+    if (
+      values.every((v) => v.id === values[0].id) &&
+      innerDocs.every((doc) => !doc.length)
+    ) {
+      const [value] = values
+      return value.type === "void"
+        ? _void
+        : {
+            type: "array",
+            value: values[0],
+            len: values.length,
+          }
+    }
+    return {
+      type: "tuple",
+      value: values,
+      innerDocs: innerDocs,
+    }
+  }
 
   return getLookupEntryDef
 }
