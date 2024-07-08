@@ -22,24 +22,26 @@ export interface StructNode {
 }
 const StructCodec = Vector(Tuple(str, smallCompact))
 
+export const Primitive = {
+  bool: "boolean" as const,
+  str: "string" as const,
+  num: "number" as const,
+  big: "bigint" as const,
+  numeric: "numeric" as const,
+  bits: "bitseq" as const,
+  bin: "binary" as const,
+}
+export type PRIMITIVES = (typeof Primitive)[keyof typeof Primitive]
+
 export interface TerminalNode {
   type: "terminal"
   value: {
-    type:
-      | "bool"
-      | "string"
-      | "number"
-      | "bigint"
-      | "numeric"
-      | "bitseq"
-      | "binary"
+    type: PRIMITIVES
   }
 }
 const TerminalCodec = Variant(
   Object.fromEntries(
-    ["bool", "string", "number", "bigint", "numeric", "bitseq", "binary"].map(
-      (p) => [p, _void],
-    ),
+    Object.values(Primitive).map((p) => [p, _void]),
   ) as StringRecord<Codec<undefined>>,
 ) as any as Codec<TerminalNode["value"]>
 
@@ -103,27 +105,28 @@ export const TypedefCodec: Codec<TypedefNode> = Variant({
   result: ResultCodec,
 })
 
-const primitiveToTerminal: Record<
-  MetadataPrimitives,
-  TerminalNode["value"]["type"]
-> = {
-  i256: "bigint",
-  i128: "bigint",
-  i64: "bigint",
-  i32: "number",
-  i16: "number",
-  i8: "number",
-  u256: "bigint",
-  u128: "bigint",
-  u64: "bigint",
-  u32: "number",
-  u16: "number",
-  u8: "number",
-  bool: "bool",
-  char: "string",
-  str: "string",
+const primitiveToTerminal: Record<MetadataPrimitives, PRIMITIVES> = {
+  i256: Primitive.big,
+  i128: Primitive.big,
+  i64: Primitive.big,
+  i32: Primitive.num,
+  i16: Primitive.num,
+  i8: Primitive.num,
+  u256: Primitive.big,
+  u128: Primitive.big,
+  u64: Primitive.big,
+  u32: Primitive.num,
+  u16: Primitive.num,
+  u8: Primitive.num,
+  bool: Primitive.bool,
+  char: Primitive.str,
+  str: Primitive.str,
 }
 
+const terminal = (type: PRIMITIVES): TerminalNode => ({
+  type: "terminal",
+  value: { type },
+})
 export function mapLookupToTypedef(
   entry: Var,
   resolve: (id: number) => void = () => {},
@@ -131,16 +134,10 @@ export function mapLookupToTypedef(
   switch (entry.type) {
     case "AccountId20":
     case "AccountId32":
-      return {
-        type: "terminal",
-        value: { type: "string" },
-      }
+      return terminal(Primitive.str)
     case "array":
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
-        return {
-          type: "terminal",
-          value: { type: "binary" },
-        }
+        return terminal(Primitive.bin)
       }
       resolve(entry.value.id)
       return {
@@ -151,22 +148,15 @@ export function mapLookupToTypedef(
         },
       }
     case "bitSequence":
-      return {
-        type: "terminal",
-        value: { type: "bitseq" },
-      }
+      return terminal(Primitive.bits)
     case "compact":
-      return {
-        type: "terminal",
-        value: {
-          type:
-            entry.isBig === null
-              ? "numeric"
-              : entry.isBig
-                ? "bigint"
-                : "number",
-        },
-      }
+      return terminal(
+        entry.isBig === null
+          ? Primitive.numeric
+          : entry.isBig
+            ? Primitive.big
+            : Primitive.num,
+      )
     case "enum":
       return {
         type: "enum",
@@ -202,10 +192,7 @@ export function mapLookupToTypedef(
         value: entry.value.id,
       }
     case "primitive":
-      return {
-        type: "terminal",
-        value: { type: primitiveToTerminal[entry.value] },
-      }
+      return terminal(primitiveToTerminal[entry.value])
     case "result":
       resolve(entry.value.ok.id)
       resolve(entry.value.ko.id)
@@ -218,10 +205,7 @@ export function mapLookupToTypedef(
       }
     case "sequence":
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
-        return {
-          type: "terminal",
-          value: { type: "binary" },
-        }
+        return terminal(Primitive.bin)
       }
       resolve(entry.value.id)
       return {

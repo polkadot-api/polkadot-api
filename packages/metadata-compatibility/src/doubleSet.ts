@@ -21,12 +21,12 @@ export class DoubleSet<T> {
     if (!this.value.has(a)) return
     const set = this.value.get(a)!
     set.delete(b)
-    if (set.size == 0) {
+    if (!set.size) {
       this.value.delete(a)
     }
   }
   public isEmpty() {
-    return this.value.size === 0
+    return !this.value.size
   }
   public get values() {
     return Array.from(this.value).flatMap(([a, values]) =>

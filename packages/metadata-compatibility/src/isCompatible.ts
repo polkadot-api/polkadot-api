@@ -1,5 +1,5 @@
 import { Binary } from "@polkadot-api/substrate-bindings"
-import type { TerminalNode, TypedefNode } from "./typedef"
+import { Primitive, type TerminalNode, type TypedefNode } from "./typedef"
 
 // Descriptors: pallet + name => index (this._descriptors[opType][pallet][name])
 // index will be for both checksums and compatLookup
@@ -10,11 +10,10 @@ export function isCompatible(
   destNode: TypedefNode | null,
   getNode: (id: number) => TypedefNode | null,
 ): boolean {
-  // A void node is always compatible
+  // A void node is always compatible, since the codec ignores the input.
   if (!destNode) return true
 
-  // Is this ok? This will cover for structs with optional keys
-  if (destNode.type === "option" && value == undefined) {
+  if (destNode.type === "option" && value == null) {
     return true
   }
 
@@ -23,25 +22,22 @@ export function isCompatible(
 
   const checkTerminal = (terminal: TerminalNode) => {
     switch (terminal.value.type) {
-      case "string":
-        return typeof value === "string"
-      case "bigint":
-        return typeof value === "bigint"
-      case "bitseq":
+      case Primitive.str:
+      case Primitive.big:
+      case Primitive.bool:
+      case Primitive.num:
+        return typeof value === terminal.value.type
+      case Primitive.bits:
         return (
           typeof value === "object" &&
           value != null &&
           typeof value.bitsLen === "number" &&
           value.bytes instanceof Uint8Array
         )
-      case "bool":
-        return typeof value === "boolean"
-      case "number":
-        return typeof value === "number"
-      case "numeric":
+      case Primitive.numeric:
         return typeof value === "number" || typeof value === "bigint"
-      case "binary":
-        // TODO
+      case Primitive.bin:
+        // TODO check on runtime which one of this is the correct one (maybe both?).
         return value instanceof Uint8Array || value instanceof Binary
     }
   }
@@ -52,9 +48,9 @@ export function isCompatible(
     case "array":
       if (!Array.isArray(value)) return false
       const valueArr = value as Array<any>
-      // TODO check passing an array with greater length sends in truncated to destNode.length
+      // TODO check on runtime passing an array with greater length sends in truncated to destNode.length
       if (
-        destNode.value.length !== undefined &&
+        destNode.value.length != null &&
         valueArr.length < destNode.value.length
       ) {
         return false
@@ -75,7 +71,7 @@ export function isCompatible(
       }
       return nextCall(valueEnum.value, variantValue)
     case "option":
-      if (value == undefined) {
+      if (value == null) {
         return true
       }
       return nextCall(value, getNode(destNode.value))
