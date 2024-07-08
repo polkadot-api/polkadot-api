@@ -432,6 +432,9 @@ importers:
       '@polkadot-api/sm-provider':
         specifier: workspace:*
         version: link:../json-rpc/sm-provider
+      '@polkadot-api/smoldot':
+        specifier: workspace:*
+        version: link:../smoldot
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
@@ -441,9 +444,6 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
-      smoldot:
-        specifier: ^2.0.24
-        version: 2.0.29
     devDependencies:
       '@types/node':
         specifier: ^20.11.19
