@@ -67,12 +67,16 @@ export type StaticCompatibleResult = {
   level: CompatibilityLevel
   assumptions: DoubleSet<TypedefNode>
 }
+export type CompatibilityCache = Map<
+  TypedefNode,
+  Map<TypedefNode, CompatibilityLevel | null>
+>
 export function isStaticCompatible(
   originNode: TypedefNode | null,
   getOriginNode: (id: number) => TypedefNode | null,
   destNode: TypedefNode | null,
   getDestNode: (id: number) => TypedefNode | null,
-  cache: Map<TypedefNode, Map<TypedefNode, CompatibilityLevel | null>>,
+  cache: CompatibilityCache,
 ): StaticCompatibleResult {
   if (!destNode && !originNode) {
     return unconditional(CompatibilityLevel.Identical)
@@ -180,11 +184,7 @@ function getIsStaticCompatible(
     case "enum": {
       const enumOrigin = originNode as EnumNode
       const destVariants = Object.fromEntries(destNode.value)
-      const maxLevel =
-        enumOrigin.value.length === destNode.value.length
-          ? CompatibilityLevel.Identical
-          : CompatibilityLevel.BackwardsCompatible
-      // Other cases we don't need to check, since it will be caught by the variants check
+      const maxLevel = compareArrayLengths(enumOrigin.value, destNode.value)
 
       // check whether every possible `origin` value is compatible with dest
       return withMaxLevel(
@@ -223,11 +223,7 @@ function getIsStaticCompatible(
     case "tuple": {
       const tupleOrigin = originNode as TupleNode
       const lengthCheck = unconditional(
-        destNode.value.length === tupleOrigin.value.length
-          ? CompatibilityLevel.Identical
-          : destNode.value.length < tupleOrigin.value.length
-            ? CompatibilityLevel.BackwardsCompatible
-            : CompatibilityLevel.Incompatible,
+        compareArrayLengths(tupleOrigin.value, destNode.value),
       )
       return strictMerge([
         lengthCheck,
@@ -254,7 +250,9 @@ const withMaxLevel = (
   level: Math.min(result.level, level),
 })
 const noAssumptions = new DoubleSet<TypedefNode>()
-const unconditional = (level: CompatibilityLevel): StaticCompatibleResult => ({
+export const unconditional = (
+  level: CompatibilityLevel,
+): StaticCompatibleResult => ({
   level,
   assumptions: noAssumptions,
 })
@@ -263,7 +261,7 @@ const unconditional = (level: CompatibilityLevel): StaticCompatibleResult => ({
  * Merges multiple results, following the most "strict" one, (semantically an
  * AND)
  */
-const strictMerge = (
+export const strictMerge = (
   results: Array<StaticCompatibleResult | (() => StaticCompatibleResult)>,
 ): StaticCompatibleResult => {
   let merged = unconditional(CompatibilityLevel.Identical)
@@ -307,3 +305,13 @@ const mergeResults = (
     ? merged
     : unconditional(CompatibilityLevel.Incompatible)
 }
+
+export const compareArrayLengths = (
+  origin: unknown[],
+  dest: unknown[],
+): CompatibilityLevel =>
+  dest.length === origin.length
+    ? CompatibilityLevel.Identical
+    : origin.length >= dest.length
+      ? CompatibilityLevel.BackwardsCompatible
+      : CompatibilityLevel.Incompatible

@@ -1,8 +1,4 @@
-import type {
-  EnumVar,
-  MetadataPrimitives,
-  Var,
-} from "@polkadot-api/metadata-builders"
+import type { MetadataPrimitives, Var } from "@polkadot-api/metadata-builders"
 import {
   Codec,
   Option,
@@ -15,9 +11,8 @@ import {
   _void,
   compact,
   str,
-  type V14,
-  type V15,
 } from "@polkadot-api/substrate-bindings"
+import type { EntryPoint } from "./entryPoint"
 
 const smallCompact = compact as Codec<number>
 export interface StructNode {
@@ -269,65 +264,5 @@ export function mapReferences<T extends TypedefNode | EntryPoint | null>(
       }
     case "terminal":
       return node
-  }
-}
-
-export interface EntryPoint {
-  args: number[]
-  values: number[]
-}
-export const EntryPointCodec = Struct({
-  args: Vector(compact),
-  values: Vector(compact),
-}) as Codec<EntryPoint>
-
-export function storageEntryPoint(
-  storageEntry: Exclude<
-    (V15 | V14)["pallets"][number]["storage"],
-    undefined
-  >["items"][number],
-): EntryPoint {
-  if (storageEntry.type.tag === "plain")
-    return {
-      args: [],
-      values: [storageEntry.type.value],
-    }
-
-  const { key, value } = storageEntry.type.value
-  return {
-    args: [key],
-    values: [value],
-  }
-}
-
-export function runtimeCallEntryPoint(
-  entry: (V15 | V14)["apis"][number]["methods"][number],
-): EntryPoint {
-  return {
-    args: entry.inputs.map((v) => v.type),
-    values: [entry.output],
-  }
-}
-
-export function enumValueEntryPoint(
-  entry: EnumVar["value"][keyof EnumVar["value"]],
-): EntryPoint {
-  let values: number[]
-  switch (entry.type) {
-    case "array":
-    case "lookupEntry":
-      values = [entry.value.id]
-      break
-    case "struct":
-    case "tuple":
-      values = Object.values(entry.value).map((v) => v.id)
-      break
-    case "void":
-      values = []
-      break
-  }
-  return {
-    args: [],
-    values,
   }
 }

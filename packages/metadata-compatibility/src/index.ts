@@ -1,13 +1,14 @@
 export * from "./isCompatible"
-export * from "./isStaticCompatible"
 export {
-  enumValueEntryPoint,
+  CompatibilityLevel,
+  isStaticCompatible,
+  type StaticCompatibleResult,
+  type CompatibilityCache,
+} from "./isStaticCompatible"
+export {
   mapLookupToTypedef,
   mapReferences,
-  runtimeCallEntryPoint,
-  storageEntryPoint,
-  type EntryPoint,
-  EntryPointCodec,
   type TypedefNode,
   TypedefCodec,
 } from "./typedef"
+export * from "./entryPoint"
