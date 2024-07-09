@@ -18,7 +18,13 @@ import {
   EntryPoint,
   EntryPointCodec,
   TypedefCodec,
+  entryPointsAreCompatible,
+  CompatibilityCache,
+  TypedefNode,
+  mapLookupToTypedef,
+  CompatibilityLevel,
 } from "@polkadot-api/metadata-compatibility"
+import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
 
 export const enum OpType {
   Storage = "storage",
@@ -137,85 +143,143 @@ export const getRuntimeApi = (
   return result
 }
 
-export interface IsCompatible {
-  /**
-   * `isCompatible` enables you to check whether or not the call you're trying
-   * to make is compatible with the descriptors you generated on dev time.
-   * In this case the function waits for `Runtime` to load, and returns
-   * asynchronously.
-   *
-   * @returns Promise that resolves with the result of the compatibility
-   *          check.
-   */
-  (): Promise<boolean>
-  /**
-   * Passing the runtime makes the function to return synchronously.
-   *
-   * @returns Result of the compatibility check.
-   */
-  (runtime: Runtime): boolean
+// metadataRaw -> cache
+const metadataCatxé = new WeakMap<
+  Uint8Array,
+  {
+    compat: CompatibilityCache
+    lookup: (id: number) => LookupEntry
+    typeNodes: (TypedefNode | null)[]
+  }
+>()
+const getMetadataCatxé = (ctx: RuntimeContext) => {
+  if (!metadataCatxé.has(ctx.metadataRaw)) {
+    metadataCatxé.set(ctx.metadataRaw, {
+      compat: new Map(),
+      lookup: getLookupFn(ctx.metadata.lookup),
+      typeNodes: [],
+    })
+  }
+  return metadataCatxé.get(ctx.metadataRaw)!
 }
+export const compatibilityHelper = (
+  runtimeApi: RuntimeApi,
+  getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint | null,
+  getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint | null,
+) => {
+  function getCompatibilityLevelSync(
+    runtimeWithDescriptors: Runtime,
+    /**
+     * The `Runtime` of runtimeWithDescriptors already has a RuntimeContext,
+     * which is the runtime of the finalized block.
+     * But on some cases, the user wants to perform an action on a specific
+     * block hash, which has a different RuntimeContext.
+     */
+    ctx: RuntimeContext = runtimeWithDescriptors._getCtx(),
+  ) {
+    const descriptorEntryPoint = getDescriptorEntryPoint(runtimeWithDescriptors)
+    const runtimeEntryPoint = getRuntimeEntryPoint(ctx)
+    const descriptorNodes = runtimeWithDescriptors._getTypedefNodes()
 
-export const compatibilityHelper =
-  (
-    runtimeApi: RuntimeApi,
-    getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint | null,
+    const catxé = getMetadataCatxé(ctx)
+
+    return entryPointsAreCompatible(
+      descriptorEntryPoint,
+      (id) => descriptorNodes[id],
+      runtimeEntryPoint,
+      (id) => (catxé.typeNodes[id] ||= mapLookupToTypedef(catxé.lookup(id))),
+      catxé.compat,
+    ).level
+  }
+
+  const getCompatibilityLevel = withOptionalRuntime(
+    runtimeApi,
+    getCompatibilityLevelSync,
+  )
+  const isCompatible = withOptionalRuntime(runtimeApi, (runtime) => {
+    const level = getCompatibilityLevelSync(runtime)
+    return level === CompatibilityLevel.Partial
+      ? "partial"
+      : getCompatibilityLevelSync(runtime) > CompatibilityLevel.Partial
+  })
+
+  const waitDescriptors = async () => {
+    const runtime = await runtimeApi.latest()
+    return (ctx: RuntimeContext) =>
+      getCompatibilityLevelSync(runtime, ctx) >= CompatibilityLevel.Partial
+  }
+  const compatibleRuntime$ = (
+    chainHead: ChainHead$,
+    hash: string | null,
+    error: () => Error,
   ) =>
-  (getChecksum: (ctx: RuntimeContext) => string | null) => {
-    function isCompatibleSync(runtime: Runtime) {
-      return getChecksum(runtime._getCtx()) === getDescriptorEntryPoint(runtime)
-    }
+    combineLatest([chainHead.getRuntimeContext$(hash), waitDescriptors()]).pipe(
+      map(([ctx, isCompatible]) => {
+        if (!isCompatible(ctx)) {
+          throw error()
+        }
+        return ctx
+      }),
+    )
 
-    const isCompatible: IsCompatible = (runtime?: Runtime): any => {
-      if (runtime) {
-        return isCompatibleSync(runtime)
-      }
-
-      return runtimeApi.latest().then(isCompatibleSync)
-    }
-    const waitChecksums = async () => {
-      const runtime = await runtimeApi.latest()
-      return (ctx: RuntimeContext) =>
-        getChecksum(ctx) === getDescriptorEntryPoint(runtime)
-    }
-    const compatibleRuntime$ = (
-      chainHead: ChainHead$,
-      hash: string | null,
-      error: () => Error,
-    ) =>
-      combineLatest([chainHead.getRuntimeContext$(hash), waitChecksums()]).pipe(
-        map(([ctx, isCompatible]) => {
+  const withCompatibleRuntime =
+    <T>(chainHead: ChainHead$, mapper: (x: T) => string, error: () => Error) =>
+    (source$: Observable<T>): Observable<[T, RuntimeContext]> =>
+      combineLatest([
+        source$.pipe(chainHead.withRuntime(mapper)),
+        waitDescriptors(),
+      ]).pipe(
+        map(([[x, ctx], isCompatible]) => {
           if (!isCompatible(ctx)) {
             throw error()
           }
-          return ctx
+          return [x, ctx]
         }),
       )
 
-    const withCompatibleRuntime =
-      <T>(
-        chainHead: ChainHead$,
-        mapper: (x: T) => string,
-        error: () => Error,
-      ) =>
-      (source$: Observable<T>): Observable<[T, RuntimeContext]> =>
-        combineLatest([
-          source$.pipe(chainHead.withRuntime(mapper)),
-          waitChecksums(),
-        ]).pipe(
-          map(([[x, ctx], isCompatible]) => {
-            if (!isCompatible(ctx)) {
-              throw error()
-            }
-            return [x, ctx]
-          }),
-        )
-
-    return {
-      isCompatible,
-      waitChecksums,
-      withCompatibleRuntime,
-      compatibleRuntime$,
-    }
+  return {
+    getCompatibilityLevel,
+    isCompatible,
+    waitDescriptors,
+    withCompatibleRuntime,
+    compatibleRuntime$,
   }
+}
 export type CompatibilityHelper = ReturnType<typeof compatibilityHelper>
+
+const withOptionalRuntime =
+  <T>(
+    runtimeApi: RuntimeApi,
+    fn: (runtime: Runtime) => T,
+  ): WithOptionalRuntime<T> =>
+  (runtime?: Runtime): any =>
+    runtime ? fn(runtime) : runtimeApi.latest().then(fn)
+export type WithOptionalRuntime<T> = {
+  /**
+   * Returns the result after waiting for the runtime to load.
+   */
+  (): Promise<T>
+  /**
+   * Returns the result synchronously with the loaded runtime.
+   */
+  (runtime: Runtime): T
+}
+
+export interface CompatibilityFunctions {
+  /**
+   * Returns the `CompatibilityLevel` for this call comparing the descriptors
+   * generated on dev time with the current live metadata.
+   */
+  getCompatibilityLevel: WithOptionalRuntime<CompatibilityLevel>
+
+  /**
+   * Checks whether or not the call is compatible with the descriptors generated
+   * on dev time. Returns:
+   * - `true` if they haven't changed or the changes are backwards compatible -
+   * `'partial'` if the call might be compatible depending on the value being
+   * sent or received.
+   * - `false` if the call is incompatible no matter the value being sent or
+   * received.
+   */
+  isCompatible: WithOptionalRuntime<boolean | "partial">
+}

@@ -57,11 +57,12 @@ export const createTxEntry = <
   assetChecksum: Asset,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast: (tx: string) => Observable<never>,
-  compatibilityHelper: CompatibilityHelper,
+  {
+    isCompatible,
+    getCompatibilityLevel,
+    compatibleRuntime$,
+  }: CompatibilityHelper,
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
-  const { isCompatible, compatibleRuntime$ } = compatibilityHelper((ctx) =>
-    ctx.checksumBuilder.buildCall(pallet, name),
-  )
   const checksumError = () =>
     new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
@@ -185,5 +186,5 @@ export const createTxEntry = <
     }
   }
 
-  return Object.assign(fn, { isCompatible })
+  return Object.assign(fn, { isCompatible, getCompatibilityLevel })
 }

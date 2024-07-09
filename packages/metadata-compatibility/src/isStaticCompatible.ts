@@ -184,7 +184,10 @@ function getIsStaticCompatible(
     case "enum": {
       const enumOrigin = originNode as EnumNode
       const destVariants = Object.fromEntries(destNode.value)
-      const maxLevel = compareArrayLengths(enumOrigin.value, destNode.value)
+      const maxLevel =
+        enumOrigin.value.length === destNode.value.length
+          ? CompatibilityLevel.Identical
+          : CompatibilityLevel.BackwardsCompatible
 
       // check whether every possible `origin` value is compatible with dest
       return withMaxLevel(

@@ -2,7 +2,7 @@ import { firstValueFromWithSignal } from "@/utils"
 import { toHex } from "@polkadot-api/utils"
 import { map, mergeMap } from "rxjs"
 import { ChainHead$ } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, IsCompatible } from "./runtime"
+import { CompatibilityHelper, CompatibilityFunctions } from "./runtime"
 
 type CallOptions = Partial<{
   at: string
@@ -13,7 +13,8 @@ type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   ? [options?: CallOptions]
   : [...args: Args, options?: CallOptions]
 
-export interface RuntimeCall<Args extends Array<any>, Payload> {
+export interface RuntimeCall<Args extends Array<any>, Payload>
+  extends CompatibilityFunctions {
   /**
    * Get `Payload` (Promise-based) for the runtime call.
    *
@@ -22,11 +23,6 @@ export interface RuntimeCall<Args extends Array<any>, Payload> {
    *              known finalized is the default) and an AbortSignal.
    */
   (...args: WithCallOptions<Args>): Promise<Payload>
-  /**
-   * `isCompatible` enables you to check whether or not the call you're trying
-   * to make is compatible with the descriptors you generated on dev time.
-   */
-  isCompatible: IsCompatible
 }
 
 const isOptionalArg = (lastArg: any) => {
@@ -43,11 +39,12 @@ export const createRuntimeCallEntry = (
   api: string,
   method: string,
   chainHead: ChainHead$,
-  compatibilityHelper: CompatibilityHelper,
+  {
+    isCompatible,
+    getCompatibilityLevel,
+    compatibleRuntime$,
+  }: CompatibilityHelper,
 ): RuntimeCall<any, any> => {
-  const { isCompatible, compatibleRuntime$ } = compatibilityHelper((ctx) =>
-    ctx.checksumBuilder.buildRuntimeCall(api, method),
-  )
   const callName = `${api}_${method}`
   const checksumError = () =>
     new Error(`Incompatible runtime entry RuntimeCall(${callName})`)
@@ -70,5 +67,5 @@ export const createRuntimeCallEntry = (
     return firstValueFromWithSignal(result$, signal)
   }
 
-  return Object.assign(fn, { isCompatible })
+  return Object.assign(fn, { isCompatible, getCompatibilityLevel })
 }

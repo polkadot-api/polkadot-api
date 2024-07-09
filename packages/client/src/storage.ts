@@ -2,7 +2,7 @@ import { firstValueFromWithSignal, raceMap } from "@/utils"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { Observable, debounceTime, distinctUntilChanged, map } from "rxjs"
 import { ChainHead$, NotBestBlockError } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, IsCompatible } from "./runtime"
+import { CompatibilityHelper, CompatibilityFunctions } from "./runtime"
 
 type CallOptions = Partial<{
   /**
@@ -41,11 +41,6 @@ type ArrayPossibleParents<
 
 type StorageEntryWithoutKeys<Payload> = {
   /**
-   * `isCompatible` enables you to check whether or not the call you're trying
-   * to make is compatible with the descriptors you generated on dev time.
-   */
-  isCompatible: IsCompatible
-  /**
    * Get `Payload` (Promise-based) for the storage entry.
    *
    * @param options  Optionally set which block to target (latest known
@@ -59,14 +54,9 @@ type StorageEntryWithoutKeys<Payload> = {
    *                         changes, `best` or `finalized` (default)
    */
   watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
-}
+} & CompatibilityFunctions
 
 type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
-  /**
-   * `isCompatible` enables you to check whether or not the call you're trying
-   * to make is compatible with the descriptors you generated on dev time.
-   */
-  isCompatible: IsCompatible
   /**
    * Get `Payload` (Promise-based) for the storage entry with a specific set of
    * `Args`.
@@ -116,7 +106,7 @@ type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
   getEntries: (
     ...args: WithCallOptions<PossibleParents<Args>>
   ) => Promise<Array<{ keyArgs: Args; value: NonNullable<Payload> }>>
-}
+} & CompatibilityFunctions
 
 export type StorageEntry<Args extends Array<any>, Payload> = Args extends []
   ? StorageEntryWithoutKeys<Payload>
@@ -143,11 +133,14 @@ export const createStorageEntry = (
   pallet: string,
   name: string,
   chainHead: ChainHead$,
-  compatibilityHelper: CompatibilityHelper,
+  {
+    isCompatible,
+    getCompatibilityLevel,
+    waitDescriptors,
+    withCompatibleRuntime,
+  }: CompatibilityHelper,
 ): StorageEntry<any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
-  const { isCompatible, waitChecksums, withCompatibleRuntime } =
-    compatibilityHelper((ctx) => ctx.checksumBuilder.buildStorage(pallet, name))
 
   const checksumError = () =>
     new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
@@ -202,7 +195,7 @@ export const createStorageEntry = (
         distinctUntilChanged(),
       )
     } else {
-      const isCompatible = await waitChecksums()
+      const isCompatible = await waitDescriptors()
       result$ = chainHead.storage$(
         at,
         "value",
@@ -231,7 +224,7 @@ export const createStorageEntry = (
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const isCompatible = await waitChecksums()
+    const isCompatible = await waitDescriptors()
     const result$ = chainHead.storage$(
       at,
       "descendantsValues",
@@ -263,5 +256,12 @@ export const createStorageEntry = (
       keyArgs.map((args) => getValue(...(options ? [...args, options] : args))),
     )
 
-  return { isCompatible, getValue, getValues, getEntries, watchValue }
+  return {
+    isCompatible,
+    getCompatibilityLevel,
+    getValue,
+    getValues,
+    getEntries,
+    watchValue,
+  }
 }

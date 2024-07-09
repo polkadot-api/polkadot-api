@@ -50,9 +50,10 @@ export const getUsedTypes = (
 
   const buildEnum = (val: number | undefined, cb: (name: string) => string) => {
     if (val === undefined) return
-
     const entry = lookup(val)
-    if (entry.type !== "enum") throw null
+
+    if (entry.type === "void") return
+    if (entry.type !== "enum") throw new Error("Expected enum")
 
     Object.entries(entry.value).forEach(([name, value]) => {
       const checksum = cb(name)
