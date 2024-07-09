@@ -20,7 +20,7 @@ const createTypedApi = <D extends ChainDefinition>(
   broadcast$: (tx: string) => Observable<never>,
 ): TypedApi<D> => {
   const runtime = getRuntimeApi(
-    chainDefinition.checksums,
+    chainDefinition.metadataTypes,
     chainDefinition.descriptors,
     chainHead,
   )
@@ -49,7 +49,7 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainHead,
       compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Storage, pallet, name),
+        r._getPalletEntryPoint(OpType.Storage, pallet, name),
       ),
     ),
   )
@@ -62,7 +62,7 @@ const createTypedApi = <D extends ChainDefinition>(
       chainHead,
       broadcast$,
       compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Tx, pallet, name),
+        r._getPalletEntryPoint(OpType.Tx, pallet, name),
       ),
     ),
   )
@@ -73,7 +73,7 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainHead,
       compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Event, pallet, name),
+        r._getPalletEntryPoint(OpType.Event, pallet, name),
       ),
     ),
   )
@@ -84,7 +84,7 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainHead,
       compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Const, pallet, name),
+        r._getPalletEntryPoint(OpType.Const, pallet, name),
       ),
     ),
   )
@@ -94,7 +94,7 @@ const createTypedApi = <D extends ChainDefinition>(
       api,
       method,
       chainHead,
-      compatibilityHelper(runtime, (r) => r._getApiChecksum(api, method)),
+      compatibilityHelper(runtime, (r) => r._getApiEntryPoint(api, method)),
     ),
   )
 

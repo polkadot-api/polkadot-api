@@ -13,6 +13,12 @@ import {
   map,
 } from "rxjs"
 import { DescriptorValues } from "./descriptors"
+import { Tuple, Vector } from "@polkadot-api/substrate-bindings"
+import {
+  EntryPoint,
+  EntryPointCodec,
+  TypedefCodec,
+} from "@polkadot-api/metadata-compatibility"
 
 export const enum OpType {
   Storage = "storage",
@@ -25,7 +31,7 @@ export const enum OpType {
 export class Runtime {
   private constructor(
     private _ctx: RuntimeContext,
-    private _checksums: string[],
+    private _metadataTypes: MetadataTypes,
     private _descriptors: DescriptorValues,
   ) {}
 
@@ -34,10 +40,10 @@ export class Runtime {
    */
   static _create(
     ctx: RuntimeContext,
-    checksums: string[],
+    metadataTypes: MetadataTypes,
     descriptors: DescriptorValues,
   ) {
-    return new Runtime(ctx, checksums, descriptors)
+    return new Runtime(ctx, metadataTypes, descriptors)
   }
 
   /**
@@ -50,15 +56,36 @@ export class Runtime {
   /**
    * @access package  - Internal implementation detail. Do not use.
    */
-  _getPalletChecksum(opType: OpType, pallet: string, name: string) {
-    return this._checksums[this._descriptors[opType][pallet][name]]
+  _getPalletEntryPoint(
+    opType: OpType,
+    pallet: string,
+    name: string,
+  ): EntryPoint | null {
+    const idx = this._descriptors[opType][pallet][name]
+    if (idx == null) return null
+    if (opType === OpType.Const) {
+      // Constants don't have an entry point, they are directly the lookup type
+      return {
+        args: [],
+        values: [idx],
+      }
+    }
+    return this._metadataTypes[0][idx]
   }
 
   /**
    * @access package  - Internal implementation detail. Do not use.
    */
-  _getApiChecksum(name: string, method: string) {
-    return this._checksums[this._descriptors.apis[name][method]]
+  _getApiEntryPoint(name: string, method: string) {
+    const idx = this._descriptors.apis[name][method]
+    return idx == null ? null : this._metadataTypes[0][idx]
+  }
+
+  /**
+   * @access package  - Internal implementation detail. Do not use.
+   */
+  _getTypedefNodes() {
+    return this._metadataTypes[1]
   }
 }
 
@@ -70,15 +97,30 @@ export type RuntimeApi = Observable<Runtime> & {
   latest: () => Promise<Runtime>
 }
 
+const EntryPointsCodec = Vector(EntryPointCodec)
+const TypedefsCodec = Vector(TypedefCodec)
+const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
+type MetadataTypes = ReturnType<(typeof TypesCodec)["dec"]>
+const decodedMetadataTypes = new WeakMap<Uint8Array, MetadataTypes>()
+
 export const getRuntimeApi = (
-  checksums: Promise<string[]>,
+  metadataTypes: Promise<Uint8Array>,
   descriptors: Promise<DescriptorValues>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ): RuntimeApi => {
+  const decodedMetadata = metadataTypes.then((byteArr) => {
+    if (decodedMetadataTypes.has(byteArr)) {
+      return decodedMetadataTypes.get(byteArr)!
+    }
+    const result = TypesCodec.dec(byteArr)
+    decodedMetadataTypes.set(byteArr, result)
+    return result
+  })
+
   const runtimeWithChecksums$ = connectable(
-    combineLatest([chainHead.runtime$, checksums, descriptors]).pipe(
-      map(([x, checksums, descriptors]) =>
-        x ? Runtime._create(x, checksums, descriptors) : null,
+    combineLatest([chainHead.runtime$, decodedMetadata, descriptors]).pipe(
+      map(([x, metadataTypes, descriptors]) =>
+        x ? Runtime._create(x, metadataTypes, descriptors) : null,
       ),
     ),
     {
@@ -117,11 +159,11 @@ export interface IsCompatible {
 export const compatibilityHelper =
   (
     runtimeApi: RuntimeApi,
-    getDescriptorChecksum: (runtime: Runtime) => string,
+    getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint | null,
   ) =>
   (getChecksum: (ctx: RuntimeContext) => string | null) => {
     function isCompatibleSync(runtime: Runtime) {
-      return getChecksum(runtime._getCtx()) === getDescriptorChecksum(runtime)
+      return getChecksum(runtime._getCtx()) === getDescriptorEntryPoint(runtime)
     }
 
     const isCompatible: IsCompatible = (runtime?: Runtime): any => {
@@ -134,7 +176,7 @@ export const compatibilityHelper =
     const waitChecksums = async () => {
       const runtime = await runtimeApi.latest()
       return (ctx: RuntimeContext) =>
-        getChecksum(ctx) === getDescriptorChecksum(runtime)
+        getChecksum(ctx) === getDescriptorEntryPoint(runtime)
     }
     const compatibleRuntime$ = (
       chainHead: ChainHead$,

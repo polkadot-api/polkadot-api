@@ -7,7 +7,11 @@ import knownTypes, { KnownTypes } from "./known-types"
 import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
 import { applyWhitelist } from "./whitelist"
 import { mapObject } from "@polkadot-api/utils"
-import { EntryPoint, TypedefNode } from "@polkadot-api/metadata-compatibility"
+import {
+  EntryPoint,
+  mapReferences,
+  TypedefNode,
+} from "@polkadot-api/metadata-compatibility"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
@@ -130,6 +134,7 @@ function resolveConflicts(
 function mergeTypes(
   chainData: Array<{
     types: Map<string, TypedefNode | EntryPoint | null>
+    checksums: string[]
   }>,
 ) {
   const typedefs: Array<TypedefNode> = []
@@ -144,10 +149,23 @@ function mergeTypes(
         checksumToIdx.set(checksum, typedefs.length)
         typedefs.push(value)
       } else {
-        checksumToIdx.set(checksum, typedefs.length)
+        checksumToIdx.set(checksum, entryPoints.length)
         entryPoints.push(value)
       }
     }
+  })
+
+  // Update indices to the new one
+  chainData.forEach((chainData) => {
+    chainData.types = new Map(
+      Array.from(chainData.types.entries()).map(([checksum, type]) => [
+        checksum,
+        mapReferences(
+          type,
+          (id) => checksumToIdx.get(chainData.checksums[id])!,
+        ),
+      ]),
+    )
   })
 
   return { typedefs, entryPoints, checksumToIdx }

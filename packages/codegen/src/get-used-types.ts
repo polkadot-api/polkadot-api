@@ -9,6 +9,7 @@ import {
   mapLookupToTypedef,
   runtimeCallEntryPoint,
   storageEntryPoint,
+  enumValueEntryPoint,
 } from "@polkadot-api/metadata-compatibility"
 
 /**
@@ -25,7 +26,7 @@ export const getUsedTypes = (
   metadata: V14 | V15,
   builder: ReturnType<typeof getChecksumBuilder>,
 ) => {
-  const checksums: string[] = []
+  const checksums: string[] = new Array(metadata.lookup.length)
   const types = new Map<string, TypedefNode | EntryPoint | null>()
   const lookup = getLookupFn(metadata.lookup)
 
@@ -44,23 +45,18 @@ export const getUsedTypes = (
   const addTypeFromEntryPoint = (checksum: string, entry: EntryPoint) => {
     types.set(checksum, entry)
     entry.args.forEach(addTypeFromLookup)
-    if (entry.value !== undefined) {
-      addTypeFromLookup(entry.value)
-    }
+    entry.values.forEach(addTypeFromLookup)
   }
 
   const buildEnum = (val: number | undefined, cb: (name: string) => string) => {
     if (val === undefined) return
 
-    const lookup = metadata.lookup[val]
-    if (lookup.def.tag !== "variant") throw null
-    lookup.def.value.forEach((x) => {
-      const checksum = cb(x.name)
-      const args = x.fields.map((f) => f.type)
-      addTypeFromEntryPoint(checksum, {
-        args,
-      })
-      x.fields.map((f) => f.type).forEach(addTypeFromLookup)
+    const entry = lookup(val)
+    if (entry.type !== "enum") throw null
+
+    Object.entries(entry.value).forEach(([name, value]) => {
+      const checksum = cb(name)
+      addTypeFromEntryPoint(checksum, enumValueEntryPoint(value))
     })
   }
 
