@@ -134,7 +134,7 @@ export const getRuntimeApi = (
 }
 
 // metadataRaw -> cache
-const metadataCatxé = new WeakMap<
+const metadataCache = new WeakMap<
   Uint8Array,
   {
     compat: CompatibilityCache
@@ -142,15 +142,15 @@ const metadataCatxé = new WeakMap<
     typeNodes: (TypedefNode | null)[]
   }
 >()
-const getMetadataCatxé = (ctx: RuntimeContext) => {
-  if (!metadataCatxé.has(ctx.metadataRaw)) {
-    metadataCatxé.set(ctx.metadataRaw, {
+const getMetadataCache = (ctx: RuntimeContext) => {
+  if (!metadataCache.has(ctx.metadataRaw)) {
+    metadataCache.set(ctx.metadataRaw, {
       compat: new Map(),
       lookup: getLookupFn(ctx.metadata.lookup),
       typeNodes: [],
     })
   }
-  return metadataCatxé.get(ctx.metadataRaw)!
+  return metadataCache.get(ctx.metadataRaw)!
 }
 export const compatibilityHelper = (
   runtimeApi: RuntimeApi,
@@ -171,14 +171,14 @@ export const compatibilityHelper = (
     const runtimeEntryPoint = getRuntimeEntryPoint(ctx)
     const descriptorNodes = runtimeWithDescriptors._getTypedefNodes()
 
-    const catxé = getMetadataCatxé(ctx)
+    const cache = getMetadataCache(ctx)
 
     return entryPointsAreCompatible(
       descriptorEntryPoint,
       (id) => descriptorNodes[id],
       runtimeEntryPoint,
-      (id) => (catxé.typeNodes[id] ||= mapLookupToTypedef(catxé.lookup(id))),
-      catxé.compat,
+      (id) => (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id))),
+      cache.compat,
     ).level
   }
 
@@ -261,15 +261,4 @@ export interface CompatibilityFunctions {
    * generated on dev time with the current live metadata.
    */
   getCompatibilityLevel: WithOptionalRuntime<CompatibilityLevel>
-
-  /**
-   * Checks whether or not the call is compatible with the descriptors generated
-   * on dev time. Returns:
-   * - `true` if they haven't changed or the changes are backwards compatible -
-   * `'partial'` if the call might be compatible depending on the value being
-   * sent or received.
-   * - `false` if the call is incompatible no matter the value being sent or
-   * received.
-   */
-  isCompatible: WithOptionalRuntime<boolean | "partial">
 }

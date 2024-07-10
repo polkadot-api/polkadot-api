@@ -67,11 +67,7 @@ export const createEventEntry = <T>(
   pallet: string,
   name: string,
   chainHead: ChainHead$,
-  {
-    isCompatible,
-    getCompatibilityLevel,
-    withCompatibleRuntime,
-  }: CompatibilityHelper,
+  { getCompatibilityLevel, withCompatibleRuntime }: CompatibilityHelper,
 ): EvClient<T> => {
   const checksumError = () =>
     new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
@@ -109,5 +105,5 @@ export const createEventEntry = <T>(
       .filter((e) => e.type === pallet && e.value.type === name)
       .map((x) => x.value.value)
 
-  return { watch, pull, filter, isCompatible, getCompatibilityLevel }
+  return { watch, pull, filter, getCompatibilityLevel }
 }

@@ -56,5 +56,5 @@ export const createConstantEntry = <T>(
     )
   }
 
-  return Object.assign(fn, { isCompatible, getCompatibilityLevel })
+  return Object.assign(fn, { getCompatibilityLevel })
 }

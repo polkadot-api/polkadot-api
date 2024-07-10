@@ -186,5 +186,5 @@ export const createTxEntry = <
     }
   }
 
-  return Object.assign(fn, { isCompatible, getCompatibilityLevel })
+  return Object.assign(fn, { getCompatibilityLevel })
 }

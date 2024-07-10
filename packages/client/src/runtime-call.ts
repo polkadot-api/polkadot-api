@@ -39,11 +39,7 @@ export const createRuntimeCallEntry = (
   api: string,
   method: string,
   chainHead: ChainHead$,
-  {
-    isCompatible,
-    getCompatibilityLevel,
-    compatibleRuntime$,
-  }: CompatibilityHelper,
+  { getCompatibilityLevel, compatibleRuntime$ }: CompatibilityHelper,
 ): RuntimeCall<any, any> => {
   const callName = `${api}_${method}`
   const checksumError = () =>
@@ -67,5 +63,5 @@ export const createRuntimeCallEntry = (
     return firstValueFromWithSignal(result$, signal)
   }
 
-  return Object.assign(fn, { isCompatible, getCompatibilityLevel })
+  return Object.assign(fn, { getCompatibilityLevel })
 }
