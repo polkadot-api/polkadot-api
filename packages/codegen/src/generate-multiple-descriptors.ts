@@ -134,7 +134,7 @@ function resolveConflicts(
 
 function mergeTypes(
   chainData: Array<{
-    types: Map<string, TypedefNode | null>
+    types: Map<string, TypedefNode>
     entryPoints: Map<string, EntryPoint>
     checksums: string[]
   }>,
@@ -147,13 +147,13 @@ function mergeTypes(
   chainData.forEach(({ types, entryPoints: chainEntryPoints, checksums }) => {
     for (const entry of types.entries()) {
       const [checksum, value] = entry
-      if (loookupToTypedefIdx.has(checksum) || !value) continue
+      if (loookupToTypedefIdx.has(checksum)) continue
       loookupToTypedefIdx.set(checksum, typedefs.length)
       typedefs.push([value, checksums])
     }
     for (const entry of chainEntryPoints.entries()) {
       const [checksum, value] = entry
-      if (checksumToIdx.has(checksum) || !value) continue
+      if (checksumToIdx.has(checksum)) continue
       checksumToIdx.set(checksum, entryPoints.length)
       entryPoints.push([value, checksums])
     }
@@ -161,10 +161,10 @@ function mergeTypes(
 
   // Update indices to the new one
   const updatedTypedefs = typedefs.map(([typedef, checksums]) =>
-    mapReferences(typedef, (id) => loookupToTypedefIdx.get(checksums[id])),
+    mapReferences(typedef, (id) => loookupToTypedefIdx.get(checksums[id])!),
   )
   const updatedEntryPoints = entryPoints.map(([entryPoint, checksums]) =>
-    mapReferences(entryPoint, (id) => loookupToTypedefIdx.get(checksums[id])),
+    mapReferences(entryPoint, (id) => loookupToTypedefIdx.get(checksums[id])!),
   )
 
   return {

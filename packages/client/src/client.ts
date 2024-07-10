@@ -75,7 +75,6 @@ const createTypedApi = <D extends ChainDefinition>(
     // As part of the refactor, maybe the lookup function could be added to ctx?
     const lookup = getLookupFn(ctx.metadata.lookup)
     const entry = lookup(id)
-    if (entry.type === "void") return null
     if (entry.type !== "enum") throw new Error("Expected enum")
 
     return enumValueEntryPoint(entry.value[name])

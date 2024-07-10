@@ -27,7 +27,8 @@ export const getUsedTypes = (
   builder: ReturnType<typeof getChecksumBuilder>,
 ) => {
   const checksums: string[] = new Array(metadata.lookup.length)
-  const types = new Map<string, TypedefNode | null>()
+  const visited = new Set<string>()
+  const types = new Map<string, TypedefNode>()
   const entryPoints = new Map<string, EntryPoint>()
   const lookup = getLookupFn(metadata.lookup)
 
@@ -38,11 +39,10 @@ export const getUsedTypes = (
       throw new Error("Unreachable: checksum not available for lookup type")
     }
     checksums[id] = checksum
-    if (types.has(checksum)) return
-    // Set to null before calling, as it will avoid infinite loops in circular dependencies
-    types.set(checksum, null)
-    const typedef = mapLookupToTypedef(lookup(id), addTypeFromLookup)
-    types.set(checksum, typedef)
+    // We can't use `types` directly, because mapLookupToTypedef can recursively call this function.
+    if (visited.has(checksum)) return
+    visited.add(checksum)
+    types.set(checksum, mapLookupToTypedef(lookup(id), addTypeFromLookup))
   }
   const addTypeFromEntryPoint = (checksum: string, entry: EntryPoint) => {
     entryPoints.set(checksum, entry)

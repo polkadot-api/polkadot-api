@@ -38,7 +38,7 @@ const customStringifyObject = (
 // type -> pallet -> name
 export type DescriptorValues = Record<
   "storage" | "tx" | "events" | "errors" | "constants" | "apis",
-  Record<string, Record<string, number | undefined>>
+  Record<string, Record<string, number>>
 >
 
 export const generateDescriptors = (
@@ -81,7 +81,7 @@ export const generateDescriptors = (
             return [
               name,
               {
-                typeRef: checksumToIdx.get(checksum),
+                typeRef: checksumToIdx.get(checksum)!,
                 type,
                 name: `stg_${pallet.name}_${name}`,
                 docs,
@@ -107,7 +107,7 @@ export const generateDescriptors = (
             return [
               name,
               {
-                typeRef: checksumToIdx.get(checksum),
+                typeRef: checksumToIdx.get(checksum)!,
                 type,
                 name: `const_${pallet.name}_${name}`,
                 docs,
@@ -126,7 +126,7 @@ export const generateDescriptors = (
         buildEnumObj(pallet.calls, (name, docs) => ({
           typeRef: checksumToIdx.get(
             checksumBuilder.buildCall(pallet.name, name)!,
-          ),
+          )!,
           type: `TxDescriptor<${typesBuilder.buildCall(pallet.name, name)}>`,
           name: `call_${pallet.name}_${name}`,
           docs,
@@ -142,7 +142,7 @@ export const generateDescriptors = (
         buildEnumObj(pallet.events, (name, docs) => ({
           typeRef: checksumToIdx.get(
             checksumBuilder.buildEvent(pallet.name, name)!,
-          ),
+          )!,
           type: `PlainDescriptor<${typesBuilder.buildEvent(
             pallet.name,
             name,
@@ -162,7 +162,7 @@ export const generateDescriptors = (
           return {
             typeRef: checksumToIdx.get(
               checksumBuilder.buildError(pallet.name, name)!,
-            ),
+            )!,
             type: `PlainDescriptor<${typesBuilder.buildError(
               pallet.name,
               name,
@@ -191,7 +191,7 @@ export const generateDescriptors = (
               {
                 typeRef: checksumToIdx.get(
                   checksumBuilder.buildRuntimeCall(api.name, method.name)!,
-                ),
+                )!,
                 type: `RuntimeDescriptor<${args}, ${value}>`,
                 name: `runtime_${api.name}_${method.name}`,
                 docs: method.docs,

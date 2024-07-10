@@ -66,18 +66,15 @@ export class Runtime {
     opType: OpType,
     pallet: string,
     name: string,
-  ): EntryPoint | null {
-    const idx = this._descriptors[opType][pallet][name]
-    if (idx == null) return null
-    return this._metadataTypes[0][idx]
+  ): EntryPoint {
+    return this._metadataTypes[0][this._descriptors[opType][pallet][name]]
   }
 
   /**
    * @access package  - Internal implementation detail. Do not use.
    */
   _getApiEntryPoint(name: string, method: string) {
-    const idx = this._descriptors.apis[name][method]
-    return idx == null ? null : this._metadataTypes[0][idx]
+    return this._metadataTypes[0][this._descriptors.apis[name][method]]
   }
 
   /**
@@ -157,8 +154,8 @@ const getMetadataCatxé = (ctx: RuntimeContext) => {
 }
 export const compatibilityHelper = (
   runtimeApi: RuntimeApi,
-  getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint | null,
-  getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint | null,
+  getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint,
+  getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint,
 ) => {
   function getCompatibilityLevelSync(
     runtimeWithDescriptors: Runtime,

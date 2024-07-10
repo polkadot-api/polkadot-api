@@ -1,21 +1,22 @@
 import type { EnumVar } from "@polkadot-api/metadata-builders"
 import {
   Codec,
+  compact,
   Struct,
   Vector,
-  compact,
   type V14,
   type V15,
 } from "@polkadot-api/substrate-bindings"
-import type { TypedefNode } from "./typedef"
 import {
   compareArrayLengths,
+  CompatibilityCache,
   CompatibilityLevel,
   isStaticCompatible,
   StaticCompatibleResult,
   strictMerge,
   unconditional,
 } from "./isStaticCompatible"
+import type { TypedefNode } from "./typedef"
 
 export interface EntryPoint {
   args: number[]
@@ -77,12 +78,19 @@ export function enumValueEntryPoint(
   }
 }
 
+export function singleValueEntryPoint(value: number) {
+  return {
+    args: [],
+    values: [value],
+  }
+}
+
 export function entryPointsAreCompatible(
-  descriptorEntry: EntryPoint | null,
-  getDescriptorNode: (id: number) => TypedefNode | null,
-  runtimeEntry: EntryPoint | null,
-  getRuntimeNode: (id: number) => TypedefNode | null,
-  cache: Map<TypedefNode, Map<TypedefNode, CompatibilityLevel | null>>,
+  descriptorEntry: EntryPoint,
+  getDescriptorNode: (id: number) => TypedefNode,
+  runtimeEntry: EntryPoint,
+  getRuntimeNode: (id: number) => TypedefNode,
+  cache: CompatibilityCache,
 ): StaticCompatibleResult {
   if (runtimeEntry == null || descriptorEntry == null) {
     return unconditional(

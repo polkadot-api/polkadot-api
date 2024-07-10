@@ -28,7 +28,7 @@ export const Primitive = {
   big: "bigint" as const,
   numeric: "numeric" as const,
   bits: "bitseq" as const,
-  bin: "binary" as const,
+  void: "void" as const,
 }
 export type PRIMITIVES = (typeof Primitive)[keyof typeof Primitive]
 
@@ -66,7 +66,13 @@ export interface ArrayNode {
 const ArrayCodec = Struct({
   typeRef: smallCompact,
   length: Option(smallCompact),
-}) as any as Codec<ArrayNode["value"]>
+}) as Codec<ArrayNode["value"]>
+
+export interface BinaryNode {
+  type: "binary"
+  value: number | undefined
+}
+const BinaryCodec = Option(compact) as Codec<BinaryNode["value"]>
 
 export interface OptionNode {
   type: "option"
@@ -92,6 +98,7 @@ export type TypedefNode =
   | EnumNode
   | TupleNode
   | ArrayNode
+  | BinaryNode
   | OptionNode
   | ResultNode
 export const TypedefCodec: Codec<TypedefNode> = Variant({
@@ -100,6 +107,7 @@ export const TypedefCodec: Codec<TypedefNode> = Variant({
   enum: EnumCodec,
   tuple: TupleCodec,
   array: ArrayCodec,
+  binary: BinaryCodec,
   option: OptionCodec,
   result: ResultCodec,
 })
@@ -129,14 +137,14 @@ const terminal = (type: PRIMITIVES): TerminalNode => ({
 export function mapLookupToTypedef(
   entry: Var,
   resolve: (id: number) => void = () => {},
-): TypedefNode | null {
+): TypedefNode {
   switch (entry.type) {
     case "AccountId20":
     case "AccountId32":
       return terminal(Primitive.str)
     case "array":
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
-        return terminal(Primitive.bin)
+        return { type: "binary", value: entry.len }
       }
       resolve(entry.value.id)
       return {
@@ -204,7 +212,7 @@ export function mapLookupToTypedef(
       }
     case "sequence":
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
-        return terminal(Primitive.bin)
+        return { type: "binary", value: undefined }
       }
       resolve(entry.value.id)
       return {
@@ -212,11 +220,11 @@ export function mapLookupToTypedef(
         value: { typeRef: entry.value.id },
       }
     case "void":
-      return null
+      return terminal(Primitive.void)
   }
 }
 
-export function mapReferences<T extends TypedefNode | EntryPoint | null>(
+export function mapReferences<T extends TypedefNode | EntryPoint>(
   node: T,
   mapFn: (id: number) => number,
 ): T {
@@ -262,6 +270,7 @@ export function mapReferences<T extends TypedefNode | EntryPoint | null>(
             ],
         ),
       }
+    case "binary":
     case "terminal":
       return node
   }
