@@ -69,13 +69,6 @@ export class Runtime {
   ): EntryPoint | null {
     const idx = this._descriptors[opType][pallet][name]
     if (idx == null) return null
-    if (opType === OpType.Const) {
-      // Constants don't have an entry point, they are directly the lookup type
-      return {
-        args: [],
-        values: [idx],
-      }
-    }
     return this._metadataTypes[0][idx]
   }
 

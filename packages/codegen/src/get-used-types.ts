@@ -27,10 +27,12 @@ export const getUsedTypes = (
   builder: ReturnType<typeof getChecksumBuilder>,
 ) => {
   const checksums: string[] = new Array(metadata.lookup.length)
-  const types = new Map<string, TypedefNode | EntryPoint | null>()
+  const types = new Map<string, TypedefNode | null>()
+  const entryPoints = new Map<string, EntryPoint>()
   const lookup = getLookupFn(metadata.lookup)
 
-  const addTypeFromLookup = (id: number) => {
+  const addTypeFromLookup = (id: number | undefined) => {
+    if (id == null) return
     const checksum = builder.buildDefinition(id)
     if (!checksum) {
       throw new Error("Unreachable: checksum not available for lookup type")
@@ -43,7 +45,7 @@ export const getUsedTypes = (
     types.set(checksum, typedef)
   }
   const addTypeFromEntryPoint = (checksum: string, entry: EntryPoint) => {
-    types.set(checksum, entry)
+    entryPoints.set(checksum, entry)
     entry.args.forEach(addTypeFromLookup)
     entry.values.forEach(addTypeFromLookup)
   }
@@ -57,11 +59,7 @@ export const getUsedTypes = (
 
     Object.entries(entry.value).forEach(([name, value]) => {
       const checksum = cb(name)
-      if (value.type === "lookupEntry") {
-        addTypeFromLookup(value.value.id)
-      } else {
-        addTypeFromEntryPoint(checksum, enumValueEntryPoint(value))
-      }
+      addTypeFromEntryPoint(checksum, enumValueEntryPoint(value))
     })
   }
 
@@ -71,8 +69,11 @@ export const getUsedTypes = (
       addTypeFromEntryPoint(checksum, storageEntryPoint(entry))
     })
     pallet.constants.forEach(({ name, type }) => {
-      builder.buildConstant(pallet.name, name)!
-      addTypeFromLookup(type)
+      const checksum = builder.buildConstant(pallet.name, name)!
+      addTypeFromEntryPoint(checksum, {
+        args: [],
+        values: [type],
+      })
     })
     buildEnum(pallet.calls, (name) => builder.buildCall(pallet.name, name)!)
     buildEnum(pallet.events, (name) => builder.buildEvent(pallet.name, name)!)
@@ -86,5 +87,5 @@ export const getUsedTypes = (
     }),
   )
 
-  return { types, checksums }
+  return { types, entryPoints, checksums }
 }

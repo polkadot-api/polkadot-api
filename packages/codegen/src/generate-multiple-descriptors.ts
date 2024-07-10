@@ -34,13 +34,14 @@ export const generateMultipleDescriptors = (
       ? applyWhitelist(chain.metadata, options.whitelist)
       : chain.metadata
     const builder = getChecksumBuilder(metadata)
-    const { checksums, types } = getUsedTypes(metadata, builder)
+    const { checksums, types, entryPoints } = getUsedTypes(metadata, builder)
     return {
       ...chain,
       metadata,
       builder,
       checksums,
       types,
+      entryPoints,
       knownTypes: {
         ...knownTypes,
         ...chain.knownTypes,
@@ -133,34 +134,37 @@ function resolveConflicts(
 
 function mergeTypes(
   chainData: Array<{
-    types: Map<string, TypedefNode | EntryPoint | null>
+    types: Map<string, TypedefNode | null>
+    entryPoints: Map<string, EntryPoint>
     checksums: string[]
   }>,
 ) {
   const typedefs: Array<[TypedefNode, string[]]> = []
   const entryPoints: Array<[EntryPoint, string[]]> = []
+  const loookupToTypedefIdx: Map<string, number> = new Map()
   const checksumToIdx: Map<string, number> = new Map()
 
-  chainData.forEach(({ types, checksums }) => {
+  chainData.forEach(({ types, entryPoints: chainEntryPoints, checksums }) => {
     for (const entry of types.entries()) {
       const [checksum, value] = entry
+      if (loookupToTypedefIdx.has(checksum) || !value) continue
+      loookupToTypedefIdx.set(checksum, typedefs.length)
+      typedefs.push([value, checksums])
+    }
+    for (const entry of chainEntryPoints.entries()) {
+      const [checksum, value] = entry
       if (checksumToIdx.has(checksum) || !value) continue
-      if ("type" in value) {
-        checksumToIdx.set(checksum, typedefs.length)
-        typedefs.push([value, checksums])
-      } else {
-        checksumToIdx.set(checksum, entryPoints.length)
-        entryPoints.push([value, checksums])
-      }
+      checksumToIdx.set(checksum, entryPoints.length)
+      entryPoints.push([value, checksums])
     }
   })
 
   // Update indices to the new one
   const updatedTypedefs = typedefs.map(([typedef, checksums]) =>
-    mapReferences(typedef, (id) => checksumToIdx.get(checksums[id])!),
+    mapReferences(typedef, (id) => loookupToTypedefIdx.get(checksums[id])),
   )
   const updatedEntryPoints = entryPoints.map(([entryPoint, checksums]) =>
-    mapReferences(entryPoint, (id) => checksumToIdx.get(checksums[id])!),
+    mapReferences(entryPoint, (id) => loookupToTypedefIdx.get(checksums[id])),
   )
 
   return {
