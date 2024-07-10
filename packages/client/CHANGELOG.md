@@ -5,6 +5,11 @@
 ### Added
 
 - `client`: `createTx` and `createTx$` APIs [#554](https://github.com/polkadot-api/polkadot-api/pull/554)
+- re-export `getSs58AddressInfo` from `@polkadot-api/substrate-bindings`
+
+### Changed
+
+- `polkadot-signer`: Add API to sign raw-data and rename `sign` to `signTx`
 
 ## 0.9.1 - 2024-07-03
 

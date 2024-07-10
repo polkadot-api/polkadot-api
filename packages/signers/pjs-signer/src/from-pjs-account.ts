@@ -11,7 +11,7 @@ import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
-import { SignerPayloadJSON } from "./types"
+import { SignPayload, SignRaw, SignerPayloadJSON } from "./types"
 
 export const getAddressFormat = (metadata: V15): number => {
   const dynamicBuilder = getDynamicBuilder(metadata)
@@ -29,13 +29,20 @@ const versionCodec = enhanceEncoder(
     (+!!value.signed << 7) | value.version,
 )
 
+const getPublicKey = AccountId().enc
 export function getPolkadotSignerFromPjs(
-  publicKey: Uint8Array,
-  signPayload: (
-    payload: SignerPayloadJSON,
-  ) => Promise<{ signature: string; signedTransaction?: string | Uint8Array }>,
+  address: string,
+  signPayload: SignPayload,
+  signRaw: SignRaw,
 ): PolkadotSigner {
-  const sign = async (
+  const signBytes = (data: Uint8Array) =>
+    signRaw({
+      address,
+      data: toHex(data),
+      type: "bytes",
+    }).then(({ signature }) => fromHex(signature))
+  const publicKey = getPublicKey(address)
+  const signTx = async (
     callData: Uint8Array,
     signedExtensions: Record<
       string,
@@ -115,5 +122,5 @@ export function getPolkadotSignerFromPjs(
       : result.signedTransaction
   }
 
-  return { publicKey, sign }
+  return { publicKey, signTx, signBytes }
 }

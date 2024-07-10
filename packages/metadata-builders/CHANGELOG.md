@@ -2,7 +2,14 @@
 
 ## Unreleased
 
+### Fixed
+
+- use `bigCompact` when required on `dynamic-builder`
+- remove possibly bogus `void`s from `struct`/`tuple`/`array`
+
 ## 0.3.1 - 2024-07-03
+
+### Fixed
 
 - update dependencies
 
