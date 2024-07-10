@@ -165,6 +165,7 @@ async function compileCodegen(packageDir: string) {
     loader: {
       ".scale": "binary",
     },
+    platform: "neutral",
     outDir,
     outExtension: (ctx) => ({
       js: ctx.format === "esm" ? ".mjs" : ".js",

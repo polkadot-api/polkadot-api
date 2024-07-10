@@ -57,7 +57,11 @@ export const getUsedTypes = (
 
     Object.entries(entry.value).forEach(([name, value]) => {
       const checksum = cb(name)
-      addTypeFromEntryPoint(checksum, enumValueEntryPoint(value))
+      if (value.type === "lookupEntry") {
+        addTypeFromLookup(value.value.id)
+      } else {
+        addTypeFromEntryPoint(checksum, enumValueEntryPoint(value))
+      }
     })
   }
 

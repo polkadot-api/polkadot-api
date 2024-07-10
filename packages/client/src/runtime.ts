@@ -123,7 +123,7 @@ export const getRuntimeApi = (
     return result
   })
 
-  const runtimeWithChecksums$ = connectable(
+  const runtimeWithDescriptors$ = connectable(
     combineLatest([chainHead.runtime$, decodedMetadata, descriptors]).pipe(
       map(([x, metadataTypes, descriptors]) =>
         x ? Runtime._create(x, metadataTypes, descriptors) : null,
@@ -133,9 +133,9 @@ export const getRuntimeApi = (
       connector: () => new ReplaySubject(1),
     },
   )
-  runtimeWithChecksums$.connect()
+  runtimeWithDescriptors$.connect()
 
-  const result = runtimeWithChecksums$.pipe(
+  const result = runtimeWithDescriptors$.pipe(
     filter((v) => Boolean(v)),
   ) as RuntimeApi
   result.latest = () => firstValueFrom(result)

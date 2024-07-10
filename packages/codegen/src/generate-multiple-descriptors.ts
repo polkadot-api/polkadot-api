@@ -137,38 +137,37 @@ function mergeTypes(
     checksums: string[]
   }>,
 ) {
-  const typedefs: Array<TypedefNode> = []
-  const entryPoints: Array<EntryPoint> = []
+  const typedefs: Array<[TypedefNode, string[]]> = []
+  const entryPoints: Array<[EntryPoint, string[]]> = []
   const checksumToIdx: Map<string, number> = new Map()
 
-  chainData.forEach(({ types }) => {
+  chainData.forEach(({ types, checksums }) => {
     for (const entry of types.entries()) {
       const [checksum, value] = entry
       if (checksumToIdx.has(checksum) || !value) continue
       if ("type" in value) {
         checksumToIdx.set(checksum, typedefs.length)
-        typedefs.push(value)
+        typedefs.push([value, checksums])
       } else {
         checksumToIdx.set(checksum, entryPoints.length)
-        entryPoints.push(value)
+        entryPoints.push([value, checksums])
       }
     }
   })
 
   // Update indices to the new one
-  chainData.forEach((chainData) => {
-    chainData.types = new Map(
-      Array.from(chainData.types.entries()).map(([checksum, type]) => [
-        checksum,
-        mapReferences(
-          type,
-          (id) => checksumToIdx.get(chainData.checksums[id])!,
-        ),
-      ]),
-    )
-  })
+  const updatedTypedefs = typedefs.map(([typedef, checksums]) =>
+    mapReferences(typedef, (id) => checksumToIdx.get(checksums[id])!),
+  )
+  const updatedEntryPoints = entryPoints.map(([entryPoint, checksums]) =>
+    mapReferences(entryPoint, (id) => checksumToIdx.get(checksums[id])!),
+  )
 
-  return { typedefs, entryPoints, checksumToIdx }
+  return {
+    typedefs: updatedTypedefs,
+    entryPoints: updatedEntryPoints,
+    checksumToIdx,
+  }
 }
 
 function capitalize(value: string) {

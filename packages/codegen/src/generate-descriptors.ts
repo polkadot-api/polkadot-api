@@ -312,7 +312,7 @@ export const generateDescriptors = (
   }";
 
   const descriptorValues = import("${paths.descriptorValues}").then(module => module["${prefix}"]);
-  const metadataTypes = import("${paths.metadataTypes}");
+  const metadataTypes = import("${paths.metadataTypes}").then(module => 'default' in module ? module.default : module);
   `
 
   const descriptorTypes = `${imports}
