@@ -1,8 +1,21 @@
+import { LookupEntry, getLookupFn } from "@polkadot-api/metadata-builders"
+import {
+  CompatibilityCache,
+  CompatibilityLevel,
+  EntryPoint,
+  EntryPointCodec,
+  TypedefCodec,
+  TypedefNode,
+  entryPointsAreCompatible,
+  mapLookupToTypedef,
+  valueIsCompatibleWithDest,
+} from "@polkadot-api/metadata-compatibility"
 import {
   ChainHead$,
   RuntimeContext,
   getObservableClient,
 } from "@polkadot-api/observable-client"
+import { Tuple, Vector } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   ReplaySubject,
@@ -13,18 +26,6 @@ import {
   map,
 } from "rxjs"
 import { DescriptorValues } from "./descriptors"
-import { Tuple, Vector } from "@polkadot-api/substrate-bindings"
-import {
-  EntryPoint,
-  EntryPointCodec,
-  TypedefCodec,
-  entryPointsAreCompatible,
-  CompatibilityCache,
-  TypedefNode,
-  mapLookupToTypedef,
-  CompatibilityLevel,
-} from "@polkadot-api/metadata-compatibility"
-import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
 
 export const enum OpType {
   Storage = "storage",
@@ -157,7 +158,7 @@ export const compatibilityHelper = (
   getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint,
   getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint,
 ) => {
-  function getCompatibilityLevelSync(
+  function getCompatibilityLevels(
     runtimeWithDescriptors: Runtime,
     /**
      * The `Runtime` of runtimeWithDescriptors already has a RuntimeContext,
@@ -179,60 +180,80 @@ export const compatibilityHelper = (
       runtimeEntryPoint,
       (id) => (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id))),
       cache.compat,
-    ).level
-  }
-
-  const getCompatibilityLevel = withOptionalRuntime(
-    runtimeApi,
-    getCompatibilityLevelSync,
-  )
-  const isCompatible = withOptionalRuntime(runtimeApi, (runtime) => {
-    return getCompatibilityLevelSync(runtime) > CompatibilityLevel.Partial
-  })
-
-  const waitDescriptors = async () => {
-    const runtime = await runtimeApi.latest()
-    return (ctx: RuntimeContext) =>
-      getCompatibilityLevelSync(runtime, ctx) > CompatibilityLevel.Partial
-  }
-  const compatibleRuntime$ = (
-    chainHead: ChainHead$,
-    hash: string | null,
-    error: () => Error,
-  ) =>
-    combineLatest([chainHead.getRuntimeContext$(hash), waitDescriptors()]).pipe(
-      map(([ctx, isCompatible]) => {
-        if (!isCompatible(ctx)) {
-          throw error()
-        }
-        return ctx
-      }),
     )
+  }
+
+  const getCompatibilityLevel = withOptionalRuntime(runtimeApi, (runtime) =>
+    minCompatLevel(getCompatibilityLevels(runtime)),
+  )
+
+  const waitDescriptors = () => runtimeApi.latest()
+  const compatibleRuntime$ = (chainHead: ChainHead$, hash: string | null) =>
+    combineLatest([waitDescriptors(), chainHead.getRuntimeContext$(hash)])
 
   const withCompatibleRuntime =
-    <T>(chainHead: ChainHead$, mapper: (x: T) => string, error: () => Error) =>
-    (source$: Observable<T>): Observable<[T, RuntimeContext]> =>
+    <T>(chainHead: ChainHead$, mapper: (x: T) => string) =>
+    (source$: Observable<T>): Observable<[T, Runtime, RuntimeContext]> =>
       combineLatest([
         source$.pipe(chainHead.withRuntime(mapper)),
         waitDescriptors(),
-      ]).pipe(
-        map(([[x, ctx], isCompatible]) => {
-          if (!isCompatible(ctx)) {
-            throw error()
-          }
-          return [x, ctx]
-        }),
-      )
+      ]).pipe(map(([[x, ctx], descriptors]) => [x, descriptors, ctx]))
+
+  const argsAreCompatible = (
+    runtime: Runtime,
+    ctx: RuntimeContext,
+    args: unknown,
+  ) => {
+    const levels = getCompatibilityLevels(runtime, ctx)
+    if (levels.args === CompatibilityLevel.Incompatible) return false
+    if (levels.args > CompatibilityLevel.Partial) return true
+    // Although technically args could still be compatible, if the output will be incompatible we might as well just return false to skip sending the request.
+    if (levels.values === CompatibilityLevel.Incompatible) return false
+
+    const entryPoint = getRuntimeEntryPoint(ctx)
+    const cache = getMetadataCache(ctx)
+
+    return valueIsCompatibleWithDest(
+      entryPoint.args,
+      (id) => (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id))),
+      args,
+    )
+  }
+  const valuesAreCompatible = (
+    runtime: Runtime,
+    ctx: RuntimeContext,
+    values: unknown,
+  ) => {
+    const level = getCompatibilityLevels(runtime, ctx).values
+    if (level === CompatibilityLevel.Incompatible) return false
+    if (level > CompatibilityLevel.Partial) return true
+
+    const entryPoint = getDescriptorEntryPoint(runtime)
+    const nodes = runtime._getTypedefNodes()
+
+    return valueIsCompatibleWithDest(
+      entryPoint.values,
+      (id) => nodes[id],
+      values,
+    )
+  }
 
   return {
     getCompatibilityLevel,
-    isCompatible,
+    getCompatibilityLevels,
     waitDescriptors,
     withCompatibleRuntime,
     compatibleRuntime$,
+    argsAreCompatible,
+    valuesAreCompatible,
   }
 }
 export type CompatibilityHelper = ReturnType<typeof compatibilityHelper>
+
+export const minCompatLevel = (levels: {
+  args: CompatibilityLevel
+  values: CompatibilityLevel
+}) => Math.min(levels.args, levels.values)
 
 const withOptionalRuntime =
   <T>(

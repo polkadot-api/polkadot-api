@@ -1,8 +1,13 @@
 import { firstValueFromWithSignal, raceMap } from "@/utils"
+import { ChainHead$, NotBestBlockError } from "@polkadot-api/observable-client"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { Observable, debounceTime, distinctUntilChanged, map } from "rxjs"
-import { ChainHead$, NotBestBlockError } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, CompatibilityFunctions } from "./runtime"
+import {
+  CompatibilityFunctions,
+  CompatibilityHelper,
+  minCompatLevel,
+} from "./runtime"
+import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
 
 type CallOptions = Partial<{
   /**
@@ -135,13 +140,16 @@ export const createStorageEntry = (
   chainHead: ChainHead$,
   {
     getCompatibilityLevel,
+    getCompatibilityLevels,
     waitDescriptors,
     withCompatibleRuntime,
+    argsAreCompatible,
+    valuesAreCompatible,
   }: CompatibilityHelper,
 ): StorageEntry<any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
 
-  const checksumError = () =>
+  const incompatibleError = () =>
     new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
   const invalidArgs = (args: Array<any>) =>
     new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
@@ -159,12 +167,20 @@ export const createStorageEntry = (
 
     return chainHead[target === "best" ? "best$" : "finalized$"].pipe(
       debounceTime(0),
-      withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
-      raceMap(([block, ctx]) => {
+      withCompatibleRuntime(chainHead, (x) => x.hash),
+      raceMap(([block, runtime, ctx]) => {
+        if (!argsAreCompatible(runtime, ctx, actualArgs))
+          throw incompatibleError()
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         return chainHead
           .storage$(block.hash, "value", () => codecs.enc(...actualArgs))
-          .pipe(map((val) => ({ val, codecs })))
+          .pipe(
+            map((val) => {
+              if (!valuesAreCompatible(runtime, ctx, val))
+                throw incompatibleError()
+              return { val, codecs }
+            }),
+          )
       }, 4),
       distinctUntilChanged((a, b) => a.val === b.val),
       map(({ val, codecs }) =>
@@ -194,22 +210,26 @@ export const createStorageEntry = (
         distinctUntilChanged(),
       )
     } else {
-      const isCompatible = await waitDescriptors()
+      const descriptors = await waitDescriptors()
       result$ = chainHead.storage$(
         at,
         "value",
         (ctx) => {
-          if (!isCompatible(ctx)) throw checksumError()
           const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
           const actualArgs =
             args.length === codecs.len ? args : args.slice(0, -1)
           if (args !== actualArgs && !isLastArgOptional) throw invalidArgs(args)
+          if (!argsAreCompatible(descriptors, ctx, actualArgs))
+            throw incompatibleError()
           return codecs.enc(...actualArgs)
         },
         null,
         (data, ctx) => {
           const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
-          return data === null ? codecs.fallback : codecs.dec(data)
+          const value = data === null ? codecs.fallback : codecs.dec(data)
+          if (!valuesAreCompatible(descriptors, ctx, value))
+            throw incompatibleError()
+          return value
         },
       )
     }
@@ -223,12 +243,17 @@ export const createStorageEntry = (
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const isCompatible = await waitDescriptors()
+    const descriptors = await waitDescriptors()
     const result$ = chainHead.storage$(
       at,
       "descendantsValues",
       (ctx) => {
-        if (!isCompatible(ctx)) throw checksumError()
+        // TODO partial compatibility check for args that become optional
+        if (
+          minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
+          CompatibilityLevel.Incompatible
+        )
+          throw incompatibleError()
 
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         if (args.length > codecs.len) throw invalidArgs(args)
@@ -241,6 +266,12 @@ export const createStorageEntry = (
       null,
       (values, ctx) => {
         const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+        if (
+          values.some(
+            ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
+          )
+        )
+          throw incompatibleError()
         return values.map(({ key, value }) => ({
           keyArgs: codecs.keyDecoder(key),
           value: codecs.dec(value),

@@ -1,6 +1,5 @@
-import { firstValueFrom, map } from "rxjs"
-import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, CompatibilityFunctions, Runtime } from "./runtime"
+import { RuntimeContext } from "@polkadot-api/observable-client"
+import { CompatibilityFunctions, CompatibilityHelper, Runtime } from "./runtime"
 
 export interface ConstantEntry<T> extends CompatibilityFunctions {
   /**
@@ -19,16 +18,12 @@ export interface ConstantEntry<T> extends CompatibilityFunctions {
 export const createConstantEntry = <T>(
   palletName: string,
   name: string,
-  chainHead: ChainHead$,
   {
-    isCompatible,
+    valuesAreCompatible,
+    waitDescriptors,
     getCompatibilityLevel,
-    compatibleRuntime$,
   }: CompatibilityHelper,
 ): ConstantEntry<T> => {
-  const checksumError = () =>
-    new Error(`Incompatible runtime entry Constant(${palletName}.${name})`)
-
   const cachedResults = new WeakMap<RuntimeContext, T>()
   const getValueWithContext = (ctx: RuntimeContext) => {
     if (cachedResults.has(ctx)) {
@@ -46,14 +41,15 @@ export const createConstantEntry = <T>(
 
   const fn = (runtime?: Runtime): any => {
     if (runtime) {
-      if (!isCompatible(runtime)) throw checksumError()
-      return getValueWithContext(runtime._getCtx())
+      const ctx = runtime._getCtx()
+      const value = getValueWithContext(ctx)
+      if (!valuesAreCompatible(runtime, ctx, value))
+        throw new Error(
+          `Incompatible runtime entry Constant(${palletName}.${name})`,
+        )
+      return value
     }
-    return firstValueFrom(
-      compatibleRuntime$(chainHead, null, checksumError).pipe(
-        map(getValueWithContext),
-      ),
-    )
+    return waitDescriptors().then(fn)
   }
 
   return Object.assign(fn, { getCompatibilityLevel })

@@ -123,7 +123,6 @@ const createTypedApi = <D extends ChainDefinition>(
     createConstantEntry(
       pallet,
       name,
-      chainHead,
       compatibilityHelper(
         runtime,
         (r) => r._getPalletEntryPoint(OpType.Const, pallet, name),

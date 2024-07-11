@@ -8,12 +8,7 @@ import {
   type V15,
 } from "@polkadot-api/substrate-bindings"
 import { isCompatible } from "./isCompatible"
-import {
-  CompatibilityCache,
-  isStaticCompatible,
-  StaticCompatibleResult,
-  strictMerge,
-} from "./isStaticCompatible"
+import { CompatibilityCache, isStaticCompatible } from "./isStaticCompatible"
 import {
   mapLookupToTypedef,
   mapReferences,
@@ -110,7 +105,7 @@ export function entryPointsAreCompatible(
   runtimeEntry: EntryPoint,
   getRuntimeNode: (id: number) => TypedefNode,
   cache: CompatibilityCache,
-): StaticCompatibleResult {
+) {
   const resolveNode = (
     node: EntryPointNode,
     getTypedef: (id: number) => TypedefNode,
@@ -118,24 +113,22 @@ export function entryPointsAreCompatible(
     node.type === "lookup" ? getTypedef(node.value) : node.value
 
   // EntryPoint interaction "origin -> dest" is descriptor -> runtime for args, and runtime -> descriptor for values.
-  return strictMerge([
-    () =>
-      isStaticCompatible(
-        resolveNode(descriptorEntry.args, getDescriptorNode),
-        getDescriptorNode,
-        resolveNode(runtimeEntry.args, getRuntimeNode),
-        getRuntimeNode,
-        cache,
-      ),
-    () =>
-      isStaticCompatible(
-        resolveNode(runtimeEntry.values, getRuntimeNode),
-        getRuntimeNode,
-        resolveNode(descriptorEntry.values, getDescriptorNode),
-        getDescriptorNode,
-        cache,
-      ),
-  ])
+  return {
+    args: isStaticCompatible(
+      resolveNode(descriptorEntry.args, getDescriptorNode),
+      getDescriptorNode,
+      resolveNode(runtimeEntry.args, getRuntimeNode),
+      getRuntimeNode,
+      cache,
+    ).level,
+    values: isStaticCompatible(
+      resolveNode(runtimeEntry.values, getRuntimeNode),
+      getRuntimeNode,
+      resolveNode(descriptorEntry.values, getDescriptorNode),
+      getDescriptorNode,
+      cache,
+    ).level,
+  }
 }
 
 export function valueIsCompatibleWithDest(

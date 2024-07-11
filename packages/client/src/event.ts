@@ -67,20 +67,32 @@ export const createEventEntry = <T>(
   pallet: string,
   name: string,
   chainHead: ChainHead$,
-  { getCompatibilityLevel, withCompatibleRuntime }: CompatibilityHelper,
+  {
+    getCompatibilityLevel,
+    withCompatibleRuntime,
+    argsAreCompatible,
+    valuesAreCompatible,
+  }: CompatibilityHelper,
 ): EvClient<T> => {
-  const checksumError = () =>
+  const compatibilityError = () =>
     new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
 
   const shared$ = chainHead.finalized$.pipe(
-    withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
-    concatMapEager(([block]) =>
+    withCompatibleRuntime(chainHead, (x) => x.hash),
+    map(([block, runtime, ctx]) => {
+      if (!argsAreCompatible(runtime, ctx, null)) throw compatibilityError()
+      return [block, runtime, ctx] as const
+    }),
+    concatMapEager(([block, runtime, ctx]) =>
       chainHead.eventsAt$(block.hash).pipe(
         map((events) => {
           const winners = events.filter(
             (e) => e.event.type === pallet && e.event.value.type === name,
           )
           return winners.map((x) => {
+            // TODO check which one it is XD
+            if (!valuesAreCompatible(runtime, ctx, x.event.value))
+              throw compatibilityError()
             return {
               meta: {
                 phase: x.phase,

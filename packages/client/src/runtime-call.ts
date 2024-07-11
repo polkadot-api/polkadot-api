@@ -39,10 +39,15 @@ export const createRuntimeCallEntry = (
   api: string,
   method: string,
   chainHead: ChainHead$,
-  { getCompatibilityLevel, compatibleRuntime$ }: CompatibilityHelper,
+  {
+    getCompatibilityLevel,
+    compatibleRuntime$,
+    argsAreCompatible,
+    valuesAreCompatible,
+  }: CompatibilityHelper,
 ): RuntimeCall<any, any> => {
   const callName = `${api}_${method}`
-  const checksumError = () =>
+  const compatibilityError = () =>
     new Error(`Incompatible runtime entry RuntimeCall(${callName})`)
 
   const fn = (...args: Array<any>) => {
@@ -51,12 +56,20 @@ export const createRuntimeCallEntry = (
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const result$ = compatibleRuntime$(chainHead, at, checksumError).pipe(
-      mergeMap((ctx) => {
+    const result$ = compatibleRuntime$(chainHead, at).pipe(
+      mergeMap(([runtime, ctx]) => {
+        if (!argsAreCompatible(runtime, ctx, args)) {
+          throw compatibilityError()
+        }
         const codecs = ctx.dynamicBuilder.buildRuntimeCall(api, method)
-        return chainHead
-          .call$(at, callName, toHex(codecs.args.enc(args)))
-          .pipe(map(codecs.value.dec))
+        return chainHead.call$(at, callName, toHex(codecs.args.enc(args))).pipe(
+          map(codecs.value.dec),
+          map((value) => {
+            if (!valuesAreCompatible(runtime, ctx, value))
+              throw compatibilityError()
+            return value
+          }),
+        )
       }),
     )
 
