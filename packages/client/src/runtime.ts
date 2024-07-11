@@ -187,16 +187,13 @@ export const compatibilityHelper = (
     getCompatibilityLevelSync,
   )
   const isCompatible = withOptionalRuntime(runtimeApi, (runtime) => {
-    const level = getCompatibilityLevelSync(runtime)
-    return level === CompatibilityLevel.Partial
-      ? "partial"
-      : getCompatibilityLevelSync(runtime) > CompatibilityLevel.Partial
+    return getCompatibilityLevelSync(runtime) > CompatibilityLevel.Partial
   })
 
   const waitDescriptors = async () => {
     const runtime = await runtimeApi.latest()
     return (ctx: RuntimeContext) =>
-      getCompatibilityLevelSync(runtime, ctx) >= CompatibilityLevel.Partial
+      getCompatibilityLevelSync(runtime, ctx) > CompatibilityLevel.Partial
   }
   const compatibleRuntime$ = (
     chainHead: ChainHead$,
