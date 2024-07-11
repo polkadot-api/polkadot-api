@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-07-11
+
 ### Changed
 
 - Add API to sign raw-data and rename `sign` to `signTx`

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.2 - 2024-07-11
+
 ### Fixed
 
 - use `bigCompact` when required on `dynamic-builder`
