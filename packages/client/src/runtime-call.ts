@@ -1,8 +1,8 @@
 import { firstValueFromWithSignal } from "@/utils"
+import { ChainHead$ } from "@polkadot-api/observable-client"
 import { toHex } from "@polkadot-api/utils"
 import { map, mergeMap } from "rxjs"
-import { ChainHead$ } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, CompatibilityFunctions } from "./runtime"
+import { CompatibilityFunctions, CompatibilityHelper } from "./runtime"
 
 type CallOptions = Partial<{
   at: string
@@ -58,9 +58,7 @@ export const createRuntimeCallEntry = (
 
     const result$ = compatibleRuntime$(chainHead, at).pipe(
       mergeMap(([runtime, ctx]) => {
-        if (!argsAreCompatible(runtime, ctx, args)) {
-          throw compatibilityError()
-        }
+        if (!argsAreCompatible(runtime, ctx, args)) throw compatibilityError()
         const codecs = ctx.dynamicBuilder.buildRuntimeCall(api, method)
         return chainHead.call$(at, callName, toHex(codecs.args.enc(args))).pipe(
           map(codecs.value.dec),

@@ -90,8 +90,7 @@ export const createEventEntry = <T>(
             (e) => e.event.type === pallet && e.event.value.type === name,
           )
           return winners.map((x) => {
-            // TODO check which one it is XD
-            if (!valuesAreCompatible(runtime, ctx, x.event.value))
+            if (!valuesAreCompatible(runtime, ctx, x.event.value.value))
               throw compatibilityError()
             return {
               meta: {

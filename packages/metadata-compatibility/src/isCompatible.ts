@@ -43,13 +43,13 @@ export function isCompatible(
     case "terminal":
       return checkTerminal(destNode)
     case "binary":
-      // TODO check on runtime which one of this is the correct one (maybe both?).
-      // TODO check length
-      return value instanceof Uint8Array || value instanceof Binary
+      return (
+        value instanceof Binary &&
+        (destNode.value == null || value.asBytes().length >= destNode.value)
+      )
     case "array":
       if (!Array.isArray(value)) return false
       const valueArr = value as Array<any>
-      // TODO check on runtime passing an array with greater length sends in truncated to destNode.length
       if (
         destNode.value.length != null &&
         valueArr.length < destNode.value.length
