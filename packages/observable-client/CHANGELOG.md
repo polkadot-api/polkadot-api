@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.2 - 2024-07-11
+
 ### Fixed
 
 - Fix caching bug [#556](https://github.com/polkadot-api/polkadot-api/pull/556)

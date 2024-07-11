@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.0 - 2024-07-11
+
 ### Added
 
 - re-export `getSs58AddressInfo` from `@polkadot-api/substrate-bindings`
