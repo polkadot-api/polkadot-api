@@ -6,9 +6,15 @@
 
 - Replaced `isCompatible()` functions for `getCompatibilityLevel()`, for a more granular control of runtime upgrades [#561](https://github.com/polkadot-api/polkadot-api/pull/561)
 
+## 0.10.0 - 2024-07-11
+
 ### Added
 
 - re-export `getSs58AddressInfo` from `@polkadot-api/substrate-bindings`
+
+### Changed
+
+- `polkadot-signer`: Add API to sign raw-data and rename `sign` to `signTx`
 
 ## 0.9.1 - 2024-07-03
 

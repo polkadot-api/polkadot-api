@@ -1,6 +1,6 @@
 export interface PolkadotSigner {
   publicKey: Uint8Array
-  sign: (
+  signTx: (
     callData: Uint8Array,
     signedExtensions: Record<
       string,
@@ -14,4 +14,5 @@ export interface PolkadotSigner {
     atBlockNumber: number,
     hasher?: (data: Uint8Array) => Uint8Array,
   ) => Promise<Uint8Array>
+  signBytes: (data: Uint8Array) => Promise<Uint8Array>
 }

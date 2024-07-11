@@ -1,63 +1,23 @@
-import { AccountId } from "@polkadot-api/substrate-bindings"
 import { getPolkadotSignerFromPjs } from "./from-pjs-account"
-import type { SignerPayloadJSON } from "./types"
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import type {
+  InjectedAccount,
+  InjectedExtension,
+  InjectedPolkadotAccount,
+  KeypairType,
+} from "./types"
 
-declare global {
-  interface Window {
-    injectedWeb3?: InjectedWeb3
-  }
+export type {
+  KeypairType,
+  InjectedExtension,
+  InjectedAccount,
+  InjectedPolkadotAccount,
 }
-export type InjectedWeb3 = Record<
-  string,
-  | {
-      enable: () => Promise<PjsInjectedExtension>
-    }
-  | undefined
->
 
-export type KeypairType = "ed25519" | "sr25519" | "ecdsa"
 const supportedAccountTypes = new Set<KeypairType>([
   "ed25519",
   "sr25519",
   "ecdsa",
 ])
-
-interface InjectedAccount {
-  address: string
-  genesisHash?: string | null
-  name?: string
-  type?: KeypairType
-}
-
-export interface InjectedPolkadotAccount {
-  polkadotSigner: PolkadotSigner
-  address: string
-  genesisHash?: string | null
-  name?: string
-  type?: KeypairType
-}
-
-interface PjsInjectedExtension {
-  signer: {
-    signPayload: (
-      payload: SignerPayloadJSON,
-    ) => Promise<{ signature: string; signedTransaction?: string | Uint8Array }>
-  }
-  accounts: {
-    get: () => Promise<InjectedPolkadotAccount[]>
-    subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => () => void
-  }
-}
-
-const getPublicKey = AccountId().enc
-
-export interface InjectedExtension {
-  name: string
-  getAccounts: () => InjectedPolkadotAccount[]
-  subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => () => void
-  disconnect: () => void
-}
 
 export const connectInjectedExtension = async (
   name: string,
@@ -70,6 +30,7 @@ export const connectInjectedExtension = async (
   const signPayload = enabledExtension.signer.signPayload.bind(
     enabledExtension.signer,
   )
+  const signRaw = enabledExtension.signer.signRaw.bind(enabledExtension.signer)
 
   const toPolkadotInjected = (
     accounts: InjectedAccount[],
@@ -78,8 +39,9 @@ export const connectInjectedExtension = async (
       .filter(({ type }) => supportedAccountTypes.has(type!))
       .map((x) => {
         const polkadotSigner = getPolkadotSignerFromPjs(
-          getPublicKey(x.address),
+          x.address,
           signPayload,
+          signRaw,
         )
         return {
           ...x,

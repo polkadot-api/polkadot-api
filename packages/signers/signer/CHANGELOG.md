@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.0 - 2024-07-11
+
+### Changed
+
+- Add API to sign arbitrary bytes and rename `sign` to `signTx`
+
 ## 0.0.2 - 2024-07-03
 
 - Update dependencies

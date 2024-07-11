@@ -6,6 +6,13 @@
 
 - Generate metadata types instead of checksums [#561](https://github.com/polkadot-api/polkadot-api/pull/561)
 
+## 0.5.2 - 2024-07-11
+
+### Fixed
+
+- Fixed exception when adding chains from some WASM runtimes
+- Update dependencies
+
 ## 0.5.1 - 2024-07-03
 
 ### Fixed
