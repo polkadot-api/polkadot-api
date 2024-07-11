@@ -43,7 +43,7 @@ export type ChainDefinition = {
     apis: ApisTypedef<any>
   }
   asset: AssetDescriptor<any>
-  checksums: Promise<string[]>
+  metadataTypes: Promise<Uint8Array>
 }
 
 type ExtractStorage<

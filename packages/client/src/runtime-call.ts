@@ -1,8 +1,8 @@
 import { firstValueFromWithSignal } from "@/utils"
+import { ChainHead$ } from "@polkadot-api/observable-client"
 import { toHex } from "@polkadot-api/utils"
 import { map, mergeMap } from "rxjs"
-import { ChainHead$ } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, IsCompatible } from "./runtime"
+import { CompatibilityFunctions, CompatibilityHelper } from "./runtime"
 
 type CallOptions = Partial<{
   at: string
@@ -13,7 +13,8 @@ type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   ? [options?: CallOptions]
   : [...args: Args, options?: CallOptions]
 
-export interface RuntimeCall<Args extends Array<any>, Payload> {
+export interface RuntimeCall<Args extends Array<any>, Payload>
+  extends CompatibilityFunctions {
   /**
    * Get `Payload` (Promise-based) for the runtime call.
    *
@@ -22,11 +23,6 @@ export interface RuntimeCall<Args extends Array<any>, Payload> {
    *              known finalized is the default) and an AbortSignal.
    */
   (...args: WithCallOptions<Args>): Promise<Payload>
-  /**
-   * `isCompatible` enables you to check whether or not the call you're trying
-   * to make is compatible with the descriptors you generated on dev time.
-   */
-  isCompatible: IsCompatible
 }
 
 const isOptionalArg = (lastArg: any) => {
@@ -43,13 +39,15 @@ export const createRuntimeCallEntry = (
   api: string,
   method: string,
   chainHead: ChainHead$,
-  compatibilityHelper: CompatibilityHelper,
+  {
+    getCompatibilityLevel,
+    compatibleRuntime$,
+    argsAreCompatible,
+    valuesAreCompatible,
+  }: CompatibilityHelper,
 ): RuntimeCall<any, any> => {
-  const { isCompatible, compatibleRuntime$ } = compatibilityHelper((ctx) =>
-    ctx.checksumBuilder.buildRuntimeCall(api, method),
-  )
   const callName = `${api}_${method}`
-  const checksumError = () =>
+  const compatibilityError = () =>
     new Error(`Incompatible runtime entry RuntimeCall(${callName})`)
 
   const fn = (...args: Array<any>) => {
@@ -58,17 +56,23 @@ export const createRuntimeCallEntry = (
     const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const result$ = compatibleRuntime$(chainHead, at, checksumError).pipe(
-      mergeMap((ctx) => {
+    const result$ = compatibleRuntime$(chainHead, at).pipe(
+      mergeMap(([runtime, ctx]) => {
+        if (!argsAreCompatible(runtime, ctx, args)) throw compatibilityError()
         const codecs = ctx.dynamicBuilder.buildRuntimeCall(api, method)
-        return chainHead
-          .call$(at, callName, toHex(codecs.args.enc(args)))
-          .pipe(map(codecs.value.dec))
+        return chainHead.call$(at, callName, toHex(codecs.args.enc(args))).pipe(
+          map(codecs.value.dec),
+          map((value) => {
+            if (!valuesAreCompatible(runtime, ctx, value))
+              throw compatibilityError()
+            return value
+          }),
+        )
       }),
     )
 
     return firstValueFromWithSignal(result$, signal)
   }
 
-  return Object.assign(fn, { isCompatible })
+  return Object.assign(fn, { getCompatibilityLevel })
 }

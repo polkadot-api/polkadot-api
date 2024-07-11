@@ -1,6 +1,6 @@
 import { Observable, firstValueFrom, map, mergeMap } from "rxjs"
 import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
-import { CompatibilityHelper, IsCompatible } from "./runtime"
+import { CompatibilityFunctions, CompatibilityHelper } from "./runtime"
 import { concatMapEager, shareLatest } from "./utils"
 
 export type EventPhase =
@@ -49,12 +49,7 @@ export type EvClient<T> = {
    * @param collection  Array of `SystemEvent` to filter.
    */
   filter: EvFilter<T>
-  /**
-   * `isCompatible` enables you to check whether or not the call you're trying
-   * to make is compatible with the descriptors you generated on dev time.
-   */
-  isCompatible: IsCompatible
-}
+} & CompatibilityFunctions
 
 type SystemEvent = {
   phase: EventPhase
@@ -72,23 +67,31 @@ export const createEventEntry = <T>(
   pallet: string,
   name: string,
   chainHead: ChainHead$,
-  compatibilityHelper: CompatibilityHelper,
+  {
+    getCompatibilityLevel,
+    withCompatibleRuntime,
+    argsAreCompatible,
+    valuesAreCompatible,
+  }: CompatibilityHelper,
 ): EvClient<T> => {
-  const { isCompatible, withCompatibleRuntime } = compatibilityHelper((ctx) =>
-    ctx.checksumBuilder.buildEvent(pallet, name),
-  )
-  const checksumError = () =>
+  const compatibilityError = () =>
     new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
 
   const shared$ = chainHead.finalized$.pipe(
-    withCompatibleRuntime(chainHead, (x) => x.hash, checksumError),
-    concatMapEager(([block]) =>
+    withCompatibleRuntime(chainHead, (x) => x.hash),
+    map(([block, runtime, ctx]) => {
+      if (!argsAreCompatible(runtime, ctx, null)) throw compatibilityError()
+      return [block, runtime, ctx] as const
+    }),
+    concatMapEager(([block, runtime, ctx]) =>
       chainHead.eventsAt$(block.hash).pipe(
         map((events) => {
           const winners = events.filter(
             (e) => e.event.type === pallet && e.event.value.type === name,
           )
           return winners.map((x) => {
+            if (!valuesAreCompatible(runtime, ctx, x.event.value.value))
+              throw compatibilityError()
             return {
               meta: {
                 phase: x.phase,
@@ -113,5 +116,5 @@ export const createEventEntry = <T>(
       .filter((e) => e.type === pallet && e.value.type === name)
       .map((x) => x.value.value)
 
-  return { watch, pull, filter, isCompatible }
+  return { watch, pull, filter, getCompatibilityLevel }
 }

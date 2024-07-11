@@ -1,7 +1,7 @@
 import { getMetadata } from "@/metadata"
 import { EntryConfig, readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
-import { V14, V15 } from "@polkadot-api/substrate-bindings"
+import { Tuple, V14, V15, Vector } from "@polkadot-api/substrate-bindings"
 import fs, { mkdtemp, rm } from "fs/promises"
 import path, { join } from "path"
 import process from "process"
@@ -11,6 +11,8 @@ import { CommonOptions } from "./commonOptions"
 import fsExists from "fs.promises.exists"
 import { existsSync } from "fs"
 import { tmpdir } from "os"
+import { EntryPointCodec } from "@polkadot-api/metadata-compatibility"
+import { TypedefCodec } from "@polkadot-api/metadata-compatibility"
 
 export interface GenerateOptions extends CommonOptions {
   key?: string
@@ -93,14 +95,14 @@ async function outputCodegen(
   const {
     descriptorsFileContent,
     descriptorTypesFileContent,
-    checksums,
+    metadataTypes,
     typesFileContent,
     publicTypes,
   } = generateMultipleDescriptors(
     chains,
     {
       client: clientPath,
-      checksums: "./checksums.json",
+      metadataTypes: "./metadataTypes.scale",
       types: "./common-types",
       descriptorValues: "./descriptors",
     },
@@ -108,15 +110,27 @@ async function outputCodegen(
       whitelist: whitelist ?? undefined,
     },
   )
+  const EntryPointsCodec = Vector(EntryPointCodec)
+  const TypedefsCodec = Vector(TypedefCodec)
+  const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
 
   await fs.mkdir(outputFolder, { recursive: true })
   await fs.writeFile(
-    path.join(outputFolder, "checksums.json"),
-    JSON.stringify(checksums),
+    path.join(outputFolder, "metadataTypes.scale"),
+    TypesCodec.enc([metadataTypes.entryPoints, metadataTypes.typedefs]),
+  )
+  await fs.writeFile(
+    path.join(outputFolder, "scale-import.d.ts"),
+    `declare module "*.scale" {
+      const content: string;
+      export default content;
+    }
+    `,
   )
   await fs.writeFile(
     path.join(outputFolder, "descriptors.ts"),
-    descriptorsFileContent,
+    `///<reference path="./scale-import.d.ts"/>
+${descriptorsFileContent}`,
   )
   await fs.writeFile(
     path.join(outputFolder, "common-types.ts"),
@@ -148,6 +162,10 @@ async function compileCodegen(packageDir: string) {
   await tsup.build({
     format: ["cjs", "esm"],
     entry: [path.join(srcDir, "index.ts")],
+    loader: {
+      ".scale": "binary",
+    },
+    platform: "neutral",
     outDir,
     outExtension: (ctx) => ({
       js: ctx.format === "esm" ? ".mjs" : ".js",

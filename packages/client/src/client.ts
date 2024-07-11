@@ -1,5 +1,8 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
-import { getObservableClient } from "@polkadot-api/observable-client"
+import {
+  getObservableClient,
+  RuntimeContext,
+} from "@polkadot-api/observable-client"
 import {
   SubstrateClient,
   createClient as createRawClient,
@@ -13,6 +16,14 @@ import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import { PolkadotClient, TypedApi } from "./types"
+import {
+  enumValueEntryPointNode,
+  runtimeCallEntryPoint,
+  singleValueEntryPoint,
+  storageEntryPoint,
+  voidEntryPointNode,
+} from "@polkadot-api/metadata-compatibility"
+import { getLookupFn } from "@polkadot-api/metadata-builders"
 
 const createTypedApi = <D extends ChainDefinition>(
   chainDefinition: D,
@@ -20,7 +31,7 @@ const createTypedApi = <D extends ChainDefinition>(
   broadcast$: (tx: string) => Observable<never>,
 ): TypedApi<D> => {
   const runtime = getRuntimeApi(
-    chainDefinition.checksums,
+    chainDefinition.metadataTypes,
     chainDefinition.descriptors,
     chainHead,
   )
@@ -43,17 +54,42 @@ const createTypedApi = <D extends ChainDefinition>(
     }) as Record<string, Record<string, T>>
   }
 
+  const getPallet = (ctx: RuntimeContext, name: string) =>
+    ctx.metadata.pallets.find((p) => p.name === name)!
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,
       name,
       chainHead,
-      compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Storage, pallet, name),
+      compatibilityHelper(
+        runtime,
+        (r) => r._getPalletEntryPoint(OpType.Storage, pallet, name),
+        // TODO this is way sub-optimal. Needs some rethought. Specially down below
+        (ctx) =>
+          storageEntryPoint(
+            getPallet(ctx, pallet).storage!.items.find((s) => s.name === name)!,
+          ),
       ),
     ),
   )
 
+  const getEnumEntry = (
+    ctx: RuntimeContext,
+    side: "args" | "values",
+    id: number,
+    name: string,
+  ) => {
+    // As part of the refactor, maybe the lookup function could be added to ctx?
+    const lookup = getLookupFn(ctx.metadata.lookup)
+    const entry = lookup(id)
+    if (entry.type !== "enum") throw new Error("Expected enum")
+
+    const node = enumValueEntryPointNode(entry.value[name])
+    return {
+      args: side === "args" ? node : voidEntryPointNode,
+      values: side === "args" ? voidEntryPointNode : node,
+    }
+  }
   const tx = createProxyPath((pallet, name) =>
     createTxEntry(
       pallet,
@@ -61,8 +97,10 @@ const createTypedApi = <D extends ChainDefinition>(
       chainDefinition.asset,
       chainHead,
       broadcast$,
-      compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Tx, pallet, name),
+      compatibilityHelper(
+        runtime,
+        (r) => r._getPalletEntryPoint(OpType.Tx, pallet, name),
+        (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, name),
       ),
     ),
   )
@@ -72,8 +110,11 @@ const createTypedApi = <D extends ChainDefinition>(
       pallet,
       name,
       chainHead,
-      compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Event, pallet, name),
+      compatibilityHelper(
+        runtime,
+        (r) => r._getPalletEntryPoint(OpType.Event, pallet, name),
+        (ctx) =>
+          getEnumEntry(ctx, "values", getPallet(ctx, pallet).events!, name),
       ),
     ),
   )
@@ -82,9 +123,13 @@ const createTypedApi = <D extends ChainDefinition>(
     createConstantEntry(
       pallet,
       name,
-      chainHead,
-      compatibilityHelper(runtime, (r) =>
-        r._getPalletChecksum(OpType.Const, pallet, name),
+      compatibilityHelper(
+        runtime,
+        (r) => r._getPalletEntryPoint(OpType.Const, pallet, name),
+        (ctx) =>
+          singleValueEntryPoint(
+            getPallet(ctx, pallet).constants.find((c) => c.name === name)!.type,
+          ),
       ),
     ),
   )
@@ -94,7 +139,16 @@ const createTypedApi = <D extends ChainDefinition>(
       api,
       method,
       chainHead,
-      compatibilityHelper(runtime, (r) => r._getApiChecksum(api, method)),
+      compatibilityHelper(
+        runtime,
+        (r) => r._getApiEntryPoint(api, method),
+        (ctx) =>
+          runtimeCallEntryPoint(
+            ctx.metadata.apis
+              .find((a) => a.name === api)!
+              .methods.find((m) => m.name === method)!,
+          ),
+      ),
     ),
   )
 

@@ -43,13 +43,13 @@ export type DescriptorValues = Record<
 
 export const generateDescriptors = (
   metadata: V14 | V15,
-  checksums: string[],
+  checksumToIdx: Map<string, number>,
   typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
   prefix: string,
   paths: {
     client: string
-    checksums: string
+    metadataTypes: string
     types: string
     descriptorValues: string
   },
@@ -81,7 +81,7 @@ export const generateDescriptors = (
             return [
               name,
               {
-                checksum: checksums.indexOf(checksum),
+                typeRef: checksumToIdx.get(checksum)!,
                 type,
                 name: `stg_${pallet.name}_${name}`,
                 docs,
@@ -107,7 +107,7 @@ export const generateDescriptors = (
             return [
               name,
               {
-                checksum: checksums.indexOf(checksum),
+                typeRef: checksumToIdx.get(checksum)!,
                 type,
                 name: `const_${pallet.name}_${name}`,
                 docs,
@@ -124,9 +124,9 @@ export const generateDescriptors = (
       return [
         pallet.name,
         buildEnumObj(pallet.calls, (name, docs) => ({
-          checksum: checksums.indexOf(
+          typeRef: checksumToIdx.get(
             checksumBuilder.buildCall(pallet.name, name)!,
-          ),
+          )!,
           type: `TxDescriptor<${typesBuilder.buildCall(pallet.name, name)}>`,
           name: `call_${pallet.name}_${name}`,
           docs,
@@ -140,9 +140,9 @@ export const generateDescriptors = (
       return [
         pallet.name,
         buildEnumObj(pallet.events, (name, docs) => ({
-          checksum: checksums.indexOf(
+          typeRef: checksumToIdx.get(
             checksumBuilder.buildEvent(pallet.name, name)!,
-          ),
+          )!,
           type: `PlainDescriptor<${typesBuilder.buildEvent(
             pallet.name,
             name,
@@ -160,9 +160,9 @@ export const generateDescriptors = (
         pallet.name,
         buildEnumObj(pallet.errors, (name, docs) => {
           return {
-            checksum: checksums.indexOf(
+            typeRef: checksumToIdx.get(
               checksumBuilder.buildError(pallet.name, name)!,
-            ),
+            )!,
             type: `PlainDescriptor<${typesBuilder.buildError(
               pallet.name,
               name,
@@ -189,9 +189,9 @@ export const generateDescriptors = (
             return [
               method.name,
               {
-                checksum: checksums.indexOf(
+                typeRef: checksumToIdx.get(
                   checksumBuilder.buildRuntimeCall(api.name, method.name)!,
-                ),
+                )!,
                 type: `RuntimeDescriptor<${args}, ${value}>`,
                 name: `runtime_${api.name}_${method.name}`,
                 docs: method.docs,
@@ -240,20 +240,20 @@ export const generateDescriptors = (
   Object.keys(storage).forEach((pallet) => {
     descriptorValues["storage"][pallet] = mapObjStr(
       storage[pallet],
-      (x, _: string) => x.checksum,
+      (x, _: string) => x.typeRef,
     )
-    descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.checksum)
+    descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
     descriptorValues["events"][pallet] = mapObjStr(
       events[pallet],
-      (x) => x.checksum,
+      (x) => x.typeRef,
     )
     descriptorValues["errors"][pallet] = mapObjStr(
       errors[pallet],
-      (x) => x.checksum,
+      (x) => x.typeRef,
     )
     descriptorValues["constants"][pallet] = mapObjStr(
       constants[pallet],
-      (x) => x.checksum,
+      (x) => x.typeRef,
     )
   })
 
@@ -263,7 +263,7 @@ export const generateDescriptors = (
   }))
 
   descriptorValues["apis"] = mapObject(runtimeCalls, (api) =>
-    mapObject(api.methods, (x) => x.checksum),
+    mapObject(api.methods, (x) => x.typeRef),
   )
 
   const clientImports = [
@@ -312,7 +312,7 @@ export const generateDescriptors = (
   }";
 
   const descriptorValues = import("${paths.descriptorValues}").then(module => module["${prefix}"]);
-  const checksums = import("${paths.checksums}").then(module => 'default' in module ? module.default : module);
+  const metadataTypes = import("${paths.metadataTypes}").then(module => 'default' in module ? module.default : module);
   `
 
   const descriptorTypes = `${imports}
@@ -384,10 +384,10 @@ type IDescriptors = {
     pallets: PalletsTypedef,
     apis: IRuntimeCalls
   } & Promise<any>,
-  asset: IAsset,
-  checksums: Promise<string[]>
+  metadataTypes: Promise<Uint8Array>
+  asset: IAsset
 };
-const _allDescriptors = { descriptors: descriptorValues, asset, checksums } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>

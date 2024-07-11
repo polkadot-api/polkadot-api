@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking
+
+- Generate metadata types instead of checksums [#561](https://github.com/polkadot-api/polkadot-api/pull/561)
+
 ## 0.6.2 - 2024-07-11
 
 ### Fixed

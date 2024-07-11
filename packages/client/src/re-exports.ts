@@ -15,3 +15,4 @@ export {
   _Enum,
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
+export { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"

@@ -11,8 +11,6 @@ import {
   _void,
   compact,
   str,
-  type V14,
-  type V15,
 } from "@polkadot-api/substrate-bindings"
 
 const smallCompact = compact as Codec<number>
@@ -29,7 +27,7 @@ export const Primitive = {
   big: "bigint" as const,
   numeric: "numeric" as const,
   bits: "bitseq" as const,
-  bin: "binary" as const,
+  void: "void" as const,
 }
 export type PRIMITIVES = (typeof Primitive)[keyof typeof Primitive]
 
@@ -67,7 +65,13 @@ export interface ArrayNode {
 const ArrayCodec = Struct({
   typeRef: smallCompact,
   length: Option(smallCompact),
-}) as any as Codec<ArrayNode["value"]>
+}) as Codec<ArrayNode["value"]>
+
+export interface BinaryNode {
+  type: "binary"
+  value: number | undefined
+}
+const BinaryCodec = Option(compact) as Codec<BinaryNode["value"]>
 
 export interface OptionNode {
   type: "option"
@@ -93,6 +97,7 @@ export type TypedefNode =
   | EnumNode
   | TupleNode
   | ArrayNode
+  | BinaryNode
   | OptionNode
   | ResultNode
 export const TypedefCodec: Codec<TypedefNode> = Variant({
@@ -101,6 +106,7 @@ export const TypedefCodec: Codec<TypedefNode> = Variant({
   enum: EnumCodec,
   tuple: TupleCodec,
   array: ArrayCodec,
+  binary: BinaryCodec,
   option: OptionCodec,
   result: ResultCodec,
 })
@@ -130,14 +136,14 @@ const terminal = (type: PRIMITIVES): TerminalNode => ({
 export function mapLookupToTypedef(
   entry: Var,
   resolve: (id: number) => void = () => {},
-): TypedefNode | null {
+): TypedefNode {
   switch (entry.type) {
     case "AccountId20":
     case "AccountId32":
       return terminal(Primitive.str)
     case "array":
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
-        return terminal(Primitive.bin)
+        return { type: "binary", value: entry.len }
       }
       resolve(entry.value.id)
       return {
@@ -205,7 +211,7 @@ export function mapLookupToTypedef(
       }
     case "sequence":
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
-        return terminal(Primitive.bin)
+        return { type: "binary", value: undefined }
       }
       resolve(entry.value.id)
       return {
@@ -213,43 +219,50 @@ export function mapLookupToTypedef(
         value: { typeRef: entry.value.id },
       }
     case "void":
-      return null
+      return terminal(Primitive.void)
   }
 }
 
-export interface EntryPoint {
-  type: "entryPoint"
-  args: number[]
-  value: number
-}
-
-export function storageEntryPoint(
-  storageEntry: Exclude<
-    (V15 | V14)["pallets"][number]["storage"],
-    undefined
-  >["items"][number],
-): EntryPoint {
-  if (storageEntry.type.tag === "plain")
-    return {
-      type: "entryPoint",
-      args: [],
-      value: storageEntry.type.value,
-    }
-
-  const { key, value } = storageEntry.type.value
-  return {
-    type: "entryPoint",
-    args: [key],
-    value,
-  }
-}
-
-export function runtimeCallEntryPoint(
-  entry: (V15 | V14)["apis"][number]["methods"][number],
-): EntryPoint {
-  return {
-    type: "entryPoint",
-    args: entry.inputs.map((v) => v.type),
-    value: entry.output,
+export function mapReferences(
+  node: TypedefNode,
+  mapFn: (id: number) => number,
+): TypedefNode {
+  switch (node.type) {
+    case "array":
+      return {
+        ...node,
+        value: {
+          ...node.value,
+          typeRef: mapFn(node.value.typeRef),
+        },
+      }
+    case "option":
+      return { ...node, value: mapFn(node.value) }
+    case "result":
+      return {
+        ...node,
+        value: { ok: mapFn(node.value.ok), ko: mapFn(node.value.ko) },
+      }
+    case "tuple":
+      return { ...node, value: node.value.map(mapFn) }
+    case "struct":
+      return {
+        ...node,
+        value: node.value.map(([k, v]) => [k, mapFn(v)] as [string, number]),
+      }
+    case "enum":
+      return {
+        ...node,
+        value: node.value.map(
+          ([k, v]) =>
+            [k, v == undefined ? undefined : mapReferences(v, mapFn)] as [
+              string,
+              TypedefNode | undefined,
+            ],
+        ),
+      }
+    case "binary":
+    case "terminal":
+      return node
   }
 }

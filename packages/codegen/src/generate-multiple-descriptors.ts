@@ -1,12 +1,18 @@
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
+import {
+  EntryPoint,
+  mapEntryPointReferences,
+  mapReferences,
+  TypedefNode,
+} from "@polkadot-api/metadata-compatibility"
 import type { V14, V15 } from "@polkadot-api/substrate-bindings"
+import { mapObject } from "@polkadot-api/utils"
 import { DescriptorValues, generateDescriptors } from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
-import { getUsedChecksums } from "./get-used-checksums"
+import { getUsedTypes } from "./get-used-types"
 import knownTypes, { KnownTypes } from "./known-types"
-import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
+import { defaultDeclarations, getTypesBuilder, Variable } from "./types-builder"
 import { applyWhitelist } from "./whitelist"
-import { mapObject } from "@polkadot-api/utils"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
@@ -16,7 +22,7 @@ export const generateMultipleDescriptors = (
   }>,
   paths: {
     client: string
-    checksums: string
+    metadataTypes: string
     types: string
     descriptorValues: string
   },
@@ -29,11 +35,14 @@ export const generateMultipleDescriptors = (
       ? applyWhitelist(chain.metadata, options.whitelist)
       : chain.metadata
     const builder = getChecksumBuilder(metadata)
+    const { checksums, types, entryPoints } = getUsedTypes(metadata, builder)
     return {
       ...chain,
       metadata,
       builder,
-      checksums: getUsedChecksums(metadata, builder),
+      checksums,
+      types,
+      entryPoints,
       knownTypes: {
         ...knownTypes,
         ...chain.knownTypes,
@@ -41,16 +50,13 @@ export const generateMultipleDescriptors = (
     }
   })
   resolveConflicts(chainData)
-
-  const checksums = Array.from(
-    new Set(chainData.flatMap((chain) => Array.from(chain.checksums))),
-  )
+  const types = mergeTypes(chainData)
 
   const declarations = defaultDeclarations()
   const chainFiles = chainData.map((chain) =>
     generateDescriptors(
       chain.metadata,
-      checksums,
+      types.checksumToIdx,
       getTypesBuilder(declarations, chain.metadata, chain.knownTypes),
       chain.builder,
       capitalize(chain.key),
@@ -66,8 +72,8 @@ export const generateMultipleDescriptors = (
 
   return {
     descriptorsFileContent,
+    metadataTypes: types,
     descriptorTypesFileContent: chainFiles.map((file) => file.descriptorTypes),
-    checksums,
     typesFileContent: generateTypes(declarations, paths),
     publicTypes: getPublicTypes(declarations.variables),
   }
@@ -82,7 +88,7 @@ function getPublicTypes(variables: Map<string, Variable>) {
 function resolveConflicts(
   chainData: Array<{
     key: string
-    checksums: Set<string>
+    checksums: string[]
     knownTypes: KnownTypes
   }>,
 ) {
@@ -125,6 +131,51 @@ function resolveConflicts(
       }
     }),
   )
+}
+
+function mergeTypes(
+  chainData: Array<{
+    types: Map<string, TypedefNode>
+    entryPoints: Map<string, EntryPoint>
+    checksums: string[]
+  }>,
+) {
+  const typedefs: Array<[TypedefNode, string[]]> = []
+  const entryPoints: Array<[EntryPoint, string[]]> = []
+  const loookupToTypedefIdx: Map<string, number> = new Map()
+  const checksumToIdx: Map<string, number> = new Map()
+
+  chainData.forEach(({ types, entryPoints: chainEntryPoints, checksums }) => {
+    for (const entry of types.entries()) {
+      const [checksum, value] = entry
+      if (loookupToTypedefIdx.has(checksum)) continue
+      loookupToTypedefIdx.set(checksum, typedefs.length)
+      typedefs.push([value, checksums])
+    }
+    for (const entry of chainEntryPoints.entries()) {
+      const [checksum, value] = entry
+      if (checksumToIdx.has(checksum)) continue
+      checksumToIdx.set(checksum, entryPoints.length)
+      entryPoints.push([value, checksums])
+    }
+  })
+
+  // Update indices to the new one
+  const updatedTypedefs = typedefs.map(([typedef, checksums]) =>
+    mapReferences(typedef, (id) => loookupToTypedefIdx.get(checksums[id])!),
+  )
+  const updatedEntryPoints = entryPoints.map(([entryPoint, checksums]) =>
+    mapEntryPointReferences(
+      entryPoint,
+      (id) => loookupToTypedefIdx.get(checksums[id])!,
+    ),
+  )
+
+  return {
+    typedefs: updatedTypedefs,
+    entryPoints: updatedEntryPoints,
+    checksumToIdx,
+  }
 }
 
 function capitalize(value: string) {

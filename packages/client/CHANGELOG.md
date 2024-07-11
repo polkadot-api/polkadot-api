@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking
+
+- Replaced `isCompatible()` functions for `getCompatibilityLevel()`, for a more granular control of runtime upgrades [#561](https://github.com/polkadot-api/polkadot-api/pull/561)
+
 ## 0.10.0 - 2024-07-11
 
 ### Added

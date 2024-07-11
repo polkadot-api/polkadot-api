@@ -205,6 +205,9 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
+      '@polkadot-api/metadata-compatibility':
+        specifier: workspace:*
+        version: link:../metadata-compatibility
       '@polkadot-api/observable-client':
         specifier: workspace:*
         version: link:../observable-client
@@ -290,6 +293,9 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
+      '@polkadot-api/metadata-compatibility':
+        specifier: workspace:*
+        version: link:../metadata-compatibility
       '@polkadot-api/observable-client':
         specifier: workspace:*
         version: link:../observable-client
@@ -333,6 +339,9 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
+      '@polkadot-api/metadata-compatibility':
+        specifier: workspace:*
+        version: link:../metadata-compatibility
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings

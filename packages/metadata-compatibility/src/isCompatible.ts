@@ -7,17 +7,14 @@ import { Primitive, type TerminalNode, type TypedefNode } from "./typedef"
 // Dest type: describes types of the receiving end.
 export function isCompatible(
   value: any,
-  destNode: TypedefNode | null,
-  getNode: (id: number) => TypedefNode | null,
+  destNode: TypedefNode,
+  getNode: (id: number) => TypedefNode,
 ): boolean {
-  // A void node is always compatible, since the codec ignores the input.
-  if (!destNode) return true
-
   if (destNode.type === "option" && value == null) {
     return true
   }
 
-  const nextCall = (value: any, destNode: TypedefNode | null) =>
+  const nextCall = (value: any, destNode: TypedefNode) =>
     isCompatible(value, destNode, getNode)
 
   const checkTerminal = (terminal: TerminalNode) => {
@@ -36,19 +33,23 @@ export function isCompatible(
         )
       case Primitive.numeric:
         return typeof value === "number" || typeof value === "bigint"
-      case Primitive.bin:
-        // TODO check on runtime which one of this is the correct one (maybe both?).
-        return value instanceof Uint8Array || value instanceof Binary
+      case Primitive.void:
+        // A void node is always compatible, since the codec ignores the input.
+        return true
     }
   }
 
   switch (destNode.type) {
     case "terminal":
       return checkTerminal(destNode)
+    case "binary":
+      return (
+        value instanceof Binary &&
+        (destNode.value == null || value.asBytes().length >= destNode.value)
+      )
     case "array":
       if (!Array.isArray(value)) return false
       const valueArr = value as Array<any>
-      // TODO check on runtime passing an array with greater length sends in truncated to destNode.length
       if (
         destNode.value.length != null &&
         valueArr.length < destNode.value.length

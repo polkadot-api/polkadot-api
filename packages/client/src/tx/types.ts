@@ -1,4 +1,4 @@
-import { IsCompatible, Runtime } from "@/runtime"
+import { CompatibilityFunctions, Runtime } from "@/runtime"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
@@ -201,7 +201,7 @@ export interface TxEntry<
   Pallet extends string,
   Name extends string,
   Asset,
-> {
+> extends CompatibilityFunctions {
   /**
    * Synchronously create the transaction object ready to sign, submit, estimate
    * fees, etc.
@@ -212,9 +212,4 @@ export interface TxEntry<
   (
     ...args: Arg extends undefined ? [] : [data: Arg]
   ): Transaction<Arg, Pallet, Name, Asset>
-  /**
-   * `isCompatible` enables you to check whether or not the call you're trying
-   * to make is compatible with the descriptors you generated on dev time.
-   */
-  isCompatible: IsCompatible
 }

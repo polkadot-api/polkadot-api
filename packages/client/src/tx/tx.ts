@@ -1,3 +1,6 @@
+import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
+import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { getPolkadotSigner } from "@polkadot-api/signer"
 import {
   AccountId,
   Binary,
@@ -18,25 +21,18 @@ import {
   take,
   throwError,
 } from "rxjs"
-import {
-  BlockInfo,
-  RuntimeContext,
-  getObservableClient,
-} from "@polkadot-api/observable-client"
-import { CompatibilityHelper, Runtime } from "../runtime"
-import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { getPolkadotSigner } from "@polkadot-api/signer"
 import { AssetDescriptor } from "../descriptors"
+import { CompatibilityHelper, Runtime } from "../runtime"
 import { createTx } from "./create-tx"
+import { submit, submit$ } from "./submit-fns"
 import {
   TxCall,
   TxEntry,
-  TxPromise,
   TxObservable,
   TxOptions,
+  TxPromise,
   TxSignFn,
 } from "./types"
-import { submit, submit$ } from "./submit-fns"
 
 export { submit, submit$ }
 
@@ -57,20 +53,26 @@ export const createTxEntry = <
   assetChecksum: Asset,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast: (tx: string) => Observable<never>,
-  compatibilityHelper: CompatibilityHelper,
+  {
+    getCompatibilityLevel,
+    compatibleRuntime$,
+    argsAreCompatible,
+  }: CompatibilityHelper,
 ): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
-  const { isCompatible, compatibleRuntime$ } = compatibilityHelper((ctx) =>
-    ctx.checksumBuilder.buildCall(pallet, name),
-  )
-  const checksumError = () =>
-    new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
-
   const fn = (arg?: Arg): any => {
     const getCallDataWithContext = (
-      { dynamicBuilder, asset: [assetEnc, assetCheck] }: RuntimeContext,
+      runtime: Runtime,
       arg: any,
       txOptions: Partial<{ asset: any }> = {},
     ) => {
+      const ctx = runtime._getCtx()
+      if (!argsAreCompatible(runtime, ctx, arg))
+        throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
+
+      const {
+        dynamicBuilder,
+        asset: [assetEnc, assetCheck],
+      } = ctx
       let returnOptions = txOptions
       if (txOptions.asset) {
         if (assetChecksum !== assetCheck)
@@ -88,16 +90,15 @@ export const createTxEntry = <
     }
 
     const getCallData$ = (arg: any, options: Partial<{ asset: any }> = {}) =>
-      compatibleRuntime$(chainHead, null, checksumError).pipe(
-        map((ctx) => getCallDataWithContext(ctx, arg, options)),
+      compatibleRuntime$(chainHead, null).pipe(
+        map(([runtime]) => getCallDataWithContext(runtime, arg, options)),
       )
 
     const getEncodedData: TxCall = (runtime?: Runtime): any => {
       if (!runtime)
         return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
 
-      if (!isCompatible(runtime)) throw checksumError()
-      return getCallDataWithContext(runtime._getCtx(), arg).callData
+      return getCallDataWithContext(runtime, arg).callData
     }
 
     const sign$ = (
@@ -185,5 +186,5 @@ export const createTxEntry = <
     }
   }
 
-  return Object.assign(fn, { isCompatible })
+  return Object.assign(fn, { getCompatibilityLevel })
 }
