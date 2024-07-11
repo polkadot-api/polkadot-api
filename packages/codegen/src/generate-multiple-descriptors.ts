@@ -1,17 +1,18 @@
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
+import {
+  EntryPoint,
+  mapEntryPointReferences,
+  mapReferences,
+  TypedefNode,
+} from "@polkadot-api/metadata-compatibility"
 import type { V14, V15 } from "@polkadot-api/substrate-bindings"
+import { mapObject } from "@polkadot-api/utils"
 import { DescriptorValues, generateDescriptors } from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
 import { getUsedTypes } from "./get-used-types"
 import knownTypes, { KnownTypes } from "./known-types"
-import { Variable, defaultDeclarations, getTypesBuilder } from "./types-builder"
+import { defaultDeclarations, getTypesBuilder, Variable } from "./types-builder"
 import { applyWhitelist } from "./whitelist"
-import { mapObject } from "@polkadot-api/utils"
-import {
-  EntryPoint,
-  mapReferences,
-  TypedefNode,
-} from "@polkadot-api/metadata-compatibility"
 
 export const generateMultipleDescriptors = (
   chains: Array<{
@@ -164,7 +165,10 @@ function mergeTypes(
     mapReferences(typedef, (id) => loookupToTypedefIdx.get(checksums[id])!),
   )
   const updatedEntryPoints = entryPoints.map(([entryPoint, checksums]) =>
-    mapReferences(entryPoint, (id) => loookupToTypedefIdx.get(checksums[id])!),
+    mapEntryPointReferences(
+      entryPoint,
+      (id) => loookupToTypedefIdx.get(checksums[id])!,
+    ),
   )
 
   return {

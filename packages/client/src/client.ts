@@ -17,9 +17,11 @@ import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import { PolkadotClient, TypedApi } from "./types"
 import {
-  enumValueEntryPoint,
+  enumValueEntryPointNode,
   runtimeCallEntryPoint,
+  singleValueEntryPoint,
   storageEntryPoint,
+  voidEntryPointNode,
 } from "@polkadot-api/metadata-compatibility"
 import { getLookupFn } from "@polkadot-api/metadata-builders"
 
@@ -71,13 +73,22 @@ const createTypedApi = <D extends ChainDefinition>(
     ),
   )
 
-  const getEnumEntry = (ctx: RuntimeContext, id: number, name: string) => {
+  const getEnumEntry = (
+    ctx: RuntimeContext,
+    side: "args" | "values",
+    id: number,
+    name: string,
+  ) => {
     // As part of the refactor, maybe the lookup function could be added to ctx?
     const lookup = getLookupFn(ctx.metadata.lookup)
     const entry = lookup(id)
     if (entry.type !== "enum") throw new Error("Expected enum")
 
-    return enumValueEntryPoint(entry.value[name])
+    const node = enumValueEntryPointNode(entry.value[name])
+    return {
+      args: side === "args" ? node : voidEntryPointNode,
+      values: side === "args" ? voidEntryPointNode : node,
+    }
   }
   const tx = createProxyPath((pallet, name) =>
     createTxEntry(
@@ -89,7 +100,7 @@ const createTypedApi = <D extends ChainDefinition>(
       compatibilityHelper(
         runtime,
         (r) => r._getPalletEntryPoint(OpType.Tx, pallet, name),
-        (ctx) => getEnumEntry(ctx, getPallet(ctx, pallet).calls!, name),
+        (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, name),
       ),
     ),
   )
@@ -102,7 +113,8 @@ const createTypedApi = <D extends ChainDefinition>(
       compatibilityHelper(
         runtime,
         (r) => r._getPalletEntryPoint(OpType.Event, pallet, name),
-        (ctx) => getEnumEntry(ctx, getPallet(ctx, pallet).events!, name),
+        (ctx) =>
+          getEnumEntry(ctx, "values", getPallet(ctx, pallet).events!, name),
       ),
     ),
   )
@@ -115,12 +127,10 @@ const createTypedApi = <D extends ChainDefinition>(
       compatibilityHelper(
         runtime,
         (r) => r._getPalletEntryPoint(OpType.Const, pallet, name),
-        (ctx) => ({
-          args: [],
-          values: [
+        (ctx) =>
+          singleValueEntryPoint(
             getPallet(ctx, pallet).constants.find((c) => c.name === name)!.type,
-          ],
-        }),
+          ),
       ),
     ),
   )

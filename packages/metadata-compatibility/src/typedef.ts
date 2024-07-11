@@ -12,7 +12,6 @@ import {
   compact,
   str,
 } from "@polkadot-api/substrate-bindings"
-import type { EntryPoint } from "./entryPoint"
 
 const smallCompact = compact as Codec<number>
 export interface StructNode {
@@ -224,18 +223,10 @@ export function mapLookupToTypedef(
   }
 }
 
-export function mapReferences<T extends TypedefNode | EntryPoint>(
-  node: T,
+export function mapReferences(
+  node: TypedefNode,
   mapFn: (id: number) => number,
-): T {
-  if (!node) return node
-  if ("args" in node) {
-    return {
-      args: node.args.map(mapFn),
-      values: node.values.map(mapFn),
-    } as T
-  }
-
+): TypedefNode {
   switch (node.type) {
     case "array":
       return {

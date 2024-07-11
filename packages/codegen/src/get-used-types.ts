@@ -9,7 +9,10 @@ import {
   mapLookupToTypedef,
   runtimeCallEntryPoint,
   storageEntryPoint,
-  enumValueEntryPoint,
+  enumValueEntryPointNode,
+  singleValueEntryPoint,
+  voidEntryPointNode,
+  mapEntryPointReferences,
 } from "@polkadot-api/metadata-compatibility"
 
 /**
@@ -46,11 +49,17 @@ export const getUsedTypes = (
   }
   const addTypeFromEntryPoint = (checksum: string, entry: EntryPoint) => {
     entryPoints.set(checksum, entry)
-    entry.args.forEach(addTypeFromLookup)
-    entry.values.forEach(addTypeFromLookup)
+    mapEntryPointReferences(entry, (id) => {
+      addTypeFromLookup(id)
+      return id
+    })
   }
 
-  const buildEnum = (val: number | undefined, cb: (name: string) => string) => {
+  const buildEnum = (
+    side: "args" | "values",
+    val: number | undefined,
+    cb: (name: string) => string,
+  ) => {
     if (val === undefined) return
     const entry = lookup(val)
 
@@ -59,7 +68,11 @@ export const getUsedTypes = (
 
     Object.entries(entry.value).forEach(([name, value]) => {
       const checksum = cb(name)
-      addTypeFromEntryPoint(checksum, enumValueEntryPoint(value))
+      const node = enumValueEntryPointNode(value)
+      addTypeFromEntryPoint(checksum, {
+        args: side === "args" ? node : voidEntryPointNode,
+        values: side === "args" ? voidEntryPointNode : node,
+      })
     })
   }
 
@@ -70,14 +83,23 @@ export const getUsedTypes = (
     })
     pallet.constants.forEach(({ name, type }) => {
       const checksum = builder.buildConstant(pallet.name, name)!
-      addTypeFromEntryPoint(checksum, {
-        args: [],
-        values: [type],
-      })
+      addTypeFromEntryPoint(checksum, singleValueEntryPoint(type))
     })
-    buildEnum(pallet.calls, (name) => builder.buildCall(pallet.name, name)!)
-    buildEnum(pallet.events, (name) => builder.buildEvent(pallet.name, name)!)
-    buildEnum(pallet.errors, (name) => builder.buildError(pallet.name, name)!)
+    buildEnum(
+      "args",
+      pallet.calls,
+      (name) => builder.buildCall(pallet.name, name)!,
+    )
+    buildEnum(
+      "values",
+      pallet.events,
+      (name) => builder.buildEvent(pallet.name, name)!,
+    )
+    buildEnum(
+      "values",
+      pallet.errors,
+      (name) => builder.buildError(pallet.name, name)!,
+    )
   })
 
   metadata.apis.forEach((api) =>
