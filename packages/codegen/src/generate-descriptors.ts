@@ -36,10 +36,13 @@ const customStringifyObject = (
 }
 
 // type -> pallet -> name
-export type DescriptorValues = Record<
-  "storage" | "tx" | "events" | "errors" | "constants" | "apis",
-  Record<string, Record<string, number>>
->
+export type DescriptorValues = {
+  tree: Record<
+    "storage" | "tx" | "events" | "errors" | "constants" | "apis",
+    Record<string, Record<string, number>>
+  >
+  asset: number | undefined
+}
 
 export const generateDescriptors = (
   metadata: V14 | V15,
@@ -226,32 +229,36 @@ export const generateDescriptors = (
   const iConstants = mapDescriptor(constants, extractValue)
 
   const descriptorValues: DescriptorValues = {
-    storage: {},
-    tx: {},
-    events: {},
-    errors: {},
-    constants: {},
-    apis: {},
+    tree: {
+      storage: {},
+      tx: {},
+      events: {},
+      errors: {},
+      constants: {},
+      apis: {},
+    },
+    asset: undefined,
   }
+  const descriptorTree = descriptorValues.tree
   const mapObjStr = mapObject as <I, O>(
     input: Record<string, I>,
     mapper: (i: I, k: string) => O,
   ) => Record<string, O>
   Object.keys(storage).forEach((pallet) => {
-    descriptorValues["storage"][pallet] = mapObjStr(
+    descriptorTree["storage"][pallet] = mapObjStr(
       storage[pallet],
       (x, _: string) => x.typeRef,
     )
-    descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
-    descriptorValues["events"][pallet] = mapObjStr(
+    descriptorTree["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
+    descriptorTree["events"][pallet] = mapObjStr(
       events[pallet],
       (x) => x.typeRef,
     )
-    descriptorValues["errors"][pallet] = mapObjStr(
+    descriptorTree["errors"][pallet] = mapObjStr(
       errors[pallet],
       (x) => x.typeRef,
     )
-    descriptorValues["constants"][pallet] = mapObjStr(
+    descriptorTree["constants"][pallet] = mapObjStr(
       constants[pallet],
       (x) => x.typeRef,
     )
@@ -262,7 +269,7 @@ export const generateDescriptors = (
     value: mapObject(api.methods, ({ docs, type: value }) => ({ docs, value })),
   }))
 
-  descriptorValues["apis"] = mapObject(runtimeCalls, (api) =>
+  descriptorTree["apis"] = mapObject(runtimeCalls, (api) =>
     mapObject(api.methods, (x) => x.typeRef),
   )
 
@@ -285,26 +292,13 @@ export const generateDescriptors = (
     ...typesBuilder.getClientFileImports(),
   ]
 
-  const assetPayment = metadata.extrinsic.signedExtensions.find(
-    (x) => x.identifier === "ChargeAssetTxPayment",
-  )
-
-  let _assetId: null | number = null
-  if (assetPayment) {
-    const assetTxPayment = getLookupFn(metadata.lookup)(assetPayment.type)
-    if (assetTxPayment.type === "struct") {
-      const optionalAssetId = assetTxPayment.value.asset_id
-      if (optionalAssetId.type === "option") _assetId = optionalAssetId.value.id
-    }
-  }
-
-  const asset =
-    _assetId === null
-      ? null
-      : {
-          checksum: checksumBuilder.buildDefinition(_assetId),
-          type: typesBuilder.buildTypeDefinition(_assetId),
-        }
+  const assetId = getAssetId(metadata)
+  const assetType =
+    assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
+  descriptorValues.asset =
+    assetId == null
+      ? undefined
+      : checksumToIdx.get(checksumBuilder.buildDefinition(assetId)!)
 
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
@@ -368,8 +362,7 @@ type IEvent = ${customStringifyObject(iEvents)};
 type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
-const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
+type IAsset = AssetDescriptor<${assetType}>
 
 type PalletsTypedef = {
   __storage: IStorage,
@@ -382,12 +375,12 @@ type PalletsTypedef = {
 type IDescriptors = {
   descriptors: {
     pallets: PalletsTypedef,
-    apis: IRuntimeCalls
+    apis: IRuntimeCalls,
+    asset: IAsset
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
-  asset: IAsset
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
@@ -428,4 +421,19 @@ type ApiKey<D extends Record<string, Record<string, any>>> =
 `
 
   return { descriptorTypes, descriptorValues }
+}
+
+export function getAssetId(metadata: V14 | V15) {
+  const assetPayment = metadata.extrinsic.signedExtensions.find(
+    (x) => x.identifier === "ChargeAssetTxPayment",
+  )
+
+  if (assetPayment) {
+    const assetTxPayment = getLookupFn(metadata.lookup)(assetPayment.type)
+    if (assetTxPayment.type === "struct") {
+      const optionalAssetId = assetTxPayment.value.asset_id
+      if (optionalAssetId.type === "option") return optionalAssetId.value.id
+    }
+  }
+  return
 }

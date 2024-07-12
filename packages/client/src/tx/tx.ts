@@ -33,6 +33,7 @@ import {
   TxPromise,
   TxSignFn,
 } from "./types"
+import { isCompatible } from "@polkadot-api/metadata-compatibility"
 
 export { submit, submit$ }
 
@@ -50,15 +51,15 @@ export const createTxEntry = <
 >(
   pallet: Pallet,
   name: Name,
-  assetChecksum: Asset,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast: (tx: string) => Observable<never>,
   {
     getCompatibilityLevel,
     compatibleRuntime$,
     argsAreCompatible,
+    getRuntimeTypedef,
   }: CompatibilityHelper,
-): TxEntry<Arg, Pallet, Name, Asset["_type"]> => {
+): TxEntry<Arg, Pallet, Name, Asset> => {
   const fn = (arg?: Arg): any => {
     const getCallDataWithContext = (
       runtime: Runtime,
@@ -71,11 +72,16 @@ export const createTxEntry = <
 
       const {
         dynamicBuilder,
-        asset: [assetEnc, assetCheck],
+        asset: [assetEnc, assetTypedef],
       } = ctx
       let returnOptions = txOptions
       if (txOptions.asset) {
-        if (assetChecksum !== assetCheck)
+        if (
+          !assetTypedef ||
+          !isCompatible(txOptions.asset, assetTypedef, (id) =>
+            getRuntimeTypedef(ctx, id),
+          )
+        )
           throw new Error(`Incompatible runtime asset`)
         returnOptions = { ...txOptions, asset: assetEnc(txOptions.asset) }
       }

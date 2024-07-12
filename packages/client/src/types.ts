@@ -84,7 +84,10 @@ export type ConstApi<A extends Record<string, Record<string, any>>> = {
 
 export type TypedApi<D extends ChainDefinition> = {
   query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
-  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>, D["asset"]["_type"]>
+  tx: TxApi<
+    TxFromPalletsDef<D["descriptors"]["pallets"]>,
+    D["descriptors"]["asset"]["_type"]
+  >
   event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
   apis: RuntimeCallsApi<D["descriptors"]["apis"]>
   constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>

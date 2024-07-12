@@ -68,14 +68,23 @@ export class Runtime {
     pallet: string,
     name: string,
   ): EntryPoint {
-    return this._metadataTypes[0][this._descriptors[opType][pallet][name]]
+    return this._metadataTypes[0][this._descriptors.tree[opType][pallet][name]]
   }
 
   /**
    * @access package  - Internal implementation detail. Do not use.
    */
   _getApiEntryPoint(name: string, method: string) {
-    return this._metadataTypes[0][this._descriptors.apis[name][method]]
+    return this._metadataTypes[0][this._descriptors.tree.apis[name][method]]
+  }
+
+  /**
+   * @access package  - Internal implementation detail. Do not use.
+   */
+  _getAsset() {
+    return this._descriptors.asset == null
+      ? null
+      : this._metadataTypes[1][this._descriptors.asset]
   }
 
   /**
@@ -158,6 +167,11 @@ export const compatibilityHelper = (
   getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint,
   getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint,
 ) => {
+  const getRuntimeTypedef = (ctx: RuntimeContext, id: number) => {
+    const cache = getMetadataCache(ctx)
+    return (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id)))
+  }
+
   function getCompatibilityLevels(
     runtimeWithDescriptors: Runtime,
     /**
@@ -178,7 +192,7 @@ export const compatibilityHelper = (
       descriptorEntryPoint,
       (id) => descriptorNodes[id],
       runtimeEntryPoint,
-      (id) => (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id))),
+      (id) => getRuntimeTypedef(ctx, id),
       cache.compat,
     )
   }
@@ -211,11 +225,10 @@ export const compatibilityHelper = (
     if (levels.values === CompatibilityLevel.Incompatible) return false
 
     const entryPoint = getRuntimeEntryPoint(ctx)
-    const cache = getMetadataCache(ctx)
 
     return valueIsCompatibleWithDest(
       entryPoint.args,
-      (id) => (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id))),
+      (id) => getRuntimeTypedef(ctx, id),
       args,
     )
   }
@@ -246,6 +259,7 @@ export const compatibilityHelper = (
     compatibleRuntime$,
     argsAreCompatible,
     valuesAreCompatible,
+    getRuntimeTypedef,
   }
 }
 export type CompatibilityHelper = ReturnType<typeof compatibilityHelper>
