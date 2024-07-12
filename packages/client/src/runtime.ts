@@ -158,6 +158,11 @@ export const compatibilityHelper = (
   getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint,
   getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint,
 ) => {
+  const getRuntimeTypedef = (ctx: RuntimeContext, id: number) => {
+    const cache = getMetadataCache(ctx)
+    return (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id)))
+  }
+
   function getCompatibilityLevels(
     runtimeWithDescriptors: Runtime,
     /**
@@ -178,7 +183,7 @@ export const compatibilityHelper = (
       descriptorEntryPoint,
       (id) => descriptorNodes[id],
       runtimeEntryPoint,
-      (id) => (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id))),
+      (id) => getRuntimeTypedef(ctx, id),
       cache.compat,
     )
   }
@@ -211,11 +216,10 @@ export const compatibilityHelper = (
     if (levels.values === CompatibilityLevel.Incompatible) return false
 
     const entryPoint = getRuntimeEntryPoint(ctx)
-    const cache = getMetadataCache(ctx)
 
     return valueIsCompatibleWithDest(
       entryPoint.args,
-      (id) => (cache.typeNodes[id] ||= mapLookupToTypedef(cache.lookup(id))),
+      (id) => getRuntimeTypedef(ctx, id),
       args,
     )
   }
@@ -246,6 +250,7 @@ export const compatibilityHelper = (
     compatibleRuntime$,
     argsAreCompatible,
     valuesAreCompatible,
+    getRuntimeTypedef,
   }
 }
 export type CompatibilityHelper = ReturnType<typeof compatibilityHelper>

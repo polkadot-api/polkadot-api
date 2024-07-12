@@ -269,7 +269,6 @@ export const generateDescriptors = (
   const clientImports = [
     "StorageDescriptor",
     "PlainDescriptor",
-    "AssetDescriptor",
     "TxDescriptor",
     "RuntimeDescriptor",
     "Enum",
@@ -285,26 +284,9 @@ export const generateDescriptors = (
     ...typesBuilder.getClientFileImports(),
   ]
 
-  const assetPayment = metadata.extrinsic.signedExtensions.find(
-    (x) => x.identifier === "ChargeAssetTxPayment",
-  )
-
-  let _assetId: null | number = null
-  if (assetPayment) {
-    const assetTxPayment = getLookupFn(metadata.lookup)(assetPayment.type)
-    if (assetTxPayment.type === "struct") {
-      const optionalAssetId = assetTxPayment.value.asset_id
-      if (optionalAssetId.type === "option") _assetId = optionalAssetId.value.id
-    }
-  }
-
-  const asset =
-    _assetId === null
-      ? null
-      : {
-          checksum: checksumBuilder.buildDefinition(_assetId),
-          type: typesBuilder.buildTypeDefinition(_assetId),
-        }
+  const assetId = getAssetId(metadata)
+  const assetType =
+    assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
 
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
@@ -368,8 +350,8 @@ type IEvent = ${customStringifyObject(iEvents)};
 type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-type IAsset = AssetDescriptor<${asset?.type ?? "void"}>
-const asset: IAsset = "${asset?.checksum ?? ""}" as IAsset
+type IAsset = PlainDescriptor<${assetType}>
+const asset: IAsset = {} as IAsset
 
 type PalletsTypedef = {
   __storage: IStorage,
@@ -428,4 +410,19 @@ type ApiKey<D extends Record<string, Record<string, any>>> =
 `
 
   return { descriptorTypes, descriptorValues }
+}
+
+export function getAssetId(metadata: V14 | V15) {
+  const assetPayment = metadata.extrinsic.signedExtensions.find(
+    (x) => x.identifier === "ChargeAssetTxPayment",
+  )
+
+  if (assetPayment) {
+    const assetTxPayment = getLookupFn(metadata.lookup)(assetPayment.type)
+    if (assetTxPayment.type === "struct") {
+      const optionalAssetId = assetTxPayment.value.asset_id
+      if (optionalAssetId.type === "option") return optionalAssetId.value.id
+    }
+  }
+  return
 }

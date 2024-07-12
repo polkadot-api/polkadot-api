@@ -94,7 +94,6 @@ const createTypedApi = <D extends ChainDefinition>(
     createTxEntry(
       pallet,
       name,
-      chainDefinition.asset,
       chainHead,
       broadcast$,
       compatibilityHelper(

@@ -1,8 +1,4 @@
-import {
-  getChecksumBuilder,
-  getDynamicBuilder,
-  getLookupFn,
-} from "@polkadot-api/metadata-builders"
+import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import {
   AccountId,
   Codec,
@@ -32,6 +28,10 @@ import {
   take,
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
+import {
+  mapLookupToTypedef,
+  TypedefNode,
+} from "@polkadot-api/metadata-compatibility"
 
 export type SystemEvent = {
   phase:
@@ -51,14 +51,13 @@ export type SystemEvent = {
 export interface RuntimeContext {
   metadataRaw: Uint8Array
   metadata: V15 | V14
-  checksumBuilder: ReturnType<typeof getChecksumBuilder>
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
   events: {
     key: string
     dec: Decoder<Array<SystemEvent>>
   }
   accountId: Codec<SS58String>
-  asset: [Encoder<any>, string | null]
+  asset: [Encoder<any>, TypedefNode | null]
 }
 
 export interface Runtime {
@@ -133,7 +132,6 @@ export const getRuntimeCreator = (
 
     const runtimeContext$: Observable<RuntimeContext> = getMetadata$(hash).pipe(
       map(({ metadata, metadataRaw }) => {
-        const checksumBuilder = getChecksumBuilder(metadata)
         const dynamicBuilder = getDynamicBuilder(metadata)
         const events = dynamicBuilder.buildStorage("System", "Events")
 
@@ -142,8 +140,9 @@ export const getRuntimeCreator = (
         )
 
         let _assetId: null | number = null
+        const lookupFn = getLookupFn(metadata.lookup)
         if (assetPayment) {
-          const assetTxPayment = getLookupFn(metadata.lookup)(assetPayment.type)
+          const assetTxPayment = lookupFn(assetPayment.type)
           if (assetTxPayment.type === "struct") {
             const optionalAssetId = assetTxPayment.value.asset_id
             if (optionalAssetId.type === "option")
@@ -151,19 +150,18 @@ export const getRuntimeCreator = (
           }
         }
 
-        const asset: [Encoder<any>, string | null] =
+        const asset: [Encoder<any>, TypedefNode | null] =
           _assetId === null
             ? [_void.enc, null]
             : [
                 dynamicBuilder.buildDefinition(_assetId).enc,
-                checksumBuilder.buildDefinition(_assetId),
+                mapLookupToTypedef(lookupFn(_assetId)),
               ]
 
         return {
           asset,
           metadataRaw,
           metadata,
-          checksumBuilder,
           dynamicBuilder,
           events: {
             key: events.enc(),
