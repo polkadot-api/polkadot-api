@@ -14,7 +14,6 @@ import {
   voidEntryPointNode,
   mapEntryPointReferences,
 } from "@polkadot-api/metadata-compatibility"
-import { getAssetId } from "./generate-descriptors"
 
 /**
  * This function extracts from `metadata` all the types used from any entry
@@ -109,8 +108,6 @@ export const getUsedTypes = (
       addTypeFromEntryPoint(checksum, runtimeCallEntryPoint(method))
     }),
   )
-
-  addTypeFromLookup(getAssetId(metadata))
 
   return { types, entryPoints, checksums }
 }

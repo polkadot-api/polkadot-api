@@ -185,9 +185,6 @@ function capitalize(value: string) {
 function generateDescriptorValuesContent(
   descriptorValues: Record<string, DescriptorValues>,
 ) {
-  const descriptorTree = mapObject(descriptorValues, (v) => v.tree)
-  const descriptorAssets = mapObject(descriptorValues, (v) => v.asset)
-
   const usages: Record<string, number> = {}
   const countUsages = (obj: Record<string, any>): void =>
     Object.entries(obj).forEach(([key, value]) => {
@@ -195,7 +192,7 @@ function generateDescriptorValuesContent(
       usages[key]++
       if (typeof value === "object") countUsages(value)
     })
-  countUsages(descriptorTree)
+  countUsages(descriptorValues)
 
   const tokens: Array<string> = []
   const tokenToIdx: Record<string, number> = {}
@@ -211,7 +208,7 @@ function generateDescriptorValuesContent(
         return [tokenToIdx[key], newValue]
       }),
     ) as T
-  const minified = mapObject(descriptorTree, minifyKeys)
+  const minified = mapObject(descriptorValues, minifyKeys)
 
   const getTreeKey = (tree: Record<string, unknown>): string =>
     Object.entries(tree)
@@ -259,9 +256,7 @@ function generateDescriptorValuesContent(
 
   const commonTrees = findCommonTrees(
     Object.keys(Object.values(minified)[0]).flatMap((type) =>
-      Object.values(minified).map(
-        (d) => d[type as keyof DescriptorValues["tree"]],
-      ),
+      Object.values(minified).map((d) => d[type as keyof DescriptorValues]),
     ),
   )
 
@@ -269,7 +264,6 @@ function generateDescriptorValuesContent(
 
   return `
     const [minified, commonTrees, tokens] = JSON.parse(\`${data}\`);
-    const assets = JSON.parse(\`${JSON.stringify(descriptorAssets)}\`)
 
     const replaceTokens = <T>(obj: Record<string | number, T>): Record<string, T> =>
       Object.fromEntries(
@@ -302,7 +296,7 @@ function generateDescriptorValuesContent(
           )
     
     const getChainDescriptors = (key: string) =>
-      ({ tree: unwrap(replaceTokens(minified[key]), 2), asset: assets[key] })
+      unwrap(replaceTokens(minified[key]), 2)
 
     ${Object.keys(descriptorValues)
       .map(

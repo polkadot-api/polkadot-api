@@ -21,7 +21,7 @@ import {
   take,
   throwError,
 } from "rxjs"
-import { AssetDescriptor } from "../descriptors"
+import { PlainDescriptor } from "@/descriptors"
 import { CompatibilityHelper, Runtime } from "../runtime"
 import { createTx } from "./create-tx"
 import { submit, submit$ } from "./submit-fns"
@@ -47,7 +47,7 @@ export const createTxEntry = <
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
-  Asset extends AssetDescriptor<any>,
+  Asset extends PlainDescriptor<any>,
 >(
   pallet: Pallet,
   name: Name,

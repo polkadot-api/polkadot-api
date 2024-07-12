@@ -36,13 +36,10 @@ const customStringifyObject = (
 }
 
 // type -> pallet -> name
-export type DescriptorValues = {
-  tree: Record<
-    "storage" | "tx" | "events" | "errors" | "constants" | "apis",
-    Record<string, Record<string, number>>
-  >
-  asset: number | undefined
-}
+export type DescriptorValues = Record<
+  "storage" | "tx" | "events" | "errors" | "constants" | "apis",
+  Record<string, Record<string, number>>
+>
 
 export const generateDescriptors = (
   metadata: V14 | V15,
@@ -229,36 +226,32 @@ export const generateDescriptors = (
   const iConstants = mapDescriptor(constants, extractValue)
 
   const descriptorValues: DescriptorValues = {
-    tree: {
-      storage: {},
-      tx: {},
-      events: {},
-      errors: {},
-      constants: {},
-      apis: {},
-    },
-    asset: undefined,
+    storage: {},
+    tx: {},
+    events: {},
+    errors: {},
+    constants: {},
+    apis: {},
   }
-  const descriptorTree = descriptorValues.tree
   const mapObjStr = mapObject as <I, O>(
     input: Record<string, I>,
     mapper: (i: I, k: string) => O,
   ) => Record<string, O>
   Object.keys(storage).forEach((pallet) => {
-    descriptorTree["storage"][pallet] = mapObjStr(
+    descriptorValues["storage"][pallet] = mapObjStr(
       storage[pallet],
       (x, _: string) => x.typeRef,
     )
-    descriptorTree["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
-    descriptorTree["events"][pallet] = mapObjStr(
+    descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
+    descriptorValues["events"][pallet] = mapObjStr(
       events[pallet],
       (x) => x.typeRef,
     )
-    descriptorTree["errors"][pallet] = mapObjStr(
+    descriptorValues["errors"][pallet] = mapObjStr(
       errors[pallet],
       (x) => x.typeRef,
     )
-    descriptorTree["constants"][pallet] = mapObjStr(
+    descriptorValues["constants"][pallet] = mapObjStr(
       constants[pallet],
       (x) => x.typeRef,
     )
@@ -269,14 +262,13 @@ export const generateDescriptors = (
     value: mapObject(api.methods, ({ docs, type: value }) => ({ docs, value })),
   }))
 
-  descriptorTree["apis"] = mapObject(runtimeCalls, (api) =>
+  descriptorValues["apis"] = mapObject(runtimeCalls, (api) =>
     mapObject(api.methods, (x) => x.typeRef),
   )
 
   const clientImports = [
     "StorageDescriptor",
     "PlainDescriptor",
-    "AssetDescriptor",
     "TxDescriptor",
     "RuntimeDescriptor",
     "Enum",
@@ -295,10 +287,6 @@ export const generateDescriptors = (
   const assetId = getAssetId(metadata)
   const assetType =
     assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
-  descriptorValues.asset =
-    assetId == null
-      ? undefined
-      : checksumToIdx.get(checksumBuilder.buildDefinition(assetId)!)
 
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
@@ -362,7 +350,8 @@ type IEvent = ${customStringifyObject(iEvents)};
 type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-type IAsset = AssetDescriptor<${assetType}>
+type IAsset = PlainDescriptor<${assetType}>
+const asset: IAsset = {} as IAsset
 
 type PalletsTypedef = {
   __storage: IStorage,
@@ -375,12 +364,12 @@ type PalletsTypedef = {
 type IDescriptors = {
   descriptors: {
     pallets: PalletsTypedef,
-    apis: IRuntimeCalls,
-    asset: IAsset
+    apis: IRuntimeCalls
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
+  asset: IAsset
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>

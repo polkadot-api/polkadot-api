@@ -68,23 +68,14 @@ export class Runtime {
     pallet: string,
     name: string,
   ): EntryPoint {
-    return this._metadataTypes[0][this._descriptors.tree[opType][pallet][name]]
+    return this._metadataTypes[0][this._descriptors[opType][pallet][name]]
   }
 
   /**
    * @access package  - Internal implementation detail. Do not use.
    */
   _getApiEntryPoint(name: string, method: string) {
-    return this._metadataTypes[0][this._descriptors.tree.apis[name][method]]
-  }
-
-  /**
-   * @access package  - Internal implementation detail. Do not use.
-   */
-  _getAsset() {
-    return this._descriptors.asset == null
-      ? null
-      : this._metadataTypes[1][this._descriptors.asset]
+    return this._metadataTypes[0][this._descriptors.apis[name][method]]
   }
 
   /**
