@@ -47,11 +47,16 @@ const getMetadataCall = async (provider: JsonRpcProvider) => {
 
 const getWorkerMessage = (chain: string): Omit<WorkerRequestMessage, "id"> => {
   if (!(chain in knownChains)) {
+    const relayChainName = JSON.parse(chain).relay_chain
     return {
-      potentialRelayChainSpecs: [],
+      potentialRelayChainSpecs:
+        relayChainName in knownChains
+          ? [knownChains[relayChainName as keyof typeof knownChains]]
+          : [],
       chainSpec: chain,
     }
   }
+
   const relayChainName = Object.keys(knownChains).find(
     (c) => c !== chain && chain.startsWith(c),
   )
