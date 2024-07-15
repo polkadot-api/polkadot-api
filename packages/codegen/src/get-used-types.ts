@@ -1,6 +1,6 @@
 import {
   getChecksumBuilder,
-  getLookupFn,
+  LookupEntry,
 } from "@polkadot-api/metadata-builders"
 import { V14, V15 } from "@polkadot-api/substrate-bindings"
 import {
@@ -28,12 +28,12 @@ import {
 export const getUsedTypes = (
   metadata: V14 | V15,
   builder: ReturnType<typeof getChecksumBuilder>,
+  lookup: (id: number) => LookupEntry,
 ) => {
   const checksums: string[] = new Array(metadata.lookup.length)
   const visited = new Set<string>()
   const types = new Map<string, TypedefNode>()
   const entryPoints = new Map<string, EntryPoint>()
-  const lookup = getLookupFn(metadata.lookup)
 
   const addTypeFromLookup = (id: number | undefined) => {
     if (id == null) return

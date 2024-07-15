@@ -4,7 +4,11 @@
 
 ### Breaking
 
-- Remove `checksumBuilder` from `RuntimeContext`
+- Remove `checksumBuilder` and `asset` from `RuntimeContext`
+
+### Added
+
+- Add `lookupFn` and `assetId` to `RuntimeContext`
 
 ### Fixed
 

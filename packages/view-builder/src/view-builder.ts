@@ -199,8 +199,10 @@ const buildShapedDecoder = withCache(withPath, selfDecoder, (outter, inner) => {
 const hexStrFromByte = (input: number) =>
   `0x${input.toString(16).padEnd(2, "0")}` as HexString
 
-export const getViewBuilder: GetViewBuilder = (metadata: V15 | V14) => {
-  const lookupData = metadata.lookup
+export const getViewBuilder: GetViewBuilder = (
+  metadata: V15 | V14,
+  getLookupEntryDef = getLookupFn(metadata.lookup),
+) => {
   const cache = new Map<number, ShapedDecoder>()
 
   const getDecoder = (id: number) =>
@@ -208,11 +210,9 @@ export const getViewBuilder: GetViewBuilder = (metadata: V15 | V14) => {
       getLookupEntryDef(id),
       cache,
       new Set(),
-      lookupData,
+      metadata.lookup,
       _accountId,
     )
-
-  const getLookupEntryDef = getLookupFn(lookupData)
 
   let _accountId: WithShapeWithoutExtra<AccountIdDecoded> = primitives.AccountId
 

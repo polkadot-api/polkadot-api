@@ -33,7 +33,10 @@ import {
   TxPromise,
   TxSignFn,
 } from "./types"
-import { isCompatible } from "@polkadot-api/metadata-compatibility"
+import {
+  isCompatible,
+  mapLookupToTypedef,
+} from "@polkadot-api/metadata-compatibility"
 
 export { submit, submit$ }
 
@@ -70,20 +73,22 @@ export const createTxEntry = <
       if (!argsAreCompatible(runtime, ctx, arg))
         throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
-      const {
-        dynamicBuilder,
-        asset: [assetEnc, assetTypedef],
-      } = ctx
+      const { dynamicBuilder, assetId, lookupFn } = ctx
       let returnOptions = txOptions
       if (txOptions.asset) {
         if (
-          !assetTypedef ||
-          !isCompatible(txOptions.asset, assetTypedef, (id) =>
-            getRuntimeTypedef(ctx, id),
+          assetId == null ||
+          !isCompatible(
+            txOptions.asset,
+            mapLookupToTypedef(lookupFn(assetId)),
+            (id) => getRuntimeTypedef(ctx, id),
           )
         )
           throw new Error(`Incompatible runtime asset`)
-        returnOptions = { ...txOptions, asset: assetEnc(txOptions.asset) }
+        returnOptions = {
+          ...txOptions,
+          asset: dynamicBuilder.buildDefinition(assetId).enc(txOptions.asset),
+        }
       }
 
       const { location, codec } = dynamicBuilder.buildCall(pallet, name)

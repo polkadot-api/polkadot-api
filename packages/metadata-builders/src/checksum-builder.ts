@@ -359,10 +359,11 @@ const buildChecksum = (
   return getChecksum(entry)
 }
 
-export const getChecksumBuilder = (metadata: V14 | V15) => {
-  const lookupData = metadata.lookup
-  const getLookupEntryDef = getLookupFn(lookupData)
-  const graph = buildLookupGraph(getLookupEntryDef, lookupData.length)
+export const getChecksumBuilder = (
+  metadata: V14 | V15,
+  getLookupEntryDef = getLookupFn(metadata.lookup),
+) => {
+  const graph = buildLookupGraph(getLookupEntryDef, metadata.lookup.length)
 
   const cache = new Map<number, bigint>()
 

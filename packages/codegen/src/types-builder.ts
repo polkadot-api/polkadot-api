@@ -1,7 +1,6 @@
 import { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
 import {
   LookupEntry,
-  getLookupFn,
   getChecksumBuilder,
   TupleVar,
   StructVar,
@@ -324,6 +323,8 @@ export const getTypesBuilder = (
   metadata: V14 | V15,
   // checksum -> desired-name
   knownTypes: Record<string, string>,
+  checksumBuilder: ReturnType<typeof getChecksumBuilder>,
+  getLookupEntryDef: (id: number) => LookupEntry,
 ) => {
   const typeFileImports = new Set<string>()
   const clientFileImports = new Set<string>()
@@ -336,10 +337,6 @@ export const getTypesBuilder = (
     }
     return entry.type
   }
-
-  const lookupData = metadata.lookup
-  const getLookupEntryDef = getLookupFn(lookupData)
-  const checksumBuilder = getChecksumBuilder(metadata)
 
   const getChecksum = (id: number | StructVar | TupleVar | ArrayVar): string =>
     typeof id === "number"
