@@ -9,8 +9,8 @@
     "build": "../../packages/cli/dist/main.js",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "tx-with-competing-forks": "tsup-node src/tx-with-competing-forks/tx-with-competing-forks.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/tx-with-competing-forks.js\"",
-    "test": "tsup-node src/main.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\""
+    "tx-with-competing-forks": "tsup-node src/tx-with-competing-forks/tx-with-competing-forks.ts --treeshake --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/tx-with-competing-forks.js\"",
+    "test": "tsup-node src/main.ts --treeshake --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/main.js\""
   },
   "keywords": [],
   "author": "",

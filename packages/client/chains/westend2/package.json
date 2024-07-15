@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_chains_westend2",
   "types": "../../dist/reexports/chains_westend2.d.ts",
-  "module": "../../dist/reexports/chains_westend2.mjs",
-  "import": "../../dist/reexports/chains_westend2.mjs",
+  "module": "../../dist/esm/reexports/chains_westend2.mjs",
+  "import": "../../dist/esm/reexports/chains_westend2.mjs",
   "require": "../../dist/reexports/chains_westend2.js",
   "default": "../../dist/reexports/chains_westend2.js"
 }

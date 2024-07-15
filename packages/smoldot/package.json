@@ -69,9 +69,9 @@
   ],
   "scripts": {
     "build": "tsc --noEmit && pnpm run build:main && pnpm run build:worker && pnpm run build:from-worker",
-    "build:main": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
-    "build:worker": "tsup-node src/worker.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/worker && tsup-node src/worker.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/worker/min",
-    "build:from-worker": "tsup-node src/from-worker.ts --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/from-worker && tsup-node src/from-worker.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/from-worker/min",
+    "build:main": "tsc --noEmit && tsup-node src/index.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts && tsup-node src/index.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
+    "build:worker": "tsup-node src/worker.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/worker && tsup-node src/worker.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/worker/min",
+    "build:from-worker": "tsup-node src/from-worker.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/from-worker && tsup-node src/from-worker.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/from-worker/min",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
