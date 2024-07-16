@@ -48,14 +48,14 @@ describe("E2E", async () => {
   const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
   const api = client.getTypedApi(roc)
 
-  console.log("getting the latest runtime")
-  const runtime = await api.runtime.latest()
+  console.log("waiting for compatibility token")
+  const token = await api.compatibilityToken
 
   it("evaluates constant values", () => {
-    const ss58Prefix = api.constants.System.SS58Prefix(runtime)
+    const ss58Prefix = api.constants.System.SS58Prefix(token)
     expect(ss58Prefix).toEqual(42)
 
-    const ed = api.constants.Balances.ExistentialDeposit(runtime)
+    const ed = api.constants.Balances.ExistentialDeposit(token)
     expect(ed).toEqual(ED)
   })
 
