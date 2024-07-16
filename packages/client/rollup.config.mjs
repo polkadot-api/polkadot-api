@@ -3,6 +3,7 @@ import esbuild from "rollup-plugin-esbuild"
 import alias from "@rollup/plugin-alias"
 import path from "path"
 import { readdir } from "node:fs/promises"
+import { chmodSync, statSync } from "node:fs"
 import resolve from "@rollup/plugin-node-resolve"
 
 const reexports = (await readdir("src/reexports"))
@@ -81,7 +82,21 @@ export default [
   {
     input: "src/cli.ts",
     external: (id) => !/^[./]/.test(id) && !/^@\//.test(id),
-    plugins: [absoluteAlias, esbuild()],
+    plugins: [
+      absoluteAlias,
+      esbuild(),
+      {
+        // seems rollup-plugin-executable is not compatible with latest rollup version.
+        writeBundle(options, entries) {
+          Object.values(entries)
+            .filter((v) => v.fileName.endsWith("js"))
+            .forEach((v) => {
+              const file = path.join(options.dir, v.fileName)
+              chmodSync(file, statSync(file).mode | 0o111)
+            })
+        },
+      },
+    ],
     output: {
       dir: `bin`,
       format: "es",

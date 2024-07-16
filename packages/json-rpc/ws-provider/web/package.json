@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/ws-provider/web",
   "types": "../dist/web/web.d.ts",
-  "module": "../dist/web/web.mjs",
-  "import": "../dist/web/web.mjs",
+  "module": "../dist/web/esm/web.mjs",
+  "import": "../dist/web/esm/web.mjs",
   "require": "../dist/web/web.js",
   "default": "../dist/web/web.js",
   "sideEffects": false

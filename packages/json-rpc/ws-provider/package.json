@@ -11,15 +11,15 @@
   "exports": {
     "./node": {
       "types": "./dist/node/node.d.ts",
-      "module": "./dist/node/node.mjs",
-      "import": "./dist/node/node.mjs",
+      "module": "./dist/node/esm/node.mjs",
+      "import": "./dist/node/esm/node.mjs",
       "require": "./dist/node/node.js",
       "default": "./dist/node/node.js"
     },
     "./web": {
       "types": "./dist/web/web.d.ts",
-      "module": "./dist/web/web.mjs",
-      "import": "./dist/web/web.mjs",
+      "module": "./dist/web/esm/web.mjs",
+      "import": "./dist/web/esm/web.mjs",
       "require": "./dist/web/web.js",
       "default": "./dist/web/web.js"
     },
@@ -31,9 +31,7 @@
     "node"
   ],
   "scripts": {
-    "build": "tsc --noEmit && pnpm run build:web && pnpm run build:node",
-    "build:web": "tsup-node src/web.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/web && tsup-node src/web.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/web/min",
-    "build:node": "tsup-node src/node.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts --out-dir dist/node && tsup-node src/node.ts --treeshake --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/node/min",
+    "build": "tsc --noEmit && rollup -c",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",

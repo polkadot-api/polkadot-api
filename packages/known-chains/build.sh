@@ -5,4 +5,4 @@ pnpm tsc --noEmit
 
 chains=$(ls -1 ./src/specs/*.ts | sed 's/\.\///g' | tr "\n" " ")
 
-pnpm tsup-node src/index.ts ${chains} --treeshake --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts
+pnpm tsup-node src/index.ts ${chains} --clean --sourcemap --platform neutral --target=es2020 --format esm,cjs --dts
