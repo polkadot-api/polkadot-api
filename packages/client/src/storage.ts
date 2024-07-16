@@ -6,7 +6,7 @@ import {
   CompatibilityFunctions,
   CompatibilityHelper,
   minCompatLevel,
-} from "./runtime"
+} from "./compatibility"
 import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
 
 type CallOptions = Partial<{
@@ -44,7 +44,7 @@ type ArrayPossibleParents<
       : ArrayPossibleParents<A, [...Count, T], R | Count>
   : never
 
-type StorageEntryWithoutKeys<Payload> = {
+type StorageEntryWithoutKeys<D, Payload> = {
   /**
    * Get `Payload` (Promise-based) for the storage entry.
    *
@@ -59,9 +59,9 @@ type StorageEntryWithoutKeys<Payload> = {
    *                         changes, `best` or `finalized` (default)
    */
   watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
-} & CompatibilityFunctions
+} & CompatibilityFunctions<D>
 
-type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
+type StorageEntryWithKeys<D, Args extends Array<any>, Payload> = {
   /**
    * Get `Payload` (Promise-based) for the storage entry with a specific set of
    * `Args`.
@@ -111,11 +111,11 @@ type StorageEntryWithKeys<Args extends Array<any>, Payload> = {
   getEntries: (
     ...args: WithCallOptions<PossibleParents<Args>>
   ) => Promise<Array<{ keyArgs: Args; value: NonNullable<Payload> }>>
-} & CompatibilityFunctions
+} & CompatibilityFunctions<D>
 
-export type StorageEntry<Args extends Array<any>, Payload> = Args extends []
-  ? StorageEntryWithoutKeys<Payload>
-  : StorageEntryWithKeys<Args, Payload>
+export type StorageEntry<D, Args extends Array<any>, Payload> = Args extends []
+  ? StorageEntryWithoutKeys<D, Payload>
+  : StorageEntryWithKeys<D, Args, Payload>
 
 export type Storage$ = <Type extends StorageItemInput["type"]>(
   hash: string | null,
@@ -146,7 +146,7 @@ export const createStorageEntry = (
     argsAreCompatible,
     valuesAreCompatible,
   }: CompatibilityHelper,
-): StorageEntry<any, any> => {
+): StorageEntry<any, any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
 
   const incompatibleError = () =>

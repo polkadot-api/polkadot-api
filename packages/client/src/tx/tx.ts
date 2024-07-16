@@ -22,7 +22,11 @@ import {
   throwError,
 } from "rxjs"
 import { PlainDescriptor } from "@/descriptors"
-import { CompatibilityHelper, Runtime } from "../runtime"
+import {
+  CompatibilityHelper,
+  CompatibilityToken,
+  getCompatibilityApi,
+} from "../compatibility"
 import { createTx } from "./create-tx"
 import { submit, submit$ } from "./submit-fns"
 import {
@@ -44,6 +48,7 @@ const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
 
 export const createTxEntry = <
+  D,
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
@@ -59,14 +64,14 @@ export const createTxEntry = <
     argsAreCompatible,
     getRuntimeTypedef,
   }: CompatibilityHelper,
-): TxEntry<Arg, Pallet, Name, Asset> => {
+): TxEntry<D, Arg, Pallet, Name, Asset> => {
   const fn = (arg?: Arg): any => {
     const getCallDataWithContext = (
-      runtime: Runtime,
+      runtime: CompatibilityToken,
       arg: any,
       txOptions: Partial<{ asset: any }> = {},
     ) => {
-      const ctx = runtime._getCtx()
+      const ctx = getCompatibilityApi(runtime).runtime()
       if (!argsAreCompatible(runtime, ctx, arg))
         throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
@@ -100,11 +105,13 @@ export const createTxEntry = <
         map(([runtime]) => getCallDataWithContext(runtime, arg, options)),
       )
 
-    const getEncodedData: TxCall = (runtime?: Runtime): any => {
-      if (!runtime)
+    const getEncodedData: TxCall = (
+      compatibilityToken?: CompatibilityToken,
+    ): any => {
+      if (!compatibilityToken)
         return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
 
-      return getCallDataWithContext(runtime, arg).callData
+      return getCallDataWithContext(compatibilityToken, arg).callData
     }
 
     const sign$ = (

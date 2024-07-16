@@ -1,7 +1,15 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import { getLookupFn } from "@polkadot-api/metadata-builders"
 import {
-  getObservableClient,
+  enumValueEntryPointNode,
+  runtimeCallEntryPoint,
+  singleValueEntryPoint,
+  storageEntryPoint,
+  voidEntryPointNode,
+} from "@polkadot-api/metadata-compatibility"
+import {
   RuntimeContext,
+  getObservableClient,
 } from "@polkadot-api/observable-client"
 import {
   SubstrateClient,
@@ -11,28 +19,23 @@ import { Observable, firstValueFrom } from "rxjs"
 import { createConstantEntry } from "./constants"
 import { ChainDefinition } from "./descriptors"
 import { createEventEntry } from "./event"
-import { OpType, compatibilityHelper, getRuntimeApi } from "./runtime"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import { PolkadotClient, TypedApi } from "./types"
 import {
-  enumValueEntryPointNode,
-  runtimeCallEntryPoint,
-  singleValueEntryPoint,
-  storageEntryPoint,
-  voidEntryPointNode,
-} from "@polkadot-api/metadata-compatibility"
-import { getLookupFn } from "@polkadot-api/metadata-builders"
+  compatibilityHelper,
+  createCompatibilityToken,
+  OpType,
+} from "./compatibility"
 
 const createTypedApi = <D extends ChainDefinition>(
   chainDefinition: D,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast$: (tx: string) => Observable<never>,
 ): TypedApi<D> => {
-  const runtime = getRuntimeApi(
-    chainDefinition.metadataTypes,
-    chainDefinition.descriptors,
+  const compatibilityToken = createCompatibilityToken(
+    chainDefinition,
     chainHead,
   )
 
@@ -62,8 +65,8 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainHead,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Storage, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Storage, pallet, name),
         // TODO this is way sub-optimal. Needs some rethought. Specially down below
         (ctx) =>
           storageEntryPoint(
@@ -97,8 +100,8 @@ const createTypedApi = <D extends ChainDefinition>(
       chainHead,
       broadcast$,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Tx, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Tx, pallet, name),
         (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, name),
       ),
     ),
@@ -110,8 +113,8 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainHead,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Event, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Event, pallet, name),
         (ctx) =>
           getEnumEntry(ctx, "values", getPallet(ctx, pallet).events!, name),
       ),
@@ -123,8 +126,8 @@ const createTypedApi = <D extends ChainDefinition>(
       pallet,
       name,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Const, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Const, pallet, name),
         (ctx) =>
           singleValueEntryPoint(
             getPallet(ctx, pallet).constants.find((c) => c.name === name)!.type,
@@ -139,8 +142,8 @@ const createTypedApi = <D extends ChainDefinition>(
       method,
       chainHead,
       compatibilityHelper(
-        runtime,
-        (r) => r._getApiEntryPoint(api, method),
+        compatibilityToken,
+        (r) => r.getApiEntryPoint(api, method),
         (ctx) =>
           runtimeCallEntryPoint(
             ctx.metadata.apis
@@ -157,7 +160,7 @@ const createTypedApi = <D extends ChainDefinition>(
     event,
     apis,
     constants,
-    runtime,
+    compatibilityToken,
   } as any
 }
 

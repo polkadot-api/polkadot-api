@@ -12,20 +12,34 @@ import {
 } from "@polkadot-api/metadata-compatibility"
 import {
   ChainHead$,
-  RuntimeContext,
   getObservableClient,
+  RuntimeContext,
 } from "@polkadot-api/observable-client"
 import { Tuple, Vector } from "@polkadot-api/substrate-bindings"
-import {
-  Observable,
-  ReplaySubject,
-  combineLatest,
-  connectable,
-  filter,
-  firstValueFrom,
-  map,
-} from "rxjs"
-import { DescriptorValues } from "./descriptors"
+import { Observable, combineLatest, filter, firstValueFrom, map } from "rxjs"
+import { ChainDefinition } from "./descriptors"
+
+export class CompatibilityToken<D = unknown> {
+  // @ts-ignore
+  private constructor(protected _descriptors: D) {}
+}
+
+interface CompatibilityTokenApi {
+  runtime: () => RuntimeContext
+  typedefNodes: TypedefNode[]
+  getPalletEntryPoint: (
+    opType: OpType,
+    pallet: string,
+    name: string,
+  ) => EntryPoint
+  getApiEntryPoint: (name: string, method: string) => EntryPoint
+}
+const compatibilityTokenApi = new WeakMap<
+  CompatibilityToken,
+  CompatibilityTokenApi
+>()
+export const getCompatibilityApi = (token: CompatibilityToken) =>
+  compatibilityTokenApi.get(token)!
 
 export const enum OpType {
   Storage = "storage",
@@ -35,103 +49,50 @@ export const enum OpType {
   Const = "constants",
 }
 
-export class Runtime {
-  private constructor(
-    private _ctx: RuntimeContext,
-    private _metadataTypes: MetadataTypes,
-    private _descriptors: DescriptorValues,
-  ) {}
-
-  /**
-   * @access package  - Internal implementation detail. Do not use.
-   */
-  static _create(
-    ctx: RuntimeContext,
-    metadataTypes: MetadataTypes,
-    descriptors: DescriptorValues,
-  ) {
-    return new Runtime(ctx, metadataTypes, descriptors)
-  }
-
-  /**
-   * @access package  - Internal implementation detail. Do not use.
-   */
-  _getCtx() {
-    return this._ctx
-  }
-
-  /**
-   * @access package  - Internal implementation detail. Do not use.
-   */
-  _getPalletEntryPoint(
-    opType: OpType,
-    pallet: string,
-    name: string,
-  ): EntryPoint {
-    return this._metadataTypes[0][this._descriptors[opType][pallet][name]]
-  }
-
-  /**
-   * @access package  - Internal implementation detail. Do not use.
-   */
-  _getApiEntryPoint(name: string, method: string) {
-    return this._metadataTypes[0][this._descriptors.apis[name][method]]
-  }
-
-  /**
-   * @access package  - Internal implementation detail. Do not use.
-   */
-  _getTypedefNodes() {
-    return this._metadataTypes[1]
-  }
-}
-
-export type RuntimeApi = Observable<Runtime> & {
-  /**
-   * @returns Promise that resolves in the `Runtime` as soon as it's
-   *          loaded.
-   */
-  latest: () => Promise<Runtime>
-}
-
 const EntryPointsCodec = Vector(EntryPointCodec)
 const TypedefsCodec = Vector(TypedefCodec)
 const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
-type MetadataTypes = ReturnType<(typeof TypesCodec)["dec"]>
-const decodedMetadataTypes = new WeakMap<Uint8Array, MetadataTypes>()
 
-export const getRuntimeApi = (
-  metadataTypes: Promise<Uint8Array>,
-  descriptors: Promise<DescriptorValues>,
+const tokens = new WeakMap<ChainDefinition, Promise<CompatibilityToken<any>>>()
+export const createCompatibilityToken = <D extends ChainDefinition>(
+  chainDefinition: D,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
-): RuntimeApi => {
-  const decodedMetadata = metadataTypes.then((byteArr) => {
-    if (decodedMetadataTypes.has(byteArr)) {
-      return decodedMetadataTypes.get(byteArr)!
-    }
-    const result = TypesCodec.dec(byteArr)
-    decodedMetadataTypes.set(byteArr, result)
-    return result
+): Promise<CompatibilityToken<D>> => {
+  if (tokens.has(chainDefinition)) {
+    return tokens.get(chainDefinition)!
+  }
+
+  const awaitedRuntime = new Promise<() => RuntimeContext>(async (resolve) => {
+    const loadedRuntime$ = chainHead.runtime$.pipe(filter((v) => v != null))
+
+    let latest = await firstValueFrom(loadedRuntime$)
+    loadedRuntime$.subscribe((v) => (latest = v))
+
+    resolve(() => latest)
   })
 
-  const runtimeWithDescriptors$ = connectable(
-    combineLatest([chainHead.runtime$, decodedMetadata, descriptors]).pipe(
-      map(([x, metadataTypes, descriptors]) =>
-        x ? Runtime._create(x, metadataTypes, descriptors) : null,
-      ),
-    ),
-    {
-      connector: () => new ReplaySubject(1),
-    },
-  )
-  runtimeWithDescriptors$.connect()
+  const promise = Promise.all([
+    chainDefinition.metadataTypes.then(TypesCodec.dec),
+    chainDefinition.descriptors,
+    awaitedRuntime,
+  ]).then(([[entryPoints, typedefNodes], descriptors, runtime]) => {
+    const token = new (CompatibilityToken as any)()
+    compatibilityTokenApi.set(token, {
+      runtime,
+      getPalletEntryPoint(opType, pallet, name) {
+        return entryPoints[descriptors[opType][pallet][name]]
+      },
+      getApiEntryPoint(name, method) {
+        return entryPoints[descriptors.apis[name][method]]
+      },
+      typedefNodes,
+    })
 
-  const result = runtimeWithDescriptors$.pipe(
-    filter((v) => Boolean(v)),
-  ) as RuntimeApi
-  result.latest = () => firstValueFrom(result)
+    return token
+  })
 
-  return result
+  tokens.set(chainDefinition, promise)
+  return promise
 }
 
 // metadataRaw -> cache
@@ -154,8 +115,8 @@ const getMetadataCache = (ctx: RuntimeContext) => {
   return metadataCache.get(ctx.metadataRaw)!
 }
 export const compatibilityHelper = (
-  runtimeApi: RuntimeApi,
-  getDescriptorEntryPoint: (runtime: Runtime) => EntryPoint,
+  descriptors: Promise<CompatibilityToken>,
+  getDescriptorEntryPoint: (descriptorApi: CompatibilityTokenApi) => EntryPoint,
   getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint,
 ) => {
   const getRuntimeTypedef = (ctx: RuntimeContext, id: number) => {
@@ -164,18 +125,20 @@ export const compatibilityHelper = (
   }
 
   function getCompatibilityLevels(
-    runtimeWithDescriptors: Runtime,
+    descriptors: CompatibilityToken,
     /**
      * The `Runtime` of runtimeWithDescriptors already has a RuntimeContext,
      * which is the runtime of the finalized block.
      * But on some cases, the user wants to perform an action on a specific
      * block hash, which has a different RuntimeContext.
      */
-    ctx: RuntimeContext = runtimeWithDescriptors._getCtx(),
+    ctx?: RuntimeContext,
   ) {
-    const descriptorEntryPoint = getDescriptorEntryPoint(runtimeWithDescriptors)
+    const compatibilityApi = compatibilityTokenApi.get(descriptors)!
+    ctx ||= compatibilityApi.runtime()
+    const descriptorEntryPoint = getDescriptorEntryPoint(compatibilityApi)
     const runtimeEntryPoint = getRuntimeEntryPoint(ctx)
-    const descriptorNodes = runtimeWithDescriptors._getTypedefNodes()
+    const descriptorNodes = compatibilityApi.typedefNodes
 
     const cache = getMetadataCache(ctx)
 
@@ -188,28 +151,30 @@ export const compatibilityHelper = (
     )
   }
 
-  const getCompatibilityLevel = withOptionalRuntime(runtimeApi, (runtime) =>
+  const getCompatibilityLevel = withOptionalToken(descriptors, (runtime) =>
     minCompatLevel(getCompatibilityLevels(runtime)),
   )
 
-  const waitDescriptors = () => runtimeApi.latest()
+  const waitDescriptors = () => descriptors
   const compatibleRuntime$ = (chainHead: ChainHead$, hash: string | null) =>
     combineLatest([waitDescriptors(), chainHead.getRuntimeContext$(hash)])
 
   const withCompatibleRuntime =
     <T>(chainHead: ChainHead$, mapper: (x: T) => string) =>
-    (source$: Observable<T>): Observable<[T, Runtime, RuntimeContext]> =>
+    (
+      source$: Observable<T>,
+    ): Observable<[T, CompatibilityToken, RuntimeContext]> =>
       combineLatest([
         source$.pipe(chainHead.withRuntime(mapper)),
         waitDescriptors(),
       ]).pipe(map(([[x, ctx], descriptors]) => [x, descriptors, ctx]))
 
   const argsAreCompatible = (
-    runtime: Runtime,
+    descriptors: CompatibilityToken,
     ctx: RuntimeContext,
     args: unknown,
   ) => {
-    const levels = getCompatibilityLevels(runtime, ctx)
+    const levels = getCompatibilityLevels(descriptors, ctx)
     if (levels.args === CompatibilityLevel.Incompatible) return false
     if (levels.args > CompatibilityLevel.Partial) return true
     // Although technically args could still be compatible, if the output will be incompatible we might as well just return false to skip sending the request.
@@ -224,20 +189,21 @@ export const compatibilityHelper = (
     )
   }
   const valuesAreCompatible = (
-    runtime: Runtime,
+    descriptors: CompatibilityToken,
     ctx: RuntimeContext,
     values: unknown,
   ) => {
-    const level = getCompatibilityLevels(runtime, ctx).values
+    const level = getCompatibilityLevels(descriptors, ctx).values
     if (level === CompatibilityLevel.Incompatible) return false
     if (level > CompatibilityLevel.Partial) return true
 
-    const entryPoint = getDescriptorEntryPoint(runtime)
-    const nodes = runtime._getTypedefNodes()
+    const compatibilityApi = compatibilityTokenApi.get(descriptors)!
+
+    const entryPoint = getDescriptorEntryPoint(compatibilityApi)
 
     return valueIsCompatibleWithDest(
       entryPoint.values,
-      (id) => nodes[id],
+      (id) => compatibilityApi.typedefNodes[id],
       values,
     )
   }
@@ -260,14 +226,15 @@ export const minCompatLevel = (levels: {
   values: CompatibilityLevel
 }) => Math.min(levels.args, levels.values)
 
-const withOptionalRuntime =
-  <T>(
-    runtimeApi: RuntimeApi,
-    fn: (runtime: Runtime) => T,
-  ): WithOptionalRuntime<T> =>
-  (runtime?: Runtime): any =>
-    runtime ? fn(runtime) : runtimeApi.latest().then(fn)
-export type WithOptionalRuntime<T> = {
+const withOptionalToken =
+  <T, D>(
+    compatibilityToken: Promise<CompatibilityToken<D>>,
+    fn: (runtime: CompatibilityToken) => T,
+  ): WithOptionalRuntime<T, D> =>
+  (runtime?: CompatibilityToken): any =>
+    runtime ? fn(runtime) : compatibilityToken.then(fn)
+
+export type WithOptionalRuntime<T, D> = {
   /**
    * Returns the result after waiting for the runtime to load.
    */
@@ -275,13 +242,13 @@ export type WithOptionalRuntime<T> = {
   /**
    * Returns the result synchronously with the loaded runtime.
    */
-  (runtime: Runtime): T
+  (runtime: CompatibilityToken<D>): T
 }
 
-export interface CompatibilityFunctions {
+export interface CompatibilityFunctions<D> {
   /**
    * Returns the `CompatibilityLevel` for this call comparing the descriptors
    * generated on dev time with the current live metadata.
    */
-  getCompatibilityLevel: WithOptionalRuntime<CompatibilityLevel>
+  getCompatibilityLevel: WithOptionalRuntime<CompatibilityLevel, D>
 }
