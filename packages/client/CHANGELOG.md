@@ -9,6 +9,7 @@
 ### Breaking
 
 - Replaced `isCompatible()` functions for `getCompatibilityLevel()`, for a more granular control of runtime upgrades [#561](https://github.com/polkadot-api/polkadot-api/pull/561)
+- Replaced `typedApi.runtime` for `typedApi.compatibilityToken` [#569](https://github.com/polkadot-api/polkadot-api/pull/569)
 
 ### Fixed
 
