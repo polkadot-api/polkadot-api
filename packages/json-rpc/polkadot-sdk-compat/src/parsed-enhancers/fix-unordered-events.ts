@@ -62,13 +62,6 @@ export const fixUnorderedEvents: ParsedJsonRpcEnhancer = (base) => (onMsg) => {
       if (operationIds) {
         const { operationId } = (message as any).params.result
         if (operationId !== undefined) {
-          if ((message as any).params?.result?.event === "done") {
-            const [, , operationName] = (
-              message as unknown as { method: string }
-            ).method.split("_")
-            ;(message as any).params.result.event =
-              `operation${operationName[0].toUpperCase()}${operationName.slice(1)}Done`
-          }
           if (!operationIds.has(operationId)) {
             // The operationId hasn't arrived yet
             const subscriptionPending =
