@@ -14,16 +14,16 @@ async function run() {
   )
   console.log({ nominationsQuotaIsCompatible })
 
-  const runtime = await testApi.runtime.latest()
+  const token = await testApi.compatibilityToken
 
   const auctionEndingIsCompatible = isCompatible(
-    testApi.constants.Auctions.EndingPeriod.getCompatibilityLevel(runtime),
+    testApi.constants.Auctions.EndingPeriod.getCompatibilityLevel(token),
   )
 
   console.log({ auctionEndingIsCompatible })
 
   if (auctionEndingIsCompatible) {
-    console.log(testApi.constants.Auctions.EndingPeriod(runtime))
+    console.log(testApi.constants.Auctions.EndingPeriod(token))
   }
 
   client.destroy()

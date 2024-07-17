@@ -53,15 +53,10 @@ const EntryPointsCodec = Vector(EntryPointCodec)
 const TypedefsCodec = Vector(TypedefCodec)
 const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
 
-const tokens = new WeakMap<ChainDefinition, Promise<CompatibilityToken<any>>>()
 export const createCompatibilityToken = <D extends ChainDefinition>(
   chainDefinition: D,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
 ): Promise<CompatibilityToken<D>> => {
-  if (tokens.has(chainDefinition)) {
-    return tokens.get(chainDefinition)!
-  }
-
   const awaitedRuntime = new Promise<() => RuntimeContext>(async (resolve) => {
     const loadedRuntime$ = chainHead.runtime$.pipe(filter((v) => v != null))
 
@@ -91,7 +86,6 @@ export const createCompatibilityToken = <D extends ChainDefinition>(
     return token
   })
 
-  tokens.set(chainDefinition, promise)
   return promise
 }
 

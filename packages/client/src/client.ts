@@ -25,20 +25,16 @@ import { createTxEntry, submit, submit$ } from "./tx"
 import { PolkadotClient, TypedApi } from "./types"
 import {
   compatibilityHelper,
+  CompatibilityToken,
   createCompatibilityToken,
   OpType,
 } from "./compatibility"
 
 const createTypedApi = <D extends ChainDefinition>(
-  chainDefinition: D,
+  compatibilityToken: Promise<CompatibilityToken>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast$: (tx: string) => Observable<never>,
 ): TypedApi<D> => {
-  const compatibilityToken = createCompatibilityToken(
-    chainDefinition,
-    chainHead,
-  )
-
   const target = {}
   const createProxy = (propCall: (prop: string) => unknown) =>
     new Proxy(target, {
@@ -197,6 +193,18 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     params: Params,
   ) => Promise<Reply> = rawClient.request
 
+  const compatibilityToken = new WeakMap<
+    ChainDefinition,
+    Promise<CompatibilityToken<any>>
+  >()
+  const getChainToken = (chainDefinition: ChainDefinition) => {
+    const result =
+      compatibilityToken.get(chainDefinition) ||
+      createCompatibilityToken(chainDefinition, chainHead)
+    compatibilityToken.set(chainDefinition, result)
+    return result
+  }
+
   const { broadcastTx$ } = client
   return {
     getChainSpecData,
@@ -217,7 +225,7 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     submitAndWatch: (...args) => submit$(chainHead, broadcastTx$, ...args),
 
     getTypedApi: <D extends ChainDefinition>(chainDefinition: D) =>
-      createTypedApi(chainDefinition, chainHead, broadcastTx$),
+      createTypedApi(getChainToken(chainDefinition), chainHead, broadcastTx$),
 
     destroy: () => {
       chainHead.unfollow()
