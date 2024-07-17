@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- `chains`: Add Paseo testnet
+
 ### Fixed
 
 - `cli`: Allow using `add -c` for parachain chainSpecs of well-known relay-chains [#568](https://github.com/polkadot-api/polkadot-api/pull/568)
+- `chains`: Update `lightSyncState` and `bootnodes`
 
 ### Breaking
 
