@@ -12,8 +12,9 @@ import {
   throwError,
 } from "rxjs"
 import { BlockPrunedError, NotBestBlockError } from "../errors"
-import { PinnedBlocks, retryOnStopError } from "../streams"
 import { isBestOrFinalizedBlock } from "../streams/block-operations"
+import { retryOnStopError } from "../streams/follow"
+import type { PinnedBlocks } from "../streams/pinned-blocks"
 
 export function withEnsureCanonicalChain<A extends Array<any>, T>(
   blocks$: Observable<PinnedBlocks>,

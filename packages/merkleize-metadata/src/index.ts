@@ -1,15 +1,15 @@
 export * from "./main"
 export {
   proof,
-  Proof,
+  type Proof,
   lookup,
-  Lookup,
+  type Lookup,
   lookupType,
-  LookupEntry,
+  type LookupEntry,
   hash,
   extrinsicMetadata,
-  ExtrinsicMetadata,
-  TypeRef,
+  type ExtrinsicMetadata,
+  type TypeRef,
   extraInfo,
-  ExtraInfo,
+  type ExtraInfo,
 } from "./codecs"

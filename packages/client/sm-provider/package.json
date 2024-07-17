@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_sm-provider",
   "types": "../dist/reexports/sm-provider.d.ts",
-  "module": "../dist/reexports/sm-provider.mjs",
-  "import": "../dist/reexports/sm-provider.mjs",
+  "module": "../dist/esm/reexports/sm-provider.mjs",
+  "import": "../dist/esm/reexports/sm-provider.mjs",
   "require": "../dist/reexports/sm-provider.js",
   "default": "../dist/reexports/sm-provider.js"
 }

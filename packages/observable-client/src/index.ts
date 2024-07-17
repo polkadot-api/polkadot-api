@@ -3,6 +3,6 @@ export {
   BlockNotPinnedError,
   BlockPrunedError,
   NotBestBlockError,
-  AnalyzedBlock,
-  PinnedBlock,
+  type AnalyzedBlock,
+  type PinnedBlock,
 } from "./chainHead"

@@ -1,8 +1,8 @@
 {
   "name": "polkadot-api_utils",
   "types": "../dist/reexports/utils.d.ts",
-  "module": "../dist/reexports/utils.mjs",
-  "import": "../dist/reexports/utils.mjs",
+  "module": "../dist/esm/reexports/utils.mjs",
+  "import": "../dist/esm/reexports/utils.mjs",
   "require": "../dist/reexports/utils.js",
   "default": "../dist/reexports/utils.js"
 }
