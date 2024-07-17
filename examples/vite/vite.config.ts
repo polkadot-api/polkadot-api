@@ -6,6 +6,7 @@ export default defineConfig({
     rollupOptions: {
       shimMissingExports: true,
     },
+    sourcemap: true,
   },
   optimizeDeps: {
     esbuildOptions: { target: "esnext" },
