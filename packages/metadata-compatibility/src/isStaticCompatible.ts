@@ -11,7 +11,7 @@ import type {
   TypedefNode,
 } from "./typedef"
 
-export const enum CompatibilityLevel {
+export enum CompatibilityLevel {
   // No possible value from origin will be compatible with dest
   Incompatible = 0,
   // Some values of origin will be compatible with dest
