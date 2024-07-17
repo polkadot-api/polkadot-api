@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update `lightSyncState` and `bootnodes`
+
 ## 0.1.6 - 2024-06-17
 
 ### Fixed
