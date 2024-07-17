@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "../../packages/cli/dist/main.js",
+    "build": "../../packages/cli/dist/main.js && tsc --noEmit",
     "lightclient": "bun run ./src/lightclient.ts",
     "rpc": "bun run ./src/rpc.ts",
     "compile:rpc": "bun build ./src/rpc.ts --compile --outfile ./dist/rpc",
