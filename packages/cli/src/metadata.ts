@@ -10,6 +10,7 @@ import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
 import * as knownChains from "@polkadot-api/known-chains"
+import compatEnhancer from "@polkadot-api/polkadot-sdk-compat"
 import type {
   MetadataWithRaw,
   WorkerRequestMessage,
@@ -101,7 +102,7 @@ const getMetadataFromSmoldot = async (chain: string) => {
 }
 
 const getMetadataFromWsURL = async (wsURL: string) =>
-  getMetadataCall(WebSocketProvider(wsURL))
+  getMetadataCall(compatEnhancer(WebSocketProvider(wsURL)))
 
 export async function getMetadata(
   entry: EntryConfig,

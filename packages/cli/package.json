@@ -39,6 +39,7 @@
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
+    "@polkadot-api/polkadot-sdk-compat": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/smoldot": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

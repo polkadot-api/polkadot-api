@@ -6,15 +6,23 @@ export type JsonMessage = {
   params: {}
 }
 
+export const enum MessageType {
+  subscribe,
+  unsubscribe,
+  end,
+}
+
 export interface SubscriptionLogic {
   onSent: (parsed: any) =>
     | {
-        type: "subscribe"
+        type: MessageType.subscribe
         id: RequestId
         onRes: (parsed: any) => { id: SubscriptionId } | null
       }
-    | { type: "unsubscribe"; id: SubscriptionId }
+    | { type: MessageType.unsubscribe; id: SubscriptionId }
     | null
-  onNotification: (parsed: any) => { type: "end"; id: SubscriptionId } | null
+  onNotification: (
+    parsed: any,
+  ) => { type: MessageType.end; id: SubscriptionId } | null
   onAbort: (id: SubscriptionId) => void
 }

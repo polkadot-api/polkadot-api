@@ -226,6 +226,9 @@ importers:
       '@polkadot-api/observable-client':
         specifier: workspace:*
         version: link:../observable-client
+      '@polkadot-api/polkadot-sdk-compat':
+        specifier: workspace:*
+        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/sm-provider':
         specifier: workspace:*
         version: link:../json-rpc/sm-provider
@@ -317,6 +320,9 @@ importers:
       '@polkadot-api/pjs-signer':
         specifier: workspace:*
         version: link:../signers/pjs-signer
+      '@polkadot-api/polkadot-sdk-compat':
+        specifier: workspace:*
+        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../signers/polkadot-signer
@@ -375,6 +381,12 @@ importers:
         version: link:../json-rpc-provider
 
   packages/json-rpc/logs-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+
+  packages/json-rpc/polkadot-sdk-compat:
     dependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*

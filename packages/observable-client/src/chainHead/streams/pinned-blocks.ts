@@ -192,12 +192,18 @@ export const getPinnedBlocks$ = (
 
         case "finalized": {
           acc.finalized = event.finalizedBlockHashes.slice(-1)[0]
-          acc.finalizedRuntime =
-            acc.runtimes[acc.blocks.get(acc.finalized)!.runtime]
+          const { blocks } = acc
 
-          // TODO: remove this once https://github.com/paritytech/polkadot-sdk/issues/3658 is fixed
-          const actuallyPruned = [...new Set(event.prunedBlockHashes)]
-          onUnpin(getBlocksToUnpin(acc, actuallyPruned))
+          // This logic is only needed because of a bug on some pretty old versions
+          // of the polkadot-sdk node. However, fixing it with an enhancer
+          // was a huge PITA. Therefore, it's more pragmatic to address it here
+          if (blocks.get(acc.best)!.number < blocks.get(acc.finalized)!.number)
+            acc.best = acc.finalized
+
+          acc.finalizedRuntime =
+            acc.runtimes[blocks.get(acc.finalized)!.runtime]
+
+          onUnpin(getBlocksToUnpin(acc, event.prunedBlockHashes))
           return acc
         }
 

@@ -1,18 +1,12 @@
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getTransaction } from "./transaction/transaction"
 import { getChainHead } from "./chainhead"
-import {
-  ClientRequest,
-  ClientRequestCb,
-  createClient as createRawClient,
-} from "./client"
+import { ClientRequestCb, createClient as createRawClient } from "./client"
 import type { ChainHead } from "./chainhead"
 import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"
 import { abortablePromiseFn } from "./internal-utils"
 import { ChainSpecData, createGetChainSpec } from "./chainspec"
-import { getCompatibilityEnhancer } from "./request-compatibility-enhancer"
-import { chainHead, chainSpec, transaction } from "./methods"
 
 export { AbortError } from "@polkadot-api/utils"
 export type * from "@polkadot-api/json-rpc-provider"
@@ -50,43 +44,20 @@ export interface SubstrateClient {
 }
 
 export const createClient = (provider: JsonRpcProvider): SubstrateClient => {
-  const client = createRawClient(provider)
-
-  const request = abortablePromiseFn(
-    <T>(
-      onSuccess: (value: T) => void,
-      onError: (e: any) => void,
-      method: string,
-      params: any[],
-    ) => client.request(method, params, { onSuccess, onError }),
-  )
-
-  const rpcMethods: Promise<Set<string>> = request<
-    { methods: Array<string> } | Array<string>
-  >("rpc_methods", []).then(
-    (x) => new Set(Array.isArray(x) ? x : x.methods),
-    () => new Set(),
-  )
-
-  const compatibilityEnhancer = getCompatibilityEnhancer(
-    rpcMethods,
-    client.request,
-  )
-
+  const { request, disconnect } = createRawClient(provider)
   return {
-    chainHead: getChainHead(
-      compatibilityEnhancer(chainHead) as ClientRequest<any, any>,
+    chainHead: getChainHead(request),
+    transaction: getTransaction(request),
+    getChainSpecData: createGetChainSpec(request),
+    destroy: disconnect,
+    request: abortablePromiseFn(
+      <T>(
+        onSuccess: (value: T) => void,
+        onError: (e: any) => void,
+        method: string,
+        params: any[],
+      ) => request(method, params, { onSuccess, onError }),
     ),
-    transaction: getTransaction(
-      compatibilityEnhancer(transaction) as ClientRequest<string, any>,
-    ),
-    getChainSpecData: createGetChainSpec(
-      compatibilityEnhancer(chainSpec) as ClientRequest<any, any>,
-    ),
-    destroy: () => {
-      client.disconnect()
-    },
-    request,
-    _request: client.request,
+    _request: request,
   }
 }
