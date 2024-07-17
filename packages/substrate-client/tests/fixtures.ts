@@ -116,17 +116,10 @@ export const createMockProvider = (): MockProvider => {
   })
 }
 
-const methods = Object.values(allMethods)
-  .map((x) => Object.values(x))
-  .flat()
-
 export const createTestClient = () => {
   const provider = createMockProvider()
   //
   const client = createClient(provider)
-  // Clear out initial rpc_methods call, as it's internal
-  provider.replyLast({ result: methods })
-  provider.getNewMessages()
 
   return {
     client,
