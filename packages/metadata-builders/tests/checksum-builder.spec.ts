@@ -1,7 +1,7 @@
 import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
-import { V14Lookup, V15 } from "@polkadot-api/substrate-bindings"
+import { V14Lookup } from "@polkadot-api/substrate-bindings"
 import { expect, describe, it, beforeAll } from "vitest"
-import { getChecksumBuilder } from "@/."
+import { getChecksumBuilder, getLookupFn } from "@/."
 
 let ksm: Awaited<ReturnType<typeof getKsmMetadata>>
 beforeAll(async () => {
@@ -11,7 +11,7 @@ beforeAll(async () => {
 describe("getChecksumBuilder snapshots", () => {
   let builder: ReturnType<typeof getChecksumBuilder>
   beforeAll(() => {
-    builder = getChecksumBuilder(ksm)
+    builder = getChecksumBuilder(getLookupFn(ksm))
   })
 
   it("batched call", () => {
@@ -26,12 +26,12 @@ describe("getChecksumBuilder snapshots", () => {
 })
 
 describe("getChecksumBuilder properties", () => {
-  let builder = getChecksumBuilder({ lookup } as any)
+  let builder = getChecksumBuilder(metadataLookup())
   const lookupPush = (def: V14Lookup[number]["def"]) => {
     const id = lookup.length
     lookup.push(createEntry(id, def))
 
-    builder = getChecksumBuilder({ lookup } as any)
+    builder = getChecksumBuilder(metadataLookup())
     return id
   }
 
@@ -66,11 +66,12 @@ describe("getChecksumBuilder properties", () => {
   })
 
   it.skip("gives the same result regardless of entry point", () => {
-    const referenceBuilder = getChecksumBuilder(ksm as V15)
+    const metadataLookup = getLookupFn(ksm)
+    const referenceBuilder = getChecksumBuilder(metadataLookup)
     ksm.lookup.map((x) => x.id).forEach(referenceBuilder.buildDefinition)
 
     ksm.lookup.forEach((x) => {
-      const secondBuilder = getChecksumBuilder(ksm as V15)
+      const secondBuilder = getChecksumBuilder(metadataLookup)
       const referenceResult = referenceBuilder.buildDefinition(x.id)
       const secondResult = secondBuilder.buildDefinition(x.id)
 
@@ -233,8 +234,8 @@ describe("getChecksumBuilder properties", () => {
       aDef.value[1].type = optionId
     }
 
-    const firstBuilder = getChecksumBuilder({ lookup } as any)
-    const secondBuilder = getChecksumBuilder({ lookup } as any)
+    const firstBuilder = getChecksumBuilder(metadataLookup())
+    const secondBuilder = getChecksumBuilder(metadataLookup())
 
     const aChecksum = firstBuilder.buildDefinition(aId)
     const optionChecksum = firstBuilder.buildDefinition(optionId)
@@ -249,8 +250,7 @@ describe("getChecksumBuilder properties", () => {
 
   it("can detect mirrored circular types", () => {
     /**
-     * Creating the following case
-     * d <=> a <=> b <- c <=> e
+     * Creating the following case d <=> a <=> b <- c <=> e
      *
      * where `a` and `c` are identical, and `d` and `e` are also identical.
      * In this case, `a` and `c` are mirrored. The cycle is in `a <=> b`, but
@@ -325,7 +325,7 @@ describe("getChecksumBuilder properties", () => {
     if (cDef.tag === "composite") {
       cDef.value[0].type = eId
     }
-    const builder = getChecksumBuilder({ lookup } as any)
+    const builder = getChecksumBuilder(metadataLookup())
 
     expect(builder.buildDefinition(aId)).toEqual(builder.buildDefinition(cId))
     expect(builder.buildDefinition(dId)).toEqual(builder.buildDefinition(eId))
@@ -368,7 +368,7 @@ describe("getChecksumBuilder properties", () => {
 
     const orderings = perms([aId, bId, cId, dId])
     const runOrdering = (ordering: number[]) => {
-      const builder = getChecksumBuilder({ lookup } as any)
+      const builder = getChecksumBuilder(metadataLookup())
       return ordering
         .map((id) => [id, builder.buildDefinition(id)] as const)
         .sort(([a], [b]) => a - b)
@@ -418,6 +418,7 @@ const lookup: V14Lookup = [
     value: { tag: "u64", value: undefined },
   }),
 ]
+const metadataLookup = () => getLookupFn({ lookup } as any)
 
 const createCompositeEntry = <
   T extends Partial<{

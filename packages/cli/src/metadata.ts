@@ -42,7 +42,7 @@ const getMetadataCall = async (provider: JsonRpcProvider) => {
   unfollow()
   client.destroy()
 
-  return { metadata: runtime.metadata, metadataRaw: runtime.metadataRaw }
+  return { metadata: runtime.lookup.metadata, metadataRaw: runtime.metadataRaw }
 }
 
 const getWorkerMessage = (chain: string): Omit<WorkerRequestMessage, "id"> => {

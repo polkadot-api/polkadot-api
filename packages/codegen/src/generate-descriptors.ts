@@ -1,8 +1,7 @@
 import {
   getChecksumBuilder,
-  getLookupFn,
+  MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import type { V14, V15 } from "@polkadot-api/substrate-bindings"
 import { filterObject, mapObject } from "@polkadot-api/utils"
 import { getTypesBuilder } from "./types-builder"
 
@@ -42,7 +41,7 @@ export type DescriptorValues = Record<
 >
 
 export const generateDescriptors = (
-  metadata: V14 | V15,
+  lookupFn: MetadataLookup,
   checksumToIdx: Map<string, number>,
   typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
@@ -54,6 +53,7 @@ export const generateDescriptors = (
     descriptorValues: string
   },
 ) => {
+  const { metadata } = lookupFn
   const buildEnumObj = <T>(
     val: number | undefined,
     cb: (name: string, docs: string[]) => T,
@@ -284,7 +284,7 @@ export const generateDescriptors = (
     ...typesBuilder.getClientFileImports(),
   ]
 
-  const assetId = getAssetId(metadata)
+  const assetId = getAssetId(lookupFn)
   const assetType =
     assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
 
@@ -412,13 +412,13 @@ type ApiKey<D extends Record<string, Record<string, any>>> =
   return { descriptorTypes, descriptorValues }
 }
 
-export function getAssetId(metadata: V14 | V15) {
-  const assetPayment = metadata.extrinsic.signedExtensions.find(
+export function getAssetId(lookup: MetadataLookup) {
+  const assetPayment = lookup.metadata.extrinsic.signedExtensions.find(
     (x) => x.identifier === "ChargeAssetTxPayment",
   )
 
   if (assetPayment) {
-    const assetTxPayment = getLookupFn(metadata.lookup)(assetPayment.type)
+    const assetTxPayment = lookup(assetPayment.type)
     if (assetTxPayment.type === "struct") {
       const optionalAssetId = assetTxPayment.value.asset_id
       if (optionalAssetId.type === "option") return optionalAssetId.value.id

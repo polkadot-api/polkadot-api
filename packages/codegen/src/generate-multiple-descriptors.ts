@@ -1,4 +1,7 @@
-import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
+import {
+  getChecksumBuilder,
+  getLookupFn,
+} from "@polkadot-api/metadata-builders"
 import {
   EntryPoint,
   mapEntryPointReferences,
@@ -34,11 +37,12 @@ export const generateMultipleDescriptors = (
     const metadata = options.whitelist
       ? applyWhitelist(chain.metadata, options.whitelist)
       : chain.metadata
-    const builder = getChecksumBuilder(metadata)
-    const { checksums, types, entryPoints } = getUsedTypes(metadata, builder)
+    const lookup = getLookupFn(metadata)
+    const builder = getChecksumBuilder(lookup)
+    const { checksums, types, entryPoints } = getUsedTypes(lookup, builder)
     return {
       ...chain,
-      metadata,
+      lookup,
       builder,
       checksums,
       types,
@@ -55,9 +59,14 @@ export const generateMultipleDescriptors = (
   const declarations = defaultDeclarations()
   const chainFiles = chainData.map((chain) =>
     generateDescriptors(
-      chain.metadata,
+      chain.lookup,
       types.checksumToIdx,
-      getTypesBuilder(declarations, chain.metadata, chain.knownTypes),
+      getTypesBuilder(
+        declarations,
+        chain.lookup,
+        chain.knownTypes,
+        chain.builder,
+      ),
       chain.builder,
       capitalize(chain.key),
       paths,

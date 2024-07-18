@@ -1,4 +1,4 @@
-import type { StringRecord, V14Lookup } from "@polkadot-api/substrate-bindings"
+import type { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
 
 export type MetadataPrimitives =
   | "bool"
@@ -104,7 +104,13 @@ const isBytes = (value: LookupEntry, nBytes: number) =>
 
 const _void: VoidVar = { type: "void" }
 
-export const getLookupFn = (lookupData: V14Lookup) => {
+export interface MetadataLookup {
+  (id: number): LookupEntry
+  metadata: V14 | V15
+}
+
+export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
+  const lookupData = metadata.lookup
   const lookups = new Map<number, LookupEntry>()
   const from = new Set<number>()
 
@@ -353,5 +359,5 @@ export const getLookupFn = (lookupData: V14Lookup) => {
     }
   }
 
-  return getLookupEntryDef
+  return Object.assign(getLookupEntryDef, { metadata })
 }
