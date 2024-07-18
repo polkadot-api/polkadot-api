@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.11.1 - 2024-07-18
+
+### Fixed
+
+- Re-export `polkadot-sdk-compat` from the top-level package.
+
 ## 0.11.0 - 2024-07-18
 
 ### Breaking

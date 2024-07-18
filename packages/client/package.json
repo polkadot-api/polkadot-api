@@ -1,6 +1,6 @@
 {
   "name": "polkadot-api",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -34,6 +34,17 @@
       "import": "./dist/esm/reexports/logs-provider.mjs",
       "require": "./dist/reexports/logs-provider.js",
       "default": "./dist/reexports/logs-provider.js"
+    },
+    "./polkadot-sdk-compat": {
+      "node": {
+        "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
+        "require": "./dist/reexports/polkadot-sdk-compat.js",
+        "default": "./dist/reexports/polkadot-sdk-compat.js"
+      },
+      "module": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
+      "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
+      "require": "./dist/reexports/polkadot-sdk-compat.js",
+      "default": "./dist/reexports/polkadot-sdk-compat.js"
     },
     "./pjs-signer": {
       "node": {
@@ -319,6 +330,7 @@
     "dist",
     "bin",
     "logs-provider",
+    "polkadot-sdk-compat",
     "pjs-signer",
     "signer",
     "sm-provider",
