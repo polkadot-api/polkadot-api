@@ -2,7 +2,7 @@ import type { ParsedJsonRpcEnhancer } from "@/parsed"
 
 export const patchChainHeadEvents: ParsedJsonRpcEnhancer = (base) => (onMsg) =>
   base((message) => {
-    const result = (message as any)?.params?.result
+    const result = (message as any).params?.result
     if (!("id" in message) && result) {
       const { prunedBlockHashes, finalizedBlockHash, event } = result
       if (event === "finalized" && Array.isArray(prunedBlockHashes))

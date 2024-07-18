@@ -16,31 +16,29 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
     let isRunning = true
     let bufferedMsgs: Array<{ id: string; method: string; params: string }> = []
 
-    let _onMsg: (msg: any) => void = () => {}
+    // It's possible (and very likely) that the consumer will start sending requests
+    // before we have figured out which are the actual methods that are available and
+    // how to translate them. So, the initial `_send` function just captures those received
+    // requests until it's able to "translate" them... At which point it will send all
+    // the buffered messages and then it will mutate the _send function with the one
+    // that it's able to transalte the requests
     let _send = (msg: any) => {
       bufferedMsgs.push(msg)
     }
-    const { send: originalSend, disconnect } = base((msg: any) => {
-      _onMsg(msg)
-    })
 
-    new Promise<string[]>((res) => {
-      _onMsg = ({
-        id,
-        result,
-      }: {
-        id: string
-        result: { methods: string[] }
-      }) => {
-        if (id == RPC_METHODS_ID) res(result.methods)
-      }
-    }).then((methods) => {
-      if (!isRunning) {
-        _send = () => {}
-        return
-      }
+    // originally the _onMsg function is wired up to receive the initial response to
+    // our internal rpc_methods request. Once it receives the response, then it applies
+    // the necessary transaltions and re-wires the _onMsg to the original one.
+    let _onMsg: (msg: any) => void = ({
+      id,
+      result,
+    }: {
+      id: string
+      result: { methods: string[] }
+    }) => {
+      if (id !== RPC_METHODS_ID || !isRunning) return
 
-      const methodsSet = new Set(methods)
+      const methodsSet = new Set(result.methods)
       const methodMappings: Record<string, string | null> = {}
 
       ;[chainHead, chainSpec, transaction].forEach((obj) => {
@@ -50,6 +48,7 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
           } else {
             const [group, , name] = method.split("_")
             const unstableMethod = `${group}_${unstable}_${name}`
+
             if (methodsSet.has(unstableMethod)) {
               methodMappings[method] = unstableMethod
               methodsSet.delete(unstableMethod)
@@ -57,17 +56,21 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
             } else {
               methodMappings[method] = null
               if (group === transactionGroup) {
-                let mapped: string | undefined
+                let matchedMethod: string
+                const translatedMethod =
+                  method === "stop" ? "unwatch" : "submitAndWatch"
                 const txGroup = [
                   transactionGroup + "Watch",
                   transactionGroup,
                 ].find((group) =>
                   ["v1", unstable].find((v) =>
-                    methodsSet.has((mapped = `${group}_${v}_${method}`)),
+                    methodsSet.has(
+                      (matchedMethod = `${group}_${v}_${translatedMethod}`),
+                    ),
                   ),
                 )
                 if (txGroup) {
-                  methodMappings[method] = mapped!
+                  methodMappings[method] = matchedMethod!
                   methodsSet.add(method)
                 }
               }
@@ -100,7 +103,7 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
         if (mapping === null)
           Promise.resolve().then(() => {
             originalOnMsg({
-              error: { code: -32603, message: `Unexisting method: ${method}` },
+              error: { code: -32603, message: `Method not found: ${method}` },
               id: rest.id,
             })
           })
@@ -115,8 +118,11 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
         enhancedSend(bufferedMsgs[i])
       bufferedMsgs = []
       if (isRunning) _send = enhancedSend
-    })
+    }
 
+    const { send: originalSend, disconnect } = base((msg: any) => {
+      _onMsg(msg)
+    })
     originalSend(
       jsonRpcMsg({
         id: RPC_METHODS_ID,
