@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.6 - 2024-07-18
+
 ### Fixed
 
 - Changed build to show individual files on source map explorers [#567](https://github.com/polkadot-api/polkadot-api/pull/567)

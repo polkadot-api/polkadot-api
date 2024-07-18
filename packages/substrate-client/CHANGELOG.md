@@ -2,13 +2,15 @@
 
 ## Unreleased
 
-### Fixed
-
-- Changed build to show individual files on source map explorers [#567](https://github.com/polkadot-api/polkadot-api/pull/567)
+## 0.2.0 - 2024-07-18
 
 ### Breaking
 
 - The client is now only compliant with the standard [JSON-RRC spec](https://paritytech.github.io/json-rpc-interface-spec/). Its consumers can use middlewares (like `@polkadot-api/polkadot-sdk-compat`) to translate non spec-compliant endpoints to a compliant one.
+
+### Fixed
+
+- Changed build to show individual files on source map explorers [#567](https://github.com/polkadot-api/polkadot-api/pull/567)
 
 ## 0.1.4 - 2024-07-03
 

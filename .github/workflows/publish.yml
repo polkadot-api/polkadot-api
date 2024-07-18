@@ -53,6 +53,7 @@ jobs:
             json-rpc/ws-provider,
             merkleize-metadata,
             metadata-builders,
+            metadata-compatibility,
             signers/pjs-signer,
             signers/polkadot-signer,
             signers/signer,

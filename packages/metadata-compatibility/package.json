@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/metadata-compatibility",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
