@@ -341,6 +341,7 @@
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/logs-provider": "workspace:*",
+    "@polkadot-api/polkadot-sdk-compat": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",

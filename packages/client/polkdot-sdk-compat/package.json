@@ -1,0 +1,8 @@
+{
+  "name": "polkadot-api_polkadot-sdk-compat",
+  "types": "../dist/reexports/polkadot-sdk-compat.d.ts",
+  "module": "../dist/reexports/polkadot-sdk-compat.mjs",
+  "import": "../dist/reexports/polkadot-sdk-compat.mjs",
+  "require": "../dist/reexports/polkadot-sdk-compat.js",
+  "default": "../dist/reexports/polkadot-sdk-compat.js"
+}

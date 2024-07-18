@@ -4,6 +4,7 @@ import type {
   JsonRpcConnection,
 } from "@polkadot-api/json-rpc-provider"
 import { getSubscriptionManager } from "./subscription-manager"
+import { jsonRpcMsg } from "./json-rpc-message"
 
 export type AsyncJsonRpcProvider = (
   onMessage: (message: string) => void,
@@ -71,8 +72,7 @@ export const getSyncProvider =
       subscriptionManager.onAbort()
       pendingResponsesCopy.forEach((id) => {
         onMessage(
-          JSON.stringify({
-            jsonrpc: "2.0",
+          jsonRpcMsg({
             error: { code: -32603, message: "Internal error" },
             id,
           }),
@@ -84,15 +84,16 @@ export const getSyncProvider =
 
     const start = (): Promise<JsonRpcConnection> => {
       const onResolve = (getProvider: AsyncJsonRpcProvider) => {
-        let halted = false
+        let alive = true
         const _onHalt = () => {
-          if (halted) return
-          halted = true
-          onHalt()
+          if (alive) {
+            alive = false
+            onHalt()
+          }
         }
+
         const _onMessageProxy = (msg: string) => {
-          if (halted) return
-          onMessageProxy(msg)
+          if (alive) onMessageProxy(msg)
         }
 
         const result = getProvider(_onMessageProxy, _onHalt)

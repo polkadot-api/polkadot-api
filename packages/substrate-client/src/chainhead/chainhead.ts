@@ -67,10 +67,7 @@ export function getChainHead(
         if (event.event === "initialized") {
           return onFollowEvent({
             type: event.event,
-            finalizedBlockHashes:
-              "finalizedBlockHash" in event
-                ? [event.finalizedBlockHash]
-                : event.finalizedBlockHashes,
+            finalizedBlockHashes: event.finalizedBlockHashes,
             finalizedBlockRuntime: (event as any).finalizedBlockRuntime,
           })
         }

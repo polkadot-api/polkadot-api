@@ -5,6 +5,7 @@ import { join } from "node:path"
 const fromId = (id) => [id, `@polkadot-api/${id}`]
 export const reexports = [
   fromId("logs-provider"),
+  fromId("polkadot-sdk-compat"),
   fromId("pjs-signer"),
   fromId("signer"),
   fromId("sm-provider"),

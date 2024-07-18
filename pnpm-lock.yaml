@@ -147,28 +147,6 @@ importers:
         specifier: ^4.4.4
         version: 4.5.3(@types/node@20.14.10)
 
-  integration-tests/log-replays:
-    dependencies:
-      '@noble/curves':
-        specifier: ^1.2.0
-        version: 1.4.2
-      '@polkadot-labs/hdkd':
-        specifier: ^0.0.6
-        version: 0.0.6
-      '@polkadot-labs/hdkd-helpers':
-        specifier: ^0.0.6
-        version: 0.0.6
-      polkadot-api:
-        specifier: workspace:*
-        version: link:../../packages/client
-      rxjs:
-        specifier: ^7.8.1
-        version: 7.8.1
-    devDependencies:
-      '@types/node':
-        specifier: ^20.4.7
-        version: 20.14.10
-
   integration-tests/zombie-tests:
     dependencies:
       '@noble/curves':
@@ -226,6 +204,9 @@ importers:
       '@polkadot-api/observable-client':
         specifier: workspace:*
         version: link:../observable-client
+      '@polkadot-api/polkadot-sdk-compat':
+        specifier: workspace:*
+        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/sm-provider':
         specifier: workspace:*
         version: link:../json-rpc/sm-provider
@@ -317,6 +298,9 @@ importers:
       '@polkadot-api/pjs-signer':
         specifier: workspace:*
         version: link:../signers/pjs-signer
+      '@polkadot-api/polkadot-sdk-compat':
+        specifier: workspace:*
+        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../signers/polkadot-signer
@@ -375,6 +359,12 @@ importers:
         version: link:../json-rpc-provider
 
   packages/json-rpc/logs-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+
+  packages/json-rpc/polkadot-sdk-compat:
     dependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
@@ -1104,15 +1094,6 @@ packages:
 
   '@polkadot-api/wasm-executor@0.1.1':
     resolution: {integrity: sha512-OuxbAkSRNLtJtsWDzKx7TEYlRXI2ApT9LcEFckaAr6E4aKLQ5TgbDDXWUvwl4A3AnjoUQx7ltYcsb8qR8UpMAg==}
-
-  '@polkadot-labs/hdkd-helpers@0.0.6':
-    resolution: {integrity: sha512-Gbyf1+aQERjOVWmfCEbnuW0VYvv3pFfjBJOISeGmmAiC6tlH9zCUht/STCCEduyA6ShnjSFXELBX2H1A2D72Sw==}
-
-  '@polkadot-labs/hdkd@0.0.6':
-    resolution: {integrity: sha512-PSakvU3q89Dx0QunlGDGKKxevpGK+gZQhErugSngj8SQmPZNy45z353x2SmiJjgfCQifRBP2YX8xzASRCnx7FA==}
-
-  '@polkadot-labs/schnorrkel-wasm@0.0.5':
-    resolution: {integrity: sha512-oUKF4Qu+V1bPxEjq3kmzI3FZrMIr1kK/4cxntoHSBDTZn/Ymab9LXVhRNrbVend5JrwDANePcYqbK5Fdn9NGhQ==}
 
   '@rollup/plugin-alias@5.1.0':
     resolution: {integrity: sha512-lpA3RZ9PdIG7qqhEfv79tBffNaoDuukFDrmhLqg9ifv99u/ehn+lOg30x2zmhf8AQqQUZaMk/B9fZraQ6/acDQ==}
@@ -3461,21 +3442,6 @@ snapshots:
     optional: true
 
   '@polkadot-api/wasm-executor@0.1.1': {}
-
-  '@polkadot-labs/hdkd-helpers@0.0.6':
-    dependencies:
-      '@noble/curves': 1.4.2
-      '@noble/hashes': 1.4.0
-      '@polkadot-labs/schnorrkel-wasm': 0.0.5
-      '@scure/base': 1.1.7
-      scale-ts: 1.6.0
-
-  '@polkadot-labs/hdkd@0.0.6':
-    dependencies:
-      '@polkadot-labs/hdkd-helpers': 0.0.6
-      '@polkadot-labs/schnorrkel-wasm': 0.0.5
-
-  '@polkadot-labs/schnorrkel-wasm@0.0.5': {}
 
   '@rollup/plugin-alias@5.1.0(rollup@4.18.1)':
     dependencies:

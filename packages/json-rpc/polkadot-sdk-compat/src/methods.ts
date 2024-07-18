@@ -8,18 +8,17 @@ const chainHead = {
   storage: "",
   unfollow: "",
   unpin: "",
-  followEvent: "",
+}
+
+const transaction = {
+  broadcast: "",
+  stop: "",
 }
 
 const chainSpec = {
   chainName: "",
   genesisHash: "",
   properties: "",
-}
-
-const transaction = {
-  broadcast: "",
-  stop: "",
 }
 
 Object.entries({ chainHead, chainSpec, transaction }).forEach(
