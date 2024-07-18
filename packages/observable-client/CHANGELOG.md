@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-07-18
+
 ### Breaking
 
 - Removes `checksumBuilder` from `RuntimeContext`. To migrate, create a new `checksumBuilder` with `getChecksumBuilder(RuntimeContext.lookup)` from metadata-builders.

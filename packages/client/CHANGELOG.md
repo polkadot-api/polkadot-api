@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.11.0 - 2024-07-18
+
+### Breaking
+
+- Replaced `isCompatible()` functions for `getCompatibilityLevel()`, for a more granular control of runtime upgrades [#561](https://github.com/polkadot-api/polkadot-api/pull/561)
+- Replaced `typedApi.runtime.latest()` for `typedApi.compatibilityToken` [#569](https://github.com/polkadot-api/polkadot-api/pull/569)
+
 ### Added
 
 - `chains`: Add Paseo testnet
@@ -10,11 +17,6 @@
 
 - `cli`: Allow using `add -c` for parachain chainSpecs of well-known relay-chains [#568](https://github.com/polkadot-api/polkadot-api/pull/568)
 - `chains`: Update `lightSyncState` and `bootnodes`
-
-### Breaking
-
-- Replaced `isCompatible()` functions for `getCompatibilityLevel()`, for a more granular control of runtime upgrades [#561](https://github.com/polkadot-api/polkadot-api/pull/561)
-- Replaced `typedApi.runtime.latest()` for `typedApi.compatibilityToken` [#569](https://github.com/polkadot-api/polkadot-api/pull/569)
 
 ### Fixed
 

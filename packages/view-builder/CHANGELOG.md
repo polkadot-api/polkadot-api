@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-07-18
+
 ### Breaking
 
 - `getViewBuilder` now takes `(lookupFn: MetadataLookup)` as argument instead of just the metadata.

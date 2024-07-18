@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-07-18
+
 ### Breaking
 
 - `getChecksumBuilder` and `getDynamicBuilder` now take `(lookupFn: MetadataLookup)` as argument instead of just the metadata.
