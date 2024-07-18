@@ -37,17 +37,12 @@ export const generateMultipleDescriptors = (
     const metadata = options.whitelist
       ? applyWhitelist(chain.metadata, options.whitelist)
       : chain.metadata
-    const lookupFn = getLookupFn(metadata.lookup)
-    const builder = getChecksumBuilder(metadata, lookupFn)
-    const { checksums, types, entryPoints } = getUsedTypes(
-      metadata,
-      builder,
-      lookupFn,
-    )
+    const lookup = getLookupFn(metadata)
+    const builder = getChecksumBuilder(lookup)
+    const { checksums, types, entryPoints } = getUsedTypes(lookup, builder)
     return {
       ...chain,
-      metadata,
-      lookupFn,
+      lookup,
       builder,
       checksums,
       types,
@@ -64,14 +59,13 @@ export const generateMultipleDescriptors = (
   const declarations = defaultDeclarations()
   const chainFiles = chainData.map((chain) =>
     generateDescriptors(
-      chain.metadata,
+      chain.lookup,
       types.checksumToIdx,
       getTypesBuilder(
         declarations,
-        chain.metadata,
+        chain.lookup,
         chain.knownTypes,
         chain.builder,
-        chain.lookupFn,
       ),
       chain.builder,
       capitalize(chain.key),

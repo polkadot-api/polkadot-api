@@ -1,8 +1,7 @@
 import {
   getChecksumBuilder,
-  LookupEntry,
+  MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import { V14, V15 } from "@polkadot-api/substrate-bindings"
 import {
   EntryPoint,
   TypedefNode,
@@ -26,11 +25,10 @@ import {
  * (Which will be needed when merging types from multiple chains)
  */
 export const getUsedTypes = (
-  metadata: V14 | V15,
+  lookup: MetadataLookup,
   builder: ReturnType<typeof getChecksumBuilder>,
-  lookup: (id: number) => LookupEntry,
 ) => {
-  const checksums: string[] = new Array(metadata.lookup.length)
+  const checksums: string[] = new Array(lookup.metadata.lookup.length)
   const visited = new Set<string>()
   const types = new Map<string, TypedefNode>()
   const entryPoints = new Map<string, EntryPoint>()
@@ -76,7 +74,7 @@ export const getUsedTypes = (
     })
   }
 
-  metadata.pallets.forEach((pallet) => {
+  lookup.metadata.pallets.forEach((pallet) => {
     pallet.storage?.items.forEach((entry) => {
       const checksum = builder.buildStorage(pallet.name, entry.name)!
       addTypeFromEntryPoint(checksum, storageEntryPoint(entry))
@@ -102,7 +100,7 @@ export const getUsedTypes = (
     )
   })
 
-  metadata.apis.forEach((api) =>
+  lookup.metadata.apis.forEach((api) =>
     api.methods.forEach((method) => {
       const checksum = builder.buildRuntimeCall(api.name, method.name)!
       addTypeFromEntryPoint(checksum, runtimeCallEntryPoint(method))

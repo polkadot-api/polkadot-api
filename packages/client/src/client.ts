@@ -23,7 +23,6 @@ import {
   storageEntryPoint,
   voidEntryPointNode,
 } from "@polkadot-api/metadata-compatibility"
-import { getLookupFn } from "@polkadot-api/metadata-builders"
 
 const createTypedApi = <D extends ChainDefinition>(
   chainDefinition: D,
@@ -55,7 +54,7 @@ const createTypedApi = <D extends ChainDefinition>(
   }
 
   const getPallet = (ctx: RuntimeContext, name: string) =>
-    ctx.metadata.pallets.find((p) => p.name === name)!
+    ctx.lookup.metadata.pallets.find((p) => p.name === name)!
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,
@@ -64,7 +63,7 @@ const createTypedApi = <D extends ChainDefinition>(
       compatibilityHelper(
         runtime,
         (r) => r._getPalletEntryPoint(OpType.Storage, pallet, name),
-        // TODO this is way sub-optimal. Needs some rethought. Specially down below
+        // TODO this is way sub-optimal. Needs some rethought - maybe a builder for entry points?.
         (ctx) =>
           storageEntryPoint(
             getPallet(ctx, pallet).storage!.items.find((s) => s.name === name)!,
@@ -79,9 +78,7 @@ const createTypedApi = <D extends ChainDefinition>(
     id: number,
     name: string,
   ) => {
-    // As part of the refactor, maybe the lookup function could be added to ctx?
-    const lookup = getLookupFn(ctx.metadata.lookup)
-    const entry = lookup(id)
+    const entry = ctx.lookup(id)
     if (entry.type !== "enum") throw new Error("Expected enum")
 
     const node = enumValueEntryPointNode(entry.value[name])
@@ -143,7 +140,7 @@ const createTypedApi = <D extends ChainDefinition>(
         (r) => r._getApiEntryPoint(api, method),
         (ctx) =>
           runtimeCallEntryPoint(
-            ctx.metadata.apis
+            ctx.lookup.metadata.apis
               .find((a) => a.name === api)!
               .methods.find((m) => m.name === method)!,
           ),

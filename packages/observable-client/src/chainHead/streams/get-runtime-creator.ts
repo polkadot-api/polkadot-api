@@ -1,7 +1,7 @@
 import {
   getDynamicBuilder,
   getLookupFn,
-  LookupEntry,
+  MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import {
   AccountId,
@@ -48,8 +48,7 @@ export type SystemEvent = {
 
 export interface RuntimeContext {
   metadataRaw: Uint8Array
-  metadata: V15 | V14
-  lookupFn: (id: number) => LookupEntry
+  lookup: MetadataLookup
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
   events: {
     key: string
@@ -131,8 +130,8 @@ export const getRuntimeCreator = (
 
     const runtimeContext$: Observable<RuntimeContext> = getMetadata$(hash).pipe(
       map(({ metadata, metadataRaw }) => {
-        const lookupFn = getLookupFn(metadata.lookup)
-        const dynamicBuilder = getDynamicBuilder(metadata, lookupFn)
+        const lookup = getLookupFn(metadata)
+        const dynamicBuilder = getDynamicBuilder(lookup)
         const events = dynamicBuilder.buildStorage("System", "Events")
 
         const assetPayment = metadata.extrinsic.signedExtensions.find(
@@ -141,7 +140,7 @@ export const getRuntimeCreator = (
 
         let assetId: null | number = null
         if (assetPayment) {
-          const assetTxPayment = lookupFn(assetPayment.type)
+          const assetTxPayment = lookup(assetPayment.type)
           if (assetTxPayment.type === "struct") {
             const optionalAssetId = assetTxPayment.value.asset_id
             if (optionalAssetId.type === "option")
@@ -152,8 +151,7 @@ export const getRuntimeCreator = (
         return {
           assetId,
           metadataRaw,
-          metadata,
-          lookupFn,
+          lookup,
           dynamicBuilder,
           events: {
             key: events.enc(),

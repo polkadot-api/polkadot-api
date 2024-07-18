@@ -1,14 +1,8 @@
-import type {
-  Codec,
-  StringRecord,
-  V15,
-  V14,
-} from "@polkadot-api/substrate-bindings"
-import type { EnumVar, LookupEntry } from "./lookups"
-import { getLookupFn } from "./lookups"
+import type { Codec, StringRecord } from "@polkadot-api/substrate-bindings"
 import * as scale from "@polkadot-api/substrate-bindings"
-import { withCache } from "./with-cache"
 import { mapObject } from "@polkadot-api/utils"
+import type { EnumVar, LookupEntry, MetadataLookup } from "./lookups"
+import { withCache } from "./with-cache"
 
 const _bytes = scale.Bin()
 
@@ -107,10 +101,8 @@ const _buildCodec = (
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
-export const getDynamicBuilder = (
-  metadata: V14 | V15,
-  getLookupEntryDef = getLookupFn(metadata.lookup),
-) => {
+export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
+  const { metadata } = getLookupEntryDef
   let _accountId = scale.AccountId()
 
   const cache = new Map()

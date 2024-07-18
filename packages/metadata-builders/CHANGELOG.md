@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-### Added
+### Breaking
 
-- `getChecksumBuilder` and `getDynamicBuilder` now accept an optional `lookupFn`.
+- `getChecksumBuilder` and `getDynamicBuilder` now take `(lookupFn: MetadataLookup)` as argument instead of just the metadata.
 
 ### Fixed
 

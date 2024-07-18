@@ -1,3 +1,4 @@
+import { MetadataLookup } from "@polkadot-api/metadata-builders"
 import type {
   Decoder,
   HexString,
@@ -22,7 +23,7 @@ type VariantBasedBuild = (
   location: [number, number]
 }
 
-export type GetViewBuilder = (metadata: V15 | V14) => {
+export type GetViewBuilder = (getLookupEntryDef: MetadataLookup) => {
   buildDefinition: (idx: number) => {
     shape: Shape
     decoder: Decoder<Decoded>

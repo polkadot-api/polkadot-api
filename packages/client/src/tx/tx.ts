@@ -73,14 +73,14 @@ export const createTxEntry = <
       if (!argsAreCompatible(runtime, ctx, arg))
         throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
-      const { dynamicBuilder, assetId, lookupFn } = ctx
+      const { dynamicBuilder, assetId, lookup } = ctx
       let returnOptions = txOptions
       if (txOptions.asset) {
         if (
           assetId == null ||
           !isCompatible(
             txOptions.asset,
-            mapLookupToTypedef(lookupFn(assetId)),
+            mapLookupToTypedef(lookup(assetId)),
             (id) => getRuntimeTypedef(ctx, id),
           )
         )

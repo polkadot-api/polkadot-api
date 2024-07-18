@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Breaking
+
+- `getViewBuilder` now takes `(lookupFn: MetadataLookup)` as argument instead of just the metadata.
+
 ### Fixed
 
 - Changed build to show individual files on source map explorers [#567](https://github.com/polkadot-api/polkadot-api/pull/567)

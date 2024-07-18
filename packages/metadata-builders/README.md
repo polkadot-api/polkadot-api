@@ -5,12 +5,15 @@ This package has multiple functions that read a metadata object, denormalizes it
 ## getLookupFn
 
 ```ts
-function getLookupFn(
-  lookupData: Metadata["lookup"],
-): (id: number) => LookupEntry
+interface MetadataLookup {
+  (id: number): LookupEntry
+  metadata: V14 | V15
+}
+
+function getLookupFn(metadata: Metadata): MetadataLookup
 ```
 
-Given the lookup property of a metadata, returns a function that will give the `LookupEntry` for an id.
+Given the a metadata, returns a function that will give the `LookupEntry` for an id along. The function also has access to the original metadata, as it's usually needed to work with the actual lookup.
 
 The `LookupEntry` is a denormalized data structure for one entry in the metadata. It also "shortcuts" type references when those are pointers (composites or tuples of length 1). Essentially, it's a union of each of the different types that can be found in the lookup, mostly equivalent to something like:
 
@@ -47,7 +50,7 @@ It's useful to get types referenced by storage calls, etc.
 ## getDynamicBuilder
 
 ```ts
-function getDynamicBuilder(lookupData: Metadata): {
+function getDynamicBuilder(metadataLookup: MetadataLookup): {
   buildDefinition: (id: number) => Codec
   buildConstant: (pallet: string, name: string) => Codec
   buildEvent: (pallet: string, name: string) => VariantEntry
@@ -102,7 +105,7 @@ interface RuntimeEntry {
 ## getChecksumBuilder
 
 ```ts
-function getChecksumBuilder(metadata: Metadata): {
+function getChecksumBuilder(metadataLookup: MetadataLookup): {
   buildDefinition: (id: number) => string | null
   buildRuntimeCall: (api: string, method: string) => string | null
   buildStorage: (pallet: string, entry: string) => string | null

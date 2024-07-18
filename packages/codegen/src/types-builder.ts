@@ -1,10 +1,11 @@
-import { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
+import { StringRecord } from "@polkadot-api/substrate-bindings"
 import {
   LookupEntry,
   getChecksumBuilder,
   TupleVar,
   StructVar,
   ArrayVar,
+  MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import { withCache } from "./with-cache"
 import { mapObject } from "@polkadot-api/utils"
@@ -320,12 +321,12 @@ const buildSyntax = withCache(
 
 export const getTypesBuilder = (
   declarations: CodeDeclarations,
-  metadata: V14 | V15,
+  getLookupEntryDef: MetadataLookup,
   // checksum -> desired-name
   knownTypes: Record<string, string>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
-  getLookupEntryDef: (id: number) => LookupEntry,
 ) => {
+  const { metadata } = getLookupEntryDef
   const typeFileImports = new Set<string>()
   const clientFileImports = new Set<string>()
 
