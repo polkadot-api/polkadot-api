@@ -6,12 +6,13 @@ import {
   fixUnorderedEvents,
 } from "./parsed-enhancers"
 
-export default parsed(
+const polkadotSdkCompat = parsed(
   translate,
   fixUnorderedEvents,
   unpinHash,
   patchChainHeadEvents,
 )
+export default polkadotSdkCompat
 
 export * from "./parsed"
 export { translate, fixUnorderedEvents, unpinHash, patchChainHeadEvents }
