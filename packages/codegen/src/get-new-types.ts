@@ -1,22 +1,27 @@
 import {
   getChecksumBuilder,
-  getLookupFn,
+  MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import type { V14, V15 } from "@polkadot-api/substrate-bindings"
+import type { V15 } from "@polkadot-api/substrate-bindings"
 import { KnownTypes } from "./known-types"
 import { defaultDeclarations, getTypesBuilder } from "./types-builder"
 
 type ArraVal<T extends Array<any>> = T extends Array<infer V> ? V : unknown
 
 export const getNewTypes = (
-  metadata: V14 | V15,
+  lookup: MetadataLookup,
   knownTypes: KnownTypes,
   getTypeName: (data: ArraVal<V15["lookup"]>) => string | null,
 ) => {
-  const checksumBuilder = getChecksumBuilder(metadata)
+  const { metadata } = lookup
+  const checksumBuilder = getChecksumBuilder(lookup)
   let declarations = defaultDeclarations()
-  let typesBuilder = getTypesBuilder(declarations, metadata, knownTypes)
-  const lookup = getLookupFn(metadata.lookup)
+  let typesBuilder = getTypesBuilder(
+    declarations,
+    lookup,
+    knownTypes,
+    checksumBuilder,
+  )
 
   let ignoredIds = new Set<number>(
     "outerEnums" in metadata
@@ -71,7 +76,12 @@ export const getNewTypes = (
   })
 
   declarations = defaultDeclarations()
-  typesBuilder = getTypesBuilder(declarations, metadata, wannabes)
+  typesBuilder = getTypesBuilder(
+    declarations,
+    lookup,
+    wannabes,
+    checksumBuilder,
+  )
 
   metadata.lookup.forEach(({ id }) => {
     typesBuilder.buildDefinition(id)

@@ -1,4 +1,4 @@
-export const chainHead = {
+const chainHead = {
   body: "",
   call: "",
   continue: "",
@@ -11,26 +11,23 @@ export const chainHead = {
   followEvent: "",
 }
 
-export const chainSpec = {
+const chainSpec = {
   chainName: "",
   genesisHash: "",
   properties: "",
 }
 
-export const transaction = {
+const transaction = {
   broadcast: "",
   stop: "",
 }
 
-export const transactionWatch = {
-  submitAndWatch: "",
-  unwatch: "",
-}
-
-Object.entries({ chainHead, chainSpec, transaction, transactionWatch }).forEach(
+Object.entries({ chainHead, chainSpec, transaction }).forEach(
   ([fnGroupName, methods]) => {
     Object.keys(methods).forEach((methodName) => {
       ;(methods as any)[methodName] = `${fnGroupName}_v1_${methodName}`
     })
   },
 )
+
+export { chainHead, transaction, chainSpec }

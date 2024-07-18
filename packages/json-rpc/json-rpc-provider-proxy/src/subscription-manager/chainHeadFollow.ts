@@ -1,4 +1,9 @@
-import { SubscriptionId, SubscriptionLogic } from "@/internal-types"
+import {
+  MessageType,
+  SubscriptionId,
+  SubscriptionLogic,
+} from "@/internal-types"
+import { jsonRpcMsg } from "@/json-rpc-message"
 
 const [START_METHODS, STOP_METHODS, NOTIFICATION_METHODS] = [
   "follow",
@@ -21,7 +26,7 @@ export const chainHeadFollow = (
       if (START_METHODS.has(parsed.method)) {
         notificationMethod = parsed.method + "Event"
         return {
-          type: "subscribe",
+          type: MessageType.subscribe,
           id: parsed.id,
           onRes: (innerParsed) =>
             innerParsed.id === parsed.id ? { id: innerParsed.result } : null,
@@ -30,26 +35,24 @@ export const chainHeadFollow = (
 
       if (STOP_METHODS.has(parsed.method))
         return {
-          type: "unsubscribe",
+          type: MessageType.unsubscribe,
           id: Object.values(parsed.params)[0] as string,
         }
 
       return null
     },
     onNotification(parsed) {
-      if (!NOTIFICATION_METHODS.has(parsed.method)) return null
-
-      return parsed.params.result.event === STOP_EVENT
+      return NOTIFICATION_METHODS.has(parsed.method) &&
+        parsed.params.result.event === STOP_EVENT
         ? {
-            type: "end",
+            type: MessageType.end,
             id: parsed.params.subscription as SubscriptionId,
           }
         : null
     },
     onAbort: (id) => {
       onMessage(
-        JSON.stringify({
-          jsonrpc: "2.0",
+        jsonRpcMsg({
           method: notificationMethod,
           params: {
             subscription: id,

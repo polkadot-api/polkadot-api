@@ -36,7 +36,9 @@ export const createConstantEntry = <D, T>(
       return cachedResults.get(ctx)!
     }
 
-    const pallet = ctx.metadata.pallets.find((p) => p.name === palletName)
+    const pallet = ctx.lookup.metadata.pallets.find(
+      (p) => p.name === palletName,
+    )
     const constant = pallet?.constants.find((c) => c.name === name)!
     const result = ctx.dynamicBuilder
       .buildConstant(palletName, name)

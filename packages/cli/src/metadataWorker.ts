@@ -49,7 +49,7 @@ async function getMetadataFromProvider(provider: JsonRpcProvider) {
   unfollow()
   client.destroy()
 
-  return { metadata: runtime.metadata, metadataRaw: runtime.metadataRaw }
+  return { metadata: runtime.lookup.metadata, metadataRaw: runtime.metadataRaw }
 }
 export type MetadataWithRaw = Awaited<
   ReturnType<typeof getMetadataFromProvider>

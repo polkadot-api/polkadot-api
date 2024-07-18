@@ -1,4 +1,4 @@
-import { LookupEntry, getLookupFn } from "@polkadot-api/metadata-builders"
+import { MetadataLookup } from "@polkadot-api/metadata-builders"
 import {
   CompatibilityCache,
   CompatibilityLevel,
@@ -94,7 +94,7 @@ const metadataCache = new WeakMap<
   Uint8Array,
   {
     compat: CompatibilityCache
-    lookup: (id: number) => LookupEntry
+    lookup: MetadataLookup
     typeNodes: (TypedefNode | null)[]
   }
 >()
@@ -102,7 +102,7 @@ const getMetadataCache = (ctx: RuntimeContext) => {
   if (!metadataCache.has(ctx.metadataRaw)) {
     metadataCache.set(ctx.metadataRaw, {
       compat: new Map(),
-      lookup: getLookupFn(ctx.metadata.lookup),
+      lookup: ctx.lookup,
       typeNodes: [],
     })
   }

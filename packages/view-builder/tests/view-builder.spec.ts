@@ -1,11 +1,12 @@
 import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
 import { expect, describe, it, beforeAll } from "vitest"
 import { getViewBuilder } from "@/."
+import { getLookupFn } from "@polkadot-api/metadata-builders"
 
 describe("getViewBuilder", () => {
   let builder: ReturnType<typeof getViewBuilder>
   beforeAll(async () => {
-    builder = getViewBuilder(await getKsmMetadata())
+    builder = getViewBuilder(getLookupFn(await getKsmMetadata()))
   })
 
   it("batched call", () => {

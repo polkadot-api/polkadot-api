@@ -1,25 +1,26 @@
-import { mapObject, mapStringRecord } from "@polkadot-api/utils"
+import type {
+  EnumVar,
+  LookupEntry,
+  MetadataLookup,
+} from "@polkadot-api/metadata-builders"
 import {
   Decoder,
+  HexString,
   type StringRecord,
-  type V15,
-  type V14,
   type V14Lookup,
   createDecoder,
-  u8,
-  HexString,
   enhanceDecoder,
+  u8,
 } from "@polkadot-api/substrate-bindings"
-import type { EnumVar, LookupEntry } from "@polkadot-api/metadata-builders"
-import { getLookupFn } from "@polkadot-api/metadata-builders"
+import { mapObject, mapStringRecord } from "@polkadot-api/utils"
 import {
-  primitives,
-  complex,
-  WithShapeWithoutExtra,
-  ShapedDecoder,
-  selfDecoder,
   AccountIdShaped,
+  ShapedDecoder,
+  WithShapeWithoutExtra,
   WithoutExtra,
+  complex,
+  primitives,
+  selfDecoder,
 } from "./shaped-decoders"
 import {
   AccountIdDecoded,
@@ -199,8 +200,10 @@ const buildShapedDecoder = withCache(withPath, selfDecoder, (outter, inner) => {
 const hexStrFromByte = (input: number) =>
   `0x${input.toString(16).padEnd(2, "0")}` as HexString
 
-export const getViewBuilder: GetViewBuilder = (metadata: V15 | V14) => {
-  const lookupData = metadata.lookup
+export const getViewBuilder: GetViewBuilder = (
+  getLookupEntryDef: MetadataLookup,
+) => {
+  const { metadata } = getLookupEntryDef
   const cache = new Map<number, ShapedDecoder>()
 
   const getDecoder = (id: number) =>
@@ -208,11 +211,9 @@ export const getViewBuilder: GetViewBuilder = (metadata: V15 | V14) => {
       getLookupEntryDef(id),
       cache,
       new Set(),
-      lookupData,
+      metadata.lookup,
       _accountId,
     )
-
-  const getLookupEntryDef = getLookupFn(lookupData)
 
   let _accountId: WithShapeWithoutExtra<AccountIdDecoded> = primitives.AccountId
 

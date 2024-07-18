@@ -8,13 +8,13 @@ import {
   u8,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
-import { getDynamicBuilder } from "@polkadot-api/metadata-builders"
+import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
 import { SignPayload, SignRaw, SignerPayloadJSON } from "./types"
 
 export const getAddressFormat = (metadata: V15): number => {
-  const dynamicBuilder = getDynamicBuilder(metadata)
+  const dynamicBuilder = getDynamicBuilder(getLookupFn(metadata))
 
   const constant = metadata.pallets
     .find((x) => x.name === "System")!

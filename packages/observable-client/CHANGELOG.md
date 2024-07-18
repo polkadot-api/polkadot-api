@@ -4,7 +4,13 @@
 
 ### Breaking
 
-- Remove `checksumBuilder` from `RuntimeContext`
+- Removes `checksumBuilder` from `RuntimeContext`. To migrate, create a new `checksumBuilder` with `getChecksumBuilder(RuntimeContext.lookup)` from metadata-builders.
+- Replaces `asset` for `assetId` in `RuntimeContext`. To migrate, use `assetId` to generate the codec and checksum through metadata-builders.
+- Removes `metadata` from `RuntimeContext`. It's now available under `RuntimeContext.lookup.metadata`
+
+### Added
+
+- Add `lookup` to `RuntimeContext`, which is the lookup function with the metadata that it was created from.
 
 ### Fixed
 

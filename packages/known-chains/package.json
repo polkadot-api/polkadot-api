@@ -97,6 +97,12 @@
       "import": "./dist/specs/westend2_collectives.mjs",
       "require": "./dist/specs/westend2_collectives.js",
       "default": "./dist/specs/westend2_collectives.js"
+    },
+    "./paseo": {
+      "module": "./dist/specs/paseo.mjs",
+      "import": "./dist/specs/paseo.mjs",
+      "require": "./dist/specs/paseo.js",
+      "default": "./dist/specs/paseo.js"
     }
   },
   "main": "./dist/index.js",

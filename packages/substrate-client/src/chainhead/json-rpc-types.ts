@@ -7,15 +7,10 @@ export interface RuntimeRpc {
   apis: Record<string, number>
 }
 
-export type InitializedRpc =
-  | {
-      event: "initialized"
-      finalizedBlockHash: string
-    }
-  | {
-      event: "initialized"
-      finalizedBlockHashes: string[]
-    }
+export type InitializedRpc = {
+  event: "initialized"
+  finalizedBlockHashes: string[]
+}
 
 export type InitializedWithRuntime = InitializedRpc & {
   finalizedBlockRuntime: RuntimeRpc

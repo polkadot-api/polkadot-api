@@ -1,5 +1,4 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
-import { getLookupFn } from "@polkadot-api/metadata-builders"
 import {
   enumValueEntryPointNode,
   runtimeCallEntryPoint,
@@ -16,6 +15,12 @@ import {
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
 import { Observable, firstValueFrom } from "rxjs"
+import {
+  CompatibilityToken,
+  OpType,
+  compatibilityHelper,
+  createCompatibilityToken,
+} from "./compatibility"
 import { createConstantEntry } from "./constants"
 import { ChainDefinition } from "./descriptors"
 import { createEventEntry } from "./event"
@@ -23,12 +28,6 @@ import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import { PolkadotClient, TypedApi } from "./types"
-import {
-  compatibilityHelper,
-  CompatibilityToken,
-  createCompatibilityToken,
-  OpType,
-} from "./compatibility"
 
 const createTypedApi = <D extends ChainDefinition>(
   compatibilityToken: Promise<CompatibilityToken>,
@@ -54,7 +53,7 @@ const createTypedApi = <D extends ChainDefinition>(
   }
 
   const getPallet = (ctx: RuntimeContext, name: string) =>
-    ctx.metadata.pallets.find((p) => p.name === name)!
+    ctx.lookup.metadata.pallets.find((p) => p.name === name)!
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,
@@ -63,7 +62,7 @@ const createTypedApi = <D extends ChainDefinition>(
       compatibilityHelper(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Storage, pallet, name),
-        // TODO this is way sub-optimal. Needs some rethought. Specially down below
+        // TODO this is way sub-optimal. Needs some rethought - maybe a builder for entry points?.
         (ctx) =>
           storageEntryPoint(
             getPallet(ctx, pallet).storage!.items.find((s) => s.name === name)!,
@@ -78,9 +77,7 @@ const createTypedApi = <D extends ChainDefinition>(
     id: number,
     name: string,
   ) => {
-    // As part of the refactor, maybe the lookup function could be added to ctx?
-    const lookup = getLookupFn(ctx.metadata.lookup)
-    const entry = lookup(id)
+    const entry = ctx.lookup(id)
     if (entry.type !== "enum") throw new Error("Expected enum")
 
     const node = enumValueEntryPointNode(entry.value[name])
@@ -142,7 +139,7 @@ const createTypedApi = <D extends ChainDefinition>(
         (r) => r.getApiEntryPoint(api, method),
         (ctx) =>
           runtimeCallEntryPoint(
-            ctx.metadata.apis
+            ctx.lookup.metadata.apis
               .find((a) => a.name === api)!
               .methods.find((m) => m.name === method)!,
           ),

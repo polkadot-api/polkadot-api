@@ -263,7 +263,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     shareLatest,
   )
 
-  const metadata$ = runtime$.pipe(map((x) => x?.metadata ?? null))
+  const metadata$ = runtime$.pipe(map((x) => x?.lookup.metadata ?? null))
 
   const withOptionalHash$ = getWithOptionalhash$(
     finalized$.pipe(map((b) => b.hash)),

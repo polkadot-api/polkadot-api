@@ -1,14 +1,5 @@
-import type { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
+import type { StringRecord } from "@polkadot-api/substrate-bindings"
 import { h64 } from "@polkadot-api/substrate-bindings"
-import {
-  ArrayVar,
-  LookupEntry,
-  MetadataPrimitives,
-  StructVar,
-  TupleVar,
-  VoidVar,
-  getLookupFn,
-} from "./lookups"
 import {
   LookupGraph,
   buildLookupGraph,
@@ -16,6 +7,15 @@ import {
   getSubgraph,
   mergeSCCsWithCommonNodes,
 } from "./lookup-graph"
+import {
+  ArrayVar,
+  LookupEntry,
+  MetadataLookup,
+  MetadataPrimitives,
+  StructVar,
+  TupleVar,
+  VoidVar,
+} from "./lookups"
 
 const textEncoder = new TextEncoder()
 const encodeText = textEncoder.encode.bind(textEncoder)
@@ -359,10 +359,9 @@ const buildChecksum = (
   return getChecksum(entry)
 }
 
-export const getChecksumBuilder = (metadata: V14 | V15) => {
-  const lookupData = metadata.lookup
-  const getLookupEntryDef = getLookupFn(lookupData)
-  const graph = buildLookupGraph(getLookupEntryDef, lookupData.length)
+export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
+  const { metadata } = getLookupEntryDef
+  const graph = buildLookupGraph(getLookupEntryDef, metadata.lookup.length)
 
   const cache = new Map<number, bigint>()
 
