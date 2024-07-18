@@ -1,6 +1,6 @@
 import { Observable, firstValueFrom, map, mergeMap } from "rxjs"
 import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
-import { CompatibilityFunctions, CompatibilityHelper } from "./runtime"
+import { CompatibilityFunctions, CompatibilityHelper } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
 
 export type EventPhase =
@@ -28,7 +28,7 @@ export type EvPull<T> = () => Promise<
 
 export type EvFilter<T> = (collection: SystemEvent["event"][]) => Array<T>
 
-export type EvClient<T> = {
+export type EvClient<D, T> = {
   /**
    * Multicast and stateful Observable watching for new events (matching the
    * event kind chosen) in the latest known `finalized` block.
@@ -49,7 +49,7 @@ export type EvClient<T> = {
    * @param collection  Array of `SystemEvent` to filter.
    */
   filter: EvFilter<T>
-} & CompatibilityFunctions
+} & CompatibilityFunctions<D>
 
 type SystemEvent = {
   phase: EventPhase
@@ -63,7 +63,7 @@ type SystemEvent = {
   topics: Array<any>
 }
 
-export const createEventEntry = <T>(
+export const createEventEntry = <D, T>(
   pallet: string,
   name: string,
   chainHead: ChainHead$,
@@ -73,7 +73,7 @@ export const createEventEntry = <T>(
     argsAreCompatible,
     valuesAreCompatible,
   }: CompatibilityHelper,
-): EvClient<T> => {
+): EvClient<D, T> => {
   const compatibilityError = () =>
     new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
 

@@ -1,40 +1,39 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import {
-  getObservableClient,
-  RuntimeContext,
-} from "@polkadot-api/observable-client"
-import {
-  SubstrateClient,
-  createClient as createRawClient,
-} from "@polkadot-api/substrate-client"
-import { Observable, firstValueFrom } from "rxjs"
-import { createConstantEntry } from "./constants"
-import { ChainDefinition } from "./descriptors"
-import { createEventEntry } from "./event"
-import { OpType, compatibilityHelper, getRuntimeApi } from "./runtime"
-import { createRuntimeCallEntry } from "./runtime-call"
-import { createStorageEntry } from "./storage"
-import { createTxEntry, submit, submit$ } from "./tx"
-import { PolkadotClient, TypedApi } from "./types"
-import {
   enumValueEntryPointNode,
   runtimeCallEntryPoint,
   singleValueEntryPoint,
   storageEntryPoint,
   voidEntryPointNode,
 } from "@polkadot-api/metadata-compatibility"
+import {
+  RuntimeContext,
+  getObservableClient,
+} from "@polkadot-api/observable-client"
+import {
+  SubstrateClient,
+  createClient as createRawClient,
+} from "@polkadot-api/substrate-client"
+import { Observable, firstValueFrom } from "rxjs"
+import {
+  CompatibilityToken,
+  OpType,
+  compatibilityHelper,
+  createCompatibilityToken,
+} from "./compatibility"
+import { createConstantEntry } from "./constants"
+import { ChainDefinition } from "./descriptors"
+import { createEventEntry } from "./event"
+import { createRuntimeCallEntry } from "./runtime-call"
+import { createStorageEntry } from "./storage"
+import { createTxEntry, submit, submit$ } from "./tx"
+import { PolkadotClient, TypedApi } from "./types"
 
 const createTypedApi = <D extends ChainDefinition>(
-  chainDefinition: D,
+  compatibilityToken: Promise<CompatibilityToken>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast$: (tx: string) => Observable<never>,
 ): TypedApi<D> => {
-  const runtime = getRuntimeApi(
-    chainDefinition.metadataTypes,
-    chainDefinition.descriptors,
-    chainHead,
-  )
-
   const target = {}
   const createProxy = (propCall: (prop: string) => unknown) =>
     new Proxy(target, {
@@ -61,8 +60,8 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainHead,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Storage, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Storage, pallet, name),
         // TODO this is way sub-optimal. Needs some rethought - maybe a builder for entry points?.
         (ctx) =>
           storageEntryPoint(
@@ -94,8 +93,8 @@ const createTypedApi = <D extends ChainDefinition>(
       chainHead,
       broadcast$,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Tx, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Tx, pallet, name),
         (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, name),
       ),
     ),
@@ -107,8 +106,8 @@ const createTypedApi = <D extends ChainDefinition>(
       name,
       chainHead,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Event, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Event, pallet, name),
         (ctx) =>
           getEnumEntry(ctx, "values", getPallet(ctx, pallet).events!, name),
       ),
@@ -120,8 +119,8 @@ const createTypedApi = <D extends ChainDefinition>(
       pallet,
       name,
       compatibilityHelper(
-        runtime,
-        (r) => r._getPalletEntryPoint(OpType.Const, pallet, name),
+        compatibilityToken,
+        (r) => r.getPalletEntryPoint(OpType.Const, pallet, name),
         (ctx) =>
           singleValueEntryPoint(
             getPallet(ctx, pallet).constants.find((c) => c.name === name)!.type,
@@ -136,8 +135,8 @@ const createTypedApi = <D extends ChainDefinition>(
       method,
       chainHead,
       compatibilityHelper(
-        runtime,
-        (r) => r._getApiEntryPoint(api, method),
+        compatibilityToken,
+        (r) => r.getApiEntryPoint(api, method),
         (ctx) =>
           runtimeCallEntryPoint(
             ctx.lookup.metadata.apis
@@ -154,7 +153,7 @@ const createTypedApi = <D extends ChainDefinition>(
     event,
     apis,
     constants,
-    runtime,
+    compatibilityToken,
   } as any
 }
 
@@ -191,6 +190,18 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     params: Params,
   ) => Promise<Reply> = rawClient.request
 
+  const compatibilityToken = new WeakMap<
+    ChainDefinition,
+    Promise<CompatibilityToken<any>>
+  >()
+  const getChainToken = (chainDefinition: ChainDefinition) => {
+    const result =
+      compatibilityToken.get(chainDefinition) ||
+      createCompatibilityToken(chainDefinition, chainHead)
+    compatibilityToken.set(chainDefinition, result)
+    return result
+  }
+
   const { broadcastTx$ } = client
   return {
     getChainSpecData,
@@ -211,7 +222,7 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     submitAndWatch: (...args) => submit$(chainHead, broadcastTx$, ...args),
 
     getTypedApi: <D extends ChainDefinition>(chainDefinition: D) =>
-      createTypedApi(chainDefinition, chainHead, broadcastTx$),
+      createTypedApi(getChainToken(chainDefinition), chainHead, broadcastTx$),
 
     destroy: () => {
       chainHead.unfollow()

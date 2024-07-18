@@ -2,6 +2,7 @@ import { BlockInfo } from "@polkadot-api/observable-client"
 import { BlockHeader, HexString } from "@polkadot-api/substrate-bindings"
 import { ChainSpecData } from "@polkadot-api/substrate-client"
 import { Observable } from "rxjs"
+import { CompatibilityToken } from "./compatibility"
 import { ConstantEntry } from "./constants"
 import {
   ChainDefinition,
@@ -12,7 +13,6 @@ import {
   TxFromPalletsDef,
 } from "./descriptors"
 import { EvClient } from "./event"
-import { RuntimeApi } from "./runtime"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
 import type { TxBroadcastEvent, TxEntry, TxFinalizedPayload } from "./tx"
@@ -20,6 +20,7 @@ import type { TxBroadcastEvent, TxEntry, TxFinalizedPayload } from "./tx"
 export type { ChainSpecData }
 
 export type StorageApi<
+  D,
   A extends Record<
     string,
     Record<
@@ -40,6 +41,7 @@ export type StorageApi<
       IsOptional: false | true
     }
       ? StorageEntry<
+          D,
           A[K][KK]["KeyArgs"],
           A[K][KK]["IsOptional"] extends true
             ? A[K][KK]["Value"] | undefined
@@ -50,6 +52,7 @@ export type StorageApi<
 }
 
 export type RuntimeCallsApi<
+  D,
   A extends Record<string, Record<string, RuntimeDescriptor<Array<any>, any>>>,
 > = {
   [K in keyof A]: {
@@ -57,38 +60,42 @@ export type RuntimeCallsApi<
       infer Args,
       infer Value
     >
-      ? RuntimeCall<Args, Value>
+      ? RuntimeCall<D, Args, Value>
       : unknown
   }
 }
 
-export type TxApi<A extends Record<string, Record<string, any>>, Asset> = {
+export type TxApi<D, A extends Record<string, Record<string, any>>, Asset> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? TxEntry<A[K][KK], K & string, KK & string, Asset>
+      ? TxEntry<D, A[K][KK], K & string, KK & string, Asset>
       : unknown
   }
 }
 
-export type EvApi<A extends Record<string, Record<string, any>>> = {
+export type EvApi<D, A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: EvClient<A[K][KK]>
+    [KK in keyof A[K]]: EvClient<D, A[K][KK]>
   }
 }
 
-export type ConstApi<A extends Record<string, Record<string, any>>> = {
+export type ConstApi<D, A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: ConstantEntry<A[K][KK]>
+    [KK in keyof A[K]]: ConstantEntry<D, A[K][KK]>
   }
 }
 
 export type TypedApi<D extends ChainDefinition> = {
-  query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
-  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>, D["asset"]["_type"]>
-  event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
-  apis: RuntimeCallsApi<D["descriptors"]["apis"]>
-  constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
-  runtime: RuntimeApi
+  query: StorageApi<D, QueryFromPalletsDef<D["descriptors"]["pallets"]>>
+  tx: TxApi<
+    D,
+    TxFromPalletsDef<D["descriptors"]["pallets"]>,
+    D["asset"]["_type"]
+  >
+  event: EvApi<D, EventsFromPalletsDef<D["descriptors"]["pallets"]>>
+  apis: RuntimeCallsApi<D, D["descriptors"]["apis"]>
+  constants: ConstApi<D, ConstFromPalletsDef<D["descriptors"]["pallets"]>>
+  compatibilityToken: Promise<CompatibilityToken<D>>
 }
 
 export interface PolkadotClient {

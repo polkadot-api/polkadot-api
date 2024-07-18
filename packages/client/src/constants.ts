@@ -1,7 +1,12 @@
 import { RuntimeContext } from "@polkadot-api/observable-client"
-import { CompatibilityFunctions, CompatibilityHelper, Runtime } from "./runtime"
+import {
+  CompatibilityFunctions,
+  CompatibilityHelper,
+  CompatibilityToken,
+  getCompatibilityApi,
+} from "./compatibility"
 
-export interface ConstantEntry<T> extends CompatibilityFunctions {
+export interface ConstantEntry<D, T> extends CompatibilityFunctions<D> {
   /**
    * Constants are simple key-value structures found in the runtime metadata.
    *
@@ -9,13 +14,14 @@ export interface ConstantEntry<T> extends CompatibilityFunctions {
    */
   (): Promise<T>
   /**
-   * @param runtime  Runtime from got with `typedApi.runtime`
+   * @param compatibilityToken  Token from got with `await
+   *                            typedApi.compatibilityToken`
    * @returns Synchronously returns value of the constant.
    */
-  (runtime: Runtime): T
+  (compatibilityToken: CompatibilityToken): T
 }
 
-export const createConstantEntry = <T>(
+export const createConstantEntry = <D, T>(
   palletName: string,
   name: string,
   {
@@ -23,7 +29,7 @@ export const createConstantEntry = <T>(
     waitDescriptors,
     getCompatibilityLevel,
   }: CompatibilityHelper,
-): ConstantEntry<T> => {
+): ConstantEntry<D, T> => {
   const cachedResults = new WeakMap<RuntimeContext, T>()
   const getValueWithContext = (ctx: RuntimeContext) => {
     if (cachedResults.has(ctx)) {
@@ -41,11 +47,11 @@ export const createConstantEntry = <T>(
     return result
   }
 
-  const fn = (runtime?: Runtime): any => {
-    if (runtime) {
-      const ctx = runtime._getCtx()
+  const fn = (compatibilityToken?: CompatibilityToken): any => {
+    if (compatibilityToken) {
+      const ctx = getCompatibilityApi(compatibilityToken).runtime()
       const value = getValueWithContext(ctx)
-      if (!valuesAreCompatible(runtime, ctx, value))
+      if (!valuesAreCompatible(compatibilityToken, ctx, value))
         throw new Error(
           `Incompatible runtime entry Constant(${palletName}.${name})`,
         )

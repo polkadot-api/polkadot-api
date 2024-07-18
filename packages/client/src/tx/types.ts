@@ -1,4 +1,4 @@
-import { CompatibilityFunctions, Runtime } from "@/runtime"
+import { CompatibilityFunctions, CompatibilityToken } from "@/compatibility"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
@@ -125,10 +125,11 @@ export interface TxCall {
   /**
    * SCALE-encoded callData of the transaction.
    *
-   * @param runtime  Runtime from got with `typedApi.runtime`
+   * @param compatibilityToken  Token from got with `await
+   *                            typedApi.compatibilityToken`
    * @returns Synchronously returns encoded data.
    */
-  (runtime: Runtime): Binary
+  (compatibilityToken: CompatibilityToken): Binary
 }
 
 export type TxSignFn<Asset> = (
@@ -197,11 +198,12 @@ export type Transaction<
 }
 
 export interface TxEntry<
+  D,
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
   Asset,
-> extends CompatibilityFunctions {
+> extends CompatibilityFunctions<D> {
   /**
    * Synchronously create the transaction object ready to sign, submit, estimate
    * fees, etc.
