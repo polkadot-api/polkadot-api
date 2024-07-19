@@ -50,4 +50,11 @@ export async function update(
   await generate({ config: options.config })
 
   spinner.stop()
+  console.log(`Updated chain(s) "${keys.join(", ")}"`)
+
+  if (!options.skipCodegen) {
+    generate({
+      config: options.config,
+    })
+  }
 }
