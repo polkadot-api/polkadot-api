@@ -6,6 +6,7 @@ import { getMetadataFromRuntime } from "@polkadot-api/wasm-executor"
 import * as fs from "node:fs/promises"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
+import { generate } from "./generate"
 
 export interface AddOptions extends CommonOptions {
   file?: string
@@ -66,7 +67,13 @@ export async function add(key: string, options: AddOptions) {
   }
 
   await writePapiConfig(options.config, entries)
-  return console.log(`Saved new spec "${key}"`)
+  console.log(`Saved new spec "${key}"`)
+
+  if (!options.skipCodegen) {
+    generate({
+      config: options.config,
+    })
+  }
 }
 
 const entryFromOptions = (options: AddOptions): EntryConfig => {

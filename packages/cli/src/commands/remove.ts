@@ -1,5 +1,6 @@
 import { readPapiConfig, writePapiConfig } from "@/papiConfig"
 import { CommonOptions } from "./commonOptions"
+import { generate } from "./generate"
 
 export async function remove(key: string, options: CommonOptions) {
   const entries = (await readPapiConfig(options.config)) ?? {}
@@ -13,4 +14,10 @@ export async function remove(key: string, options: CommonOptions) {
 
   await writePapiConfig(options.config, entries)
   console.log(`Removed chain "${key}" from config`)
+
+  if (!options.skipCodegen) {
+    generate({
+      config: options.config,
+    })
+  }
 }

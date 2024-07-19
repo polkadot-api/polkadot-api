@@ -20,7 +20,6 @@ export function getCli({ add, generate, remove, update }: Commands) {
     })
     .description("Generate descriptor files")
     .addOption(config)
-    .option("-k, --key <key>", "Key of the descriptor to generate")
     .option(
       "--whitelist <filename>",
       "Use whitelist file to reduce descriptor size",
@@ -42,6 +41,7 @@ export function getCli({ add, generate, remove, update }: Commands) {
     )
     .option("--wasm <filename>", "Source from runtime wasm file")
     .option("--no-persist", "Do not persist the metadata as a file")
+    .option("--skip-codegen", "Skip running codegen after adding")
     .action(add)
 
   program
@@ -52,6 +52,7 @@ export function getCli({ add, generate, remove, update }: Commands) {
       "Keys of the metadata files to update, separated by commas. Leave empty for all",
     )
     .addOption(config)
+    .option("--skip-codegen", "Skip running codegen after updating")
     .action(update)
 
   program
@@ -59,6 +60,7 @@ export function getCli({ add, generate, remove, update }: Commands) {
     .description("Remove a chain spec from the list")
     .argument("<key>", "Key identifier for the chain spec")
     .addOption(config)
+    .option("--skip-codegen", "Skip running codegen after removing")
     .action(remove)
 
   return program

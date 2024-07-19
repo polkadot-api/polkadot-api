@@ -15,7 +15,6 @@ import { EntryPointCodec } from "@polkadot-api/metadata-compatibility"
 import { TypedefCodec } from "@polkadot-api/metadata-compatibility"
 
 export interface GenerateOptions extends CommonOptions {
-  key?: string
   clientLibrary?: string
   whitelist?: string
 }
@@ -68,15 +67,6 @@ async function getSources(
   const config = await readPapiConfig(opts.config)
   if (!config) {
     throw new Error("Can't find the Polkadot-API configuration")
-  }
-
-  if (opts.key) {
-    if (!config[opts.key]) {
-      throw new Error(`Key ${opts.key} not set in polkadot-api config`)
-    }
-    return {
-      [opts.key]: config[opts.key],
-    }
   }
 
   return config
