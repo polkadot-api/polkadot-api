@@ -2,15 +2,12 @@
 
 ## Unreleased
 
-### Fixed
-
-- Whitelist entry for pallet wildcard
-
-## 0.11.2 - 2024-07-18
+## 0.11.2 - 2024-07-19
 
 ### Fixed
 
-- Re-export default export from `polkadot-sdk-compat`
+- `polkadot-sdk-compat`: Re-export properly default export
+- `descriptors`: Whitelist entry for pallet wildcard
 
 ## 0.11.1 - 2024-07-18
 
