@@ -387,7 +387,7 @@ export type ${prefix}WhitelistEntry =
   | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
   | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
 
-type PalletKey = \`*.\${keyof PalletsTypedef & string}\`
+type PalletKey = \`*.\${keyof (IStorage & ICalls & IEvent & IError & IConstants & IRuntimeCalls)}\`
 type NestedKey<D extends Record<string, Record<string, any>>> =
   | "*"
   | {

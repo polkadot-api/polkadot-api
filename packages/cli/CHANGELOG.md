@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Whitelist entry for pallet wildcard
+
 ## 0.6.1 - 2024-07-18
 
 ### Fixed
