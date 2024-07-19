@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.1 - 2024-07-19
+
+### Fixed
+
+- Export properly Paseo testnet
+
 ## 0.2.0 - 2024-07-18
 
 ### Added

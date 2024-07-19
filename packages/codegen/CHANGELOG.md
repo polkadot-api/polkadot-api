@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.1 - 2024-07-19
+
 ### Fixed
 
 - Whitelist entry for pallet wildcard
