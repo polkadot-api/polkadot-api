@@ -32,6 +32,12 @@
       "require": "./dist/specs/ksmcc3_bridge_hub.js",
       "default": "./dist/specs/ksmcc3_bridge_hub.js"
     },
+    "./paseo": {
+      "module": "./dist/specs/paseo.mjs",
+      "import": "./dist/specs/paseo.mjs",
+      "require": "./dist/specs/paseo.js",
+      "default": "./dist/specs/paseo.js"
+    },
     "./polkadot": {
       "module": "./dist/specs/polkadot.mjs",
       "import": "./dist/specs/polkadot.mjs",
@@ -97,12 +103,6 @@
       "import": "./dist/specs/westend2_collectives.mjs",
       "require": "./dist/specs/westend2_collectives.js",
       "default": "./dist/specs/westend2_collectives.js"
-    },
-    "./paseo": {
-      "module": "./dist/specs/paseo.mjs",
-      "import": "./dist/specs/paseo.mjs",
-      "require": "./dist/specs/paseo.js",
-      "default": "./dist/specs/paseo.js"
     }
   },
   "main": "./dist/index.js",
@@ -115,6 +115,7 @@
     "ksmcc3",
     "ksmcc3_asset_hub",
     "ksmcc3_bridge_hub",
+    "paseo",
     "polkadot",
     "polkadot_asset_hub",
     "polkadot_bridge_hub",
