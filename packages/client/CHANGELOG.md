@@ -6,6 +6,10 @@
 
 - `cli`: Commands `add`, `remove` and `update` run codegen by default after finishing [#577](https://github.com/polkadot-api/polkadot-api/pull/577).
 
+### Fixed
+
+- `typedApi` not being assignable to union of multiple chains.
+
 ## 0.11.2 - 2024-07-19
 
 ### Fixed
