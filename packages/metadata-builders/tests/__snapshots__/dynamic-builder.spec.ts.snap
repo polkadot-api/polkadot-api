@@ -42,7 +42,7 @@ exports[`getDynamicBuilder > felloship referenda submit 1`] = `
   },
   "proposal": {
     "type": "Inline",
-    "value": _Binary {
+    "value": Binary {
       "asBytes": [Function],
       "asHex": [Function],
       "asText": [Function],

@@ -1,4 +1,4 @@
-import { Bin, Binary } from "@/."
+import { Bin, Binary, FixedSizeBinary } from "@/."
 import { describe, expect, test } from "vitest"
 
 describe("Bin", () => {
@@ -43,6 +43,7 @@ describe("Bin", () => {
     const encoded = codec.enc(input)
     const decoded = codec.dec(encodedText)
 
+    expect(decoded).instanceOf(FixedSizeBinary)
     expect(encoded).toEqual(codec.enc(decoded))
     expect(input.asBytes()).toEqual(decoded.asBytes())
     expect(input.asText()).toEqual(decoded.asText())
@@ -56,6 +57,7 @@ describe("Bin", () => {
     const encoded = codec.enc(input)
     const decoded = codec.dec("0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883")
 
+    expect(decoded).instanceOf(FixedSizeBinary)
     expect(encoded).toEqual(codec.enc(decoded))
     expect(input.asBytes()).toEqual(decoded.asBytes())
     expect(input.asText()).toEqual(decoded.asText())
