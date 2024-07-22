@@ -25,13 +25,13 @@ export class Binary {
   asBytes = () => this.#bytes
 
   static fromText(input: string): Binary {
-    return new Binary(textEncoder.encode(input))
+    return new this(textEncoder.encode(input))
   }
   static fromHex(input: HexString): Binary {
-    return new Binary(fromHex(input))
+    return new this(fromHex(input))
   }
   static fromBytes(input: Uint8Array): Binary {
-    return new Binary(input)
+    return new this(input)
   }
 }
 
@@ -43,7 +43,7 @@ export class FixedSizeBinary<_L extends number> extends Binary {
   static fromArray<L extends number, I extends Array<number> & { length: L }>(
     input: I,
   ) {
-    return new FixedSizeBinary<L>(new Uint8Array(input))
+    return new this<L>(new Uint8Array(input))
   }
 }
 
@@ -54,7 +54,8 @@ const enc = (nBytes?: number): Encoder<Binary> => {
 
 const dec = (nBytes?: number): Decoder<Binary> => {
   const _dec = Bytes.dec(nBytes)
-  return (value) => Binary.fromBytes(_dec(value))
+  const Bin = nBytes == null ? Binary : FixedSizeBinary
+  return (value) => Bin.fromBytes(_dec(value))
 }
 
 export const Bin = (nBytes?: number): Codec<Binary> =>
