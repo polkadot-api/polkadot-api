@@ -1,18 +1,23 @@
 import { getMetadata } from "@/metadata"
-import { EntryConfig, readPapiConfig } from "@/papiConfig"
+import { readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
+import {
+  EntryPointCodec,
+  TypedefCodec,
+} from "@polkadot-api/metadata-compatibility"
 import { Tuple, V14, V15, Vector } from "@polkadot-api/substrate-bindings"
+import { existsSync } from "fs"
+import fsExists from "fs.promises.exists"
 import fs, { mkdtemp, rm } from "fs/promises"
+import { tmpdir } from "os"
 import path, { join } from "path"
 import process from "process"
 import tsc from "tsc-prog"
 import tsup, { build } from "tsup"
+import { updatePackage } from "write-package"
 import { CommonOptions } from "./commonOptions"
-import fsExists from "fs.promises.exists"
-import { existsSync } from "fs"
-import { tmpdir } from "os"
-import { EntryPointCodec } from "@polkadot-api/metadata-compatibility"
-import { TypedefCodec } from "@polkadot-api/metadata-compatibility"
+import { spawn } from "child_process"
+import { readPackage } from "read-pkg"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
@@ -20,7 +25,11 @@ export interface GenerateOptions extends CommonOptions {
 }
 
 export async function generate(opts: GenerateOptions) {
-  const sources = await getSources(opts)
+  const config = await readPapiConfig(opts.config)
+  if (!config) {
+    throw new Error("Can't find the Polkadot-API configuration")
+  }
+  const sources = config.entries
 
   if (Object.keys(sources).length == 0) {
     console.log("No chains defined in config file")
@@ -35,20 +44,10 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
-  const descriptorsDir = join(
-    process.cwd(),
-    "node_modules",
-    "@polkadot-api",
-    "descriptors",
-  )
+  await cleanDescriptorsPackage(config.descriptorPath)
+  const descriptorsDir = join(process.cwd(), config.descriptorPath)
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
-
-  if (existsSync(descriptorsDir))
-    await fs.rm(descriptorsDir, { recursive: true })
-
-  await fs.mkdir(descriptorsDir, { recursive: true })
-  await generatePackageJson(join(descriptorsDir, "package.json"))
 
   const whitelist = opts.whitelist ? await readWhitelist(opts.whitelist) : null
   await outputCodegen(
@@ -59,17 +58,48 @@ export async function generate(opts: GenerateOptions) {
   )
   await compileCodegen(descriptorsDir)
   await fs.rm(join(descriptorsDir, "src"), { recursive: true })
+  await runInstall()
 }
 
-async function getSources(
-  opts: GenerateOptions,
-): Promise<Record<string, EntryConfig>> {
-  const config = await readPapiConfig(opts.config)
-  if (!config) {
-    throw new Error("Can't find the Polkadot-API configuration")
+async function cleanDescriptorsPackage(path: string) {
+  const descriptorsDir = join(process.cwd(), path)
+  if (!existsSync(descriptorsDir)) {
+    await fs.mkdir(descriptorsDir, { recursive: true })
+    await fs.writeFile(
+      join(descriptorsDir, "package.json"),
+      descriptorsPackageJson,
+    )
+    await fs.writeFile(join(descriptorsDir, ".gitignore"), "*")
   }
 
-  return config
+  const packageJson = await readPackage()
+  const packageSource = `file:${path}`
+  const currentSource = packageJson.dependencies?.["@polkadot-api/descriptors"]
+  if (currentSource !== packageSource) {
+    await updatePackage({
+      dependencies: {
+        "@polkadot-api/descriptors": packageSource,
+      },
+    })
+  }
+
+  const distDir = join(descriptorsDir, "dist")
+  if (existsSync(distDir)) {
+    await fs.rm(distDir, { recursive: true })
+  }
+}
+
+async function runInstall() {
+  if (!process.env.npm_execpath) {
+    console.warn(
+      "Can't determine package manager, please manually run the install command",
+    )
+    return
+  }
+  const child = spawn(process.env.npm_execpath, ["install"], {
+    stdio: "inherit",
+  })
+  await new Promise((resolve) => child.on("close", resolve))
 }
 
 async function outputCodegen(
@@ -195,31 +225,27 @@ const generateIndex = async (
   await fs.writeFile(join(path, "index.ts"), indexTs)
 }
 
-const generatePackageJson = async (path: string) => {
-  await fs.writeFile(
-    path,
-    `{
-      "name": "@polkadot-api/descriptors",
-      "exports": {
-        ".": {
-          "module": "./dist/index.mjs",
-          "import": "./dist/index.mjs",
-          "require": "./dist/index.js",
-          "default": "./dist/index.js"
-        },
-        "./package.json": "./package.json"
-      },
-      "main": "./dist/index.js",
+const descriptorsPackageJson = `{
+  "name": "@polkadot-api/descriptors",
+  "files": ["dist"],
+  "exports": {
+    ".": {
       "module": "./dist/index.mjs",
-      "browser": "./dist/index.mjs",
-      "types": "./dist/index.d.ts",
-      "sideEffects": false,
-      "peerDependencies": {
-        "polkadot-api": "*"
-      }
-    }`,
-  )
-}
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "polkadot-api": "*"
+  }
+}`
 
 async function readWhitelist(filename: string): Promise<string[] | null> {
   if (!(await fsExists(filename))) {

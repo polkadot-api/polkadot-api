@@ -1,5 +1,10 @@
 import { getMetadata, writeMetadataToDisk } from "@/metadata"
-import { EntryConfig, readPapiConfig, writePapiConfig } from "@/papiConfig"
+import {
+  defaultConfig,
+  EntryConfig,
+  readPapiConfig,
+  writePapiConfig,
+} from "@/papiConfig"
 import { compactNumber } from "@polkadot-api/substrate-bindings"
 import { fromHex } from "@polkadot-api/utils"
 import { getMetadataFromRuntime } from "@polkadot-api/wasm-executor"
@@ -19,7 +24,9 @@ export interface AddOptions extends CommonOptions {
 }
 
 export async function add(key: string, options: AddOptions) {
-  const entries = (await readPapiConfig(options.config)) ?? {}
+  const config = (await readPapiConfig(options.config)) ?? defaultConfig
+  const entries = config.entries
+
   if (key in entries) {
     console.warn(`Replacing existing ${key} config`)
   }
@@ -66,7 +73,7 @@ export async function add(key: string, options: AddOptions) {
     }
   }
 
-  await writePapiConfig(options.config, entries)
+  await writePapiConfig(options.config, config)
   console.log(`Saved new spec "${key}"`)
 
   if (!options.skipCodegen) {

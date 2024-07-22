@@ -19,7 +19,18 @@ export type EntryConfig =
       chain: string
       metadata?: string
     }
-export type PapiConfig = Record<string, EntryConfig>
+type Entries = Record<string, EntryConfig>
+export type PapiConfig = {
+  version: 0
+  descriptorPath: string
+  entries: Record<string, EntryConfig>
+}
+
+export const defaultConfig: PapiConfig = {
+  version: 0,
+  descriptorPath: "descriptors",
+  entries: {},
+}
 
 const papiCfgDefaultFile = "polkadot-api.json"
 const packageJsonKey = "polkadot-api"
@@ -66,9 +77,22 @@ async function readFromFile(file: string) {
 
   if (file === "package.json") {
     const packageJson = await readPackage()
-    return packageJson[packageJsonKey] ?? null
+    return packageJsonKey in packageJson
+      ? migrate(packageJson[packageJsonKey])
+      : null
   }
-  return JSON.parse(await readFile(file, "utf8"))
+  return migrate(JSON.parse(await readFile(file, "utf8")))
+}
+
+function migrate(content: Entries | PapiConfig): PapiConfig {
+  if ("version" in content && typeof content.version === "number") {
+    return content as any
+  }
+  return {
+    version: 0,
+    descriptorPath: ".descriptors",
+    entries: content as Entries,
+  }
 }
 
 async function writeToFile(file: string, config: PapiConfig) {

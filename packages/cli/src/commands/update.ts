@@ -1,5 +1,5 @@
 import { getMetadata, writeMetadataToDisk } from "@/metadata"
-import { EntryConfig, readPapiConfig } from "@/papiConfig"
+import { defaultConfig, EntryConfig, readPapiConfig } from "@/papiConfig"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
 import { generate } from "./generate"
@@ -8,7 +8,8 @@ export async function update(
   keysInput: string | undefined,
   options: CommonOptions,
 ) {
-  const entries = (await readPapiConfig(options.config)) ?? {}
+  const entries = ((await readPapiConfig(options.config)) ?? defaultConfig)
+    .entries
   const keys =
     keysInput === undefined ? Object.keys(entries) : keysInput.split(",")
 
