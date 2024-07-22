@@ -20,8 +20,10 @@ import { Observable, combineLatest, filter, firstValueFrom, map } from "rxjs"
 import { ChainDefinition } from "./descriptors"
 
 export class CompatibilityToken<D = unknown> {
+  private constructor() {}
+
   // @ts-ignore
-  private constructor(protected _descriptors: D) {}
+  protected _phantom(value: D) {}
 }
 
 interface CompatibilityTokenApi {
