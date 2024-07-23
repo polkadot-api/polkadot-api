@@ -58,7 +58,7 @@
     "tsup": "^8.0.2",
     "typescript": "^5.4.5",
     "write-package": "^7.0.1",
-    "ws": "^8.17.0"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
