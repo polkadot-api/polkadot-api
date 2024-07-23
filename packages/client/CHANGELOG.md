@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- `InvalidTxError`: a new Error with all the information needed to determine what
+  was the reason why the transaction is invlid. Its typings can be obtained via the `TransactionValidityError` type [#589](https://github.com/polkadot-api/polkadot-api/pull/589).
+
 ### Changed
 
 - `cli`: Commands `add`, `remove` and `update` run codegen by default after finishing [#577](https://github.com/polkadot-api/polkadot-api/pull/577).
