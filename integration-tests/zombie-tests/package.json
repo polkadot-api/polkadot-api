@@ -12,11 +12,12 @@
   "dependencies": {
     "@noble/curves": "^1.2.0",
     "@polkadot-api/cli": "workspace:*",
-    "polkadot-api": "workspace:*",
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@unique-nft/sr25519": "^0.0.1",
+    "polkadot-api": "workspace:*",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {

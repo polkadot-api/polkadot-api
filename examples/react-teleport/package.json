@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
     "polkadot-api": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

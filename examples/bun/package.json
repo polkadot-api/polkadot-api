@@ -17,12 +17,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
     "polkadot-api": "workspace:*"
-  },
-  "polkadot-api": {
-    "wnd": {
-      "chain": "westend2",
-      "metadata": "wnd.scale"
-    }
   }
 }

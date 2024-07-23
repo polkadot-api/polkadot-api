@@ -62,6 +62,9 @@ importers:
 
   examples/bun:
     dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/bun/.papi/descriptors(polkadot-api@packages+client)
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -81,6 +84,9 @@ importers:
 
   examples/react-teleport:
     dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/react-teleport/.papi/descriptors(polkadot-api@packages+client)
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -127,6 +133,9 @@ importers:
 
   examples/vite:
     dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/vite/.papi/descriptors(polkadot-api@packages+client)
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -155,6 +164,9 @@ importers:
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../../packages/cli
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -1094,6 +1106,26 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@polkadot-api/descriptors@file:examples/bun/.papi/descriptors':
+    resolution: {directory: examples/bun/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
+  '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors':
+    resolution: {directory: examples/react-teleport/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
+  '@polkadot-api/descriptors@file:examples/vite/.papi/descriptors':
+    resolution: {directory: examples/vite/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
+  '@polkadot-api/descriptors@file:integration-tests/zombie-tests/.papi/descriptors':
+    resolution: {directory: integration-tests/zombie-tests/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
 
   '@polkadot-api/wasm-executor@0.1.1':
     resolution: {integrity: sha512-OuxbAkSRNLtJtsWDzKx7TEYlRXI2ApT9LcEFckaAr6E4aKLQ5TgbDDXWUvwl4A3AnjoUQx7ltYcsb8qR8UpMAg==}
@@ -3447,6 +3479,22 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@polkadot-api/descriptors@file:examples/bun/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
+  '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
+  '@polkadot-api/descriptors@file:examples/vite/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
+  '@polkadot-api/descriptors@file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
 
   '@polkadot-api/wasm-executor@0.1.1': {}
 

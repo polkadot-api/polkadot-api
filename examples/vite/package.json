@@ -15,13 +15,8 @@
     "vite": "^4.4.4"
   },
   "dependencies": {
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.1"
-  },
-  "polkadot-api": {
-    "wnd": {
-      "chain": "westend2",
-      "metadata": "wnd-metadata.scale"
-    }
   }
 }
