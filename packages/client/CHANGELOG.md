@@ -10,6 +10,7 @@
 ### Changed
 
 - `cli`: Commands `add`, `remove` and `update` run codegen by default after finishing [#577](https://github.com/polkadot-api/polkadot-api/pull/577).
+- `cli`: Move descriptors package out from `node_modules` [#587](https://github.com/polkadot-api/polkadot-api/pull/587).
 
 ### Fixed
 
