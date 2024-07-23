@@ -262,7 +262,7 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1
       ws:
-        specifier: ^8.17.0
+        specifier: ^8.18.0
         version: 8.18.0
     devDependencies:
       '@types/ws':
@@ -392,7 +392,7 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
       ws:
-        specifier: ^8.14.2
+        specifier: ^8.18.0
         version: 8.18.0
 
   packages/known-chains: {}
