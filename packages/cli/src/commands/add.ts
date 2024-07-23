@@ -2,6 +2,7 @@ import { getMetadata, writeMetadataToDisk } from "@/metadata"
 import {
   defaultConfig,
   EntryConfig,
+  papiFolder,
   readPapiConfig,
   writePapiConfig,
 } from "@/papiConfig"
@@ -12,6 +13,8 @@ import * as fs from "node:fs/promises"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
 import { generate } from "./generate"
+import { join } from "node:path"
+import { existsSync } from "node:fs"
 
 export interface AddOptions extends CommonOptions {
   file?: string
@@ -65,7 +68,10 @@ export async function add(key: string, options: AddOptions) {
       const { metadataRaw } = (await getMetadata(entry))!
 
       spinner.text = "Writing metadata"
-      const filename = `${key}.scale`
+      if (!existsSync(papiFolder)) {
+        await fs.mkdir(papiFolder, { recursive: true })
+      }
+      const filename = join(papiFolder, `${key}.scale`)
       await writeMetadataToDisk(metadataRaw, filename)
 
       spinner.succeed(`Metadata saved as ${filename}`)
