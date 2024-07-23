@@ -9,7 +9,7 @@ import {
   takeUntil,
 } from "rxjs"
 import { PinnedBlocks } from "./streams"
-import { HexString } from "@polkadot-api/substrate-bindings"
+import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
 
 export type AnalyzedBlock = {
   hash: HexString
@@ -21,14 +21,17 @@ export type AnalyzedBlock = {
       }
     | {
         type: false
-        isValid: boolean
+        validity: ResultPayload<any, any> | null // null means that the block was already present when the tx was broadcasted
       }
 }
 
 export const getTrackTx = (
   blocks$: Observable<PinnedBlocks>,
   getBody: (block: string) => Observable<string[]>, // Returns an observable that should emit just once and complete
-  getIsValid: (block: string, tx: string) => Observable<boolean>, // Returns an observable that should emit just once and complete
+  getIsValid: (
+    block: string,
+    tx: string,
+  ) => Observable<ResultPayload<any, any>>, // Returns an observable that should emit just once and complete
   getEvents: (block: string) => Observable<any>, // Returns an observable that should emit just once and complete
 ) => {
   const whileBlockPresent = <TT>(
@@ -42,7 +45,7 @@ export const getTrackTx = (
     alreadyPresent: boolean,
   ): Observable<AnalyzedBlock> => {
     if (alreadyPresent)
-      return of({ hash, found: { type: false, isValid: true } })
+      return of({ hash, found: { type: false, validity: null } })
 
     const whilePresent = whileBlockPresent(hash)
     return getBody(hash).pipe(
@@ -60,9 +63,9 @@ export const getTrackTx = (
               })),
             )
           : getIsValid(hash, tx).pipe(
-              map((isValid) => ({
+              map((validity) => ({
                 hash,
-                found: { type: false as false, isValid },
+                found: { type: false as false, validity },
               })),
             )
       }),
@@ -78,7 +81,7 @@ export const getTrackTx = (
     analyzeBlock(hash, tx, alreadyPresent.has(hash)).pipe(
       mergeMap((analyzed) => {
         const { found } = analyzed
-        return found.type || !found.isValid
+        return found.type || found.validity?.success === false
           ? of(analyzed)
           : blocks$.pipe(
               whileBlockPresent(hash),

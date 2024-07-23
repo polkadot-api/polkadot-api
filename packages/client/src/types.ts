@@ -98,6 +98,11 @@ export type TypedApi<D extends ChainDefinition> = {
   compatibilityToken: Promise<CompatibilityToken<D>>
 }
 
+export type TransactionValidityError<D extends ChainDefinition> =
+  (D["descriptors"]["apis"]["TaggedTransactionQueue"]["validate_transaction"][1] & {
+    success: false
+  })["value"]
+
 export interface PolkadotClient {
   /**
    * Retrieve the ChainSpecData as it comes from the [JSON-RPC
