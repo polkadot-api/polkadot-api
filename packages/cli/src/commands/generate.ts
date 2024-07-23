@@ -18,6 +18,7 @@ import { updatePackage } from "write-package"
 import { CommonOptions } from "./commonOptions"
 import { spawn } from "child_process"
 import { readPackage } from "read-pkg"
+import { detect } from "detect-package-manager"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
@@ -25,6 +26,10 @@ export interface GenerateOptions extends CommonOptions {
 }
 
 export async function generate(opts: GenerateOptions) {
+  if (process.env.PAPI_SKIP_GENERATE) {
+    return
+  }
+
   const config = await readPapiConfig(opts.config)
   if (!config) {
     throw new Error("Can't find the Polkadot-API configuration")
@@ -69,7 +74,12 @@ async function cleanDescriptorsPackage(path: string) {
       join(descriptorsDir, "package.json"),
       descriptorsPackageJson,
     )
-    await fs.writeFile(join(descriptorsDir, ".gitignore"), "*")
+
+    // We have to keep the package.json in git because otherwise npm install on a fresh repo would fail
+    await fs.writeFile(
+      join(descriptorsDir, ".gitignore"),
+      "*\n!.gitignore\n!package.json",
+    )
   }
 
   const packageJson = await readPackage()
@@ -89,15 +99,16 @@ async function cleanDescriptorsPackage(path: string) {
   }
 }
 
+async function getPackageManager() {
+  return process.env.npm_exectpath ?? (await detect())
+}
 async function runInstall() {
-  if (!process.env.npm_execpath) {
-    console.warn(
-      "Can't determine package manager, please manually run the install command",
-    )
-    return
-  }
-  const child = spawn(process.env.npm_execpath, ["install"], {
+  const child = spawn(await getPackageManager(), ["install"], {
     stdio: "inherit",
+    env: {
+      ...process.env,
+      PAPI_SKIP_GENERATE: "true",
+    },
   })
   await new Promise((resolve) => child.on("close", resolve))
 }
