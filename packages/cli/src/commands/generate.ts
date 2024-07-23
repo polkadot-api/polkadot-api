@@ -100,9 +100,11 @@ async function cleanDescriptorsPackage(path: string) {
 }
 
 async function getPackageManager() {
-  return process.env.npm_exectpath ?? (await detect())
+  return process.env.npm_execpath ?? (await detect())
 }
 async function runInstall() {
+  const path = await getPackageManager()
+  console.log(`${path} install`)
   const child = spawn(await getPackageManager(), ["install"], {
     stdio: "inherit",
     env: {
@@ -252,10 +254,7 @@ const descriptorsPackageJson = `{
   "module": "./dist/index.mjs",
   "browser": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "sideEffects": false,
-  "peerDependencies": {
-    "polkadot-api": "*"
-  }
+  "sideEffects": false
 }`
 
 async function readWhitelist(filename: string): Promise<string[] | null> {
