@@ -26,8 +26,12 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Install deps
         run: pnpm install
-      - name: Build
-        run: pnpm turbo build --cache-dir=.turbo
+      - name: Build core
+        run: pnpm turbo build-core --cache-dir=.turbo
+      - name: Install papi
+        run: pnpm install
+      - name: Build external
+        run: pnpm build-external
       - name: Lint
         run: pnpm lint
       - name: Test
@@ -93,7 +97,7 @@ jobs:
         run: pnpm install
       - name: Build
         if: steps.check.outputs.changed == 'true'
-        run: pnpm turbo build --cache-dir=.turbo
+        run: pnpm turbo build-core --cache-dir=.turbo
       - name: Publish
         if: steps.check.outputs.changed == 'true'
         working-directory: packages/${{ matrix.value }}

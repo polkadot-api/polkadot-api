@@ -28,8 +28,12 @@ jobs:
           cache: pnpm
       - name: Install deps
         run: pnpm install
-      - name: Build
-        run: pnpm turbo build --cache-dir=.turbo
+      - name: Build core
+        run: pnpm turbo build-core --cache-dir=.turbo
+      - name: Install papi
+        run: pnpm install
+      - name: Build external
+        run: pnpm build-external
       - name: Lint
         run: pnpm lint
       - name: Test

@@ -23,7 +23,8 @@
     }
   },
   "scripts": {
-    "build": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "build-core": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "build": "pnpm build-core",
     "start": "pnpm build && node --enable-source-maps dist/main.js",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",

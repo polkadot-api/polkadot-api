@@ -9,7 +9,9 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "pnpm -r build",
+    "build-core": "pnpm -r build-core",
+    "build-external": "pnpm -r build-external",
+    "build": "pnpm turbo build-core && pnpm install && pnpm build-external",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "test": "pnpm -r test run",

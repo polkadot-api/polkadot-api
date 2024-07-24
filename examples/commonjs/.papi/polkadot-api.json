@@ -1,0 +1,10 @@
+{
+  "version": 0,
+  "descriptorPath": ".papi/descriptors",
+  "entries": {
+    "ksm": {
+      "chain": "ksmcc3",
+      "metadata": "../../packages/metadata-fixtures/ksm-metadata.scale"
+    }
+  }
+}

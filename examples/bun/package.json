@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "../../packages/cli/dist/main.js && tsc --noEmit",
+    "build-external": "papi && tsc --noEmit",
+    "build": "pnpm build-external",
     "lightclient": "bun run ./src/lightclient.ts",
     "rpc": "bun run ./src/rpc.ts",
     "compile:rpc": "bun build ./src/rpc.ts --compile --outfile ./dist/rpc",

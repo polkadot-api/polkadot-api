@@ -24,10 +24,14 @@ jobs:
         with:
           node-version: 20
           cache: "pnpm"
-      - name: build
-        run: |
-          pnpm install
-          pnpm turbo build --cache-dir=.turbo
+      - name: Install deps
+        run: pnpm install
+      - name: Build core
+        run: pnpm turbo build-core --cache-dir=.turbo
+      - name: Install papi
+        run: pnpm install
+      - name: Build external
+        run: pnpm build-external
       - name: Download Polkadot and parachain binaries
         run: |
           wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.13.0/polkadot

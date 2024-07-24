@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "../../packages/cli/dist/main.js",
+    "build-external": "papi",
+    "build": "pnpm build-external",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "e2e": "../../packages/cli/dist/main.js update && vitest run --test-timeout=300000"
+    "e2e": "papi update && vitest run --test-timeout=300000"
   },
   "dependencies": {
     "@noble/curves": "^1.2.0",

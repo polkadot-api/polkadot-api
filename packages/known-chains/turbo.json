@@ -6,6 +6,11 @@
       "dependsOn": ["^build"],
       "inputs": ["tsconfig.json", "src/**", "specs/**"],
       "outputs": ["dist/**"]
+    },
+    "build-core": {
+      "dependsOn": ["^build-core"],
+      "inputs": ["tsconfig.json", "src/**", "specs/**"],
+      "outputs": ["dist/**"]
     }
   }
 }
