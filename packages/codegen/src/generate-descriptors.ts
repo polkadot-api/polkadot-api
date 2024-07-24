@@ -405,7 +405,7 @@ type ApiKey<D extends Record<string, Record<string, any>>> =
         | \`api.\${P}.*\`
         | {
             [N in keyof D[P] & string]: \`api.\${P}.\${N}\`
-          }[keyof (keyof D[P]) & string]
+          }[keyof D[P] & string]
     }[keyof D & string]
 `
 

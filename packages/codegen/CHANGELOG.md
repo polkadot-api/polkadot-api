@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Whitelist entry for runtime apis
+
 ## 0.7.1 - 2024-07-19
 
 ### Fixed
