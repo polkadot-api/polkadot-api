@@ -28,7 +28,7 @@ import {
   getCompatibilityApi,
 } from "../compatibility"
 import { createTx } from "./create-tx"
-import { submit, submit$ } from "./submit-fns"
+import { InvalidTxError, submit, submit$ } from "./submit-fns"
 import {
   TxCall,
   TxEntry,
@@ -42,7 +42,7 @@ import {
   mapLookupToTypedef,
 } from "@polkadot-api/metadata-compatibility"
 
-export { submit, submit$ }
+export { submit, submit$, InvalidTxError }
 
 const accountIdEnc = AccountId().enc
 const queryInfoRawDec = Tuple(compact, compact, u8, u128).dec

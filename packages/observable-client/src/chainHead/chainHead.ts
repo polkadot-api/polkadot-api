@@ -358,7 +358,10 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       ),
   )
 
-  const validateTx$ = getValidateTx(withCanonicalChain(call$, false))
+  const validateTx$ = getValidateTx(
+    withCanonicalChain(call$, false),
+    getRuntimeContext$,
+  )
 
   const innerBody$ = (hash: string) =>
     upsertCachedStream(hash, "body", _body$(hash, false))
