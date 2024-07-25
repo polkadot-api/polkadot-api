@@ -156,6 +156,17 @@
       "require": "./dist/reexports/chains_paseo.js",
       "default": "./dist/reexports/chains_paseo.js"
     },
+    "./chains/paseo_asset_hub": {
+      "node": {
+        "import": "./dist/esm/reexports/chains_paseo_asset_hub.mjs",
+        "require": "./dist/reexports/chains_paseo_asset_hub.js",
+        "default": "./dist/reexports/chains_paseo_asset_hub.js"
+      },
+      "module": "./dist/esm/reexports/chains_paseo_asset_hub.mjs",
+      "import": "./dist/esm/reexports/chains_paseo_asset_hub.mjs",
+      "require": "./dist/reexports/chains_paseo_asset_hub.js",
+      "default": "./dist/reexports/chains_paseo_asset_hub.js"
+    },
     "./chains/polkadot": {
       "node": {
         "import": "./dist/esm/reexports/chains_polkadot.mjs",
@@ -199,6 +210,17 @@
       "import": "./dist/esm/reexports/chains_polkadot_collectives.mjs",
       "require": "./dist/reexports/chains_polkadot_collectives.js",
       "default": "./dist/reexports/chains_polkadot_collectives.js"
+    },
+    "./chains/polkadot_people": {
+      "node": {
+        "import": "./dist/esm/reexports/chains_polkadot_people.mjs",
+        "require": "./dist/reexports/chains_polkadot_people.js",
+        "default": "./dist/reexports/chains_polkadot_people.js"
+      },
+      "module": "./dist/esm/reexports/chains_polkadot_people.mjs",
+      "import": "./dist/esm/reexports/chains_polkadot_people.mjs",
+      "require": "./dist/reexports/chains_polkadot_people.js",
+      "default": "./dist/reexports/chains_polkadot_people.js"
     },
     "./chains/rococo_v2_2": {
       "node": {
