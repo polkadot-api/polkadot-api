@@ -18,6 +18,7 @@
 
 - `typedApi` not being assignable to union of multiple chains.
 - `descriptors`: Whitelist entry for runtime apis
+- `chains`: Update bootnodes
 
 ## 0.11.2 - 2024-07-19
 
