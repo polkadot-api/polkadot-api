@@ -12,7 +12,7 @@
     "compile:lightclient": "bun build ./src/lightclient.ts --compile --outfile ./dist/lightclient"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.1.6"
   },
   "peerDependencies": {
     "typescript": "^5"

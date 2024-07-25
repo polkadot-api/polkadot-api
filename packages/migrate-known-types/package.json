@@ -23,12 +23,12 @@
     "@polkadot-api/known-chains": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
+    "@polkadot-api/smoldot": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
-    "@polkadot-api/smoldot": "workspace:*"
+    "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.11.19"
+    "@types/node": "^20.14.12"
   }
 }
