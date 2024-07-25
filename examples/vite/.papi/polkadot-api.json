@@ -4,7 +4,7 @@
   "entries": {
     "wnd": {
       "chain": "westend2",
-      "metadata": ".papi/wnd-metadata.scale"
+      "metadata": ".papi/metadata/wnd-metadata.scale"
     }
   }
 }

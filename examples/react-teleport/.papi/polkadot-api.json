@@ -4,11 +4,11 @@
   "entries": {
     "wnd": {
       "chain": "westend2",
-      "metadata": ".papi/wnd.scale"
+      "metadata": ".papi/metadata/wnd.scale"
     },
     "wndAssethub": {
       "wsUrl": "wss://westend-asset-hub-rpc.polkadot.io/",
-      "metadata": ".papi/wnd-assethub.scale"
+      "metadata": ".papi/metadata/wnd-assethub.scale"
     }
   }
 }

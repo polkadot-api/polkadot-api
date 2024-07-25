@@ -52,9 +52,7 @@ export async function add(key: string, options: AddOptions) {
 
     spinner.text = "Writing metadata"
     const metadataRaw = opaqueMeta.slice(compactLen)
-    const filename = `${key}.scale`
-    await writeMetadataToDisk(metadataRaw, filename)
-    spinner.succeed(`Metadata saved as ${filename}`)
+    const filename = await storeMetadata(metadataRaw, key)
 
     entries[key] = {
       metadata: filename,
@@ -68,11 +66,7 @@ export async function add(key: string, options: AddOptions) {
       const { metadataRaw } = (await getMetadata(entry))!
 
       spinner.text = "Writing metadata"
-      if (!existsSync(papiFolder)) {
-        await fs.mkdir(papiFolder, { recursive: true })
-      }
-      const filename = join(papiFolder, `${key}.scale`)
-      await writeMetadataToDisk(metadataRaw, filename)
+      const filename = await storeMetadata(metadataRaw, key)
 
       spinner.succeed(`Metadata saved as ${filename}`)
       entry.metadata = filename
@@ -87,6 +81,16 @@ export async function add(key: string, options: AddOptions) {
       config: options.config,
     })
   }
+}
+
+async function storeMetadata(metadata: Uint8Array, key: string) {
+  const defaultFolder = join(papiFolder, "metadata")
+  if (!existsSync(defaultFolder)) {
+    await fs.mkdir(defaultFolder, { recursive: true })
+  }
+  const filename = join(defaultFolder, `${key}.scale`)
+  await writeMetadataToDisk(metadata, filename)
+  return filename
 }
 
 const entryFromOptions = (options: AddOptions): EntryConfig => {
