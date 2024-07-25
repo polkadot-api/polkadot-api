@@ -40,6 +40,7 @@ export const createRuntimeCallEntry = (
   method: string,
   chainHead: ChainHead$,
   {
+    isCompatible,
     getCompatibilityLevel,
     compatibleRuntime$,
     argsAreCompatible,
@@ -74,5 +75,5 @@ export const createRuntimeCallEntry = (
     return firstValueFromWithSignal(result$, signal)
   }
 
-  return Object.assign(fn, { getCompatibilityLevel })
+  return Object.assign(fn, { getCompatibilityLevel, isCompatible })
 }

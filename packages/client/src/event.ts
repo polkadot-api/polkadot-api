@@ -68,6 +68,7 @@ export const createEventEntry = <D, T>(
   name: string,
   chainHead: ChainHead$,
   {
+    isCompatible,
     getCompatibilityLevel,
     withCompatibleRuntime,
     argsAreCompatible,
@@ -116,5 +117,5 @@ export const createEventEntry = <D, T>(
       .filter((e) => e.type === pallet && e.value.type === name)
       .map((x) => x.value.value)
 
-  return { watch, pull, filter, getCompatibilityLevel }
+  return { watch, pull, filter, getCompatibilityLevel, isCompatible }
 }

@@ -150,6 +150,11 @@ export const compatibilityHelper = (
   const getCompatibilityLevel = withOptionalToken(descriptors, (runtime) =>
     minCompatLevel(getCompatibilityLevels(runtime)),
   )
+  const isCompatible = withOptionalToken(
+    descriptors,
+    (threshold: CompatibilityLevel, runtime) =>
+      getCompatibilityLevel(runtime) >= threshold,
+  )
 
   const waitDescriptors = () => descriptors
   const compatibleRuntime$ = (chainHead: ChainHead$, hash: string | null) =>
@@ -205,6 +210,7 @@ export const compatibilityHelper = (
   }
 
   return {
+    isCompatible,
     getCompatibilityLevel,
     getCompatibilityLevels,
     waitDescriptors,
@@ -223,22 +229,27 @@ export const minCompatLevel = (levels: {
 }) => Math.min(levels.args, levels.values)
 
 const withOptionalToken =
-  <T, D>(
+  <T, D, A extends [...any[], CompatibilityToken]>(
     compatibilityToken: Promise<CompatibilityToken<D>>,
-    fn: (runtime: CompatibilityToken) => T,
-  ): WithOptionalRuntime<T, D> =>
-  (runtime?: CompatibilityToken): any =>
-    runtime ? fn(runtime) : compatibilityToken.then(fn)
+    fn: (...args: A) => T,
+  ): WithOptionalRuntime<T, D, A extends [...infer R, any] ? R : []> =>
+  (...args: any): any => {
+    const lastElement = args.at(-1)
+    if (lastElement instanceof CompatibilityToken) {
+      return fn(...args)
+    }
+    return compatibilityToken.then((token) => (fn as any)(...args, token))
+  }
 
-export type WithOptionalRuntime<T, D> = {
+export type WithOptionalRuntime<T, D, A extends any[]> = {
   /**
    * Returns the result after waiting for the runtime to load.
    */
-  (): Promise<T>
+  (...args: A): Promise<T>
   /**
    * Returns the result synchronously with the loaded runtime.
    */
-  (runtime: CompatibilityToken<D>): T
+  (...args: [...A, runtime: CompatibilityToken<D>]): T
 }
 
 export interface CompatibilityFunctions<D> {
@@ -246,5 +257,37 @@ export interface CompatibilityFunctions<D> {
    * Returns the `CompatibilityLevel` for this call comparing the descriptors
    * generated on dev time with the current live metadata.
    */
-  getCompatibilityLevel: WithOptionalRuntime<CompatibilityLevel, D>
+  getCompatibilityLevel(): Promise<CompatibilityLevel>
+  /**
+   * Returns the `CompatibilityLevel` for this call comparing the descriptors
+   * generated on dev time with the current live metadata.
+   *
+   * @param compatibilityToken  CompatibilityToken awaited from
+   *                            typedApi.compatibilityToken.
+   */
+  getCompatibilityLevel(
+    compatibilityToken: CompatibilityToken<D>,
+  ): Promise<CompatibilityLevel>
+
+  /**
+   * Returns whether this call is compatible based on the CompatibilityLevel
+   * threshold.
+   *
+   * @param threshold  CompatibilityLevel threshold to use, inclusive.
+   */
+  isCompatible(threshold: CompatibilityLevel): Promise<boolean>
+
+  /**
+   * Returns whether this call is compatible based on the CompatibilityLevel
+   * threshold.
+   *
+   * @param threshold           CompatibilityLevel threshold to use,
+   *                            inclusive.
+   * @param compatibilityToken  CompatibilityToken awaited from
+   *                            typedApi.compatibilityToken.
+   */
+  isCompatible(
+    threshold: CompatibilityLevel,
+    compatibilityToken: CompatibilityToken<D>,
+  ): boolean
 }
