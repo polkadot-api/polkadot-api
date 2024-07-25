@@ -1,12 +1,13 @@
 import { Mock } from "vitest"
 
-type MockArgs<T> = T extends Mock<infer R, unknown> ? R : never
+export type Procedure<T extends any[], R = any> = (...args: T) => R
+type MockArgs<T> = T extends Mock<Procedure<infer R, unknown>> ? R : never
 
 export type WithCallback<T = Mock> = T & {
   callback: (cb: (...args: MockArgs<T>) => void) => () => void
 }
 
-export function withCallback<M extends Mock<any[], any>>(
+export function withCallback<M extends Mock<Procedure<any[], any>>>(
   spy: M,
 ): WithCallback<M> {
   type A = MockArgs<M>
@@ -31,7 +32,9 @@ export function withCallback<M extends Mock<any[], any>>(
 export type WithWait<T = Mock> = T & {
   waitNextCall: () => Promise<MockArgs<T>>
 }
-export function withWait<M extends Mock<any[], any>>(spy: M): WithWait<M> {
+export function withWait<M extends Mock<Procedure<any[], any>>>(
+  spy: M,
+): WithWait<M> {
   type A = MockArgs<M>
 
   let promise: DeferredPromise<A> | null = null

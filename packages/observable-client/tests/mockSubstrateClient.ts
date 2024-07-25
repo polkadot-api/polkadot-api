@@ -8,7 +8,13 @@ import {
 } from "@polkadot-api/substrate-client"
 import { noop } from "@polkadot-api/utils"
 import { Mock, expect, vi } from "vitest"
-import { DeferredPromise, WithWait, deferred, withWait } from "./spies"
+import {
+  DeferredPromise,
+  Procedure,
+  WithWait,
+  deferred,
+  withWait,
+} from "./spies"
 
 export interface MockSubstrateClient extends SubstrateClient {
   chainHead: MockChainHead
@@ -51,8 +57,8 @@ interface MockChainHeadMocks {
     StorageResult<StorageItemInput["type"]>
   >
   storageSubscription: MockStorageSubscription
-  unfollow: Mock<[], void>
-  unpin: WithWait<Mock<[string[]], Promise<void>>>
+  unfollow: Mock<Procedure<[], void>>
+  unpin: WithWait<Mock<Procedure<[string[]], Promise<void>>>>
   send: (evt: FollowEventWithRuntime) => void
   sendError: (error: Error) => void
 }
@@ -122,7 +128,9 @@ const createMockChainHead = (): MockChainHead => {
   return Object.assign(chainHead, { mock })
 }
 
-type MockOperationFn<T extends any[], R> = Mock<T, DeferredPromise<R>> & {
+type MockOperationFn<T extends any[], R> = Mock<
+  Procedure<T, DeferredPromise<R>>
+> & {
   getAllCalls: (hash: string) => T[]
   getLastCall: (hash: string) => T
   reply: (hash: string, response: R | Promise<R>) => Promise<void>
@@ -167,13 +175,15 @@ type StorageSubscriptionArgs = [
   () => void,
   (nDiscarded: number) => void,
 ]
-type MockStorageSubscription = Mock<StorageSubscriptionArgs, Mock<any, any>> & {
+type MockStorageSubscription = Mock<
+  Procedure<StorageSubscriptionArgs, Mock<Procedure<any, any>>>
+> & {
   getCall: (idx: number) => StorageSubscriptionCall
   getLastCall: (hash: string) => StorageSubscriptionCall
 }
 interface StorageSubscriptionCall {
   args: StorageSubscriptionArgs
-  cleanupFn: Mock<[], void>
+  cleanupFn: Mock<Procedure<[], void>>
   sendItems: (items: Array<StorageItemResponse>) => StorageSubscriptionCall
   sendError: (error: Error) => StorageSubscriptionCall
   sendComplete: () => StorageSubscriptionCall

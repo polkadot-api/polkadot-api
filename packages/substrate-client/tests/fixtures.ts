@@ -15,11 +15,12 @@ export const parseError: IRpcError = {
   message: "Parse error",
 }
 
-type SpyWithNew<T extends any[]> = vitest.Mock<T> & {
+type Procedure<T extends any[], R = any> = (...args: T) => R
+type SpyWithNew<T extends any[]> = vitest.Mock<Procedure<T, any>> & {
   getNewCalls: () => T[]
 }
 function createSpy<T extends any[]>(fn?: (...args: T) => void): SpyWithNew<T> {
-  const spy = fn ? vi.fn(fn) : vi.fn<T, void>()
+  const spy = fn ? vi.fn(fn) : vi.fn<Procedure<T, void>>()
 
   let latestIdx = 0
   const getNewCalls = () => {
