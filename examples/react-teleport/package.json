@@ -4,13 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "codegen": "../../packages/client/bin/cli.mjs",
-    "dev": "../../packages/client/bin/cli.mjs && vite",
-    "build": "../../packages/client/bin/cli.mjs && tsc && vite build",
+    "dev": "papi && vite",
+    "build-external": "papi && tsc && vite build",
+    "build": "pnpm build-external",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 10",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
     "polkadot-api": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

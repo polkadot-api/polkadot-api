@@ -1,7 +1,8 @@
 import fsExists from "fs.promises.exists"
 import { readPackage } from "read-pkg"
-import { updatePackage } from "write-package"
-import { readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { join } from "node:path"
+import { existsSync } from "node:fs"
 
 export type EntryConfig =
   | {
@@ -19,20 +20,41 @@ export type EntryConfig =
       chain: string
       metadata?: string
     }
-export type PapiConfig = Record<string, EntryConfig>
+type Entries = Record<string, EntryConfig>
+export type PapiConfig = {
+  version: 0
+  descriptorPath: string
+  entries: Record<string, EntryConfig>
+}
 
+export const papiFolder = ".papi"
 const papiCfgDefaultFile = "polkadot-api.json"
 const packageJsonKey = "polkadot-api"
+
+export const defaultConfig: PapiConfig = {
+  version: 0,
+  descriptorPath: join(papiFolder, "descriptors"),
+  entries: {},
+}
 
 export async function readPapiConfig(
   configFile: string | undefined,
 ): Promise<PapiConfig | null> {
   if (configFile) return readFromFile(configFile)
 
-  const configFromDefaultFile = await readFromFile(papiCfgDefaultFile)
-  if (configFromDefaultFile) return configFromDefaultFile
+  const currentVersionLocation = join(papiFolder, papiCfgDefaultFile)
+  const currentVersionLocationExists = await fsExists(currentVersionLocation)
 
-  return readFromFile("package.json")
+  const readConfig =
+    (await (currentVersionLocationExists
+      ? readFromFile(currentVersionLocation)
+      : readFromFile(papiCfgDefaultFile))) ?? (await readFromPackageJson())
+
+  // Store into current version location if it wasn't there
+  if (readConfig && !currentVersionLocationExists) {
+    await writePapiConfig(undefined, readConfig)
+  }
+  return readConfig
 }
 
 /**
@@ -49,37 +71,38 @@ export async function writePapiConfig(
 ) {
   if (configFile) return writeToFile(configFile, config)
 
-  const defaultCfgExists = await fsExists(papiCfgDefaultFile)
-  if (defaultCfgExists) return writeToFile(papiCfgDefaultFile, config)
-
-  const packageCfg = await readFromFile("package.json")
-  if (packageCfg) {
-    return writeToFile("package.json", config)
+  if (!existsSync(papiFolder)) {
+    await mkdir(papiFolder)
   }
-
-  return writeToFile(papiCfgDefaultFile, config)
+  return writeToFile(join(papiFolder, papiCfgDefaultFile), config)
 }
 
 async function readFromFile(file: string) {
   const fileExists = await fsExists(file)
   if (!fileExists) return null
 
-  if (file === "package.json") {
-    const packageJson = await readPackage()
-    return packageJson[packageJsonKey] ?? null
+  return migrate(JSON.parse(await readFile(file, "utf8")))
+}
+async function readFromPackageJson() {
+  const packageJson = await readPackage()
+  if (!(packageJsonKey in packageJson)) return null
+  console.warn("Papi config in package.json is deprecated")
+  return migrate(packageJson[packageJsonKey])
+}
+
+function migrate(content: Entries | PapiConfig): PapiConfig {
+  if (typeof content.version === "number") {
+    return content as any
   }
-  return JSON.parse(await readFile(file, "utf8"))
+  return {
+    ...defaultConfig,
+    entries: content as Entries,
+  }
 }
 
 async function writeToFile(file: string, config: PapiConfig) {
   if (file === "package.json") {
-    // updatePackage preserves existing values, we have to clear them to make removes work.
-    await updatePackage({
-      [packageJsonKey]: null,
-    })
-    return updatePackage({
-      [packageJsonKey]: config,
-    })
+    throw new Error("Papi config in package.json is deprecated")
   }
   return writeFile(file, JSON.stringify(config, null, 2))
 }

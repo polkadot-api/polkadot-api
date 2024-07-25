@@ -1,18 +1,31 @@
 import { getMetadata } from "@/metadata"
-import { EntryConfig, readPapiConfig } from "@/papiConfig"
+import { readPapiConfig } from "@/papiConfig"
 import { generateMultipleDescriptors } from "@polkadot-api/codegen"
-import { Tuple, V14, V15, Vector } from "@polkadot-api/substrate-bindings"
+import {
+  EntryPointCodec,
+  TypedefCodec,
+} from "@polkadot-api/metadata-compatibility"
+import {
+  Binary,
+  h64,
+  Tuple,
+  V14,
+  V15,
+  Vector,
+} from "@polkadot-api/substrate-bindings"
+import { existsSync } from "fs"
+import fsExists from "fs.promises.exists"
 import fs, { mkdtemp, rm } from "fs/promises"
+import { tmpdir } from "os"
 import path, { join } from "path"
 import process from "process"
 import tsc from "tsc-prog"
 import tsup, { build } from "tsup"
+import { updatePackage } from "write-package"
 import { CommonOptions } from "./commonOptions"
-import fsExists from "fs.promises.exists"
-import { existsSync } from "fs"
-import { tmpdir } from "os"
-import { EntryPointCodec } from "@polkadot-api/metadata-compatibility"
-import { TypedefCodec } from "@polkadot-api/metadata-compatibility"
+import { spawn } from "child_process"
+import { readPackage } from "read-pkg"
+import { detect } from "detect-package-manager"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
@@ -20,7 +33,15 @@ export interface GenerateOptions extends CommonOptions {
 }
 
 export async function generate(opts: GenerateOptions) {
-  const sources = await getSources(opts)
+  if (process.env.PAPI_SKIP_GENERATE) {
+    return
+  }
+
+  const config = await readPapiConfig(opts.config)
+  if (!config) {
+    throw new Error("Can't find the Polkadot-API configuration")
+  }
+  const sources = config.entries
 
   if (Object.keys(sources).length == 0) {
     console.log("No chains defined in config file")
@@ -35,41 +56,68 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
-  const descriptorsDir = join(
-    process.cwd(),
-    "node_modules",
-    "@polkadot-api",
-    "descriptors",
-  )
+  await cleanDescriptorsPackage(config.descriptorPath)
+  const descriptorsDir = join(process.cwd(), config.descriptorPath)
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
-  if (existsSync(descriptorsDir))
-    await fs.rm(descriptorsDir, { recursive: true })
-
-  await fs.mkdir(descriptorsDir, { recursive: true })
-  await generatePackageJson(join(descriptorsDir, "package.json"))
-
   const whitelist = opts.whitelist ? await readWhitelist(opts.whitelist) : null
-  await outputCodegen(
+  const hash = await outputCodegen(
     chains,
     join(descriptorsDir, "src"),
     clientPath,
     whitelist,
   )
+  await replacePackageJson(descriptorsDir, hash)
+
   await compileCodegen(descriptorsDir)
   await fs.rm(join(descriptorsDir, "src"), { recursive: true })
+  await runInstall()
 }
 
-async function getSources(
-  opts: GenerateOptions,
-): Promise<Record<string, EntryConfig>> {
-  const config = await readPapiConfig(opts.config)
-  if (!config) {
-    throw new Error("Can't find the Polkadot-API configuration")
+async function cleanDescriptorsPackage(path: string) {
+  const descriptorsDir = join(process.cwd(), path)
+  if (!existsSync(descriptorsDir)) {
+    await fs.mkdir(descriptorsDir, { recursive: true })
+
+    // We have to keep the package.json in git because otherwise npm install on a fresh repo would fail
+    await fs.writeFile(
+      join(descriptorsDir, ".gitignore"),
+      "*\n!.gitignore\n!package.json",
+    )
   }
 
-  return config
+  const packageJson = await readPackage()
+  const packageSource = `file:${path}`
+  const currentSource = packageJson.dependencies?.["@polkadot-api/descriptors"]
+  if (currentSource !== packageSource) {
+    await updatePackage({
+      dependencies: {
+        "@polkadot-api/descriptors": packageSource,
+      },
+    })
+  }
+
+  const distDir = join(descriptorsDir, "dist")
+  if (existsSync(distDir)) {
+    await fs.rm(distDir, { recursive: true })
+  }
+}
+
+async function getPackageManager() {
+  return process.env.npm_execpath ?? (await detect())
+}
+async function runInstall() {
+  const path = await getPackageManager()
+  console.log(`${path} install`)
+  const child = spawn(await getPackageManager(), ["install"], {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      PAPI_SKIP_GENERATE: "true",
+    },
+  })
+  await new Promise((resolve) => child.on("close", resolve))
 }
 
 async function outputCodegen(
@@ -100,6 +148,12 @@ async function outputCodegen(
       whitelist: whitelist ?? undefined,
     },
   )
+  const hash = h64(
+    Binary.fromText(
+      Array.from(metadataTypes.checksumToIdx.keys()).join(""),
+    ).asBytes(),
+  )
+
   const EntryPointsCodec = Vector(EntryPointCodec)
   const TypedefsCodec = Vector(TypedefCodec)
   const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
@@ -139,6 +193,8 @@ ${descriptorsFileContent}`,
     chains.map((chain) => chain.key),
     publicTypes,
   )
+
+  return hash
 }
 
 async function compileCodegen(packageDir: string) {
@@ -195,29 +251,34 @@ const generateIndex = async (
   await fs.writeFile(join(path, "index.ts"), indexTs)
 }
 
-const generatePackageJson = async (path: string) => {
+async function replacePackageJson(descriptorsDir: string, version: bigint) {
   await fs.writeFile(
-    path,
+    join(descriptorsDir, "package.json"),
     `{
-      "name": "@polkadot-api/descriptors",
-      "exports": {
-        ".": {
-          "module": "./dist/index.mjs",
-          "import": "./dist/index.mjs",
-          "require": "./dist/index.js",
-          "default": "./dist/index.js"
-        },
-        "./package.json": "./package.json"
-      },
-      "main": "./dist/index.js",
+  "version": "0.1.0-autogenerated.${version}",
+  "name": "@polkadot-api/descriptors",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
       "module": "./dist/index.mjs",
-      "browser": "./dist/index.mjs",
-      "types": "./dist/index.d.ts",
-      "sideEffects": false,
-      "peerDependencies": {
-        "polkadot-api": "*"
-      }
-    }`,
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "polkadot-api": "*"
+  }
+}
+`,
   )
 }
 

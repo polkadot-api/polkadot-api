@@ -1,5 +1,11 @@
 import { getMetadata, writeMetadataToDisk } from "@/metadata"
-import { EntryConfig, readPapiConfig, writePapiConfig } from "@/papiConfig"
+import {
+  defaultConfig,
+  EntryConfig,
+  papiFolder,
+  readPapiConfig,
+  writePapiConfig,
+} from "@/papiConfig"
 import { compactNumber } from "@polkadot-api/substrate-bindings"
 import { fromHex } from "@polkadot-api/utils"
 import { getMetadataFromRuntime } from "@polkadot-api/wasm-executor"
@@ -7,6 +13,8 @@ import * as fs from "node:fs/promises"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
 import { generate } from "./generate"
+import { join } from "node:path"
+import { existsSync } from "node:fs"
 
 export interface AddOptions extends CommonOptions {
   file?: string
@@ -19,7 +27,9 @@ export interface AddOptions extends CommonOptions {
 }
 
 export async function add(key: string, options: AddOptions) {
-  const entries = (await readPapiConfig(options.config)) ?? {}
+  const config = (await readPapiConfig(options.config)) ?? defaultConfig
+  const entries = config.entries
+
   if (key in entries) {
     console.warn(`Replacing existing ${key} config`)
   }
@@ -42,9 +52,7 @@ export async function add(key: string, options: AddOptions) {
 
     spinner.text = "Writing metadata"
     const metadataRaw = opaqueMeta.slice(compactLen)
-    const filename = `${key}.scale`
-    await writeMetadataToDisk(metadataRaw, filename)
-    spinner.succeed(`Metadata saved as ${filename}`)
+    const filename = await storeMetadata(metadataRaw, key)
 
     entries[key] = {
       metadata: filename,
@@ -58,15 +66,14 @@ export async function add(key: string, options: AddOptions) {
       const { metadataRaw } = (await getMetadata(entry))!
 
       spinner.text = "Writing metadata"
-      const filename = `${key}.scale`
-      await writeMetadataToDisk(metadataRaw, filename)
+      const filename = await storeMetadata(metadataRaw, key)
 
       spinner.succeed(`Metadata saved as ${filename}`)
       entry.metadata = filename
     }
   }
 
-  await writePapiConfig(options.config, entries)
+  await writePapiConfig(options.config, config)
   console.log(`Saved new spec "${key}"`)
 
   if (!options.skipCodegen) {
@@ -74,6 +81,16 @@ export async function add(key: string, options: AddOptions) {
       config: options.config,
     })
   }
+}
+
+async function storeMetadata(metadata: Uint8Array, key: string) {
+  const defaultFolder = join(papiFolder, "metadata")
+  if (!existsSync(defaultFolder)) {
+    await fs.mkdir(defaultFolder, { recursive: true })
+  }
+  const filename = join(defaultFolder, `${key}.scale`)
+  await writeMetadataToDisk(metadata, filename)
+  return filename
 }
 
 const entryFromOptions = (options: AddOptions): EntryConfig => {

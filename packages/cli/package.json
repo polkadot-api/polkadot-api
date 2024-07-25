@@ -23,7 +23,8 @@
     }
   },
   "scripts": {
-    "build": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "build-core": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "build": "pnpm build-core",
     "start": "pnpm build && node --enable-source-maps dist/main.js",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -49,6 +50,7 @@
     "@polkadot-api/ws-provider": "workspace:*",
     "@types/node": "^20.12.11",
     "commander": "^12.0.0",
+    "detect-package-manager": "^3.0.2",
     "fs.promises.exists": "^1.1.4",
     "ora": "^8.0.1",
     "read-pkg": "^9.0.1",

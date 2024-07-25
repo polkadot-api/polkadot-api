@@ -62,6 +62,9 @@ importers:
 
   examples/bun:
     dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/bun/.papi/descriptors(polkadot-api@packages+client)
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -75,12 +78,18 @@ importers:
 
   examples/commonjs:
     dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/commonjs/.papi/descriptors(polkadot-api@packages+client)
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
 
   examples/react-teleport:
     dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/react-teleport/.papi/descriptors(polkadot-api@packages+client)
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -127,6 +136,9 @@ importers:
 
   examples/vite:
     dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/vite/.papi/descriptors(polkadot-api@packages+client)
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -155,6 +167,9 @@ importers:
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../../packages/cli
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -234,6 +249,9 @@ importers:
       commander:
         specifier: ^12.0.0
         version: 12.1.0
+      detect-package-manager:
+        specifier: ^3.0.2
+        version: 3.0.2
       fs.promises.exists:
         specifier: ^1.1.4
         version: 1.1.4
@@ -1092,6 +1110,31 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
+  '@polkadot-api/descriptors@file:examples/bun/.papi/descriptors':
+    resolution: {directory: examples/bun/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
+  '@polkadot-api/descriptors@file:examples/commonjs/.papi/descriptors':
+    resolution: {directory: examples/commonjs/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
+  '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors':
+    resolution: {directory: examples/react-teleport/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
+  '@polkadot-api/descriptors@file:examples/vite/.papi/descriptors':
+    resolution: {directory: examples/vite/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
+  '@polkadot-api/descriptors@file:integration-tests/zombie-tests/.papi/descriptors':
+    resolution: {directory: integration-tests/zombie-tests/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
   '@polkadot-api/wasm-executor@0.1.1':
     resolution: {integrity: sha512-OuxbAkSRNLtJtsWDzKx7TEYlRXI2ApT9LcEFckaAr6E4aKLQ5TgbDDXWUvwl4A3AnjoUQx7ltYcsb8qR8UpMAg==}
 
@@ -1613,6 +1656,10 @@ packages:
   detect-indent@7.0.1:
     resolution: {integrity: sha512-Mc7QhQ8s+cLrnUfU/Ji94vG/r8M26m8f++vyres4ZoojaRDpZ1eSIh/EpzLNwlWuvzSZ3UbDFspjFvTDXe6e/g==}
     engines: {node: '>=12.20'}
+
+  detect-package-manager@3.0.2:
+    resolution: {integrity: sha512-8JFjJHutStYrfWwzfretQoyNGoZVW1Fsrp4JO9spa7h/fBfwgTMEIy4/LBzRDGsxwVPHU0q+T9YvwLDJoOApLQ==}
+    engines: {node: '>=12'}
 
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -3441,6 +3488,26 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
+  '@polkadot-api/descriptors@file:examples/bun/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
+  '@polkadot-api/descriptors@file:examples/commonjs/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
+  '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
+  '@polkadot-api/descriptors@file:examples/vite/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
+  '@polkadot-api/descriptors@file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
   '@polkadot-api/wasm-executor@0.1.1': {}
 
   '@rollup/plugin-alias@5.1.0(rollup@4.18.1)':
@@ -3965,6 +4032,10 @@ snapshots:
   deepmerge@4.3.1: {}
 
   detect-indent@7.0.1: {}
+
+  detect-package-manager@3.0.2:
+    dependencies:
+      execa: 5.1.1
 
   diff-sequences@29.6.3: {}
 

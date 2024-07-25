@@ -1,0 +1,10 @@
+{
+  "version": 0,
+  "descriptorPath": ".papi/descriptors",
+  "entries": {
+    "wnd": {
+      "chain": "westend2",
+      "metadata": ".papi/metadata/wnd.scale"
+    }
+  }
+}

@@ -35,7 +35,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --noEmit && rollup -c ../../rollup.config.js",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
+    "build": "pnpm build-core",
     "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",

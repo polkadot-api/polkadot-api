@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "../../packages/cli/dist/main.js && vite",
-    "build": "../../packages/cli/dist/main.js --whitelist whitelist.ts && tsc && vite build",
+    "start": "papi && vite",
+    "build-external": "papi --whitelist whitelist.ts && tsc && vite build",
+    "build": "pnpm build-external",
     "preview": "vite preview"
   },
   "devDependencies": {
@@ -15,13 +16,8 @@
     "vite": "^4.4.4"
   },
   "dependencies": {
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.1"
-  },
-  "polkadot-api": {
-    "wnd": {
-      "chain": "westend2",
-      "metadata": "wnd-metadata.scale"
-    }
   }
 }
