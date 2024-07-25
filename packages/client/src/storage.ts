@@ -139,6 +139,7 @@ export const createStorageEntry = (
   name: string,
   chainHead: ChainHead$,
   {
+    isCompatible,
     getCompatibilityLevel,
     getCompatibilityLevels,
     waitDescriptors,
@@ -287,6 +288,7 @@ export const createStorageEntry = (
     )
 
   return {
+    isCompatible,
     getCompatibilityLevel,
     getValue,
     getValues,

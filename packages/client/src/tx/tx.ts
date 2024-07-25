@@ -62,6 +62,7 @@ export const createTxEntry = <
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast: (tx: string) => Observable<never>,
   {
+    isCompatible: isCompatibleHelper,
     getCompatibilityLevel,
     compatibleRuntime$,
     argsAreCompatible,
@@ -204,5 +205,8 @@ export const createTxEntry = <
     }
   }
 
-  return Object.assign(fn, { getCompatibilityLevel })
+  return Object.assign(fn, {
+    getCompatibilityLevel,
+    isCompatible: isCompatibleHelper,
+  })
 }
