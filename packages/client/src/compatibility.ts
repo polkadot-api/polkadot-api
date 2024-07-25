@@ -267,7 +267,7 @@ export interface CompatibilityFunctions<D> {
    */
   getCompatibilityLevel(
     compatibilityToken: CompatibilityToken<D>,
-  ): Promise<CompatibilityLevel>
+  ): CompatibilityLevel
 
   /**
    * Returns whether this call is compatible based on the CompatibilityLevel
