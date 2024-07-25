@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add Polkadot People and Paseo AssetHub
+
 ## 0.2.1 - 2024-07-19
 
 ### Fixed

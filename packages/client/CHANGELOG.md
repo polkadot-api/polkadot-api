@@ -7,6 +7,7 @@
 - `InvalidTxError`: a new Error with all the information needed to determine what
   was the reason why the transaction is invlid. Its typings can be obtained via the `TransactionValidityError` type [#589](https://github.com/polkadot-api/polkadot-api/pull/589).
 - `client`: Add `isCompatible(threshold: CompatibilityLevel, token?: CompatibilityToken)` to every interaction.
+- `chains`: Add Polkadot People and Paseo AssetHub
 
 ### Changed
 

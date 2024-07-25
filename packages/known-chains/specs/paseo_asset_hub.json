@@ -1,0 +1,26 @@
+{
+  "name": "Paseo Asset Hub",
+  "id": "asset-hub-paseo",
+  "chainType": "Live",
+  "bootNodes": [
+    "/dns/assethub-paseo-bootnode.radiumblock.com/tcp/30333/p2p/12D3KooWP8aNgAjkYzH1QuwLjYyNqfpWkJkFRgdtUuey9KzEJciq",
+    "/dns/assethub-paseo-bootnode.radiumblock.com/tcp/30336/wss/p2p/12D3KooWP8aNgAjkYzH1QuwLjYyNqfpWkJkFRgdtUuey9KzEJciq",
+    "/dns/asset-hub-paseo.bootnode.amforc.com/tcp/29999/wss/p2p/12D3KooWLGk5uPRPnfVafLXSuMiFn1nPUbUqHFB9Ac5ps14g9Vpe",
+    "/dns/asset-hub-paseo.bootnode.amforc.com/tcp/30004/p2p/12D3KooWLGk5uPRPnfVafLXSuMiFn1nPUbUqHFB9Ac5ps14g9Vpe",
+    "/dns/asset-hub-paseo-boot-ng.dwellir.com/tcp/443/wss/p2p/12D3KooWGoC9CdpY8T5bgf6PqKgry2DjCxaqQS7R9WdQ8rVMeEMg",
+    "/dns/asset-hub-paseo-boot-ng.dwellir.com/tcp/30357/p2p/12D3KooWGoC9CdpY8T5bgf6PqKgry2DjCxaqQS7R9WdQ8rVMeEMg"
+  ],
+  "telemetryEndpoints": null,
+  "protocolId": null,
+  "properties": {
+    "ss58Format": 42,
+    "tokenDecimals": 10,
+    "tokenSymbol": "PAS"
+  },
+  "relay_chain": "paseo",
+  "para_id": 1000,
+  "codeSubstitutes": {},
+  "genesis": {
+    "stateRootHash": "0xac4c65d941ca44130d1c7efc9392b7a536d501115e64b205d12ead7c2a824bc8"
+  }
+}

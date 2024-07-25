@@ -38,6 +38,12 @@
       "require": "./dist/specs/paseo.js",
       "default": "./dist/specs/paseo.js"
     },
+    "./paseo_asset_hub": {
+      "module": "./dist/specs/paseo_asset_hub.mjs",
+      "import": "./dist/specs/paseo_asset_hub.mjs",
+      "require": "./dist/specs/paseo_asset_hub.js",
+      "default": "./dist/specs/paseo_asset_hub.js"
+    },
     "./polkadot": {
       "module": "./dist/specs/polkadot.mjs",
       "import": "./dist/specs/polkadot.mjs",
@@ -61,6 +67,12 @@
       "import": "./dist/specs/polkadot_collectives.mjs",
       "require": "./dist/specs/polkadot_collectives.js",
       "default": "./dist/specs/polkadot_collectives.js"
+    },
+    "./polkadot_people": {
+      "module": "./dist/specs/polkadot_people.mjs",
+      "import": "./dist/specs/polkadot_people.mjs",
+      "require": "./dist/specs/polkadot_people.js",
+      "default": "./dist/specs/polkadot_people.js"
     },
     "./rococo_v2_2": {
       "module": "./dist/specs/rococo_v2_2.mjs",
@@ -116,10 +128,12 @@
     "ksmcc3_asset_hub",
     "ksmcc3_bridge_hub",
     "paseo",
+    "paseo_asset_hub",
     "polkadot",
     "polkadot_asset_hub",
     "polkadot_bridge_hub",
     "polkadot_collectives",
+    "polkadot_people",
     "rococo_v2_2",
     "rococo_v2_2_asset_hub",
     "rococo_v2_2_bridge_hub",
