@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.0 - 2024-07-25
+
 ### Added
 
 - `InvalidTxError`: a new Error with all the information needed to determine what
