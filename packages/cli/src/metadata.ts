@@ -11,28 +11,26 @@ import { dirname } from "path"
 import { fileURLToPath } from "url"
 import * as knownChains from "@polkadot-api/known-chains"
 import compatEnhancer from "@polkadot-api/polkadot-sdk-compat"
-import type {
-  MetadataWithRaw,
-  WorkerRequestMessage,
-  WorkerResponseMessage,
-} from "./metadataWorker"
+import { startFromWorker } from "@polkadot-api/smoldot/from-node-worker"
+import { Client as SmoldotClient } from "@polkadot-api/smoldot"
+import { getSmProvider } from "@polkadot-api/sm-provider"
 
-const workerPath = fileURLToPath(import.meta.resolve("./metadataWorker.js"))
+const workerPath = fileURLToPath(
+  import.meta.resolve("@polkadot-api/smoldot/node-worker"),
+)
 
-let metadataWorker: Worker | null
+let smoldotWorker: [SmoldotClient, Worker] | null
 let workerRefCount = 0
-async function getMetadataWorker() {
-  if (!metadataWorker) {
-    metadataWorker = new Worker(workerPath, {
+async function getSmoldotWorker() {
+  if (!smoldotWorker) {
+    const worker = new Worker(workerPath, {
       stdout: true,
       stderr: true,
     })
-    await new Promise((resolve) => {
-      metadataWorker?.once("message", resolve)
-      metadataWorker?.postMessage("ready")
-    })
+    const client = startFromWorker(worker)
+    smoldotWorker = [client, worker]
   }
-  return metadataWorker
+  return smoldotWorker
 }
 
 const getMetadataCall = async (provider: JsonRpcProvider) => {
@@ -46,7 +44,9 @@ const getMetadataCall = async (provider: JsonRpcProvider) => {
   return { metadata: runtime.lookup.metadata, metadataRaw: runtime.metadataRaw }
 }
 
-const getWorkerMessage = (chain: string): Omit<WorkerRequestMessage, "id"> => {
+const getChainSpecs = (
+  chain: string,
+): { potentialRelayChainSpecs: string[]; chainSpec: string } => {
   if (!(chain in knownChains)) {
     const relayChainName = JSON.parse(chain).relay_chain
     return {
@@ -72,31 +72,30 @@ const getWorkerMessage = (chain: string): Omit<WorkerRequestMessage, "id"> => {
   }
 }
 
-let id = 0
 const getMetadataFromSmoldot = async (chain: string) => {
   workerRefCount++
   try {
-    const reqId = id++
-    const metadataWorker = await getMetadataWorker()
-    const message: WorkerRequestMessage = {
-      ...getWorkerMessage(chain),
-      id: reqId,
-    }
-    const metadata = await new Promise<MetadataWithRaw>((resolve) => {
-      const listener = (data: WorkerResponseMessage) => {
-        if (data.id !== reqId) return
-        metadataWorker.off("message", listener)
-        resolve(data.metadata)
-      }
-      metadataWorker.on("message", listener)
-      metadataWorker.postMessage(message)
-    })
-    return metadata
+    const [smoldot] = await getSmoldotWorker()
+    const chainSpecs = getChainSpecs(chain)
+    const potentialRelayChains = await Promise.all(
+      chainSpecs.potentialRelayChainSpecs.map((chainSpec) =>
+        smoldot.addChain({ chainSpec }),
+      ),
+    )
+    const provider = getSmProvider(
+      smoldot.addChain({
+        chainSpec: chainSpecs.chainSpec,
+        potentialRelayChains,
+      }),
+    )
+    return await getMetadataCall(provider)
   } finally {
     workerRefCount--
     if (workerRefCount === 0) {
-      metadataWorker?.terminate()
-      metadataWorker = null
+      const [smoldot, worker] = smoldotWorker!
+      smoldotWorker = null
+      await smoldot.terminate()
+      await worker.terminate()
     }
   }
 }
