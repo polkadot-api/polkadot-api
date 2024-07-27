@@ -25,7 +25,7 @@ import { updatePackage } from "write-package"
 import { CommonOptions } from "./commonOptions"
 import { spawn } from "child_process"
 import { readPackage } from "read-pkg"
-import { detect } from "detect-package-manager"
+import { detect, getNpmVersion } from "detect-package-manager"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
@@ -87,8 +87,12 @@ async function cleanDescriptorsPackage(path: string) {
     )
   }
 
-  const packageJson = await readPackage()
-  const packageSource = `file:${path}`
+  const [packageJson, protocol] = await Promise.all([
+    readPackage(),
+    getPackageProtocol(),
+  ])
+
+  const packageSource = `${protocol}:${path}`
   const currentSource = packageJson.dependencies?.["@polkadot-api/descriptors"]
   if (currentSource !== packageSource) {
     await updatePackage({
@@ -107,6 +111,21 @@ async function cleanDescriptorsPackage(path: string) {
 async function getPackageManager() {
   return process.env.npm_execpath ?? (await detect())
 }
+
+async function getPackageProtocol() {
+  const packageManager = await detect()
+
+  switch (packageManager) {
+    case "yarn":
+      const yarnVersion = await getNpmVersion(packageManager)
+      const yarnMajorVersion = Number(yarnVersion.split(".").at(0))
+
+      return yarnMajorVersion >= 2 ? "portal" : "file"
+    default:
+      return "file"
+  }
+}
+
 async function runInstall() {
   const path = await getPackageManager()
   console.log(`${path} install`)
