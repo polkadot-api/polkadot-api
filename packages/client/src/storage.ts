@@ -1,4 +1,4 @@
-import { firstValueFromWithSignal, raceMap } from "@/utils"
+import { firstValueFromWithSignal, isOptionalArg, raceMap } from "@/utils"
 import { ChainHead$, NotBestBlockError } from "@polkadot-api/observable-client"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { Observable, debounceTime, distinctUntilChanged, map } from "rxjs"
@@ -123,15 +123,6 @@ export type Storage$ = <Type extends StorageItemInput["type"]>(
   key: string,
   childTrie: string | null,
 ) => Observable<StorageResult<Type>>
-
-const isOptionalArg = (lastArg: unknown) =>
-  typeof lastArg === "object" &&
-  lastArg !== null &&
-  Object.entries(lastArg).every(
-    ([k, v]) =>
-      (k === "at" && (v === undefined || typeof v === "string")) ||
-      (k === "signal" && (v === undefined || v instanceof AbortSignal)),
-  )
 
 export const createStorageEntry = (
   pallet: string,

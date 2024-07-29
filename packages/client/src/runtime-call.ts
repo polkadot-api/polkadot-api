@@ -1,4 +1,4 @@
-import { firstValueFromWithSignal } from "@/utils"
+import { firstValueFromWithSignal, isOptionalArg } from "@/utils"
 import { ChainHead$ } from "@polkadot-api/observable-client"
 import { toHex } from "@polkadot-api/utils"
 import { map, mergeMap } from "rxjs"
@@ -23,16 +23,6 @@ export interface RuntimeCall<D, Args extends Array<any>, Payload>
    *              known finalized is the default) and an AbortSignal.
    */
   (...args: WithCallOptions<Args>): Promise<Payload>
-}
-
-const isOptionalArg = (lastArg: any) => {
-  if (typeof lastArg !== "object") return false
-
-  return Object.keys(lastArg).every(
-    (k) =>
-      (k === "at" && typeof lastArg.at === "string") ||
-      (k === "signal" && lastArg.signal instanceof AbortSignal),
-  )
 }
 
 export const createRuntimeCallEntry = (
