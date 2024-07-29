@@ -124,15 +124,14 @@ export type Storage$ = <Type extends StorageItemInput["type"]>(
   childTrie: string | null,
 ) => Observable<StorageResult<Type>>
 
-const isOptionalArg = (lastArg: any) => {
-  if (typeof lastArg !== "object") return false
-
-  return Object.keys(lastArg).every(
-    (k) =>
-      (k === "at" && typeof lastArg.at === "string") ||
-      (k === "signal" && lastArg.signal instanceof AbortSignal),
+const isOptionalArg = (lastArg: unknown) =>
+  typeof lastArg === "object" &&
+  lastArg !== null &&
+  Object.entries(lastArg).every(
+    ([k, v]) =>
+      (k === "at" && (v === undefined || typeof v === "string")) ||
+      (k === "signal" && (v === undefined || v instanceof AbortSignal)),
   )
-}
 
 export const createStorageEntry = (
   pallet: string,
