@@ -1,80 +1,72 @@
+import { Worker } from "node:worker_threads"
 import type { Client } from "smoldot"
-import {
-  Worker,
-  MessageChannel,
-  MessagePort as NodeMessagePort,
-  TransferListItem,
-} from "node:worker_threads"
-import {
-  type SmoldotBytecode,
-  type ClientOptionsWithBytecode,
-  startWithBytecode,
-} from "smoldot/no-auto-bytecode"
-
-export type SmoldotOptions = Omit<
-  ClientOptionsWithBytecode,
-  "bytecode" | "portToWorker"
->
+import type { RequestMessage, SmoldotOptions } from "./node-worker"
 
 export const startFromWorker = (
   worker: Worker,
   options: SmoldotOptions = {},
 ): Client => {
-  const bytecode = new Promise<SmoldotBytecode>((resolve) => {
-    worker.once("message", resolve)
+  sendToWorker(worker, {
+    type: "start",
+    value: options,
   })
 
-  const { port1, port2 } = new MessageChannel()
-  worker.postMessage(port1, [port1])
-
-  return startWithBytecode({
-    bytecode,
-    portToWorker: nodeToWebMessagePort(port2),
-    ...options,
-  })
-}
-
-function nodeToWebMessagePort(port: NodeMessagePort): MessagePort {
-  const result: MessagePort = {
-    ...port,
-    onmessage: null,
-    onmessageerror: null,
-    close() {
-      port.close()
+  return {
+    async addChain(options) {
+      const id = await sendToWorker(worker, {
+        type: "add-chain",
+        value: options,
+      })
+      return {
+        nextJsonRpcResponse() {
+          return sendToWorker(worker, {
+            type: "chain",
+            value: {
+              id,
+              type: "receive",
+            },
+          })
+        },
+        remove() {
+          return sendToWorker(worker, {
+            type: "chain",
+            value: {
+              id,
+              type: "remove",
+            },
+          })
+        },
+        sendJsonRpc(value) {
+          return sendToWorker(worker, {
+            type: "chain",
+            value: {
+              id,
+              type: "send",
+              value,
+            },
+          })
+        },
+      }
     },
-    postMessage(message, transfer) {
-      port.postMessage(message, webToNodeTransfer(transfer))
-    },
-    start() {
-      port.start()
+    async terminate() {
+      await sendToWorker(worker, {
+        type: "terminate",
+      })
     },
   }
-
-  port.on("message", (data) =>
-    result.onmessage?.(
-      new MessageEvent("message", {
-        data,
-      }),
-    ),
-  )
-  port.on("messageerror", (data) =>
-    result.onmessageerror?.(
-      new MessageEvent("message", {
-        data,
-      }),
-    ),
-  )
-
-  return result
 }
 
-function webToNodeTransfer(
-  transfer: Transferable[] | StructuredSerializeOptions | undefined,
-): TransferListItem[] | undefined {
-  if (!transfer) return undefined
-
-  const cleanedTransfer = Array.isArray(transfer) ? transfer : transfer.transfer
-  if (!cleanedTransfer) return undefined
-
-  return cleanedTransfer as any
+let msgId = 0
+function sendToWorker(worker: Worker, msg: RequestMessage): Promise<any> {
+  const id = msgId++
+  worker.postMessage({ ...msg, id })
+  return new Promise((resolve) => {
+    const msgHandler = (response: any) => {
+      if (response.id === id) {
+        resolve(response.value)
+        worker.off("message", msgHandler)
+      }
+    }
+    worker.on("message", msgHandler)
+  })
 }
