@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- `client`: optional arguments logic in `apis` and `query` [#600](https://github.com/polkadot-api/polkadot-api/pull/600)
+- `cli`: Yarn berry immutable installation from a clean install [#598](https://github.com/polkadot-api/polkadot-api/pull/598)
+
 ## 0.12.0 - 2024-07-25
 
 ### Added
