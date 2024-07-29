@@ -47,15 +47,13 @@ export async function update(
   const spinner = ora(`Updating`).start()
   await Promise.all(keys.map(updateByKey))
 
-  console.log(`Updating descriptors`)
-  await generate({ config: options.config })
-
-  spinner.stop()
-  console.log(`Updated chain(s) "${keys.join(", ")}"`)
-
   if (!options.skipCodegen) {
-    generate({
+    console.log(`Updating descriptors`)
+    await generate({
       config: options.config,
     })
   }
+
+  spinner.stop()
+  console.log(`Updated chain(s) "${keys.join(", ")}"`)
 }

@@ -5,6 +5,7 @@
 ### Fixed
 
 - Yarn berry immutable installation from a clean install [#598](https://github.com/polkadot-api/polkadot-api/pull/598)
+- `papi update` runs codegen two times when called.
 
 ## 0.7.0 - 2024-07-25
 
