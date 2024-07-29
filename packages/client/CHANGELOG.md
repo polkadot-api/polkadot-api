@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `client`: optional arguments logic in `apis` and `query` [#600](https://github.com/polkadot-api/polkadot-api/pull/600)
+
 ## 0.12.0 - 2024-07-25
 
 ### Added
