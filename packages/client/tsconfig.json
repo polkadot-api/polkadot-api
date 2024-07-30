@@ -3,6 +3,7 @@
   "include": ["src", "tests"],
   "compilerOptions": {
     "baseUrl": "src",
+    "skipLibCheck": true,
     "paths": {
       "@/*": ["*"]
     }

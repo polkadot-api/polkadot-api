@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- `polkadot-api/smoldot/node-worker` to create a smoldot worker in NodeJS.
+- `polkadot-api/smoldot/from-node-worker` to create a client from a node smoldot worker.
+
 ## 0.12.1 - 2024-07-30
 
 ### Fixed
