@@ -25,7 +25,7 @@ import { updatePackage } from "write-package"
 import { CommonOptions } from "./commonOptions"
 import { spawn } from "child_process"
 import { readPackage } from "read-pkg"
-import { detect, getNpmVersion } from "detect-package-manager"
+import { detectPackageManager } from "../packageManager"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
@@ -108,17 +108,12 @@ async function cleanDescriptorsPackage(path: string) {
   }
 }
 
-async function getPackageManager() {
-  return process.env.npm_execpath ?? (await detect())
-}
-
 async function getPackageProtocol() {
-  const packageManager = await detect()
+  const { packageManager, version } = await detectPackageManager()
 
   switch (packageManager) {
     case "yarn":
-      const yarnVersion = await getNpmVersion(packageManager)
-      const yarnMajorVersion = Number(yarnVersion.split(".").at(0))
+      const yarnMajorVersion = Number(version.split(".").at(0))
 
       return yarnMajorVersion >= 2 ? "portal" : "file"
     default:
@@ -127,9 +122,9 @@ async function getPackageProtocol() {
 }
 
 async function runInstall() {
-  const path = await getPackageManager()
-  console.log(`${path} install`)
-  const child = spawn(await getPackageManager(), ["install"], {
+  const { executable } = await detectPackageManager()
+  console.log(`${executable} install`)
+  const child = spawn(executable, ["install"], {
     stdio: "inherit",
     env: {
       ...process.env,

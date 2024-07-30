@@ -50,7 +50,7 @@
     "@polkadot-api/ws-provider": "workspace:*",
     "@types/node": "^20.14.12",
     "commander": "^12.1.0",
-    "detect-package-manager": "^3.0.2",
+    "execa": "^9.3.0",
     "fs.promises.exists": "^1.1.4",
     "ora": "^8.0.1",
     "read-pkg": "^9.0.1",
