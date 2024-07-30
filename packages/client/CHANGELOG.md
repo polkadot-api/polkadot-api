@@ -2,11 +2,14 @@
 
 ## Unreleased
 
+## 0.12.1 - 2024-07-30
+
 ### Fixed
 
-- `client`: optional arguments logic in `apis` and `query` [#600](https://github.com/polkadot-api/polkadot-api/pull/600)
-- `cli`: Yarn berry immutable installation from a clean install [#598](https://github.com/polkadot-api/polkadot-api/pull/598)
-- `cli`: runs codegen two times when called.
+- `client`: optional arguments logic in `apis` and `query` [#600](https://github.com/polkadot-api/polkadot-api/pull/600).
+- `cli`: Yarn berry immutable installation from a clean install [#598](https://github.com/polkadot-api/polkadot-api/pull/598).
+- `cli`: Package manager detection with monorepo/workspace projects [#604](https://github.com/polkadot-api/polkadot-api/pull/604).
+- `cli`: update command runs codegen two times when called [#602](https://github.com/polkadot-api/polkadot-api/pull/602).
 
 ## 0.12.0 - 2024-07-25
 
