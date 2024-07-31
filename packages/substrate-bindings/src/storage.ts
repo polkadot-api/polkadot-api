@@ -32,12 +32,18 @@ export const Storage = (pallet: string) => {
     const bytesToSkip = encoders
       .map((e) => e[1])
       .map((x) => {
-        if (x === Identity) return 0
-        if (x === Twox64Concat) return 8
-        if (x === Blake2128Concat) return 16
-        return null
+        switch (x) {
+          case Identity:
+            return 0
+          case Twox64Concat:
+            return 8
+          case Blake2128Concat:
+            return 16
+          default:
+            return null
+        }
       })
-      .filter(Boolean) as Array<number>
+      .filter((x) => x !== null)
 
     const keyDecoder = (
       key: string,
