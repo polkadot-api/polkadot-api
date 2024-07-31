@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Incorrect bytes to skip when decoding storage key
+
 ## 0.6.2 - 2024-07-25
 
 ### Fixed
