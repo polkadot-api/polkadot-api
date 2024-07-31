@@ -276,6 +276,7 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js",
@@ -286,7 +287,6 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "browser": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "sideEffects": false,
   "peerDependencies": {
     "polkadot-api": "*"
