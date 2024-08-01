@@ -1,10 +1,16 @@
+const { Worker } = require("node:worker_threads")
 const { createClient, CompatibilityLevel } = require("polkadot-api")
 const { ksm } = require("@polkadot-api/descriptors")
-const { start } = require("polkadot-api/smoldot")
+const { startFromWorker } = require("polkadot-api/smoldot/from-node-worker")
 const { getSmProvider } = require("polkadot-api/sm-provider")
 const { chainSpec } = require("polkadot-api/chains/ksmcc3")
 
-const smoldot = start()
+const smoldot = startFromWorker(
+  new Worker(require.resolve("polkadot-api/smoldot/node-worker"), {
+    stderr: true,
+    stdout: true,
+  }),
+)
 
 const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
 
@@ -33,4 +39,4 @@ async function run() {
   client.destroy()
 }
 
-run()
+run().then(() => process.exit(0))
