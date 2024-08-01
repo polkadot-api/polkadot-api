@@ -1,11 +1,5 @@
 import { noop } from "@polkadot-api/utils"
-import {
-  ClientInnerRequest,
-  FollowResponse,
-  OperationError,
-  OperationInaccessibleError,
-  OperationLimitError,
-} from ".."
+import type { ClientInnerRequest, FollowResponse } from "./public-types"
 import {
   CommonOperationEventsRpc,
   LimitReachedRpc,
@@ -15,6 +9,11 @@ import {
   OperationStorageStartedRpc,
 } from "./json-rpc-types"
 import { chainHead } from "@/methods"
+import {
+  OperationError,
+  OperationInaccessibleError,
+  OperationLimitError,
+} from "./errors"
 
 export const createStorageCb =
   (
