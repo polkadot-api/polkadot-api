@@ -1,4 +1,4 @@
-import { ClientInnerRequest, FollowResponse, OperationLimitError } from ".."
+import { OperationLimitError } from "./errors"
 import type {
   CommonOperationEventsRpc,
   LimitReachedRpc,
@@ -9,6 +9,7 @@ import type {
 } from "./json-rpc-types"
 import { abortablePromiseFn } from "@/internal-utils"
 import { createStorageCb } from "./storage-subscription"
+import type { ClientInnerRequest, FollowResponse } from "./public-types"
 
 export const createStorageFn = (
   request: ClientInnerRequest<
