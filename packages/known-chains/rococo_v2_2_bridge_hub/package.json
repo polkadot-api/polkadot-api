@@ -3,6 +3,7 @@
   "types": "../dist/specs/rococo_v2_2_bridge_hub.d.ts",
   "module": "../dist/specs/rococo_v2_2_bridge_hub.mjs",
   "import": "../dist/specs/rococo_v2_2_bridge_hub.mjs",
+  "browser": "../dist/specs/rococo_v2_2_bridge_hub.mjs",
   "require": "../dist/specs/rococo_v2_2_bridge_hub.js",
   "default": "../dist/specs/rococo_v2_2_bridge_hub.js"
 }

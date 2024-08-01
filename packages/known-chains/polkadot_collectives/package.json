@@ -3,6 +3,7 @@
   "types": "../dist/specs/polkadot_collectives.d.ts",
   "module": "../dist/specs/polkadot_collectives.mjs",
   "import": "../dist/specs/polkadot_collectives.mjs",
+  "browser": "../dist/specs/polkadot_collectives.mjs",
   "require": "../dist/specs/polkadot_collectives.js",
   "default": "../dist/specs/polkadot_collectives.js"
 }

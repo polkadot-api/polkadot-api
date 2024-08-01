@@ -36,6 +36,7 @@ for (const filename of specFiles) {
         types: `../dist/specs/${packageName}.d.ts`,
         module: `../dist/specs/${packageName}.mjs`,
         import: `../dist/specs/${packageName}.mjs`,
+        browser: `../dist/specs/${packageName}.mjs`,
         require: `../dist/specs/${packageName}.js`,
         default: `../dist/specs/${packageName}.js`,
       },

@@ -66,8 +66,8 @@
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "browser": "./dist/index.mjs",
+  "module": "./dist/esm/index.mjs",
+  "browser": "./dist/esm/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",

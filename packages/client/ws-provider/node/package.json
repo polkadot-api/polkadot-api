@@ -3,6 +3,7 @@
   "types": "../../dist/reexports/ws-provider_node.d.ts",
   "module": "../../dist/esm/reexports/ws-provider_node.mjs",
   "import": "../../dist/esm/reexports/ws-provider_node.mjs",
+  "browser": "../../dist/esm/reexports/ws-provider_node.mjs",
   "require": "../../dist/reexports/ws-provider_node.js",
   "default": "../../dist/reexports/ws-provider_node.js"
 }

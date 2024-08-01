@@ -7,6 +7,10 @@
 - Added `@polkadot-api/smoldot/node-worker` to create a smoldot worker in NodeJS.
 - Added `@polkadot-api/smoldot/from-node-worker` to create a client from a node smoldot worker.
 
+### Fixed
+
+- Fixed correct ESM build path.
+
 ## 0.2.7 - 2024-07-25
 
 ### Fixed

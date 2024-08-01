@@ -3,6 +3,7 @@
   "types": "../dist/specs/westend2_collectives.d.ts",
   "module": "../dist/specs/westend2_collectives.mjs",
   "import": "../dist/specs/westend2_collectives.mjs",
+  "browser": "../dist/specs/westend2_collectives.mjs",
   "require": "../dist/specs/westend2_collectives.js",
   "default": "../dist/specs/westend2_collectives.js"
 }

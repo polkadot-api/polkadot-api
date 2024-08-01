@@ -3,6 +3,7 @@
   "types": "../dist/specs/rococo_v2_2.d.ts",
   "module": "../dist/specs/rococo_v2_2.mjs",
   "import": "../dist/specs/rococo_v2_2.mjs",
+  "browser": "../dist/specs/rococo_v2_2.mjs",
   "require": "../dist/specs/rococo_v2_2.js",
   "default": "../dist/specs/rococo_v2_2.js"
 }
