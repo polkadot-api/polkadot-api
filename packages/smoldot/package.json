@@ -19,6 +19,17 @@
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./from-node-worker": {
+      "node": {
+        "import": "./dist/from-node-worker/esm/from-node-worker.mjs",
+        "require": "./dist/from-node-worker/from-node-worker.js",
+        "default": "./dist/from-node-worker/from-node-worker.js"
+      },
+      "module": "./dist/from-node-worker/esm/from-node-worker.mjs",
+      "import": "./dist/from-node-worker/esm/from-node-worker.mjs",
+      "require": "./dist/from-node-worker/from-node-worker.js",
+      "default": "./dist/from-node-worker/from-node-worker.js"
+    },
     "./from-worker": {
       "node": {
         "import": "./dist/from-worker/esm/from-worker.mjs",
@@ -29,6 +40,17 @@
       "import": "./dist/from-worker/esm/from-worker.mjs",
       "require": "./dist/from-worker/from-worker.js",
       "default": "./dist/from-worker/from-worker.js"
+    },
+    "./node-worker": {
+      "node": {
+        "import": "./dist/node-worker/esm/node-worker.mjs",
+        "require": "./dist/node-worker/node-worker.js",
+        "default": "./dist/node-worker/node-worker.js"
+      },
+      "module": "./dist/node-worker/esm/node-worker.mjs",
+      "import": "./dist/node-worker/esm/node-worker.mjs",
+      "require": "./dist/node-worker/node-worker.js",
+      "default": "./dist/node-worker/node-worker.js"
     },
     "./worker": {
       "node": {
@@ -60,9 +82,7 @@
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
-    "smoldot": "2.0.29"
-  },
-  "devDependencies": {
+    "smoldot": "2.0.29",
     "@types/node": "^20.14.12"
   }
 }

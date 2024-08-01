@@ -563,13 +563,12 @@ importers:
 
   packages/smoldot:
     dependencies:
-      smoldot:
-        specifier: 2.0.29
-        version: 2.0.29
-    devDependencies:
       '@types/node':
         specifier: ^20.14.12
         version: 20.14.12
+      smoldot:
+        specifier: 2.0.29
+        version: 2.0.29
 
   packages/substrate-bindings:
     dependencies:

@@ -332,6 +332,28 @@
       "require": "./dist/reexports/smoldot_from-worker.js",
       "default": "./dist/reexports/smoldot_from-worker.js"
     },
+    "./smoldot/node-worker": {
+      "node": {
+        "import": "./dist/esm/reexports/smoldot_node-worker.mjs",
+        "require": "./dist/reexports/smoldot_node-worker.js",
+        "default": "./dist/reexports/smoldot_node-worker.js"
+      },
+      "module": "./dist/esm/reexports/smoldot_node-worker.mjs",
+      "import": "./dist/esm/reexports/smoldot_node-worker.mjs",
+      "require": "./dist/reexports/smoldot_node-worker.js",
+      "default": "./dist/reexports/smoldot_node-worker.js"
+    },
+    "./smoldot/from-node-worker": {
+      "node": {
+        "import": "./dist/esm/reexports/smoldot_from-node-worker.mjs",
+        "require": "./dist/reexports/smoldot_from-node-worker.js",
+        "default": "./dist/reexports/smoldot_from-node-worker.js"
+      },
+      "module": "./dist/esm/reexports/smoldot_from-node-worker.mjs",
+      "import": "./dist/esm/reexports/smoldot_from-node-worker.mjs",
+      "require": "./dist/reexports/smoldot_from-node-worker.js",
+      "default": "./dist/reexports/smoldot_from-node-worker.js"
+    },
     "./utils": {
       "node": {
         "import": "./dist/esm/reexports/utils.mjs",

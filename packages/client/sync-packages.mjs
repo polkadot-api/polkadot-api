@@ -19,6 +19,8 @@ export const reexports = [
   fromId("smoldot"),
   fromId("smoldot/worker"),
   fromId("smoldot/from-worker"),
+  fromId("smoldot/node-worker"),
+  fromId("smoldot/from-node-worker"),
   fromId("utils"),
 ]
 
