@@ -2,7 +2,7 @@ import { createClient } from "@polkadot-api/substrate-client"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
 import { V14, V15, metadata, v15 } from "@polkadot-api/substrate-bindings"
-import { WebSocketProvider } from "@polkadot-api/ws-provider/node"
+import { getWsProvider } from "@polkadot-api/ws-provider/node"
 import { Worker } from "node:worker_threads"
 import { getObservableClient } from "@polkadot-api/observable-client"
 import { filter, firstValueFrom } from "rxjs"
@@ -10,7 +10,7 @@ import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
 import * as knownChains from "@polkadot-api/known-chains"
-import compatEnhancer from "@polkadot-api/polkadot-sdk-compat"
+import { withPolkadotSdkCompat } from "@polkadot-api/polkadot-sdk-compat"
 import { startFromWorker } from "@polkadot-api/smoldot/from-node-worker"
 import { Client as SmoldotClient } from "@polkadot-api/smoldot"
 import { getSmProvider } from "@polkadot-api/sm-provider"
@@ -101,7 +101,7 @@ const getMetadataFromSmoldot = async (chain: string) => {
 }
 
 const getMetadataFromWsURL = async (wsURL: string) =>
-  getMetadataCall(compatEnhancer(WebSocketProvider(wsURL)))
+  getMetadataCall(withPolkadotSdkCompat(getWsProvider(wsURL)))
 
 export async function getMetadata(
   entry: EntryConfig,

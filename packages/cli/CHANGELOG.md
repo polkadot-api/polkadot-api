@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update provider dependencies
+
 ## 0.7.1 - 2024-07-30
 
 ### Fixed

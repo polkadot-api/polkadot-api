@@ -1,6 +1,6 @@
 // @ts-ignore
 import { WebSocket } from "ws"
-import { getWebSocketProvider } from "./ws-provider"
+import { getInternalWsProvider } from "./ws-provider"
 export type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 
 class WS extends WebSocket {
@@ -9,4 +9,4 @@ class WS extends WebSocket {
   }
 }
 
-export const WebSocketProvider = getWebSocketProvider(WS as any)
+export const getWsProvider = getInternalWsProvider(WS as any)

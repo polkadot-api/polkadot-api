@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Renamed `WebSocketProvider` => `getWsProvider`
+
 ### Fixed
 
 - Fixed correct ESM export for React Native.
