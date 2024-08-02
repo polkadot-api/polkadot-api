@@ -16,7 +16,7 @@
     "format": "pnpm -r format",
     "test": "pnpm -r test run",
     "test:ci": "pnpm -r test:ci",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "prettier": {
     "printWidth": 80,
