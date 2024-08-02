@@ -7,6 +7,11 @@
 - `polkadot-api/smoldot/node-worker` to create a smoldot worker in NodeJS.
 - `polkadot-api/smoldot/from-node-worker` to create a client from a node smoldot worker.
 
+### Changed
+
+- `ws-provider`: rename `WebSocketProvider` => `getWsProvider`
+- `polkadot-sdk-compat`: replace default export with `withPolkadotSdkCompat`
+
 ### Fixed
 
 - Fixed correct ESM export for React Native.

@@ -1,7 +1,7 @@
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
-export const getWebSocketProvider =
+export const getInternalWsProvider =
   (WebsocketClass: typeof WebSocket) =>
   (uri: string, protocols?: string | string[]): JsonRpcProvider =>
     getSyncProvider(async () => {

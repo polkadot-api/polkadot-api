@@ -12,14 +12,14 @@ import { expect, describe, it } from "vitest"
 import { start } from "polkadot-api/smoldot"
 import { AccountId, SS58String, TxEvent, createClient } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
-import { WebSocketProvider } from "polkadot-api/ws-provider/node"
+import { getWsProvider } from "polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
 import { MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
 
 const smoldot = start()
 
-const rawClient = createRawClient(WebSocketProvider("ws://127.0.0.1:9934/"))
+const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
 
 // The retrial system is needed because often the `sync_state_genSyncSpec`
 // request fails immediately after starting zombienet.
