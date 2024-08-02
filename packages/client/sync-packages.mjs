@@ -67,6 +67,7 @@ for (const [packageName, source] of reexports) {
         types: `${toRoot}/dist/reexports/${fileName}.d.ts`,
         module: `${toRoot}/dist/esm/reexports/${fileName}.mjs`,
         import: `${toRoot}/dist/esm/reexports/${fileName}.mjs`,
+        browser: `${toRoot}/dist/esm/reexports/${fileName}.mjs`,
         require: `${toRoot}/dist/reexports/${fileName}.js`,
         default: `${toRoot}/dist/reexports/${fileName}.js`,
       },

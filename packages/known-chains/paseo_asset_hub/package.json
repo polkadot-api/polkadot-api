@@ -3,6 +3,7 @@
   "types": "../dist/specs/paseo_asset_hub.d.ts",
   "module": "../dist/specs/paseo_asset_hub.mjs",
   "import": "../dist/specs/paseo_asset_hub.mjs",
+  "browser": "../dist/specs/paseo_asset_hub.mjs",
   "require": "../dist/specs/paseo_asset_hub.js",
   "default": "../dist/specs/paseo_asset_hub.js"
 }

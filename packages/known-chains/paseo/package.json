@@ -3,6 +3,7 @@
   "types": "../dist/specs/paseo.d.ts",
   "module": "../dist/specs/paseo.mjs",
   "import": "../dist/specs/paseo.mjs",
+  "browser": "../dist/specs/paseo.mjs",
   "require": "../dist/specs/paseo.js",
   "default": "../dist/specs/paseo.js"
 }

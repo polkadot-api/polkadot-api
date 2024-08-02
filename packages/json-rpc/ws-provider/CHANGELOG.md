@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fixed correct ESM export for React Native.
+
 ## 0.1.1 - 2024-07-18
 
 ### Fixed

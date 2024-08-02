@@ -3,6 +3,7 @@
   "types": "../../dist/reexports/chains_rococo_v2_2.d.ts",
   "module": "../../dist/esm/reexports/chains_rococo_v2_2.mjs",
   "import": "../../dist/esm/reexports/chains_rococo_v2_2.mjs",
+  "browser": "../../dist/esm/reexports/chains_rococo_v2_2.mjs",
   "require": "../../dist/reexports/chains_rococo_v2_2.js",
   "default": "../../dist/reexports/chains_rococo_v2_2.js"
 }

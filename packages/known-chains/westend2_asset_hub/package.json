@@ -3,6 +3,7 @@
   "types": "../dist/specs/westend2_asset_hub.d.ts",
   "module": "../dist/specs/westend2_asset_hub.mjs",
   "import": "../dist/specs/westend2_asset_hub.mjs",
+  "browser": "../dist/specs/westend2_asset_hub.mjs",
   "require": "../dist/specs/westend2_asset_hub.js",
   "default": "../dist/specs/westend2_asset_hub.js"
 }

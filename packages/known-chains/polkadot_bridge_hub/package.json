@@ -3,6 +3,7 @@
   "types": "../dist/specs/polkadot_bridge_hub.d.ts",
   "module": "../dist/specs/polkadot_bridge_hub.mjs",
   "import": "../dist/specs/polkadot_bridge_hub.mjs",
+  "browser": "../dist/specs/polkadot_bridge_hub.mjs",
   "require": "../dist/specs/polkadot_bridge_hub.js",
   "default": "../dist/specs/polkadot_bridge_hub.js"
 }
