@@ -182,6 +182,33 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
         return inner
       }
 
+      if (isModuleError(def)) {
+        return {
+          type: "enum",
+          innerDocs: {},
+          value: Object.fromEntries(
+            metadata.pallets.map((p, i) => [
+              p.name,
+              p.errors == null
+                ? _void
+                : {
+                    type: "lookupEntry" as const,
+                    value: getLookupEntryDef(p.errors),
+                    idx: i,
+                  },
+            ]),
+          ) as StringRecord<
+            (
+              | VoidVar
+              | {
+                  type: "lookupEntry"
+                  value: LookupEntry
+                }
+            ) & { idx: number }
+          >,
+        }
+      }
+
       return getComplexVar(def.value)
     }
 
@@ -308,6 +335,33 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
       type: def.tag,
     }
   })
+
+  function isModuleError(def: {
+    tag: "composite"
+    value: {
+      name: string | undefined
+      type: number
+      typeName: string | undefined
+      docs: string[]
+    }[]
+  }) {
+    const preChecks =
+      def.value.length === 2 &&
+      def.value[0].name === "index" &&
+      def.value[1].name === "error"
+    if (!preChecks) return false
+
+    const index = getLookupEntryDef(def.value[0].type)
+    const error = getLookupEntryDef(def.value[1].type)
+
+    return (
+      index.type === "primitive" &&
+      index.value === "u8" &&
+      error.type === "array" &&
+      error.value.type === "primitive" &&
+      error.value.value === "u8"
+    )
+  }
 
   const getComplexVar = (
     input: Array<{ type: number; name?: string; docs: string[] }>,
