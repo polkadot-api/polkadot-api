@@ -62,6 +62,7 @@ export type EnumVar = {
     ) & { idx: number }
   >
   innerDocs: StringRecord<string[]>
+  byteLength?: number
 }
 export type OptionVar = {
   type: "option"
@@ -182,7 +183,8 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
         return inner
       }
 
-      if (isModuleError(def)) {
+      const moduleErrorLength = getModuleErrorLength(def)
+      if (moduleErrorLength) {
         return {
           type: "enum",
           innerDocs: {},
@@ -206,6 +208,7 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
                 }
             ) & { idx: number }
           >,
+          byteLength: moduleErrorLength,
         }
       }
 
@@ -336,7 +339,7 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
     }
   })
 
-  function isModuleError(def: {
+  function getModuleErrorLength(def: {
     tag: "composite"
     value: {
       name: string | undefined
@@ -349,18 +352,18 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
       def.value.length === 2 &&
       def.value[0].name === "index" &&
       def.value[1].name === "error"
-    if (!preChecks) return false
+    if (!preChecks) return null
 
     const index = getLookupEntryDef(def.value[0].type)
     const error = getLookupEntryDef(def.value[1].type)
 
-    return (
-      index.type === "primitive" &&
+    return index.type === "primitive" &&
       index.value === "u8" &&
       error.type === "array" &&
       error.value.type === "primitive" &&
       error.value.value === "u8"
-    )
+      ? 1 + error.len
+      : null
   }
 
   const getComplexVar = (

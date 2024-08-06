@@ -95,9 +95,12 @@ const _buildCodec = (
   const indexes = Object.values(input.value).map((x) => x.idx)
   const areIndexesSorted = indexes.every((idx, i) => idx === i)
 
-  return areIndexesSorted
+  const variantCodec = areIndexesSorted
     ? scale.Variant(inner)
     : scale.Variant(inner, indexes as any)
+  return input.byteLength
+    ? minSizeCodec(variantCodec, input.byteLength)
+    : variantCodec
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
@@ -258,3 +261,29 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     ss58Prefix,
   }
 }
+
+const minSizeCodec = <T>(codec: Codec<T>, size: number): Codec<T> =>
+  scale.createCodec<T>(
+    (value: T) => {
+      const encoded = codec.enc(value)
+      if (encoded.length < size) {
+        const result = new Uint8Array(size)
+        result.set(encoded)
+        return result.fill(0, encoded.length)
+      }
+      return encoded
+    },
+    (data) => {
+      // scale-ts uses an internal counter to chain consecutive codecs
+      // probably should move this primitive into scale-ts, or ask scale-ts to allow reading/changing this value
+      if (typeof data === "object" && "i" in data) {
+        const internalBuffer = data as Uint8Array & { i: number }
+        const initialRead = internalBuffer.i
+        const result = codec.dec(internalBuffer)
+        data.i = Math.max(initialRead + size, internalBuffer.i)
+        return result
+      }
+
+      return codec.dec(data)
+    },
+  )
