@@ -262,8 +262,9 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
   }
 }
 
-const minSizeCodec = <T>(codec: Codec<T>, size: number): Codec<T> =>
-  scale.createCodec<T>(
+const minSizeCodec = <T>(codec: Codec<T>, size: number): Codec<T> => {
+  const allBytesDec = scale.Bytes(size)[1]
+  return scale.createCodec<T>(
     (value: T) => {
       const encoded = codec.enc(value)
       if (encoded.length < size) {
@@ -273,17 +274,6 @@ const minSizeCodec = <T>(codec: Codec<T>, size: number): Codec<T> =>
       }
       return encoded
     },
-    (data) => {
-      // scale-ts uses an internal counter to chain consecutive codecs
-      // probably should move this primitive into scale-ts, or ask scale-ts to allow reading/changing this value
-      if (typeof data === "object" && "i" in data) {
-        const internalBuffer = data as Uint8Array & { i: number }
-        const initialRead = internalBuffer.i
-        const result = codec.dec(internalBuffer)
-        data.i = Math.max(initialRead + size, internalBuffer.i)
-        return result
-      }
-
-      return codec.dec(data)
-    },
+    (data) => codec.dec(allBytesDec(data)),
   )
+}
