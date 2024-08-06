@@ -147,6 +147,10 @@ const createTypedApi = <D extends ChainDefinition>(
     ),
   )
 
+  const error = {
+    cast: (v: any) => v,
+  }
+
   return {
     query,
     tx,
@@ -154,6 +158,7 @@ const createTypedApi = <D extends ChainDefinition>(
     apis,
     constants,
     compatibilityToken,
+    error,
   } as any
 }
 
