@@ -187,14 +187,14 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
           type: "enum",
           innerDocs: {},
           value: Object.fromEntries(
-            metadata.pallets.map((p, i) => [
+            metadata.pallets.map((p) => [
               p.name,
               p.errors == null
-                ? _void
+                ? { ..._void, idx: p.index }
                 : {
                     type: "lookupEntry" as const,
                     value: getLookupEntryDef(p.errors),
-                    idx: i,
+                    idx: p.index,
                   },
             ]),
           ) as StringRecord<
