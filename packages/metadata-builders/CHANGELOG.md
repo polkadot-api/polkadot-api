@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Checksum collision between transaction calls and events.
+
 ## 0.4.1 - 2024-07-25
 
 ### Fixed
