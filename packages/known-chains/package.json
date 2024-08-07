@@ -32,6 +32,12 @@
       "require": "./dist/specs/ksmcc3_bridge_hub.js",
       "default": "./dist/specs/ksmcc3_bridge_hub.js"
     },
+    "./ksmcc3_people": {
+      "module": "./dist/specs/ksmcc3_people.mjs",
+      "import": "./dist/specs/ksmcc3_people.mjs",
+      "require": "./dist/specs/ksmcc3_people.js",
+      "default": "./dist/specs/ksmcc3_people.js"
+    },
     "./paseo": {
       "module": "./dist/specs/paseo.mjs",
       "import": "./dist/specs/paseo.mjs",
@@ -92,6 +98,12 @@
       "require": "./dist/specs/rococo_v2_2_bridge_hub.js",
       "default": "./dist/specs/rococo_v2_2_bridge_hub.js"
     },
+    "./rococo_v2_2_people": {
+      "module": "./dist/specs/rococo_v2_2_people.mjs",
+      "import": "./dist/specs/rococo_v2_2_people.mjs",
+      "require": "./dist/specs/rococo_v2_2_people.js",
+      "default": "./dist/specs/rococo_v2_2_people.js"
+    },
     "./westend2": {
       "module": "./dist/specs/westend2.mjs",
       "import": "./dist/specs/westend2.mjs",
@@ -115,6 +127,12 @@
       "import": "./dist/specs/westend2_collectives.mjs",
       "require": "./dist/specs/westend2_collectives.js",
       "default": "./dist/specs/westend2_collectives.js"
+    },
+    "./westend2_people": {
+      "module": "./dist/specs/westend2_people.mjs",
+      "import": "./dist/specs/westend2_people.mjs",
+      "require": "./dist/specs/westend2_people.js",
+      "default": "./dist/specs/westend2_people.js"
     }
   },
   "main": "./dist/index.js",
@@ -127,6 +145,7 @@
     "ksmcc3",
     "ksmcc3_asset_hub",
     "ksmcc3_bridge_hub",
+    "ksmcc3_people",
     "paseo",
     "paseo_asset_hub",
     "polkadot",
@@ -137,10 +156,12 @@
     "rococo_v2_2",
     "rococo_v2_2_asset_hub",
     "rococo_v2_2_bridge_hub",
+    "rococo_v2_2_people",
     "westend2",
     "westend2_asset_hub",
     "westend2_bridge_hub",
-    "westend2_collectives"
+    "westend2_collectives",
+    "westend2_people"
   ],
   "scripts": {
     "build-core": "node prepare-specs.mjs && bash build.sh",
