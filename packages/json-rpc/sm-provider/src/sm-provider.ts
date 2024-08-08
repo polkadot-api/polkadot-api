@@ -2,17 +2,25 @@ import type { Chain } from "smoldot"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
-let pending: Promise<Chain> | null
+let pending: PromiseWithResolvers<Chain>
 
 export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
   getSyncProvider(async () => {
-    while (pending) await pending
+    if (pending !== undefined) {
+      await pending.promise
+    }
 
     let resolvedChain: Chain
     if (chain instanceof Promise) {
-      pending = chain
-      resolvedChain = await chain
-      pending = null
+      // TODO: replace with `Promise.withResolvers`
+      pending = withResolvers()
+      try {
+        resolvedChain = await chain
+        pending.resolve(resolvedChain)
+      } catch (error) {
+        pending.reject(error)
+        throw error
+      }
     } else resolvedChain = chain
 
     return (listener, onError) => {
@@ -42,3 +50,15 @@ export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
       }
     }
   })
+
+function withResolvers<TValue, TError = unknown>() {
+  let resolve!: (value: TValue | PromiseLike<TValue>) => void
+  let reject!: (error: TError) => void
+
+  const promise = new Promise<TValue>((_resolve, _reject) => {
+    resolve = _resolve
+    reject = _reject
+  })
+
+  return { promise, resolve, reject }
+}
