@@ -141,10 +141,18 @@ const getTxSuccessFromSystemEvents = (
     .map((x) => x.event)
 
   const lastEvent = events[events.length - 1]
-  const ok =
-    lastEvent.type === "System" && lastEvent.value.type === "ExtrinsicSuccess"
+  if (
+    lastEvent.type === "System" &&
+    lastEvent.value.type === "ExtrinsicFailed"
+  ) {
+    return {
+      ok: false,
+      events,
+      dispatchError: lastEvent.value.value.dispatch_error,
+    }
+  }
 
-  return { ok, events }
+  return { ok: true, events }
 }
 
 /*
