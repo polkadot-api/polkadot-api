@@ -1,7 +1,7 @@
 import type { Codec, StringRecord } from "@polkadot-api/substrate-bindings"
 import * as scale from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
-import type { EnumVar, LookupEntry, MetadataLookup } from "./lookups"
+import type { EnumVar, LookupEntry, MetadataLookup, Var } from "./lookups"
 import { withCache } from "./with-cache"
 
 const _bytes = scale.Bin()
@@ -12,7 +12,7 @@ const bigCompact = scale.createCodec(
 )
 
 const _buildCodec = (
-  input: LookupEntry,
+  input: Var,
   cache: Map<number, Codec<any>>,
   stack: Set<number>,
   _accountId: Codec<scale.SS58String>,
@@ -102,7 +102,7 @@ const _buildCodec = (
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
 export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
-  const { metadata } = getLookupEntryDef
+  const { metadata, outerEnums } = getLookupEntryDef
   let _accountId = scale.AccountId()
 
   const cache = new Map()
@@ -247,6 +247,9 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     }
   }
 
+  const buildOuterEnum = (enumKey: keyof MetadataLookup["outerEnums"]) =>
+    _buildCodec(outerEnums[enumKey], cache, new Set(), _accountId)
+
   return {
     buildDefinition,
     buildStorage,
@@ -255,6 +258,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     buildRuntimeCall,
     buildCall: buildVariant("calls"),
     buildConstant,
+    buildOuterEnum,
     ss58Prefix,
   }
 }

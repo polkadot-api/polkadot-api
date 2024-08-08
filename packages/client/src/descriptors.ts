@@ -43,6 +43,8 @@ export type ChainDefinition = {
   }
   asset: PlainDescriptor<any>
   metadataTypes: Promise<Uint8Array>
+  dispatchError: PlainDescriptor<any>
+  moduleError: any
 }
 
 type ExtractStorage<

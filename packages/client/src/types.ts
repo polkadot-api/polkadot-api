@@ -12,6 +12,7 @@ import {
   RuntimeDescriptor,
   TxFromPalletsDef,
 } from "./descriptors"
+import { ErrorApi } from "./error"
 import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
@@ -96,6 +97,7 @@ export type TypedApi<D extends ChainDefinition> = {
   apis: RuntimeCallsApi<D, D["descriptors"]["apis"]>
   constants: ConstApi<D, ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   compatibilityToken: Promise<CompatibilityToken<D>>
+  error: ErrorApi<D>
 }
 
 export type TransactionValidityError<D extends ChainDefinition> =

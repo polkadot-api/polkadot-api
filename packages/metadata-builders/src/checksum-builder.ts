@@ -9,6 +9,7 @@ import {
 } from "./lookup-graph"
 import {
   ArrayVar,
+  EnumVar,
   LookupEntry,
   MetadataLookup,
   MetadataPrimitives,
@@ -434,6 +435,13 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
     )
   }
 
+  const buildEnum = (input: EnumVar): bigint => {
+    return structLikeBuilder(shapeIds.enum, input.value, (entry) => {
+      if (entry.type === "lookupEntry") return buildDefinition(entry.value.id)
+      return buildComposite(entry)
+    })
+  }
+
   const buildNamedTuple = (input: StructVar): bigint => {
     return structLikeBuilder(shapeIds.tuple, input.value, (entry) =>
       buildDefinition(entry.id),
@@ -498,6 +506,7 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
     buildError: toStringEnhancer(buildVariant("errors")),
     buildConstant: toStringEnhancer(buildConstant),
     buildComposite: toStringEnhancer(buildComposite),
+    buildEnum: toStringEnhancer(buildEnum),
     buildNamedTuple: toStringEnhancer(buildNamedTuple),
     getAllGeneratedChecksums: () =>
       Array.from(cache.values()).map((v) => v.toString(32)),

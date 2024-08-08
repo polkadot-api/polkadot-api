@@ -20,7 +20,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["frame_support.dispatch.DispatchClass"],
     type: "Enum(Normal, Operational, Mandatory)",
   },
-  edh5jo3t7dgka: {
+  bs6bhe2r7m6td: {
     name: "DispatchError",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -275,14 +275,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["frame_support.traits.messages.ProcessMessageError"],
     type: "Enum(BadFormat, Corrupt, Unsupported, Overweight, Yield)",
   },
-  b1t99vn44417o: {
+  "8p3ln685h7ol1": {
     name: "UtilityEvent",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["pallet_utility.pallet.Event"],
     type: "Enum(BatchInterrupted, BatchCompleted, BatchCompletedWithErrors, ItemCompleted, ItemFailed, DispatchedAs)",
   },
-  "5830pdel8nng3": {
+  "2qs1hjak060gk": {
     name: "MultisigEvent",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -880,7 +880,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime_parachains.inclusion.UmpQueueId"],
     type: "Enum(Para)",
   },
-  "9iria2mpol0si": {
+  bq3e4bkepuci0: {
     name: "WhitelistEvent",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["pallet_whitelist.pallet.Event"],
@@ -898,7 +898,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_vesting.pallet.Event"],
     type: "Enum(VestingUpdated, VestingCompleted)",
   },
-  "11i3h84sudutq": {
+  e4no561hfc2v2: {
     name: "ProxyEvent",
     chains: "polkadot",
     paths: ["pallet_proxy.pallet.Event"],
@@ -946,7 +946,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_nomination_pools.pallet.Event"],
     type: "Enum(Created, Bonded, PaidOut, Unbonded, Withdrawn, Destroyed, StateChanged, MemberRemoved, RolesUpdated, PoolSlashed, UnbondingPoolSlashed, PoolCommissionUpdated, PoolMaxCommissionUpdated, PoolCommissionChangeRateUpdated, PoolCommissionClaimPermissionUpdated, PoolCommissionClaimed, MinBalanceDeficitAdjusted, MinBalanceExcessAdjusted)",
   },
-  dri14nid3e46g: {
+  e8uj8pd0qd8ff: {
     name: "FastUnstakeEvent",
     chains: "polkadot, kusama, westend",
     paths: ["pallet_fast_unstake.pallet.Event"],
@@ -1006,7 +1006,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime_common.auctions.pallet.Event"],
     type: "Enum(AuctionStarted, AuctionClosed, Reserved, Unreserved, ReserveConfiscated, BidAccepted, WinningOffset)",
   },
-  aoe6t9b9v4nhr: {
+  "3odkl16hqvkd7": {
     name: "CommonCrowdloanEvent",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["polkadot_runtime_common.crowdloan.pallet.Event"],
@@ -1347,7 +1347,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_root_testing.pallet.Event"],
     type: "Enum(DefensiveTestCall)",
   },
-  "346qm7n7jcer7": {
+  av7m2gstbfp8n: {
     name: "SudoEvent",
     chains: "rococo, westend",
     paths: ["pallet_sudo.pallet.Event"],

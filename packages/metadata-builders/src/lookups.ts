@@ -107,6 +107,11 @@ const _void: VoidVar = { type: "void" }
 export interface MetadataLookup {
   (id: number): LookupEntry
   metadata: V14 | V15
+  outerEnums: {
+    call: EnumVar
+    error: EnumVar
+    event: EnumVar
+  }
 }
 
 export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
@@ -359,5 +364,43 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
     }
   }
 
-  return Object.assign(getLookupEntryDef, { metadata })
+  function getOuterEnum(
+    enumKey: keyof V15["outerEnums"],
+    palletKey: "calls" | "events" | "errors",
+  ): EnumVar {
+    if ("outerEnums" in metadata) {
+      return getLookupEntryDef(metadata.outerEnums[enumKey]) as EnumVar
+    }
+    return {
+      type: "enum",
+      innerDocs: {},
+      value: Object.fromEntries(
+        metadata.pallets.map((p) => [
+          p.name,
+          p[palletKey] == null
+            ? { ..._void, idx: p.index }
+            : {
+                type: "lookupEntry" as const,
+                value: getLookupEntryDef(p[palletKey]),
+                idx: p.index,
+              },
+        ]),
+      ) as StringRecord<
+        (
+          | VoidVar
+          | {
+              type: "lookupEntry"
+              value: LookupEntry
+            }
+        ) & { idx: number }
+      >,
+    }
+  }
+  const outerEnums = {
+    call: getOuterEnum("call", "calls"),
+    error: getOuterEnum("error", "errors"),
+    event: getOuterEnum("event", "events"),
+  }
+
+  return Object.assign(getLookupEntryDef, { metadata, outerEnums })
 }

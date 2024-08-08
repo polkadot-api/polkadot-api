@@ -288,6 +288,20 @@ export const generateDescriptors = (
   const assetType =
     assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
 
+  const dispatchErrorId = getDispatchErrorId(lookupFn)
+  const dispatchErrorType =
+    dispatchErrorId == null
+      ? "unknown"
+      : typesBuilder.buildTypeDefinition(dispatchErrorId)
+  const dispatchErrorChecksum =
+    dispatchErrorId != null
+      ? checksumBuilder.buildDefinition(dispatchErrorId)
+      : null
+  const dispatchErrorIdx = dispatchErrorChecksum
+    ? checksumToIdx.get(dispatchErrorChecksum)
+    : null
+  const moduleErrorType = typesBuilder.buildOuterEnum("error")
+
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
     paths.types
@@ -351,7 +365,11 @@ type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
+type IDispatchError = PlainDescriptor<${dispatchErrorType}>
+type IModuleError = ${moduleErrorType}
 const asset: IAsset = {} as IAsset
+const dispatchError = ${dispatchErrorIdx} as any as IDispatchError
+const moduleError = {} as any as IModuleError
 
 type PalletsTypedef = {
   __storage: IStorage,
@@ -368,8 +386,10 @@ type IDescriptors = {
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
   asset: IAsset
+  dispatchError: IDispatchError
+  moduleError: IModuleError
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, dispatchError, moduleError } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
@@ -425,4 +445,19 @@ export function getAssetId(lookup: MetadataLookup) {
     }
   }
   return
+}
+
+export function getDispatchErrorId(lookup: MetadataLookup) {
+  const systemPalletEventId = lookup.metadata.pallets.find(
+    (p) => p.name === "System",
+  )?.events
+  if (systemPalletEventId == null) return
+
+  const systemPalletEvent = lookup(systemPalletEventId)
+  if (systemPalletEvent.type !== "enum") return
+
+  const extrinsicFailed = systemPalletEvent.value.ExtrinsicFailed
+  if (extrinsicFailed?.type !== "struct") return
+
+  return extrinsicFailed.value.dispatch_error.id
 }

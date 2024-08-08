@@ -34,6 +34,11 @@ export type TxInBestBlocksFound = {
   found: true
 } & TxEventsPayload
 
+export type GenericDispatchError = {
+  type: string
+  value: unknown
+}
+
 export type TxEventsPayload = {
   /**
    * Verify if extrinsic was successful, i.e. check if `System.ExtrinsicSuccess`
@@ -50,7 +55,16 @@ export type TxEventsPayload = {
    * the block, `index` of the tx in the block.
    */
   block: { hash: string; number: number; index: number }
-}
+} & (
+  | {
+      ok: true
+      dispatchError?: undefined
+    }
+  | {
+      ok: false
+      dispatchError: GenericDispatchError
+    }
+)
 
 export type TxFinalized = {
   type: "finalized"
