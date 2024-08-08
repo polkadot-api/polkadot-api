@@ -6,9 +6,13 @@ import type {
 import { getSubscriptionManager } from "./subscription-manager"
 import { jsonRpcMsg } from "./json-rpc-message"
 
+type HaltProperties = {
+  recoverable?: boolean
+}
+
 export type AsyncJsonRpcProvider = (
   onMessage: (message: string) => void,
-  onHalt: () => void,
+  onHalt: (properties?: HaltProperties) => void,
 ) => JsonRpcConnection
 
 export const getSyncProvider =
@@ -53,7 +57,9 @@ export const getSyncProvider =
       } else provider.send(message)
     }
 
-    const onHalt = (): Promise<JsonRpcConnection> => {
+    const onHalt = ({
+      recoverable = true,
+    }: HaltProperties = {}): Promise<JsonRpcConnection> => {
       bufferedMessages = []
       const pendingResponsesCopy = [...pendingResponses]
       pendingResponses.clear()
@@ -62,7 +68,7 @@ export const getSyncProvider =
       // provider promise was being rejected. Therefore, we must
       // throw to prevent the Promise from recovering.
       // The rejection will be handled from the teardown logic.
-      if (!provider) throw null
+      if (!provider || !recoverable) throw null
 
       // It needs to restart before sending the errored
       // responses/notifications because the consumer may
@@ -85,10 +91,10 @@ export const getSyncProvider =
     const start = (): Promise<JsonRpcConnection> => {
       const onResolve = (getProvider: AsyncJsonRpcProvider) => {
         let alive = true
-        const _onHalt = () => {
+        const _onHalt = (properties?: HaltProperties) => {
           if (alive) {
             alive = false
-            onHalt()
+            onHalt(properties)
           }
         }
 
