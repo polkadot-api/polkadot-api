@@ -12,6 +12,7 @@ import {
   RuntimeDescriptor,
   TxFromPalletsDef,
 } from "./descriptors"
+import { ErrorApi } from "./error"
 import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
@@ -85,10 +86,6 @@ export type ConstApi<D, A extends Record<string, Record<string, any>>> = {
   }
 }
 
-export interface ErrorApi<DispatchError> {
-  cast(dispatchError: { type: string; value: unknown }): DispatchError
-}
-
 export type TypedApi<D extends ChainDefinition> = {
   query: StorageApi<D, QueryFromPalletsDef<D["descriptors"]["pallets"]>>
   tx: TxApi<
@@ -100,7 +97,7 @@ export type TypedApi<D extends ChainDefinition> = {
   apis: RuntimeCallsApi<D, D["descriptors"]["apis"]>
   constants: ConstApi<D, ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   compatibilityToken: Promise<CompatibilityToken<D>>
-  error: ErrorApi<D["dispatchError"]>
+  error: ErrorApi<D>
 }
 
 export type TransactionValidityError<D extends ChainDefinition> =

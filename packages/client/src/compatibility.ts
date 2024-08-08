@@ -35,6 +35,7 @@ interface CompatibilityTokenApi {
     name: string,
   ) => EntryPoint
   getApiEntryPoint: (name: string, method: string) => EntryPoint
+  getDispatchErrorEntryPoint: () => EntryPoint
 }
 const compatibilityTokenApi = new WeakMap<
   CompatibilityToken,
@@ -81,6 +82,9 @@ export const createCompatibilityToken = <D extends ChainDefinition>(
       },
       getApiEntryPoint(name, method) {
         return entryPoints[descriptors.apis[name][method]]
+      },
+      getDispatchErrorEntryPoint() {
+        return entryPoints[chainDefinition.dispatchError as any]
       },
       typedefNodes,
     })

@@ -34,6 +34,11 @@ export type TxInBestBlocksFound = {
   found: true
 } & TxEventsPayload
 
+export type GenericDispatchError = {
+  type: string
+  value: unknown
+}
+
 export type TxEventsPayload = {
   /**
    * Verify if extrinsic was successful, i.e. check if `System.ExtrinsicSuccess`
@@ -57,10 +62,7 @@ export type TxEventsPayload = {
     }
   | {
       ok: false
-      dispatchError: {
-        type: string
-        value: unknown
-      }
+      dispatchError: GenericDispatchError
     }
 )
 

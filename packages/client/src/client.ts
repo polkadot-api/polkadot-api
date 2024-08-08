@@ -28,6 +28,7 @@ import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import { PolkadotClient, TypedApi } from "./types"
+import { createErrorApi, getDispatchErrorEntryPoint } from "./error"
 
 const createTypedApi = <D extends ChainDefinition>(
   compatibilityToken: Promise<CompatibilityToken>,
@@ -147,9 +148,13 @@ const createTypedApi = <D extends ChainDefinition>(
     ),
   )
 
-  const error = {
-    cast: (v: any) => v,
-  }
+  const error = createErrorApi(
+    compatibilityHelper(
+      compatibilityToken,
+      (r) => r.getDispatchErrorEntryPoint(),
+      getDispatchErrorEntryPoint,
+    ),
+  )
 
   return {
     query,

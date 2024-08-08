@@ -62,7 +62,6 @@ export type EnumVar = {
     ) & { idx: number }
   >
   innerDocs: StringRecord<string[]>
-  byteLength?: number
 }
 export type OptionVar = {
   type: "option"
@@ -108,6 +107,11 @@ const _void: VoidVar = { type: "void" }
 export interface MetadataLookup {
   (id: number): LookupEntry
   metadata: V14 | V15
+  outerEnums: {
+    call: EnumVar
+    error: EnumVar
+    event: EnumVar
+  }
 }
 
 export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
@@ -181,35 +185,6 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
         }
 
         return inner
-      }
-
-      const moduleErrorLength = getModuleErrorLength(def)
-      if (moduleErrorLength) {
-        return {
-          type: "enum",
-          innerDocs: {},
-          value: Object.fromEntries(
-            metadata.pallets.map((p) => [
-              p.name,
-              p.errors == null
-                ? { ..._void, idx: p.index }
-                : {
-                    type: "lookupEntry" as const,
-                    value: getLookupEntryDef(p.errors),
-                    idx: p.index,
-                  },
-            ]),
-          ) as StringRecord<
-            (
-              | VoidVar
-              | {
-                  type: "lookupEntry"
-                  value: LookupEntry
-                }
-            ) & { idx: number }
-          >,
-          byteLength: moduleErrorLength,
-        }
       }
 
       return getComplexVar(def.value)
@@ -339,33 +314,6 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
     }
   })
 
-  function getModuleErrorLength(def: {
-    tag: "composite"
-    value: {
-      name: string | undefined
-      type: number
-      typeName: string | undefined
-      docs: string[]
-    }[]
-  }) {
-    const preChecks =
-      def.value.length === 2 &&
-      def.value[0].name === "index" &&
-      def.value[1].name === "error"
-    if (!preChecks) return null
-
-    const index = getLookupEntryDef(def.value[0].type)
-    const error = getLookupEntryDef(def.value[1].type)
-
-    return index.type === "primitive" &&
-      index.value === "u8" &&
-      error.type === "array" &&
-      error.value.type === "primitive" &&
-      error.value.value === "u8"
-      ? 1 + error.len
-      : null
-  }
-
   const getComplexVar = (
     input: Array<{ type: number; name?: string; docs: string[] }>,
   ): TupleVar | StructVar | ArrayVar | VoidVar => {
@@ -416,5 +364,43 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
     }
   }
 
-  return Object.assign(getLookupEntryDef, { metadata })
+  function getOuterEnum(
+    enumKey: keyof V15["outerEnums"],
+    palletKey: "calls" | "events" | "errors",
+  ): EnumVar {
+    if ("outerEnums" in metadata) {
+      return getLookupEntryDef(metadata.outerEnums[enumKey]) as EnumVar
+    }
+    return {
+      type: "enum",
+      innerDocs: {},
+      value: Object.fromEntries(
+        metadata.pallets.map((p) => [
+          p.name,
+          p[palletKey] == null
+            ? { ..._void, idx: p.index }
+            : {
+                type: "lookupEntry" as const,
+                value: getLookupEntryDef(p[palletKey]),
+                idx: p.index,
+              },
+        ]),
+      ) as StringRecord<
+        (
+          | VoidVar
+          | {
+              type: "lookupEntry"
+              value: LookupEntry
+            }
+        ) & { idx: number }
+      >,
+    }
+  }
+  const outerEnums = {
+    call: getOuterEnum("call", "calls"),
+    error: getOuterEnum("error", "errors"),
+    event: getOuterEnum("event", "events"),
+  }
+
+  return Object.assign(getLookupEntryDef, { metadata, outerEnums })
 }

@@ -293,6 +293,14 @@ export const generateDescriptors = (
     dispatchErrorId == null
       ? "unknown"
       : typesBuilder.buildTypeDefinition(dispatchErrorId)
+  const dispatchErrorChecksum =
+    dispatchErrorId != null
+      ? checksumBuilder.buildDefinition(dispatchErrorId)
+      : null
+  const dispatchErrorIdx = dispatchErrorChecksum
+    ? checksumToIdx.get(dispatchErrorChecksum)
+    : null
+  const moduleErrorType = typesBuilder.buildOuterEnum("error")
 
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
@@ -357,8 +365,11 @@ type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
-type IDispatchError = ${dispatchErrorType}
+type IDispatchError = PlainDescriptor<${dispatchErrorType}>
+type IModuleError = ${moduleErrorType}
 const asset: IAsset = {} as IAsset
+const dispatchError = ${dispatchErrorIdx} as any as IDispatchError
+const moduleError = {} as any as IModuleError
 
 type PalletsTypedef = {
   __storage: IStorage,
@@ -376,8 +387,9 @@ type IDescriptors = {
   metadataTypes: Promise<Uint8Array>
   asset: IAsset
   dispatchError: IDispatchError
+  moduleError: IModuleError
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, dispatchError, moduleError } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>

@@ -1,14 +1,15 @@
-import { StringRecord } from "@polkadot-api/substrate-bindings"
 import {
-  LookupEntry,
-  getChecksumBuilder,
-  TupleVar,
-  StructVar,
   ArrayVar,
+  EnumVar,
+  getChecksumBuilder,
+  LookupEntry,
   MetadataLookup,
+  StructVar,
+  TupleVar,
 } from "@polkadot-api/metadata-builders"
-import { withCache } from "./with-cache"
+import { StringRecord } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
+import { withCache } from "./with-cache"
 
 type MetadataPrimitives =
   | "bool"
@@ -83,11 +84,13 @@ const clientImport = (varName: string): TypeForEntry => ({
 })
 
 const _buildSyntax = (
-  input: LookupEntry,
+  input: LookupEntry | EnumVar,
   cache: Map<number, TypeForEntry>,
   stack: Set<number>,
   declarations: CodeDeclarations,
-  getChecksum: (id: number | StructVar | TupleVar | ArrayVar) => string | null,
+  getChecksum: (
+    id: number | EnumVar | StructVar | TupleVar | ArrayVar,
+  ) => string | null,
   knownTypes: Record<string, string>,
 ): TypeForEntry => {
   const addImport = (entry: TypeForEntry) => {
@@ -136,7 +139,7 @@ const _buildSyntax = (
   )
     return { type: "Binary" }
 
-  const checksum = getChecksum(input.id)!
+  const checksum = getChecksum("id" in input ? input.id : input)!
 
   // Problem: checksum WndPalletEvent = 5ofh7hnvff54m; DotPalletEvent = KsmPalletEvent = 2gc4echvba3ni
   // declarations.variables is checksum -> Var, but now we can have two names for the same checksum
@@ -326,7 +329,7 @@ export const getTypesBuilder = (
   knownTypes: Record<string, string>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
 ) => {
-  const { metadata } = getLookupEntryDef
+  const { metadata, outerEnums } = getLookupEntryDef
   const typeFileImports = new Set<string>()
   const clientFileImports = new Set<string>()
 
@@ -339,10 +342,14 @@ export const getTypesBuilder = (
     return entry.type
   }
 
-  const getChecksum = (id: number | StructVar | TupleVar | ArrayVar): string =>
+  const getChecksum = (
+    id: number | StructVar | TupleVar | ArrayVar | EnumVar,
+  ): string =>
     typeof id === "number"
       ? checksumBuilder.buildDefinition(id)!
-      : checksumBuilder.buildComposite(id)!
+      : id.type === "enum"
+        ? checksumBuilder.buildEnum(id)!
+        : checksumBuilder.buildComposite(id)!
 
   const cache = new Map()
   const buildDefinition = (id: number) =>
@@ -442,6 +449,20 @@ export const getTypesBuilder = (
     return buildTypeDefinition(storageEntry.type)
   }
 
+  const buildOuterEnum = (enumKey: keyof MetadataLookup["outerEnums"]) => {
+    const tmp = _buildSyntax(
+      outerEnums[enumKey],
+      cache,
+      new Set(),
+      declarations,
+      getChecksum,
+      knownTypes,
+    )
+    importType(tmp)
+
+    return `Anonymize<${tmp.type}>`
+  }
+
   return {
     buildTypeDefinition,
     buildDefinition,
@@ -451,6 +472,7 @@ export const getTypesBuilder = (
     buildCall: buildVariant("calls"),
     buildRuntimeCall,
     buildConstant,
+    buildOuterEnum,
     getTypeFileImports: () => Array.from(typeFileImports),
     getClientFileImports: () => Array.from(clientFileImports),
   }
