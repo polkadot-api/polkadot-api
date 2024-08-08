@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add people chains for Kusama, Roccoco and Westend [#617](https://github.com/polkadot-api/polkadot-api/pull/617)
+
 ### Fixed
 
 - Fixed correct ESM export for React Native.

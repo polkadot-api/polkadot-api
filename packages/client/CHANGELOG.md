@@ -6,6 +6,7 @@
 
 - `polkadot-api/smoldot/node-worker` to create a smoldot worker in NodeJS.
 - `polkadot-api/smoldot/from-node-worker` to create a client from a node smoldot worker.
+- Add people chains for Kusama, Roccoco and Westend [#617](https://github.com/polkadot-api/polkadot-api/pull/617)
 
 ### Changed
 
