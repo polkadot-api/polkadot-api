@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Descriptors entry points when transaction and events have the same checksum.
 - Update provider dependencies
 
 ## 0.7.1 - 2024-07-30

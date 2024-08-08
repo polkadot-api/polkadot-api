@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Descriptors entry points when transaction and events have the same checksum.
+
 ## 0.7.2 - 2024-07-25
 
 ### Fixed

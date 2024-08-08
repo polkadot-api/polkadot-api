@@ -440,6 +440,11 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
     )
   }
 
+  const variantShapeId = {
+    errors: 1n,
+    events: 2n,
+    calls: 3n,
+  }
   const buildVariant =
     (variantType: "errors" | "events" | "calls") =>
     (pallet: string, name: string): bigint | null => {
@@ -452,9 +457,11 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
 
         if (enumLookup.type !== "enum") throw null
         const entry = enumLookup.value[name]
-        return entry.type === "lookupEntry"
-          ? buildDefinition(entry.value.id)
-          : buildComposite(entry)
+        const valueChecksum =
+          entry.type === "lookupEntry"
+            ? buildDefinition(entry.value.id)
+            : buildComposite(entry)
+        return getChecksum([variantShapeId[variantType], valueChecksum])
       } catch (_) {
         return null
       }

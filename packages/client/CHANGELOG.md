@@ -14,6 +14,7 @@
 
 ### Fixed
 
+- Descriptors entry points when transaction and events have the same checksum.
 - Fixed correct ESM export for React Native.
 
 ## 0.12.1 - 2024-07-30
