@@ -357,7 +357,7 @@ type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
-type IDispatchError = ${dispatchErrorType}
+export type ${prefix}DispatchError = ${dispatchErrorType}
 const asset: IAsset = {} as IAsset
 
 type PalletsTypedef = {
@@ -375,7 +375,6 @@ type IDescriptors = {
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
   asset: IAsset
-  dispatchError: IDispatchError
 };
 const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
 export default _allDescriptors;
