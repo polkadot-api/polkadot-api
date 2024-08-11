@@ -379,6 +379,12 @@ type IDescriptors = {
 const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
 export default _allDescriptors;
 
+declare module "polkadot-api" {
+  export interface DispatchErrors {
+    ${prefix}: ${prefix}DispatchError
+  }
+}
+
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
 export type ${prefix}Calls = TxFromPalletsDef<PalletsTypedef>
 export type ${prefix}Events = EventsFromPalletsDef<PalletsTypedef>

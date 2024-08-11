@@ -57,12 +57,29 @@ export type TxEventsPayload = {
     }
   | {
       ok: false
-      dispatchError: {
-        type: string
-        value: unknown
-      }
+      dispatchError: DefaultTo<
+        RecordValue<DispatchErrors>,
+        {
+          type: string
+          value: unknown
+        }
+      >
     }
 )
+type RecordValue<T> =
+  {
+    [K in keyof T]: T[K]
+  } extends Record<any, infer R>
+    ? R
+    : unknown
+type DefaultTo<T, D> = unknown extends T ? D : T
+
+// This interface is augmented externally to provide types to `dispatchError`
+// without having to pass the generics all the way down from TypedApi to here.
+// As of TS5.5, trying to pass it down as generics with multiple chains,
+// results in Observable<TxEvent<Chain1>> | Observable<TxEvent<Chain2>>'s
+// .subscribe not callable.
+export interface DispatchErrors {}
 
 export type TxFinalized = {
   type: "finalized"

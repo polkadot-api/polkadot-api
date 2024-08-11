@@ -20,6 +20,7 @@ export type {
   TxSignFn,
   Transaction,
   TxEntry,
+  DispatchErrors,
 } from "./tx"
 export type { EventPhase } from "./event"
 export type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
