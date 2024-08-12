@@ -99,7 +99,7 @@ const _buildCodec = (
     ? scale.Variant(inner)
     : scale.Variant(inner, indexes as any)
   return input.byteLength
-    ? minSizeCodec(variantCodec, input.byteLength)
+    ? fixedSizeCodec(variantCodec, input.byteLength)
     : variantCodec
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
@@ -262,18 +262,10 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
   }
 }
 
-const minSizeCodec = <T>(codec: Codec<T>, size: number): Codec<T> => {
-  const allBytesDec = scale.Bytes(size)[1]
+const fixedSizeCodec = <T>(codec: Codec<T>, size: number): Codec<T> => {
+  const allBytes = scale.Bytes(size)
   return scale.createCodec<T>(
-    (value: T) => {
-      const encoded = codec.enc(value)
-      if (encoded.length < size) {
-        const result = new Uint8Array(size)
-        result.set(encoded)
-        return result.fill(0, encoded.length)
-      }
-      return encoded
-    },
-    (data) => codec.dec(allBytesDec(data)),
+    (value: T) => allBytes.enc(codec.enc(value)),
+    (data) => codec.dec(allBytes.dec(data)),
   )
 }

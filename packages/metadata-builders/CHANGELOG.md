@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- lookup: Replace opaque metadata ModuleError for an enum of all the errors [#615](https://github.com/polkadot-api/polkadot-api/pull/615).
+
 ### Fixed
 
 - Checksum collision between transaction calls and events.
