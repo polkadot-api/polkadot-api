@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-08-12
+
 ### Added
 
 - Added `@polkadot-api/smoldot/node-worker` to create a smoldot worker in NodeJS.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.1 - 2024-08-12
+
 ### Fixed
 
 - Circular dependecy between chainHead and storage

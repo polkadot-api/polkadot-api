@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.0 - 2024-08-12
+
 ### Added
 
 - Export chain DispatchError on descriptors file [#615](https://github.com/polkadot-api/polkadot-api/pull/615).

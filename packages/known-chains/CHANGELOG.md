@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-08-12
+
 ### Added
 
 - Add people chains for Kusama, Roccoco and Westend [#617](https://github.com/polkadot-api/polkadot-api/pull/617)
