@@ -9,6 +9,7 @@
 ### Fixed
 
 - Fixed correct ESM export for React Native.
+- Update `lightSyncState`
 
 ## 0.3.0 - 2024-07-25
 
