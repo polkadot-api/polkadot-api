@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `getInjectedExtensions` no longer returns `null` and it returns an empty `Array` instead
+
 ### Fixed
 
 - Update dependencies

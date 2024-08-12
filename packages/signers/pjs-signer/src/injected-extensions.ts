@@ -76,7 +76,7 @@ export const connectInjectedExtension = async (
   }
 }
 
-export const getInjectedExtensions = (): null | Array<string> => {
+export const getInjectedExtensions = (): Array<string> => {
   const { injectedWeb3 } = window
-  return injectedWeb3 ? Object.keys(injectedWeb3) : null
+  return injectedWeb3 ? Object.keys(injectedWeb3) : []
 }
