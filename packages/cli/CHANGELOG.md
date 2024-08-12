@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.4 - 2024-08-12
+
+### Fixed
+
+- Unable to fetch metadata from parachains.
+
 ## 0.7.3 - 2024-08-12
 
 ### Fixed

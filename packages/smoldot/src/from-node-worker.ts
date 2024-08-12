@@ -1,7 +1,8 @@
 import { Worker } from "node:worker_threads"
-import type { Client } from "smoldot"
+import type { Chain, Client } from "smoldot"
 import type { RequestMessage, SmoldotOptions } from "./node-worker"
 
+const chainIds = new WeakMap<Chain, number>()
 export const startFromWorker = (
   worker: Worker,
   options: SmoldotOptions = {},
@@ -13,11 +14,22 @@ export const startFromWorker = (
 
   return {
     async addChain(options) {
+      const { potentialRelayChains, ...addChainOptions } = options
       const id = await sendToWorker(worker, {
         type: "add-chain",
-        value: options,
+        value: {
+          ...addChainOptions,
+          potentialRelayChainIds: potentialRelayChains?.map((chain) => {
+            const id = chainIds.get(chain)
+            if (id == null) {
+              throw new Error("Only chains created with `addChain` can be used")
+            }
+            return id
+          }),
+        },
       })
-      return {
+
+      const chain: Chain = {
         nextJsonRpcResponse() {
           return sendToWorker(worker, {
             type: "chain",
@@ -47,6 +59,9 @@ export const startFromWorker = (
           })
         },
       }
+      chainIds.set(chain, id)
+
+      return chain
     },
     async terminate() {
       await sendToWorker(worker, {

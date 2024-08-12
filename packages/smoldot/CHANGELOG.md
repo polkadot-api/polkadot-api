@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.1 - 2024-08-12
+
+### Fixed
+
+- Node worker: unable to add chains with potentialRelayChains.
+
 ## 0.3.0 - 2024-08-12
 
 ### Added

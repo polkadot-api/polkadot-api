@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.2 - 2024-08-12
+
+### Fixed
+
+- `polkadot-api/smoldot/node-worker`: unable to add chains with potentialRelayChains.
+
 ## 0.13.1 - 2024-08-12
 
 ### Fixed
