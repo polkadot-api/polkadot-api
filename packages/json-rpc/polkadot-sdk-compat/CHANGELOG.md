@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.0.0 - 2024-08-12
+
 ### Changed
 
 - Replace default export with named `withPolkadotSdkCompat`
