@@ -288,6 +288,12 @@ export const generateDescriptors = (
   const assetType =
     assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
 
+  const dispatchErrorId = getDispatchErrorId(lookupFn)
+  const dispatchErrorType =
+    dispatchErrorId == null
+      ? "unknown"
+      : typesBuilder.buildTypeDefinition(dispatchErrorId)
+
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
   import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
     paths.types
@@ -351,6 +357,7 @@ type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
+export type ${prefix}DispatchError = ${dispatchErrorType}
 const asset: IAsset = {} as IAsset
 
 type PalletsTypedef = {
@@ -425,4 +432,19 @@ export function getAssetId(lookup: MetadataLookup) {
     }
   }
   return
+}
+
+export function getDispatchErrorId(lookup: MetadataLookup) {
+  const systemPalletEventId = lookup.metadata.pallets.find(
+    (p) => p.name === "System",
+  )?.events
+  if (systemPalletEventId == null) return
+
+  const systemPalletEvent = lookup(systemPalletEventId)
+  if (systemPalletEvent.type !== "enum") return
+
+  const extrinsicFailed = systemPalletEvent.value.ExtrinsicFailed
+  if (extrinsicFailed?.type !== "struct") return
+
+  return extrinsicFailed.value.dispatch_error.id
 }

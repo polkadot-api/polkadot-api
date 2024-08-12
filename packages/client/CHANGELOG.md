@@ -12,6 +12,7 @@
 
 - `ws-provider`: rename `WebSocketProvider` => `getWsProvider`
 - `polkadot-sdk-compat`: replace default export with `withPolkadotSdkCompat`
+- Decode `ModuleError` from transactions `DispatchError` [#615](https://github.com/polkadot-api/polkadot-api/pull/615).
 
 ### Fixed
 

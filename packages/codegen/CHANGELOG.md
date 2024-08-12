@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Export chain DispatchError on descriptors file [#615](https://github.com/polkadot-api/polkadot-api/pull/615).
+
 ### Fixed
 
 - Descriptors entry points when transaction and events have the same checksum.

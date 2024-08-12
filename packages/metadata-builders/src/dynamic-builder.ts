@@ -95,9 +95,12 @@ const _buildCodec = (
   const indexes = Object.values(input.value).map((x) => x.idx)
   const areIndexesSorted = indexes.every((idx, i) => idx === i)
 
-  return areIndexesSorted
+  const variantCodec = areIndexesSorted
     ? scale.Variant(inner)
     : scale.Variant(inner, indexes as any)
+  return input.byteLength
+    ? fixedSizeCodec(variantCodec, input.byteLength)
+    : variantCodec
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
@@ -257,4 +260,12 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     buildConstant,
     ss58Prefix,
   }
+}
+
+const fixedSizeCodec = <T>(codec: Codec<T>, size: number): Codec<T> => {
+  const allBytes = scale.Bytes(size)
+  return scale.createCodec<T>(
+    (value: T) => allBytes.enc(codec.enc(value)),
+    (data) => codec.dec(allBytes.dec(data)),
+  )
 }

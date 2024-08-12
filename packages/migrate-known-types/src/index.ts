@@ -15,12 +15,15 @@ import {
   westend2_bridge_hub,
   westend2_collectives,
 } from "@polkadot-api/known-chains"
-import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
+import {
+  getChecksumBuilder,
+  getLookupFn,
+} from "@polkadot-api/metadata-builders"
 import { getSmProvider } from "@polkadot-api/sm-provider"
 import { V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import { readFile, writeFile } from "node:fs/promises"
-import { start } from "smoldot"
+import { start } from "@polkadot-api/smoldot"
 import { getMetadataFromProvider } from "./getMetadata"
 
 const chains = {
@@ -130,7 +133,7 @@ async function getCurrentKnownTypes() {
 
   for (let i = 0; i < metadatas.length; i++) {
     const [key, metadata] = [metadatas[i][0], await metadatas[i][1]]
-    const builder = getChecksumBuilder(metadata)
+    const builder = getChecksumBuilder(getLookupFn(metadata))
     for (let idx = 0; idx < metadata.lookup.length; idx++) {
       const checksum = builder.buildDefinition(idx)!
 
@@ -180,7 +183,7 @@ async function refreshTypes() {
     }),
   )
   const checksumBuilders = mapObject(metadatas, (metadata) =>
-    metadata.then(getChecksumBuilder),
+    metadata.then((m) => getChecksumBuilder(getLookupFn(m))),
   )
 
   for (const entry of Object.entries(checksumMap)) {

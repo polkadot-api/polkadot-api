@@ -50,7 +50,19 @@ export type TxEventsPayload = {
    * the block, `index` of the tx in the block.
    */
   block: { hash: string; number: number; index: number }
-}
+} & (
+  | {
+      ok: true
+      dispatchError?: undefined
+    }
+  | {
+      ok: false
+      dispatchError: {
+        type: string
+        value: unknown
+      }
+    }
+)
 
 export type TxFinalized = {
   type: "finalized"
