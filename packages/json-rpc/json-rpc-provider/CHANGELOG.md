@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.3 - 2024-08-12
+
 ### Fixed
 
 - Don't export empty chunks when building

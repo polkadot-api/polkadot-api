@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.0 - 2024-08-12
+
 ### Changed
 
 - lookup: Replace opaque metadata ModuleError for an enum of all the errors [#615](https://github.com/polkadot-api/polkadot-api/pull/615).

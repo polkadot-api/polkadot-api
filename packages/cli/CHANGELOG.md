@@ -2,11 +2,13 @@
 
 ## Unreleased
 
+## 0.7.2 - 2024-08-12
+
 ### Fixed
 
 - Descriptors entry points when transaction and events have the same checksum.
 - Update provider dependencies
-- Update deps
+- Update dependencies
 
 ## 0.7.1 - 2024-07-30
 

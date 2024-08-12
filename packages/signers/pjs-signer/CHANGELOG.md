@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-08-12
+
 ### Changed
 
 - `getInjectedExtensions` no longer returns `null` and it returns an empty `Array` instead
