@@ -6,6 +6,7 @@
 
 - Descriptors entry points when transaction and events have the same checksum.
 - Update provider dependencies
+- Update deps
 
 ## 0.7.1 - 2024-07-30
 

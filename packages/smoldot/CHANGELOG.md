@@ -10,6 +10,7 @@
 ### Fixed
 
 - Fixed correct ESM build path.
+- Update deps
 
 ## 0.2.7 - 2024-07-25
 

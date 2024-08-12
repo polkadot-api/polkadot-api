@@ -48,7 +48,7 @@
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/wasm-executor": "^0.1.1",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^20.14.12",
+    "@types/node": "^22.2.0",
     "commander": "^12.1.0",
     "execa": "^9.3.0",
     "fs.promises.exists": "^1.1.4",
@@ -57,14 +57,14 @@
     "rxjs": "^7.8.1",
     "scale-ts": "^1.6.0",
     "tsc-prog": "^2.3.0",
-    "tsup": "^8.2.3",
+    "tsup": "^8.2.4",
     "typescript": "^5.5.4",
-    "write-package": "^7.0.1",
+    "write-package": "^7.1.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@types/ws": "^8.5.11",
+    "@types/ws": "^8.5.12",
     "clet": "^1.0.1"
   }
 }
