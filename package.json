@@ -32,22 +32,22 @@
     "@homer0/prettier-plugin-jsdoc": "^9.0.2",
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@vitest/coverage-v8": "^2.0.4",
-    "husky": "^9.1.2",
-    "lint-staged": "^15.2.7",
+    "@vitest/coverage-v8": "^2.0.5",
+    "husky": "^9.1.4",
+    "lint-staged": "^15.2.8",
     "prettier": "^3.3.3",
-    "rollup": "^4.19.0",
+    "rollup": "^4.20.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-esbuild": "^6.1.1",
     "tslib": "^2.6.3",
-    "tsup": "^8.2.3",
-    "turbo": "^2.0.9",
+    "tsup": "^8.2.4",
+    "turbo": "^2.0.12",
     "typescript": "^5.5.4",
-    "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^2.0.4"
+    "vite-tsconfig-paths": "^5.0.1",
+    "vitest": "^2.0.5"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": "prettier --write"
   },
-  "packageManager": "pnpm@9.3.0+sha512.ee7b93e0c2bd11409c6424f92b866f31d3ea1bef5fbe47d3c7500cdc3c9668833d2e55681ad66df5b640c61fa9dc25d546efa54d76d7f8bf54b13614ac293631"
+  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
 }
