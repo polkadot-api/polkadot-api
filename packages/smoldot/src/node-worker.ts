@@ -21,7 +21,7 @@ export interface ChainMsg {
     id: number
   } & (
     | {
-        type: "remove" | "receive"
+        type: "remove" | "receive" | "receiveIterable"
       }
     | {
         type: "send"
@@ -96,6 +96,12 @@ async function handleChainMessage(msg: ChainMsg, id: number) {
       parentPort?.postMessage({
         id,
         value: await chain.nextJsonRpcResponse(),
+      })
+      break
+    case "receiveIterable":
+      parentPort?.postMessage({
+        id,
+        value: await chain.jsonRpcResponses.next(),
       })
       break
     case "send":

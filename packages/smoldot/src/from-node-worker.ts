@@ -30,6 +30,19 @@ export const startFromWorker = (
       })
 
       const chain: Chain = {
+        jsonRpcResponses: {
+          next: async () =>
+            sendToWorker(worker, {
+              type: "chain",
+              value: {
+                id,
+                type: "receiveIterable",
+              },
+            }),
+          [Symbol.asyncIterator]() {
+            return this
+          },
+        },
         nextJsonRpcResponse() {
           return sendToWorker(worker, {
             type: "chain",
