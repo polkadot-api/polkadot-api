@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fixes [#632](https://github.com/polkadot-api/polkadot-api/issues/632): rare race-condition when following a submitted transaction, which caused a runtime error. [#638](https://github.com/polkadot-api/polkadot-api/pull/638)
+
 ## 1.0.0 - 2024-08-15
 
 ### Fixed
