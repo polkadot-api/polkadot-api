@@ -83,6 +83,6 @@
   },
   "dependencies": {
     "@types/node": "^22.2.0",
-    "smoldot": "2.0.29"
+    "smoldot": "2.0.30"
   }
 }

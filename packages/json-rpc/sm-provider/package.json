@@ -50,6 +50,6 @@
     "smoldot": ">=2"
   },
   "devDependencies": {
-    "smoldot": "2.0.29"
+    "smoldot": "2.0.30"
   }
 }
