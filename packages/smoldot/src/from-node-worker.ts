@@ -7,6 +7,7 @@ export const startFromWorker = (
   worker: Worker,
   options: SmoldotOptions = {},
 ): Client => {
+  worker.setMaxListeners(0)
   sendToWorker(worker, {
     type: "start",
     value: options,
