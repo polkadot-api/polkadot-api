@@ -220,7 +220,10 @@ export const submit$ = (
 
   const at$ = chainHead.pinnedBlocks$.pipe(
     take(1),
-    map((blocks) => blocks.blocks.get(at!)?.hash ?? blocks.finalized),
+    map((blocks) => {
+      const block = blocks.blocks.get(at!)
+      return block && !block.unpinned ? block.hash : blocks.finalized
+    }),
   )
 
   const validate$: Observable<never> = at$.pipe(
