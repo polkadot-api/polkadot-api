@@ -11,7 +11,6 @@ interface Log {
 
 const rawLogsToLogs = (rawLogs: string[]): Map<number, Log[]> => {
   const result = new Map<number, Log[]>()
-  let prevDate = ""
   let tick = -1
 
   for (let i = 0; i < rawLogs.length; i++) {
@@ -20,8 +19,7 @@ const rawLogsToLogs = (rawLogs: string[]): Map<number, Log[]> => {
     )!
     const clientId = Number(clientIdRaw)
 
-    tick += dateRaw === prevDate ? 0 : 1
-    prevDate = dateRaw
+    tick = new Date(dateRaw).getTime()
 
     const logs = result.get(clientId) ?? []
     result.set(clientId, logs)
@@ -92,7 +90,11 @@ export const logsProvider = (rawLogs: Array<string>): JsonRpcProvider => {
           }
         } else {
           onMsg(expected.msg)
-          await Promise.resolve()
+          const nextOne = logs[idx + 1]
+          if (nextOne)
+            await new Promise((res) =>
+              setTimeout(res, nextOne.tick - expected.tick),
+            )
         }
         idx++
       }
