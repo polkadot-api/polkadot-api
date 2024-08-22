@@ -277,10 +277,10 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
