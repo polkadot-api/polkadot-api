@@ -145,6 +145,17 @@
       "require": "./dist/reexports/chains_ksmcc3_bridge_hub.js",
       "default": "./dist/reexports/chains_ksmcc3_bridge_hub.js"
     },
+    "./chains/ksmcc3_encointer": {
+      "node": {
+        "import": "./dist/esm/reexports/chains_ksmcc3_encointer.mjs",
+        "require": "./dist/reexports/chains_ksmcc3_encointer.js",
+        "default": "./dist/reexports/chains_ksmcc3_encointer.js"
+      },
+      "module": "./dist/esm/reexports/chains_ksmcc3_encointer.mjs",
+      "import": "./dist/esm/reexports/chains_ksmcc3_encointer.mjs",
+      "require": "./dist/reexports/chains_ksmcc3_encointer.js",
+      "default": "./dist/reexports/chains_ksmcc3_encointer.js"
+    },
     "./chains/ksmcc3_people": {
       "node": {
         "import": "./dist/esm/reexports/chains_ksmcc3_people.mjs",

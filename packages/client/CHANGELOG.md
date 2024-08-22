@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `chains`: Add Encointer Kusama as known chain
+
 ### Fixed
 
 - Fix unexpected `BlockNotPinnedError` which happened in occassions after signing.

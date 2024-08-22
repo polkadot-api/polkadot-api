@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add Encointer Kusama as known chain
+
 ## 0.4.0 - 2024-08-12
 
 ### Added

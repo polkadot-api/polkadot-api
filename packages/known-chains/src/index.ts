@@ -1,6 +1,7 @@
 export { chainSpec as ksmcc3 } from "./specs/ksmcc3"
 export { chainSpec as ksmcc3_asset_hub } from "./specs/ksmcc3_asset_hub"
 export { chainSpec as ksmcc3_bridge_hub } from "./specs/ksmcc3_bridge_hub"
+export { chainSpec as ksmcc3_encointer } from "./specs/ksmcc3_encointer"
 export { chainSpec as ksmcc3_people } from "./specs/ksmcc3_people"
 export { chainSpec as paseo } from "./specs/paseo"
 export { chainSpec as paseo_asset_hub } from "./specs/paseo_asset_hub"

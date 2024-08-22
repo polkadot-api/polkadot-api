@@ -32,6 +32,12 @@
       "require": "./dist/specs/ksmcc3_bridge_hub.js",
       "default": "./dist/specs/ksmcc3_bridge_hub.js"
     },
+    "./ksmcc3_encointer": {
+      "module": "./dist/specs/ksmcc3_encointer.mjs",
+      "import": "./dist/specs/ksmcc3_encointer.mjs",
+      "require": "./dist/specs/ksmcc3_encointer.js",
+      "default": "./dist/specs/ksmcc3_encointer.js"
+    },
     "./ksmcc3_people": {
       "module": "./dist/specs/ksmcc3_people.mjs",
       "import": "./dist/specs/ksmcc3_people.mjs",
@@ -145,6 +151,7 @@
     "ksmcc3",
     "ksmcc3_asset_hub",
     "ksmcc3_bridge_hub",
+    "ksmcc3_encointer",
     "ksmcc3_people",
     "paseo",
     "paseo_asset_hub",
