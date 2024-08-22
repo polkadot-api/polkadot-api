@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Remove cli warning when generating descriptors.
+- Flush vite dependency cache after generating descriptors.
+
 ## 0.7.5 - 2024-08-16
 
 ### Fixed
