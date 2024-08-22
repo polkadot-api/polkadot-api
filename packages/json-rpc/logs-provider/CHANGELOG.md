@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Make logs-provider wait the correct ammount of time before processing the next log
+
 ## 0.0.3 - 2024-07-18
 
 ### Fixed
