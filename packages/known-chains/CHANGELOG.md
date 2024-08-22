@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix Paseo AssetHub chainspec
+
 ## 0.4.0 - 2024-08-12
 
 ### Added
