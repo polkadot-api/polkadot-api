@@ -73,6 +73,7 @@ export async function generate(opts: GenerateOptions) {
   await compileCodegen(descriptorsDir)
   await fs.rm(join(descriptorsDir, "src"), { recursive: true })
   await runInstall()
+  await flushBundlerCache()
 }
 
 async function cleanDescriptorsPackage(path: string) {
@@ -276,10 +277,10 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "require": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -318,5 +319,22 @@ async function readWhitelist(filename: string): Promise<string[] | null> {
     return whitelist
   } finally {
     await rm(tmpDir, { recursive: true }).catch(console.error)
+  }
+}
+
+async function flushBundlerCache() {
+  try {
+    const viteMetadata = join(
+      process.cwd(),
+      "node_modules",
+      ".vite",
+      "deps",
+      "_metadata.json",
+    )
+    if (await fsExists(viteMetadata)) {
+      await rm(viteMetadata)
+    }
+  } catch (ex) {
+    console.error(ex)
   }
 }
