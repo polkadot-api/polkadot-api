@@ -10,6 +10,8 @@
 
 - Fix unexpected `BlockNotPinnedError` which happened in occassions after signing.
 - `chains`: Fix Paseo AssetHub chainspec
+- Remove cli warning when generating descriptors.
+- Flush vite dependency cache after generating descriptors.
 
 ## 1.0.1 - 2024-08-16
 
