@@ -6,6 +6,8 @@
 
 - Add Encointer Kusama as known chain
 
+## 0.4.1 - 2024-08-26
+
 ### Fixed
 
 - Fix Paseo AssetHub chainspec
