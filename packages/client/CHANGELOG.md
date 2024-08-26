@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.2 - 2024-08-26
+
 ### Fixed
 
 - Fix unexpected `BlockNotPinnedError` which happened in occassions after signing.
