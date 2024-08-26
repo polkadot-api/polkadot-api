@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.6 - 2024-08-26
+
 ### Fixed
 
 - Remove cli warning when generating descriptors.
