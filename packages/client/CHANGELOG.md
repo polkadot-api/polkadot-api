@@ -6,6 +6,10 @@
 
 - `chains`: Add Encointer Kusama as known chain
 
+### Fixed
+
+- `pjs-signer`: Allow creating transactions with `CheckMetadataHash` enabled
+
 ## 1.0.2 - 2024-08-26
 
 ### Fixed
