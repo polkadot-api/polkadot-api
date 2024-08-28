@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2024-08-28
+
 ### Changed
 
 - checksum: fixed-size array of len=1 should match the inner type [#667](https://github.com/polkadot-api/polkadot-api/pull/667)

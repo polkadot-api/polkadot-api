@@ -2,13 +2,15 @@
 
 ## Unreleased
 
+## 0.9.0 - 2024-08-28
+
 ### Changed
 
 - Updated known-types to match new checksums [#667](https://github.com/polkadot-api/polkadot-api/pull/667)
 
 ## 0.8.0 - 2024-08-12
 
-### Added
+### Added
 
 - Export chain DispatchError on descriptors file [#615](https://github.com/polkadot-api/polkadot-api/pull/615).
 
