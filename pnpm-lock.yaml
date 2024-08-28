@@ -533,17 +533,7 @@ importers:
         specifier: workspace:*
         version: link:../../utils
 
-  packages/signers/polkadot-signer:
-    dependencies:
-      '@polkadot-api/metadata-builders':
-        specifier: workspace:*
-        version: link:../../metadata-builders
-      '@polkadot-api/substrate-bindings':
-        specifier: workspace:*
-        version: link:../../substrate-bindings
-      '@polkadot-api/utils':
-        specifier: workspace:*
-        version: link:../../utils
+  packages/signers/polkadot-signer: {}
 
   packages/signers/signer:
     dependencies:
