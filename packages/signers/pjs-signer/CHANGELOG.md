@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.1 - 2024-08-28
+
 ### Fixed
 
 - Allow creating transactions with `CheckMetadataHash` enabled

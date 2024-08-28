@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.0 - 2024-08-28
+
 ### Changed
 
 - Updated checksums of known-types [#667](https://github.com/polkadot-api/polkadot-api/pull/667)

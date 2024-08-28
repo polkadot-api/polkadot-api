@@ -2,13 +2,15 @@
 
 ## Unreleased
 
-### Changed
-
-- Updated checksums of known-types [#667](https://github.com/polkadot-api/polkadot-api/pull/667)
+## 1.1.0 - 2024-08-28
 
 ### Added
 
 - `chains`: Add Encointer Kusama as known chain
+
+### Changed
+
+- Updated checksums of known-types [#667](https://github.com/polkadot-api/polkadot-api/pull/667)
 
 ### Fixed
 
