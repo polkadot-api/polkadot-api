@@ -11,8 +11,7 @@
     ".": {
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "require": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },

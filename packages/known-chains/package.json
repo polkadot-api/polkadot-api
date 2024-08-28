@@ -11,134 +11,112 @@
     ".": {
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "require": "./dist/index.js"
     },
     "./ksmcc3": {
       "module": "./dist/specs/ksmcc3.mjs",
       "import": "./dist/specs/ksmcc3.mjs",
-      "require": "./dist/specs/ksmcc3.js",
-      "default": "./dist/specs/ksmcc3.js"
+      "require": "./dist/specs/ksmcc3.js"
     },
     "./ksmcc3_asset_hub": {
       "module": "./dist/specs/ksmcc3_asset_hub.mjs",
       "import": "./dist/specs/ksmcc3_asset_hub.mjs",
-      "require": "./dist/specs/ksmcc3_asset_hub.js",
-      "default": "./dist/specs/ksmcc3_asset_hub.js"
+      "require": "./dist/specs/ksmcc3_asset_hub.js"
     },
     "./ksmcc3_bridge_hub": {
       "module": "./dist/specs/ksmcc3_bridge_hub.mjs",
       "import": "./dist/specs/ksmcc3_bridge_hub.mjs",
-      "require": "./dist/specs/ksmcc3_bridge_hub.js",
-      "default": "./dist/specs/ksmcc3_bridge_hub.js"
+      "require": "./dist/specs/ksmcc3_bridge_hub.js"
     },
     "./ksmcc3_encointer": {
       "module": "./dist/specs/ksmcc3_encointer.mjs",
       "import": "./dist/specs/ksmcc3_encointer.mjs",
-      "require": "./dist/specs/ksmcc3_encointer.js",
-      "default": "./dist/specs/ksmcc3_encointer.js"
+      "require": "./dist/specs/ksmcc3_encointer.js"
     },
     "./ksmcc3_people": {
       "module": "./dist/specs/ksmcc3_people.mjs",
       "import": "./dist/specs/ksmcc3_people.mjs",
-      "require": "./dist/specs/ksmcc3_people.js",
-      "default": "./dist/specs/ksmcc3_people.js"
+      "require": "./dist/specs/ksmcc3_people.js"
     },
     "./paseo": {
       "module": "./dist/specs/paseo.mjs",
       "import": "./dist/specs/paseo.mjs",
-      "require": "./dist/specs/paseo.js",
-      "default": "./dist/specs/paseo.js"
+      "require": "./dist/specs/paseo.js"
     },
     "./paseo_asset_hub": {
       "module": "./dist/specs/paseo_asset_hub.mjs",
       "import": "./dist/specs/paseo_asset_hub.mjs",
-      "require": "./dist/specs/paseo_asset_hub.js",
-      "default": "./dist/specs/paseo_asset_hub.js"
+      "require": "./dist/specs/paseo_asset_hub.js"
     },
     "./polkadot": {
       "module": "./dist/specs/polkadot.mjs",
       "import": "./dist/specs/polkadot.mjs",
-      "require": "./dist/specs/polkadot.js",
-      "default": "./dist/specs/polkadot.js"
+      "require": "./dist/specs/polkadot.js"
     },
     "./polkadot_asset_hub": {
       "module": "./dist/specs/polkadot_asset_hub.mjs",
       "import": "./dist/specs/polkadot_asset_hub.mjs",
-      "require": "./dist/specs/polkadot_asset_hub.js",
-      "default": "./dist/specs/polkadot_asset_hub.js"
+      "require": "./dist/specs/polkadot_asset_hub.js"
     },
     "./polkadot_bridge_hub": {
       "module": "./dist/specs/polkadot_bridge_hub.mjs",
       "import": "./dist/specs/polkadot_bridge_hub.mjs",
-      "require": "./dist/specs/polkadot_bridge_hub.js",
-      "default": "./dist/specs/polkadot_bridge_hub.js"
+      "require": "./dist/specs/polkadot_bridge_hub.js"
     },
     "./polkadot_collectives": {
       "module": "./dist/specs/polkadot_collectives.mjs",
       "import": "./dist/specs/polkadot_collectives.mjs",
-      "require": "./dist/specs/polkadot_collectives.js",
-      "default": "./dist/specs/polkadot_collectives.js"
+      "require": "./dist/specs/polkadot_collectives.js"
     },
     "./polkadot_people": {
       "module": "./dist/specs/polkadot_people.mjs",
       "import": "./dist/specs/polkadot_people.mjs",
-      "require": "./dist/specs/polkadot_people.js",
-      "default": "./dist/specs/polkadot_people.js"
+      "require": "./dist/specs/polkadot_people.js"
     },
     "./rococo_v2_2": {
       "module": "./dist/specs/rococo_v2_2.mjs",
       "import": "./dist/specs/rococo_v2_2.mjs",
-      "require": "./dist/specs/rococo_v2_2.js",
-      "default": "./dist/specs/rococo_v2_2.js"
+      "require": "./dist/specs/rococo_v2_2.js"
     },
     "./rococo_v2_2_asset_hub": {
       "module": "./dist/specs/rococo_v2_2_asset_hub.mjs",
       "import": "./dist/specs/rococo_v2_2_asset_hub.mjs",
-      "require": "./dist/specs/rococo_v2_2_asset_hub.js",
-      "default": "./dist/specs/rococo_v2_2_asset_hub.js"
+      "require": "./dist/specs/rococo_v2_2_asset_hub.js"
     },
     "./rococo_v2_2_bridge_hub": {
       "module": "./dist/specs/rococo_v2_2_bridge_hub.mjs",
       "import": "./dist/specs/rococo_v2_2_bridge_hub.mjs",
-      "require": "./dist/specs/rococo_v2_2_bridge_hub.js",
-      "default": "./dist/specs/rococo_v2_2_bridge_hub.js"
+      "require": "./dist/specs/rococo_v2_2_bridge_hub.js"
     },
     "./rococo_v2_2_people": {
       "module": "./dist/specs/rococo_v2_2_people.mjs",
       "import": "./dist/specs/rococo_v2_2_people.mjs",
-      "require": "./dist/specs/rococo_v2_2_people.js",
-      "default": "./dist/specs/rococo_v2_2_people.js"
+      "require": "./dist/specs/rococo_v2_2_people.js"
     },
     "./westend2": {
       "module": "./dist/specs/westend2.mjs",
       "import": "./dist/specs/westend2.mjs",
-      "require": "./dist/specs/westend2.js",
-      "default": "./dist/specs/westend2.js"
+      "require": "./dist/specs/westend2.js"
     },
     "./westend2_asset_hub": {
       "module": "./dist/specs/westend2_asset_hub.mjs",
       "import": "./dist/specs/westend2_asset_hub.mjs",
-      "require": "./dist/specs/westend2_asset_hub.js",
-      "default": "./dist/specs/westend2_asset_hub.js"
+      "require": "./dist/specs/westend2_asset_hub.js"
     },
     "./westend2_bridge_hub": {
       "module": "./dist/specs/westend2_bridge_hub.mjs",
       "import": "./dist/specs/westend2_bridge_hub.mjs",
-      "require": "./dist/specs/westend2_bridge_hub.js",
-      "default": "./dist/specs/westend2_bridge_hub.js"
+      "require": "./dist/specs/westend2_bridge_hub.js"
     },
     "./westend2_collectives": {
       "module": "./dist/specs/westend2_collectives.mjs",
       "import": "./dist/specs/westend2_collectives.mjs",
-      "require": "./dist/specs/westend2_collectives.js",
-      "default": "./dist/specs/westend2_collectives.js"
+      "require": "./dist/specs/westend2_collectives.js"
     },
     "./westend2_people": {
       "module": "./dist/specs/westend2_people.mjs",
       "import": "./dist/specs/westend2_people.mjs",
-      "require": "./dist/specs/westend2_people.js",
-      "default": "./dist/specs/westend2_people.js"
+      "require": "./dist/specs/westend2_people.js"
     }
   },
   "main": "./dist/index.js",
