@@ -24,7 +24,6 @@ for (const filename of specFiles) {
     module: `${basePath}/${packageName}.mjs`,
     import: `${basePath}/${packageName}.mjs`,
     require: `${basePath}/${packageName}.js`,
-    default: `${basePath}/${packageName}.js`,
   }
 
   await mkdir(join(".", packageName), { recursive: true })
