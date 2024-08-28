@@ -28,20 +28,20 @@
     ]
   },
   "devDependencies": {
-    "@fast-check/vitest": "^0.1.2",
+    "@fast-check/vitest": "^0.1.3",
     "@homer0/prettier-plugin-jsdoc": "^9.0.2",
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@vitest/coverage-v8": "^2.0.5",
-    "husky": "^9.1.4",
+    "husky": "^9.1.5",
     "lint-staged": "^15.2.9",
     "prettier": "^3.3.3",
-    "rollup": "^4.20.0",
+    "rollup": "^4.21.1",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-esbuild": "^6.1.1",
-    "tslib": "^2.6.3",
+    "tslib": "^2.7.0",
     "tsup": "^8.2.4",
-    "turbo": "^2.0.14",
+    "turbo": "^2.1.0",
     "typescript": "^5.5.4",
     "vite-tsconfig-paths": "^5.0.1",
     "vitest": "^2.0.5"
@@ -49,5 +49,5 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": "prettier --write"
   },
-  "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
+  "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1"
 }
