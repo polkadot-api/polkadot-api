@@ -5,6 +5,7 @@
 ### Changed
 
 - Updated checksums of known-types [#667](https://github.com/polkadot-api/polkadot-api/pull/667)
+- Remove unused dependencies
 
 ## 0.7.6 - 2024-08-26
 
