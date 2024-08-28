@@ -294,7 +294,7 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
 
       return !len || value.type === "void"
         ? _void
-        : len > 0
+        : len > 1
           ? {
               type: "array",
               value,

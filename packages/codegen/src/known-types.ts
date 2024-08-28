@@ -118,7 +118,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v3.junction.BodyPart", "xcm.v2.BodyPart"],
     type: "Enum(Voice, Members, Fraction, AtLeastProportion, MoreThanProportion)",
   },
-  "9cmn4io0j9mpl": {
+  andndh150vhd7: {
     name: "XcmV4Instruction",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -145,7 +145,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     ],
     type: "Enum(Undefined, Index, Array4, Array8, Array16, Array32)",
   },
-  d6duv772jaaa0: {
+  csmfdagrgtkj5: {
     name: "XcmV4Response",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -166,14 +166,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v2.OriginKind"],
     type: "Enum(Native, SovereignAccount, Superuser, Xcm)",
   },
-  "66qtljfd6i677": {
+  biemf2h6nh9pa: {
     name: "XcmV4AssetAssetFilter",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["staging_xcm.v4.asset.AssetFilter"],
     type: "Enum(Definite, Wild)",
   },
-  cku6hgs8hjfqa: {
+  e252kk4p31sv6: {
     name: "XcmV4AssetWildAsset",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -198,7 +198,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v3.WeightLimit"],
     type: "Enum(Unlimited, Limited)",
   },
-  "7me17hgokelki": {
+  "7vujittrav0br": {
     name: "XcmVersionedAssets",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -261,7 +261,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v3.multiasset.AssetId"],
     type: "Enum(Concrete, Abstract)",
   },
-  "1trqm68a7fenf": {
+  ap9sokavcmq5o: {
     name: "XcmVersionedLocation",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -296,14 +296,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_preimage.pallet.Event"],
     type: "Enum(Noted, Requested, Cleared)",
   },
-  "5q3tcdcggtlkj": {
+  "890aui9hh0f9q": {
     name: "AssetRateEvent",
     chains:
       "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
     paths: ["pallet_asset_rate.pallet.Event"],
     type: "Enum(AssetRateCreated, AssetRateRemoved, AssetRateUpdated)",
   },
-  d4g21730lle69: {
+  cc0rvpoin8ucr: {
     name: "VersionedLocatableAsset",
     chains:
       "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
@@ -338,7 +338,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_balances.types.AdjustmentDirection"],
     type: "Enum(Increase, Decrease)",
   },
-  "1j7evrcrgodra": {
+  m2dj93rjj6ks: {
     name: "XcmVersionedXcm",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -422,7 +422,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["frame_support.dispatch.RawOrigin"],
     type: "Enum(Root, Signed, None)",
   },
-  akrveodqukat1: {
+  "5svrq9ei0ks3q": {
     name: "XcmPalletOrigin",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -436,7 +436,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["frame_support.traits.schedule.DispatchTime"],
     type: "Enum(At, After)",
   },
-  ck9ts6e39igvh: {
+  "68cld6q6s1gvo": {
     name: "TreasuryEvent",
     chains:
       "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
@@ -501,14 +501,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_transaction_payment.Releases"],
     type: "Enum(V1Ancient, V2)",
   },
-  b2qkcg6rhftj: {
+  "1pja0i3r5p1gp": {
     name: "XcmPalletQueryStatus",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["pallet_xcm.pallet.QueryStatus"],
     type: "Enum(Pending, VersionNotifier, Ready)",
   },
-  "8aae4pf8l97h0": {
+  "543plq9vh7s3m": {
     name: "XcmVersionedResponse",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -522,7 +522,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_xcm.pallet.VersionMigrationStage"],
     type: "Enum(MigrateSupportedVersion, MigrateVersionNotifiers, NotifyCurrentTargets, MigrateAndNotifyOldTargets)",
   },
-  cafl5em0g3d0j: {
+  fou8ip7o6q00t: {
     name: "XcmVersionedAssetId",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -717,7 +717,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_conviction_voting.conviction.Conviction"],
     type: "Enum(None, Locked1x, Locked2x, Locked3x, Locked4x, Locked5x, Locked6x)",
   },
-  aq3lhf9801fip: {
+  bnvffgg4ckmsj: {
     name: "PolkadotRuntimeOriginCaller",
     chains: "polkadot",
     paths: ["polkadot_runtime.OriginCaller"],
@@ -741,7 +741,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime_common.claims.StatementKind"],
     type: "Enum(Regular, Saft)",
   },
-  "4pmimn9ms9vd4": {
+  "629bfqn3u6tle": {
     name: "IdentityData",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["pallet_identity.types.Data"],
@@ -1299,7 +1299,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.VersionedAssetId"],
     type: "Enum(V3)",
   },
-  c6naohf7oto22: {
+  j50joavafcok: {
     name: "WestendRuntimeOriginCaller",
     chains: "rococo, westend",
     paths: ["rococo_runtime.OriginCaller", "westend_runtime.OriginCaller"],
@@ -1353,7 +1353,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_sudo.pallet.Event"],
     type: "Enum(Sudid, KeyChanged, KeyRemoved, SudoAsDone)",
   },
-  "8pk5bmb6e1dro": {
+  "2pnuv6i9ju403": {
     name: "ReferendaTypesReferendumInfo",
     chains: "rococo, westend",
     paths: ["pallet_referenda.types.ReferendumInfo"],
