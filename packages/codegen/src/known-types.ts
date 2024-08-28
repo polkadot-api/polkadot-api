@@ -118,7 +118,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v3.junction.BodyPart", "xcm.v2.BodyPart"],
     type: "Enum(Voice, Members, Fraction, AtLeastProportion, MoreThanProportion)",
   },
-  "9cmn4io0j9mpl": {
+  andndh150vhd7: {
     name: "XcmV4Instruction",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -145,7 +145,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     ],
     type: "Enum(Undefined, Index, Array4, Array8, Array16, Array32)",
   },
-  d6duv772jaaa0: {
+  csmfdagrgtkj5: {
     name: "XcmV4Response",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -166,14 +166,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v2.OriginKind"],
     type: "Enum(Native, SovereignAccount, Superuser, Xcm)",
   },
-  "66qtljfd6i677": {
+  biemf2h6nh9pa: {
     name: "XcmV4AssetAssetFilter",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["staging_xcm.v4.asset.AssetFilter"],
     type: "Enum(Definite, Wild)",
   },
-  cku6hgs8hjfqa: {
+  e252kk4p31sv6: {
     name: "XcmV4AssetWildAsset",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -198,7 +198,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v3.WeightLimit"],
     type: "Enum(Unlimited, Limited)",
   },
-  "7me17hgokelki": {
+  "7vujittrav0br": {
     name: "XcmVersionedAssets",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -261,7 +261,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["xcm.v3.multiasset.AssetId"],
     type: "Enum(Concrete, Abstract)",
   },
-  "1trqm68a7fenf": {
+  ap9sokavcmq5o: {
     name: "XcmVersionedLocation",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -296,14 +296,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_preimage.pallet.Event"],
     type: "Enum(Noted, Requested, Cleared)",
   },
-  "5q3tcdcggtlkj": {
+  "890aui9hh0f9q": {
     name: "AssetRateEvent",
     chains:
       "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
     paths: ["pallet_asset_rate.pallet.Event"],
     type: "Enum(AssetRateCreated, AssetRateRemoved, AssetRateUpdated)",
   },
-  d4g21730lle69: {
+  cc0rvpoin8ucr: {
     name: "VersionedLocatableAsset",
     chains:
       "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
@@ -338,7 +338,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_balances.types.AdjustmentDirection"],
     type: "Enum(Increase, Decrease)",
   },
-  "1j7evrcrgodra": {
+  m2dj93rjj6ks: {
     name: "XcmVersionedXcm",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -422,7 +422,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["frame_support.dispatch.RawOrigin"],
     type: "Enum(Root, Signed, None)",
   },
-  akrveodqukat1: {
+  "5svrq9ei0ks3q": {
     name: "XcmPalletOrigin",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -436,7 +436,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["frame_support.traits.schedule.DispatchTime"],
     type: "Enum(At, After)",
   },
-  ck9ts6e39igvh: {
+  "68cld6q6s1gvo": {
     name: "TreasuryEvent",
     chains:
       "polkadot, polkadot.collectives, rococo, westend, westend.collectives",
@@ -501,14 +501,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_transaction_payment.Releases"],
     type: "Enum(V1Ancient, V2)",
   },
-  b2qkcg6rhftj: {
+  "1pja0i3r5p1gp": {
     name: "XcmPalletQueryStatus",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
     paths: ["pallet_xcm.pallet.QueryStatus"],
     type: "Enum(Pending, VersionNotifier, Ready)",
   },
-  "8aae4pf8l97h0": {
+  "543plq9vh7s3m": {
     name: "XcmVersionedResponse",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -522,7 +522,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_xcm.pallet.VersionMigrationStage"],
     type: "Enum(MigrateSupportedVersion, MigrateVersionNotifiers, NotifyCurrentTargets, MigrateAndNotifyOldTargets)",
   },
-  cafl5em0g3d0j: {
+  fou8ip7o6q00t: {
     name: "XcmVersionedAssetId",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",
@@ -606,12 +606,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_assets.pallet.Event"],
     type: "Enum(Created, Issued, Transferred, Burned, TeamChanged, OwnerChanged, Frozen, Thawed, AssetFrozen, AssetThawed, AccountsDestroyed, ApprovalsDestroyed, DestructionStarted, Destroyed, ForceCreated, MetadataSet, MetadataCleared, ApprovedTransfer, ApprovalCancelled, TransferredApproved, AssetStatusChanged, AssetMinBalanceChanged, Touched, Blocked)",
   },
-  "47abi8eqlfs7h": {
-    name: "PolkadotRuntimeEvent",
-    chains: "polkadot",
-    paths: ["polkadot_runtime.RuntimeEvent"],
-    type: "Enum(System, Scheduler, Preimage, Indices, Balances, TransactionPayment, Staking, Offences, Session, Grandpa, ImOnline, Treasury, ConvictionVoting, Referenda, Whitelist, Claims, Vesting, Utility, Identity, Proxy, Multisig, Bounties, ChildBounties, ElectionProviderMultiPhase, VoterList, NominationPools, FastUnstake, ParaInclusion, Paras, Hrmp, ParasDisputes, Registrar, Slots, Auctions, Crowdloan, StateTrieMigration, XcmPallet, MessageQueue, AssetRate)",
-  },
   "88qf3i6ugbvsp": {
     name: "IndicesEvent",
     chains: "polkadot, kusama, rococo, westend",
@@ -663,12 +657,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_conviction_voting.pallet.Event"],
     type: "Enum(Delegated, Undelegated)",
   },
-  "60a08att731k3": {
-    name: "PolkadotRuntimeRuntimeCall",
-    chains: "polkadot",
-    paths: ["polkadot_runtime.RuntimeCall"],
-    type: "Enum(System, Scheduler, Preimage, Babe, Timestamp, Indices, Balances, Staking, Session, Grandpa, Treasury, ConvictionVoting, Referenda, Whitelist, Claims, Vesting, Utility, Identity, Proxy, Multisig, Bounties, ChildBounties, ElectionProviderMultiPhase, VoterList, NominationPools, FastUnstake, Configuration, ParasShared, ParaInclusion, ParaInherent, Paras, Initializer, Hrmp, ParasDisputes, ParasSlashing, Registrar, Slots, Auctions, Crowdloan, StateTrieMigration, XcmPallet, MessageQueue, AssetRate, Beefy)",
-  },
   ek17d55ubjjm9: {
     name: "BabeDigestsNextConfigDescriptor",
     chains: "polkadot, kusama, rococo, westend",
@@ -717,7 +705,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_conviction_voting.conviction.Conviction"],
     type: "Enum(None, Locked1x, Locked2x, Locked3x, Locked4x, Locked5x, Locked6x)",
   },
-  aq3lhf9801fip: {
+  bnvffgg4ckmsj: {
     name: "PolkadotRuntimeOriginCaller",
     chains: "polkadot",
     paths: ["polkadot_runtime.OriginCaller"],
@@ -741,7 +729,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime_common.claims.StatementKind"],
     type: "Enum(Regular, Saft)",
   },
-  "4pmimn9ms9vd4": {
+  "629bfqn3u6tle": {
     name: "IdentityData",
     chains: "polkadot, kusama, rococo, westend",
     paths: ["pallet_identity.types.Data"],
@@ -1145,36 +1133,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["polkadot_runtime.RuntimeError"],
     type: "Enum(System, Scheduler, Preimage, Babe, Indices, Balances, Staking, Session, Grandpa, Treasury, ConvictionVoting, Referenda, Whitelist, Claims, Vesting, Utility, Identity, Proxy, Multisig, Bounties, ChildBounties, ElectionProviderMultiPhase, VoterList, NominationPools, FastUnstake, Configuration, ParaInclusion, ParaInherent, Paras, Hrmp, ParasDisputes, ParasSlashing, Registrar, Slots, Auctions, Crowdloan, StateTrieMigration, XcmPallet, MessageQueue, AssetRate, Beefy)",
   },
-  "86spl6bcfm5it": {
-    name: "KsmXcmV3Junctions",
-    chains: "kusama",
-    paths: ["xcm.v3.junctions.Junctions"],
-    type: "Enum(Here, X1, X2, X3, X4, X5, X6, X7, X8)",
-  },
-  aqrmqn3umgltq: {
-    name: "KsmXcmV3Junction",
-    chains: "kusama",
-    paths: ["xcm.v3.junction.Junction"],
-    type: "Enum(Parachain, AccountId32, AccountIndex64, AccountKey20, PalletInstance, GeneralIndex, GeneralKey, OnlyChild, Plurality, GlobalConsensus)",
-  },
-  "4k01tahcim329": {
-    name: "KsmXcmV3JunctionNetworkId",
-    chains: "kusama",
-    paths: ["xcm.v3.junction.NetworkId"],
-    type: "Enum(ByGenesis, ByFork, Polkadot, Kusama, Westend, Rococo, Wococo, Ethereum, BitcoinCore, BitcoinCash)",
-  },
-  c00osfu517iss: {
-    name: "KsmXcmV3MultiassetAssetId",
-    chains: "kusama",
-    paths: ["xcm.v3.multiasset.AssetId"],
-    type: "Enum(Concrete, Abstract)",
-  },
-  dbg08q7edq40c: {
-    name: "XcmVersionedMultiLocation",
-    chains: "kusama",
-    paths: ["xcm.VersionedMultiLocation"],
-    type: "Enum(V2, V3)",
-  },
   "3f4te0335d8h1": {
     name: "WestendRuntimeGovernanceOriginsPalletCustomOriginsOrigin",
     chains: "kusama, rococo, westend",
@@ -1185,121 +1143,13 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     ],
     type: "Enum(StakingAdmin, Treasurer, FellowshipAdmin, GeneralAdmin, AuctionAdmin, LeaseAdmin, ReferendumCanceller, ReferendumKiller, SmallTipper, BigTipper, SmallSpender, MediumSpender, BigSpender, WhitelistedCaller, FellowshipInitiates, Fellows, FellowshipExperts, FellowshipMasters, Fellowship1Dan, Fellowship2Dan, Fellowship3Dan, Fellowship4Dan, Fellowship5Dan, Fellowship6Dan, Fellowship7Dan, Fellowship8Dan, Fellowship9Dan)",
   },
-  "1r9hjo7723qso": {
-    name: "KsmXcmPalletOrigin",
-    chains: "kusama",
-    paths: ["pallet_xcm.pallet.Origin"],
-    type: "Enum(Xcm, Response)",
-  },
-  apijri6pqtqte: {
-    name: "IdentityField",
-    chains: "kusama",
-    paths: ["pallet_identity.simple.IdentityField"],
-    type: "Enum(Display, Legal, Web, Riot, Email, PgpFingerprint, Image, Twitter)",
-  },
-  "2s1qfdh76bati": {
-    name: "PolkadotPrimitivesV5ExecutorParam",
-    chains: "kusama",
-    paths: ["polkadot_primitives.v6.executor_params.ExecutorParam"],
-    type: "Enum(MaxMemoryPages, StackLogicalMax, StackNativeMax, PrecheckingMaxMemory, PvfPrepTimeout, PvfExecTimeout, WasmExtBulkMemory)",
-  },
-  "1p5n9bbuf71e9": {
-    name: "PolkadotPrimitivesV5PvfPrepTimeoutKind",
-    chains: "kusama",
-    paths: ["polkadot_primitives.v6.PvfPrepTimeoutKind"],
-    type: "Enum(Precheck, Lenient)",
-  },
-  b7nns1qbu48af: {
-    name: "PolkadotPrimitivesV5DisputeStatement",
-    chains: "kusama",
-    paths: ["polkadot_primitives.v6.DisputeStatement"],
-    type: "Enum(Valid, Invalid)",
-  },
-  e33c1balm2hk9: {
-    name: "PolkadotPrimitivesV5ValidDisputeStatementKind",
-    chains: "kusama",
-    paths: ["polkadot_primitives.v6.ValidDisputeStatementKind"],
-    type: "Enum(Explicit, BackingSeconded, BackingValid, ApprovalChecking)",
-  },
-  "5f1g9rtdd19nm": {
-    name: "KsmXcmVersionedXcm",
-    chains: "kusama",
-    paths: ["xcm.VersionedXcm"],
-    type: "Enum(V2, V3)",
-  },
-  css00hl25cgl4: {
-    name: "KsmXcmV3Instruction",
-    chains: "kusama",
-    paths: ["xcm.v3.Instruction"],
-    type: "Enum(WithdrawAsset, ReserveAssetDeposited, ReceiveTeleportedAsset, QueryResponse, TransferAsset, TransferReserveAsset, Transact, HrmpNewChannelOpenRequest, HrmpChannelAccepted, HrmpChannelClosing, ClearOrigin, DescendOrigin, ReportError, DepositAsset, DepositReserveAsset, ExchangeAsset, InitiateReserveWithdraw, InitiateTeleport, ReportHolding, BuyExecution, RefundSurplus, SetErrorHandler, SetAppendix, ClearError, ClaimAsset, Trap, SubscribeVersion, UnsubscribeVersion, BurnAsset, ExpectAsset, ExpectOrigin, ExpectError, ExpectTransactStatus, QueryPallet, ExpectPallet, ReportTransactStatus, ClearTransactStatus, UniversalOrigin, ExportMessage, LockAsset, UnlockAsset, NoteUnlockable, RequestUnlock, SetFeesMode, SetTopic, ClearTopic, AliasOrigin, UnpaidExecution)",
-  },
-  "4e56rm9p07o27": {
-    name: "KsmXcmV3Response",
-    chains: "kusama",
-    paths: ["xcm.v3.Response"],
-    type: "Enum(Null, Assets, ExecutionResult, Version, PalletsInfo, DispatchResult)",
-  },
-  "9enf1rh4u3kii": {
-    name: "XcmV3MultiAssetFilter",
-    chains: "kusama",
-    paths: ["xcm.v3.multiasset.MultiAssetFilter"],
-    type: "Enum(Definite, Wild)",
-  },
-  dhb8s9d0ie70f: {
-    name: "XcmV3WildMultiAsset",
-    chains: "kusama",
-    paths: ["xcm.v3.multiasset.WildMultiAsset"],
-    type: "Enum(All, AllOf, AllCounted, AllOfCounted)",
-  },
-  k93katrmbiat: {
-    name: "XcmVersionedMultiAssets",
-    chains: "kusama",
-    paths: ["xcm.VersionedMultiAssets"],
-    type: "Enum(V2, V3)",
-  },
   a4b928jbpau7j: {
     name: "RecoveryEvent",
     chains: "kusama, rococo, westend",
     paths: ["pallet_recovery.pallet.Event"],
     type: "Enum(RecoveryCreated, RecoveryInitiated, RecoveryVouched, RecoveryClosed, AccountRecovered, RecoveryRemoved)",
   },
-  b01fvb3ofrhi8: {
-    name: "XcmV3TraitsOutcome",
-    chains: "kusama",
-    paths: ["xcm.v3.traits.Outcome"],
-    type: "Enum(Complete, Incomplete, Error)",
-  },
-  arof15is9j858: {
-    name: "KsmBabeDigestsPreDigest",
-    chains: "kusama",
-    paths: ["sp_consensus_babe.digests.PreDigest"],
-    type: "Enum(Primary, SecondaryPlain, SecondaryVRF)",
-  },
-  b19964q7gq7o9: {
-    name: "PolkadotPrimitivesV5CoreOccupied",
-    chains: "kusama",
-    paths: ["polkadot_runtime_parachains.scheduler.pallet.CoreOccupied"],
-    type: "Enum(Free, Paras)",
-  },
-  "9us7218h9qeio": {
-    name: "KsmXcmPalletQueryStatus",
-    chains: "kusama",
-    paths: ["pallet_xcm.pallet.QueryStatus"],
-    type: "Enum(Pending, VersionNotifier, Ready)",
-  },
-  fjsumieiq38rh: {
-    name: "KsmXcmVersionedResponse",
-    chains: "kusama",
-    paths: ["xcm.VersionedResponse"],
-    type: "Enum(V2, V3)",
-  },
-  "9j0cetcqgjtaf": {
-    name: "KsmXcmVersionedAssetId",
-    chains: "kusama",
-    paths: ["xcm.VersionedAssetId"],
-    type: "Enum(V3)",
-  },
-  c6naohf7oto22: {
+  j50joavafcok: {
     name: "WestendRuntimeOriginCaller",
     chains: "rococo, westend",
     paths: ["rococo_runtime.OriginCaller", "westend_runtime.OriginCaller"],
@@ -1353,7 +1203,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["pallet_sudo.pallet.Event"],
     type: "Enum(Sudid, KeyChanged, KeyRemoved, SudoAsDone)",
   },
-  "8pk5bmb6e1dro": {
+  "2pnuv6i9ju403": {
     name: "ReferendaTypesReferendumInfo",
     chains: "rococo, westend",
     paths: ["pallet_referenda.types.ReferendumInfo"],

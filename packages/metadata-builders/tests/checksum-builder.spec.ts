@@ -122,6 +122,106 @@ describe("getChecksumBuilder properties", () => {
     )
   })
 
+  it("gives the same checksum for arrays of length 1 and the inner type", () => {
+    const baseId = 0
+    const id = lookupPush({ tag: "array", value: { len: 1, type: baseId } })
+    expect(builder.buildDefinition(id)).toEqual(builder.buildDefinition(baseId))
+  })
+
+  it("gives the same checksum for tuples of length 1 and the inner type", () => {
+    const baseId = 0
+    const id = lookupPush({
+      tag: "composite",
+      value: [
+        {
+          name: undefined,
+          type: baseId,
+          typeName: undefined,
+          docs: [],
+        },
+      ],
+    })
+    expect(builder.buildDefinition(id)).toEqual(builder.buildDefinition(baseId))
+  })
+
+  it("gives the same checksum for structs with just one property and the inner type", () => {
+    const baseId = 0
+    const id = lookupPush({
+      tag: "composite",
+      value: [
+        {
+          name: "foo",
+          type: baseId,
+          typeName: undefined,
+          docs: [],
+        },
+      ],
+    })
+    expect(builder.buildDefinition(id)).toEqual(builder.buildDefinition(baseId))
+  })
+
+  it("gives the same checksum for arrays and tuples with the same length where every element is the same type", () => {
+    const baseId = 0
+
+    expectEqual(
+      {
+        tag: "array",
+        value: {
+          len: 2,
+          type: baseId,
+        },
+      },
+      {
+        tag: "composite",
+        value: [
+          {
+            name: undefined,
+            type: baseId,
+            typeName: undefined,
+            docs: [],
+          },
+          {
+            name: undefined,
+            type: baseId,
+            typeName: undefined,
+            docs: [],
+          },
+        ],
+      },
+    )
+  })
+
+  it("distinguishes between structs of the same length as arrays with the same types", () => {
+    const baseId = 0
+
+    expectNotEqual(
+      {
+        tag: "array",
+        value: {
+          len: 2,
+          type: baseId,
+        },
+      },
+      {
+        tag: "composite",
+        value: [
+          {
+            name: "foo",
+            type: baseId,
+            typeName: undefined,
+            docs: [],
+          },
+          {
+            name: "bar",
+            type: baseId,
+            typeName: undefined,
+            docs: [],
+          },
+        ],
+      },
+    )
+  })
+
   it("gives the same checksum for flipped tuple parameters if they have the same type", () => {
     expectEqual(
       { tag: "tuple", value: [0, 1, 2] },

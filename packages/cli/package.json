@@ -35,9 +35,7 @@
     "@commander-js/extra-typings": "^12.1.0",
     "@polkadot-api/codegen": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@polkadot-api/known-chains": "workspace:*",
-    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
     "@polkadot-api/polkadot-sdk-compat": "workspace:*",
@@ -55,16 +53,12 @@
     "ora": "^8.0.1",
     "read-pkg": "^9.0.1",
     "rxjs": "^7.8.1",
-    "scale-ts": "^1.6.0",
     "tsc-prog": "^2.3.0",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
-    "write-package": "^7.1.0",
-    "ws": "^8.18.0"
+    "write-package": "^7.1.0"
   },
   "devDependencies": {
-    "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@types/ws": "^8.5.12",
-    "clet": "^1.0.1"
+    "@polkadot-api/json-rpc-provider": "workspace:*"
   }
 }

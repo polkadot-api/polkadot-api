@@ -20,10 +20,5 @@
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
-  },
-  "dependencies": {
-    "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/metadata-builders": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
   }
 }

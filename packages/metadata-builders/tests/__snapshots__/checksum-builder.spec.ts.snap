@@ -1,5 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`getChecksumBuilder snapshots > batched call 1`] = `"1blpvugq0msvs"`;
+exports[`getChecksumBuilder snapshots > batched call 1`] = `"ce4jmmmus5hu"`;
 
 exports[`getChecksumBuilder snapshots > felloship referenda submit 1`] = `"k5hf68er6u36"`;

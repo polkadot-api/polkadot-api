@@ -44,7 +44,6 @@
   },
   "dependencies": {
     "@polkadot-api/metadata-builders": "workspace:*",
-    "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/substrate-bindings": "workspace:*"
   }
 }
