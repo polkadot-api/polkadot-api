@@ -6,6 +6,10 @@
 
 - Add Encointer Kusama as known chain
 
+### Fixed
+
+- Update `lightSyncState`
+
 ## 0.4.1 - 2024-08-26
 
 ### Fixed

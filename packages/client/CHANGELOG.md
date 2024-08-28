@@ -13,6 +13,7 @@
 ### Fixed
 
 - `pjs-signer`: Allow creating transactions with `CheckMetadataHash` enabled
+- `chains`: Update `lightSyncState`
 
 ## 1.0.2 - 2024-08-26
 
