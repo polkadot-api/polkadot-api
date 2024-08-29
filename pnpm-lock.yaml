@@ -677,6 +677,18 @@ importers:
         specifier: workspace:*
         version: link:../utils
 
+  packages/tx-utils:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+
   packages/utils: {}
 
   packages/view-builder:
