@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `pjs-signer`: Remove option byte from `CheckMetadataHash`
+
 ## 1.1.0 - 2024-08-28
 
 ### Added

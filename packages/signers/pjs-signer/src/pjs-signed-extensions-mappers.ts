@@ -82,5 +82,12 @@ export const CheckMetadataHash = ({
   additionalSigned,
 }: SignedExtension): { mode?: number; metadataHash?: HexString } =>
   value.length && value[0]
-    ? { mode: 1, metadataHash: toHex(additionalSigned) }
+    ? {
+        mode: 1,
+        metadataHash: toHex(
+          additionalSigned.length
+            ? additionalSigned.slice(1)
+            : additionalSigned,
+        ),
+      }
     : {}
