@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Remove option byte from `CheckMetadataHash`
+
 ## 0.4.1 - 2024-08-28
 
 ### Fixed
