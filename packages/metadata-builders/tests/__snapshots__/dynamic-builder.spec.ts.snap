@@ -45,6 +45,8 @@ exports[`getDynamicBuilder > felloship referenda submit 1`] = `
     "value": Binary {
       "asBytes": [Function],
       "asHex": [Function],
+      "asOpaqueBytes": [Function],
+      "asOpaqueHex": [Function],
       "asText": [Function],
     },
   },
