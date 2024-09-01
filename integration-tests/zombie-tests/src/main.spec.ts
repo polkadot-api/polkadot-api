@@ -10,16 +10,28 @@ import {
 } from "rxjs"
 import { expect, describe, it } from "vitest"
 import { start } from "polkadot-api/smoldot"
-import { AccountId, SS58String, TxEvent, createClient } from "polkadot-api"
+import {
+  AccountId,
+  Binary,
+  SS58String,
+  TxEvent,
+  createClient,
+} from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { getWsProvider } from "polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
 import { MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
+import { getPolkadotSigner } from "polkadot-api/signer"
 
 const smoldot = start()
 
 const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
+
+const fakeSignature = new Uint8Array(64)
+const getFakeSignature = () => fakeSignature
+const fakeSigner = (from: Uint8Array) =>
+  getPolkadotSigner(from, "Sr25519", getFakeSignature)
 
 // The retrial system is needed because often the `sync_state_genSyncSpec`
 // request fails immediately after starting zombienet.
@@ -323,5 +335,24 @@ describe("E2E", async () => {
       addresses.map((address) => [address] as [SS58String]),
     )
     expect(result.length).toEqual(addresses.length)
+  })
+
+  it("runtime call with extrinsic as input", async () => {
+    const tx = api.tx.System.remark({
+      remark: Binary.fromHex("hello world!"),
+    })
+    const binaryExtrinsic = Binary.fromOpaqueHex(
+      await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
+    )
+
+    const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
+      api.apis.TransactionPaymentApi.query_info(
+        binaryExtrinsic,
+        binaryExtrinsic.asOpaqueBytes().length,
+      ),
+      tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey),
+    ])
+
+    expect(manualFee).toEqual(estimatedFee)
   })
 })

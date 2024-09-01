@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- New `Binary` methods for supporting "`opaque`" binary data. [#675](https://github.com/polkadot-api/polkadot-api/pull/675).
+
 ## 0.6.3 - 2024-08-12
 
 ### Fixed
