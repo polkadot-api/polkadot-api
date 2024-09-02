@@ -149,6 +149,19 @@ export type TxSignFn<Asset> = (
   txOptions?: TxOptions<Asset>,
 ) => Promise<HexString>
 
+export type PaymentInfo = {
+  weight: {
+    ref_time: bigint
+    proof_size: bigint
+  }
+  class: Enum<{
+    Normal: undefined
+    Operational: undefined
+    Mandatory: undefined
+  }>
+  partial_fee: bigint
+}
+
 export type Transaction<
   Arg extends {} | undefined,
   Pallet extends string,
@@ -202,6 +215,19 @@ export type Transaction<
     from: Uint8Array | SS58String,
     txOptions?: TxOptions<Asset>,
   ) => Promise<bigint>
+  /**
+   * Payment info against the latest known `finalizedBlock`
+   *
+   * @param from       Public key or address from the potencial sender.
+   * @param txOptions  Optionally pass any number of txOptions.
+   * @returns PaymentInfo for the given transaction (weight, estimated fees
+   *          and class).
+   */
+  getPaymentInfo: (
+    from: Uint8Array | SS58String,
+    txOptions?: TxOptions<Asset>,
+  ) => Promise<PaymentInfo>
+
   /**
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
