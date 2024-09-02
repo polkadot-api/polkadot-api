@@ -9,6 +9,7 @@
 ### Added
 
 - New `Binary` methods for supporting "`opaque`" binary data. [#675](https://github.com/polkadot-api/polkadot-api/pull/675).
+- `polkadot-api/logs-provider`: new optional `speed` parameter that can be used to accelerate the timing of the logs reproduction.
 
 ## 1.1.0 - 2024-08-28
 

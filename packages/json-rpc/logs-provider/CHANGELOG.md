@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Optional `speed` parameter that can be used to accelerate the timing of the logs reproduction.
+
 ## 0.0.4 - 2024-08-26
 
 ### Fixed

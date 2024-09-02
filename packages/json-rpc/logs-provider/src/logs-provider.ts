@@ -42,7 +42,15 @@ const extractTx = (msg: string) => {
   return msg.substring(start, end - 64)
 }
 
-export const logsProvider = (rawLogs: Array<string>): JsonRpcProvider => {
+export type LogsProviderOptions = {
+  speed: number
+}
+const defaultOptions: LogsProviderOptions = { speed: 1 }
+export const logsProvider = (
+  rawLogs: Array<string>,
+  options: Partial<LogsProviderOptions> = {},
+): JsonRpcProvider => {
+  const { speed } = { ...defaultOptions, ...options }
   let nextClientId = 1
   const allLogs = rawLogsToLogs(
     rawLogs[rawLogs.length - 1] ? rawLogs : rawLogs.slice(0, -1),
@@ -93,7 +101,7 @@ export const logsProvider = (rawLogs: Array<string>): JsonRpcProvider => {
           const nextOne = logs[idx + 1]
           if (nextOne)
             await new Promise((res) =>
-              setTimeout(res, nextOne.tick - expected.tick),
+              setTimeout(res, (nextOne.tick - expected.tick) / speed),
             )
         }
         idx++
