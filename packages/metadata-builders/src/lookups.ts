@@ -108,6 +108,7 @@ const _void: VoidVar = { type: "void" }
 export interface MetadataLookup {
   (id: number): LookupEntry
   metadata: V14 | V15
+  call: number | null
 }
 
 export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
@@ -416,5 +417,16 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
     }
   }
 
-  return Object.assign(getLookupEntryDef, { metadata })
+  const getCall = () => {
+    if ("outerEnums" in metadata) {
+      return metadata.outerEnums.call
+    }
+
+    const extrinsic = metadata.lookup[metadata.extrinsic.type]
+    const call = extrinsic.params.find((p) => p.name === "Call")
+
+    return call?.type ?? null
+  }
+
+  return Object.assign(getLookupEntryDef, { metadata, call: getCall() })
 }
