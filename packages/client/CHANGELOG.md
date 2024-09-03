@@ -5,6 +5,7 @@
 ### Fixed
 
 - `pjs-signer`: Remove option byte from `CheckMetadataHash`
+- Avoid unexpected behaviour with `dispatchError` type
 
 ### Added
 
