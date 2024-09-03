@@ -53,10 +53,16 @@ export type TxEventsPayload = {
 } & (
   | {
       ok: true
+      /**
+       * Dispatch Error found at `System.ExtrinsicFailed` event.
+       */
       dispatchError?: undefined
     }
   | {
       ok: false
+      /**
+       * Dispatch Error found at `System.ExtrinsicFailed` event.
+       */
       dispatchError: {
         type: string
         value: unknown
@@ -68,6 +74,7 @@ export type TxFinalized = {
   type: "finalized"
   txHash: HexString
 } & TxEventsPayload
+export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
 
 export type TxOptions<Asset> = Partial<
   void extends Asset
@@ -116,7 +123,6 @@ export type TxOptions<Asset> = Partial<
       }
 >
 
-export type TxFinalizedPayload = Omit<TxFinalized, "type">
 export type TxPromise<Asset> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset>,
