@@ -2,15 +2,7 @@
 
 ## Unreleased
 
-### Fixed
-
-- `pjs-signer`: Remove option byte from `CheckMetadataHash`
-- Avoid unexpected behaviour with `dispatchError` type
-- `chains`: Update `lightSyncState`
-
-### Changed
-
-- codegen: Replace chain call data types for broader `TxCallData` [#687](https://github.com/polkadot-api/polkadot-api/pull/687).
+## 1.2.0 - 2024-09-04
 
 ### Added
 
@@ -18,6 +10,16 @@
 - `polkadot-api/logs-provider`: new optional `speed` parameter that can be used to accelerate the timing of the logs reproduction.
 - polkadot-sdk-compat: add `fixUnorderedBlocks` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5512) on the PolkadotSDK node.
 - Add `txFromCallData` API
+
+### Changed
+
+- codegen: Replace chain call data types for broader `TxCallData` [#687](https://github.com/polkadot-api/polkadot-api/pull/687).
+
+### Fixed
+
+- `pjs-signer`: Remove option byte from `CheckMetadataHash`
+- Avoid unexpected behaviour with `dispatchError` type
+- `chains`: Update `lightSyncState`
 
 ## 1.1.0 - 2024-08-28
 
