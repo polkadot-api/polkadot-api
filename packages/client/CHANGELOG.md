@@ -7,6 +7,10 @@
 - `pjs-signer`: Remove option byte from `CheckMetadataHash`
 - Avoid unexpected behaviour with `dispatchError` type
 
+### Changed
+
+- codegen: Replace chain call data types for broader `TxCallData` [#687](https://github.com/polkadot-api/polkadot-api/pull/687).
+
 ### Added
 
 - New `Binary` methods for supporting "`opaque`" binary data. [#675](https://github.com/polkadot-api/polkadot-api/pull/675).

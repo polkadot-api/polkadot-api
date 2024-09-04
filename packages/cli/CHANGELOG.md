@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Update dependencies
+- Update dependencies.
 
 ## 0.8.0 - 2024-08-28
 

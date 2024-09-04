@@ -231,3 +231,11 @@ export interface PolkadotClient {
 }
 
 export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }
+
+export type TxCallData = {
+  type: string
+  value: {
+    type: string
+    value: any
+  }
+}

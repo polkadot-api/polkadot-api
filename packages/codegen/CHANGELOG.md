@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Replace chain call data types for broader `TxCallData` [#687](https://github.com/polkadot-api/polkadot-api/pull/687).
+
 ## 0.9.0 - 2024-08-28
 
 ### Changed

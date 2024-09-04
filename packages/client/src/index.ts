@@ -28,4 +28,5 @@ export type {
   TransactionValidityError,
   TypedApi,
   FixedSizeArray,
+  TxCallData,
 } from "./types"

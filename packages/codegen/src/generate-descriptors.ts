@@ -40,12 +40,16 @@ export type DescriptorValues = Record<
   Record<string, Record<string, number>>
 >
 
+export function capitalize(value: string) {
+  return value.slice(0, 1).toUpperCase() + value.slice(1)
+}
+
 export const generateDescriptors = (
   lookupFn: MetadataLookup,
   checksumToIdx: Map<string, number>,
   typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
-  prefix: string,
+  key: string,
   paths: {
     client: string
     metadataTypes: string
@@ -53,6 +57,7 @@ export const generateDescriptors = (
     descriptorValues: string
   },
 ) => {
+  const prefix = capitalize(key)
   const { metadata } = lookupFn
   const buildEnumObj = <T>(
     val: number | undefined,
@@ -262,6 +267,20 @@ export const generateDescriptors = (
     value: mapObject(api.methods, ({ docs, type: value }) => ({ docs, value })),
   }))
 
+  if (lookupFn.call) {
+    // Generate the types to have it included in common types
+    typesBuilder.buildDefinition(lookupFn.call)
+  }
+
+  const callInterface = lookupFn.call
+    ? `I${checksumBuilder.buildDefinition(lookupFn.call)}`
+    : null
+
+  // & { value: { type: string }} to remove pallets without tx (otherwise it's not assignable to TxCallData)
+  const chainCallType = callInterface
+    ? `export type ${prefix}CallData = Anonymize<${callInterface}> & { value: { type: string } };`
+    : ""
+
   descriptorValues["apis"] = mapObject(runtimeCalls, (api) =>
     mapObject(api.methods, (x) => x.typeRef),
   )
@@ -273,6 +292,7 @@ export const generateDescriptors = (
     "RuntimeDescriptor",
     "Enum",
     "_Enum",
+    "GetEnum",
     "Binary",
     "FixedSizeBinary",
     "FixedSizeArray",
@@ -294,10 +314,18 @@ export const generateDescriptors = (
       ? "unknown"
       : typesBuilder.buildTypeDefinition(dispatchErrorId)
 
+  const commonTypeImports = [
+    ...typesBuilder.getTypeFileImports(),
+    callInterface,
+  ].filter((v) => v !== null)
+
+  const exports = [
+    `default as ${key}`,
+    callInterface ? `${prefix}CallData` : null,
+  ].filter((v) => v !== null)
+
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
-  import {${typesBuilder.getTypeFileImports().join(", ")}} from "${
-    paths.types
-  }";
+  import {${commonTypeImports.join(", ")}} from "${paths.types}";
 
   const descriptorValues = import("${paths.descriptorValues}").then(module => module["${prefix}"]);
   const metadataTypes = import("${paths.metadataTypes}").then(module => 'default' in module ? module.default : module);
@@ -384,6 +412,7 @@ export type ${prefix}Calls = TxFromPalletsDef<PalletsTypedef>
 export type ${prefix}Events = EventsFromPalletsDef<PalletsTypedef>
 export type ${prefix}Errors = ErrorsFromPalletsDef<PalletsTypedef>
 export type ${prefix}Constants = ConstFromPalletsDef<PalletsTypedef>
+${chainCallType}
 
 export type ${prefix}WhitelistEntry =
   | PalletKey
@@ -416,7 +445,7 @@ type ApiKey<D extends Record<string, Record<string, any>>> =
     }[keyof D & string]
 `
 
-  return { descriptorTypes, descriptorValues }
+  return { descriptorTypes, descriptorValues, exports }
 }
 
 export function getAssetId(lookup: MetadataLookup) {

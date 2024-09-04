@@ -10,7 +10,11 @@ import {
 } from "@polkadot-api/metadata-compatibility"
 import type { V14, V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
-import { DescriptorValues, generateDescriptors } from "./generate-descriptors"
+import {
+  capitalize,
+  DescriptorValues,
+  generateDescriptors,
+} from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
 import { getUsedTypes } from "./get-used-types"
 import knownTypes, { KnownTypes } from "./known-types"
@@ -68,7 +72,7 @@ export const generateMultipleDescriptors = (
         chain.builder,
       ),
       chain.builder,
-      capitalize(chain.key),
+      chain.key,
       paths,
     ),
   )
@@ -82,7 +86,10 @@ export const generateMultipleDescriptors = (
   return {
     descriptorsFileContent,
     metadataTypes: types,
-    descriptorTypesFileContent: chainFiles.map((file) => file.descriptorTypes),
+    descriptorTypesFiles: chainFiles.map((file) => ({
+      content: file.descriptorTypes,
+      exports: file.exports,
+    })),
     typesFileContent: generateTypes(declarations, paths),
     publicTypes: getPublicTypes(declarations.variables),
   }
@@ -185,10 +192,6 @@ function mergeTypes(
     entryPoints: updatedEntryPoints,
     checksumToIdx,
   }
-}
-
-function capitalize(value: string) {
-  return value.slice(0, 1).toUpperCase() + value.slice(1)
 }
 
 function generateDescriptorValuesContent(

@@ -89,6 +89,7 @@ const _buildSyntax = (
   declarations: CodeDeclarations,
   getChecksum: (id: number | StructVar | TupleVar | ArrayVar) => string | null,
   knownTypes: Record<string, string>,
+  callsChecksum: string | null,
 ): TypeForEntry => {
   const addImport = (entry: TypeForEntry) => {
     if (entry.import === "client") declarations.imports.add(entry.type)
@@ -149,7 +150,15 @@ const _buildSyntax = (
   }
 
   const buildNextSyntax = (nextInput: LookupEntry) =>
-    buildSyntax(nextInput, cache, stack, declarations, getChecksum, knownTypes)
+    buildSyntax(
+      nextInput,
+      cache,
+      stack,
+      declarations,
+      getChecksum,
+      knownTypes,
+      callsChecksum,
+    )
 
   const buildVector = (id: string, inner: LookupEntry): TypeForEntry => {
     const name = getName(id)
@@ -309,13 +318,25 @@ const _buildSyntax = (
     .map((key, idx) => `"${key}": ${dependencies[idx]}`)
     .join(", ")
   variable.type = isKnown ? `Enum<{${obj}}>` : `AnonymousEnum<{${obj}}>`
-  return typesImport(name)
+  return checksum === callsChecksum
+    ? clientImport("TxCallData")
+    : typesImport(name)
 }
 
 const buildSyntax = withCache(
   _buildSyntax,
-  (_getter, entry, declarations, getChecksum): TypeForEntry =>
-    typesImport(declarations.variables.get(getChecksum(entry.id)!)!.name),
+  (
+    _getter,
+    entry,
+    declarations,
+    getChecksum,
+    _knownTypes,
+    callsChecksum,
+  ): TypeForEntry => {
+    const checksum = getChecksum(entry.id)!
+    if (checksum === callsChecksum) return clientImport("TxCallData")
+    return typesImport(declarations.variables.get(checksum)!.name)
+  },
   (x) => x,
 )
 
@@ -326,7 +347,9 @@ export const getTypesBuilder = (
   knownTypes: Record<string, string>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
 ) => {
-  const { metadata } = getLookupEntryDef
+  const { metadata, call } = getLookupEntryDef
+  const callsChecksum = call ? checksumBuilder.buildDefinition(call) : null
+
   const typeFileImports = new Set<string>()
   const clientFileImports = new Set<string>()
 
@@ -353,6 +376,7 @@ export const getTypesBuilder = (
       declarations,
       getChecksum,
       knownTypes,
+      callsChecksum,
     )
 
   const buildTypeDefinition = (id: number) => {
@@ -421,7 +445,7 @@ export const getTypesBuilder = (
         const tmp = buildDefinition(innerLookup.value.id)
         importType(tmp)
 
-        return `Anonymize<${tmp.type}>`
+        return tmp.import === "client" ? tmp.type : `Anonymize<${tmp.type}>`
       } else if (innerLookup.type === "void") {
         return "undefined"
       } else {

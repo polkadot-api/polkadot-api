@@ -147,7 +147,7 @@ async function outputCodegen(
 ) {
   const {
     descriptorsFileContent,
-    descriptorTypesFileContent,
+    descriptorTypesFiles,
     metadataTypes,
     typesFileContent,
     publicTypes,
@@ -199,13 +199,14 @@ ${descriptorsFileContent}`,
     chains.map((chain, i) =>
       fs.writeFile(
         join(outputFolder, `${chain.key}.ts`),
-        descriptorTypesFileContent[i],
+        descriptorTypesFiles[i].content,
       ),
     ),
   )
   await generateIndex(
     outputFolder,
     chains.map((chain) => chain.key),
+    descriptorTypesFiles.map((d) => d.exports),
     publicTypes,
   )
 
@@ -252,11 +253,12 @@ async function compileCodegen(packageDir: string) {
 const generateIndex = async (
   path: string,
   keys: string[],
+  exports: string[][],
   publicTypes: string[],
 ) => {
   const indexTs = [
-    ...keys.flatMap((key) => [
-      `export { default as ${key} } from "./${key}";`,
+    ...keys.flatMap((key, i) => [
+      `export { ${exports[i].join(",")} } from "./${key}";`,
       `export type * from "./${key}";`,
     ]),
     `export {`,
