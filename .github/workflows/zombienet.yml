@@ -34,16 +34,16 @@ jobs:
         run: pnpm build-external
       - name: Download Polkadot and parachain binaries
         run: |
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.13.0/polkadot
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.13.0/polkadot-parachain
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.13.0/polkadot-prepare-worker
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-v1.13.0/polkadot-execute-worker
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2407-2/polkadot
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2407-2/polkadot-parachain
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2407-2/polkadot-prepare-worker
+          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-stable2407-2/polkadot-execute-worker
           chmod +x ./polkadot*
         working-directory: integration-tests/zombie-tests
       - name: Run a local relaychain using zombienet
         run: |
           export PATH=$(pwd):$PATH
-          npx --yes @zombienet/cli@1.3.106 \
+          npx --yes @zombienet/cli@1.3.109 \
             --provider native \
             --dir zombienet_logs \
             spawn zombienet.native.toml \
