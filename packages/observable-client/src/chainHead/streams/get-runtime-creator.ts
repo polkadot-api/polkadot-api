@@ -178,7 +178,9 @@ export const getRuntimeCreator = (
       },
       usages,
     }
-    runtimeContext$.subscribe()
+    runtimeContext$.subscribe({
+      error() {},
+    })
 
     return result
   }
