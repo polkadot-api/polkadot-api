@@ -336,7 +336,9 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   // calling `unfollow` also kills the subscription due to the fact
   // that `follow$` completes, which makes all other streams to
   // also complete (or error, in the case of ongoing operations)
-  merge(runtime$, bestBlocks$).subscribe()
+  merge(runtime$, bestBlocks$).subscribe({
+    error() {},
+  })
 
   const eventsAt$ = (hash: string | null, canonical = false) =>
     storage$(
