@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.1.0 - 2024-09-04
+
 ### Added
 
 - Add `fixUnorderedBlocks` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5512) on the PolkadotSDK node.

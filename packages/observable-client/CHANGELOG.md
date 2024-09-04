@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.3 - 2024-09-04
+
 ### Fixed
 
 - Uncaught exception when closing ObservableClient while loading runtime
