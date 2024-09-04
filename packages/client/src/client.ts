@@ -180,10 +180,10 @@ const createTypedApi = <D extends ChainDefinition>(
 
   return {
     query,
-    txFromCallData: (callData: Binary, token?: CompatibilityToken) => {
-      if (token) return _callDataTx(callData, token)
-      return compatibilityToken.then((t) => _callDataTx(callData, t))
-    },
+    txFromCallData: (callData: Binary, token?: CompatibilityToken) =>
+      token
+        ? _callDataTx(callData, token)
+        : compatibilityToken.then((t) => _callDataTx(callData, t)),
     tx,
     event,
     apis,
