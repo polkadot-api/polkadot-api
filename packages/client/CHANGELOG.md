@@ -6,6 +6,7 @@
 
 - `pjs-signer`: Remove option byte from `CheckMetadataHash`
 - Avoid unexpected behaviour with `dispatchError` type
+- `chains`: Update `lightSyncState`
 
 ### Changed
 
