@@ -156,6 +156,11 @@ describe("E2E", async () => {
     )
     expect(alicePostNonce).toEqual(aliceInitialNonce + 1)
     expect(bobPostNonce).toEqual(bobInitialNonce + 1)
+
+    // txs from call data
+    const txCallData = aliceTransfer.getEncodedData(token)
+    const reEncodedTx = api.txFromCallData(txCallData, token)
+    expect(reEncodedTx.getEncodedData(token).asHex()).toBe(txCallData.asHex())
   })
 
   it.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(
