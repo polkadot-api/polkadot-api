@@ -422,8 +422,8 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
       return metadata.outerEnums.call
     }
 
-    const extrinsic = metadata.lookup[metadata.extrinsic.type]
-    const call = extrinsic.params.find((p) => p.name === "Call")
+    const extrinsic = metadata.lookup[metadata.extrinsic?.type]
+    const call = extrinsic?.params.find((p) => p.name === "Call")
 
     return call?.type ?? null
   }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- lookup: Add `call` parameter to lookup with the id of the `outerEnums.call` (also for v14) [#687](https://github.com/polkadot-api/polkadot-api/pull/687).
+
 ## 0.6.0 - 2024-08-28
 
 ### Changed
