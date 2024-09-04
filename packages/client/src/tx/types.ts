@@ -233,3 +233,27 @@ export interface TxEntry<
     ...args: Arg extends undefined ? [] : [data: Arg]
   ): Transaction<Arg, Pallet, Name, Asset>
 }
+
+export interface TxFromBinary<Asset> {
+  /**
+   * Asynchronously create the transaction object from a binary call data ready
+   * to sign, submit, estimate fees, etc.
+   *
+   * @param callData  SCALE-encoded call data.
+   * @returns Transaction object.
+   */
+  (callData: Binary): Promise<Transaction<any, any, any, Asset>>
+  /**
+   * Synchronously create the transaction object from a binary call data ready
+   * to sign, submit, estimate fees, etc.
+   *
+   * @param callData            SCALE-encoded call data.
+   * @param compatibilityToken  Token from got with `await
+   *                            typedApi.compatibilityToken`
+   * @returns Transaction object.
+   */
+  (
+    callData: Binary,
+    compatibilityToken: CompatibilityToken,
+  ): Transaction<any, any, any, Asset>
+}

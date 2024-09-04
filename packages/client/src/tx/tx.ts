@@ -68,6 +68,7 @@ export const createTxEntry = <
     argsAreCompatible,
     getRuntimeTypedef,
   }: CompatibilityHelper,
+  checkCompatibility: boolean,
 ): TxEntry<D, Arg, Pallet, Name, Asset> => {
   const fn = (arg?: Arg): any => {
     const getCallDataWithContext = (
@@ -76,7 +77,7 @@ export const createTxEntry = <
       txOptions: Partial<{ asset: any }> = {},
     ) => {
       const ctx = getCompatibilityApi(runtime).runtime()
-      if (!argsAreCompatible(runtime, ctx, arg))
+      if (checkCompatibility && !argsAreCompatible(runtime, ctx, arg))
         throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
       const { dynamicBuilder, assetId, lookup } = ctx

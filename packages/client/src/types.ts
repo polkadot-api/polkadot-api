@@ -15,7 +15,12 @@ import {
 import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
-import type { TxBroadcastEvent, TxEntry, TxFinalizedPayload } from "./tx"
+import type {
+  TxBroadcastEvent,
+  TxEntry,
+  TxFinalizedPayload,
+  TxFromBinary,
+} from "./tx"
 
 export type { ChainSpecData }
 
@@ -92,6 +97,7 @@ export type TypedApi<D extends ChainDefinition> = {
     TxFromPalletsDef<D["descriptors"]["pallets"]>,
     D["asset"]["_type"]
   >
+  txFromCallData: TxFromBinary<D["asset"]["_type"]>
   event: EvApi<D, EventsFromPalletsDef<D["descriptors"]["pallets"]>>
   apis: RuntimeCallsApi<D, D["descriptors"]["apis"]>
   constants: ConstApi<D, ConstFromPalletsDef<D["descriptors"]["pallets"]>>

@@ -20,6 +20,7 @@ import {
   OpType,
   compatibilityHelper,
   createCompatibilityToken,
+  getCompatibilityApi,
 } from "./compatibility"
 import { createConstantEntry } from "./constants"
 import { ChainDefinition } from "./descriptors"
@@ -28,6 +29,7 @@ import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import { PolkadotClient, TypedApi } from "./types"
+import { Binary } from "@polkadot-api/substrate-bindings"
 
 const createTypedApi = <D extends ChainDefinition>(
   compatibilityToken: Promise<CompatibilityToken>,
@@ -97,6 +99,7 @@ const createTypedApi = <D extends ChainDefinition>(
         (r) => r.getPalletEntryPoint(OpType.Tx, pallet, name),
         (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, name),
       ),
+      true,
     ),
   )
 
@@ -147,8 +150,40 @@ const createTypedApi = <D extends ChainDefinition>(
     ),
   )
 
+  const _callDataTx = (callData: Binary, token: CompatibilityToken) => {
+    const { lookup, dynamicBuilder } = getCompatibilityApi(token).runtime()
+    try {
+      const decoded = dynamicBuilder
+        .buildDefinition(lookup.call!)
+        .dec(callData.asBytes())
+      const pallet = decoded.type
+      const call = decoded.value.type
+      const args = decoded.value.value
+
+      return createTxEntry(
+        pallet,
+        call,
+        chainHead,
+        broadcast$,
+        compatibilityHelper(
+          compatibilityToken,
+          (r) => r.getPalletEntryPoint(OpType.Tx, pallet, call),
+          (ctx) =>
+            getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, call),
+        ),
+        false,
+      )(args)
+    } catch {
+      throw new Error("createTx: invalid call data")
+    }
+  }
+
   return {
     query,
+    txFromCallData: (callData: Binary, token?: CompatibilityToken) => {
+      if (token) return _callDataTx(callData, token)
+      return compatibilityToken.then((t) => _callDataTx(callData, t))
+    },
     tx,
     event,
     apis,
