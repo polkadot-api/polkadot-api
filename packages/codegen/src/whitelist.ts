@@ -1,4 +1,9 @@
 import type { V14, V15 } from "@polkadot-api/substrate-bindings"
+import { getUsedTypes } from "./get-used-types"
+import {
+  getChecksumBuilder,
+  getLookupFn,
+} from "@polkadot-api/metadata-builders"
 
 export function applyWhitelist(
   metadata: V14 | V15,
@@ -95,36 +100,57 @@ export function applyWhitelist(
     )
   }
 
-  const pallets = metadata.pallets
-    .map((pallet) => {
-      if (fullPallets.includes(pallet.name)) return pallet
+  const filterPallets = <T extends V14 | V15>(
+    pallets: T["pallets"],
+    filterErrors: boolean,
+  ): T["pallets"] =>
+    pallets
+      .map((pallet) => {
+        if (fullPallets.includes(pallet.name)) return pallet
 
-      return {
-        ...pallet,
-        calls: filterEnum("tx", pallet.name, pallet.calls),
-        constants: filterList("const", pallet.name, pallet.constants),
-        errors: filterEnum("error", pallet.name, pallet.errors),
-        events: filterEnum("event", pallet.name, pallet.events),
-        storage: pallet.storage
-          ? {
-              ...pallet.storage,
-              items: filterList("query", pallet.name, pallet.storage.items),
-            }
-          : undefined,
-      }
-    })
-    .filter(
-      (pallet) =>
-        getEnumLength(pallet.calls) +
-        pallet.constants.length +
-        getEnumLength(pallet.errors) +
-        getEnumLength(pallet.events) +
-        (pallet.storage?.items.length ?? 0),
-    )
+        return {
+          ...pallet,
+          calls: filterEnum("tx", pallet.name, pallet.calls),
+          constants: filterList("const", pallet.name, pallet.constants),
+          errors: filterErrors ? undefined : pallet.errors,
+          events: filterEnum("event", pallet.name, pallet.events),
+          storage: pallet.storage
+            ? {
+                ...pallet.storage,
+                items: filterList("query", pallet.name, pallet.storage.items),
+              }
+            : undefined,
+        }
+      })
+      .filter(
+        (pallet) =>
+          getEnumLength(pallet.calls) +
+          pallet.constants.length +
+          getEnumLength(pallet.errors) +
+          getEnumLength(pallet.events) +
+          (pallet.storage?.items.length ?? 0),
+      )
+
+  const pallets = filterPallets(metadata.pallets, false)
+
+  const visitedIdxs: number[] = []
+  const lookup = getLookupFn({ ...metadata, apis, pallets })
+  getUsedTypes(lookup, getChecksumBuilder(lookup)).checksums.forEach((_, idx) =>
+    visitedIdxs.push(idx),
+  )
+  let hasModuleError = false
+  for (const idx of visitedIdxs) {
+    const visited = lookup(idx)
+    // the only type we add byteLength is the decoded module error
+    if (visited.type === "enum" && visited.byteLength != null) {
+      hasModuleError = true
+      break
+    }
+  }
 
   return {
     ...metadata,
     apis,
-    pallets,
+    pallets: hasModuleError ? pallets : filterPallets(pallets, true),
   }
 }
