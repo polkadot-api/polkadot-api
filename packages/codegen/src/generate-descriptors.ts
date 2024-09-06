@@ -36,7 +36,7 @@ const customStringifyObject = (
 
 // type -> pallet -> name
 export type DescriptorValues = Record<
-  "storage" | "tx" | "events" | "errors" | "constants" | "apis",
+  "storage" | "tx" | "events" | "constants" | "apis",
   Record<string, Record<string, number>>
 >
 
@@ -234,7 +234,6 @@ export const generateDescriptors = (
     storage: {},
     tx: {},
     events: {},
-    errors: {},
     constants: {},
     apis: {},
   }
@@ -250,10 +249,6 @@ export const generateDescriptors = (
     descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
     descriptorValues["events"][pallet] = mapObjStr(
       events[pallet],
-      (x) => x.typeRef,
-    )
-    descriptorValues["errors"][pallet] = mapObjStr(
-      errors[pallet],
       (x) => x.typeRef,
     )
     descriptorValues["constants"][pallet] = mapObjStr(
