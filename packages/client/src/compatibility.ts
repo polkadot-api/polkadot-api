@@ -47,7 +47,6 @@ export const enum OpType {
   Storage = "storage",
   Tx = "tx",
   Event = "events",
-  Error = "errors",
   Const = "constants",
 }
 
