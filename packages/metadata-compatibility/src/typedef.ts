@@ -166,12 +166,15 @@ export function mapLookupToTypedef(
     case "enum":
       return {
         type: "enum",
-        value: Object.entries(entry.value).map(([key, params]) => [
-          key,
-          (params.type === "lookupEntry"
-            ? mapLookupToTypedef(params.value, resolve)
-            : mapLookupToTypedef(params, resolve)) ?? undefined,
-        ]),
+        value: Object.entries(entry.value).map(([key, params]) => {
+          if (params.type === "lookupEntry") resolve(params.value.id)
+          return [
+            key,
+            params.type === "lookupEntry"
+              ? mapLookupToTypedef(params.value, resolve)
+              : mapLookupToTypedef(params, resolve),
+          ]
+        }),
       }
     case "struct": {
       const value = Object.entries(entry.value).map(
