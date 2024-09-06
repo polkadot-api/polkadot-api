@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Resolve properly enum types
+
 ## 0.1.4 - 2024-09-04
 
 ### Fixed

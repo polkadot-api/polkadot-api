@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- `codegen`: Remove unused error descriptors
+- `codegen`: Resolve errors with a fine-grained approach in the whitelist
+- `compatibility`: Resolve properly enum types
+
 ## 1.2.0 - 2024-09-04
 
 ### Added

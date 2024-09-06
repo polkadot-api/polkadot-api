@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed
+
+- Resolve errors with a fine-grained approach in the whitelist
+
+### Removed
+
+- Remove errors from generated descriptors code
+
 ## 0.10.0 - 2024-09-04
 
 ### Changed
