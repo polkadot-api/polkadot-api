@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `polkadot-sdk-compat`: Add `fixChainSpec` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5539) on the PolkadotSDK node.
+
 ### Fixed
 
 - `codegen`: Remove unused error descriptors

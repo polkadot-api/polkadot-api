@@ -5,6 +5,7 @@ import {
   patchChainHeadEvents,
   fixUnorderedEvents,
   fixUnorderedBlocks,
+  fixChainSpec,
 } from "./parsed-enhancers"
 
 const withPolkadotSdkCompat = parsed(
@@ -13,6 +14,7 @@ const withPolkadotSdkCompat = parsed(
   unpinHash,
   patchChainHeadEvents,
   fixUnorderedBlocks,
+  fixChainSpec,
 )
 
 export * from "./parsed"

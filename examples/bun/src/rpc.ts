@@ -1,5 +1,5 @@
 import { CompatibilityLevel, createClient } from "polkadot-api"
-import { getWsProvider } from "polkadot-api/ws-provider/node"
+import { getWsProvider } from "polkadot-api/ws-provider/web"
 import { wnd } from "@polkadot-api/descriptors"
 
 const client = createClient(getWsProvider("wss://westend-rpc.polkadot.io"))
@@ -25,6 +25,9 @@ async function run() {
   if (auctionEndingIsCompatible) {
     console.log(testApi.constants.Auctions.EndingPeriod(token))
   }
+
+  const chainSpecData = await client.getChainSpecData()
+  console.log({ chainSpecData })
 
   client.destroy()
 }
