@@ -78,9 +78,9 @@ export const createTxEntry = <
     ) => {
       const ctx = getCompatibilityApi(runtime).runtime()
       const { dynamicBuilder, assetId, lookup } = ctx
-      let location, codec
+      let codecs
       try {
-        ;({ location, codec } = dynamicBuilder.buildCall(pallet, name))
+        codecs = dynamicBuilder.buildCall(pallet, name)
       } catch {
         throw new Error(`Runtime entry Tx(${pallet}.${name}) not found`)
       }
@@ -104,6 +104,7 @@ export const createTxEntry = <
         }
       }
 
+      const { location, codec } = codecs
       return {
         callData: Binary.fromBytes(
           mergeUint8(new Uint8Array(location), codec.enc(arg)),
