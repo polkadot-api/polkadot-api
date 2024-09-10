@@ -7,6 +7,7 @@
 - `codegen`: Remove unused error descriptors
 - `codegen`: Resolve errors with a fine-grained approach in the whitelist
 - `compatibility`: Resolve properly enum types
+- `client`: Throw an error when entrypoint is not found
 
 ## 1.2.0 - 2024-09-04
 
