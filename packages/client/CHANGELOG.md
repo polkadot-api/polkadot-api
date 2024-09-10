@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.2.1 - 2024-09-10
+
 ### Fixed
 
 - `codegen`: Remove unused error descriptors

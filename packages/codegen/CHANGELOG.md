@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.11.0 - 2024-09-10
+
 ### Fixed
 
 - Resolve errors with a fine-grained approach in the whitelist
