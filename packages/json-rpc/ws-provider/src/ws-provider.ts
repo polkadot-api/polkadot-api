@@ -31,9 +31,11 @@ export const getInternalWsProvider =
           if (typeof e.data === "string") onMessage(e.data)
         }
 
+        const _onHalt = () => onHalt()
+
         socket.addEventListener("message", _onMessage)
-        socket.addEventListener("error", onHalt)
-        socket.addEventListener("close", onHalt)
+        socket.addEventListener("error", _onHalt)
+        socket.addEventListener("close", _onHalt)
 
         return {
           send: (msg) => {
@@ -41,8 +43,8 @@ export const getInternalWsProvider =
           },
           disconnect: () => {
             socket.removeEventListener("message", _onMessage)
-            socket.removeEventListener("error", onHalt)
-            socket.removeEventListener("close", onHalt)
+            socket.removeEventListener("error", _onHalt)
+            socket.removeEventListener("close", _onHalt)
             socket.close()
           },
         }
