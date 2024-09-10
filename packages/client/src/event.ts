@@ -81,6 +81,18 @@ export const createEventEntry = <D, T>(
   const shared$ = chainHead.finalized$.pipe(
     withCompatibleRuntime(chainHead, (x) => x.hash),
     map(([block, runtime, ctx]) => {
+      const eventsIdx = ctx.lookup.metadata.pallets.find(
+        (p) => p.name === pallet,
+      )?.events
+      if (
+        eventsIdx == null ||
+        ctx.lookup.metadata.lookup[eventsIdx].def.tag !== "variant" ||
+        ctx.lookup.metadata.lookup[eventsIdx].def.value.find(
+          (ev) => ev.name === name,
+        ) == null
+      )
+        throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
+
       if (!argsAreCompatible(runtime, ctx, null)) throw compatibilityError()
       return [block, runtime, ctx] as const
     }),

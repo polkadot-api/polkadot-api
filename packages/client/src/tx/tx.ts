@@ -77,10 +77,16 @@ export const createTxEntry = <
       txOptions: Partial<{ asset: any }> = {},
     ) => {
       const ctx = getCompatibilityApi(runtime).runtime()
+      const { dynamicBuilder, assetId, lookup } = ctx
+      let location, codec
+      try {
+        ;({ location, codec } = dynamicBuilder.buildCall(pallet, name))
+      } catch {
+        throw new Error(`Runtime entry Tx(${pallet}.${name}) not found`)
+      }
       if (checkCompatibility && !argsAreCompatible(runtime, ctx, arg))
         throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
 
-      const { dynamicBuilder, assetId, lookup } = ctx
       let returnOptions = txOptions
       if (txOptions.asset) {
         if (
@@ -98,7 +104,6 @@ export const createTxEntry = <
         }
       }
 
-      const { location, codec } = dynamicBuilder.buildCall(pallet, name)
       return {
         callData: Binary.fromBytes(
           mergeUint8(new Uint8Array(location), codec.enc(arg)),

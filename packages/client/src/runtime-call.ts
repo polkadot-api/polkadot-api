@@ -49,8 +49,13 @@ export const createRuntimeCallEntry = (
 
     const result$ = compatibleRuntime$(chainHead, at).pipe(
       mergeMap(([runtime, ctx]) => {
+        let codecs
+        try {
+          codecs = ctx.dynamicBuilder.buildRuntimeCall(api, method)
+        } catch {
+          throw new Error(`Runtime entry RuntimeCall(${callName}) not found`)
+        }
         if (!argsAreCompatible(runtime, ctx, args)) throw compatibilityError()
-        const codecs = ctx.dynamicBuilder.buildRuntimeCall(api, method)
         return chainHead.call$(at, callName, toHex(codecs.args.enc(args))).pipe(
           map(codecs.value.dec),
           map((value) => {

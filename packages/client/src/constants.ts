@@ -40,7 +40,9 @@ export const createConstantEntry = <D, T>(
     const pallet = ctx.lookup.metadata.pallets.find(
       (p) => p.name === palletName,
     )
-    const constant = pallet?.constants.find((c) => c.name === name)!
+    const constant = pallet?.constants.find((c) => c.name === name)
+    if (constant == null)
+      throw new Error(`Runtime entry Constant(${palletName}.${name}) not found`)
     const result = ctx.dynamicBuilder
       .buildConstant(palletName, name)
       .dec(constant.value)
