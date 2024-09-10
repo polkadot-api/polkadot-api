@@ -1,5 +1,9 @@
 import { firstValueFromWithSignal, isOptionalArg, raceMap } from "@/utils"
-import { ChainHead$, NotBestBlockError } from "@polkadot-api/observable-client"
+import {
+  ChainHead$,
+  NotBestBlockError,
+  RuntimeContext,
+} from "@polkadot-api/observable-client"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import { Observable, debounceTime, distinctUntilChanged, map } from "rxjs"
 import {
@@ -145,6 +149,14 @@ export const createStorageEntry = (
   const invalidArgs = (args: Array<any>) =>
     new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
 
+  const getCodec = (ctx: RuntimeContext) => {
+    try {
+      return ctx.dynamicBuilder.buildStorage(pallet, name)
+    } catch {
+      throw new Error(`Runtime entry Storage(${pallet}.${name}) not found`)
+    }
+  }
+
   const watchValue = (...args: Array<any>) => {
     const target = args[args.length - 1]
     const actualArgs =
@@ -160,9 +172,9 @@ export const createStorageEntry = (
       debounceTime(0),
       withCompatibleRuntime(chainHead, (x) => x.hash),
       raceMap(([block, runtime, ctx]) => {
+        const codecs = getCodec(ctx)
         if (!argsAreCompatible(runtime, ctx, actualArgs))
           throw incompatibleError()
-        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         return chainHead
           .storage$(block.hash, "value", () => codecs.enc(...actualArgs))
           .pipe(
@@ -206,7 +218,7 @@ export const createStorageEntry = (
         at,
         "value",
         (ctx) => {
-          const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+          const codecs = getCodec(ctx)
           const actualArgs =
             args.length === codecs.len ? args : args.slice(0, -1)
           if (args !== actualArgs && !isLastArgOptional) throw invalidArgs(args)
@@ -216,7 +228,7 @@ export const createStorageEntry = (
         },
         null,
         (data, ctx) => {
-          const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+          const codecs = getCodec(ctx)
           const value = data === null ? codecs.fallback : codecs.dec(data)
           if (!valuesAreCompatible(descriptors, ctx, value))
             throw incompatibleError()
@@ -239,6 +251,7 @@ export const createStorageEntry = (
       at,
       "descendantsValues",
       (ctx) => {
+        const codecs = getCodec(ctx)
         // TODO partial compatibility check for args that become optional
         if (
           minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
@@ -246,7 +259,6 @@ export const createStorageEntry = (
         )
           throw incompatibleError()
 
-        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
         if (args.length > codecs.len) throw invalidArgs(args)
         const actualArgs =
           args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
@@ -256,7 +268,7 @@ export const createStorageEntry = (
       },
       null,
       (values, ctx) => {
-        const codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
+        const codecs = getCodec(ctx)
         if (
           values.some(
             ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
