@@ -5,6 +5,7 @@
 ### Added
 
 - `polkadot-sdk-compat`: Add `fixChainSpec` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5539) on the PolkadotSDK node.
+- `polkadot-sdk-compat`: Add `fixDescendantValues` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5589) on the PolkadotSDK node.
 
 ## 1.2.1 - 2024-09-10
 
