@@ -193,7 +193,8 @@ const _buildShapedDecoder = (
 
 const withPath = addPath(_buildShapedDecoder)
 const buildShapedDecoder = withCache(withPath, selfDecoder, (outter, inner) => {
-  inner.shape = outter.shape
+  inner.shape.codec = outter.shape.codec
+  ;(inner.shape as any).shape = (outter.shape as any).shape
   return outter
 })
 

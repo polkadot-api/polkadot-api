@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.4 - 2024-09-13
+
+### Fixed
+
+- Fix issue with recursive shapes reported on [#679](https://github.com/polkadot-api/polkadot-api/issues/679)
+
 ## 0.3.4 - 2024-09-04
 
 ### Fixed
