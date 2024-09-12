@@ -155,7 +155,7 @@ async function outputCodegen(
     chains,
     {
       client: clientPath,
-      metadataTypes: "./metadataTypes.scale",
+      metadataTypes: "./metadataTypes",
       types: "./common-types",
       descriptorValues: "./descriptors",
     },
@@ -174,22 +174,22 @@ async function outputCodegen(
   const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
 
   await fs.mkdir(outputFolder, { recursive: true })
-  await fs.writeFile(
-    path.join(outputFolder, "metadataTypes.scale"),
+
+  // Going through base64 conversion instead of using binary loader because of esbuild issue
+  // https://github.com/evanw/esbuild/issues/3894
+  const metadataTypesBase64 = Buffer.from(
     TypesCodec.enc([metadataTypes.entryPoints, metadataTypes.typedefs]),
-  )
+  ).toString("base64")
   await fs.writeFile(
-    path.join(outputFolder, "scale-import.d.ts"),
-    `declare module "*.scale" {
-      const content: string;
-      export default content;
-    }
+    path.join(outputFolder, "metadataTypes.ts"),
+    `
+const content = "${metadataTypesBase64}"
+export default content
     `,
   )
   await fs.writeFile(
     path.join(outputFolder, "descriptors.ts"),
-    `///<reference path="./scale-import.d.ts"/>
-${descriptorsFileContent}`,
+    descriptorsFileContent,
   )
   await fs.writeFile(
     path.join(outputFolder, "common-types.ts"),
