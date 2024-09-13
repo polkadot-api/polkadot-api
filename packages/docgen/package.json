@@ -1,0 +1,33 @@
+{
+  "name": "@polkadot-api/docgen",
+  "version": "0.0.1",
+  "author": "Yuri Volkov (https://github.com/mutantcornholio)",
+  "license": "MIT",
+  "sideEffects": true,
+  "type": "module",
+  "bin": {
+    "papi-generate-docs": "./dist/main.js"
+  },
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "build-core": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "build": "pnpm build-core",
+    "start": "pnpm build && node --enable-source-maps dist/main.js",
+    "test": "echo 'no tests'",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@commander-js/extra-typings": "^12.1.0",
+    "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/codegen": "workspace:*",
+    "@types/node": "^22.2.0",
+    "commander": "^12.1.0",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "typedoc": "^0.26.6"
+  }
+}
