@@ -4,17 +4,15 @@ import { getPolkadotSigner } from "@polkadot-api/signer"
 import {
   AccountId,
   Binary,
+  Decoder,
   Enum,
   SS58String,
-  Tuple,
-  compact,
-  u128,
   u32,
-  u8,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   Observable,
+  combineLatest,
   firstValueFrom,
   map,
   mergeMap,
@@ -30,6 +28,7 @@ import {
 import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
 import {
+  PaymentInfo,
   TxCall,
   TxEntry,
   TxObservable,
@@ -45,8 +44,6 @@ import {
 export { submit, submit$, InvalidTxError }
 
 const accountIdEnc = AccountId().enc
-const queryInfoRawDec = Tuple(compact, compact, u8, u128).dec
-const queryInfoDec = (input: string): bigint => queryInfoRawDec(input)[3]
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
 
@@ -180,7 +177,7 @@ export const createTxEntry = <
         ),
       )
 
-    const getEstimatedFees = async (
+    const getPaymentInfo = async (
       from: Uint8Array | SS58String,
       _options?: any,
     ) => {
@@ -192,14 +189,35 @@ export const createTxEntry = <
       const encoded = fromHex(await sign(fakeSigner, _options))
       const args = toHex(mergeUint8(encoded, u32.enc(encoded.length)))
 
+      const decoder$: Observable<Decoder<PaymentInfo>> = chainHead
+        .getRuntimeContext$(null)
+        .pipe(
+          map(
+            ({ dynamicBuilder: { buildRuntimeCall } }) =>
+              buildRuntimeCall("TransactionPaymentApi", "query_info").value[1],
+          ),
+        )
+
+      const call$ = chainHead.call$(
+        null,
+        "TransactionPaymentApi_query_info",
+        args,
+      )
+
       return firstValueFrom(
-        chainHead
-          .call$(null, "TransactionPaymentApi_query_info", args)
-          .pipe(map(queryInfoDec)),
+        combineLatest([call$, decoder$]).pipe(
+          map(([result, decoder]) => decoder(result)),
+        ),
       )
     }
 
+    const getEstimatedFees = async (
+      from: Uint8Array | SS58String,
+      _options?: any,
+    ) => (await getPaymentInfo(from, _options)).partial_fee
+
     return {
+      getPaymentInfo,
       getEstimatedFees,
       decodedCall: {
         type: pallet,
