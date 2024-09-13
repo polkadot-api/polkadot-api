@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Exported getMetadata and readPapiConfig, to use in @polkadot-api/docgen
+
 ### Fixed
 
 - Reduced startup memory usage due to esbuild issue [#711](https://github.com/polkadot-api/polkadot-api/pull/711)

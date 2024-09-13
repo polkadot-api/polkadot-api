@@ -12,7 +12,7 @@ const isDocs = (x: any) => {
   return keys.has("docs") && keys.has("value")
 }
 
-const customStringifyObject = (
+export const customStringifyObject = (
   input: string | Record<string, any> | Array<any>,
 ): string => {
   if (typeof input === "string" || typeof input === "number") return input

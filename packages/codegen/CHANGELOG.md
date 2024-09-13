@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- Added generation of ts files for docs
+- Added tests for types-builder
+
 ### Fixed
 
 - Reduced startup memory usage due to esbuild issue [#711](https://github.com/polkadot-api/polkadot-api/pull/711)
