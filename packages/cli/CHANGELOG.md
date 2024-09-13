@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Reduced startup memory usage due to esbuild issue [#711](https://github.com/polkadot-api/polkadot-api/pull/711)
+
 ## 0.8.2 - 2024-09-10
 
 ### Fixed

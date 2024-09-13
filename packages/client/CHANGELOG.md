@@ -7,6 +7,10 @@
 - `polkadot-sdk-compat`: Add `fixChainSpec` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5539) on the PolkadotSDK node.
 - `polkadot-sdk-compat`: Add `fixDescendantValues` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5589) on the PolkadotSDK node.
 
+### Fixed
+
+- codegen: reduced startup memory usage due to esbuild issue [#711](https://github.com/polkadot-api/polkadot-api/pull/711)
+
 ## 1.2.1 - 2024-09-10
 
 ### Fixed
