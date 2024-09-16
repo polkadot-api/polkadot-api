@@ -95,7 +95,7 @@ export interface TypeSpec {
   displayName: string[]
 }
 
-type Layout =
+export type Layout =
   | LeafLayout
   | RootLayout
   | HashLayout
@@ -103,19 +103,19 @@ type Layout =
   | StructLayout
   | EnumLayout
 
-interface LeafLayout {
+export interface LeafLayout {
   leaf: {
     key: string
     ty: number
   }
 }
-interface RootLayout {
+export interface RootLayout {
   root: {
     rootKey: string
     layout: Layout
   }
 }
-interface HashLayout {
+export interface HashLayout {
   hash: {
     offset: string
     strategy: {
@@ -126,20 +126,20 @@ interface HashLayout {
     layout: Layout
   }
 }
-interface ArrayLayout {
+export interface ArrayLayout {
   array: {
     offset: string
     len: number
     layout: Layout
   }
 }
-interface StructLayout {
+export interface StructLayout {
   struct: {
     name: string
     fields: Array<FieldLayout>
   }
 }
-interface EnumLayout {
+export interface EnumLayout {
   enum: {
     name: string
     dispatchKey: string
@@ -150,7 +150,7 @@ interface EnumLayout {
   }
 }
 
-interface FieldLayout {
+export interface FieldLayout {
   name: string
   layout: Layout
 }
