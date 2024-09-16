@@ -23,6 +23,7 @@ import { getMetadata } from "./get-metadata"
 import { compactTypeRefs, mergeUint8, toBytes } from "./utils"
 import { decodeAndCollectKnownLeafs } from "./decode-and-collect"
 import { getProofData } from "./proof"
+import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 
 export interface MetadataMerkleizer {
   /**
@@ -75,12 +76,46 @@ export interface MetadataMerkleizer {
   ) => Uint8Array
 }
 
+const assertExpected = <T>(name: string, expected: T, received?: T): void => {
+  if (received != null && received !== expected)
+    throw new Error(
+      `${name} not expected. Received ${received} expected ${expected}`,
+    )
+}
+
 export const merkleizeMetadata = (
   metadataBytes: Uint8Array | HexString,
-  info: ExtraInfo,
+  {
+    decimals,
+    tokenSymbol,
+    ...hinted
+  }: { decimals: number; tokenSymbol: string } & Partial<ExtraInfo>,
 ): MetadataMerkleizer => {
   const metadata = getMetadata(metadataBytes)
+  const { ss58Prefix, buildDefinition } = getDynamicBuilder(
+    getLookupFn(metadata),
+  )
+  if (ss58Prefix == null) throw new Error("SS58 prefix not found in metadata")
+  assertExpected("SS58 prefix", ss58Prefix, hinted.base58Prefix)
+  const version = metadata.pallets
+    .find((x) => x.name === "System")
+    ?.constants.find((x) => x.name === "Version")
+  if (version == null) throw new Error("System.Version constant not found")
+  const { spec_name: specName, spec_version: specVersion } = buildDefinition(
+    version.type,
+  ).dec(version.value)
+  if (typeof specName !== "string" || typeof specVersion !== "number")
+    throw new Error("Spec name or spec version not found")
+  assertExpected("Spec name", specName, hinted.specName)
+  assertExpected("Spec version", specVersion, hinted.specVersion)
 
+  const info: ExtraInfo = {
+    decimals,
+    tokenSymbol,
+    specVersion,
+    specName,
+    base58Prefix: ss58Prefix,
+  }
   const definitions = new Map<number, LookupValue>(
     metadata.lookup.map((value) => [value.id, value]),
   )
