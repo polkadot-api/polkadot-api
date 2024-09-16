@@ -390,6 +390,12 @@ importers:
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+      scale-ts:
+        specifier: ^1.6.0
+        version: 1.6.0
 
   packages/json-rpc/json-rpc-provider: {}
 
