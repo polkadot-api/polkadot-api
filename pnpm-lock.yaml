@@ -382,6 +382,15 @@ importers:
         specifier: ^5.5.4
         version: 5.6.2
 
+  packages/ink-builders:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+
   packages/json-rpc/json-rpc-provider: {}
 
   packages/json-rpc/json-rpc-provider-proxy:
