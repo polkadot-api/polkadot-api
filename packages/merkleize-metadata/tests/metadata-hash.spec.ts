@@ -4,15 +4,10 @@ import { readFile } from "fs/promises"
 
 let ksmMetadata: Awaited<Uint8Array>
 let merkleizedMetadata: Awaited<ReturnType<typeof merkleizeMetadata>>
+const ksmExtraInfo = { decimals: 12, tokenSymbol: "KSM" }
 beforeAll(async () => {
   ksmMetadata = new Uint8Array(await readFile("./tests/ksm.bin"))
-  merkleizedMetadata = merkleizeMetadata(ksmMetadata, {
-    decimals: 12,
-    specName: "kusama",
-    base58Prefix: 2,
-    specVersion: 1_002_006,
-    tokenSymbol: "KSM",
-  })
+  merkleizedMetadata = merkleizeMetadata(ksmMetadata, ksmExtraInfo)
 })
 
 describe("merkleizeMetadata snapshots", () => {
@@ -37,5 +32,20 @@ describe("merkleizeMetadata snapshots", () => {
         "0x164a0f001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe878a023bcb37967b6ba0685d002bb74e6cf3b4fc4ae37eb85f756bd9b026bede00",
       ),
     ).toMatchSnapshot()
+  })
+
+  it("generates proofs for extrinsic payload", () => {
+    expect(
+      merkleizedMetadata.getProofForExtrinsicPayload(
+        "0x040300648ad065ea416ca1725c29979cd41e288180f3e8aefde705cd3e0bab6cd212010bcb04fb711f012503000000164a0f001a000000b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe878a023bcb37967b6ba0685d002bb74e6cf3b4fc4ae37eb85f756bd9b026bede00",
+      ),
+    ).toMatchSnapshot()
+  })
+
+  it("fails to create with wrong extra info", () => {
+    expect(() =>
+      // ksm base58prefix is 2
+      merkleizeMetadata(ksmMetadata, { ...ksmExtraInfo, base58Prefix: 1 }),
+    ).toThrowError("SS58")
   })
 })

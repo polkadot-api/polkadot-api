@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Require only extra info not included in metadata
+
 ## 1.1.2 - 2024-07-25
 
 ### Fixed

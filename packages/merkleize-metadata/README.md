@@ -11,9 +11,6 @@ import { merkleizeMetadata } from "@polkadot-api/merkleized-metadata"
 const ksmMetadata = new Uint8Array(await readFile("ksm.bin"))
 const merkleizedMetadata = merkleizeMetadata(ksmMetadata, {
   decimals: 12,
-  specName: "kusama",
-  base58Prefix: 2,
-  specVersion: 1_002_006,
   tokenSymbol: "KSM",
 })
 
