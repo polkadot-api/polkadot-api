@@ -1,7 +1,18 @@
 import { getLookupBuilder } from "@polkadot-api/metadata-builders"
-import { Codec, Enum, StringRecord, Struct, Vector } from "scale-ts"
+import {
+  Bytes,
+  Codec,
+  CodecType,
+  enhanceCodec,
+  Enum,
+  StringRecord,
+  Struct,
+  Tuple,
+  Vector,
+} from "scale-ts"
 import { InkMetadataLookup } from "./get-lookup"
 import { Layout, MessageParamSpec, TypeSpec } from "./metadata-types"
+import { Binary } from "@polkadot-api/substrate-bindings"
 
 export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
   const { metadata } = metadataLookup
@@ -51,19 +62,33 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
   const buildStorageRoot = () => buildLayout(metadata.storage)
 
   const buildCallable = (callable: {
+    selector: string
     args: Array<MessageParamSpec>
     returnType: TypeSpec
-  }) => ({
-    args: Struct(
+  }) => {
+    const selectorBytes = Binary.fromHex(callable.selector).asBytes()
+    const argsCodec = Struct(
       Object.fromEntries(
         callable.args.map((param) => [
           param.label,
           buildDefinition(param.type.type),
         ]),
       ) as StringRecord<Codec<any>>,
-    ),
-    value: buildDefinition(callable.returnType.type),
-  })
+    )
+    const callCodec = Tuple(Bytes(4), argsCodec)
+
+    return {
+      call: enhanceCodec(
+        callCodec,
+        (value: CodecType<typeof argsCodec>): CodecType<typeof callCodec> => [
+          selectorBytes,
+          value,
+        ],
+        ([, value]) => value,
+      ),
+      value: buildDefinition(callable.returnType.type),
+    }
+  }
 
   const buildConstructor = (label: string) => {
     const constr = metadata.spec.constructors.find((c) => c.label === label)

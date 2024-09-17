@@ -111,7 +111,7 @@ export interface LeafLayout {
 }
 export interface RootLayout {
   root: {
-    rootKey: string
+    root_key: string
     layout: Layout
   }
 }

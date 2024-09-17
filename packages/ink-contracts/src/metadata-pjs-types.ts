@@ -23,6 +23,12 @@ const Variant = <O extends StringRecord<Codec<any>>>(inner: O) =>
   enhanceCodec(
     Enum(inner),
     (value: PjsVariant<O>) => {
+      if (typeof value === "string") {
+        return {
+          tag: value,
+          value: undefined,
+        } as any
+      }
       const [tag, val] = Object.entries(value)[0]
 
       return {
@@ -37,8 +43,16 @@ const Variant = <O extends StringRecord<Codec<any>>>(inner: O) =>
     },
   )
 
+// Seems like pjs can omit empty vectors
+const PjsVector = <T>(inner: Codec<T>, size?: number) =>
+  enhanceCodec(
+    Vector(inner, size),
+    (value: T[] | undefined) => value ?? [],
+    (v) => v,
+  )
+
 const oStr = Option(str)
-const docs = Vector(str)
+const docs = PjsVector(str)
 
 const primitive = Variant({
   bool: _void,
@@ -58,7 +72,7 @@ const primitive = Variant({
   i256: _void,
 })
 
-const fields = Vector(
+const fields = PjsVector(
   Struct({
     name: oStr,
     type: compactNumber,
@@ -77,7 +91,7 @@ const bitSequence = Struct({
   bitOrderType: compactNumber,
 })
 
-const variant = Vector(
+const variants = PjsVector(
   Struct({
     name: str,
     fields,
@@ -87,8 +101,12 @@ const variant = Vector(
 )
 
 const def = Variant({
-  composite: fields,
-  variant,
+  composite: Struct({
+    fields,
+  }),
+  variant: Struct({
+    variants,
+  }),
   sequence: compactNumber,
   array: arr,
   tuple: Vector(compactNumber),
@@ -101,9 +119,9 @@ const param = Struct({
   name: str,
   type: Option(compactNumber),
 })
-const params = Vector(param)
+const params = PjsVector(param)
 
-const entry = Struct({
+const metadataEntry = Struct({
   id: compactNumber,
   path: docs,
   params,
@@ -111,5 +129,29 @@ const entry = Struct({
   docs,
 })
 
-export const pjsTypes = Vector(entry)
+const entry = enhanceCodec(
+  metadataEntry,
+  (value: {
+    id: number
+    type: {
+      def: CodecType<typeof def>
+      path: CodecType<typeof docs>
+    }
+  }) => ({
+    id: value.id,
+    path: value.type.path,
+    params: [],
+    def: value.type.def,
+    docs: [],
+  }),
+  (value) => ({
+    id: value.id,
+    type: {
+      def: value.def,
+      path: value.path,
+    },
+  }),
+)
+
+export const pjsTypes = PjsVector(entry)
 export type PjsTypes = CodecType<typeof pjsTypes>

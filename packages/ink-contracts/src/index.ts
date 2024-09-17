@@ -1,3 +1,2 @@
-export * from "./lookups"
-export * from "./dynamic-builder"
-export * from "./checksum-builder"
+export * from "./dynamic-builders"
+export * from "./get-lookup"

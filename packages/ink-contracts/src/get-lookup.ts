@@ -13,6 +13,14 @@ export const getInkLookup = (metadata: InkMetadata) => {
   // into V14Lookup, because both v14 metadata lookup and ink types use scale-info
   const encoded = pjsTypes.enc(metadata.types)
   const decoded = v14Lookup.dec(encoded)
+
+  // Signal the lookup the AccountId type
+  const accountTypeId = metadata.spec.environment.accountId.type
+  const accountIdEntry = decoded.find((e) => e.id === accountTypeId)
+  if (accountIdEntry) {
+    accountIdEntry.path = ["AccountId32"]
+  }
+
   const getLookupEntryDef = denormalizeLookup(decoded)
 
   return Object.assign(getLookupEntryDef, { metadata })
