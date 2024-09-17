@@ -20,10 +20,10 @@ const client = createClient(relayChain)
 
 ### Request
 
-Invoke any method defined in the [JSON-RPC Spec](https://paritytech.github.io/json-rpc-interface-spec/introduction.html) using `client.request(method, params, abortSignal?)`. This returns a promise resolving with the response from the JSON-RPC server.
+Invoke any method defined in the [JSON-RPC Spec](https://paritytech.github.io/json-rpc-interface-spec/introduction.html) using `client._request(method, params, abortSignal?)`. This returns a promise resolving with the response from the JSON-RPC server.
 
 ```ts
-const genesisHash = await client.request("chainSpec_v1_genesisHash", [])
+const genesisHash = await client._request("chainSpec_v1_genesisHash", [])
 ```
 
 All promise-returning functions exported by this package accept an [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) for operation cancellation.
