@@ -4,9 +4,9 @@ This TypeScript package provides low-level bindings to the [Substrate JSON-RPC I
 
 ## Usage
 
-Start by creating a `SubstrateClient` object with the exported function `createClient`. To create one, you need a `ConnectProvider` provider defined in [@polkadot-api/json-rpc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/json-rpc-provider) for establishing a connection to a specific blockchain client.
+Start by creating a `SubstrateClient` object with the exported function `createClient`. To create one, you need a `ConnectProvider` provider defined in [@polkadot-api/json-rpc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/json-rpc) for establishing a connection to a specific blockchain client.
 
-For instance, you can use [@polkadot-api/sc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/sc-provider) to get a substrate-connect provider for connecting to the Polkadot relay chain through a light client:
+For instance, you can use [@polkadot-api/sc-provider](https://github.com/polkadot-api/polkadot-api/tree/main/packages/json-rpc/sm-provider) to get a substrate-connect provider for connecting to the Polkadot relay chain through a light client:
 
 ```ts
 import { getScProvider, WellKnownChain } from "@polkadot-api/sc-provider"
