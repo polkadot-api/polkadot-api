@@ -21,7 +21,6 @@ export const withCache =
       circular: LookupEntry,
       ...rest: Other
     ) => T,
-    saveCircularResult: (result: T) => boolean,
   ): FnWithStack<Other, T> =>
   (input, cache, stack, ...rest) => {
     const { id } = input
@@ -29,7 +28,7 @@ export const withCache =
 
     if (stack.has(id)) {
       const res = onEnterCircular(() => cache.get(id)!, input, ...rest)
-      if (saveCircularResult(res)) cache.set(id, res)
+      cache.set(id, res)
       return res
     }
 
@@ -41,7 +40,6 @@ export const withCache =
       result = onExitCircular(result, cache.get(id)!, input, ...rest)
     }
 
-    if (saveCircularResult(result)) cache.set(id, result)
-
+    cache.set(id, result)
     return result
   }
