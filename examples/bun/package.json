@@ -7,9 +7,11 @@
     "build-external": "papi && tsc --noEmit",
     "build": "pnpm build-external",
     "lightclient": "bun run ./src/lightclient.ts",
+    "compile:lightclient": "bun build ./src/lightclient.ts --compile --outfile ./dist/lightclient",
     "rpc": "bun run ./src/rpc.ts",
     "compile:rpc": "bun build ./src/rpc.ts --compile --outfile ./dist/rpc",
-    "compile:lightclient": "bun build ./src/lightclient.ts --compile --outfile ./dist/lightclient"
+    "ledger": "bun run ./src/ledger.ts",
+    "compile:ledger": "bun build ./src/ledger.ts --compile --outfile ./dist/ledger"
   },
   "devDependencies": {
     "@types/bun": "^1.1.8"
@@ -18,7 +20,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ledgerhq/hw-transport-node-hid": "^6.29.4",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/ledger-signer": "workspace:*",
     "polkadot-api": "workspace:*"
   }
 }
