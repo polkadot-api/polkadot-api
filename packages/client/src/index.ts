@@ -30,3 +30,4 @@ export type {
   FixedSizeArray,
   TxCallData,
 } from "./types"
+export type { CompatibilityToken } from "./compatibility"
