@@ -10,7 +10,7 @@ export const unpinHash: ParsedJsonRpcEnhancer = (base) => (onMsg) => {
       params[1].forEach((hash, idx) => {
         _send({
           ...rest,
-          id: idx === 0 ? id : `${id}-patched-idx`,
+          id: idx === 0 ? id : `${id}-patched-${idx}`,
           method,
           params: [params[0], hash],
         })
