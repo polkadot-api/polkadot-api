@@ -1,6 +1,12 @@
-import type { Chain } from "smoldot"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
+import {
+  type Chain,
+  AddChainError,
+  AlreadyDestroyedError,
+  CrashError,
+  JsonRpcDisabledError,
+} from "smoldot"
 
 let pending: Promise<Chain> | null
 
@@ -22,8 +28,17 @@ export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
           let message = ""
           try {
             message = await resolvedChain.nextJsonRpcResponse()
-          } catch (e) {
-            if (listening) onError()
+          } catch (error) {
+            if (listening)
+              onError({
+                recoverable: !(
+                  error instanceof AddChainError ||
+                  error instanceof AlreadyDestroyedError ||
+                  error instanceof CrashError ||
+                  error instanceof JsonRpcDisabledError
+                ),
+              })
+
             return
           }
           if (!listening) break
