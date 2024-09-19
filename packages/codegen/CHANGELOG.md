@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.0 - 2024-09-19
+
 ### Added
 
 - Added generation of ts files for docs

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.0 - 2024-09-19
+
 ### Added
 
 - Exported getMetadata and readPapiConfig, to use in @polkadot-api/docgen
