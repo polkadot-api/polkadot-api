@@ -5,52 +5,53 @@ import {
   TypeNode,
 } from "./type-representation"
 
+export type NodeCodeGenerator = (
+  innerNode: TypeNode | LookupTypeNode,
+  next: (node: TypeNode) => string,
+) => string
+
 /**
  * This function is chain-type agnostic. It will try its best to generate all
  * types, but will fail for non-native types (e.g. Binary)
- * This can be enhanced through the `getNodeCode` function.
+ * This can be enhanced through composition.
  */
+export const nativeNodeCodegen: NodeCodeGenerator = (node, next) => {
+  if (node.type === "primitive") return node.value
+  if (node.type === "chainPrimitive")
+    throw new Error("Can't generate chain primitive type " + node.value)
+  if (
+    node.type === "result" ||
+    node.type === "enum" ||
+    node.type === "fixedSizeBinary"
+  )
+    throw new Error("Can't generate chain primitive type " + node.type)
+  if (node.type === "array") return `Array<${next(node.value.value)}>`
+
+  if (node.type === "struct") {
+    return generateObjectCode(node.value, (value) => next(value))
+  }
+  if (node.type === "tuple") {
+    // docs seem to have no effect on tuples (VSCode)
+    return `[${node.value.map(({ value }) => next(value)).join(", ")}]`
+  }
+  if (node.type === "union")
+    return node.value.map((v) => `(${next(v)})`).join(" | ")
+
+  // Must be an option
+  return `(${next(node.value)}) | undefined`
+}
+
 export function generateTypescript(
   node: TypeNode,
-  getNodeCode: (
-    innerNode: TypeNode | LookupTypeNode,
-    next: (node: TypeNode) => string,
-  ) => string,
+  getNodeCode: NodeCodeGenerator,
 ): string {
-  const next = (node: TypeNode): string => {
-    if (node.type === "primitive") return node.value
-    if (node.type === "chainPrimitive")
-      throw new Error("Can't generate chain primitive type " + node.value)
-    if (
-      node.type === "result" ||
-      node.type === "enum" ||
-      node.type === "fixedSizeBinary"
-    )
-      throw new Error("Can't generate chain primitive type " + node.type)
-    if (node.type === "array")
-      return `Array<${getNodeCode(node.value.value, next)}>`
-
-    if (node.type === "struct") {
-      return generateObjectCode(node.value, (value) => getNodeCode(value, next))
-    }
-    if (node.type === "tuple") {
-      // docs seem to have no effect on tuples (VSCode)
-      return `[${node.value
-        .map(({ value }) => getNodeCode(value, next))
-        .join(", ")}]`
-    }
-    if (node.type === "union")
-      return node.value.map((v) => `(${getNodeCode(v, next)})`).join(" | ")
-
-    // Must be an option
-    return `(${getNodeCode(node.value, next)}) | undefined`
-  }
-  return getNodeCode(node, next)
+  const next = (node: TypeNode) => getNodeCode(node, next)
+  return next(node)
 }
 
 export function processPapiPrimitives(
   node: TypeNode,
-  next: (node: TypeNode) => string,
+  getCode: (node: TypeNode) => string,
 ): { code: string; import?: string } | null {
   if (node.type === "chainPrimitive") {
     return node.value === "BitSequence"
@@ -63,13 +64,13 @@ export function processPapiPrimitives(
 
   if (node.type === "result") {
     return {
-      code: `ResultPayload<${next(node.value.ok)}, ${next(node.value.ok)}>`,
+      code: `ResultPayload<${getCode(node.value.ok)}, ${getCode(node.value.ok)}>`,
       import: `ResultPayload`,
     }
   }
 
   if (node.type === "enum") {
-    const innerCode = generateObjectCode(node.value, next)
+    const innerCode = generateObjectCode(node.value, getCode)
 
     return {
       code: `Enum<${innerCode}>`,
@@ -86,7 +87,7 @@ export function processPapiPrimitives(
 
   if (node.type === "array" && node.value.len) {
     return {
-      code: `FixedSizeArray<${node.value.len}, ${next(node.value.value)}>`,
+      code: `FixedSizeArray<${node.value.len}, ${getCode(node.value.value)}>`,
       import: "FixedSizeArray",
     }
   }
@@ -100,6 +101,10 @@ export const generateObjectCode = (
 ) =>
   `{${fields
     .map(({ label, value, docs }) => {
+      if (!docs) {
+        console.log(fields)
+      }
+
       const docsPrefix = docs.length
         ? `\n/**\n${docs.map((doc) => ` *${doc}`).join("\n")}\n */\n`
         : ""

@@ -1,3 +1,5 @@
+import { ArrayVar, StructVar, TupleVar } from "@polkadot-api/metadata-builders"
+
 export type TypeNode =
   | PrimitiveType
   | ChainPrimitiveType
@@ -41,6 +43,7 @@ export type FixedSizeBinary = {
 export type StructType = {
   type: "struct"
   value: Array<StructField>
+  original: StructVar
 }
 export type StructField = {
   label: string
@@ -54,11 +57,13 @@ export type ArrayType = {
     value: LookupTypeNode
     len?: number
   }
+  original: ArrayVar
 }
 
 export type TupleType = {
   type: "tuple"
   value: Array<TupleField>
+  original: TupleVar
 }
 export type TupleField = {
   value: LookupTypeNode
@@ -80,15 +85,21 @@ export type EnumType = {
 export type EnumVariant = {
   label: string
   docs: string[]
-  value: LookupTypeNode | TupleType | StructType | ArrayType | undefined
+  value:
+    | LookupTypeNode
+    | TupleType
+    | StructType
+    | ArrayType
+    | FixedSizeBinary
+    | undefined
 }
 
 export type UnionType = {
   type: "union"
-  value: TypeNode[]
+  value: (TypeNode | LookupTypeNode)[]
 }
 
 export type OptionType = {
   type: "option"
-  value: TypeNode
+  value: LookupTypeNode
 }

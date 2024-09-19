@@ -8,6 +8,7 @@ import {
 import { getInternalTypesBuilder } from "./internal-types"
 import {
   generateTypescript,
+  nativeNodeCodegen,
   processPapiPrimitives,
 } from "./internal-types/generate-typescript"
 
@@ -72,19 +73,35 @@ export const getTypesBuilder = (
   const buildDefinition = (id: number) => {
     const node = internalBuilder(id)
 
-    return generateTypescript(node, (innerNode, next): string => {
-      const primitive = processPapiPrimitives(innerNode, next)
-      if (primitive) {
+    return generateTypescript(node, (node, next): string => {
+      // primitives are not assigned to intermediate types
+      if (node.type === "primitive") return nativeNodeCodegen(node, next)
+
+      const checksum =
+        "id" in node
+          ? getChecksum(node.id)
+          : // for types inlined in Enums, we might have an intermediate type
+            "original" in node
+            ? getChecksum(node.original)
+            : null
+
+      // We can't call this directly because we might have to prepare the
+      // `declarations.variables` if it turns out it's nested;
+      const getPapiPrimitive = () => {
         // TODO AnonymousEnum
-        primitive.import && clientFileImports.add(primitive.import)
-        return primitive.code
+        const papiPrimitive = processPapiPrimitives(node, next)
+        if (papiPrimitive?.import) {
+          clientFileImports.add(papiPrimitive.import)
+        }
+        return papiPrimitive
       }
 
-      if (!("id" in innerNode)) {
-        return next(innerNode)
+      if (!checksum) {
+        // It's not a lookup type nor an inlined Enum type
+        // Return the primitive type or the regular codegen.
+        return getPapiPrimitive()?.code ?? nativeNodeCodegen(node, next)
       }
 
-      const checksum = getChecksum(innerNode.id)!
       if (checksum === callsChecksum) {
         clientFileImports.add("TxCallData")
         return "TxCallData"
@@ -102,7 +119,7 @@ export const getTypesBuilder = (
         name: getName(checksum),
       }
       declarations.variables.set(checksum, variable)
-      variable.type = next(innerNode)
+      variable.type = getPapiPrimitive()?.code ?? nativeNodeCodegen(node, next)
 
       return variable.name
     })
@@ -155,6 +172,8 @@ export const getTypesBuilder = (
       )
       if (lookupEntry.type !== "enum") throw null
 
+      // if (getChecksum(lookupEntry.id) !== "ajkhn97prklo5") return ""
+
       // Generate the type that has all the variants - This is so the consumer can import the type, even if it's not used directly by the descriptor file
       buildDefinition(lookupEntry.id)
 
@@ -165,6 +184,8 @@ export const getTypesBuilder = (
       } else if (innerLookup.type === "void") {
         return "undefined"
       } else {
+        // const checksum = getChecksum(innerLookup)
+        // console.log("checksum", getChecksum(lookupEntry.id), checksum)
         const result = declarations.variables.get(
           getChecksum(innerLookup),
         )!.name
@@ -175,6 +196,7 @@ export const getTypesBuilder = (
     }
 
   const buildConstant = (pallet: string, constantName: string) => {
+    // return ""
     const storageEntry = metadata.pallets
       .find((x) => x.name === pallet)!
       .constants!.find((s) => s.name === constantName)!

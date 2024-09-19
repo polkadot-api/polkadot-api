@@ -1,11 +1,15 @@
 import {
+  ArrayVar,
   EnumVar,
   LookupEntry,
   MetadataPrimitives,
+  StructVar,
+  TupleVar,
 } from "@polkadot-api/metadata-builders"
 import {
   ArrayType,
   EnumVariant,
+  FixedSizeBinary,
   LookupTypeNode,
   NativeType,
   StructType,
@@ -13,7 +17,6 @@ import {
   TypeNode,
 } from "./type-representation"
 import { withCache } from "./with-cache"
-import { StringRecord } from "@polkadot-api/substrate-bindings"
 
 export const primitiveTypes: Record<
   MetadataPrimitives | "compactNumber" | "compactBn",
@@ -80,39 +83,47 @@ const buildType = withCache(
     )
       return ltn("chainPrimitive", "Binary")
 
-    const buildArray = (inner: LookupEntry, len: number) => {
-      if (inner.type === "primitive" && inner.value === "u8") {
-        return ltn("fixedSizeBinary", len)
+    const buildArray = (array: ArrayVar): ArrayType | FixedSizeBinary => {
+      const { value, len } = array
+      if (value.type === "primitive" && value.value === "u8") {
+        return { type: "fixedSizeBinary", value: len }
       }
-      return ltn("array", { value: buildNextType(inner), len })
+      return {
+        type: "array",
+        value: { value: buildNextType(value), len },
+        original: array,
+      }
     }
-    const buildTuple = (value: LookupEntry[], docs: string[][]) =>
-      ltn(
-        "tuple",
-        value.map((v, i) => ({
+    const buildTuple = (tuple: TupleVar): TupleType => {
+      const { value, innerDocs } = tuple
+
+      return {
+        type: "tuple",
+        value: value.map((v, i) => ({
           value: buildNextType(v),
-          docs: docs[i],
+          docs: innerDocs[i] ?? [],
         })),
-      )
-    const buildStruct = (
-      value: StringRecord<LookupEntry>,
-      docs: StringRecord<string[]>,
-    ) =>
-      ltn(
-        "struct",
-        Object.entries(value).map(([label, value]) => ({
+        original: tuple,
+      }
+    }
+    const buildStruct = (struct: StructVar): StructType => {
+      const { value, innerDocs } = struct
+      return {
+        type: "struct",
+        value: Object.entries(value).map(([label, value]) => ({
           label,
-          docs: docs[label],
+          docs: innerDocs[label] ?? [],
           value: buildNextType(value),
         })),
-      )
+        original: struct,
+      }
+    }
 
-    if (input.type === "array") return buildArray(input.value, input.len)
+    if (input.type === "array") return { id: input.id, ...buildArray(input) }
     if (input.type === "sequence")
       return ltn("array", { value: buildNextType(input.value) })
-    if (input.type === "tuple") return buildTuple(input.value, input.innerDocs)
-    if (input.type === "struct")
-      return buildStruct(input.value, input.innerDocs)
+    if (input.type === "tuple") return { id: input.id, ...buildTuple(input) }
+    if (input.type === "struct") return { id: input.id, ...buildStruct(input) }
 
     if (input.type === "option")
       return ltn("option", buildNextType(input.value))
@@ -126,24 +137,30 @@ const buildType = withCache(
     // it has to be an enum by now
     const buildInnerType = (
       value: EnumVar["value"][string],
-    ): LookupTypeNode | TupleType | StructType | ArrayType | undefined => {
+    ):
+      | LookupTypeNode
+      | TupleType
+      | StructType
+      | ArrayType
+      | FixedSizeBinary
+      | undefined => {
       switch (value.type) {
         case "lookupEntry":
           return buildNextType(value.value)
         case "void":
           return undefined
         case "array":
-          return buildArray(value.value, value.len)
+          return buildArray(value)
         case "struct":
-          return buildStruct(value.value, value.innerDocs)
+          return buildStruct(value)
         case "tuple":
-          return buildTuple(value.value, value.innerDocs)
+          return buildTuple(value)
       }
     }
 
     const variants = Object.entries(input.value).map(
       ([label, value]): EnumVariant => ({
-        docs: input.innerDocs[label],
+        docs: input.innerDocs[label] ?? [],
         label: label,
         value: buildInnerType(value),
       }),
