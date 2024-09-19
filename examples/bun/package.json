@@ -19,6 +19,11 @@
   },
   "dependencies": {
     "@polkadot-api/descriptors": "file:.papi/descriptors",
-    "polkadot-api": "workspace:*"
+    "@polkadot-api/observable-client": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
+    "polkadot-api": "workspace:*",
+    "rxjs": "^7.8.1"
   }
 }
