@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Some logs when there is a transport close/error
+
 ## 0.2.0 - 2024-08-12
 
 ### Changed
