@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.1 - 2024-09-19
+
 ### Fixed
 
 - Added a property to identify internal "stop" events.

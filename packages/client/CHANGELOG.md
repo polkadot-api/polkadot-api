@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.3.0 - 2024-09-19
+
 ### Added
 
 - `polkadot-sdk-compat`: Add `fixChainSpec` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5539) on the PolkadotSDK node.
