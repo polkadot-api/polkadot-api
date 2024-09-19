@@ -14,6 +14,7 @@
 
 - codegen: reduced startup memory usage due to esbuild issue [#711](https://github.com/polkadot-api/polkadot-api/pull/711)
 - `polkadot-sdk-compat`: Fix small bug with the unpin-hash enhancer
+- `json-rpc-proxy`: Added a property to identify internal "stop" events.
 
 ## 1.2.1 - 2024-09-10
 
