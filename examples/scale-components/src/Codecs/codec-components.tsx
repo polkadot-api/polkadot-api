@@ -1,6 +1,6 @@
 import { toHex } from "@polkadot-api/utils"
 import { HexString, SS58String } from "@polkadot-api/substrate-bindings"
-import React, { ReactNode } from "react"
+import React, { createContext, ReactNode, useContext } from "react"
 
 export type CodecComponentProps<T = any> = {
   value: T
@@ -26,6 +26,21 @@ export type BytesInterface = PrimiveComponentProps<Uint8Array> & {
 }
 export type AccountIdInterface = PrimiveComponentProps<SS58String>
 export type EthAccountInterface = PrimiveComponentProps<HexString>
+
+const DepthCtx = createContext<number>(0)
+const useCurrentDepth = () => useContext(DepthCtx)
+const withDepth: <T extends {}>(
+  base: React.FC<T & { depth: number }>,
+) => React.FC<T> = (Base) => (props) => {
+  const depth = useCurrentDepth()
+  return (
+    <DepthCtx.Provider value={depth + 1}>
+      <Base {...{ depth, ...props }} />
+    </DepthCtx.Provider>
+  )
+}
+
+const enhancer = withDepth
 
 export const CNumber: React.FC<NumberInterface> = ({ type, value }) => (
   <span>
@@ -147,24 +162,21 @@ type EnumInterface = CodecComponentProps<{ type: string; value: any }> & {
   onChange: (val: string | { type: string; value: any }) => void
   inner: ReactNode
 }
-export const CEnum: React.FC<EnumInterface> = ({
-  encodedValue,
-  value,
-  tags,
-  onChange,
-  inner,
-}) => {
-  return (
-    <>
-      <span>{toHex(encodedValue)}</span>
-      <select onChange={(e) => onChange(e.target.value)}>
-        {tags.map(({ tag }) => (
-          <option key={tag} value={tag} selected={tag === value.type}>
-            {tag}
-          </option>
-        ))}
-      </select>
-      {inner}
-    </>
-  )
-}
+
+export const CEnum: React.FC<EnumInterface> = withDepth(
+  ({ encodedValue, value, tags, onChange, inner, depth }) => {
+    return (
+      <>
+        <span>{toHex(encodedValue)}</span>
+        <select onChange={(e) => onChange(e.target.value)}>
+          {tags.map(({ tag }) => (
+            <option key={tag} value={tag} selected={tag === value.type}>
+              {tag}
+            </option>
+          ))}
+        </select>
+        {inner}
+      </>
+    )
+  },
+)
