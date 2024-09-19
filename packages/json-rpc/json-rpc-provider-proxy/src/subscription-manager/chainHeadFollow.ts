@@ -58,6 +58,7 @@ export const chainHeadFollow = (
             subscription: id,
             result: {
               event: STOP_EVENT,
+              eventType: "internal",
             },
           },
         }),

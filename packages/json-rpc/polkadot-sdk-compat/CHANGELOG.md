@@ -6,6 +6,7 @@
 
 - Add `fixChainSpec` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5539) on the PolkadotSDK node.
 - Add `fixDescendantValues` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5589) on the PolkadotSDK node.
+- Add `fixPrematureBlocks` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/issues/5761) on the PolkadotSDK node.
 
 ### Fixed
 

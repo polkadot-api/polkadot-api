@@ -7,13 +7,17 @@ import {
   fixUnorderedBlocks,
   fixChainSpec,
   fixDescendantValues,
+  fixPrematureBlocks,
 } from "./parsed-enhancers"
+import * as methods from "./methods"
+export { methods }
 
 const withPolkadotSdkCompat = parsed(
   translate,
   fixUnorderedEvents,
   unpinHash,
   patchChainHeadEvents,
+  fixPrematureBlocks,
   fixUnorderedBlocks,
   fixChainSpec,
   fixDescendantValues,
@@ -28,4 +32,5 @@ export {
   patchChainHeadEvents,
   fixUnorderedBlocks,
   fixDescendantValues,
+  fixPrematureBlocks,
 }
