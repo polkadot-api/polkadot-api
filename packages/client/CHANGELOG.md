@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.3.1 - 2024-09-20
+
 ### Fixed
 
 - `client`: Expose properly imports from `polkadot-api/ws-provider` and `polkadot-api/smoldot`
