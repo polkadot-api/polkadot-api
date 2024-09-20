@@ -113,6 +113,7 @@ export const CSequence: React.FC<SequenceInterface> = ({
         {innerComponents.map((component, idx) => {
           return (
             <Accordion.Root
+              key={idx}
               type="single"
               collapsible
               className="bg-gray-800 rounded my-2 p-2"
@@ -147,10 +148,21 @@ export const CArray: React.FC<ArrayInterface> = ({
       <ul>
         {innerComponents.map((component, idx) => {
           return (
-            <li key={idx} className="bg-gray-700 rounded my-2 p-2">
-              <h3 className="font-bold mb-2">ITEM {idx + 1}</h3>
-              {component}
-            </li>
+            <Accordion.Root
+              key={idx}
+              type="single"
+              collapsible
+              className="bg-gray-800 rounded my-2 p-2"
+            >
+              <Accordion.AccordionItem value={`item-${idx}`}>
+                <Accordion.AccordionTrigger className="flex flex-row justify-between w-full items-center">
+                  ITEM {idx + 1} <ChevronDownIcon />
+                </Accordion.AccordionTrigger>
+                <Accordion.AccordionContent>
+                  {component}
+                </Accordion.AccordionContent>
+              </Accordion.AccordionItem>
+            </Accordion.Root>
           )
         })}
       </ul>
