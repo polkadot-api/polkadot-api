@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Handle non-spec-compliant pruned-blocks.
+- Fix small mem-leak when deleting prunned-blocks
+
 ## 0.5.3 - 2024-09-04
 
 ### Fixed
