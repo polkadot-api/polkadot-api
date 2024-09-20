@@ -53,7 +53,7 @@ export const CNumber: React.FC<NumberInterface> = ({
   <PrimitiveDisplay
     type={type.toString()}
     value={value.toString()}
-    encodedValue={toHex(encodedValue).toString()}
+    encodedValue={encodedValue}
   />
 )
 
@@ -65,7 +65,7 @@ export const CBNumber: React.FC<BNumberInterface> = ({
   <PrimitiveDisplay
     type={type.toString()}
     value={`${value.toString(10)}n`}
-    encodedValue={toHex(encodedValue).toString()}
+    encodedValue={encodedValue}
   />
 )
 export const CBool: React.FC<BoolInterface> = ({ value }) => (
@@ -89,7 +89,7 @@ export const CAccountId: React.FC<AccountIdInterface> = ({
   <PrimitiveDisplay
     type="AccountId"
     value={value.toString()}
-    encodedValue={toHex(encodedValue).toString()}
+    encodedValue={encodedValue}
   />
 )
 
@@ -130,7 +130,7 @@ export const CSequence: React.FC<SequenceInterface> = ({
           )
         })}
       </ul>
-      <span>{toHex(encodedValue)}</span>
+      <EncodedDisplay encodedValue={encodedValue} />
     </>
   )
 }
@@ -166,7 +166,7 @@ export const CArray: React.FC<ArrayInterface> = ({
           )
         })}
       </ul>
-      <span>{toHex(encodedValue)}</span>
+      <EncodedDisplay encodedValue={encodedValue} />
     </>
   )
 }
@@ -234,7 +234,7 @@ export const CEnum: React.FC<EnumInterface> = withDepth(
   ({ encodedValue, value, tags, onChange, inner, depth }) => {
     return (
       <div className={clsx("flex flex-col text-left gap-2 w-fit")}>
-        <div className="flex flex-row gap-5">
+        <div className="flex flex-row gap-5 items-center">
           <select
             className="w-fit bg-slate-700 p-2 rounded"
             onChange={(e) => onChange(e.target.value)}
@@ -245,7 +245,7 @@ export const CEnum: React.FC<EnumInterface> = withDepth(
               </option>
             ))}
           </select>
-          <span>{toHex(encodedValue)}</span>
+          <EncodedDisplay encodedValue={encodedValue} />
         </div>
         <div style={{ marginLeft: "30px" }}>{inner}</div>
       </div>
@@ -256,13 +256,17 @@ export const CEnum: React.FC<EnumInterface> = withDepth(
 const PrimitiveDisplay: React.FC<{
   type: string
   value: string
-  encodedValue: string
+  encodedValue: Uint8Array
 }> = ({ type, value, encodedValue }) => (
-  <div className="flex flex-row gap-5">
+  <div className="flex flex-row gap-5 items-center">
     <span className="flex flex-row bg-gray-900 rounded p-2 w-fit min-w-20 gap-2 justify-between items-center px-2">
       <span className="text-sm text-gray-500">{type}</span>
       <span>{value}</span>
     </span>
-    {encodedValue}
+    <EncodedDisplay encodedValue={encodedValue} />
   </div>
 )
+
+const EncodedDisplay: React.FC<{ encodedValue: Uint8Array }> = ({
+  encodedValue,
+}) => <span className="text-gray-500">{toHex(encodedValue)}</span>
