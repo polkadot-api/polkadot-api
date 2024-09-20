@@ -42,17 +42,23 @@ const newExports = {
   ".": packageJsonContent.exports["."],
 }
 for (const [packageName, source] of reexports) {
+  const components = packageName.split("/")
+  const packageNameWithGlob =
+    components.length === 1
+      ? packageName
+      : components.slice(0, -1).join("/") + "/*"
   const fileName = packageName.replaceAll("/", "_")
-  newExports["./" + packageName] = {
+  const fileNameWithGlob = packageNameWithGlob.replaceAll("/", "_")
+  newExports["./" + packageNameWithGlob] = {
     node: {
-      import: `./dist/esm/reexports/${fileName}.mjs`,
-      require: `./dist/reexports/${fileName}.js`,
-      default: `./dist/reexports/${fileName}.js`,
+      import: `./dist/esm/reexports/${fileNameWithGlob}.mjs`,
+      require: `./dist/reexports/${fileNameWithGlob}.js`,
+      default: `./dist/reexports/${fileNameWithGlob}.js`,
     },
-    module: `./dist/esm/reexports/${fileName}.mjs`,
-    import: `./dist/esm/reexports/${fileName}.mjs`,
-    require: `./dist/reexports/${fileName}.js`,
-    default: `./dist/reexports/${fileName}.js`,
+    module: `./dist/esm/reexports/${fileNameWithGlob}.mjs`,
+    import: `./dist/esm/reexports/${fileNameWithGlob}.mjs`,
+    require: `./dist/reexports/${fileNameWithGlob}.js`,
+    default: `./dist/reexports/${fileNameWithGlob}.js`,
   }
 
   const packageDir = join(...packageName.split("/"))
