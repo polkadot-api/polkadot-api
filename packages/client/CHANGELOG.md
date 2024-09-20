@@ -6,6 +6,7 @@
 
 - `client`: Expose properly imports from `polkadot-api/ws-provider` and `polkadot-api/smoldot`
 - `observableClient`: Handle non-spec-compliant pruned-blocks.
+- `observableClient`: Fix small mem-leak when deleting prunned-blocks
 
 ## 1.3.0 - 2024-09-19
 

@@ -69,7 +69,7 @@ const getBlocksToUnpin = (blocks: PinnedBlocks, pruned: string[]) => {
   const deletedBlocks = [...pruned]
   for (let i = trail.length - 1; i >= 0; i--) {
     current = blocks.blocks.get(trail[i])!
-    if (!current.unpinned) return
+    if (!current.unpinned) break
     deletedBlocks.push(current.hash)
   }
 
