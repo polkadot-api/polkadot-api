@@ -421,7 +421,17 @@ importers:
         specifier: ^8.18.0
         version: 8.18.0
 
-  packages/known-chains: {}
+  packages/known-chains:
+    devDependencies:
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../substrate-client
+      '@polkadot-api/ws-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/ws-provider
+      '@types/node':
+        specifier: ^22.5.5
+        version: 22.5.5
 
   packages/merkleize-metadata:
     dependencies:

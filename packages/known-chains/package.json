@@ -7,6 +7,11 @@
     "url": "git+https://github.com/polkadot-api/polkadot-api.git"
   },
   "license": "MIT",
+  "devDependencies": {
+    "@polkadot-api/substrate-client": "workspace:*",
+    "@polkadot-api/ws-provider": "workspace:*",
+    "@types/node": "^22.5.5"
+  },
   "exports": {
     ".": {
       "module": "./dist/index.mjs",
