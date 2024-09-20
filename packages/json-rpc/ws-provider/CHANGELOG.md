@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.2 - 2024-09-20
+
 ### Fixed
 
 - Improve logs when there is a transport close/error
