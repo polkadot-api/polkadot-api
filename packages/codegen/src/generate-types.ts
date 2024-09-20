@@ -7,13 +7,15 @@ export const generateTypes = (
   },
 ) => {
   const clientImports = [
-    "Enum",
-    "_Enum",
-    "GetEnum",
-    "FixedSizeBinary",
-    "FixedSizeArray",
-    "Binary",
-    ...declarations.imports,
+    ...new Set([
+      "Enum",
+      "_Enum",
+      "GetEnum",
+      "FixedSizeBinary",
+      "FixedSizeArray",
+      "Binary",
+      ...declarations.imports,
+    ]),
   ]
 
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";`

@@ -73,7 +73,7 @@ export const getTypesBuilder = (
   const buildDefinition = (id: number) => {
     const node = internalBuilder(id)
 
-    return generateTypescript(node, (node, next): string => {
+    return generateTypescript(node, (node, next, level): string => {
       // primitives are not assigned to intermediate types
       if (node.type === "primitive") return nativeNodeCodegen(node, next)
 
@@ -87,11 +87,18 @@ export const getTypesBuilder = (
 
       // We can't call this directly because we might have to prepare the
       // `declarations.variables` if it turns out it's nested;
-      const getPapiPrimitive = () => {
-        // TODO AnonymousEnum
-        const papiPrimitive = processPapiPrimitives(node, next)
+      const getPapiPrimitive = (level: number) => {
+        const papiPrimitive = processPapiPrimitives(
+          node,
+          next,
+          !!checksum && !!knownTypes[checksum],
+        )
         if (papiPrimitive?.import) {
-          clientFileImports.add(papiPrimitive.import)
+          if (level === 0) {
+            clientFileImports.add(papiPrimitive.import)
+          } else {
+            declarations.imports.add(papiPrimitive.import)
+          }
         }
         return papiPrimitive
       }
@@ -99,17 +106,23 @@ export const getTypesBuilder = (
       if (!checksum) {
         // It's not a lookup type nor an inlined Enum type
         // Return the primitive type or the regular codegen.
-        return getPapiPrimitive()?.code ?? nativeNodeCodegen(node, next)
+        return getPapiPrimitive(level)?.code ?? nativeNodeCodegen(node, next)
       }
 
-      if (checksum === callsChecksum) {
-        clientFileImports.add("TxCallData")
+      // if (checksum === "e9sr1iqcg3cgm") {
+      //   console.log(node)
+      // }
+
+      if (level > 0 && checksum === callsChecksum) {
+        declarations.imports.add("TxCallData")
         return "TxCallData"
       }
 
       if (declarations.variables.has(checksum)) {
         const entry = declarations.variables.get(checksum)!
-        typeFileImports.add(entry.name)
+        if (level === 0) {
+          typeFileImports.add(entry.name)
+        }
         return anonymize(entry.name)
       }
 
@@ -118,10 +131,15 @@ export const getTypesBuilder = (
         type: "",
         name: getName(checksum),
       }
+      if (level === 0) {
+        typeFileImports.add(variable.name)
+      }
       declarations.variables.set(checksum, variable)
-      variable.type = getPapiPrimitive()?.code ?? nativeNodeCodegen(node, next)
+      // We're wrapping the variable with another, so we increase a level.
+      variable.type =
+        getPapiPrimitive(level + 1)?.code ?? nativeNodeCodegen(node, next)
 
-      return variable.name
+      return anonymize(variable.name)
     })
   }
 

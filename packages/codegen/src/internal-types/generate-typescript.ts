@@ -8,6 +8,7 @@ import {
 export type NodeCodeGenerator = (
   innerNode: TypeNode | LookupTypeNode,
   next: (node: TypeNode) => string,
+  level: number,
 ) => string
 
 /**
@@ -15,7 +16,10 @@ export type NodeCodeGenerator = (
  * types, but will fail for non-native types (e.g. Binary)
  * This can be enhanced through composition.
  */
-export const nativeNodeCodegen: NodeCodeGenerator = (node, next) => {
+export const nativeNodeCodegen = (
+  node: TypeNode,
+  next: (node: TypeNode) => string,
+) => {
   if (node.type === "primitive") return node.value
   if (node.type === "chainPrimitive")
     throw new Error("Can't generate chain primitive type " + node.value)
@@ -45,13 +49,15 @@ export function generateTypescript(
   node: TypeNode,
   getNodeCode: NodeCodeGenerator,
 ): string {
-  const next = (node: TypeNode) => getNodeCode(node, next)
-  return next(node)
+  const next = (node: TypeNode, level: number): string =>
+    getNodeCode(node, (v) => next(v, level + 1), level)
+  return next(node, 0)
 }
 
 export function processPapiPrimitives(
   node: TypeNode,
   getCode: (node: TypeNode) => string,
+  isKnown?: boolean,
 ): { code: string; import?: string } | null {
   if (node.type === "chainPrimitive") {
     return node.value === "BitSequence"
@@ -72,6 +78,11 @@ export function processPapiPrimitives(
   if (node.type === "enum") {
     const innerCode = generateObjectCode(node.value, getCode)
 
+    if (!isKnown) {
+      return {
+        code: `AnonymousEnum<${innerCode}>`,
+      }
+    }
     return {
       code: `Enum<${innerCode}>`,
       import: `Enum`,
@@ -101,10 +112,6 @@ export const generateObjectCode = (
 ) =>
   `{${fields
     .map(({ label, value, docs }) => {
-      if (!docs) {
-        console.log(fields)
-      }
-
       const docsPrefix = docs.length
         ? `\n/**\n${docs.map((doc) => ` *${doc}`).join("\n")}\n */\n`
         : ""

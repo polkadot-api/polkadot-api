@@ -281,22 +281,24 @@ export const generateDescriptors = (
   )
 
   const clientImports = [
-    "StorageDescriptor",
-    "PlainDescriptor",
-    "TxDescriptor",
-    "RuntimeDescriptor",
-    "Enum",
-    "_Enum",
-    "GetEnum",
-    "Binary",
-    "FixedSizeBinary",
-    "FixedSizeArray",
-    "QueryFromPalletsDef",
-    "TxFromPalletsDef",
-    "EventsFromPalletsDef",
-    "ErrorsFromPalletsDef",
-    "ConstFromPalletsDef",
-    ...typesBuilder.getClientFileImports(),
+    ...new Set([
+      "StorageDescriptor",
+      "PlainDescriptor",
+      "TxDescriptor",
+      "RuntimeDescriptor",
+      "Enum",
+      "_Enum",
+      "GetEnum",
+      "Binary",
+      "FixedSizeBinary",
+      "FixedSizeArray",
+      "QueryFromPalletsDef",
+      "TxFromPalletsDef",
+      "EventsFromPalletsDef",
+      "ErrorsFromPalletsDef",
+      "ConstFromPalletsDef",
+      ...typesBuilder.getClientFileImports(),
+    ]),
   ]
 
   const assetId = getAssetId(lookupFn)
@@ -309,10 +311,7 @@ export const generateDescriptors = (
       ? "unknown"
       : typesBuilder.buildTypeDefinition(dispatchErrorId)
 
-  const commonTypeImports = [
-    ...typesBuilder.getTypeFileImports(),
-    callInterface,
-  ].filter((v) => v !== null)
+  const commonTypeImports = typesBuilder.getTypeFileImports()
 
   const exports = [
     `default as ${key}`,
