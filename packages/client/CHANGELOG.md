@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.3.2 - 2024-09-20
+
+### Fixed
+
+- `polkadot-sdk-compat`: ensure that the `fixPrematureBlocks` enhancer also accounts for `prrunedBlockHashes` that are not pinned.
+
 ## 1.3.1 - 2024-09-20
 
 ### Fixed
