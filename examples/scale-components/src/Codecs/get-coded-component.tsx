@@ -71,6 +71,7 @@ export const getCodecComponent = (
       const innerEncoded = encodedValue.slice(1)
 
       const Inner = baseComponents.CEnum
+
       return (
         <Inner
           {...{
@@ -81,6 +82,7 @@ export const getCodecComponent = (
               tag,
               idx,
             })),
+
             inner: (
               <CodecComponent
                 dynCodecs={dynCodecs}
@@ -95,7 +97,7 @@ export const getCodecComponent = (
     }
 
     if (entry.type === "result") {
-      const Inner = baseComponents.CREsult
+      const Inner = baseComponents.CResult
       return (
         <Inner
           {...{
