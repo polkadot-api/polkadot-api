@@ -49,6 +49,7 @@ jobs:
             cli,
             client,
             codegen,
+            docgen,
             known-chains,
             json-rpc/json-rpc-provider,
             json-rpc/json-rpc-provider-proxy,
