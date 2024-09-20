@@ -25,6 +25,7 @@
       "default": "./dist/index.js"
     },
     "./logs-provider": {
+      "types": "./dist/reexports/logs-provider.d.ts",
       "node": {
         "import": "./dist/esm/reexports/logs-provider.mjs",
         "require": "./dist/reexports/logs-provider.js",
@@ -36,6 +37,7 @@
       "default": "./dist/reexports/logs-provider.js"
     },
     "./polkadot-sdk-compat": {
+      "types": "./dist/reexports/polkadot-sdk-compat.d.ts",
       "node": {
         "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
         "require": "./dist/reexports/polkadot-sdk-compat.js",
@@ -47,6 +49,7 @@
       "default": "./dist/reexports/polkadot-sdk-compat.js"
     },
     "./pjs-signer": {
+      "types": "./dist/reexports/pjs-signer.d.ts",
       "node": {
         "import": "./dist/esm/reexports/pjs-signer.mjs",
         "require": "./dist/reexports/pjs-signer.js",
@@ -58,6 +61,7 @@
       "default": "./dist/reexports/pjs-signer.js"
     },
     "./signer": {
+      "types": "./dist/reexports/signer.d.ts",
       "node": {
         "import": "./dist/esm/reexports/signer.mjs",
         "require": "./dist/reexports/signer.js",
@@ -69,6 +73,7 @@
       "default": "./dist/reexports/signer.js"
     },
     "./sm-provider": {
+      "types": "./dist/reexports/sm-provider.d.ts",
       "node": {
         "import": "./dist/esm/reexports/sm-provider.mjs",
         "require": "./dist/reexports/sm-provider.js",
@@ -79,29 +84,20 @@
       "require": "./dist/reexports/sm-provider.js",
       "default": "./dist/reexports/sm-provider.js"
     },
-    "./ws-provider/node": {
+    "./ws-provider/*": {
+      "types": "./dist/reexports/ws-provider_*.d.ts",
       "node": {
-        "import": "./dist/esm/reexports/ws-provider_node.mjs",
-        "require": "./dist/reexports/ws-provider_node.js",
-        "default": "./dist/reexports/ws-provider_node.js"
+        "import": "./dist/esm/reexports/ws-provider_*.mjs",
+        "require": "./dist/reexports/ws-provider_*.js",
+        "default": "./dist/reexports/ws-provider_*.js"
       },
-      "module": "./dist/esm/reexports/ws-provider_node.mjs",
-      "import": "./dist/esm/reexports/ws-provider_node.mjs",
-      "require": "./dist/reexports/ws-provider_node.js",
-      "default": "./dist/reexports/ws-provider_node.js"
-    },
-    "./ws-provider/web": {
-      "node": {
-        "import": "./dist/esm/reexports/ws-provider_web.mjs",
-        "require": "./dist/reexports/ws-provider_web.js",
-        "default": "./dist/reexports/ws-provider_web.js"
-      },
-      "module": "./dist/esm/reexports/ws-provider_web.mjs",
-      "import": "./dist/esm/reexports/ws-provider_web.mjs",
-      "require": "./dist/reexports/ws-provider_web.js",
-      "default": "./dist/reexports/ws-provider_web.js"
+      "module": "./dist/esm/reexports/ws-provider_*.mjs",
+      "import": "./dist/esm/reexports/ws-provider_*.mjs",
+      "require": "./dist/reexports/ws-provider_*.js",
+      "default": "./dist/reexports/ws-provider_*.js"
     },
     "./chains": {
+      "types": "./dist/reexports/chains.d.ts",
       "node": {
         "import": "./dist/esm/reexports/chains.mjs",
         "require": "./dist/reexports/chains.js",
@@ -112,238 +108,20 @@
       "require": "./dist/reexports/chains.js",
       "default": "./dist/reexports/chains.js"
     },
-    "./chains/ksmcc3": {
+    "./chains/*": {
+      "types": "./dist/reexports/chains_*.d.ts",
       "node": {
-        "import": "./dist/esm/reexports/chains_ksmcc3.mjs",
-        "require": "./dist/reexports/chains_ksmcc3.js",
-        "default": "./dist/reexports/chains_ksmcc3.js"
+        "import": "./dist/esm/reexports/chains_*.mjs",
+        "require": "./dist/reexports/chains_*.js",
+        "default": "./dist/reexports/chains_*.js"
       },
-      "module": "./dist/esm/reexports/chains_ksmcc3.mjs",
-      "import": "./dist/esm/reexports/chains_ksmcc3.mjs",
-      "require": "./dist/reexports/chains_ksmcc3.js",
-      "default": "./dist/reexports/chains_ksmcc3.js"
-    },
-    "./chains/ksmcc3_asset_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_ksmcc3_asset_hub.mjs",
-        "require": "./dist/reexports/chains_ksmcc3_asset_hub.js",
-        "default": "./dist/reexports/chains_ksmcc3_asset_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_ksmcc3_asset_hub.mjs",
-      "import": "./dist/esm/reexports/chains_ksmcc3_asset_hub.mjs",
-      "require": "./dist/reexports/chains_ksmcc3_asset_hub.js",
-      "default": "./dist/reexports/chains_ksmcc3_asset_hub.js"
-    },
-    "./chains/ksmcc3_bridge_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_ksmcc3_bridge_hub.mjs",
-        "require": "./dist/reexports/chains_ksmcc3_bridge_hub.js",
-        "default": "./dist/reexports/chains_ksmcc3_bridge_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_ksmcc3_bridge_hub.mjs",
-      "import": "./dist/esm/reexports/chains_ksmcc3_bridge_hub.mjs",
-      "require": "./dist/reexports/chains_ksmcc3_bridge_hub.js",
-      "default": "./dist/reexports/chains_ksmcc3_bridge_hub.js"
-    },
-    "./chains/ksmcc3_encointer": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_ksmcc3_encointer.mjs",
-        "require": "./dist/reexports/chains_ksmcc3_encointer.js",
-        "default": "./dist/reexports/chains_ksmcc3_encointer.js"
-      },
-      "module": "./dist/esm/reexports/chains_ksmcc3_encointer.mjs",
-      "import": "./dist/esm/reexports/chains_ksmcc3_encointer.mjs",
-      "require": "./dist/reexports/chains_ksmcc3_encointer.js",
-      "default": "./dist/reexports/chains_ksmcc3_encointer.js"
-    },
-    "./chains/ksmcc3_people": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_ksmcc3_people.mjs",
-        "require": "./dist/reexports/chains_ksmcc3_people.js",
-        "default": "./dist/reexports/chains_ksmcc3_people.js"
-      },
-      "module": "./dist/esm/reexports/chains_ksmcc3_people.mjs",
-      "import": "./dist/esm/reexports/chains_ksmcc3_people.mjs",
-      "require": "./dist/reexports/chains_ksmcc3_people.js",
-      "default": "./dist/reexports/chains_ksmcc3_people.js"
-    },
-    "./chains/paseo": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_paseo.mjs",
-        "require": "./dist/reexports/chains_paseo.js",
-        "default": "./dist/reexports/chains_paseo.js"
-      },
-      "module": "./dist/esm/reexports/chains_paseo.mjs",
-      "import": "./dist/esm/reexports/chains_paseo.mjs",
-      "require": "./dist/reexports/chains_paseo.js",
-      "default": "./dist/reexports/chains_paseo.js"
-    },
-    "./chains/paseo_asset_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_paseo_asset_hub.mjs",
-        "require": "./dist/reexports/chains_paseo_asset_hub.js",
-        "default": "./dist/reexports/chains_paseo_asset_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_paseo_asset_hub.mjs",
-      "import": "./dist/esm/reexports/chains_paseo_asset_hub.mjs",
-      "require": "./dist/reexports/chains_paseo_asset_hub.js",
-      "default": "./dist/reexports/chains_paseo_asset_hub.js"
-    },
-    "./chains/polkadot": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_polkadot.mjs",
-        "require": "./dist/reexports/chains_polkadot.js",
-        "default": "./dist/reexports/chains_polkadot.js"
-      },
-      "module": "./dist/esm/reexports/chains_polkadot.mjs",
-      "import": "./dist/esm/reexports/chains_polkadot.mjs",
-      "require": "./dist/reexports/chains_polkadot.js",
-      "default": "./dist/reexports/chains_polkadot.js"
-    },
-    "./chains/polkadot_asset_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_polkadot_asset_hub.mjs",
-        "require": "./dist/reexports/chains_polkadot_asset_hub.js",
-        "default": "./dist/reexports/chains_polkadot_asset_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_polkadot_asset_hub.mjs",
-      "import": "./dist/esm/reexports/chains_polkadot_asset_hub.mjs",
-      "require": "./dist/reexports/chains_polkadot_asset_hub.js",
-      "default": "./dist/reexports/chains_polkadot_asset_hub.js"
-    },
-    "./chains/polkadot_bridge_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_polkadot_bridge_hub.mjs",
-        "require": "./dist/reexports/chains_polkadot_bridge_hub.js",
-        "default": "./dist/reexports/chains_polkadot_bridge_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_polkadot_bridge_hub.mjs",
-      "import": "./dist/esm/reexports/chains_polkadot_bridge_hub.mjs",
-      "require": "./dist/reexports/chains_polkadot_bridge_hub.js",
-      "default": "./dist/reexports/chains_polkadot_bridge_hub.js"
-    },
-    "./chains/polkadot_collectives": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_polkadot_collectives.mjs",
-        "require": "./dist/reexports/chains_polkadot_collectives.js",
-        "default": "./dist/reexports/chains_polkadot_collectives.js"
-      },
-      "module": "./dist/esm/reexports/chains_polkadot_collectives.mjs",
-      "import": "./dist/esm/reexports/chains_polkadot_collectives.mjs",
-      "require": "./dist/reexports/chains_polkadot_collectives.js",
-      "default": "./dist/reexports/chains_polkadot_collectives.js"
-    },
-    "./chains/polkadot_people": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_polkadot_people.mjs",
-        "require": "./dist/reexports/chains_polkadot_people.js",
-        "default": "./dist/reexports/chains_polkadot_people.js"
-      },
-      "module": "./dist/esm/reexports/chains_polkadot_people.mjs",
-      "import": "./dist/esm/reexports/chains_polkadot_people.mjs",
-      "require": "./dist/reexports/chains_polkadot_people.js",
-      "default": "./dist/reexports/chains_polkadot_people.js"
-    },
-    "./chains/rococo_v2_2": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_rococo_v2_2.mjs",
-        "require": "./dist/reexports/chains_rococo_v2_2.js",
-        "default": "./dist/reexports/chains_rococo_v2_2.js"
-      },
-      "module": "./dist/esm/reexports/chains_rococo_v2_2.mjs",
-      "import": "./dist/esm/reexports/chains_rococo_v2_2.mjs",
-      "require": "./dist/reexports/chains_rococo_v2_2.js",
-      "default": "./dist/reexports/chains_rococo_v2_2.js"
-    },
-    "./chains/rococo_v2_2_asset_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_rococo_v2_2_asset_hub.mjs",
-        "require": "./dist/reexports/chains_rococo_v2_2_asset_hub.js",
-        "default": "./dist/reexports/chains_rococo_v2_2_asset_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_rococo_v2_2_asset_hub.mjs",
-      "import": "./dist/esm/reexports/chains_rococo_v2_2_asset_hub.mjs",
-      "require": "./dist/reexports/chains_rococo_v2_2_asset_hub.js",
-      "default": "./dist/reexports/chains_rococo_v2_2_asset_hub.js"
-    },
-    "./chains/rococo_v2_2_bridge_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_rococo_v2_2_bridge_hub.mjs",
-        "require": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js",
-        "default": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_rococo_v2_2_bridge_hub.mjs",
-      "import": "./dist/esm/reexports/chains_rococo_v2_2_bridge_hub.mjs",
-      "require": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js",
-      "default": "./dist/reexports/chains_rococo_v2_2_bridge_hub.js"
-    },
-    "./chains/rococo_v2_2_people": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_rococo_v2_2_people.mjs",
-        "require": "./dist/reexports/chains_rococo_v2_2_people.js",
-        "default": "./dist/reexports/chains_rococo_v2_2_people.js"
-      },
-      "module": "./dist/esm/reexports/chains_rococo_v2_2_people.mjs",
-      "import": "./dist/esm/reexports/chains_rococo_v2_2_people.mjs",
-      "require": "./dist/reexports/chains_rococo_v2_2_people.js",
-      "default": "./dist/reexports/chains_rococo_v2_2_people.js"
-    },
-    "./chains/westend2": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_westend2.mjs",
-        "require": "./dist/reexports/chains_westend2.js",
-        "default": "./dist/reexports/chains_westend2.js"
-      },
-      "module": "./dist/esm/reexports/chains_westend2.mjs",
-      "import": "./dist/esm/reexports/chains_westend2.mjs",
-      "require": "./dist/reexports/chains_westend2.js",
-      "default": "./dist/reexports/chains_westend2.js"
-    },
-    "./chains/westend2_asset_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_westend2_asset_hub.mjs",
-        "require": "./dist/reexports/chains_westend2_asset_hub.js",
-        "default": "./dist/reexports/chains_westend2_asset_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_westend2_asset_hub.mjs",
-      "import": "./dist/esm/reexports/chains_westend2_asset_hub.mjs",
-      "require": "./dist/reexports/chains_westend2_asset_hub.js",
-      "default": "./dist/reexports/chains_westend2_asset_hub.js"
-    },
-    "./chains/westend2_bridge_hub": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_westend2_bridge_hub.mjs",
-        "require": "./dist/reexports/chains_westend2_bridge_hub.js",
-        "default": "./dist/reexports/chains_westend2_bridge_hub.js"
-      },
-      "module": "./dist/esm/reexports/chains_westend2_bridge_hub.mjs",
-      "import": "./dist/esm/reexports/chains_westend2_bridge_hub.mjs",
-      "require": "./dist/reexports/chains_westend2_bridge_hub.js",
-      "default": "./dist/reexports/chains_westend2_bridge_hub.js"
-    },
-    "./chains/westend2_collectives": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_westend2_collectives.mjs",
-        "require": "./dist/reexports/chains_westend2_collectives.js",
-        "default": "./dist/reexports/chains_westend2_collectives.js"
-      },
-      "module": "./dist/esm/reexports/chains_westend2_collectives.mjs",
-      "import": "./dist/esm/reexports/chains_westend2_collectives.mjs",
-      "require": "./dist/reexports/chains_westend2_collectives.js",
-      "default": "./dist/reexports/chains_westend2_collectives.js"
-    },
-    "./chains/westend2_people": {
-      "node": {
-        "import": "./dist/esm/reexports/chains_westend2_people.mjs",
-        "require": "./dist/reexports/chains_westend2_people.js",
-        "default": "./dist/reexports/chains_westend2_people.js"
-      },
-      "module": "./dist/esm/reexports/chains_westend2_people.mjs",
-      "import": "./dist/esm/reexports/chains_westend2_people.mjs",
-      "require": "./dist/reexports/chains_westend2_people.js",
-      "default": "./dist/reexports/chains_westend2_people.js"
+      "module": "./dist/esm/reexports/chains_*.mjs",
+      "import": "./dist/esm/reexports/chains_*.mjs",
+      "require": "./dist/reexports/chains_*.js",
+      "default": "./dist/reexports/chains_*.js"
     },
     "./smoldot": {
+      "types": "./dist/reexports/smoldot.d.ts",
       "node": {
         "import": "./dist/esm/reexports/smoldot.mjs",
         "require": "./dist/reexports/smoldot.js",
@@ -354,51 +132,20 @@
       "require": "./dist/reexports/smoldot.js",
       "default": "./dist/reexports/smoldot.js"
     },
-    "./smoldot/worker": {
+    "./smoldot/*": {
+      "types": "./dist/reexports/smoldot_*.d.ts",
       "node": {
-        "import": "./dist/esm/reexports/smoldot_worker.mjs",
-        "require": "./dist/reexports/smoldot_worker.js",
-        "default": "./dist/reexports/smoldot_worker.js"
+        "import": "./dist/esm/reexports/smoldot_*.mjs",
+        "require": "./dist/reexports/smoldot_*.js",
+        "default": "./dist/reexports/smoldot_*.js"
       },
-      "module": "./dist/esm/reexports/smoldot_worker.mjs",
-      "import": "./dist/esm/reexports/smoldot_worker.mjs",
-      "require": "./dist/reexports/smoldot_worker.js",
-      "default": "./dist/reexports/smoldot_worker.js"
-    },
-    "./smoldot/from-worker": {
-      "node": {
-        "import": "./dist/esm/reexports/smoldot_from-worker.mjs",
-        "require": "./dist/reexports/smoldot_from-worker.js",
-        "default": "./dist/reexports/smoldot_from-worker.js"
-      },
-      "module": "./dist/esm/reexports/smoldot_from-worker.mjs",
-      "import": "./dist/esm/reexports/smoldot_from-worker.mjs",
-      "require": "./dist/reexports/smoldot_from-worker.js",
-      "default": "./dist/reexports/smoldot_from-worker.js"
-    },
-    "./smoldot/node-worker": {
-      "node": {
-        "import": "./dist/esm/reexports/smoldot_node-worker.mjs",
-        "require": "./dist/reexports/smoldot_node-worker.js",
-        "default": "./dist/reexports/smoldot_node-worker.js"
-      },
-      "module": "./dist/esm/reexports/smoldot_node-worker.mjs",
-      "import": "./dist/esm/reexports/smoldot_node-worker.mjs",
-      "require": "./dist/reexports/smoldot_node-worker.js",
-      "default": "./dist/reexports/smoldot_node-worker.js"
-    },
-    "./smoldot/from-node-worker": {
-      "node": {
-        "import": "./dist/esm/reexports/smoldot_from-node-worker.mjs",
-        "require": "./dist/reexports/smoldot_from-node-worker.js",
-        "default": "./dist/reexports/smoldot_from-node-worker.js"
-      },
-      "module": "./dist/esm/reexports/smoldot_from-node-worker.mjs",
-      "import": "./dist/esm/reexports/smoldot_from-node-worker.mjs",
-      "require": "./dist/reexports/smoldot_from-node-worker.js",
-      "default": "./dist/reexports/smoldot_from-node-worker.js"
+      "module": "./dist/esm/reexports/smoldot_*.mjs",
+      "import": "./dist/esm/reexports/smoldot_*.mjs",
+      "require": "./dist/reexports/smoldot_*.js",
+      "default": "./dist/reexports/smoldot_*.js"
     },
     "./utils": {
+      "types": "./dist/reexports/utils.d.ts",
       "node": {
         "import": "./dist/esm/reexports/utils.mjs",
         "require": "./dist/reexports/utils.js",
