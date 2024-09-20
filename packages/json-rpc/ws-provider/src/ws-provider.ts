@@ -30,9 +30,8 @@ export const getInternalWsProvider =
         const _onMessage = (e: MessageEvent) => {
           if (typeof e.data === "string") onMessage(e.data)
         }
-        const innerHalt = (reason: string) => (e: any) => {
+        const innerHalt = (reason: string) => () => {
           console.warn(`WS halt (${reason})`)
-          console.log(e)
           onHalt()
         }
         const onError = innerHalt("err")
