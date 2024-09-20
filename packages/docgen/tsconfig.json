@@ -3,6 +3,9 @@
   "include": ["src", "tests", "out"],
   "compilerOptions": {
     "baseUrl": "src",
+    // TODO: Verify if TypeDoc already supports Typescript 5.6
+    // Remove then
+    "skipLibCheck": true,
     "resolveJsonModule": true,
     "noUnusedLocals": false,
     "noFallthroughCasesInSwitch": true,

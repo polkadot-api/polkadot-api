@@ -326,7 +326,7 @@ const buildChecksum = (
   const cycles = getStronglyConnectedComponents(subGraph)
   const cyclicGroups = mergeSCCsWithCommonNodes(cycles).filter((group) => {
     // Exclude groups that were previously calculated
-    return !cache.has(group.values().next().value)
+    return !cache.has(group.values().next().value!)
   })
   const mirrored = getMirroredNodes(cyclicGroups, subGraph)
   const sortedCyclicGroups = sortCyclicGroups(
@@ -335,7 +335,7 @@ const buildChecksum = (
   )
 
   sortedCyclicGroups.forEach((group) => {
-    if (cache.has(group.values().next().value)) {
+    if (cache.has(group.values().next().value!)) {
       // exclude mirrored groups
       return
     }

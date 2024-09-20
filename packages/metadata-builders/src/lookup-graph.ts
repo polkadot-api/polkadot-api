@@ -197,9 +197,9 @@ export function mergeSCCsWithCommonNodes(
 
   while (ungroupedCycles.size) {
     const group = new Set<number>()
-    const toVisit = [ungroupedCycles.values().next().value]
+    const toVisit = [ungroupedCycles.values().next().value!]
     while (toVisit.length) {
-      const idx = toVisit.pop()
+      const idx = toVisit.pop()!
       if (!ungroupedCycles.has(idx)) continue
       ungroupedCycles.delete(idx)
 
