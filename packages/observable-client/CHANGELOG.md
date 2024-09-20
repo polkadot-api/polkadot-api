@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Handle non-spec-compliant pruned-blocks.
+
 ## 0.5.3 - 2024-09-04
 
 ### Fixed
