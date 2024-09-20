@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.5.5 - 2024-09-20
+
+### Fixed
+
+- Remove logic that belongs into the PolkadotSDK Compat Enhancers
+
 ## 0.5.4 - 2024-09-20
 
 ### Fixed

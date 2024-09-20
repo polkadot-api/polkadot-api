@@ -41,14 +41,8 @@ export type PinnedBlocks = {
 }
 
 const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
-  const block = blocks.get(blockHash)
-  // the following `if` statement is in -in theory- redundant, as the spec clearly states that:
-  // > All items in `finalizedBlockHashes` and `prunedBlockHashes` are guaranteed to have been reported through earlier newBlock events.
-  // However, some PolkadotSDK nodes send in their list of `prunnedBlocks` blocks that have not been previously reported.
-  if (block) {
-    blocks.get(block.parent)?.children.delete(blockHash)
-    blocks.delete(blockHash)
-  }
+  blocks.get(blocks.get(blockHash)!.parent)?.children.delete(blockHash)
+  blocks.delete(blockHash)
 }
 
 const getBlocksToUnpin = (blocks: PinnedBlocks, pruned: string[]) => {

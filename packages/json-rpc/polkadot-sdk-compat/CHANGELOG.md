@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.2.1 - 2024-09-20
+
+### Fixed
+
+- Fix `fixPrematureBlocks` so that it also accounts for `prrunedBlockHashes` that are not pinned.
+
 ## 2.2.0 - 2024-09-19
 
 ### Added
