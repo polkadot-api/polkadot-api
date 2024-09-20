@@ -50,6 +50,7 @@ for (const [packageName, source] of reexports) {
   const fileName = packageName.replaceAll("/", "_")
   const fileNameWithGlob = packageNameWithGlob.replaceAll("/", "_")
   newExports["./" + packageNameWithGlob] = {
+    types: `./dist/reexports/${fileNameWithGlob}.d.ts`,
     node: {
       import: `./dist/esm/reexports/${fileNameWithGlob}.mjs`,
       require: `./dist/reexports/${fileNameWithGlob}.js`,

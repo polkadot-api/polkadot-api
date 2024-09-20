@@ -25,6 +25,7 @@
       "default": "./dist/index.js"
     },
     "./logs-provider": {
+      "types": "./dist/reexports/logs-provider.d.ts",
       "node": {
         "import": "./dist/esm/reexports/logs-provider.mjs",
         "require": "./dist/reexports/logs-provider.js",
@@ -36,6 +37,7 @@
       "default": "./dist/reexports/logs-provider.js"
     },
     "./polkadot-sdk-compat": {
+      "types": "./dist/reexports/polkadot-sdk-compat.d.ts",
       "node": {
         "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
         "require": "./dist/reexports/polkadot-sdk-compat.js",
@@ -47,6 +49,7 @@
       "default": "./dist/reexports/polkadot-sdk-compat.js"
     },
     "./pjs-signer": {
+      "types": "./dist/reexports/pjs-signer.d.ts",
       "node": {
         "import": "./dist/esm/reexports/pjs-signer.mjs",
         "require": "./dist/reexports/pjs-signer.js",
@@ -58,6 +61,7 @@
       "default": "./dist/reexports/pjs-signer.js"
     },
     "./signer": {
+      "types": "./dist/reexports/signer.d.ts",
       "node": {
         "import": "./dist/esm/reexports/signer.mjs",
         "require": "./dist/reexports/signer.js",
@@ -69,6 +73,7 @@
       "default": "./dist/reexports/signer.js"
     },
     "./sm-provider": {
+      "types": "./dist/reexports/sm-provider.d.ts",
       "node": {
         "import": "./dist/esm/reexports/sm-provider.mjs",
         "require": "./dist/reexports/sm-provider.js",
@@ -80,6 +85,7 @@
       "default": "./dist/reexports/sm-provider.js"
     },
     "./ws-provider/*": {
+      "types": "./dist/reexports/ws-provider_*.d.ts",
       "node": {
         "import": "./dist/esm/reexports/ws-provider_*.mjs",
         "require": "./dist/reexports/ws-provider_*.js",
@@ -91,6 +97,7 @@
       "default": "./dist/reexports/ws-provider_*.js"
     },
     "./chains": {
+      "types": "./dist/reexports/chains.d.ts",
       "node": {
         "import": "./dist/esm/reexports/chains.mjs",
         "require": "./dist/reexports/chains.js",
@@ -102,6 +109,7 @@
       "default": "./dist/reexports/chains.js"
     },
     "./chains/*": {
+      "types": "./dist/reexports/chains_*.d.ts",
       "node": {
         "import": "./dist/esm/reexports/chains_*.mjs",
         "require": "./dist/reexports/chains_*.js",
@@ -113,6 +121,7 @@
       "default": "./dist/reexports/chains_*.js"
     },
     "./smoldot": {
+      "types": "./dist/reexports/smoldot.d.ts",
       "node": {
         "import": "./dist/esm/reexports/smoldot.mjs",
         "require": "./dist/reexports/smoldot.js",
@@ -124,6 +133,7 @@
       "default": "./dist/reexports/smoldot.js"
     },
     "./smoldot/*": {
+      "types": "./dist/reexports/smoldot_*.d.ts",
       "node": {
         "import": "./dist/esm/reexports/smoldot_*.mjs",
         "require": "./dist/reexports/smoldot_*.js",
@@ -135,6 +145,7 @@
       "default": "./dist/reexports/smoldot_*.js"
     },
     "./utils": {
+      "types": "./dist/reexports/utils.d.ts",
       "node": {
         "import": "./dist/esm/reexports/utils.mjs",
         "require": "./dist/reexports/utils.js",
