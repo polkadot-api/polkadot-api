@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/docgen": "workspace:*",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.1"
   }

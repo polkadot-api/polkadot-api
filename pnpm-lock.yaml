@@ -164,6 +164,9 @@ importers:
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:examples/vite/.papi/descriptors(polkadot-api@packages+client)
+      '@polkadot-api/docgen':
+        specifier: workspace:*
+        version: link:../../packages/docgen
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client

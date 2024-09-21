@@ -7,8 +7,10 @@ import {
 } from "@polkadot-api/metadata-builders"
 import { getInternalTypesBuilder } from "./internal-types"
 import {
+  CodegenOutput,
   generateTypescript,
   nativeNodeCodegen,
+  onlyCode,
   processPapiPrimitives,
 } from "./internal-types/generate-typescript"
 
@@ -73,7 +75,7 @@ export const getTypesBuilder = (
   const buildDefinition = (id: number) => {
     const node = internalBuilder(id)
 
-    return generateTypescript(node, (node, next, level): string => {
+    return generateTypescript(node, (node, next, level) => {
       // primitives are not assigned to intermediate types
       if (node.type === "primitive") return nativeNodeCodegen(node, next)
 
@@ -93,29 +95,26 @@ export const getTypesBuilder = (
           next,
           !!checksum && !!knownTypes[checksum],
         )
-        if (papiPrimitive?.import) {
+        if (!papiPrimitive) return null
+        papiPrimitive.imports.client?.forEach((name) => {
           if (level === 0) {
-            clientFileImports.add(papiPrimitive.import)
+            clientFileImports.add(name)
           } else {
-            declarations.imports.add(papiPrimitive.import)
+            declarations.imports.add(name)
           }
-        }
-        return papiPrimitive
+        })
+        return onlyCode(papiPrimitive.code)
       }
 
       if (!checksum) {
         // It's not a lookup type nor an inlined Enum type
         // Return the primitive type or the regular codegen.
-        return getPapiPrimitive(level)?.code ?? nativeNodeCodegen(node, next)
+        return getPapiPrimitive(level) ?? nativeNodeCodegen(node, next)
       }
-
-      // if (checksum === "e9sr1iqcg3cgm") {
-      //   console.log(node)
-      // }
 
       if (level > 0 && checksum === callsChecksum) {
         declarations.imports.add("TxCallData")
-        return "TxCallData"
+        return onlyCode("TxCallData")
       }
 
       if (declarations.variables.has(checksum)) {
@@ -123,7 +122,7 @@ export const getTypesBuilder = (
         if (level === 0) {
           typeFileImports.add(entry.name)
         }
-        return anonymize(entry.name)
+        return onlyCode(anonymize(entry.name))
       }
 
       const variable: Variable = {
@@ -136,14 +135,16 @@ export const getTypesBuilder = (
       }
       declarations.variables.set(checksum, variable)
       // We're wrapping the variable with another, so we increase a level.
-      variable.type =
-        getPapiPrimitive(level + 1)?.code ?? nativeNodeCodegen(node, next)
+      variable.type = (
+        getPapiPrimitive(level + 1) ?? nativeNodeCodegen(node, next)
+      ).code
 
-      return anonymize(variable.name)
+      return onlyCode(anonymize(variable.name))
     })
   }
 
-  const buildTypeDefinition = (id: number) => anonymize(buildDefinition(id))
+  const buildTypeDefinition = (id: number) =>
+    anonymize(buildDefinition(id).code)
 
   const buildStorage = (pallet: string, entry: string) => {
     const storageEntry = metadata.pallets
@@ -202,8 +203,6 @@ export const getTypesBuilder = (
       } else if (innerLookup.type === "void") {
         return "undefined"
       } else {
-        // const checksum = getChecksum(innerLookup)
-        // console.log("checksum", getChecksum(lookupEntry.id), checksum)
         const result = declarations.variables.get(
           getChecksum(innerLookup),
         )!.name
@@ -247,7 +246,7 @@ export const getDocsTypesBuilder = (
   const fileTypeEntries = new Set<number>()
 
   // checksum -> types that are imported for it
-  const importsPerType = new Map<string, Set<string>>()
+  const importsPerType = new Map<string, CodegenOutput["imports"]>()
 
   const declarations = defaultDeclarations()
 
@@ -257,56 +256,101 @@ export const getDocsTypesBuilder = (
       : checksumBuilder.buildComposite(id)!
 
   const internalBuilder = getInternalTypesBuilder(getLookupEntryDef)
-  const buildDefinition = (id: number) => {
-    const node = internalBuilder(id)
-
-    const visited = new Set<string>()
-    return generateTypescript(node, (innerNode, next): string => {
-      const primitive = processPapiPrimitives(innerNode, next)
-      if (primitive) {
-        primitive.import && clientFileImports.add(primitive.import)
-        return primitive.code
-      }
-
-      if (!("id" in innerNode)) {
-        return next(innerNode)
-      }
-
-      const checksum = getChecksum(innerNode.id)!
-      if (checksum === callsChecksum) {
-        clientFileImports.add("TxCallData")
-        return "TxCallData"
-      }
-
-      if (declarations.variables.has(checksum)) {
-        const entry = declarations.variables.get(checksum)!
-        // TODO importsPerType
-        return entry.name
-      }
-
-      if (checksum in knownTypes) {
-        const variable: Variable = {
-          checksum,
-          type: "",
-          name: knownTypes[checksum],
-        }
-        declarations.variables.set(checksum, variable)
-        variable.type = next(innerNode)
-
-        return variable.name
-      }
-
-      if (visited.has(checksum)) {
-        return "__Circular"
-      }
-      visited.add(checksum)
-      return next(innerNode)
-    })
-  }
 
   const buildTypeDefinition = (id: number) => {
     fileTypeEntries.add(id)
-    return buildDefinition(id)
+    const node = internalBuilder(id)
+
+    const visited = new Set<string>()
+    const result = generateTypescript(
+      node,
+      (node, next, level): CodegenOutput => {
+        const checksum =
+          "id" in node
+            ? getChecksum(node.id)
+            : // for types inlined in Enums, we might have an intermediate type
+              "original" in node
+              ? getChecksum(node.original)
+              : null
+
+        const getPapiPrimitive = () => processPapiPrimitives(node, next, true)
+
+        if (!checksum) {
+          // It's not a lookup type nor an inlined Enum type
+          // Return the primitive type or the regular codegen.
+          return getPapiPrimitive() ?? nativeNodeCodegen(node, next)
+        }
+
+        if (node.type === "primitive") return nativeNodeCodegen(node, next)
+        if (checksum === callsChecksum) {
+          return {
+            code: "TxCallData",
+            imports: {
+              client: new Set(["TxCallData"]),
+            },
+          }
+        }
+
+        if (checksum in knownTypes) {
+          if (declarations.variables.has(checksum)) {
+            const entry = declarations.variables.get(checksum)!
+            return level === 0
+              ? {
+                  code: entry.type,
+                  imports: importsPerType.get(checksum) ?? {},
+                }
+              : {
+                  code: entry.name,
+                  imports: {
+                    types: new Set([entry.name]),
+                  },
+                }
+          }
+
+          const variable: Variable = {
+            checksum,
+            type: "",
+            name: knownTypes[checksum],
+          }
+          declarations.variables.set(checksum, variable)
+          const generated = getPapiPrimitive() ?? nativeNodeCodegen(node, next)
+          variable.type = generated.code
+          importsPerType.set(checksum, generated.imports)
+
+          return level === 0
+            ? generated
+            : {
+                code: variable.name,
+                imports: {
+                  types: new Set([variable.name]),
+                },
+              }
+        }
+
+        if (declarations.variables.has(checksum)) {
+          const entry = declarations.variables.get(checksum)!
+          return {
+            code: entry.type,
+            imports: importsPerType.get(checksum) ?? {},
+          }
+        }
+
+        if (visited.has(checksum)) {
+          return onlyCode("__Circular")
+        }
+        visited.add(checksum)
+
+        const result = getPapiPrimitive() ?? nativeNodeCodegen(node, next)
+        declarations.variables.set(checksum, {
+          checksum,
+          type: result.code,
+          name: "I" + checksum,
+        })
+        importsPerType.set(checksum, result.imports)
+        return result
+      },
+    )
+    return result.code
   }
 
   const buildStorage = (pallet: string, entry: string) => {
@@ -387,9 +431,9 @@ export const getDocsTypesBuilder = (
     const allImports = new Set<string>()
     for (const id of fileTypeEntries) {
       const thisTypeImports = importsPerType.get(getChecksum(id))
-      if (!thisTypeImports) continue
+      if (!thisTypeImports?.types) continue
 
-      for (const singleType of thisTypeImports.values()) {
+      for (const singleType of thisTypeImports.types.values()) {
         allImports.add(singleType)
       }
     }

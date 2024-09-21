@@ -5,11 +5,16 @@ import {
   TypeNode,
 } from "./type-representation"
 
+export interface CodegenOutput {
+  code: string
+  imports: Record<string, Set<string>>
+}
+
 export type NodeCodeGenerator = (
   innerNode: TypeNode | LookupTypeNode,
-  next: (node: TypeNode) => string,
+  next: (node: TypeNode) => CodegenOutput,
   level: number,
-) => string
+) => CodegenOutput
 
 /**
  * This function is chain-type agnostic. It will try its best to generate all
@@ -18,9 +23,9 @@ export type NodeCodeGenerator = (
  */
 export const nativeNodeCodegen = (
   node: TypeNode,
-  next: (node: TypeNode) => string,
-) => {
-  if (node.type === "primitive") return node.value
+  next: (node: TypeNode) => CodegenOutput,
+): CodegenOutput => {
+  if (node.type === "primitive") return onlyCode(node.value)
   if (node.type === "chainPrimitive")
     throw new Error("Can't generate chain primitive type " + node.value)
   if (
@@ -29,49 +34,76 @@ export const nativeNodeCodegen = (
     node.type === "fixedSizeBinary"
   )
     throw new Error("Can't generate chain primitive type " + node.type)
-  if (node.type === "array") return `Array<${next(node.value.value)}>`
+  if (node.type === "array") {
+    const { code, imports } = next(node.value.value)
+    return { code: `Array<${code}>`, imports }
+  }
 
   if (node.type === "struct") {
-    return generateObjectCode(node.value, (value) => next(value))
+    return generateObjectCode(node.value, next)
   }
   if (node.type === "tuple") {
+    const tupleResults = node.value.map(({ value }) => next(value))
     // docs seem to have no effect on tuples (VSCode)
-    return `[${node.value.map(({ value }) => next(value)).join(", ")}]`
+    return {
+      code: `[${tupleResults.map(({ code }) => code).join(", ")}]`,
+      imports: mergeImports(tupleResults.map(({ imports }) => imports)),
+    }
   }
-  if (node.type === "union")
-    return node.value.map((v) => `(${next(v)})`).join(" | ")
+  if (node.type === "union") {
+    const partResults = node.value.map(next)
+    return {
+      code: partResults.map(({ code }) => `(${code})`).join(" | "),
+      imports: mergeImports(partResults.map(({ imports }) => imports)),
+    }
+  }
 
   // Must be an option
-  return `(${next(node.value)}) | undefined`
+  const optionResult = next(node.value)
+  return {
+    code: `(${optionResult.code}) | undefined`,
+    imports: optionResult.imports,
+  }
 }
 
 export function generateTypescript(
   node: TypeNode,
   getNodeCode: NodeCodeGenerator,
-): string {
-  const next = (node: TypeNode, level: number): string =>
+): CodegenOutput {
+  const next = (node: TypeNode, level: number): CodegenOutput =>
     getNodeCode(node, (v) => next(v, level + 1), level)
   return next(node, 0)
 }
 
 export function processPapiPrimitives(
   node: TypeNode,
-  getCode: (node: TypeNode) => string,
+  getCode: (node: TypeNode) => CodegenOutput,
   isKnown?: boolean,
-): { code: string; import?: string } | null {
+): CodegenOutput | null {
+  const clientImport = (value: string) => ({ client: new Set([value]) })
+
   if (node.type === "chainPrimitive") {
     return node.value === "BitSequence"
-      ? { code: `{bytes: Uint8Array, bitsLen: number}` }
+      ? onlyCode(`{bytes: Uint8Array, bitsLen: number}`)
       : {
           code: node.value,
-          import: node.value,
+          imports: {
+            client: new Set([node.value]),
+          },
         }
   }
 
   if (node.type === "result") {
+    const okResult = getCode(node.value.ok)
+    const koResult = getCode(node.value.ko)
+
     return {
-      code: `ResultPayload<${getCode(node.value.ok)}, ${getCode(node.value.ok)}>`,
-      import: `ResultPayload`,
+      code: `ResultPayload<${okResult.code}, ${koResult.code}>`,
+      imports: mergeImports([
+        okResult.imports,
+        koResult.imports,
+        clientImport("ResultPayload"),
+      ]),
     }
   }
 
@@ -80,26 +112,28 @@ export function processPapiPrimitives(
 
     if (!isKnown) {
       return {
-        code: `AnonymousEnum<${innerCode}>`,
+        code: `AnonymousEnum<${innerCode.code}>`,
+        imports: innerCode.imports,
       }
     }
     return {
-      code: `Enum<${innerCode}>`,
-      import: `Enum`,
+      code: `Enum<${innerCode.code}>`,
+      imports: mergeImports([innerCode.imports, clientImport("Enum")]),
     }
   }
 
   if (node.type === "fixedSizeBinary") {
     return {
       code: `FixedSizeBinary<${node.value}>`,
-      import: "FixedSizeBinary",
+      imports: clientImport("FixedSizeBinary"),
     }
   }
 
   if (node.type === "array" && node.value.len) {
+    const { code, imports } = getCode(node.value.value)
     return {
-      code: `FixedSizeArray<${node.value.len}, ${getCode(node.value.value)}>`,
-      import: "FixedSizeArray",
+      code: `FixedSizeArray<${node.value.len}, ${code}>`,
+      imports: mergeImports([imports, clientImport("FixedSizeArray")]),
     }
   }
 
@@ -108,18 +142,41 @@ export function processPapiPrimitives(
 
 export const generateObjectCode = (
   fields: (StructField | EnumVariant)[],
-  next: (node: TypeNode) => string,
-) =>
-  `{${fields
-    .map(({ label, value, docs }) => {
+  next: (node: TypeNode) => CodegenOutput,
+): CodegenOutput => {
+  const innerValues = fields.map((field) => ({
+    ...field,
+    result: field.value ? next(field.value) : null,
+  }))
+
+  return {
+    code: `{${innerValues.map(({ label, docs, value, result }) => {
       const docsPrefix = docs.length
         ? `\n/**\n${docs.map((doc) => ` *${doc}`).join("\n")}\n */\n`
         : ""
-      if (value === undefined)
+      if (result === null)
         return docsPrefix + `${JSON.stringify(label)}: undefined`
 
-      const isOptional = value.type === "option"
+      const isOptional = value?.type === "option"
       const key = JSON.stringify(label) + (isOptional ? "?" : "")
-      return docsPrefix + `${key}: ${next(value)}`
-    })
-    .join(", ")}}`
+      return docsPrefix + `${key}: ${result.code}`
+    })}}`,
+    imports: mergeImports(innerValues.map((v) => v.result?.imports ?? {})),
+  }
+}
+
+export const mergeImports = (
+  imports: Array<CodegenOutput["imports"]>,
+): CodegenOutput["imports"] => {
+  if (!imports.length) return {}
+  const result = imports[0]
+  for (let i = 1; i < imports.length; i++) {
+    Object.entries(imports[i]).forEach(
+      ([type, value]) =>
+        (result[type] = new Set([...(result[type] ?? []), ...value])),
+    )
+  }
+  return result
+}
+
+export const onlyCode = (code: string): CodegenOutput => ({ code, imports: {} })
