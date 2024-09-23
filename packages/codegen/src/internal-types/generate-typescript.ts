@@ -169,7 +169,7 @@ export const mergeImports = (
   imports: Array<CodegenOutput["imports"]>,
 ): CodegenOutput["imports"] => {
   if (!imports.length) return {}
-  const result = imports[0]
+  const result = { ...imports[0] }
   for (let i = 1; i < imports.length; i++) {
     Object.entries(imports[i]).forEach(
       ([type, value]) =>

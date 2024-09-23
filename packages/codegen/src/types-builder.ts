@@ -336,7 +336,12 @@ export const getDocsTypesBuilder = (
         }
 
         if (visited.has(checksum)) {
-          return onlyCode("__Circular")
+          return {
+            code: "__Circular",
+            imports: {
+              types: new Set(["__Circular"]),
+            },
+          }
         }
         visited.add(checksum)
 
