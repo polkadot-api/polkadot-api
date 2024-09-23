@@ -6,5 +6,9 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    function ({ addVariant }) {
+      addVariant("group-state-open", ':merge(.group)[data-state="open"] &')
+    },
+  ],
 }

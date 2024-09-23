@@ -14,8 +14,11 @@ function App() {
   const input2 =
     "0x050300d6ebcc75c7ea9a0c4459162b495e90c7ed5306e3a27f73125d6fbd2a346013230b002445cd360b"
   const input3 = "0x63020400000400000408000000000000000000000000"
-
+  const input4 =
+    "0x050200d6ebcc75c7ea9a0c4459162b495e90c7ed5306e3a27f73125d6fbd2a3460132300d6ebcc75c7ea9a0c4459162b495e90c7ed5306e3a27f73125d6fbd2a3460132300"
+  const input5 = "0x1a050000081110821a060042600a00"
   const selected = input3
+
   return (
     <>
       <h1 className="text-lg my-5">Decoding: {selected}</h1>

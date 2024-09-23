@@ -82,6 +82,7 @@ export const getCodecComponent = (
               tag,
               idx,
             })),
+            innerType: innerEntry.type,
 
             inner: (
               <CodecComponent
@@ -276,6 +277,7 @@ export const getCodecComponent = (
 
     if (lookupRef.current.metadata !== metadata) {
       const lookup = getLookupFn(metadata)
+
       lookupRef.current = {
         metadata,
         lookup,
@@ -286,6 +288,7 @@ export const getCodecComponent = (
       () => lookupRef.current.dynCodecs(codecType).dec(value!),
       [value, codecType, metadata],
     )
+
     console.log(decoded)
 
     return (
