@@ -1,7 +1,12 @@
-import { Binary, HexString, SS58String } from "@polkadot-api/substrate-bindings"
+import {
+  Binary,
+  getSs58AddressInfo,
+  HexString,
+  SS58String,
+} from "@polkadot-api/substrate-bindings"
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
-import React, { ReactNode, useState } from "react"
+import React, { ReactNode, useEffect, useState } from "react"
 import { PrimitiveDisplay } from "./components/common"
 
 export type CodecComponentProps<T = any> = {
@@ -121,14 +126,53 @@ export const CBytes: React.FC<BytesInterface> = ({ value }) => {
 
 export const CAccountId: React.FC<AccountIdInterface> = ({
   value,
-  encodedValue,
-}) => (
-  <PrimitiveDisplay
-    type="AccountId"
-    value={value.toString()}
-    encodedValue={encodedValue}
-  />
-)
+  onValueChanged,
+}) => {
+  const [inEdit, setInEdit] = useState<boolean>(false)
+  const [localInput, setLocalInput] = useState<SS58String | null>(value)
+  const [isValid, setIsValid] = useState<boolean>(true)
+
+  useEffect(() => {
+    if (localInput === null) setIsValid(false)
+    else {
+      let { isValid } = getSs58AddressInfo(localInput)
+      setIsValid(isValid)
+    }
+  }, [localInput])
+  return (
+    <div className="min-h-16">
+      <div className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2">
+        <span className="text-sm text-gray-400">AccountId</span>
+        <input
+          disabled={!inEdit}
+          className="bg-gray-700 border-none hover:border-none outline-none text-right"
+          value={localInput === null ? "" : localInput.toString()}
+          onChange={(evt) => {
+            try {
+              if (evt.target.value === "") setLocalInput(null)
+              else {
+                let address = evt.target.value
+                setLocalInput(address)
+              }
+            } catch (_) {
+              return
+            }
+          }}
+        />
+        <input
+          checked={inEdit}
+          type="checkbox"
+          onChange={() => {
+            setInEdit((prev) => !prev)
+          }}
+        />
+      </div>
+      {!isValid && (
+        <span className="text-red-600 text-sm">Invalid address.</span>
+      )}
+    </div>
+  )
+}
 
 export const CEthAccount: React.FC<EthAccountInterface> = ({ value }) => (
   <span>{value}</span>

@@ -27,8 +27,8 @@ export const CEnum: React.FC<EnumInterface> = withDepth(
           "flex",
           shouldNest
             ? "flex-col border-[1px] border-dashed border-gray-500 w-full"
-            : "flex-row items-center",
-          "text-left gap-2 w-fit ml-0",
+            : "flex-row",
+          "text-left gap-2 w-fit ml-0 items-start",
         )}
       >
         <select
