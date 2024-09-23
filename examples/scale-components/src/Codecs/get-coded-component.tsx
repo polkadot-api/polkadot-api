@@ -8,6 +8,7 @@ import {
 import React, { useMemo, useRef } from "react"
 
 import * as _baseComponents from "./codec-components"
+import { CEnum } from "./components"
 import { mapObject } from "@polkadot-api/utils"
 
 export const getCodecComponent = (
@@ -70,7 +71,7 @@ export const getCodecComponent = (
 
       const innerEncoded = encodedValue.slice(1)
 
-      const Inner = baseComponents.CEnum
+      const Inner = CEnum
 
       return (
         <Inner
@@ -83,7 +84,6 @@ export const getCodecComponent = (
               idx,
             })),
             innerType: innerEntry.type,
-
             inner: (
               <CodecComponent
                 dynCodecs={dynCodecs}

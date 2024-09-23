@@ -1,10 +1,8 @@
-import { toHex } from "@polkadot-api/utils"
 import { Binary, HexString, SS58String } from "@polkadot-api/substrate-bindings"
-import React, { createContext, ReactNode, useContext } from "react"
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
-import { Var } from "@polkadot-api/metadata-builders"
-import { clsx } from "clsx"
+import React, { ReactNode, useState } from "react"
+import { InputWrapper, PrimitiveDisplay } from "./components/common"
 
 export type CodecComponentProps<T = any> = {
   value: T
@@ -31,44 +29,82 @@ export type BytesInterface = PrimitiveComponentProps<Binary> & {
 export type AccountIdInterface = PrimitiveComponentProps<SS58String>
 export type EthAccountInterface = PrimitiveComponentProps<HexString>
 
-const DepthCtx = createContext<number>(0)
-const useCurrentDepth = () => useContext(DepthCtx)
-const withDepth: <T extends {}>(
-  base: React.FC<T & { depth: number }>,
-) => React.FC<T> = (Base) => (props) => {
-  const depth = useCurrentDepth()
-  return (
-    <DepthCtx.Provider value={depth + 1}>
-      <Base {...{ depth, ...props }} />
-    </DepthCtx.Provider>
-  )
-}
-
-const enhancer = withDepth
-
 export const CNumber: React.FC<NumberInterface> = ({
   type,
   value,
   encodedValue,
-}) => (
-  <PrimitiveDisplay
-    type={type.toString()}
-    value={value.toString()}
-    encodedValue={encodedValue}
-  />
-)
-
+}) => {
+  const [localInput, setLocalInput] = useState<number | null>(value)
+  const [inEdit, setInEdit] = useState<boolean>(false)
+  return (
+    <span className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2 w-fit">
+      <span className="text-sm text-gray-400">{type}</span>
+      <input
+        disabled={!inEdit}
+        className="bg-gray-700 border-none hover:border-none outline-none text-right max-w-32"
+        value={localInput === null ? "" : localInput.toString()}
+        onChange={(evt) => {
+          try {
+            if (evt.target.value === "") setLocalInput(null)
+            else {
+              const parsed = Number(evt.target.value)
+              if (!isNaN(parsed)) setLocalInput(Number(evt.target.value))
+            }
+          } catch (_) {
+            return
+          }
+        }}
+      />
+      <input
+        checked={inEdit}
+        type="checkbox"
+        onChange={() => {
+          setInEdit((prev) => !prev)
+        }}
+      />
+    </span>
+  )
+}
 export const CBNumber: React.FC<BNumberInterface> = ({
   type,
   value,
   encodedValue,
-}) => (
-  <PrimitiveDisplay
-    type={type.toString()}
-    value={`${value.toString(10)}n`}
-    encodedValue={encodedValue}
-  />
-)
+  onValueChanged,
+}) => {
+  const [localInput, setLocalInput] = useState<bigint | null>(value)
+  const [inEdit, setInEdit] = useState<boolean>(false)
+  return (
+    <span className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2 w-fit">
+      <span className="text-sm text-gray-400">{type}</span>
+      <input
+        disabled={!inEdit}
+        className="bg-gray-700 border-none hover:border-none outline-none text-right max-w-32 w-fit"
+        value={localInput === null ? "" : localInput.toString()}
+        onChange={(evt) => {
+          try {
+            if (evt.target.value === "") setLocalInput(null)
+            else {
+              let num = BigInt(evt.target.value)
+              setLocalInput(num)
+              onValueChanged(num)
+            }
+          } catch (_) {
+            return
+          }
+        }}
+      />
+      <span className="-ml-1">n</span>
+      <input
+        checked={inEdit}
+        type="checkbox"
+        onChange={() => {
+          setInEdit((prev) => !prev)
+        }}
+      />
+    </span>
+  )
+}
+
 export const CBool: React.FC<BoolInterface> = ({ value }) => (
   <input type="checkbox" checked={value} />
 )
@@ -203,65 +239,3 @@ export const CResult: React.FC<ResultInterface> = ({ value, inner }) => (
     {value.success ? "ok" : "ko"}-{inner}
   </>
 )
-
-type LookupTypes = Var["type"]
-type EnumInterface = CodecComponentProps<{ type: string; value: any }> & {
-  tags: Array<{ idx: number; tag: string }>
-  onChange: (val: string | { type: string; value: any }) => void
-  inner: ReactNode
-  innerType: LookupTypes
-}
-
-export const CEnum: React.FC<EnumInterface> = withDepth(
-  ({ encodedValue, value, tags, onChange, inner, innerType }) => {
-    const shouldNest =
-      innerType === "enum" ||
-      innerType === "struct" ||
-      innerType === "array" ||
-      innerType === "sequence"
-    const disabled = false
-
-    return (
-      <div
-        className={clsx(
-          "flex",
-          shouldNest
-            ? "flex-col border-[1px] border-dashed border-gray-500 w-full"
-            : "flex-row",
-          "text-left gap-2 w-fit ",
-        )}
-      >
-        <select
-          disabled={disabled}
-          className={clsx(
-            "w-fit bg-slate-700 p-2 rounded",
-            disabled && "appearance-none",
-          )}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {tags.map(({ tag }) => (
-            <option key={tag} value={tag} selected={tag === value.type}>
-              {tag}
-            </option>
-          ))}
-        </select>
-        <div className={clsx(shouldNest && "ml-[30px]")}>{inner}</div>
-      </div>
-    )
-  },
-)
-
-const PrimitiveDisplay: React.FC<{
-  type: string
-  value: string
-  encodedValue: Uint8Array
-}> = ({ type, value }) => (
-  <span className="flex flex-row bg-gray-900 rounded p-2 w-fit min-w-20 gap-2 justify-between items-center px-2">
-    <span className="text-sm text-gray-500">{type}</span>
-    <span>{value}</span>
-  </span>
-)
-
-const EncodedDisplay: React.FC<{ encodedValue: Uint8Array }> = ({
-  encodedValue,
-}) => <span className="text-gray-500">{toHex(encodedValue)}</span>
