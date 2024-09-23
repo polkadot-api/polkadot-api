@@ -2,7 +2,7 @@ import { Binary, HexString, SS58String } from "@polkadot-api/substrate-bindings"
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import React, { ReactNode, useState } from "react"
-import { InputWrapper, PrimitiveDisplay } from "./components/common"
+import { PrimitiveDisplay } from "./components/common"
 
 export type CodecComponentProps<T = any> = {
   value: T

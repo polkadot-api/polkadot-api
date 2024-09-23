@@ -1,5 +1,3 @@
-import { ReactNode, useState } from "react"
-
 export const PrimitiveDisplay: React.FC<{
   type: string
   value: string
