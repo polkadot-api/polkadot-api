@@ -9,6 +9,7 @@ import { getInternalTypesBuilder } from "./internal-types"
 import {
   CodegenOutput,
   generateTypescript,
+  mergeImports,
   nativeNodeCodegen,
   onlyCode,
   processPapiPrimitives,
@@ -106,9 +107,15 @@ export const getTypesBuilder = (
         return onlyCode(papiPrimitive.code)
       }
 
-      if (!checksum) {
+      if (
+        !checksum ||
+        node.type === "chainPrimitive" ||
+        node.type === "fixedSizeBinary"
+      ) {
         // It's not a lookup type nor an inlined Enum type
         // Return the primitive type or the regular codegen.
+        // And if it's a chainPrimitive also return that primitive without creating
+        // and intermediate type.
         return getPapiPrimitive(level) ?? nativeNodeCodegen(node, next)
       }
 
@@ -262,99 +269,97 @@ export const getDocsTypesBuilder = (
     const node = internalBuilder(id)
 
     const visited = new Set<string>()
-    const result = generateTypescript(
-      node,
-      (node, next, level): CodegenOutput => {
-        const checksum =
-          "id" in node
-            ? getChecksum(node.id)
-            : // for types inlined in Enums, we might have an intermediate type
-              "original" in node
-              ? getChecksum(node.original)
-              : null
+    const result = generateTypescript(node, (node, next): CodegenOutput => {
+      const checksum =
+        "id" in node
+          ? getChecksum(node.id)
+          : // for types inlined in Enums, we might have an intermediate type
+            "original" in node
+            ? getChecksum(node.original)
+            : null
 
-        const getPapiPrimitive = () => processPapiPrimitives(node, next, true)
+      const getPapiPrimitive = () => processPapiPrimitives(node, next, true)
 
-        if (!checksum) {
-          // It's not a lookup type nor an inlined Enum type
-          // Return the primitive type or the regular codegen.
-          return getPapiPrimitive() ?? nativeNodeCodegen(node, next)
+      if (!checksum) {
+        // It's not a lookup type nor an inlined Enum type
+        // Return the primitive type or the regular codegen.
+        return getPapiPrimitive() ?? nativeNodeCodegen(node, next)
+      }
+
+      if (node.type === "primitive") return nativeNodeCodegen(node, next)
+      if (checksum === callsChecksum) {
+        return {
+          code: "TxCallData",
+          imports: {
+            client: new Set(["TxCallData"]),
+          },
         }
+      }
 
-        if (node.type === "primitive") return nativeNodeCodegen(node, next)
-        if (checksum === callsChecksum) {
-          return {
-            code: "TxCallData",
-            imports: {
-              client: new Set(["TxCallData"]),
-            },
-          }
-        }
-
-        if (checksum in knownTypes) {
-          if (declarations.variables.has(checksum)) {
-            const entry = declarations.variables.get(checksum)!
-            return level === 0
-              ? {
-                  code: entry.type,
-                  imports: importsPerType.get(checksum) ?? {},
-                }
-              : {
-                  code: entry.name,
-                  imports: {
-                    types: new Set([entry.name]),
-                  },
-                }
-          }
-
-          const variable: Variable = {
-            checksum,
-            type: "",
-            name: knownTypes[checksum],
-          }
-          declarations.variables.set(checksum, variable)
-          const generated = getPapiPrimitive() ?? nativeNodeCodegen(node, next)
-          variable.type = generated.code
-          importsPerType.set(checksum, generated.imports)
-
-          return level === 0
-            ? generated
-            : {
-                code: variable.name,
-                imports: {
-                  types: new Set([variable.name]),
-                },
-              }
-        }
-
+      if (checksum in knownTypes) {
         if (declarations.variables.has(checksum)) {
           const entry = declarations.variables.get(checksum)!
           return {
-            code: entry.type,
-            imports: importsPerType.get(checksum) ?? {},
-          }
-        }
-
-        if (visited.has(checksum)) {
-          return {
-            code: "__Circular",
+            code: entry.name,
             imports: {
-              types: new Set(["__Circular"]),
+              types: new Set([entry.name]),
             },
           }
         }
-        visited.add(checksum)
 
-        const result = getPapiPrimitive() ?? nativeNodeCodegen(node, next)
-        declarations.variables.set(checksum, {
+        const variable: Variable = {
           checksum,
-          type: result.code,
-          name: "I" + checksum,
-        })
-        importsPerType.set(checksum, result.imports)
-        return result
-      },
-    )
+          type: "",
+          name: knownTypes[checksum],
+        }
+        declarations.variables.set(checksum, variable)
+        const generated = getPapiPrimitive() ?? nativeNodeCodegen(node, next)
+        variable.type = generated.code
+        importsPerType.set(
+          checksum,
+          mergeImports([
+            generated.imports,
+            {
+              types: new Set([variable.name]),
+            },
+          ]),
+        )
+
+        return {
+          code: variable.name,
+          imports: {
+            types: new Set([variable.name]),
+          },
+        }
+      }
+
+      if (declarations.variables.has(checksum)) {
+        const entry = declarations.variables.get(checksum)!
+        return {
+          code: entry.type,
+          imports: importsPerType.get(checksum) ?? {},
+        }
+      }
+
+      if (visited.has(checksum)) {
+        return {
+          code: "__Circular",
+          imports: {
+            types: new Set(["__Circular"]),
+          },
+        }
+      }
+      visited.add(checksum)
+
+      const result = getPapiPrimitive() ?? nativeNodeCodegen(node, next)
+      declarations.variables.set(checksum, {
+        checksum,
+        type: result.code,
+        name: "I" + checksum,
+      })
+      importsPerType.set(checksum, result.imports)
+      return result
+    })
     return result.code
   }
 

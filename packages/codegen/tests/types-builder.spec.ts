@@ -216,7 +216,7 @@ describe("docs-types-builder", () => {
         "XcmPallet",
         "VersionDiscoveryQueue",
         "[]",
-        "[XcmVersionedLocation, number]",
+        "Array<[XcmVersionedLocation, number]>",
       ],
     ]) {
       it(`generates ${expectedArgs}: ${expectedPayload} for ${pallet}::${entry}`, () => {
@@ -239,7 +239,7 @@ describe("docs-types-builder", () => {
       [
         "Multisig",
         "as_multi_threshold_1",
-        '{"other_signatories": SS58String, "call": TxCallData}',
+        '{"other_signatories": Array<SS58String>, "call": TxCallData}',
       ],
     ]) {
       it(`generates expected payload for ${pallet}::${entry}`, () => {
@@ -289,7 +289,7 @@ describe("docs-types-builder", () => {
 
     for (const [pallet, entry, expectedImport] of [
       ["XcmPallet", "send", "XcmVersionedLocation"],
-      ["XcmPallet", "force_xcm_version", "XcmV3Junction"],
+      ["XcmPallet", "force_xcm_version", "XcmV3Junctions"],
     ]) {
       it(`imports ${expectedImport} from descriptors types for call ${pallet}::${entry}`, () => {
         const docsTypesBuilder = getBuilder()
@@ -331,7 +331,7 @@ describe("docs-types-builder", () => {
       // failure would look like this:
       // `'{"other_signatories": SS58String, "call": __Circular...`
       expect(result).toEqual(
-        '{"other_signatories": SS58String, "call": TxCallData}',
+        '{"other_signatories": Array<SS58String>, "call": TxCallData}',
       )
     })
   })
