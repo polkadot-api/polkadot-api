@@ -7,7 +7,6 @@ import {
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import React, { ReactNode, useEffect, useState } from "react"
-import { PrimitiveDisplay } from "./components/common"
 
 export type CodecComponentProps<T = any> = {
   value: T
