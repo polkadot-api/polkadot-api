@@ -1,10 +1,11 @@
 import {
   Binary,
   Blake2256,
-  V15,
+  type V14,
+  type V15,
   compact,
+  decAnyMetadata,
   enhanceEncoder,
-  metadata as metadataCodec,
   u8,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
@@ -45,10 +46,11 @@ export function getPolkadotSigner(
     _: number,
     hasher = Blake2256,
   ) => {
-    let decMeta: V15
+    let decMeta: V14 | V15
     try {
-      const tmpMeta = metadataCodec.dec(metadata)
-      if (tmpMeta.metadata.tag !== "v15") throw null
+      const tmpMeta = decAnyMetadata(metadata)
+      if (tmpMeta.metadata.tag !== "v14" && tmpMeta.metadata.tag !== "v15")
+        throw null
       decMeta = tmpMeta.metadata.value
     } catch (_) {
       throw new Error("Unsupported metadata version")

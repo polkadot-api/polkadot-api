@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use `decAnyMetadata` and accept metadata v14 as well
+
 ## 0.4.2 - 2024-09-04
 
 ### Fixed
