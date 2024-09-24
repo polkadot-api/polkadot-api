@@ -1,4 +1,9 @@
-import type { StringRecord, V14, V15 } from "@polkadot-api/substrate-bindings"
+import type {
+  StringRecord,
+  V14,
+  V14Lookup,
+  V15,
+} from "@polkadot-api/substrate-bindings"
 
 export type MetadataPrimitives =
   | "bool"
@@ -111,8 +116,10 @@ export interface MetadataLookup {
   call: number | null
 }
 
-export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
-  const lookupData = metadata.lookup
+const _denormalizeLookup = (
+  lookupData: V14Lookup,
+  customMap: (value: V14Lookup[number]) => Var | null = () => null,
+): ((id: number) => LookupEntry) => {
   const lookups = new Map<number, LookupEntry>()
   const from = new Set<number>()
 
@@ -154,6 +161,9 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
   let isAccountId32SearchOn = true
   let isAccountId20SearchOn = true
   const getLookupEntryDef = withCache((id): Var => {
+    const custom = customMap(lookupData[id])
+    if (custom) return custom
+
     const { def, path, params } = lookupData[id]
 
     if (def.tag === "composite") {
@@ -182,35 +192,6 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
         }
 
         return inner
-      }
-
-      const moduleErrorLength = getModuleErrorLength(def)
-      if (moduleErrorLength) {
-        return {
-          type: "enum",
-          innerDocs: {},
-          value: Object.fromEntries(
-            metadata.pallets.map((p) => [
-              p.name,
-              p.errors == null
-                ? { ..._void, idx: p.index }
-                : {
-                    type: "lookupEntry" as const,
-                    value: getLookupEntryDef(p.errors),
-                    idx: p.index,
-                  },
-            ]),
-          ) as StringRecord<
-            (
-              | VoidVar
-              | {
-                  type: "lookupEntry"
-                  value: LookupEntry
-                }
-            ) & { idx: number }
-          >,
-          byteLength: moduleErrorLength,
-        }
       }
 
       return getComplexVar(def.value)
@@ -340,33 +321,6 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
     }
   })
 
-  function getModuleErrorLength(def: {
-    tag: "composite"
-    value: {
-      name: string | undefined
-      type: number
-      typeName: string | undefined
-      docs: string[]
-    }[]
-  }) {
-    const preChecks =
-      def.value.length === 2 &&
-      def.value[0].name === "index" &&
-      def.value[1].name === "error"
-    if (!preChecks) return null
-
-    const index = getLookupEntryDef(def.value[0].type)
-    const error = getLookupEntryDef(def.value[1].type)
-
-    return index.type === "primitive" &&
-      index.value === "u8" &&
-      error.type === "array" &&
-      error.value.type === "primitive" &&
-      error.value.value === "u8"
-      ? 1 + error.len
-      : null
-  }
-
   const getComplexVar = (
     input: Array<{ type: number; name?: string; docs: string[] }>,
   ): TupleVar | StructVar | ArrayVar | VoidVar => {
@@ -415,6 +369,74 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
       value: values,
       innerDocs: innerDocs,
     }
+  }
+
+  return getLookupEntryDef
+}
+
+export const denormalizeLookup = (lookupData: V14Lookup) =>
+  _denormalizeLookup(lookupData)
+
+export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
+  const getLookupEntryDef = _denormalizeLookup(metadata.lookup, ({ def }) => {
+    if (def.tag === "composite") {
+      const moduleErrorLength = getModuleErrorLength(def)
+      if (moduleErrorLength) {
+        return {
+          type: "enum",
+          innerDocs: {},
+          value: Object.fromEntries(
+            metadata.pallets.map((p) => [
+              p.name,
+              p.errors == null
+                ? { ..._void, idx: p.index }
+                : {
+                    type: "lookupEntry" as const,
+                    value: getLookupEntryDef(p.errors),
+                    idx: p.index,
+                  },
+            ]),
+          ) as StringRecord<
+            (
+              | VoidVar
+              | {
+                  type: "lookupEntry"
+                  value: LookupEntry
+                }
+            ) & { idx: number }
+          >,
+          byteLength: moduleErrorLength,
+        }
+      }
+    }
+    return null
+  })
+
+  function getModuleErrorLength(def: {
+    tag: "composite"
+    value: {
+      name: string | undefined
+      type: number
+      typeName: string | undefined
+      docs: string[]
+    }[]
+  }) {
+    const preChecks =
+      def.value.length === 2 &&
+      def.value[0].name === "index" &&
+      def.value[1].name === "error"
+    if (!preChecks) return null
+
+    const index = getLookupEntryDef(def.value[0].type)
+    const error = getLookupEntryDef(def.value[1].type)
+
+    return index.type === "primitive" &&
+      index.value === "u8" &&
+      error.type === "array" &&
+      error.value.type === "primitive" &&
+      error.value.value === "u8"
+      ? 1 + error.len
+      : null
   }
 
   const getCall = () => {

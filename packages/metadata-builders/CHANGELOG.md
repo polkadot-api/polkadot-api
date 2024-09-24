@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- Export `denormalizeLookup` function to denormalize metadata types. [#717](https://github.com/polkadot-api/polkadot-api/pull/717)
+- Export `getLookupCodecBuilder` function to create the codec of a specific lookup type. [#717](https://github.com/polkadot-api/polkadot-api/pull/717)
+
 ## 0.7.1 - 2024-09-24
 
 ### Fixed

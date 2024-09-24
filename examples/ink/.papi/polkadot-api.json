@@ -1,0 +1,10 @@
+{
+  "version": 0,
+  "descriptorPath": ".papi/descriptors",
+  "entries": {
+    "testAzero": {
+      "wsUrl": "wss://aleph-zero-testnet-rpc.dwellir.com",
+      "metadata": ".papi/metadata/testAzero.scale"
+    }
+  }
+}

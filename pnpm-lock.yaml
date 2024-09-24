@@ -91,6 +91,25 @@ importers:
         specifier: workspace:*
         version: link:../../packages/client
 
+  examples/ink:
+    dependencies:
+      '@polkadot-api/descriptors':
+        specifier: file:.papi/descriptors
+        version: file:examples/ink/.papi/descriptors(polkadot-api@packages+client)
+      '@polkadot-api/ink-contracts':
+        specifier: workspace:*
+        version: link:../../packages/ink-contracts
+      polkadot-api:
+        specifier: workspace:*
+        version: link:../../packages/client
+      typescript:
+        specifier: ^5.0.0
+        version: 5.5.4
+    devDependencies:
+      '@types/bun':
+        specifier: latest
+        version: 1.1.9
+
   examples/react-teleport:
     dependencies:
       '@polkadot-api/descriptors':
@@ -381,6 +400,21 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.6.2
+
+  packages/ink-contracts:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+      scale-ts:
+        specifier: ^1.6.0
+        version: 1.6.0
 
   packages/json-rpc/json-rpc-provider: {}
 
@@ -1163,6 +1197,11 @@ packages:
     peerDependencies:
       polkadot-api: '*'
 
+  '@polkadot-api/descriptors@file:examples/ink/.papi/descriptors':
+    resolution: {directory: examples/ink/.papi/descriptors, type: directory}
+    peerDependencies:
+      polkadot-api: '*'
+
   '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors':
     resolution: {directory: examples/react-teleport/.papi/descriptors, type: directory}
     peerDependencies:
@@ -1336,6 +1375,9 @@ packages:
 
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
+
+  '@types/bun@1.1.9':
+    resolution: {integrity: sha512-SXJRejXpmAc3qxyN/YS4/JGWEzLf4dDBa5fLtRDipQXHqNccuMU4EUYCooXNTsylG0DmwFQsGgEDHxZF+3DqRw==}
 
   '@types/bun@1.1.9':
     resolution: {integrity: sha512-SXJRejXpmAc3qxyN/YS4/JGWEzLf4dDBa5fLtRDipQXHqNccuMU4EUYCooXNTsylG0DmwFQsGgEDHxZF+3DqRw==}
@@ -1591,6 +1633,9 @@ packages:
   builtin-modules@3.3.0:
     resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
     engines: {node: '>=6'}
+
+  bun-types@1.1.27:
+    resolution: {integrity: sha512-rHXAiIDefeMS/fleNM1rRDYqolJGNRdch3+AuCRwcZWaqTa1vjGBNsahH/HVV7Y82frllYhJomCVSEiHzLzkgg==}
 
   bun-types@1.1.27:
     resolution: {integrity: sha512-rHXAiIDefeMS/fleNM1rRDYqolJGNRdch3+AuCRwcZWaqTa1vjGBNsahH/HVV7Y82frllYhJomCVSEiHzLzkgg==}
@@ -3678,6 +3723,10 @@ snapshots:
     dependencies:
       polkadot-api: link:packages/client
 
+  '@polkadot-api/descriptors@file:examples/ink/.papi/descriptors(polkadot-api@packages+client)':
+    dependencies:
+      polkadot-api: link:packages/client
+
   '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors(polkadot-api@packages+client)':
     dependencies:
       polkadot-api: link:packages/client
@@ -3826,6 +3875,10 @@ snapshots:
   '@types/babel__traverse@7.20.6':
     dependencies:
       '@babel/types': 7.25.6
+
+  '@types/bun@1.1.9':
+    dependencies:
+      bun-types: 1.1.27
 
   '@types/bun@1.1.9':
     dependencies:
@@ -4127,6 +4180,11 @@ snapshots:
       ieee754: 1.2.1
 
   builtin-modules@3.3.0: {}
+
+  bun-types@1.1.27:
+    dependencies:
+      '@types/node': 20.12.14
+      '@types/ws': 8.5.12
 
   bun-types@1.1.27:
     dependencies:
