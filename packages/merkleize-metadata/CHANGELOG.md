@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.3 - 2024-09-24
+
 ### Fixed
 
 - Require only extra info not included in metadata

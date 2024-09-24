@@ -50,16 +50,18 @@ jobs:
             client,
             codegen,
             docgen,
-            known-chains,
             json-rpc/json-rpc-provider,
             json-rpc/json-rpc-provider-proxy,
             json-rpc/logs-provider,
             json-rpc/polkadot-sdk-compat,
             json-rpc/sm-provider,
             json-rpc/ws-provider,
+            known-chains,
+            ledger-signer,
             merkleize-metadata,
             metadata-builders,
             metadata-compatibility,
+            observable-client,
             signers/pjs-signer,
             signers/polkadot-signer,
             signers/signer,
@@ -68,7 +70,6 @@ jobs:
             substrate-client,
             utils,
             view-builder,
-            observable-client,
           ]
     steps:
       - uses: actions/checkout@v4
