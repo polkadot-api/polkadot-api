@@ -4,6 +4,7 @@ import {
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
 import { PrimitiveComponentProps } from "./common"
+import SliderToggle from "../../ui-components/Toggle"
 
 export type AccountIdInterface = PrimitiveComponentProps<SS58String>
 
@@ -39,11 +40,11 @@ export const CAccountId: React.FC<AccountIdInterface> = ({
             }
           }}
         />
-        <input
-          checked={inEdit}
-          type="checkbox"
-          onChange={() => {
+        <SliderToggle
+          isToggled={inEdit}
+          toggle={() => {
             if (!isValid) setLocalInput(value)
+            else onValueChanged(localInput)
             setInEdit((prev) => !prev)
           }}
         />

@@ -1,8 +1,8 @@
-import { withDepth } from "../utils/depth"
+import { ReactNode, useState } from "react"
 import { Var } from "@polkadot-api/metadata-builders"
-import { CodecComponentProps } from "./common"
-import { ReactNode } from "react"
 import { clsx } from "clsx"
+import { withDepth } from "../utils/depth"
+import { CodecComponentProps } from "./common"
 
 type LookupTypes = Var["type"]
 type EnumInterface = CodecComponentProps<{ type: string; value: any }> & {
@@ -14,11 +14,14 @@ type EnumInterface = CodecComponentProps<{ type: string; value: any }> & {
 
 export const CEnum: React.FC<EnumInterface> = withDepth(
   ({ value, tags, onChange, inner, innerType }) => {
+    const [inEdit, setInEdit] = useState<boolean>(false)
+
     const shouldNest =
       innerType === "enum" ||
       innerType === "struct" ||
       innerType === "array" ||
       innerType === "sequence"
+
     const disabled = false
 
     return (

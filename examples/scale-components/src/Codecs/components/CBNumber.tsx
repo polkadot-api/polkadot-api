@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { PrimitiveComponentProps } from "../codec-components"
+import { PrimitiveComponentProps } from "./common"
+import SliderToggle from "../../ui-components/Toggle"
 
 export type BNumberInterface = PrimitiveComponentProps<bigint> & {
   type: "u64" | "u128" | "u256" | "i64" | "i128" | "i256" | "compactBn"
@@ -54,10 +55,9 @@ export const CBNumber: React.FC<BNumberInterface> = ({
           }}
         />
         <span className="-ml-1">n</span>
-        <input
-          checked={inEdit}
-          type="checkbox"
-          onChange={() => {
+        <SliderToggle
+          isToggled={inEdit}
+          toggle={() => {
             if (isValid.valid) onValueChanged(localInput as bigint)
             else setLocalInput(value)
             setInEdit((prev) => !prev)

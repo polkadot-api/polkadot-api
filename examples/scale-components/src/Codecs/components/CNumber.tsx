@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { PrimitiveComponentProps } from "../codec-components"
+import { PrimitiveComponentProps } from "./common"
+import SliderToggle from "../../ui-components/Toggle"
 
 export type NumberInterface = PrimitiveComponentProps<number> & {
   type: "u8" | "u16" | "u32" | "i8" | "i16" | "i32" | "compactNumber"
@@ -54,10 +55,9 @@ export const CNumber: React.FC<NumberInterface> = ({
           value={localInput === null ? "" : localInput.toString()}
           onChange={onChange}
         />
-        <input
-          checked={inEdit}
-          type="checkbox"
-          onChange={() => {
+        <SliderToggle
+          isToggled={inEdit}
+          toggle={() => {
             if (isValid.valid) onValueChanged(localInput as number)
             else setLocalInput(value)
             setInEdit((prev) => !prev)
