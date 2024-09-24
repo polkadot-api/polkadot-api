@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add some documentation along the interface.
+
 ## 0.1.4 - 2024-08-28
 
 ### Fixed
