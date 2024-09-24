@@ -1,10 +1,11 @@
 import {
   AccountId,
   Blake2256,
-  V15,
+  type V14,
+  type V15,
   compact,
+  decAnyMetadata,
   enhanceEncoder,
-  metadata as metadataCodec,
   u8,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
@@ -13,7 +14,7 @@ import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
 import { SignPayload, SignRaw, SignerPayloadJSON } from "./types"
 
-export const getAddressFormat = (metadata: V15): number => {
+export const getAddressFormat = (metadata: V14 | V15): number => {
   const dynamicBuilder = getDynamicBuilder(getLookupFn(metadata))
 
   const constant = metadata.pallets
@@ -56,10 +57,11 @@ export function getPolkadotSignerFromPjs(
     atBlockNumber: number,
     _ = Blake2256,
   ) => {
-    let decMeta: V15
+    let decMeta: V14 | V15
     try {
-      const tmpMeta = metadataCodec.dec(metadata)
-      if (tmpMeta.metadata.tag !== "v15") throw null
+      const tmpMeta = decAnyMetadata(metadata)
+      if (tmpMeta.metadata.tag !== "v14" && tmpMeta.metadata.tag !== "v15")
+        throw null
       decMeta = tmpMeta.metadata.value
     } catch (_) {
       throw new Error("Unsupported metadata version")
