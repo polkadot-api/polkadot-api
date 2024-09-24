@@ -2,11 +2,11 @@ import type { Codec, StringRecord } from "@polkadot-api/substrate-bindings"
 import * as scale from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import type { EnumVar, MetadataLookup } from "./lookups"
-import { getLookupBuilder } from "./lookup-builder"
+import { getLookupCodecBuilder } from "./lookup-codec-builder"
 
 export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
   const { metadata } = getLookupEntryDef
-  let buildDefinition = getLookupBuilder(getLookupEntryDef)
+  let buildDefinition = getLookupCodecBuilder(getLookupEntryDef)
 
   const prefix = metadata.pallets
     .find((x) => x.name === "System")
@@ -18,7 +18,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       const prefixVal = buildDefinition(prefix.type).dec(prefix.value)
       if (typeof prefixVal === "number") {
         ss58Prefix = prefixVal
-        buildDefinition = getLookupBuilder(
+        buildDefinition = getLookupCodecBuilder(
           getLookupEntryDef,
           scale.AccountId(prefixVal),
         )

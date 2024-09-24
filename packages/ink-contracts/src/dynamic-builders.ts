@@ -1,4 +1,4 @@
-import { getLookupBuilder } from "@polkadot-api/metadata-builders"
+import { getLookupCodecBuilder } from "@polkadot-api/metadata-builders"
 import {
   Bytes,
   Codec,
@@ -17,7 +17,7 @@ import { Binary } from "@polkadot-api/substrate-bindings"
 export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
   const { metadata } = metadataLookup
 
-  const buildDefinition = getLookupBuilder(metadataLookup)
+  const buildDefinition = getLookupCodecBuilder(metadataLookup)
 
   const buildLayout = (node: Layout): Codec<any> => {
     if ("root" in node) {

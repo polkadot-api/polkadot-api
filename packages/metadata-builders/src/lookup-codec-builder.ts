@@ -103,7 +103,7 @@ const _buildCodec = (
 }
 const buildCodec = withCache(_buildCodec, scale.Self, (res) => res)
 
-export const getLookupBuilder = (
+export const getLookupCodecBuilder = (
   lookup: (id: number) => LookupEntry,
   accountId = scale.AccountId(),
 ) => {
