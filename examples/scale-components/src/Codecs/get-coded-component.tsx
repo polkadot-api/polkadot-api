@@ -4,12 +4,22 @@ import {
   getLookupFn,
   LookupEntry,
   MetadataLookup,
+  Var,
 } from "@polkadot-api/metadata-builders"
 import React, { useMemo, useRef } from "react"
-
 import * as _baseComponents from "./codec-components"
-import { CEnum } from "./components"
+import {
+  CEnum,
+  CNumber,
+  NumberInterface,
+  CBNumber,
+  BNumberInterface,
+  CAccountId,
+  AccountIdInterface,
+} from "./components"
 import { mapObject } from "@polkadot-api/utils"
+
+export type LookupType = Var["type"]
 
 export const getCodecComponent = (
   baseComponents: typeof _baseComponents,
@@ -83,7 +93,7 @@ export const getCodecComponent = (
               tag,
               idx,
             })),
-            innerType: innerEntry.type,
+            innerType: innerEntry.type as LookupType,
             inner: (
               <CodecComponent
                 dynCodecs={dynCodecs}
@@ -209,19 +219,17 @@ export const getCodecComponent = (
 
     let type: any = undefined
     let ResultComponent: React.FC<
-      | _baseComponents.NumberInterface
-      | _baseComponents.BNumberInterface
+      | NumberInterface
+      | BNumberInterface
       | _baseComponents.BoolInterface
       | _baseComponents.StrInterface
-      | _baseComponents.AccountIdInterface
+      | AccountIdInterface
       | _baseComponents.EthAccountInterface
     > = null as any
 
     switch (entry.type) {
       case "compact": {
-        ResultComponent = entry.isBig
-          ? _baseComponents.CBNumber
-          : (_baseComponents.CNumber as any)
+        ResultComponent = entry.isBig ? CBNumber : (CNumber as any)
         type = entry.isBig ? "compactBn" : "compactNumber"
         break
       }
@@ -232,10 +240,7 @@ export const getCodecComponent = (
           ResultComponent = _baseComponents.CBool as any
         else {
           const nBits = Number(entry.value.slice(1))
-          ResultComponent =
-            nBits < 64
-              ? _baseComponents.CNumber
-              : (_baseComponents.CBNumber as any)
+          ResultComponent = nBits < 64 ? CNumber : (CBNumber as any)
           type = entry.value
         }
         break
@@ -244,7 +249,7 @@ export const getCodecComponent = (
         return null
       }
       case "AccountId32": {
-        ResultComponent = _baseComponents.CAccountId as any
+        ResultComponent = CAccountId as any
         break
       }
       case "AccountId20": {

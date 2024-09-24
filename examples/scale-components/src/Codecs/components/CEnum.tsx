@@ -1,6 +1,6 @@
 import { withDepth } from "../utils/depth"
 import { Var } from "@polkadot-api/metadata-builders"
-import { CodecComponentProps } from "../codec-components"
+import { CodecComponentProps } from "./common"
 import { ReactNode } from "react"
 import { clsx } from "clsx"
 
@@ -13,7 +13,7 @@ type EnumInterface = CodecComponentProps<{ type: string; value: any }> & {
 }
 
 export const CEnum: React.FC<EnumInterface> = withDepth(
-  ({ encodedValue, value, tags, onChange, inner, innerType }) => {
+  ({ value, tags, onChange, inner, innerType }) => {
     const shouldNest =
       innerType === "enum" ||
       innerType === "struct" ||
@@ -24,11 +24,10 @@ export const CEnum: React.FC<EnumInterface> = withDepth(
     return (
       <div
         className={clsx(
-          "flex",
+          "flex text-left gap-2 w-fit ml-0 items-start",
           shouldNest
-            ? "flex-col border-[1px] border-dashed border-gray-500 w-full"
+            ? "flex-col border-[1px] border-dashed border-gray-500"
             : "flex-row",
-          "text-left gap-2 w-fit ml-0 items-start",
         )}
       >
         <select

@@ -1,113 +1,19 @@
-import {
-  Binary,
-  getSs58AddressInfo,
-  HexString,
-  SS58String,
-} from "@polkadot-api/substrate-bindings"
+import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
-import React, { ReactNode, useEffect, useState } from "react"
-
-export type CodecComponentProps<T = any> = {
-  value: T
-  encodedValue: Uint8Array
-}
-
-export type PrimitiveComponentProps<T = any> = CodecComponentProps<T> & {
-  onValueChanged: (newValue: T) => void
-  onBinChanged: (newValue: Uint8Array | HexString) => void
-}
+import React, { ReactNode } from "react"
+import {
+  CodecComponentProps,
+  PrimitiveComponentProps,
+} from "./components/common"
 
 export type VoidInterface = {}
-export type NumberInterface = PrimitiveComponentProps<number> & {
-  type: "u8" | "u16" | "u32" | "i8" | "i16" | "i32" | "compactNumber"
-}
-export type BNumberInterface = PrimitiveComponentProps<bigint> & {
-  type: "u64" | "u128" | "u256" | "i64" | "i128" | "i256" | "compactBn"
-}
 export type BoolInterface = PrimitiveComponentProps<boolean>
 export type StrInterface = PrimitiveComponentProps<string>
 export type BytesInterface = PrimitiveComponentProps<Binary> & {
   len?: number
 }
-export type AccountIdInterface = PrimitiveComponentProps<SS58String>
 export type EthAccountInterface = PrimitiveComponentProps<HexString>
-
-export const CNumber: React.FC<NumberInterface> = ({
-  type,
-  value,
-  encodedValue,
-}) => {
-  const [localInput, setLocalInput] = useState<number | null>(value)
-  const [inEdit, setInEdit] = useState<boolean>(false)
-  return (
-    <span className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2 w-fit">
-      <span className="text-sm text-gray-400">{type}</span>
-      <input
-        disabled={!inEdit}
-        className="bg-gray-700 border-none hover:border-none outline-none text-right max-w-32"
-        value={localInput === null ? "" : localInput.toString()}
-        onChange={(evt) => {
-          try {
-            if (evt.target.value === "") setLocalInput(null)
-            else {
-              const parsed = Number(evt.target.value)
-              if (!isNaN(parsed)) setLocalInput(Number(evt.target.value))
-            }
-          } catch (_) {
-            return
-          }
-        }}
-      />
-      <input
-        checked={inEdit}
-        type="checkbox"
-        onChange={() => {
-          setInEdit((prev) => !prev)
-        }}
-      />
-    </span>
-  )
-}
-export const CBNumber: React.FC<BNumberInterface> = ({
-  type,
-  value,
-  encodedValue,
-  onValueChanged,
-}) => {
-  const [localInput, setLocalInput] = useState<bigint | null>(value)
-  const [inEdit, setInEdit] = useState<boolean>(false)
-  return (
-    <span className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2 w-fit">
-      <span className="text-sm text-gray-400">{type}</span>
-      <input
-        disabled={!inEdit}
-        className="bg-gray-700 border-none hover:border-none outline-none text-right max-w-32 w-fit"
-        value={localInput === null ? "" : localInput.toString()}
-        onChange={(evt) => {
-          try {
-            if (evt.target.value === "") setLocalInput(null)
-            else {
-              let num = BigInt(evt.target.value)
-              setLocalInput(num)
-              onValueChanged(num)
-            }
-          } catch (_) {
-            return
-          }
-        }}
-      />
-      <span className="-ml-1">n</span>
-      <input
-        checked={inEdit}
-        type="checkbox"
-        onChange={() => {
-          setInEdit((prev) => !prev)
-        }}
-      />
-    </span>
-  )
-}
 
 export const CBool: React.FC<BoolInterface> = ({ value }) => (
   <input type="checkbox" checked={value} />
@@ -120,57 +26,14 @@ export const CString: React.FC<StrInterface> = ({ value }) => (
 )
 
 export const CBytes: React.FC<BytesInterface> = ({ value }) => {
-  return <span>{value.asText()}</span>
-}
+  const textRepresentation = value.asText()
+  const printableTextPattern = /^[\x20-\x7E\t\n\r]*$/
 
-export const CAccountId: React.FC<AccountIdInterface> = ({
-  value,
-  onValueChanged,
-}) => {
-  const [inEdit, setInEdit] = useState<boolean>(false)
-  const [localInput, setLocalInput] = useState<SS58String | null>(value)
-  const [isValid, setIsValid] = useState<boolean>(true)
-
-  useEffect(() => {
-    if (localInput === null) setIsValid(false)
-    else {
-      let { isValid } = getSs58AddressInfo(localInput)
-      setIsValid(isValid)
-    }
-  }, [localInput])
-  return (
-    <div className="min-h-16">
-      <div className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2">
-        <span className="text-sm text-gray-400">AccountId</span>
-        <input
-          disabled={!inEdit}
-          className="bg-gray-700 border-none hover:border-none outline-none text-right"
-          value={localInput === null ? "" : localInput.toString()}
-          onChange={(evt) => {
-            try {
-              if (evt.target.value === "") setLocalInput(null)
-              else {
-                let address = evt.target.value
-                setLocalInput(address)
-              }
-            } catch (_) {
-              return
-            }
-          }}
-        />
-        <input
-          checked={inEdit}
-          type="checkbox"
-          onChange={() => {
-            setInEdit((prev) => !prev)
-          }}
-        />
-      </div>
-      {!isValid && (
-        <span className="text-red-600 text-sm">Invalid address.</span>
-      )}
-    </div>
-  )
+  if (printableTextPattern.test(textRepresentation)) {
+    return <span>{value.asText()}</span>
+  } else {
+    return <span>{value.asHex()}</span>
+  }
 }
 
 export const CEthAccount: React.FC<EthAccountInterface> = ({ value }) => (
@@ -252,12 +115,10 @@ export type StructInterface = CodecComponentProps<Record<string, any>> & {
 }
 export const CStruct: React.FC<StructInterface> = ({ innerComponents }) => (
   <div className="flex flex-col text-left">
-    <ul className="ml-[20px]">
+    <ul className="ml-[20px] mb-5">
       {Object.entries(innerComponents).map(([key, jsx]) => (
-        <li key={key} className="flex flex-col mb-2">
-          <span className="font-semibold text-sm mb-2 text-gray-400">
-            {key}
-          </span>
+        <li key={key} className="flex flex-col">
+          <span className="font-semibold text-sm text-gray-400">{key}</span>
           {jsx}
         </li>
       ))}
