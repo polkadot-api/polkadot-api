@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.3.3 - 2024-09-24
+
 ### Fixed
 
 - `signers`: accept v14 metadata as well
