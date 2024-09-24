@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.0 - 2024-09-24
+
 ### Added
 
 - Add `decAnyMetadata` method to decode metadata from various formats.
