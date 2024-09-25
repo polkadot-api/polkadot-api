@@ -59,7 +59,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
 
     return {
       type: "enum",
-      value: node.enum.variants.map(
+      value: Object.values(node.enum.variants).map(
         (variant): EnumVariant => ({
           label: variant.name,
           value: {
@@ -113,71 +113,11 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
   ]
   const rootNodes = getReusedNodes(entryPoints, new Set())
 
-  /*
-  Try to assign names to the types, based on the `displayName` of the contract metadata
-  This is only to add better IDE intellisense support, the types won't be exported.
-  Types without conflicts (same name points to the same type) are given that name.
-  Types with unique conflicts (same name used by different types, but without being shared) will have a prefix of their source
-    => E.g. msg_deposit_funds_MessageResult and msg_get_nft_MessageResult
-  Types with shared conflicts (e.g. two sources use id=3, another uses id=1) will be anonymized.
-  */
-  const names = new Map<
-    string,
-    Array<{
-      source: string
-      id: number
-    }>
-  >()
-  const addName = (
-    displayName: string[],
-    value: { source: string; id: number },
-  ) => {
-    const name = displayName.at(-1)
-    if (!name) return
-
-    const v = names.get(name) ?? []
-    v.push(value)
-    names.set(name, v)
-  }
-  const addCallableNames =
-    (prefix: string) =>
-    (callable: {
-      args: Array<MessageParamSpec>
-      returnType: TypeSpec
-      label: string
-    }) => {
-      callable.args.forEach((arg) =>
-        addName(arg.type.displayName, {
-          source: `${prefix}_${callable.label}`,
-          id: arg.type.type,
-        }),
-      )
-      addName(callable.returnType.displayName, {
-        source: `${prefix}_${callable.label}`,
-        id: callable.returnType.type,
-      })
-    }
-  lookup.metadata.spec.constructors.forEach(addCallableNames("ctor"))
-  lookup.metadata.spec.messages.forEach(addCallableNames("msg"))
-
-  const assignedNames: Record<number, { name: string; anonymous: boolean }> = {}
-  for (const [name, candidates] of names.entries()) {
-    const uniqueIds = new Set(candidates.map((c) => c.id))
-    if (uniqueIds.size === 1) {
-      assignedNames[candidates[0].id] = { name, anonymous: false }
-    } else if (uniqueIds.size === candidates.length) {
-      candidates.forEach((c) => {
-        assignedNames[c.id] ||= {
-          name: `${c.source}_${name}`,
-          anonymous: false,
-        }
-      })
-    }
-  }
+  const assignedNames: Record<number, string> = {}
   let nextAnonymousId = 0
   const getName = (id: number) => {
     if (!assignedNames[id]) {
-      assignedNames[id] = { name: `T${nextAnonymousId++}`, anonymous: true }
+      assignedNames[id] = `T${nextAnonymousId++}`
     }
     return assignedNames[id]
   }
@@ -189,8 +129,8 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
 
   const types: Record<number, CodegenOutput & { name?: string }> = {}
   const generateNodeType = (node: TypeNode | LookupTypeNode): CodegenOutput => {
-    const anonymize = (name: string, id: number) =>
-      assignedNames[id]?.anonymous ? `Anonymize<${name}>` : name
+    const anonymize = (name: string) => `Anonymize<${name}>`
+
     const result = generateTypescript(node, (node, next): CodegenOutput => {
       if (!("id" in node) || isPrimitive(node)) {
         return (
@@ -202,7 +142,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
         const cached = types[node.id]
         return cached.name
           ? {
-              code: anonymize(cached.name, node.id),
+              code: anonymize(cached.name),
               imports: {
                 types: new Set([cached.name]),
               },
@@ -218,7 +158,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
         types[node.id] = {
           code: "",
           imports: {},
-          name: assignedName.name,
+          name: assignedName,
         }
       }
 
@@ -228,9 +168,9 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
         types[node.id].code = result.code
         types[node.id].imports = result.imports
         return {
-          code: anonymize(assignedName.name, node.id),
+          code: anonymize(assignedName),
           imports: {
-            types: new Set([assignedName.name]),
+            types: new Set([assignedName]),
           },
         }
       }
@@ -241,7 +181,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     if ("id" in node && types[node.id]?.name) {
       const name = types[node.id].name!
       return {
-        code: anonymize(name, node.id),
+        code: anonymize(name),
         imports: {
           types: new Set([name]),
         },
@@ -287,7 +227,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
 
   const namedTypes = Object.entries(assignedNames)
     .filter(([id]) => types[Number(id)])
-    .map(([id, value]) => `type ${value.name} = ${types[Number(id)].code};`)
+    .map(([id, value]) => `type ${value} = ${types[Number(id)].code};`)
     .join("\n")
 
   const clientImports = Array.from(
@@ -314,7 +254,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     type MessagesDescriptor = ${messagesDescriptor.code};
     type ConstructorsDescriptor = ${constructorsDescriptor.code};
 
-    export const descriptor: InkDescriptors<StorageDescriptor, MessagesDescriptor, ConstructorsDescriptor> = { metadata: ${JSON.stringify(lookup.metadata)} } as any;
+    export const descriptor: InkDescriptors<Anonymize<StorageDescriptor>, MessagesDescriptor, ConstructorsDescriptor> = { metadata: ${JSON.stringify(lookup.metadata)} } as any;
   `
 
   return result

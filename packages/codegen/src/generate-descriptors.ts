@@ -5,7 +5,6 @@ import {
 import { filterObject, mapObject } from "@polkadot-api/utils"
 import { anonymizeImports, anonymizeType } from "./anonymize"
 import { getTypesBuilder } from "./types-builder"
-import { anonymizeType } from "./anonymize"
 
 const isDocs = (x: any) => {
   if (typeof x !== "object") return false

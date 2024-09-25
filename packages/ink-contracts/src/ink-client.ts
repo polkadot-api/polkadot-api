@@ -63,6 +63,7 @@ const buildStorage = <S>(
   lookup: InkMetadataLookup,
   builder: InkDynamicBuilder["buildStorageRoot"],
 ): InkStorageInterface<S> => ({
+  // TODO v4 vs v5
   rootKey: Binary.fromHex(lookup.metadata.storage.root.root_key),
   decodeRoot: (rootStorage) => builder().dec(rootStorage.asBytes()),
 })

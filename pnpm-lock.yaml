@@ -304,6 +304,9 @@ importers:
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../cli
+      '@polkadot-api/ink-contracts':
+        specifier: workspace:*
+        version: link:../ink-contracts
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc/json-rpc-provider

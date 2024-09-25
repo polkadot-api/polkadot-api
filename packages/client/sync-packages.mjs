@@ -22,6 +22,7 @@ export const reexports = [
   fromId("smoldot/node-worker"),
   fromId("smoldot/from-node-worker"),
   fromId("utils"),
+  ["ink", "@polkadot-api/ink-contracts"],
 ]
 
 const packageJsonContent = JSON.parse(await readFile("./package.json", "utf-8"))
