@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import SliderToggle from "../../../ui-components/Toggle"
 import { ViewBigNumber } from "../../lib"
 
 export const CBigNumber: ViewBigNumber = ({ type, value }) => {
@@ -46,14 +47,12 @@ export const CBigNumber: ViewBigNumber = ({ type, value }) => {
           }}
         />
         <span className="-ml-1">n</span>
-        <input
-          checked={inEdit}
-          type="checkbox"
-          onChange={() => {
-            /*
-            if (isValid.valid) onValueChanged(localInput as bigint)
-            else setLocalInput(value)
-            */
+        <SliderToggle
+          isToggled={inEdit}
+          toggle={() => {
+            // if (isValid.valid) onValueChanged(localInput as bigint)
+            // else setLocalInput(value)
+
             setInEdit((prev) => !prev)
           }}
         />

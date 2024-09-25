@@ -3,6 +3,7 @@ import {
   SS58String,
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
+import SliderToggle from "../../../ui-components/Toggle"
 import { ViewAccountId } from "../../lib"
 
 export const CAccountId: ViewAccountId = ({ value }) => {
@@ -34,11 +35,11 @@ export const CAccountId: ViewAccountId = ({ value }) => {
             }
           }}
         />
-        <input
-          checked={inEdit}
-          type="checkbox"
-          onChange={() => {
-            if (!isValid) setLocalInput(value)
+        <SliderToggle
+          isToggled={inEdit}
+          toggle={() => {
+            // if (!isValid) setLocalInput(value)
+            // else onValueChanged(localInput)
             setInEdit((prev) => !prev)
           }}
         />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import SliderToggle from "../../../ui-components/Toggle"
 import { ViewNumber } from "../../lib"
 
 export const CNumber: ViewNumber = ({ type, value }) => {
@@ -46,10 +47,9 @@ export const CNumber: ViewNumber = ({ type, value }) => {
           value={localInput === null ? "" : localInput.toString()}
           onChange={onChange}
         />
-        <input
-          checked={inEdit}
-          type="checkbox"
-          onChange={() => {
+        <SliderToggle
+          isToggled={inEdit}
+          toggle={() => {
             // if (isValid.valid) onValueChanged(localInput as number)
             // else setLocalInput(value)
             setInEdit((prev) => !prev)

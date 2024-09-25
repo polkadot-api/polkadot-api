@@ -2,8 +2,21 @@ import { withDepth } from "../utils/depth"
 import { clsx } from "clsx"
 import { ViewEnum } from "../../lib"
 
-export const CEnum: ViewEnum = withDepth(({ value, tags, inner }) => {
-  const shouldNest = false
+export const CEnum: ViewEnum = withDepth(({ value, tags, inner, shape }) => {
+  let innerShape = shape.value[value.type]
+  let innerType
+
+  if (innerShape.type === "lookupEntry") {
+    innerType = innerShape.value.type
+  } else {
+    innerType = innerShape.type
+  }
+  const shouldNest =
+    innerType === "array" ||
+    innerType === "sequence" ||
+    innerType === "struct" ||
+    innerType === "enum" ||
+    innerType === "result"
   const disabled = false
 
   return (
@@ -21,6 +34,7 @@ export const CEnum: ViewEnum = withDepth(({ value, tags, inner }) => {
           "w-fit bg-slate-700 p-2 rounded pr-8 border-r-4 border-slate-700",
           disabled && "appearance-none",
         )}
+        // onChange={(e) => onChange(e.target.value)}
       >
         {tags.map(({ tag }) => (
           <option key={tag} value={tag} selected={tag === value.type}>
