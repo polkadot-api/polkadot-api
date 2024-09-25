@@ -3,14 +3,9 @@ import {
   SS58String,
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
-import { PrimitiveComponentProps } from "./common"
+import { ViewAccountId } from "../../lib"
 
-export type AccountIdInterface = PrimitiveComponentProps<SS58String>
-
-export const CAccountId: React.FC<AccountIdInterface> = ({
-  value,
-  onValueChanged,
-}) => {
+export const CAccountId: ViewAccountId = ({ value }) => {
   const [inEdit, setInEdit] = useState<boolean>(false)
   const [localInput, setLocalInput] = useState<SS58String>(value)
   const [isValid, setIsValid] = useState<boolean>(true)
