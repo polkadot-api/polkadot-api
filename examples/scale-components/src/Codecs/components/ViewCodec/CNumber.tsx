@@ -1,16 +1,8 @@
 import { useState, useEffect } from "react"
-import { PrimitiveComponentProps } from "./common"
-import SliderToggle from "../../ui-components/Toggle"
+import SliderToggle from "../../../ui-components/Toggle"
+import { ViewNumber } from "../../lib"
 
-export type NumberInterface = PrimitiveComponentProps<number> & {
-  type: "u8" | "u16" | "u32" | "i8" | "i16" | "i32" | "compactNumber"
-}
-
-export const CNumber: React.FC<NumberInterface> = ({
-  type,
-  value,
-  onValueChanged,
-}) => {
+export const CNumber: ViewNumber = ({ type, value }) => {
   const [localInput, setLocalInput] = useState<number | null>(value)
   const [inEdit, setInEdit] = useState<boolean>(false)
   const [isValid, setIsValid] = useState<{ valid: boolean; reason?: string }>({
@@ -58,8 +50,8 @@ export const CNumber: React.FC<NumberInterface> = ({
         <SliderToggle
           isToggled={inEdit}
           toggle={() => {
-            if (isValid.valid) onValueChanged(localInput as number)
-            else setLocalInput(value)
+            // if (isValid.valid) onValueChanged(localInput as number)
+            // else setLocalInput(value)
             setInEdit((prev) => !prev)
           }}
         />

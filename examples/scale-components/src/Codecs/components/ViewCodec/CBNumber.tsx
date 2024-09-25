@@ -1,16 +1,8 @@
 import { useState, useEffect } from "react"
-import { PrimitiveComponentProps } from "./common"
-import SliderToggle from "../../ui-components/Toggle"
+import SliderToggle from "../../../ui-components/Toggle"
+import { ViewBigNumber } from "../../lib"
 
-export type BNumberInterface = PrimitiveComponentProps<bigint> & {
-  type: "u64" | "u128" | "u256" | "i64" | "i128" | "i256" | "compactBn"
-}
-
-export const CBNumber: React.FC<BNumberInterface> = ({
-  type,
-  value,
-  onValueChanged,
-}) => {
+export const CBigNumber: ViewBigNumber = ({ type, value }) => {
   const [localInput, setLocalInput] = useState<bigint | null>(value)
   const [inEdit, setInEdit] = useState<boolean>(false)
   const [isValid, setIsValid] = useState<{ valid: boolean; reason?: string }>({
@@ -47,7 +39,7 @@ export const CBNumber: React.FC<BNumberInterface> = ({
               else {
                 let num = BigInt(evt.target.value)
                 setLocalInput(num)
-                onValueChanged(num)
+                // onValueChanged(num)
               }
             } catch (_) {
               return
@@ -58,8 +50,9 @@ export const CBNumber: React.FC<BNumberInterface> = ({
         <SliderToggle
           isToggled={inEdit}
           toggle={() => {
-            if (isValid.valid) onValueChanged(localInput as bigint)
-            else setLocalInput(value)
+            // if (isValid.valid) onValueChanged(localInput as bigint)
+            // else setLocalInput(value)
+
             setInEdit((prev) => !prev)
           }}
         />

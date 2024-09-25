@@ -1,31 +1,39 @@
-import { Binary, HexString } from "@polkadot-api/substrate-bindings"
+import { Binary } from "@polkadot-api/substrate-bindings"
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import React, { ReactNode } from "react"
 import {
-  CodecComponentProps,
-  PrimitiveComponentProps,
-} from "./components/common"
+  NOTIN,
+  ViewArray,
+  ViewBool,
+  ViewBytes,
+  ViewEthAccount,
+  ViewOption,
+  ViewResult,
+  ViewSequence,
+  ViewStr,
+  ViewStruct,
+  ViewTuple,
+  ViewVoid,
+} from "../../lib"
 
-export type VoidInterface = {}
-export type BoolInterface = PrimitiveComponentProps<boolean>
-export type StrInterface = PrimitiveComponentProps<string>
-export type BytesInterface = PrimitiveComponentProps<Binary> & {
-  len?: number
-}
-export type EthAccountInterface = PrimitiveComponentProps<HexString>
+const withDefault: <T>(value: T | NOTIN, fallback: T) => T = (
+  value,
+  fallback,
+) => (value === NOTIN ? fallback : value)
 
-export const CBool: React.FC<BoolInterface> = ({ value }) => (
-  <input type="checkbox" checked={value} />
+export const CBool: ViewBool = ({ value }) => (
+  <input type="checkbox" checked={withDefault(value, false)} />
 )
 
-export const CVoid: React.FC<VoidInterface> = () => null
+export const CVoid: ViewVoid = () => null
 
-export const CString: React.FC<StrInterface> = ({ value }) => (
-  <span>{value}</span>
+export const CStr: ViewStr = ({ value }) => (
+  <span>{withDefault(value, "")}</span>
 )
 
-export const CBytes: React.FC<BytesInterface> = ({ value }) => {
+export const CBytes: ViewBytes = ({ value: rawValue }) => {
+  const value = withDefault(rawValue, Binary.fromHex("0x"))
   const textRepresentation = value.asText()
   const printableTextPattern = /^[\x20-\x7E\t\n\r]*$/
 
@@ -36,32 +44,13 @@ export const CBytes: React.FC<BytesInterface> = ({ value }) => {
   }
 }
 
-export const CEthAccount: React.FC<EthAccountInterface> = ({ value }) => (
-  <span>{value}</span>
-)
+export const CEthAccount: ViewEthAccount = ({ value }) => <span>{value}</span>
 
-export type SequenceInterface<T = any> = CodecComponentProps<Array<T>> & {
-  innerComponents: Array<React.ReactNode>
-  onAddItem: (idx?: number, value?: T) => void
-  onDeleteItem: (idx: number) => void
-  onReorder: (prevIdx: number, newIdx: number) => void
-}
-
-export const CSequence: React.FC<SequenceInterface> = ({
-  encodedValue,
-  innerComponents,
-}) => {
+export const CSequence: ViewSequence = ({ innerComponents }) => {
   return <ListDisplay innerComponents={innerComponents} />
 }
 
-export type ArrayInterface<T = any> = CodecComponentProps<Array<T>> & {
-  innerComponents: Array<React.ReactNode>
-  onReorder: (prevIdx: number, newIdx: number) => void
-}
-export const CArray: React.FC<ArrayInterface> = ({
-  encodedValue,
-  innerComponents,
-}) => {
+export const CArray: ViewArray = ({ innerComponents }) => {
   return <ListDisplay innerComponents={innerComponents} />
 }
 
@@ -95,10 +84,7 @@ const ListDisplay: React.FC<{ innerComponents: ReactNode[] }> = ({
   )
 }
 
-export type TupleInterface<T = any> = CodecComponentProps<Array<T>> & {
-  innerComponents: Array<React.ReactNode>
-}
-export const CTuple: React.FC<TupleInterface> = ({ innerComponents }) => {
+export const CTuple: ViewTuple = ({ innerComponents }) => {
   return (
     <ul>
       Tuple [
@@ -110,12 +96,9 @@ export const CTuple: React.FC<TupleInterface> = ({ innerComponents }) => {
   )
 }
 
-export type StructInterface = CodecComponentProps<Record<string, any>> & {
-  innerComponents: Record<string, React.ReactNode>
-}
-export const CStruct: React.FC<StructInterface> = ({ innerComponents }) => (
+export const CStruct: ViewStruct = ({ innerComponents }) => (
   <div className="flex flex-col text-left">
-    <ul className=" mb-5">
+    <ul className="ml-[20px] mb-5">
       {Object.entries(innerComponents).map(([key, jsx]) => (
         <li key={key} className="flex flex-col">
           <Accordion.Root
@@ -134,26 +117,16 @@ export const CStruct: React.FC<StructInterface> = ({ innerComponents }) => (
               <Accordion.AccordionContent>{jsx}</Accordion.AccordionContent>
             </Accordion.AccordionItem>
           </Accordion.Root>
-          {/* <span className="font-semibold text-sm text-gray-400">{key}</span> */}
         </li>
       ))}
     </ul>
   </div>
 )
 
-type OptionInterface<T = any> = CodecComponentProps<T | undefined> & {
-  onChange: (value: boolean | { set: true; value: T }) => void
-  inner: ReactNode
-}
-export const COption: React.FC<OptionInterface> = ({ value, inner }) =>
+export const COption: ViewOption = ({ value, inner }) =>
   value === undefined ? "null" : inner
 
-type ResultInterface = CodecComponentProps<{ success: boolean; value: any }> & {
-  onChange: (value: boolean | { success: boolean; value: any }) => void
-  inner: ReactNode
-}
-
-export const CResult: React.FC<ResultInterface> = ({ value, inner }) => (
+export const CResult: ViewResult = ({ value, inner }) => (
   <>
     {value.success ? "ok" : "ko"}-{inner}
   </>
