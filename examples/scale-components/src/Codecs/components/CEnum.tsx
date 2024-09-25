@@ -3,6 +3,7 @@ import { Var } from "@polkadot-api/metadata-builders"
 import { clsx } from "clsx"
 import { withDepth } from "../utils/depth"
 import { CodecComponentProps } from "./common"
+import SliderToggle from "../../ui-components/Toggle"
 
 type LookupTypes = Var["type"]
 type EnumInterface = CodecComponentProps<{ type: string; value: any }> & {
@@ -22,8 +23,6 @@ export const CEnum: React.FC<EnumInterface> = withDepth(
       innerType === "array" ||
       innerType === "sequence"
 
-    const disabled = false
-
     return (
       <div
         className={clsx(
@@ -33,20 +32,26 @@ export const CEnum: React.FC<EnumInterface> = withDepth(
             : "flex-row",
         )}
       >
-        <select
-          disabled={disabled}
-          className={clsx(
-            "w-fit bg-slate-700 p-2 rounded pr-8 border-r-4 border-slate-700",
-            disabled && "appearance-none",
-          )}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {tags.map(({ tag }) => (
-            <option key={tag} value={tag} selected={tag === value.type}>
-              {tag}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-row items-center">
+          <select
+            disabled={!inEdit}
+            className={clsx(
+              "w-fit bg-slate-700 p-2 rounded pr-8 border-r-4 border-slate-700",
+              !inEdit && "appearance-none",
+            )}
+            onChange={(e) => onChange(e.target.value)}
+          >
+            {tags.map(({ tag }) => (
+              <option key={tag} value={tag} selected={tag === value.type}>
+                {tag}
+              </option>
+            ))}
+          </select>
+          <SliderToggle
+            isToggled={inEdit}
+            toggle={() => setInEdit((prev) => !prev)}
+          />
+        </div>
         <div className={clsx(shouldNest && "ml-[30px]")}>{inner}</div>
       </div>
     )
