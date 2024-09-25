@@ -1,10 +1,7 @@
 import "./App.css"
-import { getCodecComponent } from "./Codecs/get-coded-component"
-import * as components from "./Codecs/codec-components"
 import { metadata } from "@polkadot-api/substrate-bindings"
 import rawMetadata from "./raw-metadata"
-
-const FancyComponent = getCodecComponent(components)
+import { ViewCodec } from "./Codecs/components"
 
 const metadataDecoded = metadata.dec(rawMetadata)
 
@@ -23,7 +20,7 @@ function App() {
   return (
     <div className="flex flex-col items-center max-w-screen-md">
       <h1 className="text-lg my-5 text-wrap break-all">Decoding: {selected}</h1>
-      <FancyComponent
+      <ViewCodec
         {...{
           metadata: metadataDecoded.metadata.value as any,
           codecType: 93,

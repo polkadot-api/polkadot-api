@@ -3,15 +3,10 @@ import {
   SS58String,
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
-import { PrimitiveComponentProps } from "./common"
-import SliderToggle from "../../ui-components/Toggle"
+import SliderToggle from "../../../ui-components/Toggle"
+import { ViewAccountId } from "../../lib"
 
-export type AccountIdInterface = PrimitiveComponentProps<SS58String>
-
-export const CAccountId: React.FC<AccountIdInterface> = ({
-  value,
-  onValueChanged,
-}) => {
+export const CAccountId: ViewAccountId = ({ value }) => {
   const [inEdit, setInEdit] = useState<boolean>(false)
   const [localInput, setLocalInput] = useState<SS58String>(value)
   const [isValid, setIsValid] = useState<boolean>(true)
@@ -43,8 +38,8 @@ export const CAccountId: React.FC<AccountIdInterface> = ({
         <SliderToggle
           isToggled={inEdit}
           toggle={() => {
-            if (!isValid) setLocalInput(value)
-            else onValueChanged(localInput)
+            // if (!isValid) setLocalInput(value)
+            // else onValueChanged(localInput)
             setInEdit((prev) => !prev)
           }}
         />
