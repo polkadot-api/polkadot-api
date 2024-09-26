@@ -21,11 +21,9 @@ function App() {
     <div className="flex flex-col items-center max-w-screen-md">
       <h1 className="text-lg my-5 text-wrap break-all">Decoding: {selected}</h1>
       <ViewCodec
-        {...{
-          metadata: metadataDecoded.metadata.value as any,
-          codecType: 93,
-          value: selected,
-        }}
+        metadata={metadataDecoded.metadata.value as any}
+        codecType={93}
+        value={selected}
       />
     </div>
   )
