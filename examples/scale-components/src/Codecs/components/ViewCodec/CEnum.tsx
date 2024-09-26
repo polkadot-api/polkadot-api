@@ -22,9 +22,9 @@ export const CEnum: ViewEnum = withDepth(({ value, tags, inner, shape }) => {
   return (
     <div
       className={clsx(
-        "flex text-left gap-2 w-fit ml-0 items-start",
+        "flex text-left gap-2 ml-0 items-start",
         shouldNest
-          ? "flex-col border-[1px] border-dashed border-gray-500"
+          ? "flex-col border-l-[1px] border-dashed border-gray-500"
           : "flex-row",
       )}
     >
@@ -34,7 +34,6 @@ export const CEnum: ViewEnum = withDepth(({ value, tags, inner, shape }) => {
           "w-fit bg-slate-700 p-2 rounded pr-8 border-r-4 border-slate-700",
           disabled && "appearance-none",
         )}
-        // onChange={(e) => onChange(e.target.value)}
       >
         {tags.map(({ tag }) => (
           <option key={tag} value={tag} selected={tag === value.type}>
