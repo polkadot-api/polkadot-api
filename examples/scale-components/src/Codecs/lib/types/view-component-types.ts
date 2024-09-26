@@ -100,8 +100,8 @@ export type ViewOption = FC<ViewOptionInterface>
 export type ViewResultInterface = ViewCodecComponentProps<{
   success: boolean
   value: any
-  shape: ResultVar
 }> & {
+  shape: ResultVar
   inner: ReactNode
 }
 export type ViewResult = FC<ViewResultInterface>

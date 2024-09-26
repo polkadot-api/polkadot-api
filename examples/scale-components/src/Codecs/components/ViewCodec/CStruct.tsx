@@ -3,7 +3,7 @@ import { ViewStruct } from "../../lib"
 import * as Accordion from "@radix-ui/react-accordion"
 import clsx from "clsx"
 
-export const CStruct: ViewStruct = ({ innerComponents, shape, value }) => {
+export const CStruct: ViewStruct = ({ innerComponents, shape }) => {
   const [maxWidth, setMaxWidth] = useState(0)
   const contentRefs = useRef<(HTMLSpanElement | null)[]>([])
 

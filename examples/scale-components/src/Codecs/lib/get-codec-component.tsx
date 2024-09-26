@@ -3,8 +3,8 @@ import {
   V14,
   HexString,
   Encoder,
-  Bytes,
   Decoder,
+  Bytes,
   compactBn,
   compactNumber,
 } from "@polkadot-api/substrate-bindings"
@@ -17,7 +17,7 @@ import {
   Var,
 } from "@polkadot-api/metadata-builders"
 import React, { FC, useEffect, useRef, useState } from "react"
-import { fromHex, mapObject } from "@polkadot-api/utils"
+import { fromHex, mapObject, mergeUint8 } from "@polkadot-api/utils"
 import type {
   EditAccountId,
   EditBigNumber,
@@ -43,6 +43,25 @@ const withNotin: <T>(
   encoder: Encoder<T>,
 ) => (input: T) => Uint8Array | undefined = (encoder) => (input) =>
   detectNotin(input) ? undefined : encoder(input)
+
+const getInnerEnumCodec = (
+  input: scale.Codec<{ type: string; value: any }>,
+  idx: number,
+  type: string,
+) => {
+  return scale.createCodec(
+    (value: any) => input.enc({ type, value }).slice(1),
+    (value) => {
+      const val: Uint8Array =
+        value instanceof Uint8Array
+          ? value
+          : typeof value === "string"
+            ? fromHex(value)
+            : new Uint8Array(value)
+      return input.dec(mergeUint8(new Uint8Array([idx]), val)).value
+    },
+  )
+}
 
 export function getCodecComponent(baseComponent: ViewComponents): React.FC<{
   metadata: V14 | V15
@@ -77,20 +96,50 @@ export function getCodecComponent(
   const CodecComponent: React.FC<{
     dynCodecs: ReturnType<typeof getDynamicBuilder>["buildDefinition"]
     entry: LookupEntry
+    parent?: { id: number; variantIdx: number; variantTag: string }
     value:
       | {
           empty: true
         }
       | { empty: false; decoded: any; encoded?: Uint8Array }
-    onChange: (value: any) => void
-  }> = ({ entry, value, dynCodecs, onChange }) => {
-    const valueProps = value.empty
-      ? { value: NOTIN as NOTIN }
-      : {
-          value: value.decoded,
-          encodedValue:
-            value.encoded || withNotin(dynCodecs(entry.id).enc)(value.decoded),
+    onChange: (value: any) => boolean
+  }> = ({ entry, value, dynCodecs, onChange, parent }) => {
+    const codec =
+      "id" in entry
+        ? dynCodecs(entry.id)
+        : getInnerEnumCodec(
+            dynCodecs(parent!.id),
+            parent!.variantIdx,
+            parent!.variantTag,
+          )
+
+    const createOnBinChanged =
+      (decoder: scale.Decoder<any>) =>
+      (x: any): boolean => {
+        let decoded
+        try {
+          decoded = decoder(x)
+        } catch (e) {
+          console.warn("error decoding", x, entry)
+          return false
         }
+        return onChange(decoded)
+      }
+    const onBinChanged = createOnBinChanged(codec.dec)
+    let valueProps:
+      | { type: "blank"; value: NOTIN; encodedValue: undefined }
+      | { type: "partial"; value: any; encodedValue: undefined }
+      | { type: "complete"; value: any; encodedValue: Uint8Array } = {
+      type: "blank" as "blank",
+      value: NOTIN,
+      encodedValue: undefined,
+    }
+    if (!value.empty) {
+      const encodedValue = value.encoded || withNotin(codec.enc)(value.decoded)
+      valueProps = encodedValue
+        ? { type: "complete", value: value.decoded, encodedValue }
+        : { type: "partial", value: value.decoded, encodedValue: undefined }
+    }
 
     if (entry.type === "struct") {
       const latestValue = value.empty
@@ -100,6 +149,8 @@ export function getCodecComponent(
         <CStruct
           {...valueProps}
           shape={entry}
+          onBinChanged={onBinChanged}
+          onValueChanged={onChange}
           innerComponents={mapObject(entry.value, (entry, key) => (
             <CodecComponent
               dynCodecs={dynCodecs}
@@ -107,7 +158,7 @@ export function getCodecComponent(
               onChange={(x) => {
                 const value = { ...latestValue }
                 value[key] = x
-                onChange(value)
+                return onChange(value)
               }}
               value={
                 latestValue[key] === NOTIN
@@ -132,6 +183,8 @@ export function getCodecComponent(
           {...{
             ...valueProps,
             shape: entry,
+            onValueChanged: onChange,
+            onBinChanged,
             innerComponents: entry.value.map((entry, idx) => (
               <CodecComponent
                 dynCodecs={dynCodecs}
@@ -139,7 +192,7 @@ export function getCodecComponent(
                 onChange={(x) => {
                   const value = [...latestValue]
                   value[idx] = x
-                  onChange(value)
+                  return onChange(value)
                 }}
                 value={
                   value.empty
@@ -169,9 +222,8 @@ export function getCodecComponent(
         <CEnum
           {...{
             ...valueProps,
-            onChange: (newTag) => {
-              onChange({ type: newTag, value: NOTIN })
-            },
+            onBinChanged,
+            onValueChanged: onChange,
             tags: Object.entries(entry.value).map(([tag, { idx }]) => ({
               tag,
               idx,
@@ -181,8 +233,15 @@ export function getCodecComponent(
               <CodecComponent
                 dynCodecs={dynCodecs}
                 entry={innerEntry}
-                onChange={(x) => {
+                onChange={(x) =>
                   onChange({ type: value.decoded.type, value: x })
+                }
+                parent={{
+                  id: entry.id,
+                  variantTag: value.decoded.type,
+                  variantIdx:
+                    entry.value[value.decoded.type as keyof typeof entry.value]
+                      .idx,
                 }}
                 value={
                   value.decoded.value === NOTIN
@@ -191,8 +250,8 @@ export function getCodecComponent(
                         empty: false,
                         decoded: value.decoded.value,
                         encoded:
-                          valueProps.encodedValue &&
-                          valueProps.encodedValue.slice(1),
+                          (valueProps as any).encodedValue &&
+                          (valueProps as any).encodedValue.slice(1),
                       }
                 }
               />
@@ -207,17 +266,14 @@ export function getCodecComponent(
         <CResult
           {...{
             ...valueProps,
-            onChange: (x) => {
-              onChange(
-                typeof x === "boolean" ? { success: x, value: NOTIN } : x,
-              )
-            },
+            onValueChanged: onChange,
+            onBinChanged,
             shape: entry,
             inner: value.empty ? null : (
               <CodecComponent
-                onChange={(x) => {
+                onChange={(x) =>
                   onChange({ success: value.decoded.success, value: x })
-                }}
+                }
                 dynCodecs={dynCodecs}
                 entry={entry.value[value.decoded.success ? "ok" : "ko"]}
                 value={
@@ -238,9 +294,8 @@ export function getCodecComponent(
           {...{
             ...valueProps,
             shape: entry,
-            onChange: (x) => {
-              onChange(typeof x !== "boolean" ? x.value : x ? NOTIN : undefined)
-            },
+            onValueChanged: onChange,
+            onBinChanged,
             inner:
               !value.empty && value.decoded === undefined ? (
                 <CVoid />
@@ -248,9 +303,7 @@ export function getCodecComponent(
                 <CodecComponent
                   dynCodecs={dynCodecs}
                   entry={entry.value}
-                  onChange={(x) => {
-                    onChange(x)
-                  }}
+                  onChange={onChange}
                   value={
                     value.empty || value.decoded === NOTIN
                       ? { empty: true }
@@ -270,12 +323,10 @@ export function getCodecComponent(
         const decoder = Bytes(entry.len)[1]
         return (
           <CBytes
-            onBinChanged={(v) => {
-              onChange(decoder(v))
-            }}
+            onBinChanged={createOnBinChanged(decoder)}
             onValueChanged={onChange}
             len={entry.len}
-            {...valueProps}
+            {...(valueProps as any)}
           />
         )
       }
@@ -288,11 +339,8 @@ export function getCodecComponent(
           {...{
             ...valueProps,
             shape: entry,
-            onReorder: (prevIdx, newIdx) => {
-              const value = [...latestValue]
-              value.splice(newIdx, 0, value.splice(prevIdx, 1)[0])
-              onChange(value)
-            },
+            onBinChanged,
+            onValueChanged: onChange,
             innerComponents: latestValue.map((decoded, idx) => (
               <CodecComponent
                 dynCodecs={dynCodecs}
@@ -300,7 +348,7 @@ export function getCodecComponent(
                 onChange={(x) => {
                   const value = [...latestValue]
                   value[idx] = x
-                  onChange(value)
+                  return onChange(value)
                 }}
                 value={
                   decoded === NOTIN
@@ -319,10 +367,8 @@ export function getCodecComponent(
         const decoder = Bytes()[1]
         return (
           <CBytes
-            {...valueProps}
-            onBinChanged={(x) => {
-              onChange(decoder(x))
-            }}
+            {...(valueProps as any)}
+            onBinChanged={createOnBinChanged(decoder)}
             onValueChanged={onChange}
           />
         )
@@ -334,19 +380,8 @@ export function getCodecComponent(
           {...{
             ...valueProps,
             shape: entry,
-            onReorder: (prevIdx, newIdx) => {
-              const value = [...latestValue]
-              value.splice(newIdx, 0, value.splice(prevIdx, 1)[0])
-              onChange(value)
-            },
-            onAddItem: (x) => {
-              onChange([...latestValue, x])
-            },
-            onDeleteItem: (idx) => {
-              const value = [...latestValue]
-              value.splice(idx, 1)
-              onChange(value)
-            },
+            onValueChanged: onChange,
+            onBinChanged,
             innerComponents: latestValue.map((decoded, idx) => (
               <CodecComponent
                 dynCodecs={dynCodecs}
@@ -354,7 +389,7 @@ export function getCodecComponent(
                 onChange={(x) => {
                   const value = [...latestValue]
                   value[idx] = x
-                  onChange(value)
+                  return onChange(value)
                 }}
                 value={
                   decoded === NOTIN
@@ -401,12 +436,10 @@ export function getCodecComponent(
         return null
       }
       case "AccountId32": {
-        decoder = scale.AccountId()[1]
         ResultComponent = CAccountId
         break
       }
       case "AccountId20": {
-        decoder = scale.ethAccount[1]
         ResultComponent = CEthAccount
         break
       }
@@ -416,11 +449,9 @@ export function getCodecComponent(
     return (
       <Foo
         {...valueProps}
-        onBinChanged={(x: any) => {
-          onChange(decoder(x))
-        }}
+        onBinChanged={onBinChanged}
         onValueChanged={onChange}
-        type={type}
+        numType={type}
       />
     )
   }
@@ -475,18 +506,23 @@ export function getCodecComponent(
     return (
       <CodecComponent
         onChange={(x) => {
+          if (x === NOTIN) {
+            setValue({ empty: true })
+            return true
+          }
+
+          let encoded = undefined
           const hasNotin = detectNotin(x)
-          setValue(
-            x === NOTIN
-              ? { empty: true }
-              : {
-                  empty: false,
-                  decoded: x,
-                  encoded: hasNotin
-                    ? undefined
-                    : lookupRef.current.dynCodecs(codecType).enc(x),
-                },
-          )
+          if (!hasNotin) {
+            try {
+              encoded = lookupRef.current.dynCodecs(codecType).enc(x)
+            } catch (e) {
+              console.warn("Error encoding", x)
+              return false
+            }
+          }
+          setValue({ empty: false, decoded: x, encoded })
+          return true
         }}
         {...{
           dynCodecs: lookupRef.current.dynCodecs,
