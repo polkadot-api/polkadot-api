@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix incorrect PJS injected account type
+
 ### Fixed
 
 - Update dependencies

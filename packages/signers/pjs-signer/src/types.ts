@@ -131,8 +131,8 @@ export interface PjsInjectedExtension {
     signRaw: SignRaw
   }
   accounts: {
-    get: () => Promise<InjectedPolkadotAccount[]>
-    subscribe: (cb: (accounts: InjectedPolkadotAccount[]) => void) => () => void
+    get: () => Promise<InjectedAccount[]>
+    subscribe: (cb: (accounts: InjectedAccount[]) => void) => () => void
   }
 }
 
