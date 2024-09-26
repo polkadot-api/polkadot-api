@@ -1,18 +1,26 @@
+import { Binary } from "@polkadot-api/substrate-bindings"
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import React, { ReactNode } from "react"
 import {
+  NOTIN,
   ViewArray,
   ViewBool,
+  ViewBytes,
   ViewEthAccount,
   ViewOption,
   ViewResult,
   ViewSequence,
   ViewStr,
+  ViewStruct,
   ViewTuple,
   ViewVoid,
 } from "../../lib"
-import { withDefault } from "../utils/default"
+
+const withDefault: <T>(value: T | NOTIN, fallback: T) => T = (
+  value,
+  fallback,
+) => (value === NOTIN ? fallback : value)
 
 export const CBool: ViewBool = ({ value }) => (
   <input type="checkbox" checked={withDefault(value, false)} />
@@ -23,6 +31,18 @@ export const CVoid: ViewVoid = () => null
 export const CStr: ViewStr = ({ value }) => (
   <span>{withDefault(value, "")}</span>
 )
+
+export const CBytes: ViewBytes = ({ value: rawValue }) => {
+  const value = withDefault(rawValue, Binary.fromHex("0x"))
+  const textRepresentation = value.asText()
+  const printableTextPattern = /^[\x20-\x7E\t\n\r]*$/
+
+  if (printableTextPattern.test(textRepresentation)) {
+    return <span>{value.asText()}</span>
+  } else {
+    return <span>{value.asHex()}</span>
+  }
+}
 
 export const CEthAccount: ViewEthAccount = ({ value }) => <span>{value}</span>
 
@@ -46,11 +66,11 @@ const ListDisplay: React.FC<{ innerComponents: ReactNode[] }> = ({
             type="single"
             collapsible
             defaultValue="item-0"
-            className="my-2 p-2"
+            className="bg-gray-800 rounded my-2 p-2"
           >
             <Accordion.AccordionItem value={`item-${idx}`}>
-              <Accordion.AccordionTrigger className="flex flex-row w-full items-center gap-2 group mb-2">
-                ITEM {idx + 1}
+              <Accordion.AccordionTrigger className="flex flex-row justify-between w-full items-center group">
+                ITEM {idx + 1}{" "}
                 <ChevronDownIcon className="group-state-open:rotate-180 transition-all" />
               </Accordion.AccordionTrigger>
               <Accordion.AccordionContent>
@@ -75,6 +95,33 @@ export const CTuple: ViewTuple = ({ innerComponents }) => {
     </ul>
   )
 }
+
+export const CStruct: ViewStruct = ({ innerComponents }) => (
+  <div className="flex flex-col text-left">
+    <ul className="ml-[20px] mb-5">
+      {Object.entries(innerComponents).map(([key, jsx]) => (
+        <li key={key} className="flex flex-col">
+          <Accordion.Root
+            key={key}
+            type="single"
+            collapsible
+            defaultValue={`item-${key}`}
+            className=""
+          >
+            <Accordion.AccordionItem value={`item-${key}`}>
+              <Accordion.AccordionTrigger className="font-semibold text-sm text-gray-400 flex flex-row justify-between w-full items-center group">
+                {key}
+                <div className="group-state-open:hidden ml-2">+</div>
+                <div className="hidden group-state-open:flex ml-2">-</div>
+              </Accordion.AccordionTrigger>
+              <Accordion.AccordionContent>{jsx}</Accordion.AccordionContent>
+            </Accordion.AccordionItem>
+          </Accordion.Root>
+        </li>
+      ))}
+    </ul>
+  </div>
+)
 
 export const COption: ViewOption = ({ value, inner }) =>
   value === undefined ? "null" : inner

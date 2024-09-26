@@ -215,7 +215,6 @@ export function getCodecComponent(
         if (innerEntry.type === "lookupEntry")
           innerEntry = innerEntry.value as any
       }
-
       return (
         <CEnum
           {...{
