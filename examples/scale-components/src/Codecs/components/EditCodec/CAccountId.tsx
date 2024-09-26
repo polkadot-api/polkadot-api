@@ -3,7 +3,6 @@ import {
   SS58String,
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
-import SliderToggle from "../../../ui-components/Toggle"
 import { EditAccountId } from "../../lib"
 import { withDefault } from "../utils/default"
 
@@ -14,7 +13,6 @@ enum ErrorReason {
 }
 
 export const CAccountId: EditAccountId = ({ value, onValueChanged }) => {
-  const [inEdit, setInEdit] = useState<boolean>(true)
   const [localInput, setLocalInput] = useState<SS58String>(
     withDefault(value, ""),
   )
@@ -34,16 +32,11 @@ export const CAccountId: EditAccountId = ({ value, onValueChanged }) => {
     }
   }, [localInput])
 
-  useEffect(() => {
-    setLocalInput(withDefault(value, ""))
-  }, [value])
-
   return (
     <div className="min-h-16">
       <div className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2">
         <span className="text-sm text-gray-400">AccountId</span>
         <input
-          disabled={!inEdit}
           className="bg-gray-700 border-none hover:border-none outline-none text-right min-w-96"
           value={localInput}
           onChange={(evt) => {
@@ -69,14 +62,6 @@ export const CAccountId: EditAccountId = ({ value, onValueChanged }) => {
             }
           }}
         />
-        {/* <SliderToggle
-          isToggled={inEdit}
-          toggle={() => {
-            // if (!isValid) setLocalInput(value)
-            // else onValueChanged(localInput)
-            setInEdit((prev) => !prev)
-          }}
-        /> */}
       </div>
       {!validation.isValid && (
         <span className="text-red-600 text-sm">{validation.reason}</span>

@@ -29,7 +29,7 @@ function App() {
           codecType: 93,
         }}
       />
-      {/* {binaries.map((binary) => {
+      {binaries.map((binary) => {
         return (
           <ViewCodec
             {...{
@@ -39,7 +39,7 @@ function App() {
             }}
           />
         )
-      })} */}
+      })}
     </div>
   )
 }

@@ -116,11 +116,11 @@ export function getCodecComponent(
         let decoded
         try {
           decoded = decoder(x)
+          return onChange(decoded)
         } catch (e) {
           console.warn("error decoding", x, entry)
           return false
         }
-        return onChange(decoded)
       }
     const onBinChanged = createOnBinChanged(codec.dec)
     let valueProps:
