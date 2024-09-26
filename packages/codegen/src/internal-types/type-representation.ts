@@ -1,9 +1,8 @@
 import { ArrayVar, StructVar, TupleVar } from "@polkadot-api/metadata-builders"
 
+type PrimitiveNode = PrimitiveType | ChainPrimitiveType | FixedSizeBinary
 export type TypeNode =
-  | PrimitiveType
-  | ChainPrimitiveType
-  | FixedSizeBinary
+  | PrimitiveNode
   | StructType
   | ArrayType
   | TupleType
@@ -12,6 +11,10 @@ export type TypeNode =
   | UnionType
   | OptionType
 export type LookupTypeNode = TypeNode & { id: number }
+export type MaybeLookupNode = TypeNode | LookupTypeNode
+
+export const isPrimitive = (node: TypeNode): node is PrimitiveNode =>
+  ["chainPrimitive", "primitive", "fixedSizeBinary"].includes(node.type)
 
 export type NativeType =
   | "boolean"
@@ -40,33 +43,42 @@ export type FixedSizeBinary = {
   value: number
 }
 
-export type StructType = {
-  type: "struct"
-  value: Array<StructField>
-  original: StructVar
-}
+// Need it as separate otherwise TS annoying with "maybe value is undefined even if it has the property!"
+type WithOriginal<T, O> = T & ({} | { original: O })
+
+export type StructType = WithOriginal<
+  {
+    type: "struct"
+    value: Array<StructField>
+  },
+  StructVar
+>
 export type StructField = {
   label: string
-  value: LookupTypeNode
+  value: MaybeLookupNode
   docs: string[]
 }
 
-export type ArrayType = {
-  type: "array"
-  value: {
-    value: LookupTypeNode
-    len?: number
-  }
-  original: ArrayVar
-}
+export type ArrayType = WithOriginal<
+  {
+    type: "array"
+    value: {
+      value: MaybeLookupNode
+      len?: number
+    }
+  },
+  ArrayVar
+>
 
-export type TupleType = {
-  type: "tuple"
-  value: Array<TupleField>
-  original: TupleVar
-}
+export type TupleType = WithOriginal<
+  {
+    type: "tuple"
+    value: Array<TupleField>
+  },
+  TupleVar
+>
 export type TupleField = {
-  value: LookupTypeNode
+  value: MaybeLookupNode
   docs: string[]
 }
 
@@ -96,10 +108,10 @@ export type EnumVariant = {
 
 export type UnionType = {
   type: "union"
-  value: (TypeNode | LookupTypeNode)[]
+  value: MaybeLookupNode[]
 }
 
 export type OptionType = {
   type: "option"
-  value: LookupTypeNode
+  value: MaybeLookupNode
 }

@@ -1,4 +1,4 @@
-import { LookupTypeNode, TypeNode } from "./type-representation"
+import { isPrimitive, LookupTypeNode, TypeNode } from "./type-representation"
 
 /**
  * Given a list of starting points, returns those nodes that are being shared by
@@ -14,20 +14,25 @@ import { LookupTypeNode, TypeNode } from "./type-representation"
  * It might return types in the `start` or `exclude` set if those are being
  * referenced from more than one path.
  */
-export function getReusedNodes(start: LookupTypeNode[], exclude: Set<number>) {
+export function getReusedNodes(
+  start: (TypeNode | LookupTypeNode)[],
+  exclude: Set<number>,
+) {
   const reused = new Set<number>()
   const visited = new Set<number>()
   let heads = [...start]
 
   while (heads.length) {
     const head = heads.pop()!
-    if (visited.has(head.id)) {
-      reused.add(head.id)
-      continue
-    }
-    visited.add(head.id)
-    if (exclude.has(head.id)) {
-      continue
+    if ("id" in head) {
+      if (visited.has(head.id)) {
+        reused.add(head.id)
+        continue
+      }
+      visited.add(head.id)
+      if (exclude.has(head.id)) {
+        continue
+      }
     }
 
     heads = [...heads, ...getEdges(head)]
@@ -39,30 +44,29 @@ export function getReusedNodes(start: LookupTypeNode[], exclude: Set<number>) {
 const unique = <T>(arr: T[]) => [...new Set(arr)]
 
 function getEdges(node: TypeNode): LookupTypeNode[] {
+  const lookupEdge = (node: TypeNode | LookupTypeNode): LookupTypeNode[] =>
+    "id" in node ? [node] : getEdges(node)
+
+  if (isPrimitive(node)) return []
+
   switch (node.type) {
     case "array":
-      return [node.value.value]
+      return lookupEdge(node.value.value)
     case "enum":
       // enum entries can be undefined => []
       // enum entries can be lookupEntries => [lookupEntry]
       // enum entries can be inline array/structs/etc => getEdges(_)
       return unique(
-        node.value.flatMap((v) =>
-          v.value ? ("id" in v.value ? [v.value] : getEdges(v.value)) : [],
-        ),
+        node.value.flatMap((v) => (v.value ? lookupEdge(v.value) : [])),
       )
     case "option":
-      return [node.value]
+      return lookupEdge(node.value)
     case "result":
       return [node.value.ok, node.value.ko]
     case "struct":
     case "tuple":
-      return unique(node.value.map((v) => v.value))
+      return unique(node.value.flatMap((v) => lookupEdge(v.value)))
     case "union":
-      return unique(node.value.flatMap((v) => ("id" in v ? [v] : getEdges(v))))
-    case "chainPrimitive":
-    case "fixedSizeBinary":
-    case "primitive":
-      return []
+      return unique(node.value.flatMap(lookupEdge))
   }
 }

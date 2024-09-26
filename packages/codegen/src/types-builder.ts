@@ -5,7 +5,7 @@ import {
   StructVar,
   TupleVar,
 } from "@polkadot-api/metadata-builders"
-import { getInternalTypesBuilder } from "./internal-types"
+import { getInternalTypesBuilder, isPrimitive } from "./internal-types"
 import {
   CodegenOutput,
   generateTypescript,
@@ -107,11 +107,7 @@ export const getTypesBuilder = (
         return onlyCode(papiPrimitive.code)
       }
 
-      if (
-        !checksum ||
-        node.type === "chainPrimitive" ||
-        node.type === "fixedSizeBinary"
-      ) {
+      if (!checksum || isPrimitive(node)) {
         // It's not a lookup type nor an inlined Enum type
         // Return the primitive type or the regular codegen.
         // And if it's a chainPrimitive also return that primitive without creating
