@@ -1,4 +1,11 @@
-import { V15, V14, HexString, Encoder } from "@polkadot-api/substrate-bindings"
+import {
+  V15,
+  V14,
+  HexString,
+  Encoder,
+  Bytes,
+} from "@polkadot-api/substrate-bindings"
+import * as scale from "@polkadot-api/substrate-bindings"
 import {
   getDynamicBuilder,
   getLookupFn,
@@ -6,8 +13,8 @@ import {
   MetadataLookup,
   Var,
 } from "@polkadot-api/metadata-builders"
-import React, { FC, useMemo, useRef } from "react"
-import { fromHex, mapObject } from "@polkadot-api/utils"
+import React, { FC, useEffect, useRef, useState } from "react"
+import { fromHex, mapObject, mergeUint8 } from "@polkadot-api/utils"
 import type {
   EditAccountId,
   EditBigNumber,
@@ -34,6 +41,25 @@ const withNotin: <T>(
 ) => (input: T) => Uint8Array | undefined = (encoder) => (input) =>
   detectNotin(input) ? undefined : encoder(input)
 
+const getInnerEnumCodec = (
+  input: scale.Codec<{ type: string; value: any }>,
+  idx: number,
+  type: string,
+) => {
+  return scale.createCodec(
+    (value: any) => input.enc({ type, value }).slice(1),
+    (value) => {
+      const val: Uint8Array =
+        value instanceof Uint8Array
+          ? value
+          : typeof value === "string"
+            ? fromHex(value)
+            : new Uint8Array(value)
+      return input.dec(mergeUint8(new Uint8Array([idx]), val)).value
+    },
+  )
+}
+
 export function getCodecComponent(baseComponent: ViewComponents): React.FC<{
   metadata: V14 | V15
   codecType: number
@@ -47,65 +73,124 @@ export function getCodecComponent(baseComponent: EditComponents): React.FC<{
 export function getCodecComponent(
   _baseComponents: EditComponents | ViewComponents,
 ) {
-  const baseComponents = _baseComponents as EditComponents
+  const {
+    CVoid,
+    CAccountId,
+    CBigNumber,
+    CNumber,
+    CBool,
+    CStr,
+    CBytes,
+    CEthAccount,
+    CEnum,
+    CSequence,
+    CArray,
+    CTuple,
+    CStruct,
+    COption,
+    CResult,
+  } = _baseComponents as EditComponents
   const CodecComponent: React.FC<{
     dynCodecs: ReturnType<typeof getDynamicBuilder>["buildDefinition"]
     entry: LookupEntry
+    parent?: { id: number; variantIdx: number; variantTag: string }
     value:
       | {
           empty: true
         }
       | { empty: false; decoded: any; encoded?: Uint8Array }
-  }> = ({ entry, value, dynCodecs }) => {
-    // console.log(value)
-    const valueProps = value.empty
-      ? { value: NOTIN as NOTIN }
-      : {
-          value: value.decoded,
-          encodedValue:
-            value.encoded || withNotin(dynCodecs(entry.id).enc)(value.decoded),
+    onChange: (value: any) => boolean
+  }> = ({ entry, value, dynCodecs, onChange, parent }) => {
+    const codec =
+      "id" in entry
+        ? dynCodecs(entry.id)
+        : getInnerEnumCodec(
+            dynCodecs(parent!.id),
+            parent!.variantIdx,
+            parent!.variantTag,
+          )
+
+    const createOnBinChanged =
+      (decoder: scale.Decoder<any>) =>
+      (x: any): boolean => {
+        let decoded
+        try {
+          decoded = decoder(x)
+        } catch (e) {
+          console.warn("error decoding", x, entry)
+          return false
         }
-    // console.log(valueProps)
+        return onChange(decoded)
+      }
+    const onBinChanged = createOnBinChanged(codec.dec)
+    let valueProps:
+      | { type: "blank"; value: NOTIN; encodedValue: undefined }
+      | { type: "partial"; value: any; encodedValue: undefined }
+      | { type: "complete"; value: any; encodedValue: Uint8Array } = {
+      type: "blank" as "blank",
+      value: NOTIN,
+      encodedValue: undefined,
+    }
+    if (!value.empty) {
+      const encodedValue = value.encoded || withNotin(codec.enc)(value.decoded)
+      valueProps = encodedValue
+        ? { type: "complete", value: value.decoded, encodedValue }
+        : { type: "partial", value: value.decoded, encodedValue: undefined }
+    }
 
     if (entry.type === "struct") {
-      const Inner = baseComponents.CStruct
+      const latestValue = value.empty
+        ? mapObject(entry.value, () => NOTIN)
+        : value.decoded
       return (
-        <Inner
-          {...{
-            ...valueProps,
-            shape: entry,
-            innerComponents: mapObject(entry.value, (entry, key) => (
-              <CodecComponent
-                dynCodecs={dynCodecs}
-                entry={entry}
-                value={
-                  value.empty
-                    ? value
-                    : value.decoded[key] === NOTIN
-                      ? { empty: true }
-                      : {
-                          empty: false,
-                          decoded: value.decoded[key],
-                        }
-                }
-              />
-            )),
-          }}
+        <CStruct
+          {...valueProps}
+          shape={entry}
+          onBinChanged={onBinChanged}
+          onValueChanged={onChange}
+          innerComponents={mapObject(entry.value, (entry, key) => (
+            <CodecComponent
+              dynCodecs={dynCodecs}
+              entry={entry}
+              onChange={(x) => {
+                const value = { ...latestValue }
+                value[key] = x
+                return onChange(value)
+              }}
+              value={
+                latestValue[key] === NOTIN
+                  ? { empty: true }
+                  : {
+                      empty: false,
+                      decoded: latestValue[key],
+                    }
+              }
+            />
+          ))}
         />
       )
     }
 
     if (entry.type === "tuple") {
-      const Inner = baseComponents.CTuple
+      const latestValue = value.empty
+        ? entry.value.map(() => NOTIN)
+        : value.decoded
       return (
-        <Inner
+        <CTuple
           {...{
             ...valueProps,
             shape: entry,
+            onValueChanged: onChange,
+            onBinChanged,
             innerComponents: entry.value.map((entry, idx) => (
               <CodecComponent
                 dynCodecs={dynCodecs}
                 entry={entry}
+                onChange={(x) => {
+                  const value = [...latestValue]
+                  value[idx] = x
+                  return onChange(value)
+                }}
                 value={
                   value.empty
                     ? value
@@ -130,12 +215,12 @@ export function getCodecComponent(
         if (innerEntry.type === "lookupEntry")
           innerEntry = innerEntry.value as any
       }
-      const Inner = baseComponents.CEnum
       return (
-        <Inner
+        <CEnum
           {...{
             ...valueProps,
-            onChange: () => {},
+            onBinChanged,
+            onValueChanged: onChange,
             tags: Object.entries(entry.value).map(([tag, { idx }]) => ({
               tag,
               idx,
@@ -145,6 +230,16 @@ export function getCodecComponent(
               <CodecComponent
                 dynCodecs={dynCodecs}
                 entry={innerEntry}
+                onChange={(x) =>
+                  onChange({ type: value.decoded.type, value: x })
+                }
+                parent={{
+                  id: entry.id,
+                  variantTag: value.decoded.type,
+                  variantIdx:
+                    entry.value[value.decoded.type as keyof typeof entry.value]
+                      .idx,
+                }}
                 value={
                   value.decoded.value === NOTIN
                     ? { empty: true }
@@ -152,8 +247,8 @@ export function getCodecComponent(
                         empty: false,
                         decoded: value.decoded.value,
                         encoded:
-                          valueProps.encodedValue &&
-                          valueProps.encodedValue.slice(1),
+                          (valueProps as any).encodedValue &&
+                          (valueProps as any).encodedValue.slice(1),
                       }
                 }
               />
@@ -164,15 +259,18 @@ export function getCodecComponent(
     }
 
     if (entry.type === "result") {
-      const Inner = baseComponents.CResult
       return (
-        <Inner
+        <CResult
           {...{
             ...valueProps,
-            onChange: () => {},
+            onValueChanged: onChange,
+            onBinChanged,
             shape: entry,
             inner: value.empty ? null : (
               <CodecComponent
+                onChange={(x) =>
+                  onChange({ success: value.decoded.success, value: x })
+                }
                 dynCodecs={dynCodecs}
                 entry={entry.value[value.decoded.success ? "ok" : "ko"]}
                 value={
@@ -188,22 +286,23 @@ export function getCodecComponent(
     }
 
     if (entry.type === "option") {
-      const Inner = baseComponents.COption
       return (
-        <Inner
+        <COption
           {...{
             ...valueProps,
             shape: entry,
-            onChange: () => {},
+            onValueChanged: onChange,
+            onBinChanged,
             inner:
-              value.empty || value.decoded === undefined ? (
-                <baseComponents.CVoid />
+              !value.empty && value.decoded === undefined ? (
+                <CVoid />
               ) : (
                 <CodecComponent
                   dynCodecs={dynCodecs}
                   entry={entry.value}
+                  onChange={onChange}
                   value={
-                    value.decoded === NOTIN
+                    value.empty || value.decoded === NOTIN
                       ? { empty: true }
                       : { empty: false, decoded: value.decoded }
                   }
@@ -214,34 +313,40 @@ export function getCodecComponent(
       )
     }
 
-    if (entry.type === "void") return <baseComponents.CVoid />
+    if (entry.type === "void") return <CVoid />
 
     if (entry.type === "array") {
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
+        const decoder = Bytes(entry.len)[1]
         return (
-          <baseComponents.CBytes
-            onBinChanged={() => {}}
-            onValueChanged={() => {}}
+          <CBytes
+            onBinChanged={createOnBinChanged(decoder)}
+            onValueChanged={onChange}
             len={entry.len}
-            {...valueProps}
+            {...(valueProps as any)}
           />
         )
       }
 
-      const Inner = baseComponents.CArray
+      const latestValue = value.empty
+        ? Array(entry.len).fill(NOTIN)
+        : (value.decoded as Array<any>)
       return (
-        <Inner
+        <CArray
           {...{
             ...valueProps,
             shape: entry,
-            onReorder: () => {},
-            innerComponents: (value.empty
-              ? Array(entry.len).fill(NOTIN)
-              : (value.decoded as Array<any>)
-            ).map((decoded) => (
+            onBinChanged,
+            onValueChanged: onChange,
+            innerComponents: latestValue.map((decoded, idx) => (
               <CodecComponent
                 dynCodecs={dynCodecs}
                 entry={entry.value}
+                onChange={(x) => {
+                  const value = [...latestValue]
+                  value[idx] = x
+                  return onChange(value)
+                }}
                 value={
                   decoded === NOTIN
                     ? { empty: true }
@@ -256,31 +361,33 @@ export function getCodecComponent(
 
     if (entry.type === "sequence") {
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
+        const decoder = Bytes()[1]
         return (
-          <baseComponents.CBytes
-            {...valueProps}
-            onBinChanged={() => {}}
-            onValueChanged={() => {}}
+          <CBytes
+            {...(valueProps as any)}
+            onBinChanged={createOnBinChanged(decoder)}
+            onValueChanged={onChange}
           />
         )
       }
 
-      const Inner = baseComponents.CSequence
+      const latestValue = value.empty ? [] : (value.decoded as Array<any>)
       return (
-        <Inner
+        <CSequence
           {...{
             ...valueProps,
             shape: entry,
-            onReorder: () => {},
-            onAddItem: () => {},
-            onDeleteItem: () => {},
-            innerComponents: (value.empty
-              ? []
-              : (value.decoded as Array<any>)
-            ).map((decoded) => (
+            onValueChanged: onChange,
+            onBinChanged,
+            innerComponents: latestValue.map((decoded, idx) => (
               <CodecComponent
                 dynCodecs={dynCodecs}
                 entry={entry.value}
+                onChange={(x) => {
+                  const value = [...latestValue]
+                  value[idx] = x
+                  return onChange(value)
+                }}
                 value={
                   decoded === NOTIN
                     ? { empty: true }
@@ -304,20 +411,17 @@ export function getCodecComponent(
 
     switch (entry.type) {
       case "compact": {
-        ResultComponent = entry.isBig
-          ? baseComponents.CBigNumber
-          : baseComponents.CNumber
+        ResultComponent = entry.isBig ? CBigNumber : CNumber
         type = entry.isBig ? "compactBn" : "compactNumber"
         break
       }
       case "primitive": {
         if (entry.value === "str" || entry.value === "char")
-          ResultComponent = baseComponents.CStr
-        else if (entry.value === "bool") ResultComponent = baseComponents.CBool
+          ResultComponent = CStr
+        else if (entry.value === "bool") ResultComponent = CBool
         else {
           const nBits = Number(entry.value.slice(1))
-          ResultComponent =
-            nBits < 64 ? baseComponents.CNumber : baseComponents.CBigNumber
+          ResultComponent = nBits < 64 ? CNumber : CBigNumber
           type = entry.value
         }
         break
@@ -326,11 +430,11 @@ export function getCodecComponent(
         return null
       }
       case "AccountId32": {
-        ResultComponent = baseComponents.CAccountId
+        ResultComponent = CAccountId
         break
       }
       case "AccountId20": {
-        ResultComponent = baseComponents.CEthAccount
+        ResultComponent = CEthAccount
         break
       }
     }
@@ -339,9 +443,9 @@ export function getCodecComponent(
     return (
       <Foo
         {...valueProps}
-        onBinChanged={() => {}}
-        onValueChanged={() => {}}
-        type={type}
+        onBinChanged={onBinChanged}
+        onValueChanged={onChange}
+        numType={type}
       />
     )
   }
@@ -350,43 +454,74 @@ export function getCodecComponent(
     metadata: V14 | V15
     codecType: number
     value?: Uint8Array | HexString
-  }> = ({ metadata, codecType, value }) => {
+  }> = ({ metadata, codecType, value: initialValue }) => {
     const lookupRef = useRef<{
       metadata: V14 | V15
       lookup: MetadataLookup
       dynCodecs: ReturnType<typeof getDynamicBuilder>["buildDefinition"]
+      refresh: (
+        codecType: number,
+        value?: Uint8Array | HexString,
+      ) =>
+        | { empty: true }
+        | { empty: false; decoded: any; encoded?: Uint8Array }
     }>({
       metadata: null as any,
       lookup: null as any,
       dynCodecs: null as any,
+      refresh: () => ({ empty: true }),
     })
 
     if (lookupRef.current.metadata !== metadata) {
       const lookup = getLookupFn(metadata)
-
       lookupRef.current = {
         metadata,
         lookup,
         dynCodecs: getDynamicBuilder(lookup).buildDefinition,
+        refresh: (codecType, val) =>
+          val
+            ? {
+                empty: false,
+                decoded: lookupRef.current.dynCodecs(codecType).dec(val),
+                encoded: typeof val === "string" ? fromHex(val) : val,
+              }
+            : { empty: true },
       }
     }
-    const decoded = useMemo(
-      () => (value ? lookupRef.current.dynCodecs(codecType).dec(value) : NOTIN),
-      [value, codecType, metadata],
-    )
+
+    const [value, setValue] = useState<
+      { empty: true } | { empty: false; decoded: any; encoded?: Uint8Array }
+    >(() => lookupRef.current.refresh(codecType, initialValue))
+
+    useEffect(() => {
+      setValue(lookupRef.current.refresh(codecType, initialValue))
+    }, [codecType, initialValue])
 
     return (
       <CodecComponent
+        onChange={(x) => {
+          if (x === NOTIN) {
+            setValue({ empty: true })
+            return true
+          }
+
+          let encoded = undefined
+          const hasNotin = detectNotin(x)
+          if (!hasNotin) {
+            try {
+              encoded = lookupRef.current.dynCodecs(codecType).enc(x)
+            } catch (e) {
+              console.warn("Error encoding", x)
+              return false
+            }
+          }
+          setValue({ empty: false, decoded: x, encoded })
+          return true
+        }}
         {...{
           dynCodecs: lookupRef.current.dynCodecs,
           entry: lookupRef.current.lookup(codecType),
-          value: value
-            ? {
-                empty: false,
-                decoded,
-                encoded: typeof value === "string" ? fromHex(value) : value,
-              }
-            : { empty: true },
+          value: value,
         }}
       />
     )
