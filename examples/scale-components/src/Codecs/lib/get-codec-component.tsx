@@ -3,10 +3,7 @@ import {
   V14,
   HexString,
   Encoder,
-  Decoder,
   Bytes,
-  compactBn,
-  compactNumber,
 } from "@polkadot-api/substrate-bindings"
 import * as scale from "@polkadot-api/substrate-bindings"
 import {
@@ -411,17 +408,14 @@ export function getCodecComponent(
       | EditStr
       | EditAccountId
       | EditEthAccount = null as any
-    let decoder: Decoder<any> = null as any
 
     switch (entry.type) {
       case "compact": {
         ResultComponent = entry.isBig ? CBigNumber : CNumber
         type = entry.isBig ? "compactBn" : "compactNumber"
-        decoder = (entry.isBig ? compactBn : compactNumber)[1]
         break
       }
       case "primitive": {
-        decoder = scale[entry.value][1]
         if (entry.value === "str" || entry.value === "char")
           ResultComponent = CStr
         else if (entry.value === "bool") ResultComponent = CBool
