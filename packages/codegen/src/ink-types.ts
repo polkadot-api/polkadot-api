@@ -10,6 +10,7 @@ import {
   isPrimitive,
   LookupTypeNode,
   StructField,
+  TupleField,
   TypeNode,
 } from "./internal-types"
 import { getReusedNodes } from "./internal-types/reused-nodes"
@@ -54,6 +55,31 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
             docs: [],
           }),
         ),
+      }
+    }
+
+    const variants = Object.values(node.enum.variants)
+    if (
+      node.enum.name === "Option" &&
+      variants.length === 2 &&
+      variants[0].name === "None" &&
+      variants[1].name === "Some"
+    ) {
+      const inner: TypeNode =
+        variants[1].fields.length === 1
+          ? buildLayout(variants[1].fields[0].layout)
+          : {
+              type: "tuple",
+              value: variants[1].fields.map(
+                (v): TupleField => ({
+                  value: buildLayout(v.layout),
+                  docs: [],
+                }),
+              ),
+            }
+      return {
+        type: "option",
+        value: inner,
       }
     }
 

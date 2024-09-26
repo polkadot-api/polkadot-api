@@ -227,6 +227,8 @@ async function outputInkCodegen(
   contracts: Record<string, string>,
   outputFolder: string,
 ) {
+  console.log("Generating ink! types")
+
   const contractsFolder = join(outputFolder, "contracts")
   if (!existsSync(contractsFolder))
     await fs.mkdir(contractsFolder, { recursive: true })
@@ -238,7 +240,7 @@ async function outputInkCodegen(
         getInkLookup(JSON.parse(await fs.readFile(metadata, "utf-8"))),
       )
       await fs.writeFile(join(contractsFolder, `${key}.ts`), types)
-      imports.push(`export { descriptor as ${key} } from './${key}.ts'`)
+      imports.push(`export { descriptor as ${key} } from './${key}'`)
     } catch (ex) {
       console.error("Exception when generating descriptors for contract " + key)
       console.error(ex)
