@@ -1,5 +1,5 @@
 import { getLookupCodecBuilder } from "@polkadot-api/metadata-builders"
-import { Binary } from "@polkadot-api/substrate-bindings"
+import { Binary, Variant } from "@polkadot-api/substrate-bindings"
 import {
   Bytes,
   Codec,
@@ -123,9 +123,27 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
     return buildCallable(message)
   }
 
+  const buildEvent = () =>
+    Variant(
+      Object.fromEntries(
+        metadata.spec.events.map((evt) => [
+          evt.label,
+          Struct(
+            Object.fromEntries(
+              evt.args.map((param) => [
+                param.label,
+                buildDefinition(param.type.type),
+              ]),
+            ) as StringRecord<Codec<any>>,
+          ),
+        ]),
+      ) as StringRecord<Codec<any>>,
+    )
+
   return {
     buildConstructor,
     buildMessage,
     buildStorageRoot,
+    buildEvent,
   }
 }

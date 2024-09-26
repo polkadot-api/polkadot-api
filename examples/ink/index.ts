@@ -46,22 +46,40 @@ const psp22Builder = getInkDynamicBuilder(getInkLookup(psp22 as any))
 
 // Send non-payable message
 {
-  console.log("Get NFT")
-  const nftMessage = escrowBuilder.buildMessage("get_nft")
+  console.log("IncreaseAllowance")
+  const increaseAllowance = psp22Builder.buildMessage(
+    "PSP22::increase_allowance",
+  )
+  const psp22Event = psp22Builder.buildEvent()
 
   const result = await typedApi.apis.ContractsApi.call(
     ADDRESS.alice,
-    ADDRESS.escrow,
+    ADDRESS.psp22,
     0n,
-    { ref_time: 135482165n, proof_size: 18838n },
     undefined,
-    Binary.fromBytes(nftMessage.call.enc({})),
+    undefined,
+    Binary.fromBytes(
+      increaseAllowance.call.enc({
+        spender: ADDRESS.psp22,
+        delta_value: 1000000n,
+      }),
+    ),
   )
 
   if (result.result.success) {
-    console.log(nftMessage.value.dec(result.result.value.data.asBytes()))
+    console.log(increaseAllowance.value.dec(result.result.value.data.asBytes()))
+    const contractEvents = result.events
+      ?.filter(
+        (v) =>
+          v.event.type === "Contracts" &&
+          v.event.value.type === "ContractEmitted",
+      )
+      .map((v) => v.event.value.value as { contract: string; data: Binary })
+    console.log(
+      contractEvents?.map((evt) => psp22Event.dec(evt.data.asBytes())),
+    )
   } else {
-    console.log(result.result.value)
+    console.log(result.result.value, result.gas_consumed, result.gas_required)
   }
 }
 
@@ -74,7 +92,7 @@ const psp22Builder = getInkDynamicBuilder(getInkLookup(psp22 as any))
     ADDRESS.alice,
     ADDRESS.escrow,
     100_000_000_000_000n,
-    { ref_time: 135482165n * 2n, proof_size: 18838n * 2n },
+    undefined,
     undefined,
     Binary.fromBytes(depositFunds.call.enc({})),
   )
