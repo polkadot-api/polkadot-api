@@ -2,6 +2,7 @@ import "./App.css"
 import { metadata } from "@polkadot-api/substrate-bindings"
 import rawMetadata from "./raw-metadata"
 import { ViewCodec } from "./Codecs/components"
+import { EditCodec } from "./Codecs/components/EditCodec"
 
 const metadataDecoded = metadata.dec(rawMetadata)
 
@@ -22,7 +23,13 @@ function App() {
   return (
     <div className="flex flex-col items-start max-w-screen-md">
       <h1 className="text-lg my-5 text-wrap break-all">Decoding: {selected}</h1>
-      {binaries.map((binary) => {
+      <EditCodec
+        {...{
+          metadata: metadataDecoded.metadata.value as any,
+          codecType: 93,
+        }}
+      />
+      {/* {binaries.map((binary) => {
         return (
           <ViewCodec
             {...{
@@ -32,7 +39,7 @@ function App() {
             }}
           />
         )
-      })}
+      })} */}
     </div>
   )
 }

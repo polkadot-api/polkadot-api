@@ -4,20 +4,40 @@ import {
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
 import SliderToggle from "../../../ui-components/Toggle"
-import { ViewAccountId } from "../../lib"
+import { EditAccountId } from "../../lib"
+import { withDefault } from "../utils/default"
 
-export const CAccountId: ViewAccountId = ({ value }) => {
-  const [inEdit, setInEdit] = useState<boolean>(false)
-  const [localInput, setLocalInput] = useState<SS58String>(value)
-  const [isValid, setIsValid] = useState<boolean>(true)
+enum ErrorReason {
+  INITIALIZATION = "",
+  EMPTY = "Please enter a value",
+  INVALID_ADDRESS = "Invalid address",
+}
+
+export const CAccountId: EditAccountId = ({ value, onValueChanged }) => {
+  const [inEdit, setInEdit] = useState<boolean>(true)
+  const [localInput, setLocalInput] = useState<SS58String>(
+    withDefault(value, ""),
+  )
+  const [validation, setValidation] = useState<{
+    isValid: boolean
+    reason?: ErrorReason
+  }>({ isValid: false, reason: ErrorReason.INITIALIZATION })
 
   useEffect(() => {
-    if (localInput === null) setIsValid(false)
+    if (localInput === "")
+      setValidation({ isValid: false, reason: ErrorReason.EMPTY })
     else {
       let { isValid } = getSs58AddressInfo(localInput)
-      setIsValid(isValid)
+      isValid
+        ? setValidation({ isValid: true })
+        : setValidation({ isValid: false, reason: ErrorReason.INVALID_ADDRESS })
     }
   }, [localInput])
+
+  useEffect(() => {
+    setLocalInput(withDefault(value, ""))
+  }, [value])
+
   return (
     <div className="min-h-16">
       <div className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2">
@@ -25,27 +45,41 @@ export const CAccountId: ViewAccountId = ({ value }) => {
         <input
           disabled={!inEdit}
           className="bg-gray-700 border-none hover:border-none outline-none text-right min-w-96"
-          value={localInput === null ? "" : localInput.toString()}
+          value={localInput}
           onChange={(evt) => {
             try {
               let address = evt.target.value
               setLocalInput(address)
+              if (address === "") {
+                setValidation({ isValid: false, reason: ErrorReason.EMPTY })
+              } else {
+                let { isValid } = getSs58AddressInfo(address)
+                if (isValid) {
+                  setValidation({ isValid: true })
+                  onValueChanged(address)
+                } else {
+                  setValidation({
+                    isValid: false,
+                    reason: ErrorReason.INVALID_ADDRESS,
+                  })
+                }
+              }
             } catch (_) {
               return
             }
           }}
         />
-        <SliderToggle
+        {/* <SliderToggle
           isToggled={inEdit}
           toggle={() => {
             // if (!isValid) setLocalInput(value)
             // else onValueChanged(localInput)
             setInEdit((prev) => !prev)
           }}
-        />
+        /> */}
       </div>
-      {!isValid && (
-        <span className="text-red-600 text-sm">Invalid address.</span>
+      {!validation.isValid && (
+        <span className="text-red-600 text-sm">{validation.reason}</span>
       )}
     </div>
   )
