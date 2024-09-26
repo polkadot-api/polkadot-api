@@ -143,10 +143,13 @@ export interface EnumLayout {
   enum: {
     name: string
     dispatchKey: string
-    variants: Array<{
-      name: string
-      fields: Array<FieldLayout>
-    }>
+    variants: Record<
+      number,
+      {
+        name: string
+        fields: Array<FieldLayout>
+      }
+    >
   }
 }
 

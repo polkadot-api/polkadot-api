@@ -1,10 +1,12 @@
 import { getLookupCodecBuilder } from "@polkadot-api/metadata-builders"
+import { Binary } from "@polkadot-api/substrate-bindings"
 import {
   Bytes,
   Codec,
   CodecType,
   enhanceCodec,
   Enum,
+  Option,
   StringRecord,
   Struct,
   Tuple,
@@ -12,7 +14,6 @@ import {
 } from "scale-ts"
 import { InkMetadataLookup } from "./get-lookup"
 import { Layout, MessageParamSpec, TypeSpec } from "./metadata-types"
-import { Binary } from "@polkadot-api/substrate-bindings"
 
 export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
   const { metadata } = metadataLookup
@@ -43,9 +44,23 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
       )
     }
 
+    const variants = Object.values(node.enum.variants)
+    if (
+      node.enum.name === "Option" &&
+      variants.length === 2 &&
+      variants[0].name === "None" &&
+      variants[1].name === "Some"
+    ) {
+      const inner =
+        variants[1].fields.length === 1
+          ? buildLayout(variants[1].fields[0].layout)
+          : Tuple(...variants[1].fields.map((v) => buildLayout(v.layout)))
+      return Option(inner)
+    }
+
     return Enum(
       Object.fromEntries(
-        node.enum.variants.map((variant) => [
+        Object.values(node.enum.variants).map((variant) => [
           variant.name,
           Struct(
             Object.fromEntries(
