@@ -15,7 +15,7 @@ function App() {
     "0x050200d6ebcc75c7ea9a0c4459162b495e90c7ed5306e3a27f73125d6fbd2a3460132300d6ebcc75c7ea9a0c4459162b495e90c7ed5306e3a27f73125d6fbd2a3460132300"
   const hexBinary = "0x1a050000081110821a060042600a00"
   const textBinary = "0x1a0500001468656c6c6f0000"
-  const selected = lists
+  const selected = accounts
 
   return (
     <div className="flex flex-col items-center max-w-screen-md">
@@ -25,6 +25,13 @@ function App() {
           metadata: metadataDecoded.metadata.value as any,
           codecType: 93,
           value: selected,
+        }}
+      />
+      <ViewCodec
+        {...{
+          metadata: metadataDecoded.metadata.value as any,
+          codecType: 93,
+          value: lists,
         }}
       />
     </div>

@@ -17,7 +17,7 @@ export const CEnum: ViewEnum = withDepth(({ value, tags, inner, shape }) => {
     innerType === "struct" ||
     innerType === "enum" ||
     innerType === "result"
-  const disabled = true
+  const disabled = false
 
   return (
     <div
@@ -29,7 +29,7 @@ export const CEnum: ViewEnum = withDepth(({ value, tags, inner, shape }) => {
       )}
     >
       <select
-        disabled={true}
+        disabled={disabled}
         className={clsx(
           "w-fit bg-slate-700 p-2 rounded pr-8 border-r-4 border-slate-700",
           disabled && "appearance-none",
