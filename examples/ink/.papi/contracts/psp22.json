@@ -1,18 +1,4 @@
 {
-  "source": {
-    "hash": "0x6421e724925cc0440c94670f60b0be956ff96d2e2cebd7494ba2712fe127f28b",
-    "language": "ink! 5.0.0",
-    "compiler": "rustc 1.79.0",
-    "build_info": {
-      "build_mode": "Release",
-      "cargo_contract_version": "3.2.0",
-      "rust_toolchain": "stable-aarch64-apple-darwin",
-      "wasm_opt_settings": {
-        "keep_debug_symbols": false,
-        "optimization_passes": "Z"
-      }
-    }
-  },
   "contract": {
     "name": "psp22",
     "version": "2.0.0",

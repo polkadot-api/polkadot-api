@@ -8,7 +8,7 @@
     }
   },
   "ink": {
-    "escrow": "escrow.json",
-    "psp22": "psp22.json"
+    "escrow": ".papi/contracts/escrow.json",
+    "psp22": ".papi/contracts/psp22.json"
   }
 }

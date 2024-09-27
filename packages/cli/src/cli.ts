@@ -64,11 +64,24 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .option("--skip-codegen", "Skip running codegen after removing")
     .action(remove)
 
-  program
+  const inkCommand = program
     .command("ink")
-    .description("ink ink")
-    .argument("<file>", "ink!")
-    .action(ink)
+    .description("Add, update or remove ink contracts")
+  inkCommand
+    .command("add")
+    .description("Add or update an ink contract")
+    .argument("<file>", ".contract or .json metadata file for the contract")
+    .option("-k, --key <key>", "Key identifier for the contract")
+    .addOption(config)
+    .option("--skip-codegen", "Skip running codegen after updating")
+    .action(ink.add)
+  inkCommand
+    .command("remove")
+    .description("Remove an ink contract")
+    .argument("<key>", "Key identifier for the contract to remove")
+    .addOption(config)
+    .option("--skip-codegen", "Skip running codegen after updating")
+    .action(ink.remove)
 
   return program
 }
