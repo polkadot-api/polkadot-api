@@ -367,7 +367,7 @@ ${docs.map((doc: string) => ` *${doc}`).join("\n")}
 
     const imports = `
 import {\n  ${getClientImports().join(",\n  ")}\n} from "${paths.client}";\n
-import {\n  ${[...descriptorsTypesImports, "__Circular"].join(",\n  ")}\n} from "../${paths.types}";
+import {\n  ${descriptorsTypesImports.join(",\n  ")}\n} from "../${paths.types}";
   `
 
     output[section] =

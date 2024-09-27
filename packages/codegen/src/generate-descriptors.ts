@@ -3,6 +3,7 @@ import {
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import { filterObject, mapObject } from "@polkadot-api/utils"
+import { anonymizeImports, anonymizeType } from "./anonymize"
 import { getTypesBuilder } from "./types-builder"
 
 const isDocs = (x: any) => {
@@ -281,22 +282,22 @@ export const generateDescriptors = (
   )
 
   const clientImports = [
-    "StorageDescriptor",
-    "PlainDescriptor",
-    "TxDescriptor",
-    "RuntimeDescriptor",
-    "Enum",
-    "_Enum",
-    "GetEnum",
-    "Binary",
-    "FixedSizeBinary",
-    "FixedSizeArray",
-    "QueryFromPalletsDef",
-    "TxFromPalletsDef",
-    "EventsFromPalletsDef",
-    "ErrorsFromPalletsDef",
-    "ConstFromPalletsDef",
-    ...typesBuilder.getClientFileImports(),
+    ...new Set([
+      "StorageDescriptor",
+      "PlainDescriptor",
+      "TxDescriptor",
+      "RuntimeDescriptor",
+      "Enum",
+      "_Enum",
+      "GetEnum",
+      "QueryFromPalletsDef",
+      "TxFromPalletsDef",
+      "EventsFromPalletsDef",
+      "ErrorsFromPalletsDef",
+      "ConstFromPalletsDef",
+      ...typesBuilder.getClientFileImports(),
+      ...anonymizeImports,
+    ]),
   ]
 
   const assetId = getAssetId(lookupFn)
@@ -309,10 +310,7 @@ export const generateDescriptors = (
       ? "unknown"
       : typesBuilder.buildTypeDefinition(dispatchErrorId)
 
-  const commonTypeImports = [
-    ...typesBuilder.getTypeFileImports(),
-    callInterface,
-  ].filter((v) => v !== null)
+  const commonTypeImports = typesBuilder.getTypeFileImports()
 
   const exports = [
     `default as ${key}`,
@@ -349,50 +347,7 @@ export const generateDescriptors = (
 
   const descriptorTypes = `${imports}
 
-type AnonymousEnum<T extends {}> = T & {
-  __anonymous: true
-}
-
-type MyTuple<T> = [T, ...T[]]
-
-type SeparateUndefined<T> = undefined extends T
-  ? undefined | Exclude<T, undefined>
-  : T
-
-
-type Anonymize<T> = SeparateUndefined<
-  T extends FixedSizeBinary<infer L>
-    ? number extends L
-      ? Binary
-      : FixedSizeBinary<L>
-    : T extends
-          | string
-          | number
-          | bigint
-          | boolean
-          | void
-          | undefined
-          | null
-          | symbol
-          | Uint8Array
-          | Enum<any>
-      ? T
-      : T extends AnonymousEnum<infer V>
-        ? Enum<V>
-        : T extends MyTuple<any>
-          ? {
-              [K in keyof T]: T[K]
-            }
-          : T extends []
-            ? []
-            : T extends FixedSizeArray<infer L, infer T>
-              ? number extends L
-                ? Array<T>
-                : FixedSizeArray<L, T>
-              : {
-                  [K in keyof T & string]: T[K]
-                }
->
+${anonymizeType}
 
 type IStorage = ${customStringifyObject(iStorage)};
 type ICalls = ${customStringifyObject(iCalls)};

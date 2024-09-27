@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- docgen: array of primitives wasn't reported as arrays.
 - Update dependencies
 
 ## 0.12.1 - 2024-09-24
