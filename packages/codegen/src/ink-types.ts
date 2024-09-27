@@ -132,6 +132,26 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     types: buildCallable(ct),
   }))
 
+  const event: TypeNode = {
+    type: "enum",
+    value: lookup.metadata.spec.events.map(
+      (evt): EnumVariant => ({
+        label: evt.label,
+        value: {
+          type: "struct",
+          value: evt.args.map(
+            (arg): StructField => ({
+              label: arg.label,
+              value: internalBuilder(arg.type.type),
+              docs: arg.docs,
+            }),
+          ),
+        },
+        docs: evt.docs,
+      }),
+    ),
+  }
+
   const entryPoints: TypeNode[] = [
     storageRoot,
     ...constructors.flatMap((v) => [v.types.call, v.types.value]),
@@ -250,6 +270,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     })
   const constructorsDescriptor = createCallableDescriptor(constructors)
   const messagesDescriptor = createCallableDescriptor(messages)
+  const eventDescriptor = generateNodeType(event)
 
   const namedTypes = Object.entries(assignedNames)
     .filter(([id]) => types[Number(id)])
@@ -261,6 +282,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
       storageTypes.imports,
       messagesDescriptor.imports,
       constructorsDescriptor.imports,
+      eventDescriptor.imports,
       ...Object.values(types).map((v) => v.imports),
       {
         client: new Set(anonymizeImports),
@@ -279,8 +301,9 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     type StorageDescriptor = ${storageTypes.code};
     type MessagesDescriptor = ${messagesDescriptor.code};
     type ConstructorsDescriptor = ${constructorsDescriptor.code};
+    type EventDescriptor = ${eventDescriptor.code};
 
-    export const descriptor: InkDescriptors<Anonymize<StorageDescriptor>, MessagesDescriptor, ConstructorsDescriptor> = { metadata: ${JSON.stringify(lookup.metadata)} } as any;
+    export const descriptor: InkDescriptors<StorageDescriptor, MessagesDescriptor, ConstructorsDescriptor, EventDescriptor> = { metadata: ${JSON.stringify(lookup.metadata)} } as any;
   `
 
   return result
