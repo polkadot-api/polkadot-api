@@ -1,56 +1,33 @@
-import { Binary } from "@polkadot-api/substrate-bindings"
 import * as Accordion from "@radix-ui/react-accordion"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import React, { ReactNode } from "react"
 import {
-  NOTIN,
-  ViewArray,
-  ViewBool,
-  ViewBytes,
-  ViewEthAccount,
-  ViewOption,
-  ViewResult,
-  ViewSequence,
-  ViewStr,
-  ViewStruct,
-  ViewTuple,
-  ViewVoid,
+  EditArray,
+  EditBool,
+  EditEthAccount,
+  EditOption,
+  EditSequence,
+  EditTuple,
+  EditVoid,
+  EditResult,
 } from "../../lib"
+import { withDefault } from "../utils/default"
 
-const withDefault: <T>(value: T | NOTIN, fallback: T) => T = (
-  value,
-  fallback,
-) => (value === NOTIN ? fallback : value)
-
-export const CBool: ViewBool = ({ value }) => (
+export const CBool: EditBool = ({ value }) => (
   <input type="checkbox" checked={withDefault(value, false)} />
 )
 
-export const CVoid: ViewVoid = () => null
+export const CVoid: EditVoid = () => null
 
-export const CStr: ViewStr = ({ value }) => (
+export const CEthAccount: EditEthAccount = ({ value }) => (
   <span>{withDefault(value, "")}</span>
 )
 
-export const CBytes: ViewBytes = ({ value: rawValue }) => {
-  const value = withDefault(rawValue, Binary.fromHex("0x"))
-  const textRepresentation = value.asText()
-  const printableTextPattern = /^[\x20-\x7E\t\n\r]*$/
-
-  if (printableTextPattern.test(textRepresentation)) {
-    return <span>{value.asText()}</span>
-  } else {
-    return <span>{value.asHex()}</span>
-  }
-}
-
-export const CEthAccount: ViewEthAccount = ({ value }) => <span>{value}</span>
-
-export const CSequence: ViewSequence = ({ innerComponents }) => {
+export const CSequence: EditSequence = ({ innerComponents }) => {
   return <ListDisplay innerComponents={innerComponents} />
 }
 
-export const CArray: ViewArray = ({ innerComponents }) => {
+export const CArray: EditArray = ({ innerComponents }) => {
   return <ListDisplay innerComponents={innerComponents} />
 }
 
@@ -84,7 +61,7 @@ const ListDisplay: React.FC<{ innerComponents: ReactNode[] }> = ({
   )
 }
 
-export const CTuple: ViewTuple = ({ innerComponents }) => {
+export const CTuple: EditTuple = ({ innerComponents }) => {
   return (
     <ul>
       Tuple [
@@ -96,38 +73,13 @@ export const CTuple: ViewTuple = ({ innerComponents }) => {
   )
 }
 
-export const CStruct: ViewStruct = ({ innerComponents }) => (
-  <div className="flex flex-col text-left">
-    <ul className="ml-[20px] mb-5">
-      {Object.entries(innerComponents).map(([key, jsx]) => (
-        <li key={key} className="flex flex-col">
-          <Accordion.Root
-            key={key}
-            type="single"
-            collapsible
-            defaultValue={`item-${key}`}
-            className=""
-          >
-            <Accordion.AccordionItem value={`item-${key}`}>
-              <Accordion.AccordionTrigger className="font-semibold text-sm text-gray-400 flex flex-row justify-between w-full items-center group">
-                {key}
-                <div className="group-state-open:hidden ml-2">+</div>
-                <div className="hidden group-state-open:flex ml-2">-</div>
-              </Accordion.AccordionTrigger>
-              <Accordion.AccordionContent>{jsx}</Accordion.AccordionContent>
-            </Accordion.AccordionItem>
-          </Accordion.Root>
-        </li>
-      ))}
-    </ul>
-  </div>
-)
-
-export const COption: ViewOption = ({ value, inner }) =>
+export const COption: EditOption = ({ value, inner }) =>
   value === undefined ? "null" : inner
 
-export const CResult: ViewResult = ({ value, inner }) => (
-  <>
-    {value.success ? "ok" : "ko"}-{inner}
-  </>
-)
+export const CResult: EditResult = ({ value, inner, type }) => {
+  return type === "blank" ? null : (
+    <>
+      {value.success ? "ok" : "ko"}-{inner}
+    </>
+  )
+}

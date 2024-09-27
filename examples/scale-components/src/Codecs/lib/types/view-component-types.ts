@@ -28,12 +28,12 @@ export type ViewAccountIdInterface = ViewPrimitiveComponentProps<SS58String>
 export type ViewAccountId = FC<ViewAccountIdInterface>
 
 export type ViewBigNumberInterface = ViewPrimitiveComponentProps<bigint> & {
-  type: "u64" | "u128" | "u256" | "i64" | "i128" | "i256" | "compactBn"
+  numType: "u64" | "u128" | "u256" | "i64" | "i128" | "i256" | "compactBn"
 }
 export type ViewBigNumber = FC<ViewBigNumberInterface>
 
 export type ViewNumberInterface = ViewPrimitiveComponentProps<number> & {
-  type: "u8" | "u16" | "u32" | "i8" | "i16" | "i32" | "compactNumber"
+  numType: "u8" | "u16" | "u32" | "i8" | "i16" | "i32" | "compactNumber"
 }
 export type ViewNumber = FC<ViewNumberInterface>
 
