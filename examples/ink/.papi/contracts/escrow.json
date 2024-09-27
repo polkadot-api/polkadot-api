@@ -1,4 +1,18 @@
 {
+  "source": {
+    "hash": "0xa6901387928e778375c00ed9fd2ba8012661fd064fe1fb365070b6e4532a46bd",
+    "language": "ink! 4.3.0",
+    "compiler": "rustc 1.78.0-nightly",
+    "build_info": {
+      "build_mode": "Release",
+      "cargo_contract_version": "3.2.0",
+      "rust_toolchain": "nightly-aarch64-apple-darwin",
+      "wasm_opt_settings": {
+        "keep_debug_symbols": false,
+        "optimization_passes": "Z"
+      }
+    }
+  },
   "contract": {
     "name": "escrow",
     "version": "1.0.0",

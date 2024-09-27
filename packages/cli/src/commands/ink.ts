@@ -18,7 +18,7 @@ export const ink = {
   async add(file: string, options: InkAddOptions) {
     const metadata = JSON.parse(await fs.readFile(file, "utf-8"))
     // Remove wasm blob if it's there
-    delete metadata.source
+    delete metadata.source?.wasm
 
     const key = options.key || metadata.contract.name
     const config = (await readPapiConfig(options.config)) ?? defaultConfig
