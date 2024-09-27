@@ -13,7 +13,6 @@ export const CBigNumber: EditBigNumber = ({
   const [localInput, setLocalInput] = useState<bigint | null>(
     withDefault(value, null),
   )
-  const [inEdit, setInEdit] = useState<boolean>(true)
   const [isValid, setIsValid] = useState<{ valid: boolean; reason?: string }>({
     valid: true,
   })
@@ -36,11 +35,10 @@ export const CBigNumber: EditBigNumber = ({
 
   return (
     <div className="min-h-16">
-      <div>
+      <div className="mr-2">
         <div className="flex flex-row bg-gray-700 rounded p-2 gap-2 items-center px-2 w-fit">
           <span className="text-sm text-gray-400">{numType}</span>
           <input
-            disabled={!inEdit}
             className="bg-gray-700 border-none hover:border-none outline-none text-right max-w-32 w-fit"
             value={localInput === null ? "" : localInput.toString()}
             onChange={(evt) => {

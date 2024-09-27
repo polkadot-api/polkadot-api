@@ -7,27 +7,17 @@ import {
   EditEthAccount,
   EditOption,
   EditSequence,
-  EditStr,
   EditTuple,
   EditVoid,
   EditResult,
-  NOTIN,
 } from "../../lib"
-
-const withDefault: <T>(value: T | NOTIN, fallback: T) => T = (
-  value,
-  fallback,
-) => (value === NOTIN ? fallback : value)
+import { withDefault } from "../utils/default"
 
 export const CBool: EditBool = ({ value }) => (
   <input type="checkbox" checked={withDefault(value, false)} />
 )
 
 export const CVoid: EditVoid = () => null
-
-export const CStr: EditStr = ({ value }) => (
-  <span>{withDefault(value, "")}</span>
-)
 
 export const CEthAccount: EditEthAccount = ({ value }) => (
   <span>{withDefault(value, "")}</span>
