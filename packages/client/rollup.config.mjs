@@ -52,6 +52,24 @@ const cjsReexportPaths = {
   },
 }
 
+const getUmdPackage = (input) => {
+  if (input === "src/index.ts")
+    return {
+      name: "papi",
+      file: "dist/umd/index.min.js",
+      format: "umd",
+    }
+  const fixedInput = input.replace("src/reexports/", "").replace(".ts", "")
+  const name = fixedInput
+    .replace(/[-_]./g, (match) => match[1].toUpperCase())
+    .replace(/^./g, (match) => match.toUpperCase())
+  return {
+    name: `papi${name[0].toUpperCase()}${name.slice(1)}`,
+    file: `dist/umd/${fixedInput}.min.js`,
+    format: "umd",
+  }
+}
+
 export default [
   {
     ...commonOptions,
@@ -79,6 +97,23 @@ export default [
       format: "es",
     },
   },
+  ...commonOptions.input
+    // smoldot has issues with `this` ocurrencies
+    // we don't bundle smoldot and chainspecs
+    // do not include `node` websocket neither
+    .filter(
+      (v) =>
+        !v.includes("sm-provider") &&
+        !v.includes("smoldot") &&
+        !v.includes("chains") &&
+        !v.includes("node"),
+    )
+    .map((n) => ({
+      input: n,
+      external: () => false,
+      plugins: [absoluteAlias, resolve(), esbuild({ minify: true })],
+      output: getUmdPackage(n),
+    })),
   {
     input: "src/cli.ts",
     external: (id) => !/^[./]/.test(id) && !/^@\//.test(id),

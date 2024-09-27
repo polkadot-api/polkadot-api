@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Play with PAPI</title>
+  </head>
+
+  <body>
+    <h1>Play with PAPI</h1>
+    <pre id="output">Loading page...</pre>
+  </body>
+
+  <script src="//unpkg.com/polkadot-api/dist/umd/index.min.js"></script>
+  <script src="//unpkg.com/polkadot-api/dist/umd/ws-provider_web.min.js"></script>
+  <script src="//unpkg.com/polkadot-api/dist/umd/polkadot-sdk-compat.min.js"></script>
+
+  <script>
+    async function queryPolkadot() {
+      try {
+        const { createClient } = papi
+        const { withPolkadotSdkCompat } = papiPolkadotSdkCompat
+        const { getWsProvider } = papiWsProviderWeb
+        // Adjust which network you want to query. Try `wss://kusama-rpc.polkadot.io`.
+        const client = createClient(
+          withPolkadotSdkCompat(getWsProvider("wss://rpc.polkadot.io")),
+        )
+        document.getElementById("output").innerText =
+          "Connecting to RPC endpoint..."
+
+        client.finalizedBlock$.subscribe((e) => {
+          document.getElementById("output").innerText =
+            `Current finalized block: ${e.number}`
+        })
+      } catch (error) {
+        document.getElementById("output").innerText = "Error. See console (F12)"
+        console.error("Error:", error)
+      }
+    }
+    queryPolkadot() // We run the query as soon as the page loads.
+  </script>
+</html>

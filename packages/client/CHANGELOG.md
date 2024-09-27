@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add UMD export
+
 ### Fixed
 
 - `pjs-signer`: Fix incorrect PJS injected account type
