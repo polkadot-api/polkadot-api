@@ -107,7 +107,9 @@ const def = Variant({
   variant: Struct({
     variants,
   }),
-  sequence: compactNumber,
+  sequence: Struct({
+    type: compactNumber,
+  }),
   array: arr,
   tuple: Vector(compactNumber),
   primitive,

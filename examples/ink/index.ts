@@ -4,9 +4,13 @@ import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getInkLookup, getInkDynamicBuilder } from "@polkadot-api/ink-contracts"
 import { testAzero } from "@polkadot-api/descriptors"
 import escrow from "./escrow.json"
+import psp22 from "./psp22.json"
 
-const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
-const ADDRESS = "5FGWrHpqd3zzoVdbvuRvy1uLdDe22YaSrtrFLxRWHihZMmuL"
+const ADDRESS = {
+  alice: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+  escrow: "5FGWrHpqd3zzoVdbvuRvy1uLdDe22YaSrtrFLxRWHihZMmuL",
+  psp22: "5EtyZ1urgUdR5h1RAVfgKgHtFv8skaM1YN5Gv4HJya361dLq",
+}
 
 const client = createClient(
   withPolkadotSdkCompat(
@@ -16,14 +20,14 @@ const client = createClient(
 
 const typedApi = client.getTypedApi(testAzero)
 
-const lookup = getInkLookup(escrow as any)
-const builder = getInkDynamicBuilder(lookup)
+const escrowBuilder = getInkDynamicBuilder(getInkLookup(escrow as any))
+const psp22Builder = getInkDynamicBuilder(getInkLookup(psp22 as any))
 
 // Storage query
 {
   console.log("Query storage of contract")
   const storage = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS,
+    ADDRESS.escrow,
     Binary.fromHex(escrow.storage.root.root_key),
   )
 
@@ -33,42 +37,62 @@ const builder = getInkDynamicBuilder(lookup)
   )
 
   if (storage.success && storage.value) {
-    const decoded = builder.buildStorageRoot().dec(storage.value.asBytes())
+    const decoded = escrowBuilder
+      .buildStorageRoot()
+      .dec(storage.value.asBytes())
     console.log("decoded", decoded)
   }
 }
 
 // Send non-payable message
 {
-  console.log("Get NFT")
-  const nftMessage = builder.buildMessage("get_nft")
+  console.log("IncreaseAllowance")
+  const increaseAllowance = psp22Builder.buildMessage(
+    "PSP22::increase_allowance",
+  )
+  const psp22Event = psp22Builder.buildEvent()
 
   const result = await typedApi.apis.ContractsApi.call(
-    ALICE,
-    ADDRESS,
+    ADDRESS.alice,
+    ADDRESS.psp22,
     0n,
-    { ref_time: 135482165n, proof_size: 18838n },
     undefined,
-    Binary.fromBytes(nftMessage.call.enc({})),
+    undefined,
+    Binary.fromBytes(
+      increaseAllowance.call.enc({
+        spender: ADDRESS.psp22,
+        delta_value: 1000000n,
+      }),
+    ),
   )
 
   if (result.result.success) {
-    console.log(nftMessage.value.dec(result.result.value.data.asBytes()))
+    console.log(increaseAllowance.value.dec(result.result.value.data.asBytes()))
+    const contractEvents = result.events
+      ?.filter(
+        (v) =>
+          v.event.type === "Contracts" &&
+          v.event.value.type === "ContractEmitted",
+      )
+      .map((v) => v.event.value.value as { contract: string; data: Binary })
+    console.log(
+      contractEvents?.map((evt) => psp22Event.dec(evt.data.asBytes())),
+    )
   } else {
-    console.log(result.result.value)
+    console.log(result.result.value, result.gas_consumed, result.gas_required)
   }
 }
 
 // Send payable message
 {
   console.log("Deposit 100 funds")
-  const depositFunds = builder.buildMessage("deposit_funds")
+  const depositFunds = escrowBuilder.buildMessage("deposit_funds")
 
   const result = await typedApi.apis.ContractsApi.call(
-    ALICE,
-    ADDRESS,
+    ADDRESS.alice,
+    ADDRESS.escrow,
     100_000_000_000_000n,
-    { ref_time: 135482165n * 2n, proof_size: 18838n * 2n },
+    undefined,
     undefined,
     Binary.fromBytes(depositFunds.call.enc({})),
   )
