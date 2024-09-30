@@ -6,8 +6,6 @@ import {
   EditBool,
   EditEthAccount,
   EditOption,
-  EditSequence,
-  EditTuple,
   EditVoid,
   EditResult,
 } from "../../lib"
@@ -22,10 +20,6 @@ export const CVoid: EditVoid = () => null
 export const CEthAccount: EditEthAccount = ({ value }) => (
   <span>{withDefault(value, "")}</span>
 )
-
-export const CSequence: EditSequence = ({ innerComponents }) => {
-  return <ListDisplay innerComponents={innerComponents} />
-}
 
 export const CArray: EditArray = ({ innerComponents }) => {
   return <ListDisplay innerComponents={innerComponents} />
@@ -57,18 +51,6 @@ const ListDisplay: React.FC<{ innerComponents: ReactNode[] }> = ({
           </Accordion.Root>
         )
       })}
-    </ul>
-  )
-}
-
-export const CTuple: EditTuple = ({ innerComponents }) => {
-  return (
-    <ul>
-      Tuple [
-      {innerComponents.map((jsx) => (
-        <li>{jsx},</li>
-      ))}
-      ]
     </ul>
   )
 }
