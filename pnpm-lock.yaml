@@ -114,6 +114,9 @@ importers:
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
       typescript:
         specifier: ^5.0.0
         version: 5.6.2
