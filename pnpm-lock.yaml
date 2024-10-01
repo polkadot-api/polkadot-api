@@ -99,6 +99,12 @@ importers:
       '@polkadot-api/ink-contracts':
         specifier: workspace:*
         version: link:../../packages/ink-contracts
+      '@polkadot-labs/hdkd':
+        specifier: ^0.0.8
+        version: 0.0.8
+      '@polkadot-labs/hdkd-helpers':
+        specifier: ^0.0.8
+        version: 0.0.8
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -1231,6 +1237,15 @@ packages:
 
   '@polkadot-api/wasm-executor@0.1.1':
     resolution: {integrity: sha512-OuxbAkSRNLtJtsWDzKx7TEYlRXI2ApT9LcEFckaAr6E4aKLQ5TgbDDXWUvwl4A3AnjoUQx7ltYcsb8qR8UpMAg==}
+
+  '@polkadot-labs/hdkd-helpers@0.0.8':
+    resolution: {integrity: sha512-nTJOinTKuINHwKsUXR+Q1Hld0DU+EYVxcfQqiJz9PH8L+48K3gPfpAHDApIuOW6Uq6yVb5/pgcDPNCaJS5nYsg==}
+
+  '@polkadot-labs/hdkd@0.0.8':
+    resolution: {integrity: sha512-gpcHtJ28FfugQ7uRj+EQzdhbtm1qchcW9hC1Gsf+IvMiB//Dx/K3tPS9uKtPDu7OoX4p/McpPcLm7IomdlYJbg==}
+
+  '@polkadot-labs/schnorrkel-wasm@0.0.5':
+    resolution: {integrity: sha512-oUKF4Qu+V1bPxEjq3kmzI3FZrMIr1kK/4cxntoHSBDTZn/Ymab9LXVhRNrbVend5JrwDANePcYqbK5Fdn9NGhQ==}
 
   '@rollup/plugin-alias@5.1.1':
     resolution: {integrity: sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ==}
@@ -3726,6 +3741,21 @@ snapshots:
       polkadot-api: link:packages/client
 
   '@polkadot-api/wasm-executor@0.1.1': {}
+
+  '@polkadot-labs/hdkd-helpers@0.0.8':
+    dependencies:
+      '@noble/curves': 1.6.0
+      '@noble/hashes': 1.5.0
+      '@polkadot-labs/schnorrkel-wasm': 0.0.5
+      '@scure/base': 1.1.9
+      scale-ts: 1.6.0
+
+  '@polkadot-labs/hdkd@0.0.8':
+    dependencies:
+      '@polkadot-labs/hdkd-helpers': 0.0.8
+      '@polkadot-labs/schnorrkel-wasm': 0.0.5
+
+  '@polkadot-labs/schnorrkel-wasm@0.0.5': {}
 
   '@rollup/plugin-alias@5.1.1(rollup@4.22.5)':
     optionalDependencies:

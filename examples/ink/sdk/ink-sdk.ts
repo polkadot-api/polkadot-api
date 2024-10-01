@@ -66,7 +66,7 @@ export const createInkSdk = <
           const response = await typedApi.apis.ContractsApi.call(
             args.origin,
             address,
-            args.options?.value ?? 0n,
+            args.value ?? 0n,
             args.options?.gasLimit,
             args.options?.storageDepositLimit,
             msg.encode(args.data ?? {}),
@@ -85,7 +85,7 @@ export const createInkSdk = <
               success: true,
               value: {
                 response: flattenValues(decoded),
-                events: inkClient.event.filter(response.events),
+                events: inkClient.event.filter(address, response.events),
                 gasRequired: response.gas_required,
               },
             }
@@ -105,7 +105,7 @@ export const createInkSdk = <
               const response = await typedApi.apis.ContractsApi.call(
                 args.origin,
                 address,
-                args.options?.value ?? 0n,
+                args.value ?? 0n,
                 undefined,
                 args.options?.storageDepositLimit,
                 data,
@@ -116,7 +116,7 @@ export const createInkSdk = <
 
             return typedApi.tx.Contracts.call({
               dest: Enum("Id", address),
-              value: args.options?.value ?? 0n,
+              value: args.value ?? 0n,
               gas_limit: gasLimit,
               storage_deposit_limit: args.options?.storageDepositLimit,
               data,
@@ -133,7 +133,7 @@ export const createInkSdk = <
           const ctor = inkClient.constructor(constructorLabel)
           const response = await typedApi.apis.ContractsApi.instantiate(
             args.origin,
-            args.options?.value ?? 0n,
+            args.value ?? 0n,
             args.options?.gasLimit,
             args.options?.storageDepositLimit,
             Enum("Existing", details.code_hash),
@@ -155,7 +155,7 @@ export const createInkSdk = <
               value: {
                 address: response.result.value.account_id,
                 response: flattenValues(decoded),
-                events: inkClient.event.filter(response.events),
+                events: inkClient.event.filter(address, response.events),
                 gasRequired: response.gas_required,
               },
             }
@@ -177,7 +177,7 @@ export const createInkSdk = <
 
               const response = await typedApi.apis.ContractsApi.instantiate(
                 args.origin,
-                args.options?.value ?? 0n,
+                args.value ?? 0n,
                 undefined,
                 args.options?.storageDepositLimit,
                 Enum("Existing", hash),
@@ -189,7 +189,7 @@ export const createInkSdk = <
             })()
 
             return typedApi.tx.Contracts.instantiate({
-              value: args.options?.value ?? 0n,
+              value: args.value ?? 0n,
               gas_limit: gasLimit,
               storage_deposit_limit: args.options?.storageDepositLimit,
               code_hash: hash,
@@ -206,7 +206,7 @@ export const createInkSdk = <
           const ctor = inkClient.constructor(constructorLabel)
           const response = await typedApi.apis.ContractsApi.instantiate(
             args.origin,
-            args.options?.value ?? 0n,
+            args.value ?? 0n,
             args.options?.gasLimit,
             args.options?.storageDepositLimit,
             Enum("Upload", code),
@@ -229,7 +229,7 @@ export const createInkSdk = <
                 address: response.result.value.account_id,
                 accountId: response.result.value.account_id,
                 response: flattenValues(decoded),
-                events: inkClient.event.filter(response.events),
+                events: response.events ?? ([] as any),
                 gasRequired: response.gas_required,
               },
             }
@@ -248,7 +248,7 @@ export const createInkSdk = <
 
               const response = await typedApi.apis.ContractsApi.instantiate(
                 args.origin,
-                args.options?.value ?? 0n,
+                args.value ?? 0n,
                 undefined,
                 args.options?.storageDepositLimit,
                 Enum("Upload", code),
@@ -260,7 +260,7 @@ export const createInkSdk = <
             })()
 
             return typedApi.tx.Contracts.instantiate_with_code({
-              value: args.options?.value ?? 0n,
+              value: args.value ?? 0n,
               gas_limit: gasLimit,
               storage_deposit_limit: args.options?.storageDepositLimit,
               code,
@@ -349,6 +349,10 @@ type GetErr<T> =
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis<any, infer R>>>
     ? R
     : any
+type GetEv<T> =
+  T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis<infer R, any>>>
+    ? R
+    : any
 
 const isResult = (value: unknown) =>
   typeof value === "object" &&
@@ -414,7 +418,6 @@ interface Contract<
 }
 
 type QueryOptions = Partial<{
-  value: bigint
   gasLimit: Gas
   storageDepositLimit: bigint
 }>
@@ -428,6 +431,7 @@ type Data<D> = {} extends D
 
 type QueryArgs<D> = Data<D> & {
   options?: QueryOptions
+  value?: bigint
   origin: SS58String
 }
 
@@ -441,18 +445,20 @@ type GasInput =
 
 type SendArgs<D> = Data<D> & {
   options?: Omit<QueryOptions, "gasLimit">
+  value?: bigint
 } & GasInput
 
 type DeployOptions = Partial<{
-  value: bigint
   gasLimit: Gas
   storageDepositLimit: bigint
   salt: Binary
 }>
 type DryRunRedeployArgs<D> = Data<D> & {
   options?: DeployOptions
+  value?: bigint
   origin: SS58String
 }
 type RedeployArgs<D> = Data<D> & {
   options?: Omit<DeployOptions, "gasLimit">
+  value?: bigint
 } & GasInput
