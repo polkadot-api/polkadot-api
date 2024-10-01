@@ -8,6 +8,7 @@ import type {
   ResultPayload,
   RuntimeDescriptor,
   SS58String,
+  StorageDescriptor,
   TxDescriptor,
 } from "polkadot-api"
 
@@ -100,20 +101,38 @@ export type InkSdkApis<Ev = any, Err = any> = ApisTypedef<{
   }
 }>
 export type InkSdkPallets = PalletsTypedef<
-  {},
+  {
+    Contracts: {
+      ContractInfoOf: StorageDescriptor<
+        [Key: SS58String],
+        {
+          code_hash: FixedSizeBinary<32>
+        },
+        true
+      >
+    }
+  },
   {
     Contracts: {
       call: TxDescriptor<{
         dest: MultiAddress
         value: bigint
         gas_limit: Gas
-        storage_deposit_limit?: bigint | undefined
+        storage_deposit_limit: bigint | undefined
         data: Binary
+      }>
+      instantiate: TxDescriptor<{
+        value: bigint
+        gas_limit: Gas
+        storage_deposit_limit: bigint | undefined
+        code_hash: FixedSizeBinary<32>
+        data: Binary
+        salt: Binary
       }>
       instantiate_with_code: TxDescriptor<{
         value: bigint
         gas_limit: Gas
-        storage_deposit_limit?: bigint | undefined
+        storage_deposit_limit: bigint | undefined
         code: Binary
         data: Binary
         salt: Binary
