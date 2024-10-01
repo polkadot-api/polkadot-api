@@ -1,139 +1,45 @@
-import type { RequestId } from "./internal-types"
-import type {
-  JsonRpcProvider,
-  JsonRpcConnection,
-} from "@polkadot-api/json-rpc-provider"
-import { getSubscriptionManager } from "./subscription-manager"
-import { jsonRpcMsg } from "./json-rpc-message"
-
-export type AsyncJsonRpcProvider = (
-  onMessage: (message: string) => void,
-  onHalt: () => void,
-) => JsonRpcConnection
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import { getProxy } from "./get-proxy"
+import { AsyncJsonRpcProvider } from "./public-types"
+import { ConnectableJsonRpcConnection } from "./internal-types"
 
 export const getSyncProvider =
   (input: () => Promise<AsyncJsonRpcProvider>): JsonRpcProvider =>
   (onMessage) => {
-    // if it's null it means that the consumer has called `disconnect`
-    // of it's a Promise it means that it's being respolved, otherwise it's resolved
-    let provider: JsonRpcConnection | Promise<JsonRpcConnection> | null
+    let proxy: ConnectableJsonRpcConnection | null = getProxy(onMessage)
 
-    let bufferedMessages: Array<string> = []
-    const pendingResponses = new Set<RequestId>()
-    const subscriptionManager = getSubscriptionManager(onMessage)
-
-    const onMessageProxy = (message: string) => {
-      let parsed: any
-      try {
-        parsed = JSON.parse(message)
-      } catch (_) {
-        console.error(`Unable to parse incoming message: ${message}`)
-        return
-      }
-
-      if (parsed.id !== undefined) {
-        pendingResponses.delete(parsed.id)
-        subscriptionManager.onResponse(parsed)
-      } else {
-        subscriptionManager.onNotifiaction(parsed)
-      }
-
-      onMessage(message)
-    }
-
-    const send = (message: string) => {
-      if (!provider) return
-
-      const parsed = JSON.parse(message)
-      subscriptionManager.onSent(parsed)
-      if (parsed.id) pendingResponses.add(parsed.id)
-
-      if (provider instanceof Promise) {
-        bufferedMessages.push(message)
-      } else provider.send(message)
-    }
-
-    const onHalt = (): Promise<JsonRpcConnection> => {
-      bufferedMessages = []
-      const pendingResponsesCopy = [...pendingResponses]
-      pendingResponses.clear()
-
-      // it means that the user has disconnected while the
-      // provider promise was being rejected. Therefore, we must
-      // throw to prevent the Promise from recovering.
-      // The rejection will be handled from the teardown logic.
-      if (!provider) throw null
-
-      // It needs to restart before sending the errored
-      // responses/notifications because the consumer may
-      // react to those by sending new requests
-      const result = start()
-
-      subscriptionManager.onAbort()
-      pendingResponsesCopy.forEach((id) => {
-        onMessage(
-          jsonRpcMsg({
-            error: { code: -32603, message: "Internal error" },
-            id,
-          }),
-        )
-      })
-
-      return result
-    }
-
-    const start = (): Promise<JsonRpcConnection> => {
-      const onResolve = (getProvider: AsyncJsonRpcProvider) => {
-        let alive = true
-        const _onHalt = () => {
-          if (alive) {
-            alive = false
-            onHalt()
-          }
-        }
-
-        const _onMessageProxy = (msg: string) => {
-          if (alive) onMessageProxy(msg)
-        }
-
-        const result = getProvider(_onMessageProxy, _onHalt)
-        bufferedMessages.forEach((m) => {
-          result.send(m)
-        })
-        bufferedMessages = []
-        return (provider = result)
-      }
-
-      provider = input().then(onResolve, withMacroTask(onHalt))
-      return provider
-    }
-
-    const disconnect = () => {
-      if (!provider) return
-
-      const finishIt = (input: JsonRpcConnection | null) => {
-        subscriptionManager.onDisconnect()
-        pendingResponses.clear()
-        provider = null
-        input?.disconnect()
-      }
-
-      if (provider instanceof Promise) {
-        provider.then(finishIt, finishIt)
-        provider = null
-      } else finishIt(provider)
+    const start = () => {
+      input().then(
+        (cb) => {
+          if (!proxy) {
+            try {
+              cb(
+                () => {},
+                () => {},
+              ).disconnect()
+            } catch (_) {}
+          } else
+            proxy.connect((onMsg, onHalt) =>
+              cb(onMsg, () => {
+                onHalt()
+                start()
+              }),
+            )
+        },
+        () => {
+          proxy && setTimeout(start, 0)
+        },
+      )
     }
 
     start()
     return {
-      send,
-      disconnect,
+      send: (msg) => {
+        proxy?.send(msg)
+      },
+      disconnect: () => {
+        proxy?.disconnect()
+        proxy = null
+      },
     }
   }
-
-const withMacroTask =
-  <Args extends Array<any>, T>(
-    inputFn: (...args: Args) => Promise<T>,
-  ): ((...args: Args) => Promise<T>) =>
-  (...args) =>
-    new Promise((res) => setTimeout(res, 0)).then(() => inputFn(...args))
