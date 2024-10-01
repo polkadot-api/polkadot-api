@@ -1,13 +1,13 @@
 import { contracts, testAzero } from "@polkadot-api/descriptors"
-import { createClient } from "polkadot-api"
-import { getInkClient } from "polkadot-api/ink"
+import { createClient, type ResultPayload } from "polkadot-api"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { createInkSdk } from "./sdk/ink-sdk"
 
 const ADDRESS = {
   alice: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
   escrow: "5FGWrHpqd3zzoVdbvuRvy1uLdDe22YaSrtrFLxRWHihZMmuL",
-  psp22: "5F69jP7VwzCp6pGZ93mv9FkAhwnwz4scR4J9asNeSgFPUGLq",
+  psp22: "5EtyZ1urgUdR5h1RAVfgKgHtFv8skaM1YN5Gv4HJya361dLq",
 }
 
 const client = createClient(
@@ -18,149 +18,76 @@ const client = createClient(
 
 const typedApi = client.getTypedApi(testAzero)
 
-const escrow = getInkClient(contracts.escrow)
-const psp22 = getInkClient(contracts.psp22)
+const escrowSdk = createInkSdk(typedApi, contracts.escrow)
+const escrowContract = escrowSdk.getContract(ADDRESS.escrow)
+
+const psp22Sdk = createInkSdk(typedApi, contracts.psp22)
+const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
 
 // Storage query
 {
   console.log("Query storage of contract")
-  const storage = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS.escrow,
-    escrow.storage().encode(),
-  )
-
-  console.log(
-    "storage",
-    storage.success ? storage.value?.asHex() : storage.value,
-  )
+  const storage = await escrowContract.getRootStorage()
 
   if (storage.success && storage.value) {
-    const decoded = escrow.storage().decode(storage.value)
-    console.log("storage nft", decoded.nft)
-    console.log("storage price", decoded.price)
-    console.log("storage seller", decoded.seller)
+    console.log("storage nft", storage.value.nft)
+    console.log("storage price", storage.value.price)
+    console.log("storage seller", storage.value.seller)
+  } else {
+    console.log("error", storage.value)
   }
 }
 
+// Query for some information through a message
 {
-  console.log("Query psp22 storage")
+  console.log("get_nft")
+  const result = await escrowContract.query("get_nft", {
+    origin: ADDRESS.alice,
+  })
 
-  const rootCodecs = psp22.storage()
-  let result = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS.psp22,
-    rootCodecs.encode(),
-  )
-  console.log(
-    "root result",
-    result.success && result.value && rootCodecs.decode(result.value),
-  )
-
-  const lazyCodecs = psp22.storage("lazy")
-  result = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS.psp22,
-    lazyCodecs.encode(),
-  )
-  console.log(
-    "lazy result",
-    result.success && result.value && lazyCodecs.decode(result.value),
-  )
-
-  const balancesCodecs = psp22.storage("data.balances")
-  result = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS.psp22,
-    balancesCodecs.encode(ADDRESS.alice),
-  )
-  console.log(
-    "balances result",
-    result.success && result.value && balancesCodecs.decode(result.value),
-  )
-
-  const vecLenCodecs = psp22.storage("vec.len")
-  result = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS.psp22,
-    vecLenCodecs.encode(),
-  )
-  console.log(
-    "vec len result",
-    result.success && result.value && vecLenCodecs.decode(result.value),
-  )
-
-  const vecCodecs = psp22.storage("vec")
-  result = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS.psp22,
-    vecCodecs.encode(0),
-  )
-  console.log(
-    "vec result",
-    result.success && result.value && vecCodecs.decode(result.value),
-  )
-
-  const allowancesCodecs = psp22.storage("data.allowances")
-  result = await typedApi.apis.ContractsApi.get_storage(
-    ADDRESS.psp22,
-    allowancesCodecs.encode([ADDRESS.alice, ADDRESS.alice]),
-  )
-  console.log(
-    "allowances result",
-    result.success && result.value && allowancesCodecs.decode(result.value),
-  )
+  if (result.success) {
+    console.log("id", result.value.response.id)
+    console.log("owner", result.value.response.owner)
+    console.log("events", result.value.events)
+  } else {
+    console.log("error", result.value)
+  }
 }
 
-// Send non-payable message
+// Dry run
 {
   console.log("IncreaseAllowance")
-  const increaseAllowance = psp22.message("PSP22::increase_allowance")
-
-  const response = await typedApi.apis.ContractsApi.call(
-    ADDRESS.alice,
-    ADDRESS.psp22,
-    0n,
-    undefined,
-    undefined,
-    increaseAllowance.encode({
+  const result = await psp22Contract.query("PSP22::increase_allowance", {
+    origin: ADDRESS.alice,
+    data: {
       spender: ADDRESS.psp22,
       delta_value: 1000000n,
-    }),
-  )
+    },
+  })
 
-  if (response.result.success) {
-    console.log(increaseAllowance.decode(response.result.value))
-    // console.log(psp22.event.filter(ADDRESS.psp22, response.events))
+  if (result.success) {
+    console.log("IncreaseAllowance success")
+    console.log("events", result.value.events)
   } else {
-    console.log(
-      response.result.value,
-      response.gas_consumed,
-      response.gas_required,
-    )
+    console.log("error", result.value)
   }
 }
 
 // Send payable message
 {
   console.log("Deposit 100 funds")
-  const depositFunds = escrow.message("deposit_funds")
+  const result = await escrowContract.query("deposit_funds", {
+    origin: ADDRESS.alice,
+    options: {
+      value: 100_000_000_000_000n,
+    },
+  })
 
-  const result = await typedApi.apis.ContractsApi.call(
-    ADDRESS.alice,
-    ADDRESS.escrow,
-    100_000_000_000_000n,
-    undefined,
-    undefined,
-    depositFunds.encode(),
-  )
-
-  if (result.result.success) {
-    const decoded = depositFunds.decode(result.result.value)
-    if (decoded.success) {
-      console.log("outer success")
-      if (!decoded.value.success) {
-        console.log("inner error", decoded.value.value.type)
-      }
-    } else {
-      console.log("outer error", decoded.value.type)
-    }
+  if (result.success) {
+    console.log("deposit funds success")
+    console.log("events", result.value.events)
   } else {
-    console.log(result.result.value, result.gas_required)
+    console.log("error", result.value)
   }
 }
 
