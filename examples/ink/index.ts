@@ -3,6 +3,21 @@ import { createClient, type ResultPayload } from "polkadot-api"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
 import { createInkSdk } from "./sdk/ink-sdk"
+import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
+import {
+  entropyToMiniSecret,
+  mnemonicToEntropy,
+  ss58Address,
+} from "@polkadot-labs/hdkd-helpers"
+import { getPolkadotSigner } from "polkadot-api/signer"
+
+const alice_mnemonic =
+  "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
+const entropy = mnemonicToEntropy(alice_mnemonic)
+const miniSecret = entropyToMiniSecret(entropy)
+const derive = sr25519CreateDerive(miniSecret)
+const alice = derive("//Alice")
+const signer = getPolkadotSigner(alice.publicKey, "Sr25519", alice.sign)
 
 const ADDRESS = {
   alice: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
@@ -78,9 +93,7 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
   console.log("Deposit 100 funds")
   const result = await escrowContract.query("deposit_funds", {
     origin: ADDRESS.alice,
-    options: {
-      value: 100_000_000_000_000n,
-    },
+    value: 100_000_000_000_000n,
   })
 
   if (result.success) {
@@ -88,6 +101,32 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
     console.log("events", result.value.events)
   } else {
     console.log("error", result.value)
+  }
+}
+
+{
+  console.log("Perform transaction")
+  const value = 100_000_000_000_000n
+
+  console.log("dry run")
+  const result = await escrowContract.query("deposit_funds", {
+    origin: ADDRESS.alice,
+    value,
+  })
+
+  if (result.success) {
+    //   console.log("sending transaction")
+    //   const result = await escrowContract
+    //     .send("deposit_funds", {
+    //       origin: ADDRESS.alice,
+    //       value,
+    //     })
+    //     .signAndSubmit(signer)
+    //   if (!result.ok) {
+    //     console.log("error", result.dispatchError)
+    //   } else {
+    //     console.log(result)
+    //   }
   }
 }
 
