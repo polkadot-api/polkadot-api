@@ -37,7 +37,7 @@ export type GenericEvent = {
 }
 export interface InkEventInterface<E> {
   decode: (value: { data: Binary }) => E
-  filter: (events?: Array<GenericEvent>) => E[]
+  filter: (address: string, events?: Array<GenericEvent>) => E[]
 }
 
 export interface InkClient<
@@ -119,13 +119,24 @@ const buildEvent = <E extends Event>(
 
   return {
     decode,
-    filter: (events = []) =>
+    filter: (address, events = []) =>
       events
         .filter(
           (v: any) =>
             v.event.type === "Contracts" &&
-            v.event.value.type === "ContractEmitted",
+            v.event.value.type === "ContractEmitted" &&
+            v.event.value.value.contract === address,
         )
-        .map((v: any) => decode(v.event.value.value)),
+        .map((v: any) => {
+          try {
+            return decode(v.event.value.value)
+          } catch (ex) {
+            console.error(
+              `Contract ${address} emitted an incompatible event`,
+              v.event.value.value,
+            )
+            throw ex
+          }
+        }),
   }
 }
