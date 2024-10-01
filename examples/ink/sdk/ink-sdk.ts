@@ -72,7 +72,23 @@ export const createInkSdk = <
             msg.encode(args.data ?? {}),
           )
           if (response.result.success) {
-            return { success: true, value: msg.decode(response.result.value) }
+            const decoded = msg.decode(response.result.value)
+            const flattenedError = flattenErrors(decoded)
+            if (flattenedError) {
+              return {
+                success: false,
+                value: flattenedError.error,
+              }
+            }
+
+            return {
+              success: true,
+              value: {
+                response: flattenValues(decoded),
+                events: inkClient.event.filter(response.events),
+                gasRequired: response.gas_required,
+              },
+            }
           }
           return {
             success: false,
@@ -125,11 +141,22 @@ export const createInkSdk = <
             args.options?.salt ?? Binary.fromText(""),
           )
           if (response.result.success) {
+            const decoded = ctor.decode(response.result.value.result)
+            const flattenedError = flattenErrors(decoded)
+            if (flattenedError) {
+              return {
+                success: false,
+                value: flattenedError.error,
+              }
+            }
+
             return {
               success: true,
               value: {
-                accountId: response.result.value.account_id,
-                response: ctor.decode(response.result.value.result),
+                address: response.result.value.account_id,
+                response: flattenValues(decoded),
+                events: inkClient.event.filter(response.events),
+                gasRequired: response.gas_required,
               },
             }
           }
@@ -187,11 +214,23 @@ export const createInkSdk = <
             args.options?.salt ?? Binary.fromText(""),
           )
           if (response.result.success) {
+            const decoded = ctor.decode(response.result.value.result)
+            const flattenedError = flattenErrors(decoded)
+            if (flattenedError) {
+              return {
+                success: false,
+                value: flattenedError.error,
+              }
+            }
+
             return {
               success: true,
               value: {
+                address: response.result.value.account_id,
                 accountId: response.result.value.account_id,
-                response: ctor.decode(response.result.value.result),
+                response: flattenValues(decoded),
+                events: inkClient.event.filter(response.events),
+                gasRequired: response.gas_required,
               },
             }
           }
@@ -270,8 +309,14 @@ type DryRunDeployFn<
   args: DryRunRedeployArgs<D["__types"]["constructors"][L]["message"]>,
 ) => Promise<
   ResultPayload<
-    D["__types"]["constructors"][L]["response"],
-    GetErr<T> | typeof NotFoundError
+    {
+      address: SS58String
+      response: FlattenValues<D["__types"]["messages"][L]["response"]>
+      events: D["__types"]["event"][]
+      gasRequired: Gas
+    },
+    GetErr<T> | FlattenErrors<D["__types"]["messages"][L]["response"]>
+    // D["__types"]["messages"][L]["response"]
   >
 >
 
@@ -305,6 +350,35 @@ type GetErr<T> =
     ? R
     : any
 
+const isResult = (value: unknown) =>
+  typeof value === "object" &&
+  value &&
+  "success" in value &&
+  "value" in value &&
+  typeof value.success === "boolean"
+
+type FlattenValues<T> = T extends { success: boolean; value: unknown }
+  ? FlattenValues<(T & { success: true })["value"]>
+  : T
+const flattenValues = <T extends object>(v: T): FlattenValues<T> =>
+  isResult(v) ? (flattenValues as any)((v as any).value) : v
+
+type FlattenErrors<T> = T extends { success: boolean; value: unknown }
+  ?
+      | (T & { success: false })["value"]
+      | FlattenErrors<(T & { success: true })["value"]>
+  : never
+const flattenErrors = <T extends object>(
+  v: T,
+): { error: FlattenErrors<T> } | null =>
+  isResult(v)
+    ? (v as any).success
+      ? (flattenErrors as any)((v as any).value)
+      : {
+          error: (v as any).value,
+        }
+    : null
+
 interface Contract<
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
   D extends InkDescriptors<
@@ -321,7 +395,15 @@ interface Contract<
     message: L,
     args: QueryArgs<D["__types"]["messages"][L]["message"]>,
   ) => Promise<
-    ResultPayload<D["__types"]["messages"][L]["response"], GetErr<T>>
+    ResultPayload<
+      {
+        response: FlattenValues<D["__types"]["messages"][L]["response"]>
+        events: D["__types"]["event"][]
+        gasRequired: Gas
+      },
+      GetErr<T> | FlattenErrors<D["__types"]["messages"][L]["response"]>
+      // D["__types"]["messages"][L]["response"]
+    >
   >
   send: <L extends string & keyof D["__types"]["messages"]>(
     message: L,
