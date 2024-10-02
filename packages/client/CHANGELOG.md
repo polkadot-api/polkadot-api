@@ -6,8 +6,13 @@
 
 - Add UMD export
 - Add `getUnsafeApi`
+- New overload which allows to pass a list of endpoints. So, that if one fails the client
+  will automatically rotate over them.
+- APIs for introspecting the connection status of the protocol layer.
 
 ### Fixed
+
+- If a connections doesn't open in a timely manner, then the client will try to reconnect with the next endpoint.
 
 - `pjs-signer`: Fix incorrect PJS injected account type
 - `chains`: Update `lightSyncState`
