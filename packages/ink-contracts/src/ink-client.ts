@@ -19,25 +19,26 @@ export interface InkStorageInterface<S> {
   decodeRoot: (rootStorage: Binary) => S
 }
 
-export type GenericEvent = {
-  event:
-    | {
-        type: "Contracts"
-        value:
-          | {
-              type: "ContractEmitted"
-              value: {
-                contract: string
-                data: Binary
-              }
+export type GenericEvent =
+  | {
+      type: "Contracts"
+      value:
+        | {
+            type: "ContractEmitted"
+            value: {
+              contract: string
+              data: Binary
             }
-          | { type: string; value: unknown }
-      }
-    | { type: string; value: unknown }
-}
+          }
+        | { type: string; value: unknown }
+    }
+  | { type: string; value: unknown }
 export interface InkEventInterface<E> {
   decode: (value: { data: Binary }) => E
-  filter: (address: string, events?: Array<GenericEvent>) => E[]
+  filter: (
+    address: string,
+    events?: Array<GenericEvent | { event: GenericEvent }>,
+  ) => E[]
 }
 
 export interface InkClient<
@@ -121,19 +122,20 @@ const buildEvent = <E extends Event>(
     decode,
     filter: (address, events = []) =>
       events
+        .map((v) => ("event" in v ? v.event : v))
         .filter(
           (v: any) =>
-            v.event.type === "Contracts" &&
-            v.event.value.type === "ContractEmitted" &&
-            v.event.value.value.contract === address,
+            v.type === "Contracts" &&
+            v.value.type === "ContractEmitted" &&
+            v.value.value.contract === address,
         )
         .map((v: any) => {
           try {
-            return decode(v.event.value.value)
+            return decode(v.value.value)
           } catch (ex) {
             console.error(
               `Contract ${address} emitted an incompatible event`,
-              v.event.value.value,
+              v.value.value,
             )
             throw ex
           }

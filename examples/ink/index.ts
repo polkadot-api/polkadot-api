@@ -60,7 +60,7 @@ const psp22 = getInkClient(contracts.psp22)
 
   if (response.result.success) {
     console.log(increaseAllowance.decode(response.result.value))
-    console.log(psp22.event.filter(response.events))
+    console.log(psp22.event.filter(ADDRESS.psp22, response.events))
   } else {
     console.log(
       response.result.value,
