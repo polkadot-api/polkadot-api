@@ -18,8 +18,10 @@ import { Observable, firstValueFrom } from "rxjs"
 import {
   CompatibilityToken,
   OpType,
+  RuntimeToken,
   compatibilityHelper,
   createCompatibilityToken,
+  createRuntimeToken,
   getCompatibilityApi,
 } from "./compatibility"
 import { createConstantEntry } from "./constants"
@@ -28,14 +30,15 @@ import { createEventEntry } from "./event"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
-import { PolkadotClient, TypedApi } from "./types"
+import { PolkadotClient, TypedApi, UnsafeApi } from "./types"
 import { Binary } from "@polkadot-api/substrate-bindings"
 
-const createTypedApi = <D extends ChainDefinition>(
-  compatibilityToken: Promise<CompatibilityToken>,
+const createApi = (
+  unsafe: boolean,
+  compatibilityToken: Promise<CompatibilityToken | RuntimeToken>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast$: (tx: string) => Observable<never>,
-): TypedApi<D> => {
+) => {
   const target = {}
   const createProxy = (propCall: (prop: string) => unknown) =>
     new Proxy(target, {
@@ -150,7 +153,10 @@ const createTypedApi = <D extends ChainDefinition>(
     ),
   )
 
-  const _callDataTx = (callData: Binary, token: CompatibilityToken) => {
+  const _callDataTx = (
+    callData: Binary,
+    token: CompatibilityToken | RuntimeToken,
+  ) => {
     const { lookup, dynamicBuilder } = getCompatibilityApi(token).runtime()
     try {
       const decoded = dynamicBuilder
@@ -180,7 +186,10 @@ const createTypedApi = <D extends ChainDefinition>(
 
   return {
     query,
-    txFromCallData: (callData: Binary, token?: CompatibilityToken) =>
+    txFromCallData: (
+      callData: Binary,
+      token?: CompatibilityToken | RuntimeToken,
+    ) =>
       token
         ? _callDataTx(callData, token)
         : compatibilityToken.then((t) => _callDataTx(callData, t)),
@@ -188,7 +197,7 @@ const createTypedApi = <D extends ChainDefinition>(
     event,
     apis,
     constants,
-    compatibilityToken,
+    ...(unsafe ? { runtimeToken: compatibilityToken } : { compatibilityToken }),
   } as any
 }
 
@@ -225,6 +234,7 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     params: Params,
   ) => Promise<Reply> = rawClient.request
 
+  let runtimeToken: Promise<RuntimeToken>
   const compatibilityToken = new WeakMap<
     ChainDefinition,
     Promise<CompatibilityToken<any>>
@@ -236,7 +246,8 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     compatibilityToken.set(chainDefinition, result)
     return result
   }
-
+  const getRuntimeToken = <D>(): Promise<RuntimeToken<D>> =>
+    (runtimeToken ??= createRuntimeToken(chainHead))
   const { broadcastTx$ } = client
   return {
     getChainSpecData,
@@ -257,7 +268,20 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     submitAndWatch: (...args) => submit$(chainHead, broadcastTx$, ...args),
 
     getTypedApi: <D extends ChainDefinition>(chainDefinition: D) =>
-      createTypedApi(getChainToken(chainDefinition), chainHead, broadcastTx$),
+      createApi(
+        false,
+        getChainToken(chainDefinition),
+        chainHead,
+        broadcastTx$,
+      ) as TypedApi<D>,
+
+    getUnsafeApi: <D>() =>
+      createApi(
+        true,
+        getRuntimeToken(),
+        chainHead,
+        broadcastTx$,
+      ) as UnsafeApi<D>,
 
     destroy: () => {
       chainHead.unfollow()

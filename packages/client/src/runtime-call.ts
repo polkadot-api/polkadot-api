@@ -13,8 +13,7 @@ type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   ? [options?: CallOptions]
   : [...args: Args, options?: CallOptions]
 
-export interface RuntimeCall<D, Args extends Array<any>, Payload>
-  extends CompatibilityFunctions<D> {
+export type RuntimeCall<Unsafe, D, Args extends Array<any>, Payload> = {
   /**
    * Get `Payload` (Promise-based) for the runtime call.
    *
@@ -23,7 +22,7 @@ export interface RuntimeCall<D, Args extends Array<any>, Payload>
    *              known finalized is the default) and an AbortSignal.
    */
   (...args: WithCallOptions<Args>): Promise<Payload>
-}
+} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
 export const createRuntimeCallEntry = (
   api: string,
@@ -36,7 +35,7 @@ export const createRuntimeCallEntry = (
     argsAreCompatible,
     valuesAreCompatible,
   }: CompatibilityHelper,
-): RuntimeCall<any, any, any> => {
+): RuntimeCall<any, any, any, any> => {
   const callName = `${api}_${method}`
   const compatibilityError = () =>
     new Error(`Incompatible runtime entry RuntimeCall(${callName})`)

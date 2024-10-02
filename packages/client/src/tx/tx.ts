@@ -24,6 +24,7 @@ import {
   CompatibilityHelper,
   CompatibilityToken,
   getCompatibilityApi,
+  RuntimeToken,
 } from "../compatibility"
 import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
@@ -69,7 +70,7 @@ export const createTxEntry = <
 ): TxEntry<D, Arg, Pallet, Name, Asset> => {
   const fn = (arg?: Arg): any => {
     const getCallDataWithContext = (
-      runtime: CompatibilityToken,
+      runtime: CompatibilityToken | RuntimeToken,
       arg: any,
       txOptions: Partial<{ asset: any }> = {},
     ) => {
@@ -116,12 +117,12 @@ export const createTxEntry = <
       )
 
     const getEncodedData: TxCall = (
-      compatibilityToken?: CompatibilityToken,
+      token?: CompatibilityToken | RuntimeToken,
     ): any => {
-      if (!compatibilityToken)
+      if (!token)
         return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
 
-      return getCallDataWithContext(compatibilityToken, arg).callData
+      return getCallDataWithContext(token, arg).callData
     }
 
     const sign$ = (

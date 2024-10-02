@@ -28,7 +28,7 @@ export type EvPull<T> = () => Promise<
 
 export type EvFilter<T> = (collection: SystemEvent["event"][]) => Array<T>
 
-export type EvClient<D, T> = {
+export type EvClient<Unsafe, D, T> = {
   /**
    * Multicast and stateful Observable watching for new events (matching the
    * event kind chosen) in the latest known `finalized` block.
@@ -49,7 +49,7 @@ export type EvClient<D, T> = {
    * @param collection  Array of `SystemEvent` to filter.
    */
   filter: EvFilter<T>
-} & CompatibilityFunctions<D>
+} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
 type SystemEvent = {
   phase: EventPhase
@@ -74,7 +74,7 @@ export const createEventEntry = <D, T>(
     argsAreCompatible,
     valuesAreCompatible,
   }: CompatibilityHelper,
-): EvClient<D, T> => {
+): EvClient<any, D, T> => {
   const compatibilityError = () =>
     new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
 
