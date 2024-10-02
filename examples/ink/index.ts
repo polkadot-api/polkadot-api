@@ -1,5 +1,5 @@
 import { contracts, testAzero } from "@polkadot-api/descriptors"
-import { createClient, type ResultPayload } from "polkadot-api"
+import { Binary, createClient, type ResultPayload } from "polkadot-api"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
 import { createInkSdk } from "./sdk/ink-sdk"
@@ -10,6 +10,7 @@ import {
   ss58Address,
 } from "@polkadot-labs/hdkd-helpers"
 import { getPolkadotSigner } from "polkadot-api/signer"
+import { getInkClient } from "@polkadot-api/ink-contracts"
 
 const alice_mnemonic =
   "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
@@ -34,6 +35,7 @@ const client = createClient(
 const typedApi = client.getTypedApi(testAzero)
 
 const escrowSdk = createInkSdk(typedApi, contracts.escrow)
+
 const escrowContract = escrowSdk.getContract(ADDRESS.escrow)
 
 const psp22Sdk = createInkSdk(typedApi, contracts.psp22)
@@ -127,6 +129,43 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
     //   } else {
     //     console.log(result)
     //   }
+  }
+}
+
+{
+  console.log("Redeploy contract")
+  const result = await escrowContract.dryRunRedeploy("new", {
+    data: {
+      nft: 1,
+      price: 100n,
+    },
+    origin: ADDRESS.alice,
+    options: {
+      salt: Binary.fromHex("0x00"),
+    },
+  })
+
+  if (result.success) {
+    const result = await escrowContract
+      .redeploy("new", {
+        data: {
+          nft: 1,
+          price: 100n,
+        },
+        origin: ADDRESS.alice,
+        options: {
+          salt: Binary.fromHex("0x00"),
+        },
+      })
+      .signAndSubmit(signer)
+
+    const deployment = escrowSdk.readDeploymentEvents(
+      ADDRESS.alice,
+      result.events,
+    )
+    console.log("deployment", deployment)
+  } else {
+    console.log(result.value)
   }
 }
 

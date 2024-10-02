@@ -1,8 +1,10 @@
 import {
   getInkClient,
   type Event,
+  type GenericEvent,
   type InkCallableDescriptor,
   type InkDescriptors,
+  type InkEventInterface,
 } from "@polkadot-api/ink-contracts"
 import {
   Binary,
@@ -197,6 +199,9 @@ export const createInkSdk = <
               salt: args.options?.salt ?? Binary.fromText(""),
             })
           }),
+        filterEvents(events) {
+          return inkClient.event.filter(address, events)
+        },
       }
     },
 
@@ -223,13 +228,13 @@ export const createInkSdk = <
               }
             }
 
+            const address = response.result.value.account_id
             return {
               success: true,
               value: {
-                address: response.result.value.account_id,
-                accountId: response.result.value.account_id,
+                address,
                 response: flattenValues(decoded),
-                events: response.events ?? ([] as any),
+                events: inkClient.event.filter(address, response.events),
                 gasRequired: response.gas_required,
               },
             }
@@ -270,6 +275,27 @@ export const createInkSdk = <
           }),
       }
     },
+
+    readDeploymentEvents(origin, events) {
+      if (!events) return null
+
+      const instanceEvent = events
+        .map((evt) => ("event" in evt ? evt.event : evt))
+        .find(
+          (evt) =>
+            evt.type === "Contracts" &&
+            (evt.value as any).type === "Instantiated" &&
+            // TODO SS58 string equivalences
+            (evt.value as any).value.deployer === origin,
+        )
+      if (!instanceEvent) return null
+
+      const address = (instanceEvent.value as any).value.contract
+      return {
+        address,
+        contractEvents: inkClient.event.filter(address, events),
+      }
+    },
   }
 }
 
@@ -294,6 +320,18 @@ interface InkSdk<
 > {
   getContract(adddress: SS58String): Contract<T, D>
   getDeployer(code: Binary): Deployer<T, D>
+  readDeploymentEvents: (
+    origin: SS58String,
+    events?: Array<
+      | GenericEvent
+      | {
+          event: GenericEvent
+        }
+    >,
+  ) => {
+    address: string
+    contractEvents: Array<D["__types"]["event"]>
+  } | null
 }
 
 type DryRunDeployFn<
@@ -347,10 +385,6 @@ interface Deployer<
 
 type GetErr<T> =
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis<any, infer R>>>
-    ? R
-    : any
-type GetEv<T> =
-  T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis<infer R, any>>>
     ? R
     : any
 
@@ -415,6 +449,14 @@ interface Contract<
   ) => AsyncTransaction<any, any, any, any>
   dryRunRedeploy: DryRunDeployFn<T, D>
   redeploy: DeployFn<D>
+  filterEvents: (
+    events?: Array<
+      | GenericEvent
+      | {
+          event: GenericEvent
+        }
+    >,
+  ) => Array<D["__types"]["event"]>
 }
 
 type QueryOptions = Partial<{
