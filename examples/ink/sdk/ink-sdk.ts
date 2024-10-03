@@ -49,6 +49,7 @@ export const createInkSdk = <
             address,
             inkClient.storage.rootKey,
           )
+
           if (result.success) {
             return {
               success: true,
