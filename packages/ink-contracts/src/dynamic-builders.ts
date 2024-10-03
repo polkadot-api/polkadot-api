@@ -1,6 +1,7 @@
 import { getLookupCodecBuilder } from "@polkadot-api/metadata-builders"
 import { Binary, Variant } from "@polkadot-api/substrate-bindings"
 import {
+  _void,
   Bytes,
   Codec,
   CodecType,
@@ -20,8 +21,9 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
 
   const buildDefinition = getLookupCodecBuilder(metadataLookup)
 
-  const buildLayout = (node: Layout): Codec<any> => {
+  const buildLayout = (node: Layout, nested = true): Codec<any> => {
     if ("root" in node) {
+      if (nested) return _void
       return buildLayout(node.root.layout)
     }
     if ("leaf" in node) {
@@ -74,7 +76,7 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
       ) as StringRecord<Codec<any>>,
     )
   }
-  const buildStorageRoot = () => buildLayout(metadata.storage)
+  const buildStorageRoot = () => buildLayout(metadata.storage, false)
 
   const buildCallable = (callable: {
     selector: string

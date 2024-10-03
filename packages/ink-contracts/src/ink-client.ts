@@ -135,9 +135,9 @@ const buildEvent = <E extends Event>(
           } catch (ex) {
             console.error(
               `Contract ${address} emitted an incompatible event`,
-              v.value.value,
+              v.value.value.data.asHex(),
             )
-            throw ex
+            return null as any
           }
         }),
   }
