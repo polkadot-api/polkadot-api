@@ -2,9 +2,20 @@
 
 ## Unreleased
 
+### Added
+
+- Introduced support for multiple endpoints. The client now rotates between provided endpoints in case of connection issues.
+- Added two options for introspection on protocol status:
+  - Pass a `statusChange` callback when creating the client to receive updates on the connection status.
+  - Call the `getStatus` function on the `WsJsonRpcProvider` to retrieve the current status of the protocol layer.
+
+### Changed
+
+- The client can now proactively trigger a switch to a different endpoint, giving users more control over which endpoint to use.
+
 ### Fixed
 
-- patch dependencies
+- Automatic timeout handling: the client will now timeout if the connection to the RPC doesn't open in a timely manner and will attempt to reconnect with the next available RPC endpoint.
 
 ## 0.2.2 - 2024-09-20
 
