@@ -6,16 +6,26 @@
 
 - Add UMD export
 - Add `getUnsafeApi`
-- New overload which allows to pass a list of endpoints. So, that if one fails the client
-  will automatically rotate over them.
-- APIs for introspecting the connection status of the protocol layer.
+
+- **WS Provider:**
+  - Introduced support for multiple endpoints. The client now rotates between provided endpoints in case of connection issues.
+  - Added two options for introspection on protocol status:
+    - Pass a `statusChange` callback when creating the client to receive updates on the connection status.
+    - Call the `getStatus` function on the `WsJsonRpcProvider` to retrieve the current status of the protocol layer.
+
+### Changed
+
+- **WS Provider:**
+  - The client can now proactively trigger a switch to a different endpoint, giving users more control over which endpoint to use.
 
 ### Fixed
 
 - If a connections doesn't open in a timely manner, then the client will try to reconnect with the next endpoint.
-
 - `pjs-signer`: Fix incorrect PJS injected account type
 - `chains`: Update `lightSyncState`
+
+- **WS Provider:**
+  - Automatic timeout handling: the client will now timeout if the connection to the RPC doesn't open in a timely manner and will attempt to reconnect with the next available RPC endpoint.
 
 ## 1.3.3 - 2024-09-24
 
