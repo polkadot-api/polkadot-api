@@ -51,6 +51,8 @@ export const nativeNodeCodegen = (
     }
   }
   if (node.type === "union") {
+    if (node.value.length === 1) return next(node.value[0])
+
     const partResults = node.value.map(next)
     return {
       code: partResults.map(({ code }) => `(${code})`).join(" | "),
