@@ -107,7 +107,7 @@ export const getTypesBuilder = (
         return onlyCode(papiPrimitive.code)
       }
 
-      if (!checksum || isPrimitive(node)) {
+      if (!checksum || isPrimitive(node) || node.type === "union") {
         // It's not a lookup type nor an inlined Enum type
         // Return the primitive type or the regular codegen.
         // And if it's a chainPrimitive also return that primitive without creating
