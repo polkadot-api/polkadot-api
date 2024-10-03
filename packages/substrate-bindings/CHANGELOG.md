@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.0 - 2024-10-03
+
 ### Added
 
 - Export the codec of metadata lookup as `v14Lookup`. [#717](https://github.com/polkadot-api/polkadot-api/pull/717)

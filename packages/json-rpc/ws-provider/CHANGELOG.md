@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-10-03
+
 ### Added
 
 - Introduced support for multiple endpoints. The client now rotates between provided endpoints in case of connection issues.

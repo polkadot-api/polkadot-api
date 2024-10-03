@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.0 - 2024-10-03
+
 ### Added
 
 - Export `denormalizeLookup` function to denormalize metadata types. [#717](https://github.com/polkadot-api/polkadot-api/pull/717)
