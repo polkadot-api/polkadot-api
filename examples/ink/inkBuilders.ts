@@ -12,7 +12,7 @@ const client = createClient(
 )
 
 const typedApi = client.getTypedApi(testAzero)
-const lookup = getInkLookup(contracts.psp22.metadata)
+const lookup = getInkLookup(contracts.escrow.metadata)
 const builders = getInkDynamicBuilder(lookup)
 
 // Storage query
@@ -37,28 +37,21 @@ const builders = getInkDynamicBuilder(lookup)
 
 // Dry run
 {
-  console.log("IncreaseAllowance")
-  const increaseAllowance = builders.buildMessage("PSP22::increase_allowance")
+  console.log("Deposit funds")
+  const depositFunds = builders.buildMessage("deposit_funds")
 
   const result = await typedApi.apis.ContractsApi.call(
     ADDRESS.alice,
-    ADDRESS.psp22,
-    0n,
+    ADDRESS.escrow,
+    100_000_000_000_000n,
     undefined,
     undefined,
-    Binary.fromBytes(
-      increaseAllowance.call.enc({
-        spender: ADDRESS.psp22,
-        delta_value: 1000000n,
-      }),
-    ),
+    Binary.fromBytes(depositFunds.call.enc({})),
   )
 
   if (result.result.success) {
     console.log("IncreaseAllowance success")
-    const decoded = increaseAllowance.value.dec(
-      result.result.value.data.asBytes(),
-    )
+    const decoded = depositFunds.value.dec(result.result.value.data.asBytes())
     console.log("result", decoded)
 
     const eventCodec = builders.buildEvent()
@@ -67,7 +60,7 @@ const builders = getInkDynamicBuilder(lookup)
         if (
           e.event.type === "Contracts" &&
           e.event.value.type === "ContractEmitted" &&
-          e.event.value.value.contract === ADDRESS.psp22
+          e.event.value.value.contract === ADDRESS.escrow
         ) {
           return eventCodec.dec(e.event.value.value.data.asBytes())
         }

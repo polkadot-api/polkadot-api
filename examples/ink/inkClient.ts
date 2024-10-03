@@ -12,7 +12,6 @@ const client = createClient(
 )
 
 const typedApi = client.getTypedApi(testAzero)
-const psp22Client = getInkClient(contracts.psp22)
 const escrowClient = getInkClient(contracts.escrow)
 
 // Storage query
@@ -33,27 +32,24 @@ const escrowClient = getInkClient(contracts.escrow)
 
 // Dry run
 {
-  console.log("IncreaseAllowance")
-  const increaseAllowance = psp22Client.message("PSP22::increase_allowance")
+  console.log("Deposit funds")
+  const depositFunds = escrowClient.message("deposit_funds")
 
   const result = await typedApi.apis.ContractsApi.call(
     ADDRESS.alice,
-    ADDRESS.psp22,
-    0n,
+    ADDRESS.escrow,
+    100_000_000_000_000n,
     undefined,
     undefined,
-    increaseAllowance.encode({
-      spender: ADDRESS.psp22,
-      delta_value: 1000000n,
-    }),
+    depositFunds.encode(),
   )
 
   if (result.result.success) {
     console.log("IncreaseAllowance success")
-    const decoded = increaseAllowance.decode(result.result.value)
+    const decoded = depositFunds.decode(result.result.value)
     console.log("result", decoded)
 
-    const events = psp22Client.event.filter(ADDRESS.psp22, result.events)
+    const events = escrowClient.event.filter(ADDRESS.escrow, result.events)
     console.log("events", events)
   } else {
     console.log("error", result.result.value)
