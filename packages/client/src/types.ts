@@ -20,6 +20,7 @@ import type {
   TxBroadcastEvent,
   TxFinalizedPayload,
   TxFromBinary,
+  UnsafeTxEntry,
 } from "./tx"
 
 export type { ChainSpecData }
@@ -130,7 +131,7 @@ export type AnyApi<Unsafe extends true | false, D> = D extends ChainDefinition
     }
   : {
       query: UnsafeEntry<StorageEntryWithKeys<true, D, any, any>>
-      tx: UnsafeEntry<InnerTxEntry<true, D, any, string, string, any>>
+      tx: UnsafeEntry<UnsafeTxEntry<D, any, string, string, any>>
       txFromCallData: TxFromBinary<Unsafe, any>
       event: UnsafeEntry<EvClient<true, D, any>>
       apis: UnsafeEntry<RuntimeCall<true, D, any, any>>

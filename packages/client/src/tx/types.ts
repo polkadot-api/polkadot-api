@@ -269,6 +269,13 @@ export type Transaction<
   Asset,
 > = InnerTransaction<false, Arg, Pallet, Name, Asset>
 
+export type UnsafeTransaction<
+  Arg extends {} | undefined,
+  Pallet extends string,
+  Name extends string,
+  Asset,
+> = InnerTransaction<true, Arg, Pallet, Name, Asset>
+
 export type InnerTxEntry<
   Unsafe,
   D,
@@ -287,7 +294,7 @@ export type InnerTxEntry<
        */
       (
         ...args: Arg extends undefined ? [] : [data: Arg]
-      ): InnerTransaction<Unsafe, Arg, Pallet, Name, Asset>
+      ): UnsafeTransaction<Arg, Pallet, Name, Asset>
     }
   : {
       /**
@@ -310,6 +317,14 @@ export type TxEntry<
   Asset,
 > = InnerTxEntry<false, D, Arg, Pallet, Name, Asset>
 
+export type UnsafeTxEntry<
+  D,
+  Arg extends {} | undefined,
+  Pallet extends string,
+  Name extends string,
+  Asset,
+> = InnerTxEntry<true, D, Arg, Pallet, Name, Asset>
+
 export type TxFromBinary<Unsafe, Asset> = Unsafe extends true
   ? {
       /**
@@ -319,7 +334,7 @@ export type TxFromBinary<Unsafe, Asset> = Unsafe extends true
        * @param callData  SCALE-encoded call data.
        * @returns Transaction object.
        */
-      (callData: Binary): Promise<Transaction<any, string, string, Asset>>
+      (callData: Binary): Promise<UnsafeTransaction<any, string, string, Asset>>
       /**
        * Synchronously create the transaction object from a binary call data
        * ready to sign, submit, estimate fees, etc.
@@ -332,7 +347,7 @@ export type TxFromBinary<Unsafe, Asset> = Unsafe extends true
       (
         callData: Binary,
         runtimeToken: RuntimeToken,
-      ): Transaction<any, string, string, Asset>
+      ): UnsafeTransaction<any, string, string, Asset>
     }
   : {
       /**
