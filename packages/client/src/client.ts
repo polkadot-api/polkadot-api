@@ -30,15 +30,14 @@ import { createEventEntry } from "./event"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
-import { PolkadotClient, TypedApi, UnsafeApi } from "./types"
+import type { AnyApi, PolkadotClient } from "./types"
 import { Binary } from "@polkadot-api/substrate-bindings"
 
-const createApi = (
-  unsafe: boolean,
+const createApi = <Unsafe extends true | false, D>(
   compatibilityToken: Promise<CompatibilityToken | RuntimeToken>,
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
   broadcast$: (tx: string) => Observable<never>,
-) => {
+): AnyApi<Unsafe, D> => {
   const target = {}
   const createProxy = (propCall: (prop: string) => unknown) =>
     new Proxy(target, {
@@ -197,7 +196,6 @@ const createApi = (
     event,
     apis,
     constants,
-    ...(unsafe ? { runtimeToken: compatibilityToken } : { compatibilityToken }),
   } as any
 }
 
@@ -267,21 +265,20 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     submit: (...args) => submit(chainHead, broadcastTx$, ...args),
     submitAndWatch: (...args) => submit$(chainHead, broadcastTx$, ...args),
 
-    getTypedApi: <D extends ChainDefinition>(chainDefinition: D) =>
-      createApi(
-        false,
-        getChainToken(chainDefinition),
-        chainHead,
-        broadcastTx$,
-      ) as TypedApi<D>,
+    getTypedApi: <D extends ChainDefinition>(chainDefinition: D) => {
+      const token = getChainToken(chainDefinition)
+      return Object.assign(
+        createApi<false, D>(token, chainHead, broadcastTx$),
+        { compatibilityToken: token },
+      )
+    },
 
-    getUnsafeApi: <D>() =>
-      createApi(
-        true,
-        getRuntimeToken(),
-        chainHead,
-        broadcastTx$,
-      ) as UnsafeApi<D>,
+    getUnsafeApi: <D>() => {
+      const token = getRuntimeToken()
+      return Object.assign(createApi<true, D>(token, chainHead, broadcastTx$), {
+        runtimeToken: token,
+      })
+    },
 
     destroy: () => {
       chainHead.unfollow()
