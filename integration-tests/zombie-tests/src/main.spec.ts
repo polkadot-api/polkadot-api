@@ -63,6 +63,16 @@ describe("E2E", async () => {
   console.log("waiting for compatibility token")
   const token = await api.compatibilityToken
 
+  it("unsafe API", async () => {
+    const unsafe = client.getUnsafeApi<typeof roc>()
+    expect(unsafe.runtimeToken).toBeDefined()
+    const unsTok = await unsafe.runtimeToken
+
+    // let's check the token indeed works
+    expect(typeof unsafe.constants.Balances.ExistentialDeposit()).toBe("object")
+    expect(unsafe.constants.Balances.ExistentialDeposit(unsTok)).toEqual(ED)
+  })
+
   it("evaluates constant values", () => {
     const ss58Prefix = api.constants.System.SS58Prefix(token)
     expect(ss58Prefix).toEqual(42)

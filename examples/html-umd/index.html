@@ -6,7 +6,8 @@
 
   <body>
     <h1>Play with PAPI</h1>
-    <pre id="output">Loading page...</pre>
+    <pre id="blockNumber">Loading page...</pre>
+    <pre id="freeBalance">Loading page...</pre>
   </body>
 
   <script src="//unpkg.com/polkadot-api/dist/umd/index.min.js"></script>
@@ -19,16 +20,27 @@
         const { createClient } = papi
         const { withPolkadotSdkCompat } = papiPolkadotSdkCompat
         const { getWsProvider } = papiWsProviderWeb
-        // Adjust which network you want to query. Try `wss://kusama-rpc.polkadot.io`.
+        // Adjust which network you want to query. Using westend as example
         const client = createClient(
-          withPolkadotSdkCompat(getWsProvider("wss://rpc.polkadot.io")),
+          withPolkadotSdkCompat(getWsProvider("wss://westend-rpc.polkadot.io")),
         )
-        document.getElementById("output").innerText =
+        const api = client.getUnsafeApi() // we get the API
+        document.getElementById("blockNumber").innerText =
+          "Connecting to RPC endpoint..."
+        document.getElementById("freeBalance").innerText =
           "Connecting to RPC endpoint..."
 
+        // we subscribe to the finalized block and show the block number at every change
         client.finalizedBlock$.subscribe((e) => {
-          document.getElementById("output").innerText =
+          document.getElementById("blockNumber").innerText =
             `Current finalized block: ${e.number}`
+        })
+
+        // and to a free balance of an account
+        const ACCOUNT = "5GzvA6VdjabsiKehmWGNkfhaZ6bhsqNSgrUTQS3G87zJi6m3"
+        api.query.System.Account.watchValue(ACCOUNT).subscribe((ev) => {
+          document.getElementById("freeBalance").innerText =
+            `${ACCOUNT} free balance: ${ev.data.free}`
         })
       } catch (error) {
         document.getElementById("output").innerText = "Error. See console (F12)"

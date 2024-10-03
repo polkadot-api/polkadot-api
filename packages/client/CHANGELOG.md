@@ -5,6 +5,7 @@
 ### Added
 
 - Add UMD export
+- Add `getUnsafeApi`
 
 ### Fixed
 

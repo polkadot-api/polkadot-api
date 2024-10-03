@@ -48,7 +48,7 @@ type ArrayPossibleParents<
       : ArrayPossibleParents<A, [...Count, T], R | Count>
   : never
 
-type StorageEntryWithoutKeys<D, Payload> = {
+type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
   /**
    * Get `Payload` (Promise-based) for the storage entry.
    *
@@ -63,9 +63,14 @@ type StorageEntryWithoutKeys<D, Payload> = {
    *                         changes, `best` or `finalized` (default)
    */
   watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
-} & CompatibilityFunctions<D>
+} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
-type StorageEntryWithKeys<D, Args extends Array<any>, Payload> = {
+export type StorageEntryWithKeys<
+  Unsafe,
+  D,
+  Args extends Array<any>,
+  Payload,
+> = {
   /**
    * Get `Payload` (Promise-based) for the storage entry with a specific set of
    * `Args`.
@@ -115,11 +120,16 @@ type StorageEntryWithKeys<D, Args extends Array<any>, Payload> = {
   getEntries: (
     ...args: WithCallOptions<PossibleParents<Args>>
   ) => Promise<Array<{ keyArgs: Args; value: NonNullable<Payload> }>>
-} & CompatibilityFunctions<D>
+} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
-export type StorageEntry<D, Args extends Array<any>, Payload> = Args extends []
-  ? StorageEntryWithoutKeys<D, Payload>
-  : StorageEntryWithKeys<D, Args, Payload>
+export type StorageEntry<
+  Unsafe,
+  D,
+  Args extends Array<any>,
+  Payload,
+> = Args extends []
+  ? StorageEntryWithoutKeys<Unsafe, D, Payload>
+  : StorageEntryWithKeys<Unsafe, D, Args, Payload>
 
 export type Storage$ = <Type extends StorageItemInput["type"]>(
   hash: string | null,
@@ -141,7 +151,7 @@ export const createStorageEntry = (
     argsAreCompatible,
     valuesAreCompatible,
   }: CompatibilityHelper,
-): StorageEntry<any, any, any> => {
+): StorageEntry<any, any, any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
 
   const incompatibleError = () =>

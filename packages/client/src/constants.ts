@@ -4,22 +4,40 @@ import {
   CompatibilityHelper,
   CompatibilityToken,
   getCompatibilityApi,
+  RuntimeToken,
 } from "./compatibility"
 
-export interface ConstantEntry<D, T> extends CompatibilityFunctions<D> {
-  /**
-   * Constants are simple key-value structures found in the runtime metadata.
-   *
-   * @returns Promise that will resolve in the value of the constant.
-   */
-  (): Promise<T>
-  /**
-   * @param compatibilityToken  Token from got with `await
-   *                            typedApi.compatibilityToken`
-   * @returns Synchronously returns value of the constant.
-   */
-  (compatibilityToken: CompatibilityToken): T
-}
+export type ConstantEntry<Unsafe, D, T> = Unsafe extends true
+  ? {
+      /**
+       * Constants are simple key-value structures found in the runtime
+       * metadata.
+       *
+       * @returns Promise that will resolve in the value of the constant.
+       */
+      (): Promise<T>
+      /**
+       * @param runtimeToken  Token from got with `await
+       *                      typedApi.runtimeToken`
+       * @returns Synchronously returns value of the constant.
+       */
+      (runtimeToken: RuntimeToken): T
+    }
+  : {
+      /**
+       * Constants are simple key-value structures found in the runtime
+       * metadata.
+       *
+       * @returns Promise that will resolve in the value of the constant.
+       */
+      (): Promise<T>
+      /**
+       * @param compatibilityToken  Token from got with `await
+       *                            typedApi.compatibilityToken`
+       * @returns Synchronously returns value of the constant.
+       */
+      (compatibilityToken: CompatibilityToken): T
+    } & CompatibilityFunctions<D>
 
 export const createConstantEntry = <D, T>(
   palletName: string,
@@ -30,7 +48,7 @@ export const createConstantEntry = <D, T>(
     isCompatible,
     getCompatibilityLevel,
   }: CompatibilityHelper,
-): ConstantEntry<D, T> => {
+): ConstantEntry<any, D, T> => {
   const cachedResults = new WeakMap<RuntimeContext, T>()
   const getValueWithContext = (ctx: RuntimeContext) => {
     if (cachedResults.has(ctx)) {
@@ -50,11 +68,11 @@ export const createConstantEntry = <D, T>(
     return result
   }
 
-  const fn = (compatibilityToken?: CompatibilityToken): any => {
-    if (compatibilityToken) {
-      const ctx = getCompatibilityApi(compatibilityToken).runtime()
+  const fn = (token?: CompatibilityToken | RuntimeToken): any => {
+    if (token) {
+      const ctx = getCompatibilityApi(token).runtime()
       const value = getValueWithContext(ctx)
-      if (!valuesAreCompatible(compatibilityToken, ctx, value))
+      if (!valuesAreCompatible(token, ctx, value))
         throw new Error(
           `Incompatible runtime entry Constant(${palletName}.${name})`,
         )

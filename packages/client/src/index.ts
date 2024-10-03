@@ -17,9 +17,12 @@ export type {
   TxPromise,
   TxObservable,
   TxCall,
+  UnsafeTxCall,
   TxSignFn,
   Transaction,
+  UnsafeTransaction,
   TxEntry,
+  UnsafeTxEntry,
 } from "./tx"
 export type { EventPhase } from "./event"
 export type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
