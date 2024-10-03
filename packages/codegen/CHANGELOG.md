@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.2 - 2024-10-03
+
 ### Fixed
 
 - docgen: array of primitives wasn't reported as arrays.

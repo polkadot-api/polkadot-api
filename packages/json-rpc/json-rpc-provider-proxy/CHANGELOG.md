@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.2 - 2024-10-03
+
 ### Fixed
 
 - Rewrite the internals and better support when dealing wiht halted on-going requests
