@@ -13,8 +13,8 @@ const client = createClient(
 
 const typedApi = client.getTypedApi(testAzero)
 
-const psp22Sdk = createInkSdk(typedApi, contracts.psp22)
-const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
+const escrowSdk = createInkSdk(typedApi, contracts.escrow)
+const escrowContract = escrowSdk.getContract(ADDRESS.escrow)
 
 // Storage query
 {
@@ -32,17 +32,14 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
 
 // Dry run
 {
-  console.log("IncreaseAllowance")
-  const result = await psp22Contract.query("PSP22::increase_allowance", {
+  console.log("Deposit funds")
+  const result = await escrowContract.query("deposit_funds", {
     origin: ADDRESS.alice,
-    data: {
-      spender: ADDRESS.psp22,
-      delta_value: 1000000n,
-    },
+    value: 100_000_000_000_000n,
   })
 
   if (result.success) {
-    console.log("IncreaseAllowance success")
+    console.log("Deposit funds success")
     console.log("events", result.value.events)
   } else {
     console.log("error", result.value)
@@ -53,27 +50,27 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
 {
   console.log("Redeploy contract")
   const data = {
-    decimals: 9,
-    supply: 1_000_000_000_000n,
+    nft: 3,
+    price: 50_000_000_000n,
   }
-  const result = await psp22Contract.dryRunRedeploy("new", {
+  const result = await escrowContract.dryRunRedeploy("new", {
     data,
     origin: ADDRESS.alice,
   })
 
   if (result.success) {
     console.log("dry run success")
-    const result = await psp22Contract
+    const result = await escrowContract
       .redeploy("new", {
         data,
         origin: ADDRESS.alice,
-        options: {
-          salt: Binary.fromHex("0x01"),
-        },
+        // options: {
+        //   salt: Binary.fromHex("0x01"),
+        // },
       })
       .signAndSubmit(aliceSigner)
 
-    const deployment = psp22Sdk.readDeploymentEvents(
+    const deployment = escrowSdk.readDeploymentEvents(
       ADDRESS.alice,
       result.events,
     )
