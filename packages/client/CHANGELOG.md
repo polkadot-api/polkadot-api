@@ -10,7 +10,7 @@
 ### Fixed
 
 - `pjs-signer`: Fix incorrect PJS injected account type
-- Update dependencies
+- `chains`: Update `lightSyncState`
 
 ## 1.3.3 - 2024-09-24
 
