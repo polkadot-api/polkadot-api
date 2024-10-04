@@ -1,6 +1,7 @@
 import { getLookupCodecBuilder } from "@polkadot-api/metadata-builders"
 import { Binary, Variant } from "@polkadot-api/substrate-bindings"
 import {
+  _void,
   Bytes,
   Codec,
   CodecType,
@@ -17,11 +18,17 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
 
   const buildDefinition = getLookupCodecBuilder(metadataLookup)
 
-  const buildStorage = (key = "") => {
-    const storageEntry = metadataLookup.storage[key]
+  const buildStorage = (name = "") => {
+    const storageEntry = metadataLookup.storage[name]
     if (!storageEntry)
-      throw new Error(`Storage entry ${key ? key : "{root}"} not found`)
-    return buildDefinition(storageEntry.typeId)
+      throw new Error(`Storage entry ${name ? name : "{root}"} not found`)
+
+    const keyCodec =
+      storageEntry.key == null ? _void : buildDefinition(storageEntry.key)
+    return {
+      key: prependBytes(keyCodec, storageEntry.keyPrefix),
+      value: buildDefinition(storageEntry.typeId),
+    }
   }
 
   const buildCallable = (callable: {
@@ -29,7 +36,6 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
     args: Array<MessageParamSpec>
     returnType: TypeSpec
   }) => {
-    const selectorBytes = Binary.fromHex(callable.selector).asBytes()
     const argsCodec = Struct(
       Object.fromEntries(
         callable.args.map((param) => [
@@ -38,17 +44,9 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
         ]),
       ) as StringRecord<Codec<any>>,
     )
-    const callCodec = Tuple(Bytes(4), argsCodec)
 
     return {
-      call: enhanceCodec(
-        callCodec,
-        (value: CodecType<typeof argsCodec>): CodecType<typeof callCodec> => [
-          selectorBytes,
-          value,
-        ],
-        ([, value]) => value,
-      ),
+      call: prependBytes(argsCodec, callable.selector),
       value: buildDefinition(callable.returnType.type),
     }
   }
@@ -97,3 +95,16 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
 }
 
 export type InkDynamicBuilder = ReturnType<typeof getInkDynamicBuilder>
+
+const prependBytes = <T>(codec: Codec<T>, hex: string) => {
+  const bytes = Binary.fromHex(hex).asBytes()
+  const wrappedCodec = Tuple(Bytes(bytes.length), codec)
+  return enhanceCodec(
+    wrappedCodec,
+    (value: CodecType<typeof codec>): CodecType<typeof wrappedCodec> => [
+      bytes,
+      value,
+    ],
+    ([, value]) => value,
+  )
+}

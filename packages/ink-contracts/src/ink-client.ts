@@ -1,7 +1,12 @@
 import { Binary } from "@polkadot-api/substrate-bindings"
-import { InkCallableDescriptor, InkDescriptors, Event } from "./ink-descriptors"
-import { getInkLookup, InkMetadataLookup } from "./get-lookup"
 import { getInkDynamicBuilder, InkDynamicBuilder } from "./dynamic-builders"
+import { getInkLookup } from "./get-lookup"
+import {
+  Event,
+  InkCallableDescriptor,
+  InkDescriptors,
+  InkStorageDescriptor,
+} from "./ink-descriptors"
 
 export type InkCallableInterface<T extends InkCallableDescriptor> = <
   L extends string & keyof T,
@@ -14,10 +19,23 @@ export type InkCallableInterface<T extends InkCallableDescriptor> = <
   decode: (value: { data: Binary }) => T[L]["response"]
 }
 
-export interface InkStorageInterface<S> {
-  rootKey: Binary
-  decodeRoot: (rootStorage: Binary) => S
-}
+export type InkStorageInterface<S extends InkStorageDescriptor> =
+  ("" extends keyof S
+    ? () => {
+        encode: S[""]["key"] extends undefined
+          ? (key?: undefined) => Binary
+          : (key: S[""]["key"]) => Binary
+        decode: (data: Binary) => S[""]["value"]
+      }
+    : unknown) &
+    (<L extends string & keyof S>(
+      label: L,
+    ) => {
+      encode: S[L]["key"] extends undefined
+        ? (key?: undefined) => Binary
+        : (key: S[L]["key"]) => Binary
+      decode: (data: Binary) => S[L]["value"]
+    })
 
 export type GenericEvent =
   | {
@@ -43,7 +61,7 @@ export interface InkEventInterface<E> {
 
 export interface InkClient<
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
@@ -57,7 +75,7 @@ export interface InkClient<
 
 export const getInkClient = <
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
@@ -71,7 +89,7 @@ export const getInkClient = <
   return {
     constructor: buildCallable(builder.buildConstructor),
     message: buildCallable(builder.buildMessage),
-    storage: buildStorage(lookup, builder.buildStorageRoot),
+    storage: buildStorage(builder.buildStorage),
     event: buildEvent(builder.buildEvent),
   }
 }
@@ -92,25 +110,19 @@ const buildCallable =
     }
   }
 
-const buildStorage = <S>(
-  lookup: InkMetadataLookup,
-  builder: InkDynamicBuilder["buildStorageRoot"],
-): InkStorageInterface<S> => {
-  const { metadata } = lookup
-  const metadataRootKey = Binary.fromHex(metadata.storage.root.root_key)
-  // On version 4-, the keys in the storage were in big-endian.
-  // For version 5+, the keys in storage are in scale, which is little-endian.
-  // https://use.ink/faq/migrating-from-ink-4-to-5#metadata-storage-keys-encoding-change
-  // https://github.com/use-ink/ink/pull/2048
-  const rootKey =
-    Number(metadata.version) === 4
-      ? Binary.fromBytes(metadataRootKey.asBytes().reverse())
-      : metadataRootKey
-  return {
-    rootKey,
-    decodeRoot: (rootStorage) => builder().dec(rootStorage.asBytes()),
+const buildStorage =
+  <S extends InkStorageDescriptor>(
+    builder: InkDynamicBuilder["buildStorage"],
+  ): InkStorageInterface<S> =>
+  <L extends string & keyof S>(label?: L) => {
+    const codecs = builder(label)
+
+    return {
+      encode: (key?: S[L]["key"]) =>
+        Binary.fromBytes(codecs.key.enc(key as any)),
+      decode: (response: Binary) => codecs.value.dec(response.asBytes()),
+    }
   }
-}
 
 const buildEvent = <E extends Event>(
   decoder: InkDynamicBuilder["buildEvent"],
