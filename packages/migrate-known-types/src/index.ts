@@ -22,7 +22,7 @@ import {
 import { getSmProvider } from "@polkadot-api/sm-provider"
 import { V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
-import { readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { start } from "@polkadot-api/smoldot"
 import { getMetadataFromProvider } from "./getMetadata"
 
@@ -47,7 +47,8 @@ const bundledKnownTypes = mapObject(knownTypesRepository, (value) =>
   typeof value === "string" ? { name: value } : value,
 )
 
-const STEP: number = 1
+const STEP: number = Number(process.argv.at(-1))
+if (!Number.isInteger(STEP) || STEP > 3) throw new Error(`Wrong step ${STEP}`)
 
 const getMetadataPath = (key: string) => "migration/" + key + ".json"
 const mapPath = "migration/map.json"
@@ -55,6 +56,7 @@ const knownTypesFile = "migration/known-types.ts"
 
 // STEP 1
 async function getMetadatas() {
+  await mkdir("migration", { recursive: true })
   const metadatas = mapObject(chains, async (chainGroup) => {
     const smoldot = start()
 
@@ -166,9 +168,9 @@ async function refreshTypes() {
     [string, number]
   >
   const pathToChecksum: Record<string, string> = Object.fromEntries(
-    Object.entries(bundledKnownTypes)
-      .filter(([, v]) => v.path)
-      .map(([checksum, entry]) => [entry.path, checksum]),
+    Object.entries(bundledKnownTypes).flatMap(
+      ([checksum, entry]) => entry.paths?.map((path) => [path, checksum]) ?? [],
+    ),
   )
   const paths = new Set(Object.keys(pathToChecksum))
 
