@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid using `Map.values().forEach()`
+
 ## 0.2.2 - 2024-10-03
 
 ### Fixed
