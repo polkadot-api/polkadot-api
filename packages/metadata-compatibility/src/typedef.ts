@@ -25,7 +25,6 @@ export const Primitive = {
   str: "string" as const,
   num: "number" as const,
   big: "bigint" as const,
-  numeric: "numeric" as const,
   bits: "bitseq" as const,
   void: "void" as const,
 }
@@ -156,13 +155,7 @@ export function mapLookupToTypedef(
     case "bitSequence":
       return terminal(Primitive.bits)
     case "compact":
-      return terminal(
-        entry.isBig === null
-          ? Primitive.numeric
-          : entry.isBig
-            ? Primitive.big
-            : Primitive.num,
-      )
+      return terminal(entry.isBig ? Primitive.big : Primitive.num)
     case "enum":
       return {
         type: "enum",

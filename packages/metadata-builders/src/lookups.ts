@@ -28,7 +28,7 @@ export type PrimitiveVar = {
 }
 
 export type VoidVar = { type: "void" }
-export type CompactVar = { type: "compact"; isBig: boolean | null }
+export type CompactVar = { type: "compact"; isBig: boolean }
 export type BitSequenceVar = { type: "bitSequence" }
 export type AccountId32 = { type: "AccountId32" }
 export type AccountId20 = { type: "AccountId20" }
@@ -305,7 +305,7 @@ const _denormalizeLookup = (
 
     if (def.tag === "compact") {
       const translated = getLookupEntryDef(def.value) as PrimitiveVar | VoidVar
-      if (translated.type === "void") return { type: "compact", isBig: null }
+      if (translated.type === "void") return _void
 
       const isBig = Number(translated.value.slice(1)) > 32
 

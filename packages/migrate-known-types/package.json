@@ -12,7 +12,7 @@
     "dist"
   ],
   "scripts": {
-    "start": "tsup-node src/index.ts --clean --format esm --platform node --onSuccess \"node --enable-source-maps dist/index.mjs\"",
+    "start": "bun run src/index.ts",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""

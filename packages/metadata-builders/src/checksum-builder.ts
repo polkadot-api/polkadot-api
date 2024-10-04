@@ -120,9 +120,7 @@ const _buildChecksum = (
   if (input.type === "compact")
     return getChecksum([
       shapeIds.primitive,
-      runtimePrimitiveIds[
-        input.isBig || input.isBig === null ? "bigint" : "number"
-      ],
+      runtimePrimitiveIds[input.isBig ? "bigint" : "number"],
     ])
 
   if (input.type === "bitSequence")

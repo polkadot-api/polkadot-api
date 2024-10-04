@@ -31,8 +31,6 @@ export function isCompatible(
           typeof value.bitsLen === "number" &&
           value.bytes instanceof Uint8Array
         )
-      case Primitive.numeric:
-        return typeof value === "number" || typeof value === "bigint"
       case Primitive.void:
         // A void node is always compatible, since the codec ignores the input.
         return true
