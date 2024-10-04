@@ -105,9 +105,7 @@ const _buildShapedDecoder = (
   if (input.type === "AccountId20") return primitives.ethAccount
   if (input.type === "AccountId32") return _accountId
   if (input.type === "compact")
-    return input.isBig || input.isBig === null
-      ? primitives.compactBn
-      : primitives.compactNumber
+    return input.isBig ? primitives.compactBn : primitives.compactNumber
   if (input.type === "bitSequence") return primitives.bitSequence
 
   if (

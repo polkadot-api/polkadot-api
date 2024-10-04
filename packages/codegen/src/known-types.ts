@@ -324,7 +324,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["frame_support.traits.preimages.Bounded"],
     type: "Enum(Legacy, Inline, Lookup)",
   },
-  "5a3qnpcq081o6": {
+  "264i12ff5ltjn": {
     name: "MultiAddress",
     chains:
       "polkadot, polkadot.assetHub, polkadot.bridgeHub, polkadot.collectives, kusama, kusama.assetHub, kusama.bridgeHub, rococo, rococo.assetHub, westend, westend.assetHub, westend.bridgeHub, westend.collectives",

@@ -67,9 +67,10 @@ const buildType = withCache(
     if (input.type === "AccountId32") return ltn("chainPrimitive", "SS58String")
     if (input.type === "compact") {
       const value: TypeNode[] = []
-      if (!input.isBig) value.push({ type: "primitive", value: "number" })
-      if (input.isBig || input.isBig === null)
-        value.push({ type: "primitive", value: "bigint" })
+      value.push({
+        type: "primitive",
+        value: input.isBig ? "bigint" : "number",
+      })
 
       return ltn("union", value)
     }
