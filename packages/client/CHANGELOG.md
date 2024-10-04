@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Add missing `RuntimeToken` export type
+
 ## 1.4.0 - 2024-10-03
 
 ### Added
