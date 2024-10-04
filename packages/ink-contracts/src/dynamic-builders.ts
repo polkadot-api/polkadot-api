@@ -5,76 +5,24 @@ import {
   Codec,
   CodecType,
   enhanceCodec,
-  Enum,
-  Option,
   StringRecord,
   Struct,
   Tuple,
-  Vector,
 } from "scale-ts"
 import { InkMetadataLookup } from "./get-lookup"
-import { Layout, MessageParamSpec, TypeSpec } from "./metadata-types"
+import { MessageParamSpec, TypeSpec } from "./metadata-types"
 
 export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
   const { metadata } = metadataLookup
 
   const buildDefinition = getLookupCodecBuilder(metadataLookup)
 
-  const buildLayout = (node: Layout): Codec<any> => {
-    if ("root" in node) {
-      return buildLayout(node.root.layout)
-    }
-    if ("leaf" in node) {
-      return buildDefinition(node.leaf.ty)
-    }
-    if ("hash" in node) {
-      throw new Error("HashLayout not implemented")
-    }
-    if ("array" in node) {
-      return Vector(buildLayout(node.array.layout), node.array.len)
-    }
-    if ("struct" in node) {
-      return Struct(
-        Object.fromEntries(
-          node.struct.fields.map((field) => [
-            field.name,
-            buildLayout(field.layout),
-          ]),
-        ) as StringRecord<Codec<any>>,
-      )
-    }
-
-    const variants = Object.values(node.enum.variants)
-    if (
-      node.enum.name === "Option" &&
-      variants.length === 2 &&
-      variants[0].name === "None" &&
-      variants[1].name === "Some"
-    ) {
-      const inner =
-        variants[1].fields.length === 1
-          ? buildLayout(variants[1].fields[0].layout)
-          : Tuple(...variants[1].fields.map((v) => buildLayout(v.layout)))
-      return Option(inner)
-    }
-
-    return Enum(
-      Object.fromEntries(
-        Object.values(node.enum.variants).map((variant) => [
-          variant.name,
-          Struct(
-            Object.fromEntries(
-              variant.fields.map((field) => [
-                field.name,
-                buildLayout(field.layout),
-              ]),
-            ) as StringRecord<Codec<any>>,
-          ),
-        ]),
-      ) as StringRecord<Codec<any>>,
-    )
+  const buildStorage = (key = "") => {
+    const storageEntry = metadataLookup.storage[key]
+    if (!storageEntry)
+      throw new Error(`Storage entry ${key ? key : "{root}"} not found`)
+    return buildDefinition(storageEntry.typeId)
   }
-  const buildStorageRoot = () => buildLayout(metadata.storage)
 
   const buildCallable = (callable: {
     selector: string
@@ -143,7 +91,7 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
   return {
     buildConstructor,
     buildMessage,
-    buildStorageRoot,
+    buildStorage,
     buildEvent,
   }
 }
