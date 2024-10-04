@@ -5,6 +5,7 @@
 ### Fixed
 
 - Add missing `RuntimeToken` export type
+- Target ES2022 when bundling
 
 ## 1.4.0 - 2024-10-03
 
