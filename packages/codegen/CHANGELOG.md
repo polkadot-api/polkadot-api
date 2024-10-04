@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Update dependencies
+- Target ES2022 when bundling
 
 ## 0.12.2 - 2024-10-03
 

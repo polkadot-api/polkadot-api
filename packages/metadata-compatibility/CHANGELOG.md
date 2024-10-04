@@ -6,6 +6,10 @@
 
 - Remove unused `Numeric` primitive.
 
+### Fixed
+
+- Target ES2022 when bundling
+
 ## 0.1.7 - 2024-10-03
 
 ### Fixed

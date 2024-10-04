@@ -5,6 +5,7 @@
 ### Fixed
 
 - Fix incorrect PJS injected account type
+- Target ES2022 when bundling
 
 ## 0.4.3 - 2024-09-24
 
