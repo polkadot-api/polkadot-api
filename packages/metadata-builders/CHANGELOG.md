@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `Compact<void>` is now resolved as `void` in lookup level
+
 ## 0.8.0 - 2024-10-03
 
 ### Added
