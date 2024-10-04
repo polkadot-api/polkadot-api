@@ -113,6 +113,7 @@ export interface RootLayout {
   root: {
     root_key: string
     layout: Layout
+    ty?: number
   }
 }
 export interface HashLayout {
