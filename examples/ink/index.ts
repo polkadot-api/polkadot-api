@@ -7,7 +7,7 @@ import { getWsProvider } from "polkadot-api/ws-provider/web"
 const ADDRESS = {
   alice: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
   escrow: "5FGWrHpqd3zzoVdbvuRvy1uLdDe22YaSrtrFLxRWHihZMmuL",
-  psp22: "5EtyZ1urgUdR5h1RAVfgKgHtFv8skaM1YN5Gv4HJya361dLq",
+  psp22: "5F69jP7VwzCp6pGZ93mv9FkAhwnwz4scR4J9asNeSgFPUGLq",
 }
 
 const client = createClient(
@@ -17,6 +17,7 @@ const client = createClient(
 )
 
 const typedApi = client.getTypedApi(testAzero)
+
 const escrow = getInkClient(contracts.escrow)
 const psp22 = getInkClient(contracts.psp22)
 
@@ -25,7 +26,7 @@ const psp22 = getInkClient(contracts.psp22)
   console.log("Query storage of contract")
   const storage = await typedApi.apis.ContractsApi.get_storage(
     ADDRESS.escrow,
-    escrow.storage.rootKey,
+    escrow.storage().encode(),
   )
 
   console.log(
@@ -34,11 +35,75 @@ const psp22 = getInkClient(contracts.psp22)
   )
 
   if (storage.success && storage.value) {
-    const decoded = escrow.storage.decodeRoot(storage.value)
+    const decoded = escrow.storage().decode(storage.value)
     console.log("storage nft", decoded.nft)
     console.log("storage price", decoded.price)
     console.log("storage seller", decoded.seller)
   }
+}
+
+{
+  console.log("Query psp22 storage")
+
+  const rootCodecs = psp22.storage()
+  let result = await typedApi.apis.ContractsApi.get_storage(
+    ADDRESS.psp22,
+    rootCodecs.encode(),
+  )
+  console.log(
+    "root result",
+    result.success && result.value && rootCodecs.decode(result.value),
+  )
+
+  const lazyCodecs = psp22.storage("lazy")
+  result = await typedApi.apis.ContractsApi.get_storage(
+    ADDRESS.psp22,
+    lazyCodecs.encode(),
+  )
+  console.log(
+    "lazy result",
+    result.success && result.value && lazyCodecs.decode(result.value),
+  )
+
+  const balancesCodecs = psp22.storage("data.balances")
+  result = await typedApi.apis.ContractsApi.get_storage(
+    ADDRESS.psp22,
+    balancesCodecs.encode(ADDRESS.alice),
+  )
+  console.log(
+    "balances result",
+    result.success && result.value && balancesCodecs.decode(result.value),
+  )
+
+  const vecLenCodecs = psp22.storage("vec.len")
+  result = await typedApi.apis.ContractsApi.get_storage(
+    ADDRESS.psp22,
+    vecLenCodecs.encode(),
+  )
+  console.log(
+    "vec len result",
+    result.success && result.value && vecLenCodecs.decode(result.value),
+  )
+
+  const vecCodecs = psp22.storage("vec")
+  result = await typedApi.apis.ContractsApi.get_storage(
+    ADDRESS.psp22,
+    vecCodecs.encode(0),
+  )
+  console.log(
+    "vec result",
+    result.success && result.value && vecCodecs.decode(result.value),
+  )
+
+  const allowancesCodecs = psp22.storage("data.allowances")
+  result = await typedApi.apis.ContractsApi.get_storage(
+    ADDRESS.psp22,
+    allowancesCodecs.encode([ADDRESS.alice, ADDRESS.alice]),
+  )
+  console.log(
+    "allowances result",
+    result.success && result.value && allowancesCodecs.decode(result.value),
+  )
 }
 
 // Send non-payable message
@@ -60,7 +125,7 @@ const psp22 = getInkClient(contracts.psp22)
 
   if (response.result.success) {
     console.log(increaseAllowance.decode(response.result.value))
-    console.log(psp22.event.filter(ADDRESS.psp22, response.events))
+    // console.log(psp22.event.filter(ADDRESS.psp22, response.events))
   } else {
     console.log(
       response.result.value,

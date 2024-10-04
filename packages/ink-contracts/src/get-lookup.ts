@@ -1,5 +1,5 @@
 import { denormalizeLookup, LookupEntry } from "@polkadot-api/metadata-builders"
-import { V14Lookup, v14Lookup } from "@polkadot-api/substrate-bindings"
+import { Binary, V14Lookup, v14Lookup } from "@polkadot-api/substrate-bindings"
 import { InkMetadata, Layout } from "./metadata-types"
 import { pjsTypes } from "./metadata-pjs-types"
 
@@ -30,8 +30,8 @@ export const getInkLookup = (metadata: InkMetadata): InkMetadataLookup => {
     accountIdEntry.path = ["AccountId32"]
   }
 
+  const storage = getStorageLayout(metadata, decoded)
   const getLookupEntryDef = denormalizeLookup(decoded)
-  const storage = getStorageLayout(metadata, getLookupEntryDef, decoded)
 
   return Object.assign(getLookupEntryDef, {
     metadata,
@@ -40,18 +40,10 @@ export const getInkLookup = (metadata: InkMetadata): InkMetadataLookup => {
   })
 }
 
-function getStorageLayout(
-  metadata: InkMetadata,
-  lookupFn: (id: number) => LookupEntry,
-  lookup: V14Lookup,
-) {
+function getStorageLayout(metadata: InkMetadata, lookup: V14Lookup) {
   const result: StorageLayout = {}
 
-  const readLayout = (
-    node: Layout,
-    path: string[] = [],
-    create = true,
-  ): number | null => {
+  const readLayout = (node: Layout, path: string[] = []): number | null => {
     function addType(def: V14Lookup[number]["def"]) {
       const id = lookup.length
       lookup[id] = {
@@ -65,62 +57,73 @@ function getStorageLayout(
     }
 
     if ("root" in node) {
-      let entryPoint: StorageEntryPoint | null = null
-      const keyPrefix = node.root.root_key
+      // On version 4-, the keys in the storage were in big-endian.
+      // For version 5+, the keys in storage are in scale, which is little-endian.
+      // https://use.ink/faq/migrating-from-ink-4-to-5#metadata-storage-keys-encoding-change
+      // https://github.com/use-ink/ink/pull/2048
+      const keyPrefix =
+        Number(metadata.version) === 4
+          ? Binary.fromBytes(
+              Binary.fromHex(node.root.root_key).asBytes().reverse(),
+            ).asHex()
+          : node.root.root_key
 
+      const typeId = readLayout(node.root.layout, path)!
       if (node.root.ty != null) {
-        // If the type referenced by this node is a real type, then traverse the layout without creating intermediate nodes.
-        readLayout(node.root.layout, path, false)
+        function resolveType(id: number, path: string[]) {
+          const type = metadata.types[id].type
 
-        let type = metadata.types[node.root.ty].type
+          // A vector internally uses a Mapping, but we have to get it
+          const fields =
+            "composite" in type.def
+              ? new Map(
+                  (type.def.composite.fields ?? []).map((v) => [
+                    v.name,
+                    v.type,
+                  ]),
+                )
+              : null
+          const params = new Map(
+            (type.params ?? []).map((v) => [v.name, v.type]),
+          )
 
-        // A vector internally uses a Mapping, but we have to get it
-        const fields =
-          "composite" in type.def
-            ? new Map(
-                (type.def.composite.fields ?? []).map((v) => [v.name, v.type]),
-              )
-            : null
-        let params = new Map((type.params ?? []).map((v) => [v.name, v.type]))
-        if (
-          params.size === 2 &&
-          params.has("V") &&
-          fields &&
-          fields.size === 2 &&
-          fields.has("len") &&
-          fields.has("elements")
-        ) {
-          type = metadata.types[fields.get("elements")!].type
-          params = new Map(type.params.map((v) => [v.name, v.type]))
+          if (
+            params.size === 2 &&
+            params.has("V") &&
+            fields &&
+            fields.size === 2 &&
+            fields.has("len") &&
+            fields.has("elements")
+          ) {
+            // Vectors have length and elements as different entry points
+            resolveType(fields.get("len")!, [...path, "len"])
+            resolveType(fields.get("elements")!, path)
+            return
+          } else if (params.size === 3 && params.has("K") && params.has("V")) {
+            // Mapping
+            result[path.join(".")] = {
+              keyPrefix,
+              key: params.get("K")!,
+              typeId: params.get("V")!,
+            }
+          } else if (params.size === 2 && params.has("V")) {
+            // Lazy
+            result[path.join(".")] = {
+              keyPrefix,
+              key: null,
+              typeId: params.get("V")!,
+            }
+          }
         }
-
-        if (params.size === 3 && params.has("K") && params.has("V")) {
-          // Mapping
-          entryPoint = {
-            keyPrefix: node.root.root_key,
-            key: params.get("K")!,
-            typeId: params.get("V")!,
-          }
-        } else if (params.size === 2 && params.has("V")) {
-          // Lazy
-          entryPoint = {
-            keyPrefix: node.root.root_key,
-            key: null,
-            typeId: params.get("V")!,
-          }
-        } else if (lookupFn(node.root.ty).type != "void") {
-          entryPoint = {
-            keyPrefix,
-            key: null,
-            typeId: node.root.ty,
-          }
-        }
+        resolveType(node.root.ty, path)
       }
 
-      result[path.join(".")] = entryPoint ?? {
-        keyPrefix,
-        key: null,
-        typeId: readLayout(node.root.layout, path, true)!,
+      if (!result[path.join(".")]) {
+        result[path.join(".")] = {
+          keyPrefix,
+          key: null,
+          typeId,
+        }
       }
 
       // Anyone addressing this node will encounter an empty type
@@ -133,39 +136,32 @@ function getStorageLayout(
       throw new Error("HashLayout not implemented")
     }
     if ("array" in node) {
-      const inner = readLayout(node.array.layout, path, create)
+      const inner = readLayout(node.array.layout, path)
 
-      if (create) {
-        return inner == null
-          ? null
-          : addType({
-              tag: "array",
-              value: {
-                len: node.array.len,
-                type: inner,
-              },
-            })
-      }
-
-      return null
+      return inner == null
+        ? null
+        : addType({
+            tag: "array",
+            value: {
+              len: node.array.len,
+              type: inner,
+            },
+          })
     }
     if ("struct" in node) {
       const inner = node.struct.fields
         .map((field) => ({
           name: field.name,
-          type: readLayout(field.layout, [...path, field.name], create)!,
+          type: readLayout(field.layout, [...path, field.name])!,
           typeName: undefined,
           docs: [],
         }))
         .filter((field) => field.type != null)
 
-      if (create) {
-        return addType({
-          tag: "composite",
-          value: inner,
-        })
-      }
-      return null
+      return addType({
+        tag: "composite",
+        value: inner,
+      })
     }
 
     const inner = Object.values(node.enum.variants).map((variant, index) => ({
@@ -173,11 +169,7 @@ function getStorageLayout(
       fields: variant.fields
         .map((field) => ({
           name: field.name,
-          type: readLayout(
-            field.layout,
-            [...path, variant.name, field.name],
-            create,
-          )!,
+          type: readLayout(field.layout, [...path, variant.name, field.name])!,
           typeName: undefined,
           docs: [],
         }))
@@ -186,13 +178,10 @@ function getStorageLayout(
       docs: [],
     }))
 
-    if (create) {
-      return addType({
-        tag: "variant",
-        value: inner,
-      })
-    }
-    return null
+    return addType({
+      tag: "variant",
+      value: inner,
+    })
   }
   readLayout(metadata.storage)
 

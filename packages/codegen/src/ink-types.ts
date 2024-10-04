@@ -1,6 +1,5 @@
 import {
   InkMetadataLookup,
-  Layout,
   MessageParamSpec,
   TypeSpec,
 } from "@polkadot-api/ink-contracts"
@@ -10,7 +9,6 @@ import {
   isPrimitive,
   LookupTypeNode,
   StructField,
-  TupleField,
   TypeNode,
 } from "./internal-types"
 import { getReusedNodes } from "./internal-types/reused-nodes"
@@ -25,85 +23,6 @@ import { anonymizeImports, anonymizeType } from "./anonymize"
 
 export function generateInkTypes(lookup: InkMetadataLookup) {
   const internalBuilder = getInternalTypesBuilder(lookup)
-
-  const buildLayout = (node: Layout): TypeNode | LookupTypeNode => {
-    if ("root" in node) {
-      return buildLayout(node.root.layout)
-    }
-    if ("leaf" in node) {
-      return internalBuilder(node.leaf.ty)
-    }
-    if ("hash" in node) {
-      throw new Error("HashLayout not implemented")
-    }
-    if ("array" in node) {
-      return {
-        type: "array",
-        value: {
-          value: buildLayout(node.array.layout),
-          len: node.array.len,
-        },
-      }
-    }
-    if ("struct" in node) {
-      return {
-        type: "struct",
-        value: node.struct.fields.map(
-          (field): StructField => ({
-            label: field.name,
-            value: buildLayout(field.layout),
-            docs: [],
-          }),
-        ),
-      }
-    }
-
-    const variants = Object.values(node.enum.variants)
-    if (
-      node.enum.name === "Option" &&
-      variants.length === 2 &&
-      variants[0].name === "None" &&
-      variants[1].name === "Some"
-    ) {
-      const inner: TypeNode =
-        variants[1].fields.length === 1
-          ? buildLayout(variants[1].fields[0].layout)
-          : {
-              type: "tuple",
-              value: variants[1].fields.map(
-                (v): TupleField => ({
-                  value: buildLayout(v.layout),
-                  docs: [],
-                }),
-              ),
-            }
-      return {
-        type: "option",
-        value: inner,
-      }
-    }
-
-    return {
-      type: "enum",
-      value: Object.values(node.enum.variants).map(
-        (variant): EnumVariant => ({
-          label: variant.name,
-          value: {
-            type: "struct",
-            value: variant.fields.map(
-              (field): StructField => ({
-                label: field.name,
-                value: buildLayout(field.layout),
-                docs: [],
-              }),
-            ),
-          },
-          docs: [],
-        }),
-      ),
-    }
-  }
-  const storageRoot = buildLayout(lookup.metadata.storage)
 
   const buildCallable = (callable: {
     args: Array<MessageParamSpec>
@@ -150,6 +69,34 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
         docs: evt.docs,
       }),
     ),
+  }
+
+  const storageRoots = Object.entries(lookup.storage).map(([name, value]) => ({
+    name,
+    key: value.key !== null ? internalBuilder(value.key) : null,
+    value: internalBuilder(value.typeId),
+  }))
+  const storageRoot: TypeNode = {
+    type: "struct",
+    value: storageRoots.map(({ name, key, value }) => ({
+      docs: [],
+      label: name,
+      value: {
+        type: "struct",
+        value: [
+          {
+            docs: [],
+            label: "key",
+            value: key ?? { type: "primitive", value: "undefined" },
+          },
+          {
+            docs: [],
+            label: "value",
+            value,
+          },
+        ],
+      },
+    })),
   }
 
   const entryPoints: TypeNode[] = [
@@ -236,7 +183,6 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     return result
   }
 
-  const storageTypes = generateNodeType(storageRoot)
   const createCallableDescriptor = (
     callables: Array<{
       label: string
@@ -271,6 +217,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
   const constructorsDescriptor = createCallableDescriptor(constructors)
   const messagesDescriptor = createCallableDescriptor(messages)
   const eventDescriptor = generateNodeType(event)
+  const storageTypes = generateNodeType(storageRoot)
 
   const namedTypes = Object.entries(assignedNames)
     .filter(([id]) => types[Number(id)])
