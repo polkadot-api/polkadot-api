@@ -123,7 +123,7 @@ export const getProxy: ReconnectableJsonRpcConnection = (
           )
         })
         activeChainHeads.clear()
-        onGoingRequests.values().forEach((x) => {
+        for (const x of onGoingRequests.values()) {
           if (x.type === OngoingMsgType.ChainHeadOperation)
             onMsgFromProvider(
               jsonRpcMsg({
@@ -133,7 +133,7 @@ export const getProxy: ReconnectableJsonRpcConnection = (
               }),
             )
           else send(x.msg)
-        })
+        }
         onGoingRequests.clear()
       }
       state = {
