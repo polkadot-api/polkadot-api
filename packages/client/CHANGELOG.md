@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.1 - 2024-10-05
+
 ### Fixed
 
 - Add missing `RuntimeToken` export type
