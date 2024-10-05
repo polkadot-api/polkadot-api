@@ -15,38 +15,36 @@
   <script src="//unpkg.com/polkadot-api/dist/umd/polkadot-sdk-compat.min.js"></script>
 
   <script>
-    async function queryPolkadot() {
-      try {
-        const { createClient } = papi
-        const { withPolkadotSdkCompat } = papiPolkadotSdkCompat
-        const { getWsProvider } = papiWsProviderWeb
-        // Adjust which network you want to query. Using westend as example
-        const client = createClient(
-          withPolkadotSdkCompat(getWsProvider("wss://westend-rpc.polkadot.io")),
-        )
-        const api = client.getUnsafeApi() // we get the API
-        document.getElementById("blockNumber").innerText =
-          "Connecting to RPC endpoint..."
-        document.getElementById("freeBalance").innerText =
-          "Connecting to RPC endpoint..."
+    const { createClient } = papi
+    const { withPolkadotSdkCompat } = papiPolkadotSdkCompat
+    const { getWsProvider } = papiWsProviderWeb
 
-        // we subscribe to the finalized block and show the block number at every change
-        client.finalizedBlock$.subscribe((e) => {
-          document.getElementById("blockNumber").innerText =
-            `Current finalized block: ${e.number}`
-        })
+    // Adjust which network you want to query. Using westend as example
+    const client = createClient(
+      withPolkadotSdkCompat(getWsProvider("wss://westend-rpc.polkadot.io")),
+    )
+    const api = client.getUnsafeApi() // we get the API
+    document.getElementById("blockNumber").innerText =
+      "Connecting to RPC endpoint..."
+    document.getElementById("freeBalance").innerText =
+      "Connecting to RPC endpoint..."
 
-        // and to a free balance of an account
-        const ACCOUNT = "5GzvA6VdjabsiKehmWGNkfhaZ6bhsqNSgrUTQS3G87zJi6m3"
-        api.query.System.Account.watchValue(ACCOUNT).subscribe((ev) => {
-          document.getElementById("freeBalance").innerText =
-            `${ACCOUNT} free balance: ${ev.data.free}`
-        })
-      } catch (error) {
-        document.getElementById("output").innerText = "Error. See console (F12)"
-        console.error("Error:", error)
-      }
+    const printError = (error) => {
+      document.getElementById("output").innerText = "Error. See console (F12)"
+      console.error("Error:", error)
     }
-    queryPolkadot() // We run the query as soon as the page loads.
+
+    // we subscribe to the finalized block and show the block number at every change
+    client.finalizedBlock$.subscribe((e) => {
+      document.getElementById("blockNumber").innerText =
+        `Current finalized block: ${e.number}`
+    }, printError)
+
+    // and to a free balance of an account
+    const ACCOUNT = "5GzvA6VdjabsiKehmWGNkfhaZ6bhsqNSgrUTQS3G87zJi6m3"
+    api.query.System.Account.watchValue(ACCOUNT).subscribe((ev) => {
+      document.getElementById("freeBalance").innerText =
+        `${ACCOUNT} free balance: ${ev.data.free}`
+    }, printError)
   </script>
 </html>
