@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.4 - 2024-10-05
+
 ### Fixed
 
 - Fix incorrect PJS injected account type

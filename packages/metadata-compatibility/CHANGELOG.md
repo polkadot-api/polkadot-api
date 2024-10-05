@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.8 - 2024-10-05
+
 ### Changed
 
 - Remove unused `Numeric` primitive.
