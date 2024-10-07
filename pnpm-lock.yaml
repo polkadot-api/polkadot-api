@@ -71,9 +71,15 @@ importers:
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
+      '@polkadot-api/tx-utils':
+        specifier: workspace:*
+        version: link:../../packages/tx-utils
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
       typescript:
         specifier: ^5
         version: 5.6.2
@@ -673,6 +679,18 @@ importers:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc/json-rpc-provider
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/tx-utils:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
