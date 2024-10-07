@@ -43,6 +43,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@polkadot-api/ink-contracts": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

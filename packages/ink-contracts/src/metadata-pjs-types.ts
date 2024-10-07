@@ -138,11 +138,12 @@ const entry = enhanceCodec(
     type: {
       def: CodecType<typeof def>
       path: CodecType<typeof docs>
+      params?: Array<{ name: string; type: number | undefined }>
     }
   }) => ({
     id: value.id,
     path: value.type.path,
-    params: [],
+    params: value.type.params ?? [],
     def: value.type.def,
     docs: [],
   }),
@@ -151,6 +152,7 @@ const entry = enhanceCodec(
     type: {
       def: value.def,
       path: value.path,
+      params: value.params,
     },
   }),
 )

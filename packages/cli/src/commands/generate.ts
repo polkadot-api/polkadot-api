@@ -1,6 +1,9 @@
 import { getMetadata } from "@/metadata"
 import { readPapiConfig } from "@/papiConfig"
-import { generateMultipleDescriptors } from "@polkadot-api/codegen"
+import {
+  generateInkTypes,
+  generateMultipleDescriptors,
+} from "@polkadot-api/codegen"
 import {
   EntryPointCodec,
   TypedefCodec,
@@ -26,6 +29,7 @@ import { CommonOptions } from "./commonOptions"
 import { spawn } from "child_process"
 import { readPackage } from "read-pkg"
 import { detectPackageManager } from "../packageManager"
+import { getInkLookup } from "@polkadot-api/ink-contracts"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
@@ -56,22 +60,28 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
+  console.log(`Generating descriptors`)
   await cleanDescriptorsPackage(config.descriptorPath)
   const descriptorsDir = join(process.cwd(), config.descriptorPath)
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
   const whitelist = opts.whitelist ? await readWhitelist(opts.whitelist) : null
+  const descriptorSrcDir = join(descriptorsDir, "src")
   const hash = await outputCodegen(
     chains,
-    join(descriptorsDir, "src"),
+    descriptorSrcDir,
     clientPath,
     whitelist,
   )
-  await replacePackageJson(descriptorsDir, hash)
 
+  if (config.ink) {
+    outputInkCodegen(config.ink, descriptorSrcDir)
+  }
+
+  await replacePackageJson(descriptorsDir, hash)
   await compileCodegen(descriptorsDir)
-  await fs.rm(join(descriptorsDir, "src"), { recursive: true })
+  await fs.rm(descriptorSrcDir, { recursive: true })
   await runInstall()
   await flushBundlerCache()
 }
@@ -211,6 +221,43 @@ export default content
   )
 
   return hash
+}
+
+async function outputInkCodegen(
+  contracts: Record<string, string>,
+  outputFolder: string,
+) {
+  console.log("Generating ink! types")
+
+  const contractsFolder = join(outputFolder, "contracts")
+  if (!existsSync(contractsFolder))
+    await fs.mkdir(contractsFolder, { recursive: true })
+
+  const imports: string[] = []
+  for (const [key, metadata] of Object.entries(contracts)) {
+    try {
+      const types = generateInkTypes(
+        getInkLookup(JSON.parse(await fs.readFile(metadata, "utf-8"))),
+      )
+      await fs.writeFile(join(contractsFolder, `${key}.ts`), types)
+      imports.push(`export { descriptor as ${key} } from './${key}'`)
+    } catch (ex) {
+      console.error("Exception when generating descriptors for contract " + key)
+      console.error(ex)
+    }
+  }
+
+  await fs.writeFile(
+    join(contractsFolder, `index.ts`),
+    imports.join("\n") + "\n",
+  )
+
+  fs.appendFile(
+    join(outputFolder, "index.ts"),
+    `
+    export * as contracts from './contracts';
+    `,
+  )
 }
 
 async function compileCodegen(packageDir: string) {

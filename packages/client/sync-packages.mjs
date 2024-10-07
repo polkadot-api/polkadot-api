@@ -22,6 +22,11 @@ export const reexports = [
   fromId("smoldot/node-worker"),
   fromId("smoldot/from-node-worker"),
   fromId("utils"),
+  [
+    "ink",
+    "@polkadot-api/ink-contracts",
+    "{ getInkClient, type InkDescriptors }",
+  ],
 ]
 
 const packageJsonContent = JSON.parse(await readFile("./package.json", "utf-8"))
@@ -41,7 +46,7 @@ await mkdir(reexportsDir, { recursive: true })
 const newExports = {
   ".": packageJsonContent.exports["."],
 }
-for (const [packageName, source] of reexports) {
+for (const [packageName, source, symbols = "*"] of reexports) {
   const components = packageName.split("/")
   const packageNameWithGlob =
     components.length === 1
@@ -85,7 +90,7 @@ for (const [packageName, source] of reexports) {
 
   await writeFile(
     join(reexportsDir, `${fileName}.ts`),
-    `export * from "${source}"\n`,
+    `export ${symbols} from "${source}"\n`,
   )
 }
 newExports["./package.json"] = packageJsonContent.exports["./packageJson"]

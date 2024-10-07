@@ -1,5 +1,5 @@
 import { Option, program } from "@commander-js/extra-typings"
-import type { add, generate, remove, update } from "./commands"
+import type { add, generate, ink, remove, update } from "./commands"
 import * as knownChains from "@polkadot-api/known-chains"
 
 export type Commands = {
@@ -7,9 +7,10 @@ export type Commands = {
   generate: typeof generate
   remove: typeof remove
   update: typeof update
+  ink: typeof ink
 }
 
-export function getCli({ add, generate, remove, update }: Commands) {
+export function getCli({ add, generate, remove, update, ink }: Commands) {
   program.name("polkadot-api").description("Polkadot API CLI")
 
   const config = new Option("--config <filename>", "Source for the config file")
@@ -62,6 +63,25 @@ export function getCli({ add, generate, remove, update }: Commands) {
     .addOption(config)
     .option("--skip-codegen", "Skip running codegen after removing")
     .action(remove)
+
+  const inkCommand = program
+    .command("ink")
+    .description("Add, update or remove ink contracts")
+  inkCommand
+    .command("add")
+    .description("Add or update an ink contract")
+    .argument("<file>", ".contract or .json metadata file for the contract")
+    .option("-k, --key <key>", "Key identifier for the contract")
+    .addOption(config)
+    .option("--skip-codegen", "Skip running codegen after updating")
+    .action(ink.add)
+  inkCommand
+    .command("remove")
+    .description("Remove an ink contract")
+    .argument("<key>", "Key identifier for the contract to remove")
+    .addOption(config)
+    .option("--skip-codegen", "Skip running codegen after updating")
+    .action(ink.remove)
 
   return program
 }

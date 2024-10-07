@@ -25,6 +25,7 @@ export type PapiConfig = {
   version: 0
   descriptorPath: string
   entries: Record<string, EntryConfig>
+  ink?: Record<string, string>
 }
 
 export const papiFolder = ".papi"

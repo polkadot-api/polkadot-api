@@ -147,3 +147,5 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
     buildEvent,
   }
 }
+
+export type InkDynamicBuilder = ReturnType<typeof getInkDynamicBuilder>

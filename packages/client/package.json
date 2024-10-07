@@ -155,6 +155,18 @@
       "import": "./dist/esm/reexports/utils.mjs",
       "require": "./dist/reexports/utils.js",
       "default": "./dist/reexports/utils.js"
+    },
+    "./ink": {
+      "types": "./dist/reexports/ink.d.ts",
+      "node": {
+        "import": "./dist/esm/reexports/ink.mjs",
+        "require": "./dist/reexports/ink.js",
+        "default": "./dist/reexports/ink.js"
+      },
+      "module": "./dist/esm/reexports/ink.mjs",
+      "import": "./dist/esm/reexports/ink.mjs",
+      "require": "./dist/reexports/ink.js",
+      "default": "./dist/reexports/ink.js"
     }
   },
   "main": "./dist/index.js",
@@ -172,7 +184,8 @@
     "ws-provider",
     "chains",
     "smoldot",
-    "utils"
+    "utils",
+    "ink"
   ],
   "scripts": {
     "build-core": "tsc --noEmit && rollup -c",
@@ -187,6 +200,7 @@
   },
   "dependencies": {
     "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/ink-contracts": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/logs-provider": "workspace:*",
     "@polkadot-api/polkadot-sdk-compat": "workspace:*",

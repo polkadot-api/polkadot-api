@@ -6,5 +6,9 @@
       "wsUrl": "wss://aleph-zero-testnet-rpc.dwellir.com",
       "metadata": ".papi/metadata/testAzero.scale"
     }
+  },
+  "ink": {
+    "escrow": ".papi/contracts/escrow.json",
+    "psp22": ".papi/contracts/psp22.json"
   }
 }
