@@ -32,7 +32,7 @@ export const getPjsTxHelper = (metadata: Uint8Array | string) => {
     const { extra, additionalSigned } = getSignedExtensionParts(
       lookup,
       dynamicBuilder,
-      fromPjsToTxData(pjsPayload),
+      fromPjsToTxData(lookup.metadata, pjsPayload),
     )
     const callData = fromHex(pjsPayload.method)
 
