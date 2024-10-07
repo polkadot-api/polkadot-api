@@ -23,6 +23,8 @@
     "@ledgerhq/hw-transport-node-hid": "^6.29.4",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ledger-signer": "workspace:*",
-    "polkadot-api": "workspace:*"
+    "@polkadot-api/tx-utils": "workspace:*",
+    "polkadot-api": "workspace:*",
+    "rxjs": "^7.8.1"
   }
 }
