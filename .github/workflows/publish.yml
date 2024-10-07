@@ -68,6 +68,7 @@ jobs:
             smoldot,
             substrate-bindings,
             substrate-client,
+            tx-utils,
             utils,
             view-builder,
           ]
