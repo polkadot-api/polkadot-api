@@ -1,5 +1,4 @@
 import {
-  AccountId,
   Bin,
   compactNumber,
   createDecoder,
@@ -8,7 +7,6 @@ import {
   StringRecord,
   Struct,
   u8,
-  Variant,
 } from "@polkadot-api/substrate-bindings"
 import { getMetadata } from "./get-metadata"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
@@ -19,20 +17,6 @@ const versionDec = enhanceDecoder(u8[1], (value) => ({
 }))
 
 const allBytesDec = Bin(Infinity).dec
-
-const getDefaultAddress = (prefix: number | undefined) =>
-  Variant({
-    Id: AccountId(prefix),
-    Raw: Bin(),
-    Address32: Bin(32),
-    Address20: Bin(20),
-  }).dec
-
-const defaultSignature = Variant({
-  Ed25519: Bin(64),
-  Sr25519: Bin(64),
-  Ecdsa: Bin(65),
-}).dec
 
 export const getExtrinsicDecoder = (metadataRaw: Uint8Array) => {
   const metadata = getMetadata(metadataRaw)
@@ -51,12 +35,22 @@ export const getExtrinsicDecoder = (metadataRaw: Uint8Array) => {
     ) as StringRecord<Decoder<any>>,
   )
 
-  let address: Decoder<any> = getDefaultAddress(dynamicBuilder.ss58Prefix)
-  let signature: Decoder<any> = defaultSignature
+  let address: Decoder<any>
+  let signature: Decoder<any>
   const { extrinsic } = metadata
   if ("address" in extrinsic) {
+    // v15
     address = dynamicBuilder.buildDefinition(extrinsic.address)[1]
     signature = dynamicBuilder.buildDefinition(extrinsic.signature)[1]
+  } else {
+    // v14
+    const params = metadata.lookup[extrinsic.type]?.params
+    const addr = params?.find((v) => v.name === "Address")?.type
+    const sig = params?.find((v) => v.name === "Signature")?.type
+    if (addr == null || sig == null)
+      throw new Error("Address and/or signature not found")
+    address = dynamicBuilder.buildDefinition(addr)[1]
+    signature = dynamicBuilder.buildDefinition(sig)[1]
   }
 
   const body = Struct.dec({ address, signature, extra, callData: allBytesDec })
