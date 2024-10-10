@@ -6,6 +6,11 @@
 
 - New `FixedSizeBinary` static method `fromAccountId32`
 
+### Fixed
+
+- Avoid throwing when creating a transaction that has an unknown signed-extension.
+- Validate transactions on Runtimes that only support metadata V14.
+
 ## 1.4.1 - 2024-10-05
 
 ### Fixed

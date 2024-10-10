@@ -11,6 +11,7 @@ const docsDescriptorsFolder = path.join(papiFolder, "docsDescriptors")
 export interface Options {
   config?: string
   output: string
+  title: string
 }
 
 async function generateFileTree(dir: string, tree: FileTree): Promise<void> {
@@ -47,6 +48,8 @@ export async function generateDocs(opts: Options) {
   await fs.rm(opts.output, { recursive: true, force: true })
   await fs.mkdir(opts.output, { recursive: true })
 
+  const jsonDir = path.join(docsDescriptorsFolder, "json")
+  await fs.mkdir(jsonDir, { recursive: true })
   for (const chain of chains) {
     console.log(`Generating TS descriptors for chain ${chain.key}`)
     const chainDescriptorsPath = path.join(docsDescriptorsFolder, chain.key)
@@ -62,14 +65,11 @@ export async function generateDocs(opts: Options) {
 
     console.log(`Running typedoc for chain ${chain.key}`)
 
-    const cssFile = path.join(chainDescriptorsPath, "style.css")
-    await fs.writeFile(cssFile, getCss(), "utf-8")
-
     const typedoc = await TypeDoc.Application.bootstrapWithPlugins({
       entryPoints: [path.join(chainDescriptorsPath, "index.ts")],
       tsconfig: tsconfigPath,
+      json: `${chain.key}.json`,
       cleanOutputDir: true,
-      customCss: cssFile,
       name: chain.key,
       readme: undefined,
     })
@@ -78,21 +78,28 @@ export async function generateDocs(opts: Options) {
     if (!project) {
       throw new Error(`Typedoc convert failed for chain ${chain.key}`)
     }
-    const chainOutDir = path.join(opts.output, chain.key)
-    await fs.mkdir(chainOutDir, { recursive: true })
-    await typedoc.generateDocs(project, chainOutDir)
 
-    // index.html is currently useless, this is the easiest way to point to the
-    // right starting page
-    await fs.cp(
-      path.join(chainOutDir, "modules.html"),
-      path.join(chainOutDir, "index.html"),
-      { force: true },
-    )
+    await typedoc.generateJson(project, path.join(jsonDir, `${chain.key}.json`))
+  }
+  const cssFile = path.join(docsDescriptorsFolder, "style.css")
+  await fs.writeFile(cssFile, getCss(), "utf-8")
 
-    await fs.rm(chainDescriptorsPath, { recursive: true, force: true })
+  const allDocs = await TypeDoc.Application.bootstrapWithPlugins({
+    entryPoints: chains.map(({ key }) => path.join(jsonDir, `${key}.json`)),
+    customCss: cssFile,
+    entryPointStrategy: "merge",
+    cleanOutputDir: true,
+    name: opts.title,
+  })
+  const project = await allDocs.convert()
+  if (!project) {
+    throw new Error(`Typedoc convert failed`)
   }
 
+  const docsOutDir = path.join(opts.output)
+  await fs.mkdir(docsOutDir, { recursive: true })
+  await allDocs.generateDocs(project, docsOutDir)
+  await fs.rm(docsDescriptorsFolder, { recursive: true, force: true })
   console.log(`Docs available at path ${opts.output}`)
 }
 
