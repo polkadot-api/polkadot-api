@@ -18,17 +18,14 @@ export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
     return (listener, onError) => {
       let listening = true
       ;(async () => {
-        do {
-          let message = ""
-          try {
-            message = await resolvedChain.nextJsonRpcResponse()
-          } catch (e) {
-            if (listening) onError()
-            return
+        try {
+          for await (const message of resolvedChain.jsonRpcResponses) {
+            if (!listening) break
+            listener(message)
           }
-          if (!listening) break
-          listener(message)
-        } while (listening)
+        } catch {
+          if (listening) onError()
+        }
       })()
 
       return {
