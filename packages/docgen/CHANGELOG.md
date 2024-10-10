@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.0.5 - 2024-10-10
+
+### Changed
+
+- Generate one single build for all chains
+
 ## 0.0.4 - 2024-10-05
 
 ### Fixed
