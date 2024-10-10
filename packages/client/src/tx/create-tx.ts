@@ -17,6 +17,11 @@ type HintedSignedExtensions = Partial<{
   nonce: number
 }>
 
+const empty$ = of({
+  value: empty,
+  additionalSigned: empty,
+})
+
 export const createTx: (
   chainHead: ChainHead$,
   signer: PolkadotSigner,
@@ -48,8 +53,8 @@ export const createTx: (
           : undefined // immortal
 
       return combineLatest(
-        ctx.lookup.metadata.extrinsic.signedExtensions.map(
-          ({ identifier, type, additionalSigned }) => {
+        ctx.lookup.metadata.extrinsic.signedExtensions
+          .map(({ identifier, type, additionalSigned }) => {
             if (identifier === "CheckMortality")
               return CheckMortality(mortality, signedExtensionsCtx)
 
@@ -63,21 +68,14 @@ export const createTx: (
               return chainSignedExtensions.getNonce(hinted.nonce!)
 
             const fn = chainSignedExtensions[identifier as "CheckGenesis"]
-            if (!fn) {
-              if (
-                ctx.dynamicBuilder.buildDefinition(type) === _void &&
-                ctx.dynamicBuilder.buildDefinition(additionalSigned) === _void
-              )
-                return of({
-                  value: empty,
-                  additionalSigned: empty,
-                })
-
-              throw new Error(`Unsupported signed-extension: ${identifier}`)
-            }
-            return fn(signedExtensionsCtx)
-          },
-        ),
+            return fn
+              ? fn(signedExtensionsCtx)
+              : ctx.dynamicBuilder.buildDefinition(type) === _void &&
+                  ctx.dynamicBuilder.buildDefinition(additionalSigned) === _void
+                ? empty$
+                : null
+          })
+          .filter((x) => !!x),
       ).pipe(
         mergeMap((signedExtensions) =>
           signer.signTx(

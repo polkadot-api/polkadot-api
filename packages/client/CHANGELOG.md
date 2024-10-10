@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid throwing when creating a transaction that has an unknown signed-extension.
+
 ## 1.4.1 - 2024-10-05
 
 ### Fixed
