@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- New `FixedSizeBinary` static method `fromAccountId32`
+
 ### Fixed
 
 - Avoid throwing when creating a transaction that has an unknown signed-extension.

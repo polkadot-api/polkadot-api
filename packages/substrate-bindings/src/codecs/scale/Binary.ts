@@ -9,6 +9,8 @@ import {
 } from "scale-ts"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import type { HexString } from "./Hex"
+import { SS58String } from "@/utils"
+import { AccountId } from "./AccountId"
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
@@ -66,6 +68,7 @@ export class Binary {
   }
 }
 
+const [accountIdEncoder] = AccountId()
 export class FixedSizeBinary<_L extends number> extends Binary {
   constructor(data: Uint8Array) {
     super(data)
@@ -75,6 +78,12 @@ export class FixedSizeBinary<_L extends number> extends Binary {
     input: I,
   ) {
     return new this<L>(new Uint8Array(input))
+  }
+
+  static fromAccountId32<L extends number>(
+    input: L extends 32 ? SS58String : never,
+  ) {
+    return new this<L>(accountIdEncoder(input))
   }
 }
 
