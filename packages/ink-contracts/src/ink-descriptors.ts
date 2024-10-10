@@ -4,7 +4,7 @@ import { InkMetadata } from "./metadata-types"
 export type Event = { type: string; value: unknown }
 
 export interface InkDescriptors<
-  S,
+  S extends InkStorageDescriptor,
   M extends InkCallableDescriptor,
   C extends InkCallableDescriptor,
   E extends Event,
@@ -23,5 +23,13 @@ export type InkCallableDescriptor = Record<
   {
     message: StringRecord<unknown>
     response: StringRecord<unknown>
+  }
+>
+
+export type InkStorageDescriptor = Record<
+  string,
+  {
+    key: unknown
+    value: unknown
   }
 >

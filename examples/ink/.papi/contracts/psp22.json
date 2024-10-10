@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x6421e724925cc0440c94670f60b0be956ff96d2e2cebd7494ba2712fe127f28b",
+    "hash": "0x5101f5d59e426c8c9aa998fd3566f3c124274692987616ec6e0ad3f79e8db261",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.79.0",
     "build_info": {
@@ -37,14 +37,14 @@
             "label": "name",
             "type": {
               "displayName": ["Option"],
-              "type": 16
+              "type": 26
             }
           },
           {
             "label": "symbol",
             "type": {
               "displayName": ["Option"],
-              "type": 16
+              "type": 26
             }
           },
           {
@@ -61,7 +61,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink_primitives", "ConstructorResult"],
-          "type": 17
+          "type": 27
         },
         "selector": "0x9bae9d5e"
       }
@@ -78,21 +78,21 @@
       },
       "blockNumber": {
         "displayName": ["BlockNumber"],
-        "type": 29
+        "type": 22
       },
       "chainExtension": {
         "displayName": ["ChainExtension"],
-        "type": 30
+        "type": 39
       },
       "hash": {
         "displayName": ["Hash"],
-        "type": 27
+        "type": 37
       },
       "maxEventTopics": 4,
       "staticBufferSize": 16384,
       "timestamp": {
         "displayName": ["Timestamp"],
-        "type": 28
+        "type": 38
       }
     },
     "events": [
@@ -141,7 +141,7 @@
             "label": "from",
             "type": {
               "displayName": ["Option"],
-              "type": 26
+              "type": 36
             }
           },
           {
@@ -150,7 +150,7 @@
             "label": "to",
             "type": {
               "displayName": ["Option"],
-              "type": 26
+              "type": 36
             }
           },
           {
@@ -171,7 +171,7 @@
     ],
     "lang_error": {
       "displayName": ["ink", "LangError"],
-      "type": 18
+      "type": 28
     },
     "messages": [
       {
@@ -183,7 +183,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 19
+          "type": 29
         },
         "selector": "0x162df8c2"
       },
@@ -204,7 +204,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 19
+          "type": 29
         },
         "selector": "0x6568382f"
       },
@@ -232,7 +232,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 19
+          "type": 29
         },
         "selector": "0x4d47d921"
       },
@@ -256,7 +256,7 @@
             "label": "_data",
             "type": {
               "displayName": ["Vec"],
-              "type": 20
+              "type": 30
             }
           }
         ],
@@ -267,7 +267,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 21
+          "type": 31
         },
         "selector": "0xdb20f9f5"
       },
@@ -298,7 +298,7 @@
             "label": "_data",
             "type": {
               "displayName": ["Vec"],
-              "type": 20
+              "type": 30
             }
           }
         ],
@@ -309,7 +309,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 21
+          "type": 31
         },
         "selector": "0x54b3c76e"
       },
@@ -337,7 +337,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 21
+          "type": 31
         },
         "selector": "0xb20f1bbd"
       },
@@ -365,7 +365,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 21
+          "type": 31
         },
         "selector": "0x96d6b57a"
       },
@@ -393,7 +393,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 21
+          "type": 31
         },
         "selector": "0xfecb57d5"
       },
@@ -406,7 +406,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 24
+          "type": 34
         },
         "selector": "0x3d261bd4"
       },
@@ -419,7 +419,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 24
+          "type": 34
         },
         "selector": "0x34205be5"
       },
@@ -432,7 +432,7 @@
         "payable": false,
         "returnType": {
           "displayName": ["ink", "MessageResult"],
-          "type": 25
+          "type": 35
         },
         "selector": "0x7271b782"
       }
@@ -558,13 +558,43 @@
                 }
               },
               "name": "decimals"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x664c1246",
+                      "ty": 0
+                    }
+                  },
+                  "root_key": "0x664c1246",
+                  "ty": 14
+                }
+              },
+              "name": "lazy"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "leaf": {
+                      "key": "0x0a26053e",
+                      "ty": 17
+                    }
+                  },
+                  "root_key": "0x0a26053e",
+                  "ty": 18
+                }
+              },
+              "name": "vec"
             }
           ],
           "name": "Token"
         }
       },
       "root_key": "0x00000000",
-      "ty": 14
+      "ty": 24
     }
   },
   "types": [
@@ -762,27 +792,214 @@
       "id": 14,
       "type": {
         "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "V",
+            "type": 0
+          },
+          {
+            "name": "KeyType",
+            "type": 15
+          }
+        ],
+        "path": ["ink_storage", "lazy", "Lazy"]
+      }
+    },
+    {
+      "id": 15,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 6
+          },
+          {
+            "name": "R",
+            "type": 16
+          }
+        ],
+        "path": ["ink_storage_traits", "impls", "ResolverKey"]
+      }
+    },
+    {
+      "id": 16,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 8
+          }
+        ],
+        "path": ["ink_storage_traits", "impls", "ManualKey"]
+      }
+    },
+    {
+      "id": 17,
+      "type": {
+        "def": {
+          "primitive": "u16"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "len",
+                "type": 21,
+                "typeName": "Lazy<u32, KeyType>"
+              },
+              {
+                "name": "elements",
+                "type": 23,
+                "typeName": "Mapping<u32, V, KeyType>"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "V",
+            "type": 17
+          },
+          {
+            "name": "KeyType",
+            "type": 19
+          }
+        ],
+        "path": ["ink_storage", "lazy", "vec", "StorageVec"]
+      }
+    },
+    {
+      "id": 19,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "L",
+            "type": 6
+          },
+          {
+            "name": "R",
+            "type": 20
+          }
+        ],
+        "path": ["ink_storage_traits", "impls", "ResolverKey"]
+      }
+    },
+    {
+      "id": 20,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "ParentKey",
+            "type": 8
+          }
+        ],
+        "path": ["ink_storage_traits", "impls", "ManualKey"]
+      }
+    },
+    {
+      "id": 21,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "V",
+            "type": 22
+          },
+          {
+            "name": "KeyType",
+            "type": 19
+          }
+        ],
+        "path": ["ink_storage", "lazy", "Lazy"]
+      }
+    },
+    {
+      "id": 22,
+      "type": {
+        "def": {
+          "primitive": "u32"
+        }
+      }
+    },
+    {
+      "id": 23,
+      "type": {
+        "def": {
+          "composite": {}
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 22
+          },
+          {
+            "name": "V",
+            "type": 17
+          },
+          {
+            "name": "KeyType",
+            "type": 19
+          }
+        ],
+        "path": ["ink_storage", "lazy", "mapping", "Mapping"]
+      }
+    },
+    {
+      "id": 24,
+      "type": {
+        "def": {
           "composite": {
             "fields": [
               {
                 "name": "data",
-                "type": 15,
+                "type": 25,
                 "typeName": "<PSP22Data as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<1355527684u32, ()>,>>::Type"
               },
               {
                 "name": "name",
-                "type": 16,
+                "type": 26,
                 "typeName": "<Option<String> as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<2459941612u32, ()>,>>::Type"
               },
               {
                 "name": "symbol",
-                "type": 16,
+                "type": 26,
                 "typeName": "<Option<String> as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<1189101269u32, ()>,>>::Type"
               },
               {
                 "name": "decimals",
                 "type": 4,
                 "typeName": "<u8 as::ink::storage::traits::AutoStorableHint<::ink::storage::\ntraits::ManualKey<2233024958u32, ()>,>>::Type"
+              },
+              {
+                "name": "lazy",
+                "type": 14,
+                "typeName": "<Lazy<u128> as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<1175604326u32, ()>,>>::Type"
+              },
+              {
+                "name": "vec",
+                "type": 18,
+                "typeName": "<StorageVec<u16> as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<1040524810u32, ()>,>>::Type"
               }
             ]
           }
@@ -791,7 +1008,7 @@
       }
     },
     {
-      "id": 15,
+      "id": 25,
       "type": {
         "def": {
           "composite": {
@@ -818,7 +1035,7 @@
       }
     },
     {
-      "id": 16,
+      "id": 26,
       "type": {
         "def": {
           "variant": {
@@ -849,7 +1066,7 @@
       }
     },
     {
-      "id": 17,
+      "id": 27,
       "type": {
         "def": {
           "variant": {
@@ -866,7 +1083,7 @@
               {
                 "fields": [
                   {
-                    "type": 18
+                    "type": 28
                   }
                 ],
                 "index": 1,
@@ -882,14 +1099,14 @@
           },
           {
             "name": "E",
-            "type": 18
+            "type": 28
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 18,
+      "id": 28,
       "type": {
         "def": {
           "variant": {
@@ -905,7 +1122,7 @@
       }
     },
     {
-      "id": 19,
+      "id": 29,
       "type": {
         "def": {
           "variant": {
@@ -922,7 +1139,7 @@
               {
                 "fields": [
                   {
-                    "type": 18
+                    "type": 28
                   }
                 ],
                 "index": 1,
@@ -938,14 +1155,14 @@
           },
           {
             "name": "E",
-            "type": 18
+            "type": 28
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 20,
+      "id": 30,
       "type": {
         "def": {
           "sequence": {
@@ -955,7 +1172,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 31,
       "type": {
         "def": {
           "variant": {
@@ -963,7 +1180,7 @@
               {
                 "fields": [
                   {
-                    "type": 22
+                    "type": 32
                   }
                 ],
                 "index": 0,
@@ -972,7 +1189,7 @@
               {
                 "fields": [
                   {
-                    "type": 18
+                    "type": 28
                   }
                 ],
                 "index": 1,
@@ -984,18 +1201,18 @@
         "params": [
           {
             "name": "T",
-            "type": 22
+            "type": 32
           },
           {
             "name": "E",
-            "type": 18
+            "type": 28
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 22,
+      "id": 32,
       "type": {
         "def": {
           "variant": {
@@ -1012,7 +1229,7 @@
               {
                 "fields": [
                   {
-                    "type": 23
+                    "type": 33
                   }
                 ],
                 "index": 1,
@@ -1028,14 +1245,14 @@
           },
           {
             "name": "E",
-            "type": 23
+            "type": 33
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 23,
+      "id": 33,
       "type": {
         "def": {
           "variant": {
@@ -1083,7 +1300,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 34,
       "type": {
         "def": {
           "variant": {
@@ -1091,7 +1308,7 @@
               {
                 "fields": [
                   {
-                    "type": 16
+                    "type": 26
                   }
                 ],
                 "index": 0,
@@ -1100,7 +1317,7 @@
               {
                 "fields": [
                   {
-                    "type": 18
+                    "type": 28
                   }
                 ],
                 "index": 1,
@@ -1112,18 +1329,18 @@
         "params": [
           {
             "name": "T",
-            "type": 16
+            "type": 26
           },
           {
             "name": "E",
-            "type": 18
+            "type": 28
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 25,
+      "id": 35,
       "type": {
         "def": {
           "variant": {
@@ -1140,7 +1357,7 @@
               {
                 "fields": [
                   {
-                    "type": 18
+                    "type": 28
                   }
                 ],
                 "index": 1,
@@ -1156,14 +1373,14 @@
           },
           {
             "name": "E",
-            "type": 18
+            "type": 28
           }
         ],
         "path": ["Result"]
       }
     },
     {
-      "id": 26,
+      "id": 36,
       "type": {
         "def": {
           "variant": {
@@ -1194,7 +1411,7 @@
       }
     },
     {
-      "id": 27,
+      "id": 37,
       "type": {
         "def": {
           "composite": {
@@ -1210,7 +1427,7 @@
       }
     },
     {
-      "id": 28,
+      "id": 38,
       "type": {
         "def": {
           "primitive": "u64"
@@ -1218,15 +1435,7 @@
       }
     },
     {
-      "id": 29,
-      "type": {
-        "def": {
-          "primitive": "u32"
-        }
-      }
-    },
-    {
-      "id": 30,
+      "id": 39,
       "type": {
         "def": {
           "variant": {}
