@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Export missing types
+
 ## 0.3.1 - 2024-10-05
 
 ### Fixed
