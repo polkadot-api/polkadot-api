@@ -5,6 +5,10 @@
     "wnd": {
       "chain": "westend2",
       "metadata": ".papi/metadata/wnd.scale"
+    },
+    "turing": {
+      "wsUrl": "wss://turing-rpc.avail.so/ws",
+      "metadata": ".papi/metadata/turing.scale"
     }
   }
 }

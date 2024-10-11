@@ -7,8 +7,9 @@ import {
 } from "./signed-extensions/user"
 import * as chainSignedExtensions from "./signed-extensions/chain"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { _void } from "@polkadot-api/substrate-bindings"
+import { _void, Encoder } from "@polkadot-api/substrate-bindings"
 import { empty } from "./signed-extensions/utils"
+import { CustomSignedExtensionValues } from "./types"
 
 type HintedSignedExtensions = Partial<{
   tip: bigint
@@ -22,17 +23,43 @@ const empty$ = of({
   additionalSigned: empty,
 })
 
+const getCustomSignExt = <T extends Record<string, any>>(
+  obj: T,
+  key: string,
+  encoder: Encoder<any>,
+) => {
+  if (!(key in obj)) return empty
+  const x = obj[key] as any
+  return x instanceof Uint8Array ? x : encoder(x)
+}
+
+const getEncodedSignExtFromCustom = (
+  custom: CustomSignedExtensionValues,
+  valueEnc: Encoder<any>,
+  additionalSignedEnc: Encoder<any>,
+) =>
+  of({
+    value: getCustomSignExt(custom, "value", valueEnc),
+    additionalSigned: getCustomSignExt(
+      custom,
+      "additionalSigned",
+      additionalSignedEnc,
+    ),
+  })
+
 export const createTx: (
   chainHead: ChainHead$,
   signer: PolkadotSigner,
   callData: Uint8Array,
   atBlock: BlockInfo,
+  customSignExt: Record<string, CustomSignedExtensionValues>,
   hinted?: HintedSignedExtensions,
 ) => Observable<Uint8Array> = (
   chainHead,
   signer,
   callData,
   atBlock,
+  customSignedExtensions,
   hinted = {},
 ) =>
   chainHead.getRuntimeContext$(atBlock.hash).pipe(
@@ -68,12 +95,20 @@ export const createTx: (
               return chainSignedExtensions.getNonce(hinted.nonce!)
 
             const fn = chainSignedExtensions[identifier as "CheckGenesis"]
+            const [valueEnc] = ctx.dynamicBuilder.buildDefinition(type)
+            const [additionalSignedEnc] =
+              ctx.dynamicBuilder.buildDefinition(additionalSigned)
             return fn
               ? fn(signedExtensionsCtx)
-              : ctx.dynamicBuilder.buildDefinition(type) === _void &&
-                  ctx.dynamicBuilder.buildDefinition(additionalSigned) === _void
+              : valueEnc === _void[0] && additionalSignedEnc === _void[0]
                 ? empty$
-                : null
+                : identifier in customSignedExtensions
+                  ? getEncodedSignExtFromCustom(
+                      customSignedExtensions[identifier],
+                      valueEnc,
+                      additionalSignedEnc,
+                    )
+                  : null
           })
           .filter((x) => !!x),
       ).pipe(

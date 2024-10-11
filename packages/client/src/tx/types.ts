@@ -80,6 +80,18 @@ export type TxFinalized = {
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
 
+export type CustomSignedExtensionValues =
+  | {
+      value: any
+      additionalSigned: any
+    }
+  | {
+      value: any
+    }
+  | {
+      additionalSigned: any
+    }
+
 export type TxOptions<Asset> = Partial<
   void extends Asset
     ? {
@@ -100,6 +112,17 @@ export type TxOptions<Asset> = Partial<
          * finalized block.
          */
         nonce: number
+        /**
+         * Custom values for chains that have custom signed-extensions.
+         * The key of the Object should be the signed-extension name and the
+         * value is an Object that accepts 2 possible keys: one for `value`
+         * and the other one for `additionallySigned`. They both receive either
+         * the encoded value as a `Uint8Array` that should be used for the
+         * signed-extension, or the decoded value that PAPI will encode using
+         * its dynamic codecs. At least one of the 2 values must be included
+         * into the signed-extension Object.
+         */
+        customSignedExtensions: Record<string, CustomSignedExtensionValues>
       }
     : {
         /**
@@ -124,6 +147,17 @@ export type TxOptions<Asset> = Partial<
          * finalized block.
          */
         nonce: number
+        /**
+         * Custom values for chains that have custom signed-extensions.
+         * The key of the Object should be the signed-extension name and the
+         * value is an Object that accepts 2 possible keys: one for `value`
+         * and the other one for `additionallySigned`. They both receive either
+         * the encoded value as a `Uint8Array` that should be used for the
+         * signed-extension, or the decoded value that PAPI will encode using
+         * its dynamic codecs. At least one of the 2 values must be included
+         * into the signed-extension Object.
+         */
+        customSignedExtensions: Record<string, CustomSignedExtensionValues>
       }
 >
 

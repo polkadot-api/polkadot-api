@@ -5,6 +5,7 @@
 ### Added
 
 - New `FixedSizeBinary` static method `fromAccountId32`
+- Better support for chains that have custom signed extensions via the new option `customSignedExtensions` that can be passed into the transaction options.
 
 ### Fixed
 
