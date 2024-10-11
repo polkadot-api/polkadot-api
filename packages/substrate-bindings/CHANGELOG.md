@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.2 - 2024-10-11
+
 ### Added
 
 - New `FixedSizeBinary` static method `fromAccountId32`
