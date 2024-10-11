@@ -132,7 +132,14 @@ export const createTxEntry = <
     ) =>
       getCallData$(arg, _options).pipe(
         mergeMap(({ callData, options }) =>
-          createTx(chainHead, from, callData.asBytes(), atBlock, options),
+          createTx(
+            chainHead,
+            from,
+            callData.asBytes(),
+            atBlock,
+            _options.customSignedExtensions || {},
+            options,
+          ),
         ),
       )
 
