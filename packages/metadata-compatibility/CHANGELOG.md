@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.9 - 2024-10-11
+
+### Fixed
+
+- Target ES2022 when bundling
+
 ## 0.1.8 - 2024-10-05
 
 ### Changed

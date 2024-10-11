@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.2 - 2024-10-11
+
 ### Fixed
 
 - Fully support metadata v14 for extrinsic decoding

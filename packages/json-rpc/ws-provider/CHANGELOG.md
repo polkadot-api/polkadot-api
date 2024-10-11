@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.2 - 2024-10-11
+
 ### Fixed
 
 - Export missing types
