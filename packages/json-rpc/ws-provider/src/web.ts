@@ -1,8 +1,6 @@
-import { getInternalWsProvider, type GetWsProviderInput } from "./ws-provider"
+import { getInternalWsProvider } from "./ws-provider"
 
-export type * from "./ws-provider"
-export { WsEvent } from "./ws-provider"
+export * from "./types"
 
 export type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
-export const getWsProvider: GetWsProviderInput =
-  getInternalWsProvider(WebSocket)
+export const getWsProvider = getInternalWsProvider(WebSocket)
