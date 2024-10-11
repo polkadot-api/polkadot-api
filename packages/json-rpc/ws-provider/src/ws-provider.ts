@@ -53,6 +53,10 @@ const timeoutError: StatusChange = {
 }
 
 const noop = () => {}
+
+/**
+ * @internal
+ */
 export const getInternalWsProvider = (
   WebsocketClass: typeof WebSocket,
 ): GetWsProviderInput => {

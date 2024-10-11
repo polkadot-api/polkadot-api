@@ -3,6 +3,7 @@
   "include": ["src", "tests"],
   "compilerOptions": {
     "baseUrl": "src",
+    "stripInternal": true,
     "paths": {
       "@/*": ["*"]
     }
