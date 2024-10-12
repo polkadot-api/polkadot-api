@@ -50,6 +50,7 @@ jobs:
             client,
             codegen,
             docgen,
+            ink-contracts,
             json-rpc/json-rpc-provider,
             json-rpc/json-rpc-provider-proxy,
             json-rpc/logs-provider,

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.5.1 - 2024-10-12
+
+### Fixed
+
+- Missing dependency `@polkadot-api/ink-contracts`
+
 ## 1.5.0 - 2024-10-11
 
 ### Added
