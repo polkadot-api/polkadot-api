@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **PolkadotSDK compat:**
+  - Handle JSON-RPC error message on the `translate` enhancer.
+
 ## 1.5.1 - 2024-10-12
 
 ### Fixed

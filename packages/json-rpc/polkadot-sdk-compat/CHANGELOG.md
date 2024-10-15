@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Handle JSON-RPC error message on the `translate` enhancer.
+
 ## 2.2.2 - 2024-10-05
 
 ### Fixed
