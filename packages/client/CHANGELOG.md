@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- **PolkadotSDK compat:**
+  - Add `withNumericIds` enhancer: it ensures that all the ids that are produced from the client are numbers. This is, obvsiously, [shouldn't be necessary](https://www.jsonrpc.org/specification#request_object). However, some RPC endpoints are not JSON-RPC compliant.
+
 ## 1.5.1 - 2024-10-12
 
 ### Fixed
