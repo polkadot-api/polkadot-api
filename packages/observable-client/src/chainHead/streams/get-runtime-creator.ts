@@ -7,12 +7,10 @@ import {
   AccountId,
   Bytes,
   Codec,
-  compact,
   Decoder,
   metadata as metadataCodec,
   Option,
   SS58String,
-  Tuple,
   u32,
   V14,
   V15,
@@ -67,8 +65,8 @@ export interface Runtime {
 }
 
 const v15Args = toHex(u32.enc(15))
-const opaqueMeta14 = Tuple(compact, Bytes())
-const opaqueMeta15 = Option(Bytes())
+const opaqueBytes = Bytes()
+const optionalOpaqueBytes = Option(opaqueBytes)
 const u32ListDecoder = Vector(u32).dec
 
 export const getRuntimeCreator = (
@@ -101,7 +99,7 @@ export const getRuntimeCreator = (
 
     const v14 = recoverCall$(hash, "Metadata_metadata", "").pipe(
       map((x) => {
-        const [, metadataRaw] = opaqueMeta14.dec(x)!
+        const metadataRaw = opaqueBytes.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)
         return { metadata: metadata.metadata.value as V14, metadataRaw }
       }),
@@ -113,7 +111,7 @@ export const getRuntimeCreator = (
       v15Args,
     ).pipe(
       map((x) => {
-        const metadataRaw = opaqueMeta15.dec(x)!
+        const metadataRaw = optionalOpaqueBytes.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)
         return { metadata: metadata.metadata.value as V15, metadataRaw }
       }),

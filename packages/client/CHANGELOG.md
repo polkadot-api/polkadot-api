@@ -7,6 +7,10 @@
 - **PJS Signer:**
   - Ability to pass the DApp name to `connectInjectedExtension`.[791](https://github.com/polkadot-api/polkadot-api/pull/791)
 
+### Fixed
+
+- Properly decode metadata v14 for chains that don't support metadata v15
+
 ## 1.5.1 - 2024-10-12
 
 ### Fixed
