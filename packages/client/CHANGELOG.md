@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **PolkadotSDK compat:**
+  - `withNumericIds` should be the first enhancer to apply
+
 ## 1.6.0 - 2024-10-16
 
 ### Added

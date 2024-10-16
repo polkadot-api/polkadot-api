@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `withNumericIds` should be the first enhancer to apply
+
 ## 2.3.0 - 2024-10-16
 
 ### Added
