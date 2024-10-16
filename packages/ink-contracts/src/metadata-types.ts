@@ -78,12 +78,12 @@ interface EventSpecV4 {
   docs: string[]
 }
 
-interface EventSpecV5 extends EventSpecV4 {
+export interface EventSpecV5 extends EventSpecV4 {
   modulePath: string
-  signatureTopic?: string
+  signature_topic?: string
 }
 
-interface EventParamSpec {
+export interface EventParamSpec {
   label: string
   indexed: number
   type: TypeSpec
