@@ -21,6 +21,7 @@ import type {
 } from "./descriptor-types"
 import { type AsyncTransaction } from "./utils"
 import type { FlattenErrors, FlattenValues } from "./flatten"
+import type { SdkStorage } from "./get-storage"
 
 export interface InkSdk<
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
@@ -112,6 +113,7 @@ export interface Contract<
     Event
   >,
 > {
+  getStorage(): SdkStorage<D["__types"]["storage"]>
   getRootStorage(): Promise<
     ResultPayload<
       StorageRootType<D["__types"]["storage"]> | undefined,

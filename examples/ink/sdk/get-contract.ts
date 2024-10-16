@@ -15,6 +15,7 @@ import type {
 import { flattenErrors, flattenValues } from "./flatten"
 import type { Contract, StorageRootType } from "./sdk-types"
 import { wrapAsyncTx } from "./utils"
+import type { SdkStorage } from "./get-storage"
 
 export function getContract<
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
@@ -29,6 +30,9 @@ export function getContract<
     typedApi.query.Contracts.ContractInfoOf.getValue(address)
 
   return {
+    getStorage(): SdkStorage<D["__types"]["storage"]> {
+      return null as any
+    },
     async getRootStorage(): Promise<
       ResultPayload<
         StorageRootType<D["__types"]["storage"]> | undefined,
