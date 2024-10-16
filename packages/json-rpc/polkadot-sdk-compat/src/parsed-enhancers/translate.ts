@@ -32,11 +32,24 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
     let _onMsg: (msg: any) => void = ({
       id,
       result,
+      error,
     }: {
       id: string
-      result: { methods: string[] }
+      result: { methods: string[] } | undefined
+      error: any
     }) => {
       if (id !== RPC_METHODS_ID || !isRunning) return
+
+      // it's an error, let's try again
+      if (!result) {
+        console.error(error)
+        if (nTries < 4) {
+          setTimeout(sendMethodsRequest, 200)
+          return
+        }
+        // simplest way to propagate the error
+        result = { methods: [] }
+      }
 
       const methodsSet = new Set(result.methods)
       const methodMappings: Record<string, string | null> = {}
@@ -123,13 +136,19 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
     const { send: originalSend, disconnect } = base((msg: any) => {
       _onMsg(msg)
     })
-    originalSend(
-      jsonRpcMsg({
-        id: RPC_METHODS_ID,
-        method: rpcMethods,
-        params: [],
-      }),
-    )
+
+    let nTries = 0
+    const sendMethodsRequest = () => {
+      nTries++
+      originalSend(
+        jsonRpcMsg({
+          id: RPC_METHODS_ID,
+          method: rpcMethods,
+          params: [],
+        }),
+      )
+    }
+    sendMethodsRequest()
 
     return {
       send: (msg) => {
