@@ -67,6 +67,7 @@ export const createTx: (
     mergeMap((ctx) => {
       const signedExtensionsCtx = {
         lookupFn: ctx.lookup,
+        dynamicBuilder: ctx.dynamicBuilder,
         chainHead: chainHead,
         callData: callData,
         at: atBlock.hash,

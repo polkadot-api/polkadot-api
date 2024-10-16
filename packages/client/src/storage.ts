@@ -5,7 +5,19 @@ import {
   RuntimeContext,
 } from "@polkadot-api/observable-client"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
-import { Observable, debounceTime, distinctUntilChanged, map } from "rxjs"
+import {
+  Observable,
+  OperatorFunction,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  identity,
+  map,
+  pipe,
+  shareReplay,
+  take,
+  withLatestFrom,
+} from "rxjs"
 import {
   CompatibilityFunctions,
   CompatibilityHelper,
@@ -153,6 +165,22 @@ export const createStorageEntry = (
   }: CompatibilityHelper,
 ): StorageEntry<any, any, any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
+  const sysNumberMapper$ = chainHead.runtime$.pipe(
+    filter(Boolean),
+    take(1),
+    map(({ dynamicBuilder }) =>
+      typeof dynamicBuilder
+        .buildStorage("System", "Number")
+        .dec(new Uint8Array(32)) === "bigint"
+        ? BigInt
+        : identity,
+    ),
+    shareReplay(),
+  )
+  const bigIntOrNumber: OperatorFunction<number, number | bigint> = pipe(
+    withLatestFrom(sysNumberMapper$),
+    map(([input, mapper]) => mapper(input)),
+  )
 
   const incompatibleError = () =>
     new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
@@ -176,6 +204,7 @@ export const createStorageEntry = (
       return chainHead.bestBlocks$.pipe(
         map((blocks) => blocks.at(target === "best" ? 0 : -1)!.number),
         distinctUntilChanged(),
+        bigIntOrNumber,
       )
 
     return chainHead[target === "best" ? "best$" : "finalized$"].pipe(
@@ -221,6 +250,7 @@ export const createStorageEntry = (
           return block.number
         }),
         distinctUntilChanged(),
+        bigIntOrNumber,
       )
     } else {
       const descriptors = await waitDescriptors()

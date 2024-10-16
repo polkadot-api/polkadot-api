@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Support chains with `u64` block numbers
+
 ## 1.6.1 - 2024-10-16
 
 ### Fixed
