@@ -1,11 +1,15 @@
 import { Observable } from "rxjs"
 import { getObservableClient } from "@polkadot-api/observable-client"
-import { MetadataLookup } from "@polkadot-api/metadata-builders"
+import type {
+  MetadataLookup,
+  getDynamicBuilder,
+} from "@polkadot-api/metadata-builders"
 
 export interface ChainExtensionCtx {
   callData: Uint8Array
   from: Uint8Array
   lookupFn: MetadataLookup
+  dynamicBuilder: ReturnType<typeof getDynamicBuilder>
   at: string
   chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>
 }
