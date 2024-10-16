@@ -14,6 +14,7 @@ import * as methods from "./methods"
 export { methods }
 
 const withPolkadotSdkCompat = parsed(
+  withNumericIds,
   translate,
   fixUnorderedEvents,
   unpinHash,
@@ -22,7 +23,6 @@ const withPolkadotSdkCompat = parsed(
   fixUnorderedBlocks,
   fixChainSpec,
   fixDescendantValues,
-  withNumericIds,
 )
 
 export * from "./parsed"
