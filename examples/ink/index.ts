@@ -1,17 +1,15 @@
 import { contracts, testAzero } from "@polkadot-api/descriptors"
-import { Binary, createClient, type ResultPayload } from "polkadot-api"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
-import { createInkSdk } from "./sdk/ink-sdk"
 import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
 import {
   entropyToMiniSecret,
   mnemonicToEntropy,
-  ss58Address,
 } from "@polkadot-labs/hdkd-helpers"
+import { Binary, createClient } from "polkadot-api"
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { getInkClient } from "@polkadot-api/ink-contracts"
+import { getWsProvider } from "polkadot-api/ws-provider/web"
 import { ADDRESS } from "./address"
+import { createInkSdk } from "./sdk/ink-sdk"
 
 const alice_mnemonic =
   "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
@@ -112,6 +110,7 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
   })
 
   if (result.success) {
+    console.log("dry run success", result)
     //   console.log("sending transaction")
     //   const result = await escrowContract
     //     .send("deposit_funds", {
@@ -124,6 +123,8 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
     //   } else {
     //     console.log(result)
     //   }
+  } else {
+    console.log("error", result.value)
   }
 }
 
@@ -141,24 +142,26 @@ const psp22Contract = psp22Sdk.getContract(ADDRESS.psp22)
   })
 
   if (result.success) {
-    const result = await escrowContract
-      .redeploy("new", {
-        data: {
-          nft: 1,
-          price: 100n,
-        },
-        origin: ADDRESS.alice,
-        options: {
-          salt: Binary.fromHex("0x00"),
-        },
-      })
-      .signAndSubmit(signer)
+    console.log("redeploy dry run", result)
 
-    const deployment = escrowSdk.readDeploymentEvents(
-      ADDRESS.alice,
-      result.events,
-    )
-    console.log("deployment", deployment)
+    // const result = await escrowContract
+    //   .redeploy("new", {
+    //     data: {
+    //       nft: 1,
+    //       price: 100n,
+    //     },
+    //     origin: ADDRESS.alice,
+    //     options: {
+    //       salt: Binary.fromHex("0x00"),
+    //     },
+    //   })
+    //   .signAndSubmit(signer)
+
+    // const deployment = escrowSdk.readDeploymentEvents(
+    //   ADDRESS.alice,
+    //   result.events,
+    // )
+    // console.log("deployment", deployment)
   } else {
     console.log(result.value)
   }

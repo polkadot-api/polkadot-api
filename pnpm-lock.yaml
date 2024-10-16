@@ -111,6 +111,12 @@ importers:
       '@polkadot-api/ink-contracts':
         specifier: workspace:*
         version: link:../../packages/ink-contracts
+      '@polkadot-labs/hdkd':
+        specifier: ^0.0.8
+        version: 0.0.8
+      '@polkadot-labs/hdkd-helpers':
+        specifier: ^0.0.8
+        version: 0.0.8
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client

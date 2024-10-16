@@ -4,11 +4,12 @@ import {
   type GenericEvent,
   type InkCallableDescriptor,
   type InkDescriptors,
-  type InkEventInterface,
+  type InkStorageDescriptor,
 } from "@polkadot-api/ink-contracts"
 import {
   Binary,
   Enum,
+  FixedSizeBinary,
   type ResultPayload,
   type SS58String,
   type TypedApi,
@@ -22,10 +23,14 @@ import type {
 } from "./types"
 import { wrapAsyncTx, type AsyncTransaction } from "./utils"
 
+type StorageRootType<T extends InkStorageDescriptor> = "" extends keyof T
+  ? T[""]["value"]
+  : never
+
 export const createInkSdk = <
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
@@ -43,18 +48,22 @@ export const createInkSdk = <
 
       return {
         async getRootStorage(): Promise<
-          ResultPayload<D["__types"]["storage"] | undefined, StorageError>
+          ResultPayload<
+            StorageRootType<D["__types"]["storage"]> | undefined,
+            StorageError
+          >
         > {
+          const rootStorage = inkClient.storage("")
           const result = await typedApi.apis.ContractsApi.get_storage(
             address,
-            inkClient.storage.rootKey,
+            rootStorage.encode(undefined),
           )
 
           if (result.success) {
             return {
               success: true,
               value: result.value
-                ? inkClient.storage.decodeRoot(result.value)
+                ? (rootStorage.decode(result.value) as any)
                 : undefined,
             }
           }
@@ -313,7 +322,7 @@ const NotFoundError = {
 interface InkSdk<
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
@@ -323,12 +332,10 @@ interface InkSdk<
   getDeployer(code: Binary): Deployer<T, D>
   readDeploymentEvents: (
     origin: SS58String,
-    events?: Array<
-      | GenericEvent
-      | {
-          event: GenericEvent
-        }
-    >,
+    events?: Array<{
+      event: GenericEvent
+      topics: FixedSizeBinary<number>[]
+    }>,
   ) => {
     address: string
     contractEvents: Array<D["__types"]["event"]>
@@ -338,7 +345,7 @@ interface InkSdk<
 type DryRunDeployFn<
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
@@ -361,7 +368,7 @@ type DryRunDeployFn<
 
 type DeployFn<
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
@@ -374,7 +381,7 @@ type DeployFn<
 interface Deployer<
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
@@ -421,14 +428,17 @@ const flattenErrors = <T extends object>(
 interface Contract<
   T extends TypedApi<SdkDefinition<InkSdkPallets, InkSdkApis>>,
   D extends InkDescriptors<
-    unknown,
+    InkStorageDescriptor,
     InkCallableDescriptor,
     InkCallableDescriptor,
     Event
   >,
 > {
   getRootStorage(): Promise<
-    ResultPayload<D["__types"]["storage"] | undefined, StorageError>
+    ResultPayload<
+      StorageRootType<D["__types"]["storage"]> | undefined,
+      StorageError
+    >
   >
   query: <L extends string & keyof D["__types"]["messages"]>(
     message: L,
@@ -451,12 +461,10 @@ interface Contract<
   dryRunRedeploy: DryRunDeployFn<T, D>
   redeploy: DeployFn<D>
   filterEvents: (
-    events?: Array<
-      | GenericEvent
-      | {
-          event: GenericEvent
-        }
-    >,
+    events?: Array<{
+      event: GenericEvent
+      topics: FixedSizeBinary<number>[]
+    }>,
   ) => Array<D["__types"]["event"]>
 }
 
