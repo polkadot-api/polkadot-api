@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Added index file generation, and rolled back single build configuration
+
 ## 0.0.7 - 2024-10-16
 
 ### Fixed
