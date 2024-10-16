@@ -93,7 +93,7 @@ export interface SignerPayloadJSON {
 export type InjectedWeb3 = Record<
   string,
   | {
-      enable: () => Promise<PjsInjectedExtension>
+      enable: (dappName?: string) => Promise<PjsInjectedExtension>
     }
   | undefined
 >
