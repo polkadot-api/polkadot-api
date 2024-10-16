@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.3.1 - 2024-10-16
+
+### Fixed
+
+- Apply `withNumericIds` in the correct order.
+
 ## 2.3.0 - 2024-10-16
 
 ### Added

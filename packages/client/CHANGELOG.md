@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.6.1 - 2024-10-16
+
+### Fixed
+
+- **PolkadotSDK compat:**
+  - Apply `withNumericIds` in the correct order.
+
 ## 1.6.0 - 2024-10-16
 
 ### Added
