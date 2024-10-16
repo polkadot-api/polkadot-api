@@ -21,12 +21,13 @@ const supportedAccountTypes = new Set<KeypairType>([
 
 export const connectInjectedExtension = async (
   name: string,
+  dappName?: string,
 ): Promise<InjectedExtension> => {
   let entry = window.injectedWeb3?.[name]
 
   if (!entry) throw new Error(`Unavailable extension: "${name}"`)
 
-  const enabledExtension = await entry.enable()
+  const enabledExtension = await entry.enable(dappName)
   const signPayload = enabledExtension.signer.signPayload.bind(
     enabledExtension.signer,
   )
