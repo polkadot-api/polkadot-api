@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.0 - 2024-10-16
+
 ### Added
 
 - Ability to pass the DApp name to `connectInjectedExtension`.[791](https://github.com/polkadot-api/polkadot-api/pull/791)

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.10 - 2024-10-16
+
 ### Fixed
 
 - Properly decode metadata v14 for chains that don't support metadata v15
