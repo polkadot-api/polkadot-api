@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix unable to run codegen on windows
+- Prevent running prepare scripts on package bump for turbo monorepos.
+
 ## 0.9.9 - 2024-10-16
 
 ### Fixed
