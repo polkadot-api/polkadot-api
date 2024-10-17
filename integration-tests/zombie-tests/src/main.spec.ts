@@ -25,6 +25,7 @@ import { MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { withLogsRecorder } from "polkadot-api/logs-provider"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -65,7 +66,12 @@ describe("E2E", async () => {
     client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
   } else {
     client = createClient(
-      withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934")),
+      withPolkadotSdkCompat(
+        withLogsRecorder(
+          console.log,
+          getWsProvider("ws://127.0.0.1:9934", console.warn),
+        ),
+      ),
     )
   }
   console.log("client started")
