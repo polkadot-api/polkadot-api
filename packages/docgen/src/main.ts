@@ -7,7 +7,6 @@ program.name("papi-generate-docs").description("Polkadot API docs generator")
 program
   .description("Generate docs")
   .option("--config <filename>", "Source for the config file")
-  .option("--title <title>", "Title for docs website", "PAPI Chain Docs")
   .option("--output <directory>", "Output directory", "docs")
   .action(generateDocs)
 
