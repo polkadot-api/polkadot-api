@@ -135,14 +135,18 @@ async function getPackageProtocol() {
 async function runInstall() {
   const { executable } = await detectPackageManager()
   console.log(`${executable} install`)
-  const child = spawn(executable, ["install"], {
-    stdio: "inherit",
-    shell: true,
-    env: {
-      ...process.env,
-      PAPI_SKIP_GENERATE: "true",
+  const child = spawn(
+    executable,
+    ["install", "@polkadot-api/descriptors", "--ignore-scripts"],
+    {
+      stdio: "inherit",
+      shell: true,
+      env: {
+        ...process.env,
+        PAPI_SKIP_GENERATE: "true",
+      },
     },
-  })
+  )
   await new Promise((resolve) => child.on("close", resolve))
 }
 
