@@ -13,6 +13,7 @@ import { start } from "polkadot-api/smoldot"
 import {
   AccountId,
   Binary,
+  PolkadotClient,
   SS58String,
   TxEvent,
   createClient,
@@ -23,41 +24,51 @@ import { createClient as createRawClient } from "@polkadot-api/substrate-client"
 import { MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
-
-const smoldot = start()
-
-const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
 const fakeSigner = (from: Uint8Array) =>
   getPolkadotSigner(from, "Sr25519", getFakeSignature)
+const accountIdDec = AccountId().dec
+const ED = 10_000_000_000n
+const FEE_VARIATION_TOLERANCE = 1_000_000n
 
 // The retrial system is needed because often the `sync_state_genSyncSpec`
 // request fails immediately after starting zombienet.
-const getChainspec = async (count = 1): Promise<{}> => {
-  try {
-    return await rawClient.request<{}>("sync_state_genSyncSpec", [false])
-  } catch (e) {
-    if (count === 20) throw e
-    await new Promise((res) => setTimeout(res, 3_000))
-    return getChainspec(count + 1)
+const { PROVIDER } = process.env
+if (PROVIDER !== "sm" && PROVIDER !== "ws")
+  throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
+let chainSpec: string
+if (PROVIDER === "sm") {
+  const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
+  const getChainspec = async (count = 1): Promise<{}> => {
+    try {
+      return await rawClient.request<{}>("sync_state_genSyncSpec", [false])
+    } catch (e) {
+      if (count === 20) throw e
+      await new Promise((res) => setTimeout(res, 3_000))
+      return getChainspec(count + 1)
+    }
   }
+
+  chainSpec = JSON.stringify(await getChainspec())
+  rawClient.destroy()
+  console.log("got the chainspec")
 }
 
-const chainSpec = JSON.stringify(await getChainspec())
-rawClient.destroy()
-
-const accountIdDec = AccountId().dec
-const ED = 10_000_000_000n
-
-console.log("got the chainspec")
-
-const FEE_VARIATION_TOLERANCE = 1_000_000n
-
 describe("E2E", async () => {
+  let client: PolkadotClient
   console.log("starting the client")
-  const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+  if (PROVIDER === "sm") {
+    const smoldot = start()
+    client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+  } else {
+    client = createClient(
+      withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934")),
+    )
+  }
+  console.log("client started")
   const api = client.getTypedApi(roc)
 
   console.log("waiting for compatibility token")
