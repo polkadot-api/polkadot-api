@@ -4,6 +4,7 @@ import {
   generateInkTypes,
   generateMultipleDescriptors,
 } from "@polkadot-api/codegen"
+import { getInkLookup } from "@polkadot-api/ink-contracts"
 import {
   EntryPointCodec,
   TypedefCodec,
@@ -16,20 +17,19 @@ import {
   V15,
   Vector,
 } from "@polkadot-api/substrate-bindings"
+import { spawn } from "child_process"
 import { existsSync } from "fs"
 import fsExists from "fs.promises.exists"
 import fs, { mkdtemp, rm } from "fs/promises"
 import { tmpdir } from "os"
-import path, { join } from "path"
+import path, { join, posix, win32 } from "path"
 import process from "process"
+import { readPackage } from "read-pkg"
 import tsc from "tsc-prog"
 import tsup, { build } from "tsup"
 import { updatePackage } from "write-package"
-import { CommonOptions } from "./commonOptions"
-import { spawn } from "child_process"
-import { readPackage } from "read-pkg"
 import { detectPackageManager } from "../packageManager"
-import { getInkLookup } from "@polkadot-api/ink-contracts"
+import { CommonOptions } from "./commonOptions"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
@@ -137,6 +137,7 @@ async function runInstall() {
   console.log(`${executable} install`)
   const child = spawn(executable, ["install"], {
     stdio: "inherit",
+    shell: true,
     env: {
       ...process.env,
       PAPI_SKIP_GENERATE: "true",
@@ -270,7 +271,7 @@ async function compileCodegen(packageDir: string) {
 
   await tsup.build({
     format: ["cjs", "esm"],
-    entry: [path.join(srcDir, "index.ts")],
+    entry: [path.join(srcDir, "index.ts").replaceAll(win32.sep, posix.sep)],
     loader: {
       ".scale": "binary",
     },
