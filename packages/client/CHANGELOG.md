@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Expose `topics` on transaction events.
+
 ### Fixed
 
 - Support chains with `u64` block numbers

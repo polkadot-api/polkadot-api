@@ -5,6 +5,7 @@ import {
 } from "@polkadot-api/metadata-builders"
 import {
   AccountId,
+  Binary,
   Bytes,
   Codec,
   Decoder,
@@ -41,7 +42,7 @@ export type SystemEvent = {
       value: any
     }
   }
-  topics: Array<any>
+  topics: Array<Binary>
 }
 
 export interface RuntimeContext {

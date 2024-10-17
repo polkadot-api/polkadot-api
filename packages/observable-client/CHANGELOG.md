@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Add types of topics for SystemEvent
+
 ## 0.5.10 - 2024-10-16
 
 ### Fixed

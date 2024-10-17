@@ -1,8 +1,22 @@
-import { contracts, testAzero } from "@polkadot-api/descriptors"
+import { contracts, MultiAddress, testAzero } from "@polkadot-api/descriptors"
+import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
+import {
+  entropyToMiniSecret,
+  mnemonicToEntropy,
+} from "@polkadot-labs/hdkd-helpers"
 import { createClient } from "polkadot-api"
 import { getInkClient } from "polkadot-api/ink"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { getPolkadotSigner } from "polkadot-api/signer"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
+
+const alice_mnemonic =
+  "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
+const entropy = mnemonicToEntropy(alice_mnemonic)
+const miniSecret = entropyToMiniSecret(entropy)
+const derive = sr25519CreateDerive(miniSecret)
+const alice = derive("//Alice")
+const signer = getPolkadotSigner(alice.publicKey, "Sr25519", alice.sign)
 
 const ADDRESS = {
   alice: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
@@ -111,21 +125,33 @@ const psp22 = getInkClient(contracts.psp22)
   console.log("IncreaseAllowance")
   const increaseAllowance = psp22.message("PSP22::increase_allowance")
 
+  const data = increaseAllowance.encode({
+    spender: ADDRESS.psp22,
+    delta_value: 1n,
+  })
   const response = await typedApi.apis.ContractsApi.call(
     ADDRESS.alice,
     ADDRESS.psp22,
     0n,
     undefined,
     undefined,
-    increaseAllowance.encode({
-      spender: ADDRESS.psp22,
-      delta_value: 1000000n,
-    }),
+    data,
   )
 
   if (response.result.success) {
     console.log(increaseAllowance.decode(response.result.value))
-    // console.log(psp22.event.filter(ADDRESS.psp22, response.events))
+    console.log(psp22.event.filter(ADDRESS.psp22, response.events))
+
+    // Sending the reel deel
+    const result = await typedApi.tx.Contracts.call({
+      value: 0n,
+      data,
+      dest: MultiAddress.Id(ADDRESS.psp22),
+      gas_limit: response.gas_required,
+      storage_deposit_limit: undefined,
+    }).signAndSubmit(signer)
+
+    console.log("tx events", psp22.event.filter(ADDRESS.psp22, result.events))
   } else {
     console.log(
       response.result.value,
