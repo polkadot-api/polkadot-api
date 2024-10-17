@@ -127,7 +127,10 @@ function getStorageLayout(metadata: InkMetadata, lookup: V14Lookup) {
       }
 
       // Anyone addressing this node will encounter an empty type
-      return null
+      return addType({
+        tag: "composite",
+        value: [],
+      })
     }
     if ("leaf" in node) {
       return node.leaf.ty
