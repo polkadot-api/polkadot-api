@@ -1,6 +1,7 @@
 {
   "name": "ink",
   "module": "index.ts",
+  "private": true,
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest"
