@@ -111,9 +111,18 @@ importers:
       '@polkadot-api/ink-contracts':
         specifier: workspace:*
         version: link:../../packages/ink-contracts
+      '@polkadot-labs/hdkd':
+        specifier: ^0.0.8
+        version: 0.0.8
+      '@polkadot-labs/hdkd-helpers':
+        specifier: ^0.0.8
+        version: 0.0.8
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
       typescript:
         specifier: ^5.0.0
         version: 5.6.2

@@ -1,12 +1,13 @@
 import { Binary } from "@polkadot-api/substrate-bindings"
 import { getInkDynamicBuilder, InkDynamicBuilder } from "./dynamic-builders"
-import { getInkLookup } from "./get-lookup"
+import { getInkLookup, InkMetadataLookup } from "./get-lookup"
 import {
   Event,
   InkCallableDescriptor,
   InkDescriptors,
   InkStorageDescriptor,
 } from "./ink-descriptors"
+import { EventSpecV5 } from "./metadata-types"
 
 export type InkCallableInterface<T extends InkCallableDescriptor> = <
   L extends string & keyof T,
@@ -52,10 +53,13 @@ export type GenericEvent =
     }
   | { type: string; value: unknown }
 export interface InkEventInterface<E> {
-  decode: (value: { data: Binary }) => E
+  decode: (value: { data: Binary }, signatureTopic?: string) => E
   filter: (
     address: string,
-    events?: Array<GenericEvent | { event: GenericEvent }>,
+    events?: Array<
+      | { event: GenericEvent; topics: Binary[] }
+      | (GenericEvent & { topics: Binary[] })
+    >,
   ) => E[]
 }
 
@@ -90,7 +94,10 @@ export const getInkClient = <
     constructor: buildCallable(builder.buildConstructor),
     message: buildCallable(builder.buildMessage),
     storage: buildStorage(builder.buildStorage),
-    event: buildEvent(builder.buildEvent),
+    event:
+      Number(lookup.metadata.version) === 4
+        ? buildEventV4(builder.buildEvents)
+        : buildEventV5(lookup, builder.buildEvent),
   }
 }
 
@@ -124,33 +131,94 @@ const buildStorage =
     }
   }
 
-const buildEvent = <E extends Event>(
-  decoder: InkDynamicBuilder["buildEvent"],
+const buildEventV4 = <E extends Event>(
+  eventsDecoder: InkDynamicBuilder["buildEvents"],
 ): InkEventInterface<E> => {
-  const decode: InkEventInterface<E>["decode"] = (value) =>
-    decoder().dec(value.data.asBytes()) as E
+  const decode: InkEventInterface<E>["decode"] = (value) => {
+    return eventsDecoder().dec(value.data.asBytes()) as E
+  }
+  const filter: InkEventInterface<E>["filter"] = (address, events = []) => {
+    const contractEvents = events
+      .map((v) => ("event" in v ? v.event : v))
+      .filter(
+        (v: any) =>
+          v.type === "Contracts" &&
+          v.value.type === "ContractEmitted" &&
+          v.value.value.contract === address,
+      )
+    return contractEvents.map((v: any) => {
+      try {
+        return decode(v.value.value)
+      } catch (ex) {
+        console.error(
+          `Contract ${address} emitted an incompatible event`,
+          v.value.value,
+        )
+        throw ex
+      }
+    })
+  }
+  return { decode, filter }
+}
+
+const buildEventV5 = <E extends Event>(
+  lookup: InkMetadataLookup,
+  eventDecoder: InkDynamicBuilder["buildEvent"],
+): InkEventInterface<E> => {
+  const metadataEventTopics = new Set(
+    lookup.metadata.spec.events
+      .map((evt) => (evt as EventSpecV5).signature_topic)
+      .filter((v) => v != null),
+  )
+  const hasAnonymousEvents = lookup.metadata.spec.events.some(
+    (evt) => (evt as EventSpecV5).signature_topic == null,
+  )
+
+  const decode: InkEventInterface<E>["decode"] = (value, signatureTopic) => {
+    if (signatureTopic != null) {
+      if (!metadataEventTopics.has(signatureTopic)) {
+        throw new Error(`Event with signature topic ${value} not found`)
+      }
+      return eventDecoder(signatureTopic)!.dec(value.data.asBytes()) as E
+    }
+    if (!hasAnonymousEvents) {
+      throw new Error("Event signature topic required")
+    }
+    return eventDecoder(undefined)!.dec(value.data.asBytes()) as E
+  }
+  const filter: InkEventInterface<E>["filter"] = (address, events = []) => {
+    const contractEvents = events
+      .map((v) => ("event" in v ? v : { event: v, topics: v.topics }))
+      .filter(
+        (v) =>
+          v.event.type === "Contracts" &&
+          (v.event.value as any).type === "ContractEmitted" &&
+          (v.event.value as any).value.contract === address,
+      )
+
+    return contractEvents
+      .map((v) => {
+        const eventTopics = v.topics.map((evt) => evt.asHex())
+        const suitableTopic = eventTopics.find((topic) =>
+          metadataEventTopics.has(topic),
+        )
+        try {
+          return decode((v.event.value as any).value, suitableTopic)
+        } catch (ex) {
+          console.error(`Contract ${address} emitted an incompatible event`, {
+            event: (v.event.value as any).value.data.asHex(),
+            eventTopics,
+            metadataEventTopics: [...metadataEventTopics],
+            hasAnonymousEvents,
+          })
+          return null
+        }
+      })
+      .filter((v) => v !== null)
+  }
 
   return {
     decode,
-    filter: (address, events = []) =>
-      events
-        .map((v) => ("event" in v ? v.event : v))
-        .filter(
-          (v: any) =>
-            v.type === "Contracts" &&
-            v.value.type === "ContractEmitted" &&
-            v.value.value.contract === address,
-        )
-        .map((v: any) => {
-          try {
-            return decode(v.value.value)
-          } catch (ex) {
-            console.error(
-              `Contract ${address} emitted an incompatible event`,
-              v.value.value,
-            )
-            throw ex
-          }
-        }),
+    filter,
   }
 }
