@@ -5,6 +5,7 @@
 ### Fixed
 
 - Fix unable to run codegen on windows
+- Infinite install loop with turbo monorepos prepare scripts
 
 ## 0.9.9 - 2024-10-16
 
