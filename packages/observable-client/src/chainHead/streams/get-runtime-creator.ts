@@ -19,15 +19,16 @@ import {
 import { toHex } from "@polkadot-api/utils"
 import {
   catchError,
+  EMPTY,
   map,
   mergeMap,
   Observable,
   of,
   shareReplay,
-  switchMap,
-  take,
+  timer,
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
+import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
 
 export type SystemEvent = {
   phase:
@@ -71,33 +72,32 @@ const u32ListDecoder = Vector(u32).dec
 
 export const getRuntimeCreator = (
   call$: (hash: string, method: string, args: string) => Observable<string>,
-  finalized$: Observable<string>,
 ) => {
   const getMetadata$ = (
-    hash: string,
+    getHash: () => string | null,
   ): Observable<{ metadataRaw: Uint8Array; metadata: V14 | V15 }> => {
-    const recoverCall$ = (
-      hash: string,
-      method: string,
-      args: string,
-    ): Observable<string> =>
-      call$(hash, method, args).pipe(
-        catchError((e) => {
-          if (e instanceof BlockNotPinnedError) {
-            return finalized$.pipe(
-              take(1),
-              switchMap((newHash) => recoverCall$(newHash, method, args)),
-            )
-          }
-          throw e
-        }),
-      )
+    const recoverCall$ = (method: string, args: string): Observable<string> => {
+      const hash = getHash()
+      return hash
+        ? call$(hash, method, args).pipe(
+            catchError((e) => {
+              if (e instanceof BlockNotPinnedError)
+                return recoverCall$(method, args)
+              if (e instanceof OperationInaccessibleError)
+                return timer(750).pipe(
+                  mergeMap(() => recoverCall$(method, args)),
+                )
+              throw e
+            }),
+          )
+        : EMPTY
+    }
 
-    const versions = recoverCall$(hash, "Metadata_metadata_versions", "").pipe(
+    const versions = recoverCall$("Metadata_metadata_versions", "").pipe(
       map(u32ListDecoder),
     )
 
-    const v14 = recoverCall$(hash, "Metadata_metadata", "").pipe(
+    const v14 = recoverCall$("Metadata_metadata", "").pipe(
       map((x) => {
         const metadataRaw = opaqueBytes.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)
@@ -105,11 +105,7 @@ export const getRuntimeCreator = (
       }),
     )
 
-    const v15 = recoverCall$(
-      hash,
-      "Metadata_metadata_at_version",
-      v15Args,
-    ).pipe(
+    const v15 = recoverCall$("Metadata_metadata_at_version", v15Args).pipe(
       map((x) => {
         const metadataRaw = optionalOpaqueBytes.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)
@@ -123,10 +119,13 @@ export const getRuntimeCreator = (
     )
   }
 
-  return (hash: string): Runtime => {
-    const usages = new Set<string>([hash])
+  return (getHash: () => string | null): Runtime => {
+    const initialHash = getHash()!
+    const usages = new Set<string>([initialHash])
 
-    const runtimeContext$: Observable<RuntimeContext> = getMetadata$(hash).pipe(
+    const runtimeContext$: Observable<RuntimeContext> = getMetadata$(
+      getHash,
+    ).pipe(
       map(({ metadata, metadataRaw }) => {
         const lookup = getLookupFn(metadata)
         const dynamicBuilder = getDynamicBuilder(lookup)
@@ -162,7 +161,7 @@ export const getRuntimeCreator = (
     )
 
     const result: Runtime = {
-      at: hash,
+      at: initialHash,
       runtime: runtimeContext$,
       addBlock: (block: string) => {
         usages.add(block)
