@@ -6,6 +6,8 @@
 
 - Expose `topics` on transaction events.
 
+## 1.6.2 - 2024-10-18
+
 ### Fixed
 
 - Support chains with `u64` block numbers
