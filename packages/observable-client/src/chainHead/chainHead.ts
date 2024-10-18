@@ -31,7 +31,6 @@ import {
   getWithRecovery,
   withEnsureCanonicalChain,
   withLazyFollower,
-  withOperationInaccessibleRecovery,
   withStopRecovery,
 } from "./enhancers"
 import { BlockNotPinnedError } from "./errors"
@@ -134,9 +133,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         canonicalChain(
           withStopRecovery(
             pinnedBlocks$,
-            withOperationInaccessibleRecovery(
-              withRecoveryFn(fromAbortControllerFn(fn)),
-            ),
+            withRecoveryFn(fromAbortControllerFn(fn)),
           ),
         ),
       ),
@@ -155,15 +152,11 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     (hash, ...args) =>
       fn(hash, withCanonicalChain, ...args)
 
-  const _call$ = withOperationInaccessibleRecovery(
-    withRecoveryFn(fromAbortControllerFn(lazyFollower("call"))),
-  )
-
   const cache = new Map<string, Map<string, Observable<any>>>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     getHeader,
-    withRefcount(_call$),
+    withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
     blockUsage$,
     (blocks) => {
       unpin(blocks)
@@ -270,7 +263,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     best$.pipe(map((b) => b.hash)),
   )
 
-  const _body$ = commonEnhancer(lazyFollower("body"))
+  const _body$ = withOptionalHash$(commonEnhancer(lazyFollower("body")))
   const body$ = (hash: string) =>
     upsertCachedStream(hash, "body", _body$(hash, true))
 
@@ -310,17 +303,12 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   )
 
   const recoveralStorage$ = getRecoveralStorage$(getFollower, withRecovery)
-  const storageQueries$ = withOperationInaccessibleRecovery(
-    withOptionalHash$(
-      withRefcount(
-        withStopRecovery(
-          pinnedBlocks$,
-          (
-            hash: string,
-            queries: Array<StorageItemInput>,
-            childTrie?: string,
-          ) => recoveralStorage$(hash, queries, childTrie ?? null, false),
-        ),
+  const storageQueries$ = withOptionalHash$(
+    withRefcount(
+      withStopRecovery(
+        pinnedBlocks$,
+        (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
+          recoveralStorage$(hash, queries, childTrie ?? null, false),
       ),
     ),
   )
