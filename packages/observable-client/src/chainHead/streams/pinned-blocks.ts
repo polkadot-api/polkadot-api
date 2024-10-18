@@ -1,5 +1,5 @@
 import { shareLatest } from "@/utils"
-import { BlockHeader } from "@polkadot-api/substrate-bindings"
+import { BlockHeader, HexString } from "@polkadot-api/substrate-bindings"
 import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
 import {
   Observable,
@@ -38,6 +38,17 @@ export type PinnedBlocks = {
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
   recovering: boolean
+}
+
+const createRuntimeGetter = (pinned: PinnedBlocks, startAt: HexString) => {
+  return () => {
+    const runtime = pinned.runtimes[startAt]
+    if (!runtime) return pinned.blocks.has(startAt) ? startAt : null
+    const winner = [...runtime.usages]
+      .reverse()
+      .find((x) => !pinned.blocks.get(x)!.unpinned)
+    return winner ?? null
+  }
 }
 
 const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
@@ -138,7 +149,9 @@ export const getPinnedBlocks$ = (
 
           acc.finalizedRuntime =
             finalizedRuntime ??
-            (acc.runtimes[finalizedHash] = getRuntime(finalizedHash))
+            (acc.runtimes[finalizedHash] = getRuntime(
+              createRuntimeGetter(acc, finalizedHash),
+            ))
 
           return acc
 
@@ -158,8 +171,7 @@ export const getPinnedBlocks$ = (
             const parentNode = acc.blocks.get(parent)!
             parentNode.children.add(hash)
             if (event.newRuntime) {
-              acc.runtimes[hash] = getRuntime(hash)
-              acc.runtimes[hash].runtime.subscribe()
+              acc.runtimes[hash] = getRuntime(createRuntimeGetter(acc, hash))
             }
             const block = {
               hash,
@@ -229,11 +241,7 @@ export const getPinnedBlocks$ = (
     shareLatest,
   )
 
-  const getRuntime = getRuntimeCreator(
-    withStopRecovery(pinnedBlocks$, call$),
-    pinnedBlocks$.pipe(map((v) => v.finalized)),
-  )
-
+  const getRuntime = getRuntimeCreator(withStopRecovery(pinnedBlocks$, call$))
   return pinnedBlocks$
 }
 
