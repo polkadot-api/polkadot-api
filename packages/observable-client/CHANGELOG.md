@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.11 - 2024-10-18
+
 ### Fixed
 
 - Improve logic of `withOptionalHash` for non-static blocks.
