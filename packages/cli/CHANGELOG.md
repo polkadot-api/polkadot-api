@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.10 - 2024-10-18
+
 ### Fixed
 
 - Fix unable to run codegen on windows
