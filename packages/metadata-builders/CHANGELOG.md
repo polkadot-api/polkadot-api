@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Expose inner type of compacts.
+
 ## 0.8.2 - 2024-10-11
 
 ### Fixed
