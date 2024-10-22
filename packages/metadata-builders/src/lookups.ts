@@ -5,22 +5,14 @@ import type {
   V15,
 } from "@polkadot-api/substrate-bindings"
 
+export type SignedPrimitive = "i8" | "i16" | "i32" | "i64" | "i128" | "i256"
+export type UnsignedPrimitive = "u8" | "u16" | "u32" | "u64" | "u128" | "u256"
 export type MetadataPrimitives =
   | "bool"
   | "char"
   | "str"
-  | "u8"
-  | "u16"
-  | "u32"
-  | "u64"
-  | "u128"
-  | "u256"
-  | "i8"
-  | "i16"
-  | "i32"
-  | "i64"
-  | "i128"
-  | "i256"
+  | SignedPrimitive
+  | UnsignedPrimitive
 
 export type PrimitiveVar = {
   type: "primitive"
@@ -28,7 +20,11 @@ export type PrimitiveVar = {
 }
 
 export type VoidVar = { type: "void" }
-export type CompactVar = { type: "compact"; isBig: boolean }
+export type CompactVar = {
+  type: "compact"
+  isBig: boolean
+  size: UnsignedPrimitive
+}
 export type BitSequenceVar = { type: "bitSequence" }
 export type AccountId32 = { type: "AccountId32" }
 export type AccountId20 = { type: "AccountId20" }
@@ -312,6 +308,7 @@ const _denormalizeLookup = (
       return {
         type: "compact",
         isBig,
+        size: translated.value as UnsignedPrimitive,
       }
     }
 
