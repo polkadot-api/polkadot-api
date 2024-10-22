@@ -6,6 +6,10 @@
 
 - Expose `topics` on transaction events.
 
+### Fixed
+
+- Add missing `UnsafeApi` export type
+
 ## 1.6.2 - 2024-10-18
 
 ### Fixed
