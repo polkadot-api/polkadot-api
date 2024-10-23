@@ -65,12 +65,21 @@ importers:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ^6.29.4
         version: 6.29.5
+      '@noble/curves':
+        specifier: ^1.5.0
+        version: 1.6.0
+      '@noble/hashes':
+        specifier: ^1.5.0
+        version: 1.5.0
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:examples/bun/.papi/descriptors(polkadot-api@packages+client)
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../packages/substrate-bindings
       '@polkadot-api/tx-utils':
         specifier: workspace:*
         version: link:../../packages/tx-utils
@@ -80,6 +89,12 @@ importers:
       '@polkadot-labs/hdkd-helpers':
         specifier: ^0.0.8
         version: 0.0.8
+      '@scure/bip32':
+        specifier: ^1.5.0
+        version: 1.5.0
+      '@scure/bip39':
+        specifier: ^1.4.0
+        version: 1.4.0
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -129,7 +144,7 @@ importers:
     devDependencies:
       '@types/bun':
         specifier: latest
-        version: 1.1.11
+        version: 1.1.12
 
   examples/react-teleport:
     dependencies:
@@ -621,6 +636,9 @@ importers:
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../polkadot-signer
+      '@polkadot-api/signers-common':
+        specifier: workspace:*
+        version: link:../signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
@@ -640,6 +658,9 @@ importers:
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../polkadot-signer
+      '@polkadot-api/signers-common':
+        specifier: workspace:*
+        version: link:../signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
@@ -651,6 +672,31 @@ importers:
 
   packages/signers/signer:
     dependencies:
+      '@noble/hashes':
+        specifier: ^1.5.0
+        version: 1.5.0
+      '@polkadot-api/polkadot-signer':
+        specifier: workspace:*
+        version: link:../polkadot-signer
+      '@polkadot-api/signers-common':
+        specifier: workspace:*
+        version: link:../signers-common
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
+    devDependencies:
+      '@noble/curves':
+        specifier: ^1.5.0
+        version: 1.6.0
+
+  packages/signers/signers-common:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../../metadata-builders
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../polkadot-signer
@@ -1388,6 +1434,12 @@ packages:
   '@scure/base@1.1.9':
     resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
 
+  '@scure/bip32@1.5.0':
+    resolution: {integrity: sha512-8EnFYkqEQdnkuGBVpCzKxyIwDCBLDVj3oiX0EKUFre/tOjL/Hqba1D6n/8RcmaQy4f95qQFrO2A8Sr6ybh4NRw==}
+
+  '@scure/bip39@1.4.0':
+    resolution: {integrity: sha512-BEEm6p8IueV/ZTfQLp/0vhw4NPnT9oWf5+28nvmeUICjP99f4vr2d+qc7AVGDDtwRep6ifR43Yed9ERVmiITzw==}
+
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
 
@@ -1437,8 +1489,8 @@ packages:
   '@types/bun@1.1.10':
     resolution: {integrity: sha512-76KYVSwrHwr9zsnk6oLXOGs9KvyBg3U066GLO4rk6JZk1ypEPGCUDZ5yOiESyIHWs9cx9iC8r01utYN32XdmgA==}
 
-  '@types/bun@1.1.11':
-    resolution: {integrity: sha512-0N7D/H/8sbf9JMkaG5F3+I/cB4TlhKTkO9EskEWP8XDr8aVcDe4EywSnU4cnyZy6tar1dq70NeFNkqMEUigthw==}
+  '@types/bun@1.1.12':
+    resolution: {integrity: sha512-UkewJesRDP3+AW30Gc8hvxuIt+vHgYZXmVOKaXV8xnwAnMXTAs3XZDsa/jW+LSdAYhHslokSm72lq63FYYjZqA==}
 
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
@@ -1688,8 +1740,8 @@ packages:
   bun-types@1.1.29:
     resolution: {integrity: sha512-En3/TzSPMPyl5UlUB1MHzHpcrZDakTm7mS203eLoX1fBoEa3PW+aSS8GAqVJ7Is/m34Z5ogL+ECniLY0uDaCPw==}
 
-  bun-types@1.1.30:
-    resolution: {integrity: sha512-mGh7NLisOXskBU62DxLS+/nwmLlCYHYAkCzdo4DZ9+fzrpP41hAdOqaN4DO6tQfenHb4pYb0/shw29k4/6I2yQ==}
+  bun-types@1.1.32:
+    resolution: {integrity: sha512-Lxgux4InO/WRjSAEy3iyDscsnDXR8+3rgNDeZYjPAizFYjUraoNuMl9PuRd9XMgFZgdyQwaUX7/QHmOw5KGFQw==}
 
   bundle-require@5.0.0:
     resolution: {integrity: sha512-GuziW3fSSmopcx4KRymQEJVbZUfqlCqcq7dvs6TYwKRZiegK/2buMxQTPs6MGlNv50wms1699qYO54R8XfRX4w==}
@@ -3871,6 +3923,17 @@ snapshots:
 
   '@scure/base@1.1.9': {}
 
+  '@scure/bip32@1.5.0':
+    dependencies:
+      '@noble/curves': 1.6.0
+      '@noble/hashes': 1.5.0
+      '@scure/base': 1.1.9
+
+  '@scure/bip39@1.4.0':
+    dependencies:
+      '@noble/hashes': 1.5.0
+      '@scure/base': 1.1.9
+
   '@sec-ant/readable-stream@0.4.1': {}
 
   '@shikijs/core@1.21.0':
@@ -3935,9 +3998,9 @@ snapshots:
     dependencies:
       bun-types: 1.1.29
 
-  '@types/bun@1.1.11':
+  '@types/bun@1.1.12':
     dependencies:
-      bun-types: 1.1.30
+      bun-types: 1.1.32
 
   '@types/estree@1.0.6': {}
 
@@ -4237,7 +4300,7 @@ snapshots:
       '@types/node': 20.12.14
       '@types/ws': 8.5.12
 
-  bun-types@1.1.30:
+  bun-types@1.1.32:
     dependencies:
       '@types/node': 20.12.14
       '@types/ws': 8.5.12

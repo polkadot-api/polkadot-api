@@ -1,24 +1,13 @@
 import type Transport from "@ledgerhq/hw-transport"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import {
-  Binary,
-  compact,
-  enhanceEncoder,
-  u16,
-  u32,
-  u8,
-} from "@polkadot-api/substrate-bindings"
+import { Binary, u16, u32 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 import { getMetadata } from "./get-metadata"
 import { CLA, DEFAULT_SS58, INS, P1, P2 } from "./consts"
+import { getSignBytes, v4TxHelper } from "@polkadot-api/signers-common"
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
-const versionCodec = enhanceEncoder(
-  u8.enc,
-  (value: { signed: boolean; version: number }) =>
-    (+!!value.signed << 7) | value.version,
-)
 
 // 44'/354'
 const START_PATH = Uint8Array.from([44, 0, 0, 128, 98, 1, 0, 128])
@@ -48,10 +37,6 @@ const encodePath = (path1: number, path2: number) => {
 const getPubkeyMapKey = (path1: number, path2: number): string => {
   return `${path1}:${path2}`
 }
-
-const [preBytes, postBytes] = ["<Bytes>", "</Bytes>"].map((str) =>
-  Binary.fromText(str).asBytes(),
-)
 
 /**
  * ATTENTION: This class requires `Buffer` to be available. This is an Ledger
@@ -254,30 +239,6 @@ export class LedgerSigner {
     path2: number = 0,
   ): Promise<PolkadotSigner> {
     const publicKey = await this.#getPublicKey(path1, path2)
-
-    const signBytes: PolkadotSigner["signBytes"] = async (data: Uint8Array) => {
-      let isPadded = true
-      let i: number
-
-      for (i = 0; isPadded && i < preBytes.length; i++)
-        isPadded = preBytes[i] === data[i]
-      isPadded = isPadded && i === preBytes.length
-
-      const postDataStart = data.length - postBytes.length
-      for (i = 0; isPadded && i < postBytes.length; i++)
-        isPadded = postBytes[i] === data[postDataStart + i]
-      isPadded = isPadded && i === postBytes.length
-
-      const signature = await this.#sign(
-        path1,
-        path2,
-        isPadded ? data : mergeUint8(preBytes, data, postBytes),
-      )
-      // the signature includes a "0x00" at the beginning, indicating a ed25519 signature
-      // this is not needed for non-extrinsic signatures
-      return signature.slice(1)
-    }
-
     const signTx: PolkadotSigner["signTx"] = async (
       callData,
       signedExtensions,
@@ -313,22 +274,17 @@ export class LedgerSigner {
         toSign,
         merkleizer.getProofForExtrinsicPayload(toSign),
       )
-      const preResult = mergeUint8(
-        versionCodec({ signed: true, version: v15.extrinsic.version }),
-        // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
-        new Uint8Array([0, ...publicKey]),
-        signature,
-        ...extra,
-        callData,
-      )
-
-      return mergeUint8(compact.enc(preResult.length), preResult)
+      return v4TxHelper(v15).createTx(publicKey, signature, extra, callData)
     }
 
     return {
       publicKey,
       signTx,
-      signBytes,
+      signBytes: getSignBytes(async (x) =>
+        // the signature includes a "0x00" at the beginning, indicating a ed25519 signature
+        // this is not needed for non-extrinsic signatures
+        (await this.#sign(path1, path2, x)).slice(1),
+      ),
     }
   }
 }

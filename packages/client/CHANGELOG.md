@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Fixed
+
+- `getEstimatedFees` and `getPaymentInfo` work with chains that have "exotic" extrinsics.
+
+- ** Signer:**
+
+  - Handle "exotic" extrinsics
+
+- ** PJS Signer:**
+  - Expose "ethereum" addresses
+  - Handle "exotic" extrinsics
+
 ### Added
 
 - Expose `topics` on transaction events.

@@ -3,16 +3,14 @@ import {
   Blake2256,
   type V14,
   type V15,
-  compact,
   decAnyMetadata,
-  enhanceEncoder,
-  u8,
 } from "@polkadot-api/substrate-bindings"
-import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { fromHex, toHex } from "@polkadot-api/utils"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
 import { SignPayload, SignRaw, SignerPayloadJSON } from "./types"
+import { SignerType, v4TxHelper } from "@polkadot-api/signers-common"
 
 export const getAddressFormat = (metadata: V14 | V15): number => {
   const dynamicBuilder = getDynamicBuilder(getLookupFn(metadata))
@@ -24,13 +22,8 @@ export const getAddressFormat = (metadata: V14 | V15): number => {
   return dynamicBuilder.buildDefinition(constant.type).dec(constant.value)
 }
 
-const versionCodec = enhanceEncoder(
-  u8.enc,
-  (value: { signed: boolean; version: number }) =>
-    (+!!value.signed << 7) | value.version,
-)
-
-const getPublicKey = AccountId().enc
+const getPublicKey = (address: string) =>
+  address.startsWith("0x") ? fromHex(address) : AccountId().enc(address)
 export function getPolkadotSignerFromPjs(
   address: string,
   signPayload: SignPayload,
@@ -101,27 +94,21 @@ export function getPolkadotSignerFromPjs(
       )
     })
 
-    pjs.address = AccountId(getAddressFormat(decMeta)).dec(publicKey)
+    pjs.address = address
     pjs.method = toHex(callData)
     pjs.version = version
     pjs.withSignedTransaction = true // we allow the wallet to change the payload
 
     const result = await signPayload(pjs as SignerPayloadJSON)
+    const tx = result.signedTransaction
+    if (tx) return typeof tx === "string" ? fromHex(tx) : tx
 
-    if (!result.signedTransaction) {
-      const preResult = mergeUint8(
-        versionCodec({ signed: true, version }),
-        // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
-        new Uint8Array([0, ...publicKey]),
-        fromHex(result.signature),
-        ...extra,
-        callData,
-      )
-      return mergeUint8(compact.enc(preResult.length), preResult)
-    }
-    return typeof result.signedTransaction === "string"
-      ? fromHex(result.signedTransaction)
-      : result.signedTransaction
+    const { createTx, signerType } = v4TxHelper(decMeta)
+    const publicKey =
+      signerType === SignerType.Ethereum
+        ? fromHex(address)
+        : AccountId().enc(address)
+    return createTx(publicKey, fromHex(result.signature), extra, callData)
   }
 
   return { publicKey, signTx, signBytes }
