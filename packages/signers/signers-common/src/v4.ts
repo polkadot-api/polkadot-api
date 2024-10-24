@@ -28,10 +28,14 @@ const getSignerType = (metadata: V14 | V15): [SignerType, [] | [number]] => {
     address = getLookup(extrinsic.address)
     signature = getLookup(extrinsic.signature)
   } else {
-    const extLkup = getLookup(extrinsic.type)
-    if (extLkup.type !== "struct") throw unkownSignerType()
-    address = extLkup.value["Address"]
-    signature = extLkup.value["Signature"]
+    const extProps = Object.fromEntries(
+      metadata.lookup[extrinsic.type].params
+        .filter((x) => x.type != null)
+        .map((x) => [x.name, getLookup(x.type!)]),
+    )
+    address = extProps["Address"]
+    signature = extProps["Signature"]
+    if (!address || !signature) throw unkownSignerType()
   }
 
   if (

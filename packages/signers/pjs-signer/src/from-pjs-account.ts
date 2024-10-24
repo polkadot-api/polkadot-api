@@ -22,8 +22,12 @@ export const getAddressFormat = (metadata: V14 | V15): number => {
   return dynamicBuilder.buildDefinition(constant.type).dec(constant.value)
 }
 
+const accountIdEnc = AccountId().enc
 const getPublicKey = (address: string) =>
-  address.startsWith("0x") ? fromHex(address) : AccountId().enc(address)
+  address.startsWith("0x") && address.length === 42
+    ? fromHex(address)
+    : accountIdEnc(address)
+
 export function getPolkadotSignerFromPjs(
   address: string,
   signPayload: SignPayload,
@@ -107,7 +111,7 @@ export function getPolkadotSignerFromPjs(
     const publicKey =
       signerType === SignerType.Ethereum
         ? fromHex(address)
-        : AccountId().enc(address)
+        : accountIdEnc(address)
     return createTx(publicKey, fromHex(result.signature), extra, callData)
   }
 
