@@ -14,7 +14,7 @@ const versionCodec = enhanceEncoder(
     (+!!value.signed << 7) | value.version,
 )
 
-export const enum SignerType {
+const enum SignerType {
   Polkadot,
   Ethereum,
 }
@@ -67,31 +67,26 @@ const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
   Ecdsa: 2,
 }
 
-export const v4TxHelper = (metadata: V14 | V15) => {
+export const createV4Tx = (
+  metadata: V14 | V15,
+  publicKey: Uint8Array,
+  signed: Uint8Array,
+  extra: Uint8Array[],
+  callData: Uint8Array,
+  signingType?: "Ecdsa" | "Ed25519" | "Sr25519",
+) => {
   const [signerType, addressPrefix] = getSignerType(metadata)
-
-  const createTx = (
-    publicKey: Uint8Array,
-    signed: Uint8Array,
-    extra: Uint8Array[],
-    callData: Uint8Array,
-    signingType?: "Ecdsa" | "Ed25519" | "Sr25519",
-  ) => {
-    const preResult = mergeUint8(
-      versionCodec({ signed: true, version: 4 }),
-      // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
-      signerType === SignerType.Ethereum
-        ? publicKey
-        : new Uint8Array([...addressPrefix, ...publicKey]),
-      signerType === SignerType.Ethereum || !signingType
-        ? signed
-        : new Uint8Array([signingTypeId[signingType], ...signed]),
-      ...extra,
-      callData,
-    )
-
-    return mergeUint8(compact.enc(preResult.length), preResult)
-  }
-
-  return { signerType, createTx }
+  const preResult = mergeUint8(
+    versionCodec({ signed: true, version: 4 }),
+    // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
+    signerType === SignerType.Ethereum
+      ? publicKey
+      : new Uint8Array([...addressPrefix, ...publicKey]),
+    signerType === SignerType.Ethereum || !signingType
+      ? signed
+      : new Uint8Array([signingTypeId[signingType], ...signed]),
+    ...extra,
+    callData,
+  )
+  return mergeUint8(compact.enc(preResult.length), preResult)
 }

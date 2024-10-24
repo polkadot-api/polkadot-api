@@ -1,11 +1,6 @@
 import { mergeUint8 } from "@polkadot-api/utils"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { keccak_256 } from "@noble/hashes/sha3"
-import {
-  getSignBytes,
-  SignerType,
-  v4TxHelper,
-} from "@polkadot-api/signers-common"
+import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
 import {
   Blake2256,
   decAnyMetadata,
@@ -41,8 +36,6 @@ export function getPolkadotSigner(
     } catch (_) {
       throw new Error("Unsupported metadata version")
     }
-    const { signerType, createTx } = v4TxHelper(decMeta)
-
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
     decMeta.extrinsic.signedExtensions.map(({ identifier }) => {
@@ -54,14 +47,8 @@ export function getPolkadotSigner(
     })
 
     const toSign = mergeUint8(callData, ...extra, ...additionalSigned)
-    const signed = await sign(
-      signerType === SignerType.Ethereum
-        ? keccak_256(toSign)
-        : toSign.length > 256
-          ? hasher(toSign)
-          : toSign,
-    )
-    return createTx(publicKey, signed, extra, callData, signingType)
+    const signed = await sign(toSign.length > 256 ? hasher(toSign) : toSign)
+    return createV4Tx(decMeta, publicKey, signed, extra, callData, signingType)
   }
 
   return {

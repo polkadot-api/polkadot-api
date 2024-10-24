@@ -10,7 +10,7 @@ import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
 import { SignPayload, SignRaw, SignerPayloadJSON } from "./types"
-import { SignerType, v4TxHelper } from "@polkadot-api/signers-common"
+import { createV4Tx } from "@polkadot-api/signers-common"
 
 export const getAddressFormat = (metadata: V14 | V15): number => {
   const dynamicBuilder = getDynamicBuilder(getLookupFn(metadata))
@@ -24,9 +24,7 @@ export const getAddressFormat = (metadata: V14 | V15): number => {
 
 const accountIdEnc = AccountId().enc
 const getPublicKey = (address: string) =>
-  address.startsWith("0x") && address.length === 42
-    ? fromHex(address)
-    : accountIdEnc(address)
+  address.startsWith("0x") ? fromHex(address) : accountIdEnc(address)
 
 export function getPolkadotSignerFromPjs(
   address: string,
@@ -107,12 +105,13 @@ export function getPolkadotSignerFromPjs(
     const tx = result.signedTransaction
     if (tx) return typeof tx === "string" ? fromHex(tx) : tx
 
-    const { createTx, signerType } = v4TxHelper(decMeta)
-    const publicKey =
-      signerType === SignerType.Ethereum
-        ? fromHex(address)
-        : accountIdEnc(address)
-    return createTx(publicKey, fromHex(result.signature), extra, callData)
+    return createV4Tx(
+      decMeta,
+      publicKey,
+      fromHex(result.signature),
+      extra,
+      callData,
+    )
   }
 
   return { publicKey, signTx, signBytes }

@@ -5,7 +5,7 @@ import { Binary, u16, u32 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 import { getMetadata } from "./get-metadata"
 import { CLA, DEFAULT_SS58, INS, P1, P2 } from "./consts"
-import { getSignBytes, v4TxHelper } from "@polkadot-api/signers-common"
+import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
 
@@ -274,7 +274,7 @@ export class LedgerSigner {
         toSign,
         merkleizer.getProofForExtrinsicPayload(toSign),
       )
-      return v4TxHelper(v15).createTx(publicKey, signature, extra, callData)
+      return createV4Tx(v15, publicKey, signature, extra, callData)
     }
 
     return {
