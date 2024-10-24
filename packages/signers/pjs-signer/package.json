@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@polkadot-api/polkadot-signer": "workspace:*",
+    "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/utils": "workspace:*"

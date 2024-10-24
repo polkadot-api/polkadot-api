@@ -1,31 +1,12 @@
-import {
-  Binary,
-  Blake2256,
-  type V14,
-  type V15,
-  compact,
-  decAnyMetadata,
-  enhanceEncoder,
-  u8,
-} from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-
-const versionCodec = enhanceEncoder(
-  u8.enc,
-  (value: { signed: boolean; version: number }) =>
-    (+!!value.signed << 7) | value.version,
-)
-
-const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
-  Ed25519: 0,
-  Sr25519: 1,
-  Ecdsa: 2,
-}
-
-const [preBytes, postBytes] = ["<Bytes>", "</Bytes>"].map((str) =>
-  Binary.fromText(str).asBytes(),
-)
+import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
+import {
+  Blake2256,
+  decAnyMetadata,
+  V14,
+  V15,
+} from "@polkadot-api/substrate-bindings"
 
 export function getPolkadotSigner(
   publicKey: Uint8Array,
@@ -55,8 +36,6 @@ export function getPolkadotSigner(
     } catch (_) {
       throw new Error("Unsupported metadata version")
     }
-
-    const { version } = decMeta.extrinsic
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
     decMeta.extrinsic.signedExtensions.map(({ identifier }) => {
@@ -68,40 +47,13 @@ export function getPolkadotSigner(
     })
 
     const toSign = mergeUint8(callData, ...extra, ...additionalSigned)
-
     const signed = await sign(toSign.length > 256 ? hasher(toSign) : toSign)
-
-    const preResult = mergeUint8(
-      versionCodec({ signed: true, version }),
-      // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
-      new Uint8Array([0, ...publicKey]),
-      new Uint8Array([signingTypeId[signingType], ...signed]),
-      ...extra,
-      callData,
-    )
-
-    return mergeUint8(compact.enc(preResult.length), preResult)
-  }
-
-  const signBytes = async (data: Uint8Array) => {
-    let isPadded = true
-    let i: number
-
-    for (i = 0; isPadded && i < preBytes.length; i++)
-      isPadded = preBytes[i] === data[i]
-    isPadded = isPadded && i === preBytes.length
-
-    const postDataStart = data.length - postBytes.length
-    for (i = 0; isPadded && i < postBytes.length; i++)
-      isPadded = postBytes[i] === data[postDataStart + i]
-    isPadded = isPadded && i === postBytes.length
-
-    return sign(isPadded ? data : mergeUint8(preBytes, data, postBytes))
+    return createV4Tx(decMeta, publicKey, signed, extra, callData, signingType)
   }
 
   return {
     publicKey,
     signTx,
-    signBytes,
+    signBytes: getSignBytes(sign),
   }
 }

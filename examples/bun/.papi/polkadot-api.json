@@ -9,6 +9,10 @@
     "turing": {
       "wsUrl": "wss://turing-rpc.avail.so/ws",
       "metadata": ".papi/metadata/turing.scale"
+    },
+    "myth": {
+      "wsUrl": "wss://polkadot-mythos-rpc.polkadot.io",
+      "metadata": ".papi/metadata/myth.scale"
     }
   }
 }

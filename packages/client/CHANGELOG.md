@@ -5,6 +5,15 @@
 ### Fixed
 
 - Add missing `UnsafeApi` export type
+- `getEstimatedFees` and `getPaymentInfo` work with chains that have "exotic" extrinsics.
+
+- **Signer:**
+
+  - Handle "exotic" extrinsics
+
+- **PJS Signer:**
+  - Expose "ethereum" addresses
+  - Handle "exotic" extrinsics
 
 ## 1.6.2 - 2024-10-18
 
