@@ -11,8 +11,13 @@
   - Handle "exotic" extrinsics
 
 - ** PJS Signer:**
+
   - Expose "ethereum" addresses
   - Handle "exotic" extrinsics
+
+- **Chains:**
+
+  - Update `lightSyncState` and some bootnodes
 
 ### Added
 
