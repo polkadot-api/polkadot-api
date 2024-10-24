@@ -12,8 +12,13 @@
   - Handle "exotic" extrinsics
 
 - **PJS Signer:**
+
   - Expose "ethereum" addresses
   - Handle "exotic" extrinsics
+
+- **Chains:**
+
+  - Update `lightSyncState` and some bootnodes
 
 ## 1.6.2 - 2024-10-18
 
