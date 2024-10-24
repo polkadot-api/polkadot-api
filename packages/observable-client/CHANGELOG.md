@@ -6,6 +6,12 @@
 
 - Add types of topics for SystemEvent
 
+## 0.5.12 - 2024-10-24
+
+### Fixed
+
+- Update dependencies
+
 ## 0.5.11 - 2024-10-18
 
 ### Fixed

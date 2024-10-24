@@ -6,6 +6,12 @@
 
 - Update dependencies
 
+## 0.12.6 - 2024-10-24
+
+### Fixed
+
+- Update dependencies
+
 ## 0.12.5 - 2024-10-12
 
 ### Fixed

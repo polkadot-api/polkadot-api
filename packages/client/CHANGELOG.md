@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.6.3 - 2024-10-24
+
 ### Fixed
 
 - `getEstimatedFees` and `getPaymentInfo` work with chains that have "exotic" extrinsics.
