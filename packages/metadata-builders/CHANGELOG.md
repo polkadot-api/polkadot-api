@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.0 - 2024-10-24
+
 ### Added
 
 - Expose inner type of compacts.

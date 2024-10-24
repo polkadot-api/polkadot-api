@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.5 - 2024-10-24
+
 ### Fixed
 
 - `chains`: Update `lightSyncState` and some bootnodes
