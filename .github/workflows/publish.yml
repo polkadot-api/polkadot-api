@@ -62,7 +62,7 @@ jobs:
             metadata-builders,
             metadata-compatibility,
             observable-client,
-            signers/singers-common,
+            signers/signers-common,
             signers/ledger-signer,
             signers/pjs-signer,
             signers/polkadot-signer,
