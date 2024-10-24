@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Edge-case problem with signed-extensions
+- Fix issue with nonce values
+
 ## 1.6.3 - 2024-10-24
 
 ### Fixed

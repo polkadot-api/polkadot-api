@@ -5,6 +5,7 @@
 ### Fixed
 
 - Add types of topics for SystemEvent
+- Problem with race-conditions on cached streams
 
 ## 0.5.12 - 2024-10-24
 

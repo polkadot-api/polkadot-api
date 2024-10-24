@@ -5,6 +5,7 @@ import {
   firstValueFrom,
   lastValueFrom,
   map,
+  NEVER,
   switchMap,
   tap,
 } from "rxjs"
@@ -369,5 +370,39 @@ describe("E2E", async () => {
     ])
 
     expect(manualFee).toEqual(estimatedFee)
+  })
+
+  it("consecutive transactions", async () => {
+    const signer = accounts["alice"]["sr25519"]
+
+    for (let i = 0; i < 3; i++) {
+      const intialNonce = await api.apis.AccountNonceApi.account_nonce(
+        accountIdDec(signer.publicKey),
+      )
+
+      const tx = api.tx.System.remark({
+        remark: Binary.fromHex("first"),
+      })
+
+      const initialInBestBlock$ = tx
+        .signSubmitAndWatch(signer)
+        .pipe(filter((x) => x.type === "txBestBlocksState"))
+
+      await lastValueFrom(
+        initialInBestBlock$.pipe(
+          switchMap((x) =>
+            x.found
+              ? tx.signSubmitAndWatch(signer, { at: x.block.hash })
+              : NEVER,
+          ),
+        ),
+      )
+
+      const finalNonce = await api.apis.AccountNonceApi.account_nonce(
+        accountIdDec(signer.publicKey),
+      )
+
+      expect(finalNonce).toBe(intialNonce + 2)
+    }
   })
 })
