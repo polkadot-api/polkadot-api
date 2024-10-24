@@ -6,7 +6,6 @@ import {
   Binary,
   Decoder,
   Enum,
-  SS58String,
   u32,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
@@ -46,7 +45,9 @@ export { submit, submit$, InvalidTxError }
 
 const accountIdEnc = AccountId().enc
 const fakeSignature = new Uint8Array(64)
-const getFakeSignature = () => fakeSignature
+const fakeSignatureEth = new Uint8Array(65)
+const getFakeSignature = (isEth: boolean) => () =>
+  isEth ? fakeSignatureEth : fakeSignature
 
 export const createTxEntry = <
   D,
@@ -186,13 +187,16 @@ export const createTxEntry = <
       )
 
     const getPaymentInfo = async (
-      from: Uint8Array | SS58String,
+      from: Uint8Array | string,
       _options?: any,
     ) => {
+      if (typeof from === "string")
+        from = from.startsWith("0x") ? fromHex(from) : accountIdEnc(from)
+      const isEth = from.length === 20
       const fakeSigner = getPolkadotSigner(
-        from instanceof Uint8Array ? from : accountIdEnc(from),
-        "Sr25519",
-        getFakeSignature,
+        from,
+        isEth ? "Ecdsa" : "Sr25519",
+        getFakeSignature(isEth),
       )
       const encoded = fromHex(await sign(fakeSigner, _options))
       const args = toHex(mergeUint8(encoded, u32.enc(encoded.length)))
@@ -200,10 +204,12 @@ export const createTxEntry = <
       const decoder$: Observable<Decoder<PaymentInfo>> = chainHead
         .getRuntimeContext$(null)
         .pipe(
-          map(
-            ({ dynamicBuilder: { buildRuntimeCall } }) =>
-              buildRuntimeCall("TransactionPaymentApi", "query_info").value[1],
-          ),
+          map((ctx) => {
+            return ctx.dynamicBuilder.buildRuntimeCall(
+              "TransactionPaymentApi",
+              "query_info",
+            ).value[1]
+          }),
         )
 
       const call$ = chainHead.call$(
@@ -220,7 +226,7 @@ export const createTxEntry = <
     }
 
     const getEstimatedFees = async (
-      from: Uint8Array | SS58String,
+      from: Uint8Array | string,
       _options?: any,
     ) => (await getPaymentInfo(from, _options)).partial_fee
 

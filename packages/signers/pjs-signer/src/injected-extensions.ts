@@ -13,10 +13,11 @@ export type {
   InjectedPolkadotAccount,
 }
 
-const supportedAccountTypes = new Set<KeypairType>([
+const supportedAccountTypes = new Set<KeypairType | "ethereum">([
   "ed25519",
   "sr25519",
   "ecdsa",
+  "ethereum",
 ])
 
 export const connectInjectedExtension = async (

@@ -21,11 +21,16 @@
   },
   "dependencies": {
     "@ledgerhq/hw-transport-node-hid": "^6.29.4",
+    "@noble/curves": "^1.5.0",
+    "@noble/hashes": "^1.5.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ledger-signer": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/tx-utils": "workspace:*",
     "@polkadot-labs/hdkd": "^0.0.8",
     "@polkadot-labs/hdkd-helpers": "^0.0.8",
+    "@scure/bip32": "^1.5.0",
+    "@scure/bip39": "^1.4.0",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.1"
   }
