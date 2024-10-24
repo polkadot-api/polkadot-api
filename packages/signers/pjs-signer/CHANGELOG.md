@@ -2,10 +2,11 @@
 
 ## Unreleased
 
+## 0.5.1 - 2024-10-24
+
 ### Fixed
 
 - Handle "exotic" extrinsics
-- Update dependencies
 
 ## 0.5.0 - 2024-10-16
 

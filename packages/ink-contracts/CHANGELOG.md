@@ -1,7 +1,13 @@
 # Changelog
 
-### Changed
+## 0.1.1 - 2024-10-24
+
+### Fixed
+
+- Update dependencies
 
 ## 0.1.0 - 2024-10-12
+
+### Changed
 
 Initial release
