@@ -1,4 +1,4 @@
-import { concatMapEager, shareLatest } from "@/utils"
+import { concatMapEager, delayUnsubscription, shareLatest } from "@/utils"
 import { blockHeader } from "@polkadot-api/substrate-bindings"
 import {
   ChainHead,
@@ -205,6 +205,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
           hashCache.set(key, connector)
         },
       }),
+      delayUnsubscription(),
     )
     hashCache.set(key, result)
 
