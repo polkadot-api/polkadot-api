@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/ink-contracts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
@@ -46,6 +46,6 @@
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
-    "scale-ts": "^1.6.0"
+    "scale-ts": "^1.6.1"
   }
 }

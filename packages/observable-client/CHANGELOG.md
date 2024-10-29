@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.5.14 - 2024-10-29
+
+### Fixed
+
+- Update dependencies
+
+## 0.5.13 - 2024-10-24
+
 ### Fixed
 
 - Add types of topics for SystemEvent

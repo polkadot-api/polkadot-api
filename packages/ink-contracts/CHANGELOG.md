@@ -10,6 +10,12 @@
 
 - Dynamic builder and client accept event topics for event decoding.
 
+## 0.1.2 - 2024-10-29
+
+### Fixed
+
+- Update dependencies
+
 ## 0.1.1 - 2024-10-24
 
 ### Fixed
