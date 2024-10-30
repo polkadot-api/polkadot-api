@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `getObservableClient` will return the same client instance if called multiple times with the same substrate client.
+
 ## 0.5.14 - 2024-10-29
 
 ### Fixed

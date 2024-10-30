@@ -7,6 +7,7 @@ import {
   voidEntryPointNode,
 } from "@polkadot-api/metadata-compatibility"
 import {
+  ChainHead$,
   RuntimeContext,
   getObservableClient,
 } from "@polkadot-api/observable-client"
@@ -35,7 +36,7 @@ import { Binary } from "@polkadot-api/substrate-bindings"
 
 const createApi = <Unsafe extends true | false, D>(
   compatibilityToken: Promise<CompatibilityToken | RuntimeToken>,
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
   broadcast$: (tx: string) => Observable<never>,
 ): AnyApi<Unsafe, D> => {
   const target = {}

@@ -1,4 +1,4 @@
-import { BlockInfo, getObservableClient } from "@polkadot-api/observable-client"
+import type { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { getPolkadotSigner } from "@polkadot-api/signer"
 import {
@@ -58,7 +58,7 @@ export const createTxEntry = <
 >(
   pallet: Pallet,
   name: Name,
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
   broadcast: (tx: string) => Observable<never>,
   {
     isCompatible: isCompatibleHelper,
