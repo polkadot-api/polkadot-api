@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.6.5 - 2024-10-29
+
+### Fixed
+
+- Update dependencies (fix `scale-ts`)
+
+## 1.6.4 - 2024-10-24
+
 ### Fixed
 
 - Edge-case problem with signed-extensions
