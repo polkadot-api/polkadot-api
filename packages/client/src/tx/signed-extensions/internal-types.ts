@@ -1,5 +1,5 @@
 import { Observable } from "rxjs"
-import { getObservableClient } from "@polkadot-api/observable-client"
+import type { ChainHead$ } from "@polkadot-api/observable-client"
 import type {
   MetadataLookup,
   getDynamicBuilder,
@@ -11,7 +11,7 @@ export interface ChainExtensionCtx {
   lookupFn: MetadataLookup
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
   at: string
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>
+  chainHead: ChainHead$
 }
 
 export type SignedExtension = Observable<{
