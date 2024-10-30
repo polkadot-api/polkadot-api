@@ -82,7 +82,6 @@ export const getInternalWsProvider = (
         }
 
         const timeoutToken = setTimeout(() => {
-          cleanup()
           onStatusChanged((status = timeoutError))
           reject(timeoutError.event)
         }, 3_500)
