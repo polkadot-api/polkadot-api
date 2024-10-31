@@ -1,21 +1,11 @@
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
-import { StatusChange, WsJsonRpcProvider, WsEvent } from "./types"
-
-export interface GetWsProviderInput {
-  (
-    uri: string,
-    protocols?: string | string[],
-    onStatusChanged?: (status: StatusChange) => void,
-  ): WsJsonRpcProvider
-  (
-    uri: string,
-    onStatusChanged?: (status: StatusChange) => void,
-  ): WsJsonRpcProvider
-  (
-    endpoints: Array<string | { uri: string; protocol: string[] }>,
-    onStatusChanged?: (status: StatusChange) => void,
-  ): WsJsonRpcProvider
-}
+import {
+  GetWsProviderInput,
+  StatusChange,
+  WsJsonRpcProvider,
+  WsEvent,
+  WsProviderConfig,
+} from "./types"
 
 const timeoutError: StatusChange = {
   type: WsEvent.ERROR,
@@ -24,24 +14,40 @@ const timeoutError: StatusChange = {
 
 const noop = () => {}
 
+const mapEndpoints = (
+  endpoints: WsProviderConfig["endpoints"],
+): Array<[string, string | string[]] | [string]> =>
+  endpoints.map((x) => (typeof x === "string" ? [x] : [x.uri, x.protocol]))
+
 export const getInternalWsProvider = (
   WebsocketClass: typeof WebSocket,
 ): GetWsProviderInput => {
   return (...args): WsJsonRpcProvider => {
     let endpoints: Array<[string, string | string[]] | [string]> = []
     let onStatusChanged: (status: StatusChange) => void = noop
+    let timeout = 3_500
 
-    if (typeof args[1] === "function") onStatusChanged = args[1]
-    if (Array.isArray(args[0]))
-      endpoints = args[0].map((x) =>
-        typeof x === "string" ? [x] : [x.uri, x.protocol],
-      )
-    else {
-      endpoints = [[args[0]]]
-      if (args[1] && args[1] !== onStatusChanged)
-        endpoints[0][1] = args[1] as any
-      if (args[2]) onStatusChanged = args[2] as any
+    const [firstArg] = args
+    if (
+      args.length === 1 &&
+      typeof firstArg === "object" &&
+      !Array.isArray(firstArg)
+    ) {
+      endpoints = mapEndpoints(firstArg.endpoints)
+      onStatusChanged = firstArg.onStatusChanged ?? noop
+      timeout = firstArg.timeout ?? timeout
+    } else {
+      if (typeof args[1] === "function")
+        onStatusChanged = args[1] as (status: StatusChange) => void
+      if (Array.isArray(firstArg)) endpoints = mapEndpoints(firstArg)
+      else {
+        endpoints = [[firstArg as string]]
+        if (args[1] && args[1] !== onStatusChanged)
+          endpoints[0][1] = args[1] as any
+        if (args[2]) onStatusChanged = args[2] as any
+      }
     }
+
     let idx = 0
     let status: StatusChange
     let switchTo: [string] | [string, string | string[]] | null = null
@@ -51,6 +57,12 @@ export const getInternalWsProvider = (
       const [uri, protocols] = switchTo || endpoints[idx++ % endpoints.length]
       switchTo = null
       const socket = new WebsocketClass(uri, protocols)
+      const forceSocketClose = () => {
+        try {
+          socket.addEventListener("error", noop, { once: true })
+          socket.close()
+        } catch {}
+      }
       onStatusChanged(
         (status = {
           type: WsEvent.CONNECTING,
@@ -61,12 +73,13 @@ export const getInternalWsProvider = (
 
       await new Promise<void>((resolve, reject) => {
         const onOpen = () => {
-          cleanup()
+          initialCleanup()
           resolve()
         }
 
         const onError = (e: Event | null) => {
-          cleanup()
+          initialCleanup()
+          if (e == null) forceSocketClose()
           console.error(
             `Unable to connect to ${uri}${
               protocols ? ", protocols: " + protocols : ""
@@ -81,12 +94,17 @@ export const getInternalWsProvider = (
           setTimeout(reject, e ? 300 : 0, e)
         }
 
-        const timeoutToken = setTimeout(() => {
-          cleanup()
-          onStatusChanged((status = timeoutError))
-          reject(timeoutError.event)
-        }, 3_500)
-        const cleanup = () => {
+        const timeoutToken =
+          timeout !== Infinity
+            ? setTimeout(() => {
+                initialCleanup()
+                forceSocketClose()
+                onStatusChanged((status = timeoutError))
+                reject(timeoutError.event)
+              }, timeout)
+            : undefined
+
+        const initialCleanup = () => {
           clearTimeout(timeoutToken)
           socket.removeEventListener("error", onError)
           socket.removeEventListener("open", onOpen)
@@ -132,7 +150,7 @@ export const getInternalWsProvider = (
           socket.removeEventListener("message", _onMessage)
           socket.removeEventListener("error", onError)
           socket.removeEventListener("close", onClose)
-          socket.close()
+          forceSocketClose()
           if (withHalt) onClose({})
         }
 

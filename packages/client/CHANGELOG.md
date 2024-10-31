@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 1.6.6 - 2024-10-31
+
+### Added
+
+- **WS Provider:**
+  - New interface `WsProviderConfig` and and overload which accepts this interface. This config interface allows to setup the desired timeout time at which the WebSocket should retry the connection.
+
+### Fixed
+
+- **WS Provider:**
+  - Close socket connection when internal timeout is reached to prevent race-conditions.
+  - Close socket connection when switching connections before the previous connection has been established.
+
 ## 1.6.5 - 2024-10-29
 
 ### Fixed
