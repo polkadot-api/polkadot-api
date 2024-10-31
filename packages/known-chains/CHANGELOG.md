@@ -5,6 +5,7 @@
 ### Fixed
 
 - Update dependencies.
+- Fixed Paseo `ss58Format` field on the chainspecs
 
 ## 0.5.5 - 2024-10-24
 
