@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/ws-provider",
-  "version": "0.3.2",
+  "version": "0.3.4",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",

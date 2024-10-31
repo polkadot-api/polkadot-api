@@ -6,6 +6,7 @@ export enum WsEvent {
   ERROR,
   CLOSE,
 }
+
 export type WsConnecting = {
   type: WsEvent.CONNECTING
   uri: string
@@ -28,4 +29,27 @@ export type StatusChange = WsConnecting | WsConnected | WsError | WsClose
 export type WsJsonRpcProvider = JsonRpcProvider & {
   switch: (uri?: string, protocol?: string[]) => void
   getStatus: () => StatusChange
+}
+
+export interface WsProviderConfig {
+  endpoints: Array<string | { uri: string; protocol: string[] }>
+  onStatusChanged?: (status: StatusChange) => void
+  timeout?: number
+}
+
+export interface GetWsProviderInput {
+  (
+    uri: string,
+    protocols?: string | string[],
+    onStatusChanged?: (status: StatusChange) => void,
+  ): WsJsonRpcProvider
+  (
+    uri: string,
+    onStatusChanged?: (status: StatusChange) => void,
+  ): WsJsonRpcProvider
+  (
+    endpoints: Array<string | { uri: string; protocol: string[] }>,
+    onStatusChanged?: (status: StatusChange) => void,
+  ): WsJsonRpcProvider
+  (wsProviderConfig: WsProviderConfig): WsJsonRpcProvider
 }
