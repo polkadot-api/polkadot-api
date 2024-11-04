@@ -7,7 +7,7 @@ import { ChainHead$, getChainHead$ } from "./chainHead"
 import getBroadcastTx$ from "./tx"
 
 export interface ObservableClient {
-  chainHead$: () => ChainHead$
+  chainHead$: (nSubscribers?: number) => ChainHead$
   broadcastTx$: (transaction: string) => Observable<never>
   destroy: UnsubscribeFn
 }
@@ -35,8 +35,27 @@ export const getObservableClient = (
       cached.refCount--
     }
   }
+
+  let cachedChainhead:
+    | readonly [ChainHead$, (nSubscribers: number) => void]
+    | null = null
+  let currentSubscribers = 0
+  let expectedSubscribers: null | number = null
+
   const client: ObservableClient = {
-    chainHead$: () => getChainHead$(substrateClient.chainHead),
+    chainHead$: (_expectedSubscribers) => {
+      currentSubscribers++
+      expectedSubscribers ||= _expectedSubscribers || 1
+      cachedChainhead ||= getChainHead$(substrateClient.chainHead)
+      const [result, start] = cachedChainhead
+      if (expectedSubscribers === currentSubscribers) {
+        currentSubscribers = 0
+        expectedSubscribers = null
+        cachedChainhead = null
+        start(currentSubscribers)
+      }
+      return result
+    },
     broadcastTx$: getBroadcastTx$(substrateClient.transaction),
     destroy,
   }

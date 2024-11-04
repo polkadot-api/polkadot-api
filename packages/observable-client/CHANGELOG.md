@@ -5,6 +5,7 @@
 ### Changed
 
 - `getObservableClient` will return the same client instance if called multiple times with the same substrate client.
+- Allow multiple subscribers on the same `chainHead` subscription.
 
 ## 0.5.14 - 2024-10-29
 
