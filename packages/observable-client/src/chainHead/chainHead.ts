@@ -322,13 +322,6 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     ),
   )
 
-  // calling `unfollow` also kills the subscription due to the fact
-  // that `follow$` completes, which makes all other streams to
-  // also complete (or error, in the case of ongoing operations)
-  merge(runtime$, bestBlocks$).subscribe({
-    error() {},
-  })
-
   const eventsAt$ = (hash: string | null, canonical = false) =>
     storage$(
       hash,
@@ -365,28 +358,52 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     () => of(),
   )
 
-  return {
-    follow$,
-    finalized$,
-    best$,
-    bestBlocks$,
-    runtime$,
-    metadata$,
-
-    header$,
-    body$,
-    call$: withCanonicalChain(call$),
-    storage$: withCanonicalChain(storage$),
-    storageQueries$,
-    eventsAt$: withCanonicalChain(eventsAt$),
-
-    trackTx$,
-    trackTxWithoutEvents$,
-    validateTx$,
-    pinnedBlocks$,
-    withRuntime,
-    getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
-    unfollow,
+  let started: boolean | null = false
+  let nSubscribers: number = 0
+  const start = (_nSubscribers: number) => {
+    nSubscribers += _nSubscribers
+    started = true
+    // calling `unfollow` also kills the subscription due to the fact
+    // that `follow$` completes, which makes all other streams to
+    // also complete (or error, in the case of ongoing operations)
+    merge(runtime$, bestBlocks$).subscribe({
+      error() {},
+    })
   }
+
+  return [
+    {
+      follow$,
+      finalized$,
+      best$,
+      bestBlocks$,
+      runtime$,
+      metadata$,
+
+      header$,
+      body$,
+      call$: withCanonicalChain(call$),
+      storage$: withCanonicalChain(storage$),
+      storageQueries$,
+      eventsAt$: withCanonicalChain(eventsAt$),
+
+      trackTx$,
+      trackTxWithoutEvents$,
+      validateTx$,
+      pinnedBlocks$,
+      withRuntime,
+      getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
+      unfollow: () => {
+        if (started == null) return
+        nSubscribers--
+        if (started && !nSubscribers) {
+          unfollow()
+          started = null
+        }
+      },
+    },
+    start,
+  ] as const
 }
-export type ChainHead$ = ReturnType<typeof getChainHead$>
+
+export type ChainHead$ = ReturnType<typeof getChainHead$>[0]
