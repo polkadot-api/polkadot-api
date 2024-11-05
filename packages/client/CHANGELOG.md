@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- **Known Chains:**
+  - Use correct `ss58Format` on Paseo chainspecs
 - Update dependencies.
 
 ## 1.6.7 - 2024-10-31
