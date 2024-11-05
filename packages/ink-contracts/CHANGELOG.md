@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2024-11-05
+
 ### Added
 
 - ink-client: Add support for nested storage roots.
