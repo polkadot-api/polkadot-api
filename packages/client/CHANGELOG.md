@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.7.0 - 2024-11-05
+
+### Added
+
+- New sub-package `polkadot-api/ink` for ink! contracts
+
 ### Fixed
 
 - **Known Chains:**

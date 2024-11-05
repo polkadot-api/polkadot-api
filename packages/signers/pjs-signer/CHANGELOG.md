@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2024-11-05
+
 ### Added
 
 - Export method `getPolkadotSignerFromPjs`.

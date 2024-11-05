@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2024-11-05
+
 ### Changed
 
 - `createClient` will return the same client instance if called multiple times with the same provider (referential equality).
