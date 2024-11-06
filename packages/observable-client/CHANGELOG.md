@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.6.1 - 2024-11-05
+
+### Fixed
+
+- Fix caching issue on destroy
+
 ## 0.6.0 - 2024-11-05
 
 ### Changed

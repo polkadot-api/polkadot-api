@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.7.1 - 2024-11-06
+
+### Fixed
+
+- Patch `@polkadot-api/observable-client` bug
+
 ## 1.7.0 - 2024-11-05
 
 ### Added

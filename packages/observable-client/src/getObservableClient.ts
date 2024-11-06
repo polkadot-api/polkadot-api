@@ -49,10 +49,11 @@ export const getObservableClient = (
       cachedChainhead ||= getChainHead$(substrateClient.chainHead)
       const [result, start] = cachedChainhead
       if (expectedSubscribers === currentSubscribers) {
+        const copiedCurrentSubscribers = currentSubscribers
         currentSubscribers = 0
         expectedSubscribers = null
         cachedChainhead = null
-        start(currentSubscribers)
+        start(copiedCurrentSubscribers)
       }
       return result
     },

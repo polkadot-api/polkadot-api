@@ -397,8 +397,8 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         if (started == null) return
         nSubscribers--
         if (started && !nSubscribers) {
-          unfollow()
           started = null
+          unfollow()
         }
       },
     },
