@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.4 - 2024-11-07
+
 ### Fixed
 
 - Use @polkadot-api/smoldot-patch@100.0.0

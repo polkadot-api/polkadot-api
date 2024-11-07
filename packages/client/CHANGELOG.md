@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.7.2 - 2024-11-07
+
 ### Fixed
 
 - Patch `@polkadot-api/observable-client` connectable bug
