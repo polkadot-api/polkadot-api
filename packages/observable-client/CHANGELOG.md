@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.6.2 - 2024-11-07
+
+### Fixed
+
+- Make `follow$` a connectable observable.
+
 ## 0.6.1 - 2024-11-05
 
 ### Fixed

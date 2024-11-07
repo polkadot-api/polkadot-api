@@ -1,5 +1,5 @@
 import { Worker } from "node:worker_threads"
-import type { Chain, Client } from "smoldot"
+import type { Chain, Client } from "@polkadot-api/smoldot-patch"
 import type { RequestMessage, SmoldotOptions } from "./node-worker"
 
 const chainIds = new WeakMap<Chain, number>()

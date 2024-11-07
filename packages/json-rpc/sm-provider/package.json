@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/sm-provider",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -47,9 +47,9 @@
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*"
   },
   "peerDependencies": {
-    "smoldot": ">=2"
+    "@polkadot-api/smoldot": ">=0.3"
   },
   "devDependencies": {
-    "smoldot": "2.0.30"
+    "@polkadot-api/smoldot": "workspace:*"
   }
 }

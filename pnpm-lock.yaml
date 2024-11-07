@@ -493,9 +493,9 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
     devDependencies:
-      smoldot:
-        specifier: 2.0.30
-        version: 2.0.30
+      '@polkadot-api/smoldot':
+        specifier: workspace:*
+        version: link:../../smoldot
 
   packages/json-rpc/ws-provider:
     dependencies:
@@ -713,12 +713,12 @@ importers:
 
   packages/smoldot:
     dependencies:
+      '@polkadot-api/smoldot-patch':
+        specifier: 100.0.0
+        version: 100.0.0
       '@types/node':
         specifier: ^22.2.0
         version: 22.8.2
-      smoldot:
-        specifier: 2.0.30
-        version: 2.0.30
 
   packages/substrate-bindings:
     dependencies:
@@ -1320,6 +1320,9 @@ packages:
     resolution: {directory: integration-tests/zombie-tests/.papi/descriptors, type: directory}
     peerDependencies:
       polkadot-api: '*'
+
+  '@polkadot-api/smoldot-patch@100.0.0':
+    resolution: {integrity: sha512-68olKCnbmy5xw2PScg4f0qb3M4E9bm4LwU0kaUwmAp2obqiMwvbURNUahxvn3kUVOQXTX2cCc0OOsl7BR4XIhg==}
 
   '@polkadot-api/wasm-executor@0.1.1':
     resolution: {integrity: sha512-OuxbAkSRNLtJtsWDzKx7TEYlRXI2ApT9LcEFckaAr6E4aKLQ5TgbDDXWUvwl4A3AnjoUQx7ltYcsb8qR8UpMAg==}
@@ -2855,9 +2858,6 @@ packages:
     resolution: {integrity: sha512-bSiSngZ/jWeX93BqeIAbImyTbEihizcwNjFoRUIY/T1wWQsfsm2Vw1agPKylXvQTU7iASGdHhyqRlqQzfz+Htg==}
     engines: {node: '>=18'}
 
-  smoldot@2.0.30:
-    resolution: {integrity: sha512-5/KaEdIlTHg4+Hs8YovrCkwI+Y9QsKtoyWkHRqz15kXMZFsePf+KdMAPpDgReINK+at6t+D+uEVrCkd+r9JpyQ==}
-
   sort-keys@5.1.0:
     resolution: {integrity: sha512-aSbHV0DaBcr7u0PVHXzM6NbZNAtrr9sF6+Qfs9UUVG7Ll3jQ6hHi8F/xqIIcn2rvIVbr0v/2zyjSdwSV47AgLQ==}
     engines: {node: '>=12'}
@@ -3810,6 +3810,13 @@ snapshots:
   '@polkadot-api/descriptors@file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)':
     dependencies:
       polkadot-api: link:packages/client
+
+  '@polkadot-api/smoldot-patch@100.0.0':
+    dependencies:
+      ws: 8.18.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@polkadot-api/wasm-executor@0.1.1': {}
 
@@ -5384,13 +5391,6 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.1
       is-fullwidth-code-point: 5.0.0
-
-  smoldot@2.0.30:
-    dependencies:
-      ws: 8.18.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   sort-keys@5.1.0:
     dependencies:
