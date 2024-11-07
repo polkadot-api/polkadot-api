@@ -5,6 +5,7 @@
 ### Fixed
 
 - Patch `@polkadot-api/observable-client` connectable bug
+- Update dependencies (smoldot-patched)
 
 ## 1.7.1 - 2024-11-06
 

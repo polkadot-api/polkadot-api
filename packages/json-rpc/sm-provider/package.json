@@ -47,9 +47,9 @@
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*"
   },
   "peerDependencies": {
-    "smoldot": ">=2"
+    "@polkadot-api/smoldot": ">=0.3"
   },
   "devDependencies": {
-    "smoldot": "2.0.30"
+    "@polkadot-api/smoldot": "workspace:*"
   }
 }
