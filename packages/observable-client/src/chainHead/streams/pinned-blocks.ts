@@ -1,18 +1,8 @@
 import { shareLatest } from "@/utils"
-import { BlockHeader, HexString } from "@polkadot-api/substrate-bindings"
-import { FollowEventWithRuntime } from "@polkadot-api/substrate-client"
-import {
-  Observable,
-  Subject,
-  concatMap,
-  filter,
-  map,
-  merge,
-  of,
-  scan,
-} from "rxjs"
+import { HexString } from "@polkadot-api/substrate-bindings"
+import { Observable, Subject, filter, map, merge, scan } from "rxjs"
 import { withStopRecovery } from "../enhancers"
-import { retryOnStopError } from "./follow"
+import type { FollowEvent } from "./follow"
 import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
 
 export interface PinnedBlock {
@@ -96,15 +86,14 @@ const getBlocksToUnpin = (blocks: PinnedBlocks, pruned: string[]) => {
 }
 
 export const getPinnedBlocks$ = (
-  follow$: Observable<FollowEventWithRuntime>,
-  getHeader: (hash: string) => Promise<BlockHeader>,
+  follow$: Observable<FollowEvent>,
   call$: (hash: string, method: string, args: string) => Observable<string>,
   blockUsage$: Subject<BlockUsageEvent>,
   onUnpin: (blocks: string[]) => void,
 ) => {
   const pinnedBlocks$: Observable<PinnedBlocks> = merge(
     blockUsage$,
-    follow$.pipe(withInitializedNumber(getHeader), retryOnStopError()),
+    follow$,
   ).pipe(
     scan((acc, event) => {
       switch (event.type) {
@@ -253,18 +242,3 @@ const getInitialPinnedBlocks = (): PinnedBlocks => ({
   finalizedRuntime: {} as Runtime,
   recovering: false,
 })
-
-const withInitializedNumber =
-  (getHeader: (hash: string) => Promise<BlockHeader>) =>
-  (source$: Observable<FollowEventWithRuntime>) =>
-    source$.pipe(
-      concatMap((event) => {
-        return event.type !== "initialized"
-          ? of(event)
-          : getHeader(event.finalizedBlockHashes[0]).then((header) => ({
-              ...event,
-              number: header.number,
-              parentHash: header.parentHash,
-            }))
-      }),
-    )

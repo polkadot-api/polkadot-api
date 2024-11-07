@@ -1,7 +1,4 @@
-import {
-  Finalized,
-  FollowEventWithRuntime,
-} from "@polkadot-api/substrate-client"
+import { Finalized } from "@polkadot-api/substrate-client"
 import {
   Observable,
   filter,
@@ -13,12 +10,12 @@ import {
 } from "rxjs"
 import { BlockPrunedError, NotBestBlockError } from "../errors"
 import { isBestOrFinalizedBlock } from "../streams/block-operations"
-import { retryOnStopError } from "../streams/follow"
+import { FollowEvent } from "../streams/follow"
 import type { PinnedBlocks } from "../streams/pinned-blocks"
 
 export function withEnsureCanonicalChain<A extends Array<any>, T>(
   blocks$: Observable<PinnedBlocks>,
-  follow$: Observable<FollowEventWithRuntime>,
+  follow$: Observable<FollowEvent>,
   fn: (hash: string, ...args: A) => Observable<T>,
 ): (hash: string, ensureCanonical: boolean, ...args: A) => Observable<T> {
   return (hash: string, ensureCanonical, ...args: A) => {
@@ -27,7 +24,6 @@ export function withEnsureCanonicalChain<A extends Array<any>, T>(
           throwWhenPrune(
             hash,
             follow$.pipe(
-              retryOnStopError(),
               filter((evt): evt is Finalized => evt.type === "finalized"),
               mergeMap((evt) => evt.prunedBlockHashes),
             ),
