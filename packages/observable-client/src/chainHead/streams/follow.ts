@@ -13,7 +13,6 @@ import {
   connectable,
   noop,
   of,
-  share,
 } from "rxjs"
 
 const withInitializedNumber =
@@ -35,7 +34,15 @@ export const getFollow$ = (chainHead: ChainHead) => {
   let follower: FollowResponse | null = null
   let unfollow: () => void = noop
 
-  const _follow$ = connectable(
+  const getFollower = () => {
+    if (!follower) throw new Error("Missing chainHead subscription")
+    return follower
+  }
+
+  const getHeader = (hash: string) =>
+    getFollower().header(hash).then(blockHeader.dec)
+
+  const follow$ = connectable(
     new Observable<FollowEventWithRuntime>((observer) => {
       follower = chainHead(
         true,
@@ -51,29 +58,15 @@ export const getFollow$ = (chainHead: ChainHead) => {
         observer.complete()
         follower?.unfollow()
       }
-    }),
+    }).pipe(withInitializedNumber(getHeader), retryOnStopError()),
   )
 
   const startFollow = () => {
-    _follow$.connect()
+    follow$.connect()
     return () => {
       unfollow()
     }
   }
-
-  const getFollower = () => {
-    if (!follower) throw new Error("Missing chainHead subscription")
-    return follower
-  }
-
-  const getHeader = (hash: string) =>
-    getFollower().header(hash).then(blockHeader.dec)
-
-  const follow$ = _follow$.pipe(
-    withInitializedNumber(getHeader),
-    retryOnStopError(),
-    share(),
-  )
 
   return {
     getHeader,
