@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.9.17 - 2024-11-07
+
+- Patch dependencies (smoldot)
+
 ## 0.9.16 - 2024-11-07
 
 ### Fixed
