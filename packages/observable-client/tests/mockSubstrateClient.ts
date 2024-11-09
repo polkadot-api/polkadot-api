@@ -64,6 +64,7 @@ interface MockChainHeadMocks {
 }
 interface MockChainHead extends ChainHead {
   mock: MockChainHeadMocks
+  spy: Mock
 }
 
 const createMockChainHead = (): MockChainHead => {
@@ -107,7 +108,7 @@ const createMockChainHead = (): MockChainHead => {
     },
   }
 
-  const chainHead: ChainHead = (_, cb, onError) => {
+  const chainHead: Mock<ChainHead> = vi.fn((_, cb, onError) => {
     if (active) {
       throw new Error("Mock doesn't support multiple chainHead subscriptions")
     }
@@ -123,9 +124,13 @@ const createMockChainHead = (): MockChainHead => {
       unfollow: mock.unfollow,
       unpin: mock.unpin,
     }
-  }
+  })
 
-  return Object.assign(chainHead, { mock })
+  return Object.assign(
+    ((...args: Parameters<typeof chainHead>) =>
+      chainHead(...args)) as ChainHead,
+    { mock, spy: chainHead },
+  )
 }
 
 type MockOperationFn<T extends any[], R> = Mock<
