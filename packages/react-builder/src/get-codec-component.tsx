@@ -36,17 +36,19 @@ import { NOTIN } from "./types"
 
 export type MetadataType = V14 | V15
 
-export const enum CodecComponentType {
-  Initial,
-  Updated,
-}
+export const CodecComponentType = {
+  Initial: "Initial",
+  Updated: "Updated",
+} as const
+export type CodecComponentType =
+  (typeof CodecComponentType)[keyof typeof CodecComponentType]
 
 export type CodecComponentUpdate =
   | { empty: true }
   | { empty: false; decoded: any; encoded?: Uint8Array }
 export type CodecComponentValue =
-  | { type: CodecComponentType.Initial; value?: Uint8Array | HexString }
-  | { type: CodecComponentType.Updated; value: CodecComponentUpdate }
+  | { type: typeof CodecComponentType.Initial; value?: Uint8Array | HexString }
+  | { type: typeof CodecComponentType.Updated; value: CodecComponentUpdate }
 
 export type LookupType = Var["type"]
 
