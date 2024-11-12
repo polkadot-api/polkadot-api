@@ -14,6 +14,14 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
   program.name("polkadot-api").description("Polkadot API CLI")
 
   const config = new Option("--config <filename>", "Source for the config file")
+  const skipCodegen = new Option(
+    "--skip-codegen",
+    "Skip running codegen after adding",
+  )
+  const noDescriptorsPackage = new Option(
+    "--no-descriptors-package",
+    "Generate descriptors without installing them as a package",
+  )
 
   program
     .command("generate", {
@@ -25,6 +33,7 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
       "--whitelist <filename>",
       "Use whitelist file to reduce descriptor size",
     )
+    .addOption(noDescriptorsPackage)
     .action(generate)
 
   program
@@ -42,7 +51,8 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     )
     .option("--wasm <filename>", "Source from runtime wasm file")
     .option("--no-persist", "Do not persist the metadata as a file")
-    .option("--skip-codegen", "Skip running codegen after adding")
+    .addOption(skipCodegen)
+    .addOption(noDescriptorsPackage)
     .action(add)
 
   program
@@ -53,7 +63,8 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
       "Keys of the metadata files to update, separated by commas. Leave empty for all",
     )
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after updating")
+    .addOption(skipCodegen)
+    .addOption(noDescriptorsPackage)
     .action(update)
 
   program
@@ -61,7 +72,8 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .description("Remove a chain spec from the list")
     .argument("<key>", "Key identifier for the chain spec")
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after removing")
+    .addOption(skipCodegen)
+    .addOption(noDescriptorsPackage)
     .action(remove)
 
   const inkCommand = program
@@ -73,14 +85,16 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .argument("<file>", ".contract or .json metadata file for the contract")
     .option("-k, --key <key>", "Key identifier for the contract")
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after updating")
+    .addOption(skipCodegen)
+    .addOption(noDescriptorsPackage)
     .action(ink.add)
   inkCommand
     .command("remove")
     .description("Remove an ink contract")
     .argument("<key>", "Key identifier for the contract to remove")
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after updating")
+    .addOption(skipCodegen)
+    .addOption(noDescriptorsPackage)
     .action(ink.remove)
 
   return program

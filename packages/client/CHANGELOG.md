@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- cli: Option flag `--no-descriptors-package` to generate descriptors without installing them as a package.
+
 ## 1.7.3 - 2024-11-08
 
 - Patch dependencies (smoldot)
