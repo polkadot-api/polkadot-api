@@ -62,7 +62,7 @@ export async function generate(opts: GenerateOptions) {
 
   console.log(`Generating descriptors`)
   await cleanDescriptorsPackage(config.descriptorPath)
-  if (opts.descriptorsPackage) {
+  if (!config.options?.noDescriptorsPackage) {
     await addDescriptorsToPackageJson(config.descriptorPath)
   }
   const descriptorsDir = join(process.cwd(), config.descriptorPath)
@@ -85,7 +85,7 @@ export async function generate(opts: GenerateOptions) {
   await replacePackageJson(descriptorsDir, hash)
   await compileCodegen(descriptorsDir)
   await fs.rm(descriptorSrcDir, { recursive: true })
-  if (opts.descriptorsPackage) {
+  if (!config.options?.noDescriptorsPackage) {
     await runInstall()
     await flushBundlerCache()
   }

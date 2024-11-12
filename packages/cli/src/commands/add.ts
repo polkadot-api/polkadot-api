@@ -79,7 +79,6 @@ export async function add(key: string, options: AddOptions) {
   if (!options.skipCodegen) {
     generate({
       config: options.config,
-      descriptorsPackage: options.descriptorsPackage,
     })
   }
 }

@@ -18,10 +18,6 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     "--skip-codegen",
     "Skip running codegen after adding",
   )
-  const noDescriptorsPackage = new Option(
-    "--no-descriptors-package",
-    "Generate descriptors without installing them as a package",
-  )
 
   program
     .command("generate", {
@@ -33,7 +29,6 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
       "--whitelist <filename>",
       "Use whitelist file to reduce descriptor size",
     )
-    .addOption(noDescriptorsPackage)
     .action(generate)
 
   program
@@ -52,7 +47,6 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .option("--wasm <filename>", "Source from runtime wasm file")
     .option("--no-persist", "Do not persist the metadata as a file")
     .addOption(skipCodegen)
-    .addOption(noDescriptorsPackage)
     .action(add)
 
   program
@@ -64,7 +58,6 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     )
     .addOption(config)
     .addOption(skipCodegen)
-    .addOption(noDescriptorsPackage)
     .action(update)
 
   program
@@ -73,7 +66,6 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .argument("<key>", "Key identifier for the chain spec")
     .addOption(config)
     .addOption(skipCodegen)
-    .addOption(noDescriptorsPackage)
     .action(remove)
 
   const inkCommand = program
@@ -86,7 +78,6 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .option("-k, --key <key>", "Key identifier for the contract")
     .addOption(config)
     .addOption(skipCodegen)
-    .addOption(noDescriptorsPackage)
     .action(ink.add)
   inkCommand
     .command("remove")
@@ -94,7 +85,6 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .argument("<key>", "Key identifier for the contract to remove")
     .addOption(config)
     .addOption(skipCodegen)
-    .addOption(noDescriptorsPackage)
     .action(ink.remove)
 
   return program

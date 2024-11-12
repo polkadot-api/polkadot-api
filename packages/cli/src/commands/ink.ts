@@ -40,7 +40,6 @@ export const ink = {
     if (!options.skipCodegen) {
       generate({
         config: options.config,
-        descriptorsPackage: options.descriptorsPackage,
       })
     }
   },
@@ -64,7 +63,6 @@ export const ink = {
     if (!options.skipCodegen) {
       generate({
         config: options.config,
-        descriptorsPackage: options.descriptorsPackage,
       })
     }
   },

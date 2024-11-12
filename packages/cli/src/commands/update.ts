@@ -51,7 +51,6 @@ export async function update(
     console.log(`Updating descriptors`)
     await generate({
       config: options.config,
-      descriptorsPackage: options.descriptorsPackage,
     })
   }
 

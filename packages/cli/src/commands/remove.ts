@@ -18,7 +18,6 @@ export async function remove(key: string, options: CommonOptions) {
   if (!options.skipCodegen) {
     generate({
       config: options.config,
-      descriptorsPackage: options.descriptorsPackage,
     })
   }
 }

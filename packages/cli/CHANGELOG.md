@@ -4,7 +4,7 @@
 
 ### Added
 
-- Option flag `--no-descriptors-package` to generate descriptors without installing them as a package.
+- Option flag `noDescriptorsPackage: boolean` to generate descriptors without installing them as a package.
 
 ## 0.9.17 - 2024-11-07
 
