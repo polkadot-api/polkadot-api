@@ -515,6 +515,9 @@ importers:
 
   packages/known-chains:
     devDependencies:
+      '@polkadot-api/smoldot':
+        specifier: workspace:*
+        version: link:../smoldot
       '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../substrate-client
