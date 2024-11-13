@@ -22,7 +22,7 @@ describe("chain specs", () => {
   const waitForRuntime = async (chain: Chain | Promise<Chain>) => {
     return new Promise<() => void>((res, rej) => {
       const client = createClient(getSmProvider(chain))
-      const token = setTimeout(rej, 90_000)
+      const token = setTimeout(rej, 30_000)
       const { unfollow } = client.chainHead(
         true,
         (ev) => {
@@ -56,4 +56,4 @@ describe("chain specs", () => {
     parasDestroy.forEach((p) => p())
     destroy()
   })
-}, 180_000)
+}, 60_000)
