@@ -3,13 +3,15 @@
   "extends": ["//"],
   "tasks": {
     "build": {
+      "outputLogs": "new-only",
       "dependsOn": ["^build"],
-      "inputs": ["build.sh", "tsconfig.json", "src/**", "specs/**"],
+      "inputs": ["build.sh", "tsconfig.json", "src/index.ts", "specs/**"],
       "outputs": ["dist/**"]
     },
     "build-core": {
+      "outputLogs": "new-only",
       "dependsOn": ["^build-core"],
-      "inputs": ["build.sh", "tsconfig.json", "src/**", "specs/**"],
+      "inputs": ["build.sh", "tsconfig.json", "src/index.ts", "specs/**"],
       "outputs": ["dist/**"]
     }
   }
