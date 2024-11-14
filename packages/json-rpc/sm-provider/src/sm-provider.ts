@@ -1,8 +1,22 @@
-import type { Chain } from "@polkadot-api/smoldot"
+import {
+  AddChainError,
+  AlreadyDestroyedError,
+  CrashError,
+  JsonRpcDisabledError,
+  type Chain,
+} from "@polkadot-api/smoldot"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 let pending: Promise<Chain> | null
+
+const isRecoverable = (error: any) =>
+  !(
+    error instanceof AddChainError ||
+    error instanceof AlreadyDestroyedError ||
+    error instanceof CrashError ||
+    error instanceof JsonRpcDisabledError
+  )
 
 export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
   getSyncProvider(async () => {
@@ -23,7 +37,7 @@ export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
           try {
             message = await resolvedChain.nextJsonRpcResponse()
           } catch (e) {
-            if (listening) onError()
+            if (listening && isRecoverable(e)) onError()
             return
           }
           if (!listening) break
