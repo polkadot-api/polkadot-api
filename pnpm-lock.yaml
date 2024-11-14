@@ -515,6 +515,12 @@ importers:
 
   packages/known-chains:
     devDependencies:
+      '@polkadot-api/sm-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/sm-provider
+      '@polkadot-api/smoldot':
+        specifier: workspace:*
+        version: link:../smoldot
       '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../substrate-client
