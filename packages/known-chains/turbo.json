@@ -6,13 +6,13 @@
       "outputLogs": "new-only",
       "dependsOn": ["^build"],
       "inputs": ["build.sh", "tsconfig.json", "src/index.ts", "specs/**"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "src/specs/**"]
     },
     "build-core": {
       "outputLogs": "new-only",
       "dependsOn": ["^build-core"],
       "inputs": ["build.sh", "tsconfig.json", "src/index.ts", "specs/**"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "src/specs/**"]
     }
   }
 }

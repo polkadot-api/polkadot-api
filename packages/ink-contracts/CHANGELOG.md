@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Added missing ink metadata types.
+
 ## 0.2.0 - 2024-11-05
 
 ### Added
