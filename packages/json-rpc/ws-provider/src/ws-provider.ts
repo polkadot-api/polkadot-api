@@ -6,6 +6,7 @@ import {
   WsEvent,
   WsProviderConfig,
 } from "./types"
+import { followEnhancer } from "./follow-enhancer"
 
 const timeoutError: StatusChange = {
   type: WsEvent.ERROR,
@@ -169,6 +170,6 @@ export const getInternalWsProvider = (
       if (args.length) switchTo = args as any
       if (status.type !== WsEvent.ERROR) disconnect(true)
     }
-    return result
+    return followEnhancer(result)
   }
 }
