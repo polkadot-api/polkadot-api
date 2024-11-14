@@ -1,5 +1,4 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
-import { WsJsonRpcProvider } from "./types"
 
 const methods: Record<string, "follow" | "unfollow"> = {}
 ;["v1", "unstable"].forEach((version) => {
@@ -7,23 +6,15 @@ const methods: Record<string, "follow" | "unfollow"> = {}
   methods[`chainHead_${version}_unfollow`] = "unfollow"
 })
 
-export const followEnhancer: (input: WsJsonRpcProvider) => WsJsonRpcProvider = (
-  base,
-) => {
-  const { getStatus } = base
+export const followEnhancer: (
+  input: JsonRpcProvider,
+  forceDisconnect: () => void,
+) => JsonRpcProvider & {
+  cleanup: () => void
+} = (base, forceDisconnect) => {
   const prematureStops = new Set<string>()
   const preOpId = new Set<string>()
   const onGoing = new Set<string>()
-
-  const clear = () => {
-    prematureStops.clear()
-    preOpId.clear()
-    onGoing.clear()
-  }
-  const enhancedSwitch: typeof base.switch = (...args) => {
-    clear()
-    base.switch(...args)
-  }
 
   const result: JsonRpcProvider = (onMsg) => {
     const { send, disconnect } = base((fromProvider) => {
@@ -46,7 +37,7 @@ export const followEnhancer: (input: WsJsonRpcProvider) => WsJsonRpcProvider = (
             )
           else if (parsed.error) {
             console.warn(`chainHead follow failed on the ${currentSize} sub`)
-            Promise.resolve().then(() => enhancedSwitch())
+            Promise.resolve().then(forceDisconnect)
             return
           }
         }
@@ -72,15 +63,15 @@ export const followEnhancer: (input: WsJsonRpcProvider) => WsJsonRpcProvider = (
         }
         send(toProvider)
       },
-      disconnect() {
-        clear()
-        disconnect()
-      },
+      disconnect,
     }
   }
 
   return Object.assign(result, {
-    getStatus,
-    switch: enhancedSwitch,
+    cleanup: () => {
+      prematureStops.clear()
+      preOpId.clear()
+      onGoing.clear()
+    },
   })
 }
