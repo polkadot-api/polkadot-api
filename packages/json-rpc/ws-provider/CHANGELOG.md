@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Added an internal `followEnhancer` to address issues with certain RPC providers where misconfigured middlewares incorrectly trigger errors on `chainHead_v1_follow` requests, even though the client hasn't reached the 2-subscription limit.
+
 ## 0.3.4 - 2024-10-31
 
 ### Added
