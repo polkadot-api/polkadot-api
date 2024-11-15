@@ -2,9 +2,20 @@
 
 ## Unreleased
 
+## 1.7.4 - 2024-11-15
+
 ### Fixed
 
-- Update dependencies.
+- **WS Provider:**
+
+  - Address issues with certain RPC providers where misconfigured middlewares incorrectly trigger errors on `chainHead_v1_follow` requests, even though the client hasn't reached the 2-subscription limit.
+
+- **SM Provider:**
+
+  - Prevent the smoldot provider from entering in an infinite loop when either smoldot or the chain crashes.
+
+- **ink**
+  - Add missing metadata `source` type.
 
 ## 1.7.3 - 2024-11-08
 

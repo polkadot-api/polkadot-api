@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.6 - 2024-11-15
+
 ### Fixed
 
 - Prevent the smoldot provider from entering in an infinite loop when either smoldot or the chain crashes.
