@@ -46,12 +46,13 @@ export const getProxy: ReconnectableJsonRpcConnection = (
       const parsed = JSON.parse(msg)
       if ("id" in parsed) {
         if (
+          "result" in parsed &&
           state.onGoingRequests.get(parsed.id)?.type ===
-          OngoingMsgType.ChainHeadFollow
+            OngoingMsgType.ChainHeadFollow
         )
           state.activeChainHeads.add(parsed.result)
         state.onGoingRequests.delete(parsed.id)
-      } else {
+      } else if ("params" in parsed) {
         const { subscription, result } = parsed.params
         if (result?.event === "stop")
           state.activeChainHeads.delete(subscription)
