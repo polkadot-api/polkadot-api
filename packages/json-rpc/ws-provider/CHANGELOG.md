@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `followEnhancer` should resend the errored chainHead_v1_follow request.
+
 ## 0.3.5 - 2024-11-15
 
 ### Fixed
