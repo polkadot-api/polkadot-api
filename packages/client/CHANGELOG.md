@@ -4,8 +4,10 @@
 
 ### Fixed
 
-- **WS providers:**
+- **WS provider:**
   - `followEnhancer` should resend the errored chainHead_v1_follow request
+- **Smoldot:**
+  - Update smoldot to `2.0.32`
 - **Chains:**
   - Update `lightSyncState`
 
