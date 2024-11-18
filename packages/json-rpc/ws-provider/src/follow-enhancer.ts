@@ -13,7 +13,7 @@ export const followEnhancer: (
   cleanup: () => void
 } = (base, forceDisconnect) => {
   const prematureStops = new Set<string>()
-  const preOpId = new Set<string>()
+  const preOpId = new Map<string, string>()
   const onGoing = new Set<string>()
 
   const result: JsonRpcProvider = (onMsg) => {
@@ -22,7 +22,8 @@ export const followEnhancer: (
       // it's a response
       if ("id" in parsed) {
         const { id, result } = parsed
-        if (preOpId.has(id)) {
+        const msg = preOpId.get(id)
+        if (msg) {
           preOpId.delete(id)
           if (prematureStops.has(result)) {
             prematureStops.delete(result)
@@ -37,7 +38,9 @@ export const followEnhancer: (
             )
           else if (parsed.error) {
             console.warn(`chainHead follow failed on the ${currentSize} sub`)
-            Promise.resolve().then(forceDisconnect)
+            forceDisconnect()
+            preOpId.set(id, msg)
+            send(msg)
             return
           }
         }
@@ -57,7 +60,7 @@ export const followEnhancer: (
         const parsed = JSON.parse(toProvider)
         const method = methods[parsed.method]
         if (method === "follow") {
-          preOpId.add(parsed.id)
+          preOpId.set(parsed.id, toProvider)
         } else if (method === "unfollow") {
           onGoing.delete(parsed.params[0])
         }
