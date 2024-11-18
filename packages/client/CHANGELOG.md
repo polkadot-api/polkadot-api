@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.7.5 - 2024-11-18
+
 ### Fixed
 
 - **WS provider:**
