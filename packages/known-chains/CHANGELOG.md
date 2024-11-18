@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.7 - 2024-11-18
+
 ### Fixed
 
 - `chains`: Update `lightSyncState`
