@@ -724,11 +724,11 @@ importers:
   packages/smoldot:
     dependencies:
       '@types/node':
-        specifier: ^22.2.0
+        specifier: ^22.9.0
         version: 22.9.0
       smoldot:
-        specifier: 2.0.31
-        version: 2.0.31
+        specifier: 2.0.32
+        version: 2.0.32
 
   packages/substrate-bindings:
     dependencies:
@@ -2491,8 +2491,8 @@ packages:
     resolution: {integrity: sha512-bSiSngZ/jWeX93BqeIAbImyTbEihizcwNjFoRUIY/T1wWQsfsm2Vw1agPKylXvQTU7iASGdHhyqRlqQzfz+Htg==}
     engines: {node: '>=18'}
 
-  smoldot@2.0.31:
-    resolution: {integrity: sha512-nkPbjTb1G0hGji0/GwJELIehkXGIDh/X8PK/p3RjnklvUj4NrbdNuKx3K+PFATgbL7dfhSSYoFFdJ7Ql0T7zWQ==}
+  smoldot@2.0.32:
+    resolution: {integrity: sha512-1Cc0QJiKJr108GxTfG0aS/T7wbae7BJhPfs9B6etjKt2do75LdMtKhgx0Ou/BYmELGbmbhqoFlclPaubUK7PRA==}
 
   sort-keys@5.1.0:
     resolution: {integrity: sha512-aSbHV0DaBcr7u0PVHXzM6NbZNAtrr9sF6+Qfs9UUVG7Ll3jQ6hHi8F/xqIIcn2rvIVbr0v/2zyjSdwSV47AgLQ==}
@@ -4560,7 +4560,7 @@ snapshots:
       ansi-styles: 6.2.1
       is-fullwidth-code-point: 5.0.0
 
-  smoldot@2.0.31:
+  smoldot@2.0.32:
     dependencies:
       ws: 8.18.0
     transitivePeerDependencies:

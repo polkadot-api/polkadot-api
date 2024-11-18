@@ -2,7 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update smoldot to `2.0.32`
+
 ## 0.3.5 - 2024-11-08
+
+### Fixed
 
 - Use smoldot@2.0.31
 
