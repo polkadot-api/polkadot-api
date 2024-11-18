@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/smoldot",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -82,7 +82,7 @@
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
-    "@types/node": "^22.2.0",
-    "smoldot": "2.0.31"
+    "@types/node": "^22.9.0",
+    "smoldot": "2.0.32"
   }
 }

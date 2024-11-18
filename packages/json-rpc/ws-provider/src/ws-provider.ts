@@ -6,6 +6,7 @@ import {
   WsEvent,
   WsProviderConfig,
 } from "./types"
+import { followEnhancer } from "./follow-enhancer"
 
 const timeoutError: StatusChange = {
   type: WsEvent.ERROR,
@@ -53,122 +54,131 @@ export const getInternalWsProvider = (
     let switchTo: [string] | [string, string | string[]] | null = null
     let disconnect: (withHalt?: boolean) => void = noop
 
-    const result = getSyncProvider(async () => {
-      const [uri, protocols] = switchTo || endpoints[idx++ % endpoints.length]
-      switchTo = null
-      const socket = new WebsocketClass(uri, protocols)
-      const forceSocketClose = () => {
-        try {
-          socket.addEventListener("error", noop, { once: true })
-          socket.close()
-        } catch {}
-      }
-      onStatusChanged(
-        (status = {
-          type: WsEvent.CONNECTING,
-          uri,
-          protocols,
-        }),
-      )
-
-      await new Promise<void>((resolve, reject) => {
-        const onOpen = () => {
-          initialCleanup()
-          resolve()
+    let outerCleanup: () => void = noop
+    const result = followEnhancer(
+      getSyncProvider(async () => {
+        const [uri, protocols] = switchTo || endpoints[idx++ % endpoints.length]
+        switchTo = null
+        const socket = new WebsocketClass(uri, protocols)
+        const forceSocketClose = () => {
+          try {
+            socket.addEventListener("error", noop, { once: true })
+            socket.close()
+          } catch {}
         }
+        onStatusChanged(
+          (status = {
+            type: WsEvent.CONNECTING,
+            uri,
+            protocols,
+          }),
+        )
 
-        const onError = (e: Event | null) => {
-          initialCleanup()
-          if (e == null) forceSocketClose()
-          console.error(
-            `Unable to connect to ${uri}${
-              protocols ? ", protocols: " + protocols : ""
-            }`,
-          )
-          onStatusChanged(
-            (status = {
-              type: e ? WsEvent.ERROR : WsEvent.CLOSE,
-              event: e,
-            }),
-          )
-          setTimeout(reject, e ? 300 : 0, e)
-        }
+        await new Promise<void>((resolve, reject) => {
+          const onOpen = () => {
+            initialCleanup()
+            resolve()
+          }
 
-        const timeoutToken =
-          timeout !== Infinity
-            ? setTimeout(() => {
-                initialCleanup()
-                forceSocketClose()
-                onStatusChanged((status = timeoutError))
-                reject(timeoutError.event)
-              }, timeout)
-            : undefined
-
-        const initialCleanup = () => {
-          clearTimeout(timeoutToken)
-          socket.removeEventListener("error", onError)
-          socket.removeEventListener("open", onOpen)
-        }
-        socket.addEventListener("open", onOpen)
-        socket.addEventListener("error", onError)
-        disconnect = () => {
-          onError(null)
-        }
-      })
-
-      onStatusChanged(
-        (status = {
-          type: WsEvent.CONNECTED,
-          uri,
-          protocols,
-        }),
-      )
-
-      return (onMessage, onHalt) => {
-        const _onMessage = (e: MessageEvent) => {
-          if (typeof e.data === "string") onMessage(e.data)
-        }
-        const innerHalt =
-          (reason: WsEvent.CLOSE | WsEvent.ERROR) => (e: any) => {
-            console.warn(`WS halt (${reason})`)
+          const onError = (e: Event | null) => {
+            initialCleanup()
+            if (e == null) forceSocketClose()
+            console.error(
+              `Unable to connect to ${uri}${
+                protocols ? ", protocols: " + protocols : ""
+              }`,
+            )
             onStatusChanged(
               (status = {
-                type: reason,
+                type: e ? WsEvent.ERROR : WsEvent.CLOSE,
                 event: e,
               }),
             )
-            onHalt()
+            setTimeout(reject, e ? 300 : 0, e)
           }
-        const onError = innerHalt(WsEvent.ERROR)
-        const onClose = innerHalt(WsEvent.CLOSE)
 
-        socket.addEventListener("message", _onMessage)
-        socket.addEventListener("error", onError)
-        socket.addEventListener("close", onClose)
-        disconnect = (withHalt) => {
-          disconnect = noop
-          socket.removeEventListener("message", _onMessage)
-          socket.removeEventListener("error", onError)
-          socket.removeEventListener("close", onClose)
-          forceSocketClose()
-          if (withHalt) onClose({})
+          const timeoutToken =
+            timeout !== Infinity
+              ? setTimeout(() => {
+                  initialCleanup()
+                  forceSocketClose()
+                  onStatusChanged((status = timeoutError))
+                  reject(timeoutError.event)
+                }, timeout)
+              : undefined
+
+          const initialCleanup = () => {
+            clearTimeout(timeoutToken)
+            socket.removeEventListener("error", onError)
+            socket.removeEventListener("open", onOpen)
+          }
+          socket.addEventListener("open", onOpen)
+          socket.addEventListener("error", onError)
+          disconnect = () => {
+            onError(null)
+          }
+        })
+
+        onStatusChanged(
+          (status = {
+            type: WsEvent.CONNECTED,
+            uri,
+            protocols,
+          }),
+        )
+
+        return (onMessage, onHalt) => {
+          const _onMessage = (e: MessageEvent) => {
+            if (typeof e.data === "string") onMessage(e.data)
+          }
+          const innerHalt =
+            (reason: WsEvent.CLOSE | WsEvent.ERROR) => (e: any) => {
+              console.warn(`WS halt (${reason})`)
+              onStatusChanged(
+                (status = {
+                  type: reason,
+                  event: e,
+                }),
+              )
+              onHalt()
+            }
+          const onError = innerHalt(WsEvent.ERROR)
+          const onClose = innerHalt(WsEvent.CLOSE)
+
+          socket.addEventListener("message", _onMessage)
+          socket.addEventListener("error", onError)
+          socket.addEventListener("close", onClose)
+          disconnect = (withHalt) => {
+            outerCleanup()
+            disconnect = noop
+            socket.removeEventListener("message", _onMessage)
+            socket.removeEventListener("error", onError)
+            socket.removeEventListener("close", onClose)
+            forceSocketClose()
+            if (withHalt) onClose({})
+          }
+
+          return {
+            send: (msg) => {
+              socket.send(msg)
+            },
+            disconnect,
+          }
         }
+      }),
+      () => {
+        switchFn()
+      },
+    )
+    outerCleanup = result.cleanup
+    delete (result as any).cleanup
 
-        return {
-          send: (msg) => {
-            socket.send(msg)
-          },
-          disconnect,
-        }
-      }
-    }) as WsJsonRpcProvider
-
-    result.getStatus = () => status
-    result.switch = (...args) => {
+    const switchFn: WsJsonRpcProvider["switch"] = (...args) => {
       if (status.type === WsEvent.CLOSE) return
       if (args.length) switchTo = args as any
       if (status.type !== WsEvent.ERROR) disconnect(true)
     }
-    return result
+
+    return Object.assign(result, { switch: switchFn, getStatus: () => status })
   }
 }

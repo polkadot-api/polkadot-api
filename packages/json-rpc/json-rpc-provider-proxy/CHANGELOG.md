@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.4 - 2024-10-18
+
+### Fixed
+
+- Properly handle errored requests.
+
 ## 0.2.3 - 2024-10-05
 
 ### Fixed
