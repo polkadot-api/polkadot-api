@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- **WS providers:**
+  - `followEnhancer` should resend the errored chainHead_v1_follow request
 - **Chains:**
   - Update `lightSyncState`
 
@@ -12,13 +14,9 @@
 ### Fixed
 
 - **WS Provider:**
-
   - Address issues with certain RPC providers where misconfigured middlewares incorrectly trigger errors on `chainHead_v1_follow` requests, even though the client hasn't reached the 2-subscription limit.
-
 - **SM Provider:**
-
   - Prevent the smoldot provider from entering in an infinite loop when either smoldot or the chain crashes.
-
 - **ink**
   - Add missing metadata `source` type.
 
@@ -87,17 +85,12 @@
 
 - `getEstimatedFees` and `getPaymentInfo` work with chains that have "exotic" extrinsics.
 
-- ** Signer:**
-
+- **Signer:**
   - Handle "exotic" extrinsics
-
-- ** PJS Signer:**
-
+- **PJS Signer:**
   - Expose "ethereum" addresses
   - Handle "exotic" extrinsics
-
 - **Chains:**
-
   - Update `lightSyncState` and some bootnodes
 
 ### Added
@@ -127,9 +120,7 @@
 ### Added
 
 - **PolkadotSDK compat:**
-
   - Add `withNumericIds` enhancer: it ensures that all the ids that are produced from the client are numbers. This is, obvsiously, [shouldn't be necessary](https://www.jsonrpc.org/specification#request_object). However, some RPC endpoints are not JSON-RPC compliant.
-
 - **PJS Signer:**
   - Ability to pass the DApp name to `connectInjectedExtension`.[791](https://github.com/polkadot-api/polkadot-api/pull/791)
 
