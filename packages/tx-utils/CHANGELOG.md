@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.0.5 - 2024-11-20
+
+### Fixed
+
+- Account for `CheckTxVersion`
+
 ## 0.0.4 - 2024-10-29
 
 ### Fixed
