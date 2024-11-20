@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix incompatible error on storage.getEntries with partial compatibility level.
+
 ## 1.7.6 - 2024-11-19
 
 ### Fixed
