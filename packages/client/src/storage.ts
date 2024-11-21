@@ -309,16 +309,17 @@ export const createStorageEntry = (
       null,
       (values, ctx) => {
         const codecs = getCodec(ctx)
+        const decodedValues = values.map(({ key, value }) => ({
+          keyArgs: codecs.keyDecoder(key),
+          value: codecs.dec(value),
+        }))
         if (
-          values.some(
+          decodedValues.some(
             ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
           )
         )
           throw incompatibleError()
-        return values.map(({ key, value }) => ({
-          keyArgs: codecs.keyDecoder(key),
-          value: codecs.dec(value),
-        }))
+        return decodedValues
       },
     )
     return firstValueFromWithSignal(result$, signal)
