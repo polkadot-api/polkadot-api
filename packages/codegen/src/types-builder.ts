@@ -37,6 +37,13 @@ export const defaultDeclarations = (): CodeDeclarations => ({
   takenNames: new Set(),
 })
 
+const opaqueHashers = new Set<string>([
+  "Blake2128",
+  "Blake2256",
+  "Twox128",
+  "Twox256",
+])
+
 export const getTypesBuilder = (
   declarations: CodeDeclarations,
   getLookupEntryDef: MetadataLookup,
@@ -158,7 +165,15 @@ export const getTypesBuilder = (
       return {
         key: "[]",
         val: `${buildTypeDefinition(storageEntry.type.value)}`,
+        opaque: '""',
       }
+
+    const hashers = storageEntry.type.value.hashers
+    const opaque =
+      hashers
+        .map((x, idx) => (opaqueHashers.has(x.tag) ? `"${idx}"` : null))
+        .filter(Boolean)
+        .join(" | ") || '""'
 
     const { key, value } = storageEntry.type.value
     const val = buildTypeDefinition(value)
@@ -168,7 +183,7 @@ export const getTypesBuilder = (
         ? `[Key: ${buildTypeDefinition(key)}]`
         : buildTypeDefinition(key)
 
-    return { key: returnKey, val }
+    return { key: returnKey, val, opaque }
   }
 
   const buildRuntimeCall = (api: string, method: string) => {
@@ -366,6 +381,7 @@ export const getDocsTypesBuilder = (
 
     if (storageEntry.type.tag === "plain")
       return {
+        opaque: '""',
         args: "[]",
         payload: `${buildTypeDefinition(storageEntry.type.value)}`,
       }
@@ -373,12 +389,19 @@ export const getDocsTypesBuilder = (
     const { key, value } = storageEntry.type.value
     const payload = buildTypeDefinition(value)
 
+    const hashers = storageEntry.type.value.hashers
+    const opaque =
+      hashers
+        .map((x, idx) => (opaqueHashers.has(x.tag) ? `"${idx}"` : null))
+        .filter(Boolean)
+        .join(" | ") || '""'
+
     const returnKey =
-      storageEntry.type.value.hashers.length === 1
+      hashers.length === 1
         ? `[Key: ${buildTypeDefinition(key)}]`
         : buildTypeDefinition(key)
 
-    return { args: returnKey, payload }
+    return { args: returnKey, payload, opaque }
   }
 
   const buildRuntimeCall = (api: string, method: string) => {
