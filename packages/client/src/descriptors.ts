@@ -1,11 +1,13 @@
 import type { DescriptorValues } from "@polkadot-api/codegen"
+import type { OpaqueKeyHash } from "@polkadot-api/substrate-bindings"
 
 export type PlainDescriptor<T> = { _type?: T }
 export type StorageDescriptor<
   Args extends Array<any>,
   T,
   Optional extends true | false,
-> = { _type: T; _args: Args; _optional: Optional }
+  Opaque extends string,
+> = { _type: T; _args: Args; _optional: Optional; _Opaque: Opaque }
 
 export type TxDescriptor<Args extends {} | undefined> = {
   ___: Args
@@ -17,7 +19,7 @@ export type RuntimeDescriptor<Args extends Array<any>, T> = [Args, T]
 export type DescriptorEntry<T> = Record<string, Record<string, T>>
 
 export type PalletsTypedef<
-  St extends DescriptorEntry<StorageDescriptor<any, any, any>>,
+  St extends DescriptorEntry<StorageDescriptor<any, any, any, any>>,
   Tx extends DescriptorEntry<TxDescriptor<any>>,
   Ev extends DescriptorEntry<PlainDescriptor<any>>,
   Err extends DescriptorEntry<PlainDescriptor<any>>,
@@ -46,16 +48,20 @@ export type ChainDefinition = {
 }
 
 type ExtractStorage<
-  T extends DescriptorEntry<StorageDescriptor<any, any, any>>,
+  T extends DescriptorEntry<StorageDescriptor<any, any, any, any>>,
 > = {
   [K in keyof T]: {
     [KK in keyof T[K]]: T[K][KK] extends StorageDescriptor<
       infer Key,
       infer Value,
-      infer Optional
+      infer Optional,
+      infer Opaque
     >
       ? {
           KeyArgs: Key
+          KeyArgsOut: {
+            [K in keyof Key]: K extends Opaque ? OpaqueKeyHash : Key[K]
+          }
           Value: Value
           IsOptional: Optional
         }

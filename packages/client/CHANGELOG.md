@@ -5,6 +5,7 @@
 ### Fixed
 
 - Fix incompatible error on storage.getEntries with partial compatibility level.
+- Handle storage entries that use opaque hashers.
 
 ## 1.7.6 - 2024-11-19
 

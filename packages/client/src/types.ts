@@ -34,6 +34,7 @@ export type StorageApi<
       string,
       | {
           KeyArgs: Array<any>
+          KeyArgsOut: Array<any>
           Value: any
           IsOptional: false | true
         }
@@ -44,6 +45,7 @@ export type StorageApi<
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {
       KeyArgs: Array<any>
+      KeyArgsOut: Array<any>
       Value: any
       IsOptional: false | true
     }
@@ -51,6 +53,7 @@ export type StorageApi<
           Unsafe,
           D,
           A[K][KK]["KeyArgs"],
+          A[K][KK]["KeyArgsOut"],
           A[K][KK]["IsOptional"] extends true
             ? A[K][KK]["Value"] | undefined
             : A[K][KK]["Value"]
@@ -130,7 +133,7 @@ export type AnyApi<Unsafe extends true | false, D> = D extends ChainDefinition
       >
     }
   : {
-      query: UnsafeEntry<StorageEntryWithKeys<true, D, any, any>>
+      query: UnsafeEntry<StorageEntryWithKeys<true, D, any, any, any>>
       tx: UnsafeEntry<UnsafeTxEntry<D, any, string, string, any>>
       txFromCallData: TxFromBinary<Unsafe, any>
       event: UnsafeEntry<EvClient<true, D, any>>
