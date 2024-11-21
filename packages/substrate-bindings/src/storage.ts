@@ -1,10 +1,33 @@
-import { mergeUint8, toHex } from "@polkadot-api/utils"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { Codec, Decoder } from "scale-ts"
-import { Blake2128Concat, Identity, Twox128, Twox64Concat } from "./hashes"
+import {
+  Blake2128,
+  Blake2128Concat,
+  Blake2256,
+  Identity,
+  Twox128,
+  Twox256,
+  Twox64Concat,
+} from "./hashes"
 
 export type EncoderWithHash<T> = [Codec<T>, (input: Uint8Array) => Uint8Array]
 
 const textEncoder = new TextEncoder()
+
+// the value indicates:
+// - when positive: the number of bytes to skip before reaching the transparent-encoded key
+// - when negative: the number of bytes that the opaque hasher will generate
+const hashers: Map<(input: Uint8Array) => Uint8Array, number> = new Map([
+  [Identity, 0],
+  [Twox64Concat, 8],
+  [Blake2128Concat, 16],
+  [Blake2128, -16],
+  [Blake2256, -32],
+  [Twox128, -16],
+  [Twox256, -32],
+])
+
+export type OpaqueKeyHash = string & { __opaqueKeyHash?: unknown }
 
 export const Storage = (pallet: string) => {
   const palledEncoded = Twox128(textEncoder.encode(pallet))
@@ -29,21 +52,6 @@ export const Storage = (pallet: string) => {
     )
 
     const palletItemEncodedHex = toHex(palletItemEncoded)
-    const bytesToSkip = encoders
-      .map((e) => e[1])
-      .map((x) => {
-        switch (x) {
-          case Identity:
-            return 0
-          case Twox64Concat:
-            return 8
-          case Blake2128Concat:
-            return 16
-          default:
-            return null
-        }
-      })
-      .filter((x) => x !== null)
 
     const keyDecoder = (
       key: string,
@@ -53,18 +61,23 @@ export const Storage = (pallet: string) => {
       if (!key.startsWith(palletItemEncodedHex))
         throw new Error(`key does not match this storage (${pallet}.${name})`)
 
-      if (bytesToSkip.length !== encoders.length)
-        throw new Error("Impossible to decode this key")
-
       if (encoders.length === 0) return [] as any
 
-      const argsKey = key.slice(palletItemEncodedHex.length)
+      const argsKey = fromHex(key.slice(palletItemEncodedHex.length))
       const result = new Array<any>(encoders.length)
-      for (let i = 0, cur = 0; i < bytesToSkip.length; i++) {
-        const codec = encoders[i][0]
-        cur += bytesToSkip[i]
-        result[i] = codec.dec(argsKey.slice(cur * 2))
-        cur += codec.enc(result[i]).length
+      for (let i = 0, cur = 0; i < encoders.length; i++) {
+        const [codec, hasher] = encoders[i]
+        const hBytes = hashers.get(hasher)
+        if (hBytes == null) throw new Error("Uknown hasher")
+        if (hBytes < 0) {
+          const opaqueBytes = hBytes * -1
+          result[i] = toHex(argsKey.slice(cur, cur + opaqueBytes))
+          cur += opaqueBytes
+        } else {
+          cur += hBytes
+          result[i] = codec.dec(argsKey.slice(cur))
+          cur += codec.enc(result[i]).length
+        }
       }
       return result as any
     }
