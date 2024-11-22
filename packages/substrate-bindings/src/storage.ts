@@ -68,7 +68,7 @@ export const Storage = (pallet: string) => {
       for (let i = 0, cur = 0; i < encoders.length; i++) {
         const [codec, hasher] = encoders[i]
         const hBytes = hashers.get(hasher)
-        if (hBytes == null) throw new Error("Uknown hasher")
+        if (hBytes == null) throw new Error("Unknown hasher")
         if (hBytes < 0) {
           const opaqueBytes = hBytes * -1
           result[i] = toHex(argsKey.slice(cur, cur + opaqueBytes))
