@@ -13,6 +13,7 @@ import {
   CheckMetadataHash,
   CheckNonce,
   CheckSpecVersion,
+  CheckTxVersion,
 } from "./chain"
 import { TxData } from "@/types"
 import { SignedExtension } from "./internal-types"
@@ -42,6 +43,8 @@ export const getSignedExtensionParts = (
           return ChargeTransactionPayment(tip)
         case "CheckMortality":
           return CheckMortality(mortality)
+        case "CheckTxVersion":
+          return CheckTxVersion(lookup)
       }
 
       if (

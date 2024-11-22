@@ -6,6 +6,17 @@
 
 - cli: Option flag `noDescriptorsPackage` to generate descriptors without installing them as a package.
 
+### Fixed
+
+- Fix incompatible error on storage.getEntries with partial compatibility level.
+
+## 1.7.6 - 2024-11-19
+
+### Fixed
+
+- **Smoldot:**
+  - Update smoldot to `2.0.33`
+
 ## 1.7.5 - 2024-11-18
 
 ### Fixed
