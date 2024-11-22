@@ -6,9 +6,14 @@
 
 - cli: Option flag `noDescriptorsPackage` to generate descriptors without installing them as a package.
 
+## 1.7.7 - 2024-11-22
+
 ### Fixed
 
 - Fix incompatible error on storage.getEntries with partial compatibility level.
+- Handle storage entries that use opaque hashers.
+- **Chains:**
+  - Update `lightSyncState`
 
 ## 1.7.6 - 2024-11-19
 

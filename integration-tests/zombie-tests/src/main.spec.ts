@@ -24,6 +24,7 @@ import { createClient as createRawClient } from "@polkadot-api/substrate-client"
 import { MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
+import { fromHex } from "@polkadot-api/utils"
 
 const smoldot = start()
 
@@ -404,5 +405,13 @@ describe("E2E", async () => {
 
       expect(finalNonce).toBe(intialNonce + 2)
     }
+  })
+
+  it("queries opaque storage entries", async () => {
+    const entries =
+      await api.query.CoretimeAssignmentProvider.CoreDescriptors.getEntries()
+    entries
+
+    expect(entries.every((x) => !!fromHex(x.keyArgs[0]))).toBe(true)
   })
 })

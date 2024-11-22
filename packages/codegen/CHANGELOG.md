@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.9 - 2024-11-22
+
+### Fixed
+
+- Account for storage entries that use opaque hashers.
+
 ## 0.12.8 - 2024-11-15
 
 ### Fixed

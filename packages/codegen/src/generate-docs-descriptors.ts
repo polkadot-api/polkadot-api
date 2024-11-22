@@ -311,14 +311,14 @@ async function buildStorage(
                 ]
               }
 
-              const { args, payload } = docsTypesBuilder.buildStorage(
+              const { args, payload, opaque } = docsTypesBuilder.buildStorage(
                 pallet.name,
                 name,
               )
               return [
                 name,
                 {
-                  type: `StorageDescriptor<${args}, ${payload}, ${!modifier}>`,
+                  type: `StorageDescriptor<${args}, ${payload}, ${!modifier}, ${opaque}>`,
                   docs,
                 },
               ]
