@@ -37,6 +37,7 @@ export const defaultDeclarations = (): CodeDeclarations => ({
   takenNames: new Set(),
 })
 
+const NEVER_STR = "never"
 const opaqueHashers = new Set<string>([
   "Blake2128",
   "Blake2256",
@@ -165,7 +166,7 @@ export const getTypesBuilder = (
       return {
         key: "[]",
         val: `${buildTypeDefinition(storageEntry.type.value)}`,
-        opaque: '""',
+        opaque: NEVER_STR,
       }
 
     const hashers = storageEntry.type.value.hashers
@@ -173,7 +174,7 @@ export const getTypesBuilder = (
       hashers
         .map((x, idx) => (opaqueHashers.has(x.tag) ? `"${idx}"` : null))
         .filter(Boolean)
-        .join(" | ") || '""'
+        .join(" | ") || NEVER_STR
 
     const { key, value } = storageEntry.type.value
     const val = buildTypeDefinition(value)
@@ -381,7 +382,7 @@ export const getDocsTypesBuilder = (
 
     if (storageEntry.type.tag === "plain")
       return {
-        opaque: '""',
+        opaque: NEVER_STR,
         args: "[]",
         payload: `${buildTypeDefinition(storageEntry.type.value)}`,
       }
@@ -394,7 +395,7 @@ export const getDocsTypesBuilder = (
       hashers
         .map((x, idx) => (opaqueHashers.has(x.tag) ? `"${idx}"` : null))
         .filter(Boolean)
-        .join(" | ") || '""'
+        .join(" | ") || NEVER_STR
 
     const returnKey =
       hashers.length === 1
