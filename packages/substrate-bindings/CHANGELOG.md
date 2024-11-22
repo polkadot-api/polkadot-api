@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.4 - 2024-11-22
+
 ### Fixed
 
 - Handle storage entries that use opaque hashers.
