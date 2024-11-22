@@ -660,6 +660,24 @@ importers:
         specifier: ^22.9.1
         version: 22.9.1
 
+  packages/signers/multisig-signer:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../../metadata-builders
+      '@polkadot-api/polkadot-signer':
+        specifier: workspace:*
+        version: link:../polkadot-signer
+      '@polkadot-api/signers-common':
+        specifier: workspace:*
+        version: link:../signers-common
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
+
   packages/signers/pjs-signer:
     dependencies:
       '@polkadot-api/metadata-builders':
