@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+## 0.6.3 - 2024-11-22
+
+### Fixed
+
+- Update dependencies
+
+## 0.6.2 - 2024-11-07
+
+### Fixed
+
+- Make `follow$` a connectable observable.
+
+## 0.6.1 - 2024-11-05
+
+### Fixed
+
+- Fix caching issue on destroy
+
+## 0.6.0 - 2024-11-05
+
+### Changed
+
+- `getObservableClient` will return the same client instance if called multiple times with the same substrate client.
+- Allow multiple subscribers on the same `chainHead` subscription.
+
+## 0.5.14 - 2024-10-29
+
+### Fixed
+
+- Update dependencies
+
+## 0.5.13 - 2024-10-24
+
 ### Fixed
 
 - Add types of topics for SystemEvent

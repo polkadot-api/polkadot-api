@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+## 0.1.5 - 2024-11-22
+
+### Fixed
+
+- Fix storage docs generation
+
+## 0.1.4 - 2024-11-22
+
+### Fixed
+
+- Update dependencies
+
+## 0.1.3 - 2024-11-18
+
+### Fixed
+
+- Update dependencies
+
+## 0.1.2 - 2024-11-05
+
+### Fixed
+
+- Update dependencies.
+
+## 0.1.1 - 2024-10-29
+
+### Fixed
+
+- Update dependencies
+
 ## 0.1.0 - 2024-10-24
 
 ### Fixed

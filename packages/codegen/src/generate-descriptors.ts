@@ -81,9 +81,12 @@ export const generateDescriptors = (
         pallet.name,
         Object.fromEntries(
           pallet.storage?.items.map(({ name, modifier, docs }) => {
-            const { key, val } = typesBuilder.buildStorage(pallet.name, name)
+            const { key, val, opaque } = typesBuilder.buildStorage(
+              pallet.name,
+              name,
+            )
             const checksum = checksumBuilder.buildStorage(pallet.name, name)!
-            const type = `StorageDescriptor<${key}, ${val}, ${!modifier}>`
+            const type = `StorageDescriptor<${key}, ${val}, ${!modifier}, ${opaque}>`
             return [
               name,
               {

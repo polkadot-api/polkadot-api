@@ -82,6 +82,7 @@ export type StorageEntryWithKeys<
   D,
   Args extends Array<any>,
   Payload,
+  ArgsOut extends Array<any>,
 > = {
   /**
    * Get `Payload` (Promise-based) for the storage entry with a specific set of
@@ -131,17 +132,18 @@ export type StorageEntryWithKeys<
    */
   getEntries: (
     ...args: WithCallOptions<PossibleParents<Args>>
-  ) => Promise<Array<{ keyArgs: Args; value: NonNullable<Payload> }>>
+  ) => Promise<Array<{ keyArgs: ArgsOut; value: NonNullable<Payload> }>>
 } & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
 export type StorageEntry<
   Unsafe,
   D,
   Args extends Array<any>,
+  ArgsOut extends Array<any>,
   Payload,
 > = Args extends []
   ? StorageEntryWithoutKeys<Unsafe, D, Payload>
-  : StorageEntryWithKeys<Unsafe, D, Args, Payload>
+  : StorageEntryWithKeys<Unsafe, D, Args, Payload, ArgsOut>
 
 export type Storage$ = <Type extends StorageItemInput["type"]>(
   hash: string | null,
@@ -163,7 +165,7 @@ export const createStorageEntry = (
     argsAreCompatible,
     valuesAreCompatible,
   }: CompatibilityHelper,
-): StorageEntry<any, any, any, any> => {
+): StorageEntry<any, any, any, any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
   const sysNumberMapper$ = chainHead.runtime$.pipe(
     filter(Boolean),
@@ -309,16 +311,17 @@ export const createStorageEntry = (
       null,
       (values, ctx) => {
         const codecs = getCodec(ctx)
+        const decodedValues = values.map(({ key, value }) => ({
+          keyArgs: codecs.keyDecoder(key),
+          value: codecs.dec(value),
+        }))
         if (
-          values.some(
+          decodedValues.some(
             ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
           )
         )
           throw incompatibleError()
-        return values.map(({ key, value }) => ({
-          keyArgs: codecs.keyDecoder(key),
-          value: codecs.dec(value),
-        }))
+        return decodedValues
       },
     )
     return firstValueFromWithSignal(result$, signal)

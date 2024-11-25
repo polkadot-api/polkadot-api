@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## 0.5.8 - 2024-11-22
+
+### Fixed
+
+- `chains`: Update `lightSyncState`
+
+## 0.5.7 - 2024-11-18
+
+### Fixed
+
+- `chains`: Update `lightSyncState`
+
+## 0.5.6 - 2024-11-05
+
+### Fixed
+
+- Update dependencies.
+- Fixed Paseo `ss58Format` field on the chainspecs
+
 ## 0.5.5 - 2024-10-24
 
 ### Fixed

@@ -301,7 +301,7 @@ async function buildStorage(
                 return [
                   "Events",
                   {
-                    type: `StorageDescriptor<[], any, ${!modifier}>`,
+                    type: `StorageDescriptor<[], any, ${!modifier}, "never">`,
                     docs: [
                       ...docs,
                       "",
@@ -311,14 +311,14 @@ async function buildStorage(
                 ]
               }
 
-              const { args, payload } = docsTypesBuilder.buildStorage(
+              const { args, payload, opaque } = docsTypesBuilder.buildStorage(
                 pallet.name,
                 name,
               )
               return [
                 name,
                 {
-                  type: `StorageDescriptor<${args}, ${payload}, ${!modifier}>`,
+                  type: `StorageDescriptor<${args}, ${payload}, ${!modifier}, ${opaque}>`,
                   docs,
                 },
               ]
@@ -426,7 +426,7 @@ function getIndexFileDocs({ chainName }: { chainName: string }): string {
  * Storage queries reference
  * 
  * Each item described here is a
- *\`StorageDescriptor<[Args, ReturnType, Optional>\`  
+ *\`StorageDescriptor<Args, ReturnType, Optional, Opaque>\`  
  * For example, \`System.Account\` is of type
  * \`\`\`ts
  * Account: StorageDescriptor<[Key: SS58String], {
@@ -440,7 +440,7 @@ function getIndexFileDocs({ chainName }: { chainName: string }): string {
  *     nonce: number;
  *     providers: number;
  *     sufficients: number;
- * }, false>
+ * }, false, "never">
  * \`\`\`
  * and can be queried via
  * \`\`\`ts

@@ -2,6 +2,98 @@
 
 ## Unreleased
 
+## 1.7.7 - 2024-11-22
+
+### Fixed
+
+- Fix incompatible error on storage.getEntries with partial compatibility level.
+- Handle storage entries that use opaque hashers.
+- **Chains:**
+  - Update `lightSyncState`
+
+## 1.7.6 - 2024-11-19
+
+### Fixed
+
+- **Smoldot:**
+  - Update smoldot to `2.0.33`
+
+## 1.7.5 - 2024-11-18
+
+### Fixed
+
+- **WS provider:**
+  - `followEnhancer` should resend the errored chainHead_v1_follow request
+- **Smoldot:**
+  - Update smoldot to `2.0.32`
+- **Chains:**
+  - Update `lightSyncState`
+
+## 1.7.4 - 2024-11-15
+
+### Fixed
+
+- **WS Provider:**
+  - Address issues with certain RPC providers where misconfigured middlewares incorrectly trigger errors on `chainHead_v1_follow` requests, even though the client hasn't reached the 2-subscription limit.
+- **SM Provider:**
+  - Prevent the smoldot provider from entering in an infinite loop when either smoldot or the chain crashes.
+- **ink**
+  - Add missing metadata `source` type.
+
+## 1.7.3 - 2024-11-08
+
+- Patch dependencies (smoldot)
+
+## 1.7.2 - 2024-11-07
+
+### Fixed
+
+- Patch `@polkadot-api/observable-client` connectable bug
+- Update dependencies (smoldot-patched)
+
+## 1.7.1 - 2024-11-06
+
+### Fixed
+
+- Patch `@polkadot-api/observable-client` bug
+
+## 1.7.0 - 2024-11-05
+
+### Added
+
+- New sub-package `polkadot-api/ink` for ink! contracts
+
+### Fixed
+
+- **Known Chains:**
+  - Use correct `ss58Format` on Paseo chainspecs
+- Update dependencies.
+
+## 1.6.7 - 2024-10-31
+
+### Added
+
+- **WS Provider:**
+  - New interface `WsProviderConfig` and and overload which accepts this interface. This config interface allows to setup the desired timeout time at which the WebSocket should retry the connection.
+
+### Fixed
+
+- **WS Provider:**
+  - Close socket connection when internal timeout is reached to prevent race-conditions.
+  - Close socket connection when switching connections before the previous connection has been established.
+
+## 1.6.6 - 2024-10-31
+
+- Accidental release
+
+## 1.6.5 - 2024-10-29
+
+### Fixed
+
+- Update dependencies (fix `scale-ts`)
+
+## 1.6.4 - 2024-10-24
+
 ### Fixed
 
 - Edge-case problem with signed-extensions
@@ -13,17 +105,12 @@
 
 - `getEstimatedFees` and `getPaymentInfo` work with chains that have "exotic" extrinsics.
 
-- ** Signer:**
-
+- **Signer:**
   - Handle "exotic" extrinsics
-
-- ** PJS Signer:**
-
+- **PJS Signer:**
   - Expose "ethereum" addresses
   - Handle "exotic" extrinsics
-
 - **Chains:**
-
   - Update `lightSyncState` and some bootnodes
 
 ### Added
@@ -53,9 +140,7 @@
 ### Added
 
 - **PolkadotSDK compat:**
-
   - Add `withNumericIds` enhancer: it ensures that all the ids that are produced from the client are numbers. This is, obvsiously, [shouldn't be necessary](https://www.jsonrpc.org/specification#request_object). However, some RPC endpoints are not JSON-RPC compliant.
-
 - **PJS Signer:**
   - Ability to pass the DApp name to `connectInjectedExtension`.[791](https://github.com/polkadot-api/polkadot-api/pull/791)
 

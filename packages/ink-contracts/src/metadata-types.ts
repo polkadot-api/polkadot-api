@@ -1,10 +1,13 @@
+import { HexString } from "@polkadot-api/substrate-bindings"
 import { PjsTypes } from "./metadata-pjs-types"
 
 interface InkMetadataV4 {
+  source: InkSource
   spec: InkSpecV4
   storage: RootLayout
   types: PjsTypes
   version: "4"
+  user?: Record<string, unknown>
 }
 
 interface InkSpecV4 {
@@ -12,10 +15,12 @@ interface InkSpecV4 {
   messages: MessageSpec[]
   environment: EnvironmentSpecV4
   events: EventSpecV4[]
+  docs: string[]
   lang_error: TypeSpec
 }
 
 interface InkMetadataV5 {
+  source: InkSource
   spec: InkSpecV5
   storage: RootLayout
   types: PjsTypes
@@ -23,6 +28,24 @@ interface InkMetadataV5 {
 }
 
 export type InkMetadata = InkMetadataV4 | InkMetadataV5
+
+export interface InkSource {
+  hash: HexString
+  language: string
+  compiler: string
+  wasm?: HexString
+  build_info?: Record<string, unknown>
+}
+
+export interface InkContractInfo {
+  name: string
+  version: string
+  authors: string[]
+  description?: string
+  repository?: string
+  homepage?: string
+  license?: string
+}
 
 interface InkSpecV5 {
   constructors: ConstructorSpec[]

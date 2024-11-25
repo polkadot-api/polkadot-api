@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.6.1 - 2024-11-22
+
+### Fixed
+
+- Update dependencies
+
+## 0.6.0 - 2024-11-05
+
+### Added
+
+- Export method `getPolkadotSignerFromPjs`.
+
+## 0.5.2 - 2024-10-29
+
+### Fixed
+
+- Update dependencies
+
 ## 0.5.1 - 2024-10-24
 
 ### Fixed

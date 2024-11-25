@@ -9,6 +9,12 @@ describe("storage", () => {
     async (hash, pallet, name) => {
       vi.doMock("@/hashes", () => ({
         Twox128: (_: Uint8Array) => hash,
+        Identity: (_: Uint8Array) => hash,
+        Twox64Concat: (_: Uint8Array) => hash,
+        Blake2128Concat: (_: Uint8Array) => hash,
+        Blake2128: (_: Uint8Array) => hash,
+        Blake2256: (_: Uint8Array) => hash,
+        Twox256: (_: Uint8Array) => hash,
       }))
 
       const { Storage } = await import(`@/storage?${Date.now()}`)
@@ -31,6 +37,9 @@ describe("storage", () => {
       Identity: (_: Uint8Array) => hash,
       Twox64Concat: (_: Uint8Array) => hash,
       Blake2128Concat: (_: Uint8Array) => hash,
+      Blake2128: (_: Uint8Array) => hash,
+      Blake2256: (_: Uint8Array) => hash,
+      Twox256: (_: Uint8Array) => hash,
     }))
 
     const { Storage } = await import(`@/storage?${Date.now()}`)

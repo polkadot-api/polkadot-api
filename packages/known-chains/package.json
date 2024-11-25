@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/known-chains",
-  "version": "0.5.5",
+  "version": "0.5.8",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
@@ -8,9 +8,11 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@polkadot-api/sm-provider": "workspace:*",
+    "@polkadot-api/smoldot": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^22.5.5"
+    "@types/node": "^22.9.0"
   },
   "exports": {
     ".": {
@@ -156,7 +158,7 @@
   "scripts": {
     "build-core": "node prepare-specs.mjs && bash build.sh",
     "build": "pnpm build-core",
-    "test": "echo 'no tests'",
+    "test": "vitest",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"

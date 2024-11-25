@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## 0.12.10 - 2024-11-22
+
+### Fixed
+
+- Fix storage docs generation
+
+## 0.12.9 - 2024-11-22
+
+### Fixed
+
+- Account for storage entries that use opaque hashers.
+
+## 0.12.8 - 2024-11-15
+
+### Fixed
+
+- Update dependencies
+
+## 0.12.7 - 2024-10-29
+
 ### Fixed
 
 - Update dependencies

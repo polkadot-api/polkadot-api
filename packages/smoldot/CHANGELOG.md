@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+## 0.3.7 - 2024-11-19
+
+### Fixed
+
+- Update smoldot to `2.0.33`
+
+## 0.3.6 - 2024-11-18
+
+### Fixed
+
+- Update smoldot to `2.0.32`
+
+## 0.3.5 - 2024-11-08
+
+### Fixed
+
+- Use smoldot@2.0.31
+
+## 0.3.4 - 2024-11-07
+
+### Fixed
+
+- Use @polkadot-api/smoldot-patch@100.0.0
+
 ## 0.3.3 - 2024-10-05
 
 ### Fixed

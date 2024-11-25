@@ -10,11 +10,7 @@ import {
   mapLookupToTypedef,
   valueIsCompatibleWithDest,
 } from "@polkadot-api/metadata-compatibility"
-import {
-  ChainHead$,
-  getObservableClient,
-  RuntimeContext,
-} from "@polkadot-api/observable-client"
+import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
 import { Tuple, Vector } from "@polkadot-api/substrate-bindings"
 import { Observable, combineLatest, filter, firstValueFrom, map } from "rxjs"
 import { ChainDefinition } from "./descriptors"
@@ -70,7 +66,7 @@ const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
 
 export const createCompatibilityToken = <D extends ChainDefinition>(
   chainDefinition: D,
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
 ): Promise<CompatibilityToken<D>> => {
   const awaitedRuntime = new Promise<() => RuntimeContext>(async (resolve) => {
     const loadedRuntime$ = chainHead.runtime$.pipe(filter((v) => v != null))
@@ -105,7 +101,7 @@ export const createCompatibilityToken = <D extends ChainDefinition>(
 }
 
 export const createRuntimeToken = <D>(
-  chainHead: ReturnType<ReturnType<typeof getObservableClient>["chainHead$"]>,
+  chainHead: ChainHead$,
 ): Promise<RuntimeToken<D>> => {
   const awaitedRuntime = new Promise<() => RuntimeContext>(async (resolve) => {
     const loadedRuntime$ = chainHead.runtime$.pipe(filter((v) => v != null))

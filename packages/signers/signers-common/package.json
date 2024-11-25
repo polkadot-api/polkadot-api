@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/signers-common",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -43,12 +43,12 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^1.5.0"
+    "@noble/curves": "^1.6.0"
   }
 }

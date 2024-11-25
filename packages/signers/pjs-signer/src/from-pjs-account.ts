@@ -1,3 +1,5 @@
+import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { createV4Tx } from "@polkadot-api/signers-common"
 import {
   AccountId,
   Blake2256,
@@ -6,21 +8,8 @@ import {
   decAnyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
-import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
 import { SignPayload, SignRaw, SignerPayloadJSON } from "./types"
-import { createV4Tx } from "@polkadot-api/signers-common"
-
-export const getAddressFormat = (metadata: V14 | V15): number => {
-  const dynamicBuilder = getDynamicBuilder(getLookupFn(metadata))
-
-  const constant = metadata.pallets
-    .find((x) => x.name === "System")!
-    .constants!.find((s) => s.name === "SS58Prefix")!
-
-  return dynamicBuilder.buildDefinition(constant.type).dec(constant.value)
-}
 
 const accountIdEnc = AccountId().enc
 const getPublicKey = (address: string) =>

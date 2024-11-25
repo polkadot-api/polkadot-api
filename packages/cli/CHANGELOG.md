@@ -6,6 +6,65 @@
 
 - Update dependencies
 
+## 0.9.21 - 2024-11-22
+
+### Fixed
+
+- Update dependencies
+
+## 0.9.20 - 2024-11-19
+
+### Fixed
+
+- Update dependencies
+
+## 0.9.19 - 2024-11-18
+
+### Fixed
+
+- Update dependencies
+
+## 0.9.18 - 2024-11-15
+
+### Fixed
+
+- Update dependencies
+
+## 0.9.17 - 2024-11-07
+
+- Patch dependencies (smoldot)
+
+## 0.9.16 - 2024-11-07
+
+### Fixed
+
+- Patch `@polkadot-api/observable-client` connectable bug
+- Update dependencies (smoldot-patched)
+
+## 0.9.15 - 2024-11-06
+
+### Fixed
+
+- Patch `@polkadot-api/observable-client` bug
+
+## 0.9.14 - 2024-11-05
+
+### Fixed
+
+- Update dependencies
+
+## 0.9.13 - 2024-10-29
+
+### Fixed
+
+- Update dependencies
+
+## 0.9.12 - 2024-10-24
+
+### Fixed
+
+- Update dependencies
+
 ## 0.9.11 - 2024-10-24
 
 ### Fixed
