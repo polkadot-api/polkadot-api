@@ -5,6 +5,8 @@
 ### Added
 
 - cli: Option flag `noDescriptorsPackage` to generate descriptors without installing them as a package.
+- **Chains:**
+  - Add Paseo People chain
 
 ## 1.7.7 - 2024-11-22
 
