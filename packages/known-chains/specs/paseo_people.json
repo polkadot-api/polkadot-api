@@ -5,8 +5,6 @@
   "bootNodes": [
     "/dns/people-paseo-boot-ng.dwellir.com/tcp/443/wss/p2p/12D3KooWDsLbDyD8QLvvPW7L9s7tw8BKyFGh6UcPDm1LzWypY49u",
     "/dns/people-paseo-boot-ng.dwellir.com/tcp/30371/p2p/12D3KooWDsLbDyD8QLvvPW7L9s7tw8BKyFGh6UcPDm1LzWypY49u",
-    "/dns/boot.metaspan.io/tcp/10853/p2p/12D3KooWSM9tHdhSCS5YrtYZrMb9Kst1fUsBAJZkFjDHdt9bBk6A",
-    "/dns/boot.metaspan.io/tcp/10856/wss/p2p/12D3KooWSM9tHdhSCS5YrtYZrMb9Kst1fUsBAJZkFjDHdt9bBk6A",
     "/dns/boot-node.helikon.io/tcp/10410/p2p/12D3KooWA3z8dVdADkDTN4xgpTkDo3AtsTq6o8nn7Xx54GjXXBgK",
     "/dns/boot-node.helikon.io/tcp/10412/wss/p2p/12D3KooWA3z8dVdADkDTN4xgpTkDo3AtsTq6o8nn7Xx54GjXXBgK",
     "/dns/people-paseo-bootnode.turboflakes.io/tcp/30840/p2p/12D3KooWPHNzviPuVsEsWNQQYL9gvfQ4BATKzYik3bh2p95pqvAJ",
