@@ -17,7 +17,7 @@
     "/dns/people-paseo.boot.rotko.net/tcp/30435/wss/p2p/12D3KooWBbvBNSaUZsHoXfBYV1GdtAKRHDGb4eKiiG4nPJi5i2a7"
   ],
   "telemetryEndpoints": null,
-  "protocolId": "pc-pas",
+  "protocolId": null,
   "properties": {
     "ss58Format": 0,
     "tokenDecimals": 10,
