@@ -6,6 +6,10 @@
 
 - Option flag `noDescriptorsPackage: boolean` to generate descriptors without installing them as a package.
 
+### Fixed
+
+- Update dependencies
+
 ## 0.9.21 - 2024-11-22
 
 ### Fixed
