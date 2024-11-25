@@ -4,7 +4,6 @@ import {
   Struct,
   compact,
   u32,
-  Option,
   compactBn,
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
@@ -42,7 +41,7 @@ export const CheckTxVersion = ({
 
 const assetTxPaymentDec = Struct({
   tip: compact,
-  asset: Option(Bytes(Infinity)),
+  asset: Bytes(Infinity),
 }).dec
 
 export const ChargeAssetTxPayment = ({

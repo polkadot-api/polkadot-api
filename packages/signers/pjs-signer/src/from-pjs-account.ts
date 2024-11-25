@@ -90,6 +90,7 @@ export function getPolkadotSignerFromPjs(
     pjs.version = version
     pjs.withSignedTransaction = true // we allow the wallet to change the payload
 
+    console.warn(pjs)
     const result = await signPayload(pjs as SignerPayloadJSON)
     const tx = result.signedTransaction
     if (tx) return typeof tx === "string" ? fromHex(tx) : tx
