@@ -62,6 +62,9 @@ export async function generate(opts: GenerateOptions) {
 
   console.log(`Generating descriptors`)
   await cleanDescriptorsPackage(config.descriptorPath)
+  if (!config.options?.noDescriptorsPackage) {
+    await addDescriptorsToPackageJson(config.descriptorPath)
+  }
   const descriptorsDir = join(process.cwd(), config.descriptorPath)
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
@@ -82,8 +85,10 @@ export async function generate(opts: GenerateOptions) {
   await replacePackageJson(descriptorsDir, hash)
   await compileCodegen(descriptorsDir)
   await fs.rm(descriptorSrcDir, { recursive: true })
-  await runInstall()
-  await flushBundlerCache()
+  if (!config.options?.noDescriptorsPackage) {
+    await runInstall()
+    await flushBundlerCache()
+  }
 }
 
 async function cleanDescriptorsPackage(path: string) {
@@ -98,6 +103,13 @@ async function cleanDescriptorsPackage(path: string) {
     )
   }
 
+  const distDir = join(descriptorsDir, "dist")
+  if (existsSync(distDir)) {
+    await fs.rm(distDir, { recursive: true })
+  }
+}
+
+async function addDescriptorsToPackageJson(path: string) {
   const [packageJson, protocol] = await Promise.all([
     readPackage(),
     getPackageProtocol(),
@@ -111,11 +123,6 @@ async function cleanDescriptorsPackage(path: string) {
         "@polkadot-api/descriptors": packageSource,
       },
     })
-  }
-
-  const distDir = join(descriptorsDir, "dist")
-  if (existsSync(distDir)) {
-    await fs.rm(distDir, { recursive: true })
   }
 }
 
