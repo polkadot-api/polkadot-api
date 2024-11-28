@@ -1,4 +1,5 @@
 import {
+  MonoTypeOperatorFunction,
   Observable,
   catchError,
   concatMap,
@@ -26,17 +27,21 @@ const operable = <T>(source$: Observable<T>) => {
 export const getWithOptionalhash$ = (
   finalized$: Observable<string>,
   best$: Observable<string>,
+  usingBlock: <T>(blockHash: string) => MonoTypeOperatorFunction<T>,
 ) => {
   return <Args extends Array<any>, T>(
       fn: (hash: string, ...args: Args) => Observable<T>,
     ) =>
     (hash: string | null, ...args: Args) => {
-      if (!dynamicBlocks.has(hash)) return operable(fn(hash as string, ...args))
+      if (!dynamicBlocks.has(hash))
+        return operable(fn(hash as string, ...args)).pipe(
+          usingBlock(hash as string),
+        )
 
       const hash$ = hash === "best" ? best$ : finalized$
       const result$: Observable<T> = hash$.pipe(
         take(1),
-        mergeMap((h) => fn(h, ...args)),
+        mergeMap((h) => fn(h, ...args).pipe(usingBlock(h))),
         catchError((e) => {
           return e instanceof BlockNotPinnedError
             ? result$
