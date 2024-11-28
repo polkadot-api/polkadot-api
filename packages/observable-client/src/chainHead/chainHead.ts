@@ -7,6 +7,7 @@ import {
   StorageResult,
 } from "@polkadot-api/substrate-client"
 import {
+  MonoTypeOperatorFunction,
   Observable,
   ReplaySubject,
   Subject,
@@ -72,24 +73,33 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const { withRecovery, withRecoveryFn } = getWithRecovery()
 
   const blockUsage$ = new Subject<BlockUsageEvent>()
+  const holdBlock = (hash: string) => {
+    blockUsage$.next({ type: "blockUsage", value: { type: "hold", hash } })
+    return () => {
+      setTimeout(() => {
+        blockUsage$.next({
+          type: "blockUsage",
+          value: { type: "release", hash },
+        })
+      }, 0)
+    }
+  }
+
+  const usingBlock: <T>(blockHash: string) => MonoTypeOperatorFunction<T> =
+    (blockHash: string) => (base) =>
+      new Observable((observer) => {
+        const release = holdBlock(blockHash)
+        const subscription = base.subscribe(observer)
+        subscription.add(release)
+        return subscription
+      })
+
   const withRefcount =
     <A extends Array<any>, T>(
       fn: (hash: string, ...args: A) => Observable<T>,
     ): ((hash: string, ...args: A) => Observable<T>) =>
     (hash, ...args) =>
-      new Observable((observer) => {
-        blockUsage$.next({ type: "blockUsage", value: { type: "hold", hash } })
-        const subscription = fn(hash, ...args).subscribe(observer)
-        return () => {
-          setTimeout(() => {
-            blockUsage$.next({
-              type: "blockUsage",
-              value: { type: "release", hash },
-            })
-          }, 0)
-          subscription.unsubscribe()
-        }
-      })
+      fn(hash, ...args).pipe(usingBlock(hash))
 
   const withInMemory =
     <A extends Array<any>, T>(
@@ -191,10 +201,10 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
     cache.set(hash, hashCache)
 
-    const connector = new ReplaySubject<T>()
+    let connector: ReplaySubject<T>
     const result = stream.pipe(
       share({
-        connector: () => connector,
+        connector: () => (connector = new ReplaySubject()),
       }),
       tap({
         complete() {
@@ -258,6 +268,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const withOptionalHash$ = getWithOptionalhash$(
     finalized$.pipe(map((b) => b.hash)),
     best$.pipe(map((b) => b.hash)),
+    usingBlock,
   )
 
   const _body$ = withOptionalHash$(commonEnhancer(lazyFollower("body")))
@@ -301,20 +312,16 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
   const recoveralStorage$ = getRecoveralStorage$(getFollower, withRecovery)
   const storageQueries$ = withOptionalHash$(
-    withRefcount(
-      withStopRecovery(
-        pinnedBlocks$,
-        (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
-          recoveralStorage$(hash, queries, childTrie ?? null, false),
-      ),
+    withStopRecovery(
+      pinnedBlocks$,
+      (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
+        recoveralStorage$(hash, queries, childTrie ?? null, false),
     ),
   )
 
   const header$ = withOptionalHash$(
-    withRefcount(
-      withStopRecovery(pinnedBlocks$, (hash: string) =>
-        defer(() => getHeader(hash)),
-      ),
+    withStopRecovery(pinnedBlocks$, (hash: string) =>
+      defer(() => getHeader(hash)),
     ),
   )
 
@@ -387,6 +394,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       storageQueries$,
       eventsAt$: withCanonicalChain(eventsAt$),
 
+      holdBlock,
       trackTx$,
       trackTxWithoutEvents$,
       validateTx$,
