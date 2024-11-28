@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Update dependencies
+
 - **Smoldot:**
   - Update smoldot to `2.0.34`
 

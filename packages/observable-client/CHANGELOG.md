@@ -6,6 +6,7 @@
 
 ### Fixed
 
+- "Fix" `storageQueries` to account for https://github.com/paritytech/polkadot-sdk/issues/6683
 - Update dependencies
 
 ## 0.6.2 - 2024-11-07

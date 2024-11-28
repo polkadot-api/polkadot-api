@@ -32,16 +32,18 @@ export const getRecoveralStorage$ = (
             observer.complete()
           },
           (nDiscarded) => {
-            if (nDiscarded === 0) return
-
-            observer.next(
-              recoveralStorage$(
-                hash,
-                queries.slice(-nDiscarded),
-                childTrie,
-                true,
-              ),
-            )
+            // TODO: leave it like this b/c due to a bug on
+            // PolkadotSDK sometimes this value is `undefined`
+            // https://github.com/paritytech/polkadot-sdk/issues/6683
+            if (nDiscarded > 0)
+              observer.next(
+                recoveralStorage$(
+                  hash,
+                  queries.slice(-nDiscarded),
+                  childTrie,
+                  true,
+                ),
+              )
           },
         ),
     ).pipe(mergeAll(), withRecovery(isHighPriority))
