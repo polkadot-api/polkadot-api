@@ -5,10 +5,11 @@ import type {
   HexString,
   StringRecord,
 } from "@polkadot-api/substrate-bindings"
-import {
+import type {
   ArrayDecoded,
   ArrayShape,
   BytesArrayDecoded,
+  BytesArrayShape,
   ComplexDecoded,
   ComplexShape,
   Decoded,
@@ -41,6 +42,10 @@ export type WithShapeWithoutExtra<T extends PrimitiveDecoded> = Decoder<
 }
 type PrimitiveShapeDecoder = WithShapeWithoutExtra<PrimitiveDecoded>
 
+type BytesArrayShapedDecoder = Decoder<WithoutExtra<BytesArrayDecoded>> & {
+  shape: BytesArrayShape
+}
+
 type SequenceShapedDecoder = Decoder<WithoutExtra<SequenceDecoded>> & {
   shape: SequenceShape
 }
@@ -66,6 +71,7 @@ type EnumShapedDecoder = Decoder<WithoutExtra<EnumDecoded>> & {
   shape: EnumShape
 }
 type ComplexShapedDecoder =
+  | BytesArrayShapedDecoder
   | SequenceShapedDecoder
   | ArrayShapedDecoder
   | TupleShapedDecoder
@@ -159,8 +165,10 @@ export const AccountIdShaped = (ss58Prefix = 42) => {
   return primitiveShapedDecoder("AccountId", enhanced, {})
 }
 
-const BytesArray = (len: number): WithShapeWithoutExtra<BytesArrayDecoded> =>
-  primitiveShapedDecoder("BytesArray", scale.Hex.dec(len), { len })
+const BytesArray = (len: number): BytesArrayShapedDecoder =>
+  complexShapedDecoder({ codec: "BytesArray", len }, scale.Hex.dec(len), {
+    len,
+  })
 
 const _primitives = [
   "_void",
