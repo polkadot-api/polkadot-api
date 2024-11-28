@@ -201,10 +201,10 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
     cache.set(hash, hashCache)
 
-    const connector = new ReplaySubject<T>()
+    let connector: ReplaySubject<T>
     const result = stream.pipe(
       share({
-        connector: () => connector,
+        connector: () => (connector = new ReplaySubject()),
       }),
       tap({
         complete() {
