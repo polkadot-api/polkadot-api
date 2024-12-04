@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Add block hash and operation for BlockNotPinned error.
+
 ## 1.8.2 - 2025-01-13
 
 ### Fixed
