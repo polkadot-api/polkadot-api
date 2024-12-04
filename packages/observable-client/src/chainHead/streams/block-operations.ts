@@ -1,4 +1,4 @@
-import { Observable, distinctUntilChanged, filter, map, takeWhile } from "rxjs"
+import { Observable, distinctUntilChanged, map, takeWhile } from "rxjs"
 import { PinnedBlocks } from "./pinned-blocks"
 
 export const isBestOrFinalizedBlock = (
@@ -10,10 +10,13 @@ export const isBestOrFinalizedBlock = (
     distinctUntilChanged(
       (a, b) => a.finalized === b.finalized && a.best === b.best,
     ),
-    filter(
-      (x) => x.blocks.get(x.best)!.number >= x.blocks.get(blockHash)!.number,
-    ),
     map((pinned): "best" | "finalized" | null => {
+      if (
+        pinned.blocks.get(blockHash)!.number >
+        pinned.blocks.get(pinned.best)!.number
+      )
+        return null
+
       const { number } = pinned.blocks.get(blockHash)!
       let current = pinned.blocks.get(pinned.best)!
       let isFinalized = pinned.finalized === current.hash
