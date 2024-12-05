@@ -1,15 +1,17 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
+  AccountId,
   Binary,
   Blake2256,
   compact,
   decAnyMetadata,
   FixedSizeBinary,
+  getMultisigAccountId,
   getSs58AddressInfo,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
-import { mergeUint8, toHex } from "@polkadot-api/utils"
+import { mergeUint8 } from "@polkadot-api/utils"
 
 export function multisigSigner(
   multisig: {
@@ -40,20 +42,25 @@ export function multisigSigner(
   }>,
   signer: PolkadotSigner,
 ): PolkadotSigner {
-  const multisigAddr = "TODO"
-  const publicAddr = toHex(signer.publicKey)
-  const otherSignatories = multisig.signatories.filter((addr) => {
+  const pubKeys = multisig.signatories.map((addr) => {
     const info = getSs58AddressInfo(addr)
     if (!info.isValid) throw new Error("Invalid address " + addr)
-    return toHex(info.publicKey) !== publicAddr
+    return info.publicKey
   })
+  const multisigId = getMultisigAccountId({
+    threshold: multisig.threshold,
+    signatories: pubKeys,
+  })
+
+  const otherSignatories = pubKeys.filter(
+    (addr) => !u8ArrEq(addr, signer.publicKey),
+  )
   if (otherSignatories.length === multisig.signatories.length) {
     throw new Error("Signer is not one of the signatories of the multisig")
   }
 
   return {
-    // TODO should this be the publicKey of the multisig, or the public key of the actual signer?
-    publicKey: signer.publicKey,
+    publicKey: multisigId,
     signBytes() {
       throw new Error("Raw bytes can't be signed with a multisig")
     },
@@ -65,17 +72,22 @@ export function multisigSigner(
         compact.enc(callData.length),
         callData,
       )
+
       const [multisigInfo, weightInfo] = await Promise.all([
-        getMultisigInfo(multisigAddr, Binary.fromBytes(callHash)),
+        getMultisigInfo(
+          AccountId().dec(multisigId),
+          Binary.fromBytes(callHash),
+        ),
         txPaymentInfo(
           Binary.fromBytes(unsignedExtrinsic),
           unsignedExtrinsic.length,
         ),
       ])
+
       if (
         multisigInfo?.approvals.some((approval) => {
           const info = getSs58AddressInfo(approval)
-          return info.isValid && toHex(info.publicKey) === publicAddr
+          return info.isValid && u8ArrEq(info.publicKey, signer.publicKey)
         })
       ) {
         throw new Error("Multisig call already approved by signer")
@@ -122,4 +134,9 @@ export function multisigSigner(
       )
     },
   }
+}
+
+const u8ArrEq = (a: Uint8Array, b: Uint8Array) => {
+  if (a.length != b.length) return false
+  return Array.from(a).every((v, i) => v === b[i])
 }
