@@ -25,6 +25,7 @@
     "@noble/hashes": "^1.5.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ledger-signer": "workspace:*",
+    "@polkadot-api/multisig-signer": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/tx-utils": "workspace:*",
     "@polkadot-labs/hdkd": "^0.0.8",

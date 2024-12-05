@@ -77,6 +77,9 @@ importers:
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
+      '@polkadot-api/multisig-signer':
+        specifier: workspace:*
+        version: link:../../packages/signers/multisig-signer
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -668,9 +671,9 @@ importers:
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../polkadot-signer
-      '@polkadot-api/signers-common':
+      '@polkadot-api/signer':
         specifier: workspace:*
-        version: link:../signers-common
+        version: link:../signer
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings

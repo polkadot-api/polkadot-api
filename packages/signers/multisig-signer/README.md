@@ -5,7 +5,7 @@ Signer that wraps every transaction with a `Multisig.as_multi` for the provided 
 ## Usage
 
 ```ts
-function multisigSigner(
+function getMultisigSigner(
   multisig: {
     threshold: number
     signatories: SS58String[]
@@ -29,7 +29,7 @@ Create a multisig signer by passing in:
 ## Example
 
 ```ts
-import { multisigSigner } from "@polkadot-api/multisig-signer"
+import { getMultisigSigner } from "@polkadot-api/multisig-signer"
 import {
   connectInjectedExtension,
   getInjectedExtensions,
@@ -45,7 +45,7 @@ const alice = accounts.find((account) => account.name === "Alice")
 // ... create a `typedApi` to the chain you want to connect to
 
 // Create a multisig signer with alice
-const aliceMultisig = multisigSigner(
+const aliceMultisig = getMultisigSigner(
   {
     threshold: 2,
     signatories: [

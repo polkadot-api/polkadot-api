@@ -4,7 +4,6 @@ import {
   AccountId,
   Binary,
   Blake2256,
-  compact,
   decAnyMetadata,
   FixedSizeBinary,
   getMultisigAccountId,
@@ -13,7 +12,12 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 
-export function multisigSigner(
+const toSS58 = AccountId().dec
+
+export interface WrappedSigner extends PolkadotSigner {
+  accountId: Uint8Array
+}
+export function getMultisigSigner(
   multisig: {
     threshold: number
     signatories: SS58String[]
@@ -40,44 +44,40 @@ export function multisigSigner(
       proof_size: bigint
     }
   }>,
-  signer: PolkadotSigner,
+  signer: PolkadotSigner | WrappedSigner,
 ): PolkadotSigner {
-  const pubKeys = multisig.signatories.map((addr) => {
-    const info = getSs58AddressInfo(addr)
-    if (!info.isValid) throw new Error("Invalid address " + addr)
-    return info.publicKey
-  })
+  const pubKeys = multisig.signatories
+    .map((addr) => {
+      const info = getSs58AddressInfo(addr)
+      if (!info.isValid) throw new Error("Invalid address " + addr)
+      return info.publicKey
+    })
+    .sort(cmpU8Arr)
   const multisigId = getMultisigAccountId({
     threshold: multisig.threshold,
     signatories: pubKeys,
   })
 
+  const signerAddress =
+    "accountId" in signer ? signer.accountId : signer.publicKey
   const otherSignatories = pubKeys.filter(
-    (addr) => !u8ArrEq(addr, signer.publicKey),
+    (addr) => !u8ArrEq(addr, signerAddress),
   )
   if (otherSignatories.length === multisig.signatories.length) {
     throw new Error("Signer is not one of the signatories of the multisig")
   }
 
   return {
-    publicKey: multisigId,
+    publicKey: signer.publicKey,
     signBytes() {
       throw new Error("Raw bytes can't be signed with a multisig")
     },
     async signTx(callData, signedExtensions, metadata, atBlockNumber, hasher) {
       const callHash = Blake2256(callData)
 
-      const unsignedExtrinsic = mergeUint8(
-        new Uint8Array([4]),
-        compact.enc(callData.length),
-        callData,
-      )
-
+      const unsignedExtrinsic = mergeUint8(new Uint8Array([4]), callData)
       const [multisigInfo, weightInfo] = await Promise.all([
-        getMultisigInfo(
-          AccountId().dec(multisigId),
-          Binary.fromBytes(callHash),
-        ),
+        getMultisigInfo(toSS58(multisigId), Binary.fromBytes(callHash)),
         txPaymentInfo(
           Binary.fromBytes(unsignedExtrinsic),
           unsignedExtrinsic.length,
@@ -113,7 +113,7 @@ export function multisigSigner(
         )
         const payload = codec.enc({
           threshold: multisig.threshold,
-          other_signatories: otherSignatories,
+          other_signatories: otherSignatories.map(toSS58),
           call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
           max_weight: weightInfo.weight,
           maybe_timepoint: multisigInfo?.when,
@@ -139,4 +139,16 @@ export function multisigSigner(
 const u8ArrEq = (a: Uint8Array, b: Uint8Array) => {
   if (a.length != b.length) return false
   return Array.from(a).every((v, i) => v === b[i])
+}
+
+const cmpU8Arr = (a: Uint8Array, b: Uint8Array) => {
+  for (let i = 0; ; i++) {
+    const overA = i >= a.length
+    const overB = i >= b.length
+
+    if (overA && overB) return 0
+    else if (overA) return -1
+    else if (overB) return 1
+    else if (a[i] !== b[i]) return a[i] > b[i] ? 1 : -1
+  }
 }
