@@ -15,6 +15,17 @@ import { WrappedSigner } from "./wrapped-signer"
 
 const toSS58 = AccountId().dec
 
+export interface MultisigSignerOptions {
+  method: (
+    approvals: Array<SS58String>,
+    threshold: number,
+  ) => "as_multi" | "approve_as_multi"
+}
+const defaultMultisigSignerOptions: MultisigSignerOptions = {
+  method: (approvals, threshold) =>
+    approvals.length === threshold - 1 ? "as_multi" : "approve_as_multi",
+}
+
 export function getMultisigSigner(
   multisig: {
     threshold: number
@@ -43,7 +54,13 @@ export function getMultisigSigner(
     }
   }>,
   signer: PolkadotSigner | WrappedSigner,
+  options?: MultisigSignerOptions,
 ): PolkadotSigner {
+  options = {
+    ...defaultMultisigSignerOptions,
+    ...options,
+  }
+
   const pubKeys = multisig.signatories
     .map((addr) => {
       const info = getSs58AddressInfo(addr)
@@ -125,23 +142,31 @@ export function getMultisigSigner(
         throw new Error("Multisig call already approved by signer")
       }
 
+      const method = options.method(
+        multisigInfo?.approvals ?? [],
+        multisig.threshold,
+      )
+
       let wrappedCallData
       try {
-        const { location, codec } = dynamicBuilder.buildCall(
-          "Multisig",
-          "as_multi",
-        )
+        const { location, codec } = dynamicBuilder.buildCall("Multisig", method)
         const payload = codec.enc({
           threshold: multisig.threshold,
           other_signatories: otherSignatories.map(toSS58),
-          call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
           max_weight: weightInfo.weight,
           maybe_timepoint: multisigInfo?.when,
+          ...(method === "as_multi"
+            ? {
+                call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
+              }
+            : {
+                call_hash: Binary.fromBytes(callHash),
+              }),
         })
         wrappedCallData = mergeUint8(new Uint8Array(location), payload)
       } catch (_) {
         throw new Error(
-          "Unsupported runtime version: Multisig.as_multi not present or changed substantially",
+          `Unsupported runtime version: Multisig.${method} not present or changed substantially`,
         )
       }
 

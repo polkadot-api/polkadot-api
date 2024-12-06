@@ -2,7 +2,7 @@
 
 ## getMultisigSigner
 
-Signer that wraps every transaction with a `Multisig.as_multi` for the provided multisig.
+Signer that wraps every transaction with a multisig call for the provided multisig.
 
 ### Usage
 
@@ -18,6 +18,12 @@ function getMultisigSigner(
   ) => Promise<MultisigInfo | undefined>,
   txPaymentInfo: (uxt: Binary, len: number) => Promise<PaymentInfo | undefined>,
   signer: PolkadotSigner,
+  options?: {
+    method: (
+      approvals: Array<SS58String>,
+      threshold: number,
+    ) => "as_multi" | "approve_as_multi"
+  },
 ): PolkadotSigner
 ```
 
@@ -27,6 +33,11 @@ Create a multisig signer by passing in:
 - A call to query an existing multisig call (`typedApi.query.Multisig.Multisigs`)
 - A call to get the call payment info (`testApi.apis.TransactionPaymentApi.query_info`)
 - A signer of one the signatories.
+
+By default, it has a couple of optimizations:
+
+- If `multisig.threshold == 1`, then it will use `Multisig.as_multi_threshold_1`.
+- It will use `Multisig.approve_as_multi` for those calls that don't execute the call, and `Multisig.as_multi` for the last one (once the threshold would be reached). This can be customized using the option `method`.
 
 ### Example
 
