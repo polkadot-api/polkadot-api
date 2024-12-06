@@ -1,5 +1,5 @@
 import { wnd } from "@polkadot-api/descriptors"
-import { getMultisigSigner } from "@polkadot-api/multisig-signer"
+import { getMultisigSigner } from "@polkadot-api/meta-signers"
 import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
 import {
   entropyToMiniSecret,

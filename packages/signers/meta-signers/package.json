@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/multisig-signer",
+  "name": "@polkadot-api/meta-signers",
   "version": "0.0.1",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {

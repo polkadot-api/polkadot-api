@@ -77,7 +77,7 @@ importers:
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
-      '@polkadot-api/multisig-signer':
+      '@polkadot-api/meta-signers':
         specifier: workspace:*
         version: link:../../packages/signers/meta-signers
       '@polkadot-api/substrate-bindings':
