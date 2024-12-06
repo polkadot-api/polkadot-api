@@ -1,8 +1,10 @@
-# @polkadot-api/multisig-signer
+# @polkadot-api/meta-signers
+
+## getMultisigSigner
 
 Signer that wraps every transaction with a `Multisig.as_multi` for the provided multisig.
 
-## Usage
+### Usage
 
 ```ts
 function getMultisigSigner(
@@ -26,10 +28,10 @@ Create a multisig signer by passing in:
 - A call to get the call payment info (`testApi.apis.TransactionPaymentApi.query_info`)
 - A signer of one the signatories.
 
-## Example
+### Example
 
 ```ts
-import { getMultisigSigner } from "@polkadot-api/multisig-signer"
+import { getMultisigSigner } from "@polkadot-api/meta-signers"
 import {
   connectInjectedExtension,
   getInjectedExtensions,

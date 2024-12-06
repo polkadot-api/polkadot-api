@@ -11,12 +11,10 @@ import {
   SS58String,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
+import { WrappedSigner } from "./wrapped-signer"
 
 const toSS58 = AccountId().dec
 
-export interface WrappedSigner extends PolkadotSigner {
-  accountId: Uint8Array
-}
 export function getMultisigSigner(
   multisig: {
     threshold: number
@@ -75,6 +73,40 @@ export function getMultisigSigner(
     async signTx(callData, signedExtensions, metadata, atBlockNumber, hasher) {
       const callHash = Blake2256(callData)
 
+      let lookup
+      let dynamicBuilder
+      try {
+        const tmpMeta = decAnyMetadata(metadata).metadata
+        if (tmpMeta.tag !== "v14" && tmpMeta.tag !== "v15") throw null
+        lookup = getLookupFn(tmpMeta.value)
+        if (lookup.call === null) throw null
+        dynamicBuilder = getDynamicBuilder(lookup)
+      } catch (_) {
+        throw new Error("Unsupported metadata version")
+      }
+
+      // Try as_multi_threshold_1
+      if (multisig.threshold === 1) {
+        try {
+          const { location, codec } = dynamicBuilder.buildCall(
+            "Multisig",
+            "as_multi_threshold_1",
+          )
+          const payload = codec.enc({
+            other_signatories: otherSignatories.map(toSS58),
+            call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
+          })
+          const wrappedCallData = mergeUint8(new Uint8Array(location), payload)
+          return signer.signTx(
+            wrappedCallData,
+            signedExtensions,
+            metadata,
+            atBlockNumber,
+            hasher,
+          )
+        } catch (_) {}
+      }
+
       const unsignedExtrinsic = mergeUint8(new Uint8Array([4]), callData)
       const [multisigInfo, weightInfo] = await Promise.all([
         getMultisigInfo(toSS58(multisigId), Binary.fromBytes(callHash)),
@@ -91,18 +123,6 @@ export function getMultisigSigner(
         })
       ) {
         throw new Error("Multisig call already approved by signer")
-      }
-
-      let lookup
-      let dynamicBuilder
-      try {
-        const tmpMeta = decAnyMetadata(metadata).metadata
-        if (tmpMeta.tag !== "v14" && tmpMeta.tag !== "v15") throw null
-        lookup = getLookupFn(tmpMeta.value)
-        if (lookup.call === null) throw null
-        dynamicBuilder = getDynamicBuilder(lookup)
-      } catch (_) {
-        throw new Error("Unsupported metadata version")
       }
 
       let wrappedCallData

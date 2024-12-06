@@ -79,7 +79,7 @@ importers:
         version: link:../../packages/signers/ledger-signer
       '@polkadot-api/multisig-signer':
         specifier: workspace:*
-        version: link:../../packages/signers/multisig-signer
+        version: link:../../packages/signers/meta-signers
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -663,7 +663,7 @@ importers:
         specifier: ^22.9.1
         version: 22.9.1
 
-  packages/signers/multisig-signer:
+  packages/signers/meta-signers:
     dependencies:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
