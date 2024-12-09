@@ -14,6 +14,7 @@ export function getCodecs(metadata: Uint8Array) {
     throw new Error("Unsupported metadata version")
   }
   return {
+    lookup,
     dynamicBuilder,
     callCodec: dynamicBuilder.buildDefinition(lookup.call),
   }

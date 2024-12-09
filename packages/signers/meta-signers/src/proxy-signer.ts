@@ -1,39 +1,22 @@
+import { MetadataLookup } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
-  Binary,
-  Enum,
-  FixedSizeBinary,
   getSs58AddressInfo,
+  HexString,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
-import { mergeUint8 } from "@polkadot-api/utils"
+import { fromHex, mergeUint8 } from "@polkadot-api/utils"
 import { getCodecs } from "./get-codecs"
 import { WrappedSigner } from "./wrapped-signer"
 
-export enum ProxyType {
-  Any,
-  NonTransfer,
-  CancelProxy,
-  Assets,
-  AssetOwner,
-  AssetManager,
-  Collator,
-}
-
-export type ProxyAddress = Enum<{
-  Id: SS58String
-  Index: undefined
-  Raw: Binary
-  Address32: FixedSizeBinary<32>
-  Address20: FixedSizeBinary<20>
-}>
+export type ProxyAddress = SS58String | HexString
 
 export function getProxySigner(
   proxyParams: {
     real: ProxyAddress
-    type?: ProxyType
+    type?: { type: string; value?: unknown }
   },
-  signer: PolkadotSigner | WrappedSigner,
+  signer: PolkadotSigner,
 ): WrappedSigner {
   return {
     publicKey: signer.publicKey,
@@ -42,13 +25,13 @@ export function getProxySigner(
       throw new Error("Raw bytes can't be signed with a proxy")
     },
     async signTx(callData, signedExtensions, metadata, atBlockNumber, hasher) {
-      const { dynamicBuilder, callCodec } = getCodecs(metadata)
+      const { lookup, dynamicBuilder, callCodec } = getCodecs(metadata)
 
       let wrappedCallData
       try {
         const { location, codec } = dynamicBuilder.buildCall("Proxy", "proxy")
         const payload = codec.enc({
-          real: proxyParams.real,
+          real: wrapAddress(lookup, proxyParams.real),
           force_proxy_type: proxyParams.type,
           call: callCodec.dec(callData),
         })
@@ -70,19 +53,67 @@ export function getProxySigner(
   }
 }
 
-function proxyAddressToU8Arr(address: ProxyAddress) {
-  switch (address.type) {
-    case "Id": {
-      const info = getSs58AddressInfo(address.value)
-      if (!info.isValid) {
-        throw new Error(`Invalid SS58 address ${address.value}`)
+/**
+ * Best-effort to wrap the proxied address into what `Proxy.proxy.real` needs.
+ * Should support MultiAddress, Address32 and Address20.
+ */
+function wrapAddress(lookup: MetadataLookup, address: SS58String | HexString) {
+  const addressLookup = resolveAddressLookup(lookup)
+  if (addressLookup.type === "enum") {
+    // Assume MultiAddress
+    if (address.startsWith("0x")) {
+      const length = address.length / 2 - 1
+      return {
+        type: length === 32 ? "Address32" : length === 20 ? "Address20" : "Raw",
+        value: address,
       }
-      return info.publicKey
     }
-    case "Index": {
-      throw new Error("ProxyAddress.Index not supported")
+    return {
+      type: "Id",
+      value: address,
     }
-    default:
-      return address.value.asBytes()
   }
+
+  // The chain probably doesn't use MultiAddress
+  return address
+}
+
+function resolveAddressLookup(lookup: MetadataLookup) {
+  const { metadata } = lookup
+  if ("address" in metadata.extrinsic) {
+    return lookup(metadata.extrinsic.address)
+  }
+
+  const palletCalls = lookup.metadata.pallets.find(
+    (p) => p.name === "Proxy",
+  )?.calls
+  const callsType = palletCalls != null && lookup(palletCalls)
+  const proxyCall =
+    callsType && callsType.type === "enum" ? callsType.value["proxy"] : null
+  const argumentType =
+    proxyCall &&
+    (proxyCall.type === "lookupEntry"
+      ? proxyCall.value
+      : proxyCall.type === "struct"
+        ? proxyCall
+        : null)
+  const realType = argumentType?.type === "struct" && argumentType.value.real
+  if (realType) {
+    return realType
+  }
+
+  throw new Error(
+    "Unsupported runtime version: Can't figure out type of Proxy.proxy.real",
+  )
+}
+
+function proxyAddressToU8Arr(address: ProxyAddress) {
+  if (address.startsWith("0x")) {
+    return fromHex(address)
+  }
+  const info = getSs58AddressInfo(address)
+  if (!info.isValid) {
+    throw new Error(`Invalid SS58 address ${address}`)
+  }
+  return info.publicKey
 }
