@@ -1,10 +1,8 @@
-import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
   AccountId,
   Binary,
   Blake2256,
-  decAnyMetadata,
   FixedSizeBinary,
   getMultisigAccountId,
   getSs58AddressInfo,
@@ -12,6 +10,7 @@ import {
   SS58String,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
+import { getCodecs } from "./get-codecs"
 import { WrappedSigner } from "./wrapped-signer"
 
 const toSS58 = AccountId().dec
@@ -56,7 +55,7 @@ export function getMultisigSigner(
   }>,
   signer: PolkadotSigner | WrappedSigner,
   options?: MultisigSignerOptions,
-): PolkadotSigner {
+): WrappedSigner {
   options = {
     ...defaultMultisigSignerOptions,
     ...options,
@@ -85,23 +84,13 @@ export function getMultisigSigner(
 
   return {
     publicKey: signer.publicKey,
+    accountId: multisigId,
     signBytes() {
       throw new Error("Raw bytes can't be signed with a multisig")
     },
     async signTx(callData, signedExtensions, metadata, atBlockNumber, hasher) {
       const callHash = Blake2256(callData)
-
-      let lookup
-      let dynamicBuilder
-      try {
-        const tmpMeta = decAnyMetadata(metadata).metadata
-        if (tmpMeta.tag !== "v14" && tmpMeta.tag !== "v15") throw null
-        lookup = getLookupFn(tmpMeta.value)
-        if (lookup.call === null) throw null
-        dynamicBuilder = getDynamicBuilder(lookup)
-      } catch (_) {
-        throw new Error("Unsupported metadata version")
-      }
+      const { dynamicBuilder, callCodec } = getCodecs(metadata)
 
       // Try as_multi_threshold_1
       if (multisig.threshold === 1) {
@@ -112,7 +101,7 @@ export function getMultisigSigner(
           )
           const payload = codec.enc({
             other_signatories: otherSignatories.map(toSS58),
-            call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
+            call: callCodec.dec(callData),
           })
           const wrappedCallData = mergeUint8(new Uint8Array(location), payload)
           return signer.signTx(
@@ -158,7 +147,7 @@ export function getMultisigSigner(
           maybe_timepoint: multisigInfo?.when,
           ...(method === "as_multi"
             ? {
-                call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
+                call: callCodec.dec(callData),
               }
             : {
                 call_hash: Binary.fromBytes(callHash),
