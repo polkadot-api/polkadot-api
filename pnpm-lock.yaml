@@ -77,6 +77,9 @@ importers:
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
+      '@polkadot-api/meta-signers':
+        specifier: workspace:*
+        version: link:../../packages/signers/meta-signers
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -659,6 +662,24 @@ importers:
       '@types/node':
         specifier: ^22.9.1
         version: 22.9.1
+
+  packages/signers/meta-signers:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../../metadata-builders
+      '@polkadot-api/polkadot-signer':
+        specifier: workspace:*
+        version: link:../polkadot-signer
+      '@polkadot-api/signer':
+        specifier: workspace:*
+        version: link:../signer
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
 
   packages/signers/pjs-signer:
     dependencies:
