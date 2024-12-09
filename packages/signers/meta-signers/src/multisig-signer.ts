@@ -8,6 +8,7 @@ import {
   FixedSizeBinary,
   getMultisigAccountId,
   getSs58AddressInfo,
+  sortMultisigSignatories,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
@@ -61,13 +62,13 @@ export function getMultisigSigner(
     ...options,
   }
 
-  const pubKeys = multisig.signatories
-    .map((addr) => {
+  const pubKeys = sortMultisigSignatories(
+    multisig.signatories.map((addr) => {
       const info = getSs58AddressInfo(addr)
       if (!info.isValid) throw new Error("Invalid address " + addr)
       return info.publicKey
-    })
-    .sort(cmpU8Arr)
+    }),
+  )
   const multisigId = getMultisigAccountId({
     threshold: multisig.threshold,
     signatories: pubKeys,
@@ -183,17 +184,5 @@ export function getMultisigSigner(
 
 const u8ArrEq = (a: Uint8Array, b: Uint8Array) => {
   if (a.length !== b.length) return false
-  return Array.from(a).every((v, i) => v === b[i])
-}
-
-const cmpU8Arr = (a: Uint8Array, b: Uint8Array) => {
-  for (let i = 0; ; i++) {
-    const overA = i >= a.length
-    const overB = i >= b.length
-
-    if (overA && overB) return 0
-    else if (overA) return -1
-    else if (overB) return 1
-    else if (a[i] !== b[i]) return a[i] > b[i] ? 1 : -1
-  }
+  return a.every((v, i) => v === b[i])
 }

@@ -10,7 +10,18 @@ export const getMultisigAccountId = ({
   threshold: number
   signatories: Uint8Array[]
 }) => {
-  const sortedSignatories = signatories.slice().sort((a, b) => {
+  const sortedSignatories = sortMultisigSignatories(signatories)
+  const payload = mergeUint8(
+    PREFIX,
+    compact.enc(sortedSignatories.length),
+    ...sortedSignatories,
+    u16.enc(threshold),
+  )
+  return Blake2256(payload)
+}
+
+export const sortMultisigSignatories = (signatories: Uint8Array[]) =>
+  signatories.slice().sort((a, b) => {
     for (let i = 0; ; i++) {
       const overA = i >= a.length
       const overB = i >= b.length
@@ -21,11 +32,3 @@ export const getMultisigAccountId = ({
       else if (a[i] !== b[i]) return a[i] > b[i] ? 1 : -1
     }
   })
-  const payload = mergeUint8(
-    PREFIX,
-    compact.enc(sortedSignatories.length),
-    ...sortedSignatories,
-    u16.enc(threshold),
-  )
-  return Blake2256(payload)
-}
