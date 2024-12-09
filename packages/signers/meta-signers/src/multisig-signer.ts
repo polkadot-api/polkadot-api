@@ -182,7 +182,7 @@ export function getMultisigSigner(
 }
 
 const u8ArrEq = (a: Uint8Array, b: Uint8Array) => {
-  if (a.length != b.length) return false
+  if (a.length !== b.length) return false
   return Array.from(a).every((v, i) => v === b[i])
 }
 
