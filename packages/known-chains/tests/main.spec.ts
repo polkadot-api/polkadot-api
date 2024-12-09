@@ -13,7 +13,7 @@ afterAll(async () => {
 })
 
 // disable some problematic specs temporarely
-const SKIPPED_CHAINS = ["polkadot_people"]
+const SKIPPED_CHAINS: string[] = []
 
 describe("chain specs", () => {
   const RELAYS: Array<keyof typeof chains> = [
