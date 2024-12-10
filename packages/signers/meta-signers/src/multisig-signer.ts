@@ -1,39 +1,37 @@
-import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
   AccountId,
   Binary,
   Blake2256,
-  decAnyMetadata,
   FixedSizeBinary,
   getMultisigAccountId,
   getSs58AddressInfo,
+  HexString,
   sortMultisigSignatories,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
-import { mergeUint8 } from "@polkadot-api/utils"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { getCodecs } from "./get-codecs"
 import { WrappedSigner } from "./wrapped-signer"
 
-const toSS58 = AccountId().dec
-
-export interface MultisigSignerOptions {
+export interface MultisigSignerOptions<Address> {
   method: (
-    approvals: Array<SS58String>,
+    approvals: Array<Address>,
     threshold: number,
   ) => "as_multi" | "approve_as_multi"
 }
-const defaultMultisigSignerOptions: MultisigSignerOptions = {
+const defaultMultisigSignerOptions: MultisigSignerOptions<unknown> = {
   method: (approvals, threshold) =>
     approvals.length === threshold - 1 ? "as_multi" : "approve_as_multi",
 }
 
-export function getMultisigSigner(
+export function getMultisigSigner<Address extends SS58String | HexString>(
   multisig: {
     threshold: number
-    signatories: SS58String[]
+    signatories: Address[]
   },
   getMultisigInfo: (
-    multisig: SS58String,
+    multisig: Address,
     callHash: FixedSizeBinary<32>,
   ) => Promise<
     | {
@@ -41,7 +39,7 @@ export function getMultisigSigner(
           height: number
           index: number
         }
-        approvals: Array<SS58String>
+        approvals: Array<Address>
       }
     | undefined
   >,
@@ -55,19 +53,23 @@ export function getMultisigSigner(
     }
   }>,
   signer: PolkadotSigner | WrappedSigner,
-  options?: MultisigSignerOptions,
-): PolkadotSigner {
+  options?: MultisigSignerOptions<Address>,
+): WrappedSigner {
   options = {
     ...defaultMultisigSignerOptions,
     ...options,
   }
 
+  const toSS58 = AccountId().dec
+  const toAddress = (value: Uint8Array): Address => {
+    if (multisig.signatories[0].startsWith("0x")) {
+      return toHex(value) as Address
+    }
+    return toSS58(value) as Address
+  }
+
   const pubKeys = sortMultisigSignatories(
-    multisig.signatories.map((addr) => {
-      const info = getSs58AddressInfo(addr)
-      if (!info.isValid) throw new Error("Invalid address " + addr)
-      return info.publicKey
-    }),
+    multisig.signatories.map(getPublicKey),
   )
   const multisigId = getMultisigAccountId({
     threshold: multisig.threshold,
@@ -85,23 +87,13 @@ export function getMultisigSigner(
 
   return {
     publicKey: signer.publicKey,
+    accountId: multisigId,
     signBytes() {
       throw new Error("Raw bytes can't be signed with a multisig")
     },
     async signTx(callData, signedExtensions, metadata, atBlockNumber, hasher) {
       const callHash = Blake2256(callData)
-
-      let lookup
-      let dynamicBuilder
-      try {
-        const tmpMeta = decAnyMetadata(metadata).metadata
-        if (tmpMeta.tag !== "v14" && tmpMeta.tag !== "v15") throw null
-        lookup = getLookupFn(tmpMeta.value)
-        if (lookup.call === null) throw null
-        dynamicBuilder = getDynamicBuilder(lookup)
-      } catch (_) {
-        throw new Error("Unsupported metadata version")
-      }
+      const { dynamicBuilder, callCodec } = getCodecs(metadata)
 
       // Try as_multi_threshold_1
       if (multisig.threshold === 1) {
@@ -111,8 +103,8 @@ export function getMultisigSigner(
             "as_multi_threshold_1",
           )
           const payload = codec.enc({
-            other_signatories: otherSignatories.map(toSS58),
-            call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
+            other_signatories: otherSignatories.map(toAddress),
+            call: callCodec.dec(callData),
           })
           const wrappedCallData = mergeUint8(new Uint8Array(location), payload)
           return signer.signTx(
@@ -127,7 +119,7 @@ export function getMultisigSigner(
 
       const unsignedExtrinsic = mergeUint8(new Uint8Array([4]), callData)
       const [multisigInfo, weightInfo] = await Promise.all([
-        getMultisigInfo(toSS58(multisigId), Binary.fromBytes(callHash)),
+        getMultisigInfo(toAddress(multisigId), Binary.fromBytes(callHash)),
         txPaymentInfo(
           Binary.fromBytes(unsignedExtrinsic),
           unsignedExtrinsic.length,
@@ -135,10 +127,9 @@ export function getMultisigSigner(
       ])
 
       if (
-        multisigInfo?.approvals.some((approval) => {
-          const info = getSs58AddressInfo(approval)
-          return info.isValid && u8ArrEq(info.publicKey, signer.publicKey)
-        })
+        multisigInfo?.approvals.some((approval) =>
+          u8ArrEq(getPublicKey(approval), signer.publicKey),
+        )
       ) {
         throw new Error("Multisig call already approved by signer")
       }
@@ -153,12 +144,12 @@ export function getMultisigSigner(
         const { location, codec } = dynamicBuilder.buildCall("Multisig", method)
         const payload = codec.enc({
           threshold: multisig.threshold,
-          other_signatories: otherSignatories.map(toSS58),
+          other_signatories: otherSignatories.map(toAddress),
           max_weight: weightInfo.weight,
           maybe_timepoint: multisigInfo?.when,
           ...(method === "as_multi"
             ? {
-                call: dynamicBuilder.buildDefinition(lookup.call).dec(callData),
+                call: callCodec.dec(callData),
               }
             : {
                 call_hash: Binary.fromBytes(callHash),
@@ -185,4 +176,15 @@ export function getMultisigSigner(
 const u8ArrEq = (a: Uint8Array, b: Uint8Array) => {
   if (a.length !== b.length) return false
   return a.every((v, i) => v === b[i])
+}
+
+const getPublicKey = (addr: SS58String | HexString) => {
+  if (addr.startsWith("0x")) {
+    return fromHex(addr)
+  }
+  const info = getSs58AddressInfo(addr)
+  if (!info.isValid) {
+    throw new Error(`Invalid SS58 address ${addr}`)
+  }
+  return info.publicKey
 }

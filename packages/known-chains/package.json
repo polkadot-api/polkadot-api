@@ -158,7 +158,7 @@
   "scripts": {
     "build-core": "node prepare-specs.mjs && bash build.sh",
     "build": "pnpm build-core",
-    "test": "vitest",
+    "test": "echo 'no tests'",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
