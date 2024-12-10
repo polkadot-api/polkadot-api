@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.0 - 2024-12-10
+
 ### Added
 
 - `getMultisigAccountId` to get the AccountId of a multisig

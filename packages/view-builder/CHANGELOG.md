@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-12-10
+
 ### Added
 
 - Add length information to `BytesArray` shape
