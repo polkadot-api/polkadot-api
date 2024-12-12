@@ -6,12 +6,11 @@
 
 - Update dependencies
 
-## 0.7.8 - 2024-12-10
+## 1.7.8 - 2024-12-10
 
 ### Fixed
 
 - Update dependencies
-
 - **Smoldot:**
   - Update smoldot to `2.0.34`
 
