@@ -260,7 +260,6 @@ export const createStorageEntry = (
             const value = data === null ? codecs.fallback : codecs.dec(data)
             if (!valuesAreCompatible(descriptors, ctx, value))
               throw incompatibleError()
-            value
             return value
           },
         ),
