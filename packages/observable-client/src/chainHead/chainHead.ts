@@ -278,14 +278,23 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const _storage$ = commonEnhancer(lazyFollower("storage"))
 
   const storage$ = withOptionalHash$(
-    <Type extends StorageItemInput["type"], T>(
+    <
+      Type extends StorageItemInput["type"],
+      M extends
+        | undefined
+        | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
+    >(
       hash: string,
       withCanonicalChain: boolean,
       type: Type,
       keyMapper: (ctx: RuntimeContext) => string,
       childTrie: string | null = null,
-      mapper?: (data: StorageResult<Type>, ctx: RuntimeContext) => T,
-    ): Observable<unknown extends T ? StorageResult<Type> : T> =>
+      mapper?: M,
+    ): Observable<
+      undefined extends M
+        ? StorageResult<Type>
+        : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
+    > =>
       pinnedBlocks$.pipe(
         take(1),
         mergeMap(
@@ -303,11 +312,17 @@ export const getChainHead$ = (chainHead: ChainHead) => {
             ? upsertCachedStream(
                 hash,
                 `storage-${type}-${key}-${childTrie ?? ""}-dec`,
-                unMapped$.pipe(map((x) => mapper(x, ctx))),
+                unMapped$.pipe(
+                  map((raw) => ({ raw, mapped: mapper(raw, ctx) })),
+                ),
               )
             : unMapped$
         }),
-      ) as Observable<unknown extends T ? StorageResult<Type> : T>,
+      ) as Observable<
+        undefined extends M
+          ? StorageResult<Type>
+          : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
+      >,
   )
 
   const recoveralStorage$ = getRecoveralStorage$(getFollower, withRecovery)
@@ -333,7 +348,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       (ctx) => ctx.events.key,
       null,
       (x, ctx) => ctx.events.dec(x!),
-    )
+    ).pipe(map((x) => x.mapped))
 
   const __call$ = commonEnhancer(lazyFollower("call"))
   const call$ = withOptionalHash$(

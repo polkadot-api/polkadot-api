@@ -44,7 +44,7 @@ export const createConstantEntry = <D, T>(
   name: string,
   {
     valuesAreCompatible,
-    waitDescriptors,
+    descriptors,
     isCompatible,
     getCompatibilityLevel,
   }: CompatibilityHelper,
@@ -78,7 +78,7 @@ export const createConstantEntry = <D, T>(
         )
       return value
     }
-    return waitDescriptors().then(fn)
+    return descriptors.then(fn)
   }
 
   return Object.assign(fn, { isCompatible, getCompatibilityLevel })
