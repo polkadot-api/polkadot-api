@@ -194,9 +194,8 @@ export const compatibilityHelper = (
       getCompatibilityLevel(runtime) >= threshold,
   )
 
-  const waitDescriptors = () => descriptors
   const compatibleRuntime$ = (chainHead: ChainHead$, hash: string | null) =>
-    combineLatest([waitDescriptors(), chainHead.getRuntimeContext$(hash)])
+    combineLatest([descriptors, chainHead.getRuntimeContext$(hash)])
 
   const withCompatibleRuntime =
     <T>(chainHead: ChainHead$, mapper: (x: T) => string) =>
@@ -205,7 +204,7 @@ export const compatibilityHelper = (
     ): Observable<[T, CompatibilityToken | RuntimeToken, RuntimeContext]> =>
       combineLatest([
         source$.pipe(chainHead.withRuntime(mapper)),
-        waitDescriptors(),
+        descriptors,
       ]).pipe(map(([[x, ctx], descriptors]) => [x, descriptors, ctx]))
 
   const argsAreCompatible = (
@@ -253,7 +252,7 @@ export const compatibilityHelper = (
     isCompatible,
     getCompatibilityLevel,
     getCompatibilityLevels,
-    waitDescriptors,
+    descriptors,
     withCompatibleRuntime,
     compatibleRuntime$,
     argsAreCompatible,

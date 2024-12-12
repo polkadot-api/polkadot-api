@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `chainHead.storage$` also returns the StorageResult when there is a mapper
+
 ## 0.6.4 - 2024-12-10
 
 ### Fixed
