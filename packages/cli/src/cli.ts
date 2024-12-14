@@ -1,6 +1,7 @@
 import { Option, program } from "@commander-js/extra-typings"
 import type { add, generate, ink, remove, update } from "./commands"
 import * as knownChains from "@polkadot-api/known-chains"
+import { version } from "../package.json"
 
 export type Commands = {
   add: typeof add
@@ -14,6 +15,13 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
   program.name("polkadot-api").description("Polkadot API CLI")
 
   const config = new Option("--config <filename>", "Source for the config file")
+
+  program
+    .command("version")
+    .description("Display the CLI version")
+    .action(() => {
+      console.log(version)
+    })
 
   program
     .command("generate", {

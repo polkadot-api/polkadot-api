@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add CLI version command
+
 ### Fixed
 
 - Update dependencies

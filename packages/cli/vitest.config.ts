@@ -7,7 +7,7 @@ export default defineConfig((env) => {
       rootConfig,
       defineConfig({
         test: {
-          include: ["test/e2e/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+          include: ["tests/e2e/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
         },
       }),
     )
@@ -17,6 +17,7 @@ export default defineConfig((env) => {
     rootConfig,
     defineConfig({
       test: {
+        include: ["tests/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
         passWithNoTests: true,
         exclude: [
           "**/node_modules/**",
@@ -24,7 +25,8 @@ export default defineConfig((env) => {
           "**/cypress/**",
           "**/.{idea,git,cache,output,temp}/**",
           "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*",
-          "test/integration/**/*.{test,spec}.?(c|m)[jt]s?(x)",
+          "tests/integration/**/*.{test,spec}.?(c|m)[jt]s?(x)",
+          "tests/e2e/**/*.{test,spec}.?(c|m)[jt]s?(x)",
         ],
       },
     }),
