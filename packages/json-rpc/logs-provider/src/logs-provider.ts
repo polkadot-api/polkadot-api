@@ -1,4 +1,4 @@
-import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "./public-types"
 import Queue from "./queue"
 import { In, OUT, Out } from "./types"
 

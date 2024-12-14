@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix missing `JsonRpcProvider` re-export
+
 ## 0.0.6 - 2024-10-05
 
 ### Fixed

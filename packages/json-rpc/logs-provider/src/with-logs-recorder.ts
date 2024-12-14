@@ -1,4 +1,4 @@
-import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "./public-types"
 import { IN, OUT } from "./types"
 
 export const withLogsRecorder = (
