@@ -11,3 +11,4 @@ export {
   type RuntimeContext,
   type SystemEvent,
 } from "./chainHead"
+export { concatMapEager } from "./utils/concatMapEager"

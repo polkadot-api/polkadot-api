@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+### Fixed
+
+- fix `concatMapEager`
+
 ### Changed
 
 - `chainHead.storage$` also returns the StorageResult when there is a mapper
+- export `concatMapEager`
 
 ## 0.6.4 - 2024-12-10
 
