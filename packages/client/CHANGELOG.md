@@ -4,7 +4,8 @@
 
 ### Fixed
 
-- Update dependencies
+- `unknown` type on storage queries that have a composite key with the same type.
+- Update dependencies.
 
 ## 1.7.8 - 2024-12-10
 
