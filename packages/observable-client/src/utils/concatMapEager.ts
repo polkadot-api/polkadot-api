@@ -32,36 +32,38 @@ export const concatMapEager =
         if (observerIdx !== idx) {
           results.set(idx, [])
         }
-        innerSubscriptions.set(
-          idx,
-          inner$.subscribe({
-            next(x: O) {
-              if (observerIdx === idx) {
-                observer.next(x)
-              } else {
-                results.get(idx)!.push(x)
-              }
-            },
-            complete() {
-              innerSubscriptions.delete(idx)
-              if (idx === observerIdx) {
-                observerIdx++
-                while (results.has(observerIdx)) {
-                  results.get(observerIdx)!.forEach((x) => observer.next(x))
-                  results.delete(observerIdx)
-                  if (innerSubscriptions.has(observerIdx)) {
-                    break
-                  }
-                  observerIdx++
+
+        let isCompleted = false
+        let subscription = inner$.subscribe({
+          next(x: O) {
+            if (observerIdx === idx) {
+              observer.next(x)
+            } else {
+              results.get(idx)!.push(x)
+            }
+          },
+          complete() {
+            isCompleted = true
+            innerSubscriptions.delete(idx)
+            if (idx === observerIdx) {
+              observerIdx++
+              while (results.has(observerIdx)) {
+                results.get(observerIdx)!.forEach((x) => observer.next(x))
+                results.delete(observerIdx)
+                if (innerSubscriptions.has(observerIdx)) {
+                  break
                 }
+                observerIdx++
               }
-              nextSubscription()
-            },
-            error(e: any) {
-              observer.error(e)
-            },
-          }),
-        )
+            }
+            nextSubscription()
+          },
+          error(e: any) {
+            observer.error(e)
+          },
+        })
+
+        if (!isCompleted) innerSubscriptions.set(idx, subscription)
       }
 
       topSubscription = source$.subscribe({
