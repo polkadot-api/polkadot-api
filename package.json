@@ -31,6 +31,7 @@
     "@fast-check/vitest": "^0.1.4",
     "@homer0/prettier-plugin-jsdoc": "^9.1.0",
     "@rollup/plugin-alias": "^5.1.1",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@vitest/coverage-v8": "^2.1.5",
     "husky": "^9.1.7",

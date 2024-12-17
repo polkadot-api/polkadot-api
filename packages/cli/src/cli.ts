@@ -8,10 +8,18 @@ export type Commands = {
   remove: typeof remove
   update: typeof update
   ink: typeof ink
+  version: string
 }
 
-export function getCli({ add, generate, remove, update, ink }: Commands) {
-  program.name("polkadot-api").description("Polkadot API CLI")
+export function getCli({
+  add,
+  generate,
+  remove,
+  update,
+  ink,
+  version,
+}: Commands) {
+  program.name("polkadot-api").description("Polkadot API CLI").version(version)
 
   const config = new Option("--config <filename>", "Source for the config file")
   const skipCodegen = new Option(
