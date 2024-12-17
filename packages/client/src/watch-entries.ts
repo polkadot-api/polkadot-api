@@ -108,14 +108,11 @@ const findPrevious = (
 
 const getPatcherFromRuntime =
   (pallet: string, entry: string) => (runtime: RuntimeContext) => {
-    const { dec, keyDecoder } = runtime.dynamicBuilder.buildStorage(
-      pallet,
-      entry,
-    )
+    const { keys, value } = runtime.dynamicBuilder.buildStorage(pallet, entry)
     return (x: StorageEntry) => {
       x.dec = {
-        value: dec(x.value),
-        args: keyDecoder(x.key),
+        value: value.dec(x.value),
+        args: keys.dec(x.key),
       }
       return x
     }
@@ -327,7 +324,7 @@ export const createWatchEntries = (
             .runtime,
       ),
       map((runtime) =>
-        runtime.dynamicBuilder.buildStorage(pallet, entry).enc(...args),
+        runtime.dynamicBuilder.buildStorage(pallet, entry).keys.enc(...args),
       ),
     )
     return storageKey$.pipe(

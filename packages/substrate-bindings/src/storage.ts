@@ -1,5 +1,5 @@
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
-import { Codec, Decoder } from "scale-ts"
+import type { Codec } from "scale-ts"
 import {
   Blake2128,
   Blake2128Concat,
@@ -33,18 +33,20 @@ export const Storage = (pallet: string) => {
   const palledEncoded = Twox128(textEncoder.encode(pallet))
   return <T, A extends Array<EncoderWithHash<any>>>(
     name: string,
-    dec: Decoder<T>,
+    value: Codec<T>,
     ...encoders: [...A]
   ): {
-    enc: (
-      ...args: {
+    keys: {
+      enc: (
+        ...args: {
+          [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
+        }
+      ) => string
+      dec: (value: string) => {
         [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
       }
-    ) => string
-    dec: Decoder<T>
-    keyDecoder: (value: string) => {
-      [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
     }
+    value: Codec<T>
   } => {
     const palletItemEncoded = mergeUint8(
       palledEncoded,
@@ -53,7 +55,7 @@ export const Storage = (pallet: string) => {
 
     const palletItemEncodedHex = toHex(palletItemEncoded)
 
-    const keyDecoder = (
+    const dec = (
       key: string,
     ): {
       [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
@@ -98,9 +100,8 @@ export const Storage = (pallet: string) => {
       )
 
     return {
-      enc,
-      dec,
-      keyDecoder,
+      keys: { enc, dec },
+      value,
     }
   }
 }

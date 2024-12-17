@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Expose whole `keys` and `value` codecs for storage
+
 ## 0.9.3 - 2024-12-10
 
 ### Fixed

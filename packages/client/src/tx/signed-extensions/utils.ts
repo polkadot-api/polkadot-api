@@ -12,7 +12,9 @@ export const genesisHashFromCtx = (ctx: ChainExtensionCtx) => {
   // there are chains (e.g. kilt) that use u64 as block number
   // u64 is encoded as bigint
   // using dynamic builder for safety
-  const { enc } = ctx.dynamicBuilder.buildStorage("System", "BlockHash")
+  const {
+    keys: { enc },
+  } = ctx.dynamicBuilder.buildStorage("System", "BlockHash")
   let key: string
   try {
     // for u32

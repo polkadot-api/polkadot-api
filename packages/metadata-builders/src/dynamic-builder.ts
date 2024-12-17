@@ -47,7 +47,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
         len,
         fallback:
           storageEntry.modifier === 1
-            ? result.dec(storageEntry.fallback)
+            ? result.value.dec(storageEntry.fallback)
             : undefined,
       }
     }
@@ -56,7 +56,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       return storageWithFallback(
         0,
         entry,
-        buildDefinition(storageEntry.type.value).dec,
+        buildDefinition(storageEntry.type.value),
       )
 
     const { key, value, hashers } = storageEntry.type.value
@@ -83,7 +83,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       }
     })()
 
-    return storageWithFallback(hashes.length, entry, val.dec, ...hashArgs)
+    return storageWithFallback(hashes.length, entry, val, ...hashArgs)
   }
 
   const buildEnumEntry = (
