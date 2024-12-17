@@ -21,11 +21,15 @@ export type EntryConfig =
       metadata?: string
     }
 type Entries = Record<string, EntryConfig>
+export interface PapiConfigOptions {
+  noDescriptorsPackage?: boolean
+}
 export type PapiConfig = {
   version: 0
   descriptorPath: string
   entries: Record<string, EntryConfig>
   ink?: Record<string, string>
+  options?: Partial<PapiConfigOptions>
 }
 
 export const papiFolder = ".papi"

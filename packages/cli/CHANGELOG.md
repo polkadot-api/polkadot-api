@@ -2,7 +2,12 @@
 
 ## Unreleased
 
+### Added
+
 - Add CLI version command
+- Option flag `noDescriptorsPackage: boolean` to generate descriptors without installing them as a package.
+
+## 0.9.23 - 2024-12-17
 
 ### Fixed
 

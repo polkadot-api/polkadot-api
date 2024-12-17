@@ -15,6 +15,10 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
   program.name("polkadot-api").description("Polkadot API CLI")
 
   const config = new Option("--config <filename>", "Source for the config file")
+  const skipCodegen = new Option(
+    "--skip-codegen",
+    "Skip running codegen after adding",
+  )
 
   program
     .command("version")
@@ -50,7 +54,7 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     )
     .option("--wasm <filename>", "Source from runtime wasm file")
     .option("--no-persist", "Do not persist the metadata as a file")
-    .option("--skip-codegen", "Skip running codegen after adding")
+    .addOption(skipCodegen)
     .action(add)
 
   program
@@ -61,7 +65,7 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
       "Keys of the metadata files to update, separated by commas. Leave empty for all",
     )
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after updating")
+    .addOption(skipCodegen)
     .action(update)
 
   program
@@ -69,7 +73,7 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .description("Remove a chain spec from the list")
     .argument("<key>", "Key identifier for the chain spec")
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after removing")
+    .addOption(skipCodegen)
     .action(remove)
 
   const inkCommand = program
@@ -81,14 +85,14 @@ export function getCli({ add, generate, remove, update, ink }: Commands) {
     .argument("<file>", ".contract or .json metadata file for the contract")
     .option("-k, --key <key>", "Key identifier for the contract")
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after updating")
+    .addOption(skipCodegen)
     .action(ink.add)
   inkCommand
     .command("remove")
     .description("Remove an ink contract")
     .argument("<key>", "Key identifier for the contract to remove")
     .addOption(config)
-    .option("--skip-codegen", "Skip running codegen after updating")
+    .addOption(skipCodegen)
     .action(ink.remove)
 
   return program

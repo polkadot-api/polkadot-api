@@ -55,6 +55,11 @@
       "import": "./dist/specs/paseo_asset_hub.mjs",
       "require": "./dist/specs/paseo_asset_hub.js"
     },
+    "./paseo_people": {
+      "module": "./dist/specs/paseo_people.mjs",
+      "import": "./dist/specs/paseo_people.mjs",
+      "require": "./dist/specs/paseo_people.js"
+    },
     "./polkadot": {
       "module": "./dist/specs/polkadot.mjs",
       "import": "./dist/specs/polkadot.mjs",
@@ -140,6 +145,7 @@
     "ksmcc3_people",
     "paseo",
     "paseo_asset_hub",
+    "paseo_people",
     "polkadot",
     "polkadot_asset_hub",
     "polkadot_bridge_hub",

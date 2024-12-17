@@ -1,5 +1,6 @@
 {
   "name": "ink",
+  "private": true,
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
