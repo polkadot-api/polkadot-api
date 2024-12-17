@@ -4,15 +4,16 @@ const EMPTY_VALUE = Symbol("EMPTY_VALUE")
 type EMPTY_VALUE = typeof EMPTY_VALUE
 
 export const lossLessExhaustMap =
-  <I, O>(mapper: (x: I) => Observable<O>) =>
+  <I, O>(mapper: (x: I, idx: number) => Observable<O>) =>
   (source$: Observable<I>): Observable<O> =>
     new Observable((observer) => {
+      let idx = 0
       let innerSubscription: Subscription | null = null
       let queuedValue: I | EMPTY_VALUE = EMPTY_VALUE
       let isOutterDone = false
 
       const setInnerSubscription = () => {
-        const observable = mapper(queuedValue as I)
+        const observable = mapper(queuedValue as I, idx++)
         queuedValue = EMPTY_VALUE
         innerSubscription = observable.subscribe({
           next(vv) {

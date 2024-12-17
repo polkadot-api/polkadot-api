@@ -33,6 +33,7 @@ import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import type { AnyApi, PolkadotClient } from "./types"
 import { Binary } from "@polkadot-api/substrate-bindings"
+import { createWatchEntries } from "./watch-entries"
 
 const createApi = <Unsafe extends true | false, D>(
   compatibilityToken: Promise<CompatibilityToken | RuntimeToken>,
@@ -59,11 +60,18 @@ const createApi = <Unsafe extends true | false, D>(
 
   const getPallet = (ctx: RuntimeContext, name: string) =>
     ctx.lookup.metadata.pallets.find((p) => p.name === name)!
+
+  const getWatchEntries = createWatchEntries(
+    chainHead.pinnedBlocks$,
+    chainHead.storage$,
+    chainHead.withRuntime,
+  )
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,
       name,
       chainHead,
+      getWatchEntries,
       compatibilityHelper(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Storage, pallet, name),

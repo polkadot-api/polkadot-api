@@ -4,6 +4,7 @@ import {
   lossLessExhaustMap,
 } from "@/utils"
 import {
+  BlockInfo,
   ChainHead$,
   NotBestBlockError,
   RuntimeContext,
@@ -29,6 +30,7 @@ import {
   minCompatLevel,
 } from "./compatibility"
 import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
+import { createWatchEntries } from "./watch-entries"
 
 type CallOptions = Partial<{
   /**
@@ -46,6 +48,11 @@ type CallOptions = Partial<{
 type WithCallOptions<Args extends Array<any>> = [
   ...args: Args,
   options?: CallOptions,
+]
+
+type WithWatchOptions<Args extends Array<any>> = [
+  ...args: Args,
+  options?: { at: "best" },
 ]
 
 type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
@@ -138,6 +145,41 @@ export type StorageEntryWithKeys<
   getEntries: (
     ...args: WithCallOptions<PossibleParents<Args>>
   ) => Promise<Array<{ keyArgs: ArgsOut; value: NonNullable<Payload> }>>
+  /**
+   * Watch changes (Observable-based) for the storage entries with a subset of
+   * `Args`.
+   *
+   * @param args  Subset of keys needed for the storage entry.
+   *              At the end, optionally set whether to watch against the
+   *              `best` block.
+   *              By default watches changes against the finalized block.
+   *              When watching changes against the "best" block, this API
+   *              gratiously handles the re-orgs and provides the deltas
+   *              based on the latest emission.
+   *              The observed value contains the following properties:
+   *              - `block`: the block in where the `deltas` took place -
+   *              `deltas`: `null` indicates that nothing has changed from
+   *              the latest emission.
+   *              If the value is not `null` then the `deleted` and `upsrted`
+   *              properties indicate the entries that have changed.
+   *              - `entries`: it's an immutable data-structure with the
+   *              latest entries.
+   * @example
+   *
+   *   typedApi.query.Staking.Nominators.watchEntries()
+   *   typedApi.query.Staking.Nominators.watchEntries({ at: "best" })
+   *
+   */
+  watchEntries: (
+    ...args: WithWatchOptions<PossibleParents<Args>>
+  ) => Observable<{
+    block: BlockInfo
+    deltas: null | {
+      deleted: Array<{ args: ArgsOut; value: NonNullable<Payload> }>
+      upserted: Array<{ args: ArgsOut; value: NonNullable<Payload> }>
+    }
+    entries: Array<{ args: ArgsOut; value: NonNullable<Payload> }>
+  }>
 } & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
 export type StorageEntry<
@@ -162,6 +204,7 @@ export const createStorageEntry = (
   pallet: string,
   name: string,
   chainHead: ChainHead$,
+  getWatchEntries: ReturnType<typeof createWatchEntries>,
   {
     isCompatible,
     getCompatibilityLevel,
@@ -329,6 +372,18 @@ export const createStorageEntry = (
       keyArgs.map((args) => getValue(...(options ? [...args, options] : args))),
     )
 
+  const watchEntries: any = (...args: Array<any>) => {
+    const lastArg = args.at(-1)
+    const isLastArgOptional = isOptionalArg(lastArg)
+
+    return getWatchEntries(
+      pallet,
+      name,
+      isLastArgOptional ? args.slice(0, -1) : args,
+      isLastArgOptional && lastArg.at === "best",
+    )
+  }
+
   return {
     isCompatible,
     getCompatibilityLevel,
@@ -336,5 +391,6 @@ export const createStorageEntry = (
     getValues,
     getEntries,
     watchValue,
+    watchEntries,
   }
 }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Storage `watchEntries` API
+
 ## 1.7.9 - 2024-12-17
 
 ### Fixed
