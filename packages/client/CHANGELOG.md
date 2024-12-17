@@ -5,6 +5,9 @@
 ### Added
 
 - Storage `watchEntries` API
+- cli: Option flag `noDescriptorsPackage` to generate descriptors without installing them as a package.
+- **Chains:**
+  - Add Paseo People chain
 
 ## 1.7.9 - 2024-12-17
 
