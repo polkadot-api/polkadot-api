@@ -2,9 +2,6 @@
   "name": "@polkadot-api/cli",
   "version": "0.9.23",
   "author": "Victor Oliva (https://github.com/voliva)",
-  "contributors": [
-    "Ryan Lee (https://github.com/ryanleecode)"
-  ],
   "license": "MIT",
   "sideEffects": true,
   "type": "module",
@@ -29,7 +26,7 @@
     "build-core": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
     "build": "pnpm build-core",
     "start": "pnpm build && node --enable-source-maps dist/main.js",
-    "test": "vitest",
+    "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
