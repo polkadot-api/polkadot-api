@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.5 - 2024-12-17
+
 ### Fixed
 
 - fix `concatMapEager`

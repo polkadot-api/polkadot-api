@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.7.9 - 2024-12-17
+
 ### Fixed
 
 - `unknown` type on storage queries that have a composite key with the same type.
