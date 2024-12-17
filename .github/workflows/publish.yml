@@ -68,6 +68,7 @@ jobs:
             signers/pjs-signer,
             signers/polkadot-signer,
             signers/signer,
+            signers/meta-signers,
             smoldot,
             substrate-bindings,
             substrate-client,

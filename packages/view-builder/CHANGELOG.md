@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.4.0 - 2024-12-10
+
+### Added
+
+- Add length information to `BytesArray` shape
+
+### Fixed
+
+- Update dependencies
+
 ## 0.3.12 - 2024-11-22
 
 ### Fixed

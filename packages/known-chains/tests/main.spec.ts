@@ -12,6 +12,9 @@ afterAll(async () => {
   await smoldot.terminate()
 })
 
+// disable some problematic specs temporarely
+const SKIPPED_CHAINS: string[] = []
+
 describe("chain specs", () => {
   const RELAYS: Array<keyof typeof chains> = [
     "polkadot",
@@ -22,7 +25,7 @@ describe("chain specs", () => {
   const waitForRuntime = async (chain: Chain | Promise<Chain>) => {
     return new Promise<() => void>((res, rej) => {
       const client = createClient(getSmProvider(chain))
-      const token = setTimeout(rej, 30_000)
+      const token = setTimeout(rej, 60_000)
       const { unfollow } = client.chainHead(
         true,
         (ev) => {
@@ -43,7 +46,7 @@ describe("chain specs", () => {
     const destroy = await waitForRuntime(relay)
     const parasDestroy = await Promise.all(
       (Object.keys(chains) as Array<keyof typeof chains>)
-        .filter((p) => p.startsWith(c + "_"))
+        .filter((p) => !SKIPPED_CHAINS.includes(p) && p.startsWith(c + "_"))
         .map((p) =>
           waitForRuntime(
             smoldot.addChain({
@@ -56,4 +59,4 @@ describe("chain specs", () => {
     parasDestroy.forEach((p) => p())
     destroy()
   })
-}, 60_000)
+}, 120_000)

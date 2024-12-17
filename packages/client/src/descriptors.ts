@@ -1,5 +1,6 @@
 import type { DescriptorValues } from "@polkadot-api/codegen"
 import type { OpaqueKeyHash } from "@polkadot-api/substrate-bindings"
+import { FixedSizeArray } from "./types"
 
 export type PlainDescriptor<T> = { _type?: T }
 export type StorageDescriptor<
@@ -47,6 +48,23 @@ export type ChainDefinition = {
   metadataTypes: Promise<Uint8Array>
 }
 
+type BuildTuple<L extends number, E, R extends Array<E>> = R["length"] extends L
+  ? R
+  : BuildTuple<L, E, [E, ...R]>
+type UnwrapFixedSizeArray<T extends Array<any>> = T extends [] | [any, ...any[]]
+  ? T
+  : T extends FixedSizeArray<infer L, infer E>
+    ? number extends L
+      ? T
+      : BuildTuple<L, E, []>
+    : T
+type RemapKeys<Key extends Array<any>, Opaque> = {
+  [K in keyof Key]: K extends Opaque ? OpaqueKeyHash : Key[K]
+}
+type ApplyOpaque<Key extends Array<any>, Opaque> = never extends Opaque
+  ? Key
+  : RemapKeys<UnwrapFixedSizeArray<Key>, Opaque>
+
 type ExtractStorage<
   T extends DescriptorEntry<StorageDescriptor<any, any, any, any>>,
 > = {
@@ -59,9 +77,7 @@ type ExtractStorage<
     >
       ? {
           KeyArgs: Key
-          KeyArgsOut: {
-            [K in keyof Key]: K extends Opaque ? OpaqueKeyHash : Key[K]
-          }
+          KeyArgsOut: ApplyOpaque<Key, Opaque>
           Value: Value
           IsOptional: Optional
         }

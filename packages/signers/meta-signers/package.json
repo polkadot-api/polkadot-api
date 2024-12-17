@@ -1,7 +1,7 @@
 {
-  "name": "@polkadot-api/pjs-signer",
-  "version": "0.6.2",
-  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "name": "@polkadot-api/meta-signers",
+  "version": "0.1.1",
+  "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/polkadot-api/polkadot-api.git"
@@ -43,10 +43,10 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@polkadot-api/polkadot-signer": "workspace:*",
-    "@polkadot-api/signers-common": "workspace:*",
-    "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/polkadot-signer": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/utils": "workspace:*",
+    "@polkadot-api/signer": "workspace:*"
   }
 }

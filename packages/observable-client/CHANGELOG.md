@@ -2,10 +2,28 @@
 
 ## Unreleased
 
+## 0.6.5 - 2024-12-17
+
+### Fixed
+
+- fix `concatMapEager`
+
+### Changed
+
+- `chainHead.storage$` also returns the StorageResult when there is a mapper
+- export `concatMapEager`
+
+## 0.6.4 - 2024-12-10
+
+### Fixed
+
+- Update dependencies
+
 ## 0.6.3 - 2024-11-22
 
 ### Fixed
 
+- "Fix" `storageQueries` to account for https://github.com/paritytech/polkadot-sdk/issues/6683
 - Update dependencies
 
 ## 0.6.2 - 2024-11-07

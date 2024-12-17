@@ -8,8 +8,18 @@
 - **Chains:**
   - Add Paseo People chain
 
+## 1.7.9 - 2024-12-17
+
 ### Fixed
 
+- `unknown` type on storage queries that have a composite key with the same type.
+- Update dependencies.
+
+## 1.7.8 - 2024-12-10
+
+### Fixed
+
+- Update dependencies
 - **Smoldot:**
   - Update smoldot to `2.0.34`
 

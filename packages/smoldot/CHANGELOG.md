@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.8 - 2024-12-10
+
 ### Fixed
 
 - Update smoldot to `2.0.34`

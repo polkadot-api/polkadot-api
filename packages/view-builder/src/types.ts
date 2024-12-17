@@ -124,7 +124,6 @@ export type PrimitiveDecoded =
   | BigNumberDecoded
   | BitSequenceDecoded
   | BytesSequenceDecoded
-  | BytesArrayDecoded
   | AccountIdDecoded
   | EthAccountDecoded
 
@@ -170,6 +169,7 @@ export type EnumDecoded = WithInputAndPath<{
 }>
 
 export type ComplexDecoded =
+  | BytesArrayDecoded
   | SequenceDecoded
   | ArrayDecoded
   | TupleDecoded
@@ -179,6 +179,11 @@ export type ComplexDecoded =
   | EnumDecoded
 
 export type Decoded = PrimitiveDecoded | ComplexDecoded
+
+export interface BytesArrayShape {
+  codec: "BytesArray"
+  len: number
+}
 
 export interface SequenceShape {
   codec: "Sequence"
@@ -217,6 +222,7 @@ export interface EnumShape {
 }
 
 export type ComplexShape =
+  | BytesArrayShape
   | SequenceShape
   | ArrayShape
   | TupleShape
