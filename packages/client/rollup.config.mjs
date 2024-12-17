@@ -1,6 +1,7 @@
 import dts from "rollup-plugin-dts"
 import esbuild from "rollup-plugin-esbuild"
 import alias from "@rollup/plugin-alias"
+import json from "@rollup/plugin-json"
 import path from "path"
 import { readdir } from "node:fs/promises"
 import { chmodSync, statSync } from "node:fs"
@@ -119,6 +120,7 @@ export default [
     external: (id) => !/^[./]/.test(id) && !/^@\//.test(id),
     plugins: [
       absoluteAlias,
+      json(),
       esbuild(),
       {
         // seems rollup-plugin-executable is not compatible with latest rollup version.

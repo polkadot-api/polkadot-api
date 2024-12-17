@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { add, generate, getCli, remove, update, ink } from "@polkadot-api/cli"
+import { version } from "../package.json"
 
 getCli({
   add,
@@ -8,4 +9,5 @@ getCli({
   remove,
   update,
   ink,
+  version,
 }).parse()
