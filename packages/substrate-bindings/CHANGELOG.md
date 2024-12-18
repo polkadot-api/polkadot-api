@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.11.0 - 2024-12-18
+
 ### Changed
 
 - Avoid requiring value decoder for storage

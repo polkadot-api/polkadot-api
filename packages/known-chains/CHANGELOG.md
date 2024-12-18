@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2024-12-18
+
 ### Added
 
 - Add Paseo People chain

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.0 - 2024-12-18
+
 ### Added
 
 - Add CLI version command
