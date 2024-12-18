@@ -39,7 +39,7 @@ interface CompatibilityTokenApi extends RuntimeTokenApi {
     pallet: string,
     name: string,
   ) => EntryPoint | null
-  getApiEntryPoint: (name: string, method: string) => EntryPoint | null
+  getApiEntryPoint: (name: string, method: string) => EntryPoint
 }
 const compatibilityTokenApi = new WeakMap<
   CompatibilityToken,
@@ -87,11 +87,17 @@ export const createCompatibilityToken = <D extends ChainDefinition>(
       runtime,
       getPalletEntryPoint(opType, pallet, name) {
         const idx = descriptors[opType]?.[pallet]?.[name]
-        return idx == null ? null : entryPoints[idx]
+        if (idx == null)
+          throw new Error(
+            `Descriptor for ${opType} ${pallet}.${name} does not exist`,
+          )
+        return entryPoints[idx]
       },
       getApiEntryPoint(name, method) {
         const idx = descriptors.apis?.[name]?.[method]
-        return idx == null ? null : entryPoints[idx]
+        if (idx == null)
+          throw new Error(`Descriptor for API ${name}.${method} does not exist`)
+        return entryPoints[idx]
       },
       typedefNodes,
     })
@@ -146,9 +152,7 @@ const getMetadataCache = (ctx: RuntimeContext) => {
 }
 export const compatibilityHelper = (
   descriptors: Promise<RuntimeToken | CompatibilityToken>,
-  getDescriptorEntryPoint: (
-    descriptorApi: CompatibilityTokenApi,
-  ) => EntryPoint | null,
+  getDescriptorEntryPoint: (descriptorApi: CompatibilityTokenApi) => EntryPoint,
   getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint | null,
 ) => {
   const getRuntimeTypedef = (ctx: RuntimeContext, id: number) => {
@@ -176,7 +180,7 @@ export const compatibilityHelper = (
     ctx ||= compatibilityApi.runtime()
     const descriptorEntryPoint = getDescriptorEntryPoint(compatibilityApi)
     const runtimeEntryPoint = getRuntimeEntryPoint(ctx)
-    if (descriptorEntryPoint == null || runtimeEntryPoint == null)
+    if (runtimeEntryPoint == null)
       return {
         args: CompatibilityLevel.Incompatible,
         values: CompatibilityLevel.Incompatible,
@@ -250,7 +254,6 @@ export const compatibilityHelper = (
     const compatibilityApi = compatibilityTokenApi.get(descriptors)!
 
     const entryPoint = getDescriptorEntryPoint(compatibilityApi)
-    if (entryPoint == null) return false
 
     return valueIsCompatibleWithDest(
       entryPoint.values,
