@@ -49,6 +49,6 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^1.6.0"
+    "@noble/curves": "^1.7.0"
   }
 }
