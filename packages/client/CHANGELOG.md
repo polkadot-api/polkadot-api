@@ -10,6 +10,7 @@
   - Add version option
 - **Chains:**
   - Add Paseo People chain
+  - Update `lightSyncState`
 
 ## 1.7.9 - 2024-12-17
 
