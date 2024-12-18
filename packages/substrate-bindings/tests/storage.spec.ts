@@ -1,7 +1,7 @@
 import { fc, it } from "@fast-check/vitest"
 import { expect, describe, vi } from "vitest"
 import { mergeUint8, toHex } from "@polkadot-api/utils"
-import { EncoderWithHash, _void, str, u32 } from "@/."
+import { EncoderWithHash, str, u32 } from "@/."
 
 describe("storage", () => {
   it.prop([fc.uint8Array(), fc.string(), fc.string()])(
@@ -20,7 +20,7 @@ describe("storage", () => {
       const { Storage } = await import(`@/storage?${Date.now()}`)
 
       const FooStorage = Storage(pallet)
-      const FooBarStorage = FooStorage(name, _void.dec)
+      const FooBarStorage = FooStorage(name)
 
       const palletItemEncoded = toHex(mergeUint8(hash, hash))
       expect(FooBarStorage.enc()).toStrictEqual(palletItemEncoded)
@@ -50,22 +50,11 @@ describe("storage", () => {
       [u32, (i) => i],
     ]
 
-    const FooBarStorage = FooStorage("bar", _void.dec, ...barArgs)
+    const FooBarStorage = FooStorage("bar", ...barArgs)
     const expected = toHex(
       mergeUint8(hash, hash, str.enc(validator), u32.enc(era)),
     )
 
     expect(FooBarStorage.enc(validator, era)).toStrictEqual(expected)
   })
-
-  it.prop([fc.uint8Array(), fc.anything()])(
-    "should use supplied decoder",
-    async (input, anything) => {
-      const { Storage } = await import("@/storage")
-      const FooStorage = Storage("foo")
-      const FooBarStorage = FooStorage("bar", (_) => anything)
-
-      expect(FooBarStorage.dec(input)).toStrictEqual(anything)
-    },
-  )
 })

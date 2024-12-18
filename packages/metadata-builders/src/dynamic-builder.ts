@@ -39,15 +39,17 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
 
     const storageWithFallback = (
       len: number,
+      value: Codec<any>,
       ...args: Parameters<ReturnType<typeof scale.Storage>>
     ) => {
-      const result = storagePallet!(...args)
+      const keys = storagePallet!(...args)
       return {
-        ...result,
+        keys,
+        value,
         len,
         fallback:
           storageEntry.modifier === 1
-            ? result.dec(storageEntry.fallback)
+            ? value.dec(storageEntry.fallback)
             : undefined,
       }
     }
@@ -55,8 +57,8 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     if (storageEntry.type.tag === "plain")
       return storageWithFallback(
         0,
+        buildDefinition(storageEntry.type.value),
         entry,
-        buildDefinition(storageEntry.type.value).dec,
       )
 
     const { key, value, hashers } = storageEntry.type.value
@@ -83,7 +85,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       }
     })()
 
-    return storageWithFallback(hashes.length, entry, val.dec, ...hashArgs)
+    return storageWithFallback(hashes.length, val, entry, ...hashArgs)
   }
 
   const buildEnumEntry = (

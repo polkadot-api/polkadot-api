@@ -221,7 +221,7 @@ export const createStorageEntry = (
     map(({ dynamicBuilder }) =>
       typeof dynamicBuilder
         .buildStorage("System", "Number")
-        .dec(new Uint8Array(32)) === "bigint"
+        .value.dec(new Uint8Array(32)) === "bigint"
         ? BigInt
         : identity,
     ),
@@ -295,12 +295,13 @@ export const createStorageEntry = (
               throw invalidArgs(args)
             if (!argsAreCompatible(descriptors, ctx, actualArgs))
               throw incompatibleError()
-            return codecs.enc(...actualArgs)
+            return codecs.keys.enc(...actualArgs)
           },
           null,
           (data, ctx) => {
             const codecs = getCodec(ctx)
-            const value = data === null ? codecs.fallback : codecs.dec(data)
+            const value =
+              data === null ? codecs.fallback : codecs.value.dec(data)
             if (!valuesAreCompatible(descriptors, ctx, value))
               throw incompatibleError()
             return value
@@ -345,14 +346,14 @@ export const createStorageEntry = (
             args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
           if (args.length === codecs.len && actualArgs === args)
             throw invalidArgs(args)
-          return codecs.enc(...actualArgs)
+          return codecs.keys.enc(...actualArgs)
         },
         null,
         (values, ctx) => {
           const codecs = getCodec(ctx)
           const decodedValues = values.map(({ key, value }) => ({
-            keyArgs: codecs.keyDecoder(key),
-            value: codecs.dec(value),
+            keyArgs: codecs.keys.dec(key),
+            value: codecs.value.dec(value),
           }))
           if (
             decodedValues.some(

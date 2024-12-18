@@ -152,8 +152,8 @@ export const getRuntimeCreator = (
           lookup,
           dynamicBuilder,
           events: {
-            key: events.enc(),
-            dec: events.dec as any,
+            key: events.keys.enc(),
+            dec: events.value.dec as any,
           },
           accountId: AccountId(dynamicBuilder.ss58Prefix),
         }
