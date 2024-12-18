@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.0 - 2024-12-18
+
 ### Added
 
 - Storage `watchEntries` API
@@ -10,6 +12,10 @@
   - Add version option
 - **Chains:**
   - Add Paseo People chain
+
+### Fixed
+
+- **Chains:**:
   - Update `lightSyncState`
 
 ## 1.7.9 - 2024-12-17

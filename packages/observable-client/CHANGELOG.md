@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-# Added
+## 0.7.0 - 2024-12-18
+
+### Added
 
 - expose `isBestOrFinalizedBlock` helper
 
