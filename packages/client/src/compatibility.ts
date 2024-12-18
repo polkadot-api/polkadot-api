@@ -38,7 +38,7 @@ interface CompatibilityTokenApi extends RuntimeTokenApi {
     opType: OpType,
     pallet: string,
     name: string,
-  ) => EntryPoint | null
+  ) => EntryPoint
   getApiEntryPoint: (name: string, method: string) => EntryPoint
 }
 const compatibilityTokenApi = new WeakMap<
