@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Expose whole `keys` and `value` codecs for storage
+- Avoid requiring value decoder for storage
 
 ## 0.10.0 - 2024-12-10
 

@@ -31,22 +31,18 @@ export type OpaqueKeyHash = string & { __opaqueKeyHash?: unknown }
 
 export const Storage = (pallet: string) => {
   const palledEncoded = Twox128(textEncoder.encode(pallet))
-  return <T, A extends Array<EncoderWithHash<any>>>(
+  return <A extends Array<EncoderWithHash<any>>>(
     name: string,
-    value: Codec<T>,
     ...encoders: [...A]
   ): {
-    keys: {
-      enc: (
-        ...args: {
-          [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
-        }
-      ) => string
-      dec: (value: string) => {
+    enc: (
+      ...args: {
         [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
       }
+    ) => string
+    dec: (value: string) => {
+      [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
     }
-    value: Codec<T>
   } => {
     const palletItemEncoded = mergeUint8(
       palledEncoded,
@@ -100,8 +96,8 @@ export const Storage = (pallet: string) => {
       )
 
     return {
-      keys: { enc, dec },
-      value,
+      enc,
+      dec,
     }
   }
 }
