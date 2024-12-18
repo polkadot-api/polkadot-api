@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Extend compatibility check to non-existant entrypoints
+
 ## 1.8.0 - 2024-12-18
 
 ### Added

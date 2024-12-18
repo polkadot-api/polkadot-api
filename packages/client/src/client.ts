@@ -59,7 +59,7 @@ const createApi = <Unsafe extends true | false, D>(
   }
 
   const getPallet = (ctx: RuntimeContext, name: string) =>
-    ctx.lookup.metadata.pallets.find((p) => p.name === name)!
+    ctx.lookup.metadata.pallets.find((p) => p.name === name)
 
   const getWatchEntries = createWatchEntries(
     chainHead.pinnedBlocks$,
@@ -76,10 +76,12 @@ const createApi = <Unsafe extends true | false, D>(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Storage, pallet, name),
         // TODO this is way sub-optimal. Needs some rethought - maybe a builder for entry points?.
-        (ctx) =>
-          storageEntryPoint(
-            getPallet(ctx, pallet).storage!.items.find((s) => s.name === name)!,
-          ),
+        (ctx) => {
+          const item = getPallet(ctx, pallet)?.storage?.items.find(
+            (s) => s.name === name,
+          )
+          return item == null ? null : storageEntryPoint(item)
+        },
       ),
     ),
   )
@@ -87,12 +89,14 @@ const createApi = <Unsafe extends true | false, D>(
   const getEnumEntry = (
     ctx: RuntimeContext,
     side: "args" | "values",
-    id: number,
+    id: number | undefined,
     name: string,
   ) => {
+    if (id == null) return null
     const entry = ctx.lookup(id)
     if (entry.type !== "enum") throw new Error("Expected enum")
 
+    if (entry.value[name] == null) return null
     const node = enumValueEntryPointNode(entry.value[name])
     return {
       args: side === "args" ? node : voidEntryPointNode,
@@ -108,7 +112,7 @@ const createApi = <Unsafe extends true | false, D>(
       compatibilityHelper(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Tx, pallet, name),
-        (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, name),
+        (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls, name),
       ),
       true,
     ),
@@ -123,7 +127,7 @@ const createApi = <Unsafe extends true | false, D>(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Event, pallet, name),
         (ctx) =>
-          getEnumEntry(ctx, "values", getPallet(ctx, pallet).events!, name),
+          getEnumEntry(ctx, "values", getPallet(ctx, pallet)?.events, name),
       ),
     ),
   )
@@ -135,10 +139,12 @@ const createApi = <Unsafe extends true | false, D>(
       compatibilityHelper(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Const, pallet, name),
-        (ctx) =>
-          singleValueEntryPoint(
-            getPallet(ctx, pallet).constants.find((c) => c.name === name)!.type,
-          ),
+        (ctx) => {
+          const item = getPallet(ctx, pallet)?.constants.find(
+            (c) => c.name === name,
+          )?.type
+          return item == null ? null : singleValueEntryPoint(item)
+        },
       ),
     ),
   )
@@ -183,7 +189,7 @@ const createApi = <Unsafe extends true | false, D>(
           compatibilityToken,
           (r) => r.getPalletEntryPoint(OpType.Tx, pallet, call),
           (ctx) =>
-            getEnumEntry(ctx, "args", getPallet(ctx, pallet).calls!, call),
+            getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls, call),
         ),
         false,
       )(args)
