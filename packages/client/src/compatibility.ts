@@ -86,10 +86,18 @@ export const createCompatibilityToken = <D extends ChainDefinition>(
     compatibilityTokenApi.set(token, {
       runtime,
       getPalletEntryPoint(opType, pallet, name) {
-        return entryPoints[descriptors[opType][pallet][name]]
+        const idx = descriptors[opType]?.[pallet]?.[name]
+        if (idx == null)
+          throw new Error(
+            `Descriptor for ${opType} ${pallet}.${name} does not exist`,
+          )
+        return entryPoints[idx]
       },
       getApiEntryPoint(name, method) {
-        return entryPoints[descriptors.apis[name][method]]
+        const idx = descriptors.apis?.[name]?.[method]
+        if (idx == null)
+          throw new Error(`Descriptor for API ${name}.${method} does not exist`)
+        return entryPoints[idx]
       },
       typedefNodes,
     })
@@ -145,7 +153,7 @@ const getMetadataCache = (ctx: RuntimeContext) => {
 export const compatibilityHelper = (
   descriptors: Promise<RuntimeToken | CompatibilityToken>,
   getDescriptorEntryPoint: (descriptorApi: CompatibilityTokenApi) => EntryPoint,
-  getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint,
+  getRuntimeEntryPoint: (ctx: RuntimeContext) => EntryPoint | null,
 ) => {
   const getRuntimeTypedef = (ctx: RuntimeContext, id: number) => {
     const cache = getMetadataCache(ctx)
@@ -172,6 +180,11 @@ export const compatibilityHelper = (
     ctx ||= compatibilityApi.runtime()
     const descriptorEntryPoint = getDescriptorEntryPoint(compatibilityApi)
     const runtimeEntryPoint = getRuntimeEntryPoint(ctx)
+    if (runtimeEntryPoint == null)
+      return {
+        args: CompatibilityLevel.Incompatible,
+        values: CompatibilityLevel.Incompatible,
+      }
     const descriptorNodes = compatibilityApi.typedefNodes
 
     const cache = getMetadataCache(ctx)
@@ -220,6 +233,7 @@ export const compatibilityHelper = (
     if (levels.values === CompatibilityLevel.Incompatible) return false
 
     const entryPoint = getRuntimeEntryPoint(ctx)
+    if (entryPoint == null) return false
 
     return valueIsCompatibleWithDest(
       entryPoint.args,
