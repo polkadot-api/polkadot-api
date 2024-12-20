@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.1 - 2024-12-20
+
 ### Fixed
 
 - Extend compatibility check to non-existant entrypoints
