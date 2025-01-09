@@ -7,8 +7,7 @@ import {
 } from "./signed-extensions/user"
 import * as chainSignedExtensions from "./signed-extensions/chain"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { _void, Encoder } from "@polkadot-api/substrate-bindings"
-import { empty } from "./signed-extensions/utils"
+import { _void } from "@polkadot-api/substrate-bindings"
 import { CustomSignedExtensionValues } from "./types"
 import { mapObject } from "@polkadot-api/utils"
 
@@ -18,35 +17,6 @@ type HintedSignedExtensions = Partial<{
   asset: Uint8Array
   nonce: number
 }>
-
-const empty$ = of({
-  value: empty,
-  additionalSigned: empty,
-})
-
-const getCustomSignExt = <T extends Record<string, any>>(
-  obj: T,
-  key: string,
-  encoder: Encoder<any>,
-) => {
-  if (!(key in obj)) return empty
-  const x = obj[key] as any
-  return x instanceof Uint8Array ? x : encoder(x)
-}
-
-const getEncodedSignExtFromCustom = (
-  custom: CustomSignedExtensionValues,
-  valueEnc: Encoder<any>,
-  additionalSignedEnc: Encoder<any>,
-) =>
-  of({
-    value: getCustomSignExt(custom, "value", valueEnc),
-    additionalSigned: getCustomSignExt(
-      custom,
-      "additionalSigned",
-      additionalSignedEnc,
-    ),
-  })
 
 export const createTx: (
   chainHead: ChainHead$,
@@ -99,20 +69,35 @@ export const createTx: (
                   return chainSignedExtensions.getNonce(hinted.nonce!)
 
                 const fn = chainSignedExtensions[identifier as "CheckGenesis"]
-                const [valueEnc] = ctx.dynamicBuilder.buildDefinition(type)
-                const [additionalSignedEnc] =
-                  ctx.dynamicBuilder.buildDefinition(additionalSigned)
-                return fn
-                  ? fn(signedExtensionsCtx)
-                  : valueEnc === _void[0] && additionalSignedEnc === _void[0]
-                    ? empty$
-                    : identifier in customSignedExtensions
-                      ? getEncodedSignExtFromCustom(
-                          customSignedExtensions[identifier],
-                          valueEnc,
-                          additionalSignedEnc,
-                        )
-                      : null
+                if (fn) return fn(signedExtensionsCtx)
+
+                // If we reached this point, that means that it's either an "empty" or a "custom" signed-extension
+                const customEntry = customSignedExtensions[identifier] as any
+                const [[valueEnc], [additionalSignedEnc]] = [
+                  type,
+                  additionalSigned,
+                ].map(ctx.dynamicBuilder.buildDefinition)
+                try {
+                  return of(
+                    mapObject(
+                      {
+                        value: valueEnc,
+                        additionalSigned: additionalSignedEnc,
+                      },
+                      (encoder, key) => {
+                        const input = customEntry?.[key]
+                        // if the encoder is _void, then the input value is ignored, so no harm in passing `undefined`
+                        // only an `Option` encoder will accept `undefined` as an input without crashing
+                        return input instanceof Uint8Array
+                          ? input
+                          : encoder(input)
+                      },
+                    ),
+                  )
+                } catch {
+                  // this means that a non optional custom signed-extension has not received its value
+                  return null
+                }
               }
 
               return [identifier, stream()!] as const
