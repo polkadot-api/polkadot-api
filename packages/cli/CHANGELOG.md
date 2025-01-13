@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.1 - 2025-01-13
+
 ### Fixed
 
 - Whitelist should be a common option
