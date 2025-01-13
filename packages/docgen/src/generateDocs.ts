@@ -2,7 +2,7 @@ import { getMetadata, readPapiConfig } from "@polkadot-api/cli"
 import { generateDocsDescriptors, FileTree } from "@polkadot-api/codegen"
 import fs from "fs/promises"
 import path from "path"
-import TypeDoc from "typedoc"
+import { Application } from "typedoc"
 import { generateIndex } from "@/generateIndex"
 
 export const papiFolder = ".papi"
@@ -67,7 +67,7 @@ export async function generateDocs(opts: Options) {
       const cssFile = path.join(chainDescriptorsPath, "style.css")
       await fs.writeFile(cssFile, getCss(), "utf-8")
 
-      const typedoc = await TypeDoc.Application.bootstrapWithPlugins({
+      const typedoc = await Application.bootstrapWithPlugins({
         entryPoints: [path.join(chainDescriptorsPath, "index.ts")],
         tsconfig: tsconfigPath,
         titleLink: "/",
