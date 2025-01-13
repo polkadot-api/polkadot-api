@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Whitelist should be a common option
+
 ## 0.10.0 - 2024-12-18
 
 ### Added

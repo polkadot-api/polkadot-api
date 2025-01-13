@@ -26,6 +26,10 @@ export function getCli({
     "--skip-codegen",
     "Skip running codegen after adding",
   )
+  const whitelist = new Option(
+    "--whitelist <filename>",
+    "Use whitelist file to reduce descriptor size",
+  )
 
   program
     .command("generate", {
@@ -33,10 +37,7 @@ export function getCli({
     })
     .description("Generate descriptor files")
     .addOption(config)
-    .option(
-      "--whitelist <filename>",
-      "Use whitelist file to reduce descriptor size",
-    )
+    .addOption(whitelist)
     .action(generate)
 
   program
@@ -55,6 +56,7 @@ export function getCli({
     .option("--wasm <filename>", "Source from runtime wasm file")
     .option("--no-persist", "Do not persist the metadata as a file")
     .addOption(skipCodegen)
+    .addOption(whitelist)
     .action(add)
 
   program
@@ -66,6 +68,7 @@ export function getCli({
     )
     .addOption(config)
     .addOption(skipCodegen)
+    .addOption(whitelist)
     .action(update)
 
   program
@@ -74,6 +77,7 @@ export function getCli({
     .argument("<key>", "Key identifier for the chain spec")
     .addOption(config)
     .addOption(skipCodegen)
+    .addOption(whitelist)
     .action(remove)
 
   const inkCommand = program
@@ -86,6 +90,7 @@ export function getCli({
     .option("-k, --key <key>", "Key identifier for the contract")
     .addOption(config)
     .addOption(skipCodegen)
+    .addOption(whitelist)
     .action(ink.add)
   inkCommand
     .command("remove")
@@ -93,6 +98,7 @@ export function getCli({
     .argument("<key>", "Key identifier for the contract to remove")
     .addOption(config)
     .addOption(skipCodegen)
+    .addOption(whitelist)
     .action(ink.remove)
 
   return program
