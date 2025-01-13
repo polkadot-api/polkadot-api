@@ -7,6 +7,8 @@
 - Custom-signed-extensions declared as `Option` doesn't have to be reported by the user when creating the transaction.
 - **CLI**:
   - Whitelist should be a common option
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.8.1 - 2024-12-20
 
