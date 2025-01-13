@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.2 - 2025-01-13
+
 ### Fixed
 
 - Custom-signed-extensions declared as `Option` doesn't have to be reported by the user when creating the transaction.
