@@ -33,7 +33,6 @@ import { CommonOptions } from "./commonOptions"
 
 export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
-  whitelist?: string
 }
 
 export async function generate(opts: GenerateOptions) {
