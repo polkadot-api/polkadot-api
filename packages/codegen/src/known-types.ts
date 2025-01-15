@@ -1090,14 +1090,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     type: "Enum(WithdrawAsset, ReserveAssetDeposited, ReceiveTeleportedAsset, QueryResponse, TransferAsset, TransferReserveAsset, Transact, HrmpNewChannelOpenRequest, HrmpChannelAccepted, HrmpChannelClosing, ClearOrigin, DescendOrigin, ReportError, DepositAsset, DepositReserveAsset, ExchangeAsset, InitiateReserveWithdraw, InitiateTeleport, ReportHolding, BuyExecution, RefundSurplus, SetErrorHandler, SetAppendix, ClearError, ClaimAsset, Trap, SubscribeVersion, UnsubscribeVersion, BurnAsset, ExpectAsset, ExpectOrigin, ExpectError, ExpectTransactStatus, QueryPallet, ExpectPallet, ReportTransactStatus, ClearTransactStatus, UniversalOrigin, ExportMessage, LockAsset, UnlockAsset, NoteUnlockable, RequestUnlock, SetFeesMode, SetTopic, ClearTopic, AliasOrigin, UnpaidExecution, PayFees, InitiateTransfer, ExecuteWithOrigin, SetHints)",
   },
   au5bveb13r5dm: {
-    name: "XcmAssetFilter",
+    name: "XcmV5AssetFilter",
     chains:
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["staging_xcm.v5.asset.AssetFilter"],
     type: "Enum(Definite, Wild)",
   },
   eu5nmcltehl17: {
-    name: "XcmWildAsset",
+    name: "XcmV5WildAsset",
     chains:
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["staging_xcm.v5.asset.WildAsset"],
