@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Add XCM v5 known types
+
+### Fixed
+
+- Remove unused known types
+
 ## 0.12.12 - 2024-12-18
 
 ### Fixed

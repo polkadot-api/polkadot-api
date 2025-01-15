@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- **Codegen:**
+  - Add XCM v5 known types
+
+### Fixed
+
+- **Codegen:**
+  - Remove unused known types
+
 ## 1.8.3 - 2025-01-23
 
 ### Fixed
