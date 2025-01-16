@@ -104,6 +104,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   const withInMemory =
     <A extends Array<any>, T>(
       fn: (hash: string, ...args: A) => Observable<T>,
+      label: string,
     ): ((hash: string, ...args: A) => Observable<T>) =>
     (hash, ...args) =>
       new Observable((observer) => {
@@ -115,7 +116,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
         return isPresent
           ? fn(hash, ...args).subscribe(observer)
-          : observer.error(new BlockNotPinnedError())
+          : observer.error(new BlockNotPinnedError(hash, label))
       })
 
   const unpin = (hashes: string[]) =>
@@ -131,6 +132,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       key: string,
       ...args: [...A, ...[abortSignal: AbortSignal]]
     ) => Promise<T>,
+    label: string,
   ) => {
     const canonicalChain = (_fn: (hash: string, ...args: A) => Observable<T>) =>
       withEnsureCanonicalChain(pinnedBlocks$, follow$, _fn)
@@ -141,9 +143,11 @@ export const getChainHead$ = (chainHead: ChainHead) => {
           withStopRecovery(
             pinnedBlocks$,
             withRecoveryFn(fromAbortControllerFn(fn)),
+            `stop-${label}`,
           ),
         ),
       ),
+      label,
     )
   }
 
@@ -271,11 +275,11 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     usingBlock,
   )
 
-  const _body$ = withOptionalHash$(commonEnhancer(lazyFollower("body")))
+  const _body$ = withOptionalHash$(commonEnhancer(lazyFollower("body"), "body"))
   const body$ = (hash: string) =>
     upsertCachedStream(hash, "body", _body$(hash, true))
 
-  const _storage$ = commonEnhancer(lazyFollower("storage"))
+  const _storage$ = commonEnhancer(lazyFollower("storage"), "storage")
 
   const storage$ = withOptionalHash$(
     <
@@ -331,12 +335,15 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       pinnedBlocks$,
       (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
         recoveralStorage$(hash, queries, childTrie ?? null, false),
+      `storageQueries`,
     ),
   )
 
   const header$ = withOptionalHash$(
-    withStopRecovery(pinnedBlocks$, (hash: string) =>
-      defer(() => getHeader(hash)),
+    withStopRecovery(
+      pinnedBlocks$,
+      (hash: string) => defer(() => getHeader(hash)),
+      "header",
     ),
   )
 
@@ -350,7 +357,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       (x, ctx) => ctx.events.dec(x!),
     ).pipe(map((x) => x.mapped))
 
-  const __call$ = commonEnhancer(lazyFollower("call"))
+  const __call$ = commonEnhancer(lazyFollower("call"), "call")
   const call$ = withOptionalHash$(
     (hash: string, canonical: boolean, fn: string, args: string) =>
       upsertCachedStream(

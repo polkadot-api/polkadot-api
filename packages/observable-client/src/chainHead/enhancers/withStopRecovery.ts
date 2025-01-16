@@ -5,6 +5,7 @@ import { PinnedBlocks } from "../streams"
 export function withStopRecovery<A extends Array<any>, T>(
   blocks$: Observable<PinnedBlocks>,
   fn: (hash: string, ...args: A) => Observable<T>,
+  label: string,
 ) {
   return (hash: string, ...args: A) => {
     const source$ = fn(hash, ...args)
@@ -34,7 +35,7 @@ export function withStopRecovery<A extends Array<any>, T>(
             // This branch conflicts with BlockPrunedError, as the block might disappear when it gets pruned
             // We can avoid this conflict by checking that we're actually recovering.
             if (isRecovering) {
-              observer.error(new BlockNotPinnedError())
+              observer.error(new BlockNotPinnedError(hash, label))
             }
           } else if (block.recovering) {
             // Pause while it's recovering, as we don't know if the block is there

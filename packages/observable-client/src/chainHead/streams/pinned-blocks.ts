@@ -230,7 +230,9 @@ export const getPinnedBlocks$ = (
     shareLatest,
   )
 
-  const getRuntime = getRuntimeCreator(withStopRecovery(pinnedBlocks$, call$))
+  const getRuntime = getRuntimeCreator(
+    withStopRecovery(pinnedBlocks$, call$, "pinned-blocks"),
+  )
   return pinnedBlocks$
 }
 

@@ -190,7 +190,9 @@ describe("observableClient stopError recovery", () => {
       bestBlockHash: lastIsGone.at(-1)!.blockHash,
     })
 
-    expect(body.error).toHaveBeenCalledWith(new BlockNotPinnedError())
+    expect(body.error).toHaveBeenCalledWith(
+      new BlockNotPinnedError(initialBest, "stop-body"),
+    )
 
     cleanup(chainHead.unfollow)
   })
@@ -215,7 +217,9 @@ describe("observableClient stopError recovery", () => {
       finalizedBlockHashes: [newHash()],
     })
 
-    expect(body.error).toHaveBeenCalledWith(new BlockNotPinnedError())
+    expect(body.error).toHaveBeenCalledWith(
+      new BlockNotPinnedError(initialBest, "stop-body"),
+    )
 
     cleanup(chainHead.unfollow)
   })
