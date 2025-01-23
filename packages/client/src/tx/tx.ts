@@ -2,11 +2,16 @@ import type { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { getPolkadotSigner } from "@polkadot-api/signer"
 import {
+  _void,
   AccountId,
   Binary,
+  compactBn,
   Decoder,
   Enum,
+  Struct,
+  u128,
   u32,
+  Variant,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
@@ -48,6 +53,19 @@ const fakeSignature = new Uint8Array(64)
 const fakeSignatureEth = new Uint8Array(65)
 const getFakeSignature = (isEth: boolean) => () =>
   isEth ? fakeSignatureEth : fakeSignature
+
+const [, queryInfoDecFallback] = Struct({
+  weight: Struct({
+    ref_time: compactBn,
+    proof_size: compactBn,
+  }),
+  class: Variant({
+    Normal: _void,
+    Operational: _void,
+    Mandatory: _void,
+  }),
+  partial_fee: u128,
+})
 
 export const createTxEntry = <
   D,
@@ -205,10 +223,14 @@ export const createTxEntry = <
         .getRuntimeContext$(null)
         .pipe(
           map((ctx) => {
-            return ctx.dynamicBuilder.buildRuntimeCall(
-              "TransactionPaymentApi",
-              "query_info",
-            ).value[1]
+            try {
+              return ctx.dynamicBuilder.buildRuntimeCall(
+                "TransactionPaymentApi",
+                "query_info",
+              ).value[1]
+            } catch {
+              return queryInfoDecFallback
+            }
           }),
         )
 

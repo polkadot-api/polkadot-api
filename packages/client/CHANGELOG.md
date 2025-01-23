@@ -5,6 +5,7 @@
 ### Fixed
 
 - Add block hash and operation for BlockNotPinned error.
+- Fixed fee estimation for chains using metadata v14
 
 ## 1.8.2 - 2025-01-13
 
