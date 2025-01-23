@@ -31,6 +31,11 @@ const transfer = api.tx.Balances.transfer_allow_death({
   value: 12345n,
 })
 
+const estimatedFees = await transfer.getEstimatedFees(BOB, {
+  customSignedExtensions: { CheckAppId: { value: 0 } },
+})
+console.log({ estimatedFees })
+
 transfer
   .signSubmitAndWatch(papiTestSigner, {
     customSignedExtensions: { CheckAppId: { value: 0 } },
