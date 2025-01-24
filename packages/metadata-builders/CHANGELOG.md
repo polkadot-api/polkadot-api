@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.1 - 2025-01-24
+
 ### Fixed
 
 - checksumBuilder: fix infinite loop with self-referencing individual nodes.
