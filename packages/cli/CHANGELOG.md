@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix crash when generating code for some chains.
+
 ## 0.10.2 - 2025-01-23
 
 ### Fixed
