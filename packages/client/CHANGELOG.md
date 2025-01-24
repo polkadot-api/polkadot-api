@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.4 - 2025-01-24
+
 ### Fixed
 
 - Fix crash when generating code for some chains.
