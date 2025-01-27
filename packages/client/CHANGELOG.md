@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Reduce the overhead for accessing the genesis-hash (and other small tweaks)
+
 ## 1.8.4 - 2025-01-24
 
 ### Fixed
