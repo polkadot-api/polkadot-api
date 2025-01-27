@@ -21,6 +21,7 @@ import {
   of,
   scan,
   share,
+  shareReplay,
   switchMap,
   take,
   tap,
@@ -385,23 +386,6 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     () => of(),
   )
 
-  // calling `unfollow` also kills the subscription due to the fact
-  // that `follow$` completes, which makes all other streams to
-  // also complete (or error, in the case of ongoing operations)
-  merge(runtime$, bestBlocks$).subscribe({
-    error() {},
-  })
-
-  let unfollow = noop
-  let started: boolean | null = false
-  let nSubscribers: number = 0
-  const start = (_nSubscribers: number) => {
-    nSubscribers += _nSubscribers
-    started = true
-
-    unfollow = startFollow()
-  }
-
   const genesis$ = runtime$.pipe(
     filter(Boolean),
     take(1),
@@ -431,7 +415,25 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         null,
       ) as Observable<HexString>
     }),
+    shareReplay(1),
   )
+
+  // calling `unfollow` also kills the subscription due to the fact
+  // that `follow$` completes, which makes all other streams to
+  // also complete (or error, in the case of ongoing operations)
+  merge(runtime$, bestBlocks$).subscribe({
+    error() {},
+  })
+
+  let unfollow = noop
+  let started: boolean | null = false
+  let nSubscribers: number = 0
+  const start = (_nSubscribers: number) => {
+    nSubscribers += _nSubscribers
+    started = true
+
+    unfollow = startFollow()
+  }
 
   return [
     {
