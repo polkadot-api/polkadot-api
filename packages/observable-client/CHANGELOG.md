@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-### Fixed
+### Added
 
 - ChainHead exposes a `genesisHash$` Observable
 
