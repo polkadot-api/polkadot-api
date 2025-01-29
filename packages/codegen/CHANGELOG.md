@@ -10,6 +10,12 @@
 
 - Remove unused known types
 
+## 0.12.13 - 2025-01-24
+
+### Fixed
+
+- Fix crash when generating code for some chains.
+
 ## 0.12.12 - 2024-12-18
 
 ### Fixed

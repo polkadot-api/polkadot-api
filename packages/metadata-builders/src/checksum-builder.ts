@@ -321,16 +321,16 @@ const buildChecksum = (
 
   const subGraph = getSubgraph(entry.id, graph)
 
-  const cycles = getStronglyConnectedComponents(subGraph)
+  const cycles = getStronglyConnectedComponents(subGraph).filter(
+    // SCCs can be of length=1, but for those we're only interested with those that are circular with themselves
+    (group) => group.size > 1 || isSelfCircular(group, subGraph),
+  )
   const cyclicGroups = mergeSCCsWithCommonNodes(cycles).filter((group) => {
     // Exclude groups that were previously calculated
     return !cache.has(group.values().next().value!)
   })
   const mirrored = getMirroredNodes(cyclicGroups, subGraph)
-  const sortedCyclicGroups = sortCyclicGroups(
-    cyclicGroups.filter((group) => group.size > 1),
-    subGraph,
-  )
+  const sortedCyclicGroups = sortCyclicGroups(cyclicGroups, subGraph)
 
   sortedCyclicGroups.forEach((group) => {
     if (cache.has(group.values().next().value!)) {
@@ -355,6 +355,13 @@ const buildChecksum = (
   }
 
   return getChecksum(entry)
+}
+
+const isSelfCircular = (group: Set<number>, graph: LookupGraph) => {
+  if (group.size !== 1) return false
+  const [id] = group
+
+  return graph.get(id)!.refs.has(id)
 }
 
 export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {

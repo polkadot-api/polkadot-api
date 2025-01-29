@@ -25,10 +25,12 @@ export function firstValueFromWithSignal<T>(
       error: (e) => {
         signal?.removeEventListener("abort", onAbort)
         reject(e)
+        isDone = true
       },
       complete: () => {
         signal?.removeEventListener("abort", onAbort)
         reject(new Error("Observable completed without emitting"))
+        isDone = true
       },
     })
 

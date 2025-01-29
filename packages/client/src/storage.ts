@@ -31,6 +31,7 @@ import {
 } from "./compatibility"
 import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
 import { createWatchEntries } from "./watch-entries"
+import { FixedSizeBinary } from "@polkadot-api/substrate-bindings"
 
 type CallOptions = Partial<{
   /**
@@ -215,6 +216,7 @@ export const createStorageEntry = (
   }: CompatibilityHelper,
 ): StorageEntry<any, any, any, any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
+  const isBlockHash = pallet === "System" && name === "BlockHash"
   const sysNumberMapper$ = chainHead.runtime$.pipe(
     filter(Boolean),
     take(1),
@@ -282,6 +284,12 @@ export const createStorageEntry = (
         map((mapped) => ({ raw: "", mapped })),
       )
 
+    if (isBlockHash && Number(args[0]) === 0) {
+      return chainHead.genesis$.pipe(
+        map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
+      ) as Observable<any>
+    }
+
     return from(descriptorsPromise).pipe(
       mergeMap((descriptors) =>
         chainHead.storage$(
@@ -315,6 +323,7 @@ export const createStorageEntry = (
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { signal }: CallOptions = isLastArgOptional ? lastArg : {}
+
     return firstValueFromWithSignal(
       getRawValue$(...args).pipe(toMapped),
       signal,

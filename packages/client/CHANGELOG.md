@@ -9,8 +9,16 @@
 
 ### Fixed
 
+- Reduce the overhead for accessing the genesis-hash (and other small tweaks)
+- Fix potentnial memory leak with sync Observables
 - **Codegen:**
   - Remove unused known types
+
+## 1.8.4 - 2025-01-24
+
+### Fixed
+
+- Fix crash when generating code for some chains.
 
 ## 1.8.3 - 2025-01-23
 

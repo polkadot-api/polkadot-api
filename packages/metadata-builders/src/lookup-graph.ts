@@ -158,7 +158,7 @@ export function getStronglyConnectedComponents(graph: LookupGraph) {
         component.add(poppedNode)
       } while (poppedNode !== v)
 
-      if (component.size > 1) result.push(component)
+      result.push(component)
     }
   }
 

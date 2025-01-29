@@ -1,10 +1,7 @@
 import { mergeMap, of } from "rxjs"
 import { compact, u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
-import type {
-  GetChainSignedExtension,
-  SignedExtension,
-} from "../internal-types"
-import { empty } from "../utils"
+import type { GetChainSignedExtension } from "../internal-types"
+import { value } from "../utils"
 import { fromHex, toHex } from "@polkadot-api/utils"
 
 const NONCE_RUNTIME_CALL = "AccountNonceApi_account_nonce"
@@ -15,8 +12,8 @@ const lenToDecoder = {
   8: u64.dec,
 }
 
-export const getNonce = (input: number | bigint): SignedExtension =>
-  of({ value: compact.enc(input), additionalSigned: empty })
+export const getNonce = (nonce: number | bigint) =>
+  of(value(compact.enc(nonce)))
 
 export const CheckNonce: GetChainSignedExtension = (ctx) =>
   ctx.chainHead.call$(ctx.at, NONCE_RUNTIME_CALL, toHex(ctx.from)).pipe(

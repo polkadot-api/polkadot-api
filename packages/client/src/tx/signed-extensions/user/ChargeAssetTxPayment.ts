@@ -5,7 +5,7 @@ import {
   Struct,
   compact,
 } from "@polkadot-api/substrate-bindings"
-import { empty } from "../utils"
+import { value } from "../utils"
 import { SignedExtension } from "../internal-types"
 
 const encoder = Struct({
@@ -17,10 +17,11 @@ export const ChargeAssetTxPayment = (
   tip: number | bigint,
   asset: Uint8Array | undefined,
 ): SignedExtension =>
-  of({
-    value: encoder({
-      tip,
-      asset,
-    }),
-    additionalSigned: empty,
-  })
+  of(
+    value(
+      encoder({
+        tip,
+        asset,
+      }),
+    ),
+  )

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- ChainHead exposes a `genesisHash$` Observable
+
+## 0.7.2 - 2025-01-24
+
+### Fixed
+
+- Update dependencies
+
 ## 0.7.1 - 2025-01-23
 
 ### Fixed

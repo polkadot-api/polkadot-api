@@ -13,6 +13,7 @@ import {
   Subject,
   defer,
   distinctUntilChanged,
+  filter,
   map,
   merge,
   mergeMap,
@@ -20,6 +21,7 @@ import {
   of,
   scan,
   share,
+  shareReplay,
   switchMap,
   take,
   tap,
@@ -46,6 +48,7 @@ import type {
 import { getFollow$, getPinnedBlocks$ } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
+import { HexString } from "@polkadot-api/substrate-bindings"
 
 export type {
   PinnedBlocks,
@@ -383,6 +386,38 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     () => of(),
   )
 
+  const genesis$ = runtime$.pipe(
+    filter(Boolean),
+    take(1),
+    mergeMap((runtime) => {
+      const { enc } = runtime.dynamicBuilder.buildStorage(
+        "System",
+        "BlockHash",
+      ).keys
+      // const genesis$ =
+      // there are chains (e.g. kilt) that use u64 as block number
+      // u64 is encoded as bigint
+      // using dynamic builder for safety
+      let key: string
+      try {
+        // for u32
+        key = enc(0)
+      } catch {
+        // for u64
+        key = enc(0n)
+      }
+
+      return storage$(
+        null,
+        false,
+        "value",
+        () => key,
+        null,
+      ) as Observable<HexString>
+    }),
+    shareReplay(1),
+  )
+
   // calling `unfollow` also kills the subscription due to the fact
   // that `follow$` completes, which makes all other streams to
   // also complete (or error, in the case of ongoing operations)
@@ -408,6 +443,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       bestBlocks$,
       runtime$,
       metadata$,
+      genesis$,
 
       header$,
       body$,
