@@ -9,6 +9,9 @@ const isCompatible = (level: CompatibilityLevel) =>
   level >= CompatibilityLevel.BackwardsCompatible
 
 async function run() {
+  const genesisHash = await testApi.query.System.BlockHash.getValue(0)
+  console.log("genesisHash", genesisHash.asHex())
+
   const nominationsQuotaIsCompatible = isCompatible(
     await testApi.apis.StakingApi.nominations_quota.getCompatibilityLevel(),
   )

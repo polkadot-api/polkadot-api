@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Reduce the overhead for accessing the genesis-hash (and other small tweaks)
 - Fix potentnial memory leak with sync Observables
 
 ## 1.8.4 - 2025-01-24

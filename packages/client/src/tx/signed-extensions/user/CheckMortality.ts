@@ -1,8 +1,8 @@
 import { map, of } from "rxjs"
 import { Bytes, enhanceEncoder, u16 } from "@polkadot-api/substrate-bindings"
 import { fromHex } from "@polkadot-api/utils"
-import { genesisHashFromCtx } from "../utils"
 import { ChainExtensionCtx, SignedExtension } from "../internal-types"
+import { both, zero } from "../utils"
 
 function trailingZeroes(n: number) {
   let i = 0
@@ -23,25 +23,23 @@ const mortal = enhanceEncoder(
   },
 )
 
-const zero = new Uint8Array([0])
 export const CheckMortality = (
   input: { period: number; blockNumber: number } | undefined,
   ctx: ChainExtensionCtx,
 ): SignedExtension => {
   if (!input)
-    return genesisHashFromCtx(ctx).pipe(
-      map((additionalSigned) => ({
-        additionalSigned,
-        value: zero,
-      })),
+    return ctx.chainHead.genesis$.pipe(
+      map((genesis) => both(zero, fromHex(genesis))),
     )
 
   const { period, blockNumber } = input
-  return of({
-    additionalSigned: fromHex(ctx.at),
-    value: mortal({
-      period,
-      phase: blockNumber % period,
-    }),
-  })
+  return of(
+    both(
+      mortal({
+        period,
+        phase: blockNumber % period,
+      }),
+      fromHex(ctx.at),
+    ),
+  )
 }
