@@ -361,6 +361,9 @@ type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
 export type ${prefix}DispatchError = ${dispatchErrorType}
 const asset: IAsset = {} as IAsset
+const getMetadata: () => Promise<Uint8Array> = () => import("./${key}_metadata.ts").then(
+  module => toBinary('default' in module ? module.default : module)
+)
 
 type PalletsTypedef = {
   __storage: IStorage,
@@ -377,8 +380,9 @@ type IDescriptors = {
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
   asset: IAsset
+  getMetadata: () => Promise<Uint8Array>
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Added
+
+- `getMetadata` in descriptors
+
 ### Fixed
 
 - Update dependencies.

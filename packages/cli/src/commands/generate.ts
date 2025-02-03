@@ -54,7 +54,7 @@ export async function generate(opts: GenerateOptions) {
   const chains = await Promise.all(
     Object.entries(sources).map(async ([key, source]) => ({
       key,
-      metadata: (await getMetadata(source))!.metadata,
+      ...(await getMetadata(source))!,
       knownTypes: {},
     })),
   )
@@ -152,10 +152,14 @@ async function runInstall() {
   await new Promise((resolve) => child.on("close", resolve))
 }
 
+const generateMetadataExportFile = (input: Uint8Array): string =>
+  `const binMeta: string = "${Buffer.from(input).toString("base64")}"; export default binMeta;`
+
 async function outputCodegen(
   chains: Array<{
     key: string
     metadata: V14 | V15
+    metadataRaw: Uint8Array
     knownTypes: Record<string, string>
   }>,
   outputFolder: string,
@@ -180,6 +184,7 @@ async function outputCodegen(
       whitelist: whitelist ?? undefined,
     },
   )
+
   const hash = h64(
     Binary.fromText(
       Array.from(metadataTypes.checksumToIdx.keys()).join(""),
@@ -197,6 +202,7 @@ async function outputCodegen(
   const metadataTypesBase64 = Buffer.from(
     TypesCodec.enc([metadataTypes.entryPoints, metadataTypes.typedefs]),
   ).toString("base64")
+
   await fs.writeFile(
     path.join(outputFolder, "metadataTypes.ts"),
     `
@@ -213,12 +219,18 @@ export default content
     typesFileContent,
   )
   await Promise.all(
-    chains.map((chain, i) =>
-      fs.writeFile(
-        join(outputFolder, `${chain.key}.ts`),
-        descriptorTypesFiles[i].content,
-      ),
-    ),
+    chains
+      .map((chain, i) => [
+        fs.writeFile(
+          join(outputFolder, `${chain.key}.ts`),
+          descriptorTypesFiles[i].content,
+        ),
+        fs.writeFile(
+          join(outputFolder, `${chain.key}_metadata.ts`),
+          generateMetadataExportFile(chain.metadataRaw),
+        ),
+      ])
+      .flat(),
   )
   await generateIndex(
     outputFolder,
