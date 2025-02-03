@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## Added
+
+- `getMetadata` in descriptors
+
 ## 0.12.13 - 2025-01-24
 
 ### Fixed
