@@ -12,6 +12,7 @@ import {
 import {
   Binary,
   h64,
+  HexString,
   Tuple,
   V14,
   V15,
@@ -161,6 +162,7 @@ async function outputCodegen(
     metadata: V14 | V15
     metadataRaw: Uint8Array
     knownTypes: Record<string, string>
+    genesis?: HexString
   }>,
   outputFolder: string,
   clientPath: string,

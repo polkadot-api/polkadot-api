@@ -57,6 +57,7 @@ export const generateDescriptors = (
     types: string
     descriptorValues: string
   },
+  genesis?: string,
 ) => {
   const prefix = capitalize(key)
   const { metadata } = lookupFn
@@ -364,6 +365,7 @@ const asset: IAsset = {} as IAsset
 const getMetadata: () => Promise<Uint8Array> = () => import("./${key}_metadata.ts").then(
   module => toBinary('default' in module ? module.default : module)
 )
+const genesis: string | undefined = ${genesis ? `"${genesis}"` : undefined}
 
 type PalletsTypedef = {
   __storage: IStorage,
@@ -381,6 +383,7 @@ type IDescriptors = {
   metadataTypes: Promise<Uint8Array>
   asset: IAsset
   getMetadata: () => Promise<Uint8Array>
+  genesis: string | undefined
 };
 const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata } as any as IDescriptors;
 export default _allDescriptors;
