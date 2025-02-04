@@ -1,11 +1,17 @@
 import { createClient } from "@polkadot-api/substrate-client"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
-import { V14, V15, metadata, v15 } from "@polkadot-api/substrate-bindings"
+import {
+  HexString,
+  V14,
+  V15,
+  metadata,
+  v15,
+} from "@polkadot-api/substrate-bindings"
 import { getWsProvider } from "@polkadot-api/ws-provider/node"
 import { Worker } from "node:worker_threads"
 import { getObservableClient } from "@polkadot-api/observable-client"
-import { filter, firstValueFrom } from "rxjs"
+import { combineLatest, filter, firstValueFrom } from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
@@ -35,13 +41,22 @@ async function getSmoldotWorker() {
 
 const getMetadataCall = async (provider: JsonRpcProvider) => {
   const client = getObservableClient(createClient(provider))
-  const { runtime$, unfollow } = client.chainHead$()
-  const runtime = await firstValueFrom(runtime$.pipe(filter(Boolean)))
+  const { runtime$, unfollow, genesis$ } = client.chainHead$()
+  const { runtime, genesis } = await firstValueFrom(
+    combineLatest({
+      runtime: runtime$.pipe(filter(Boolean)),
+      genesis: genesis$,
+    }),
+  )
 
   unfollow()
   client.destroy()
 
-  return { metadata: runtime.lookup.metadata, metadataRaw: runtime.metadataRaw }
+  return {
+    metadata: runtime.lookup.metadata,
+    metadataRaw: runtime.metadataRaw,
+    genesis,
+  }
 }
 
 const getChainSpecs = (
@@ -103,9 +118,11 @@ const getMetadataFromSmoldot = async (chain: string) => {
 const getMetadataFromWsURL = async (wsURL: string) =>
   getMetadataCall(withPolkadotSdkCompat(getWsProvider(wsURL)))
 
-export async function getMetadata(
-  entry: EntryConfig,
-): Promise<{ metadata: V15 | V14; metadataRaw: Uint8Array } | null> {
+export async function getMetadata(entry: EntryConfig): Promise<{
+  metadata: V15 | V14
+  metadataRaw: Uint8Array
+  genesis?: HexString
+} | null> {
   // metadata file always prevails over other entries.
   // cli's update will update the metadata file when the user requests it.
   if (entry.metadata) {
@@ -122,6 +139,7 @@ export async function getMetadata(
     return {
       metadata: meta,
       metadataRaw,
+      genesis: entry.genesis,
     }
   }
 

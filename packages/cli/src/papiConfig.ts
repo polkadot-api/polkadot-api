@@ -7,18 +7,22 @@ import { existsSync } from "node:fs"
 export type EntryConfig =
   | {
       metadata: string
+      genesis?: string
     }
   | {
       chainSpec: string
       metadata?: string
+      genesis?: string
     }
   | {
       wsUrl: string
       metadata?: string
+      genesis?: string
     }
   | {
       chain: string
       metadata?: string
+      genesis?: string
     }
 type Entries = Record<string, EntryConfig>
 export interface PapiConfigOptions {

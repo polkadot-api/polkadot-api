@@ -4,7 +4,8 @@
   "entries": {
     "testAzero": {
       "wsUrl": "wss://aleph-zero-testnet-rpc.dwellir.com",
-      "metadata": ".papi/metadata/testAzero.scale"
+      "metadata": ".papi/metadata/testAzero.scale",
+      "genesis": "0x05d5279c52c484cc80396535a316add7d47b1c5b9e0398dd1f584149341460c5"
     }
   },
   "ink": {

@@ -1,5 +1,10 @@
 import { getMetadata, writeMetadataToDisk } from "@/metadata"
-import { defaultConfig, EntryConfig, readPapiConfig } from "@/papiConfig"
+import {
+  defaultConfig,
+  EntryConfig,
+  readPapiConfig,
+  writePapiConfig,
+} from "@/papiConfig"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"
 import { generate } from "./generate"
@@ -8,8 +13,9 @@ export async function update(
   keysInput: string | undefined,
   options: CommonOptions,
 ) {
-  const entries = ((await readPapiConfig(options.config)) ?? defaultConfig)
-    .entries
+  const config = (await readPapiConfig(options.config)) ?? defaultConfig
+  const { entries } = config
+
   const keys =
     keysInput === undefined ? Object.keys(entries) : keysInput.split(",")
 
@@ -38,6 +44,7 @@ export async function update(
       }
       return
     }
+    entries[key].genesis = metadata.genesis
 
     spinner.text = `Writing ${key} metadata`
     await writeMetadataToDisk(metadata.metadataRaw, filename)
@@ -46,6 +53,7 @@ export async function update(
 
   const spinner = ora(`Updating`).start()
   await Promise.all(keys.map(updateByKey))
+  await writePapiConfig(options.config, config)
 
   if (!options.skipCodegen) {
     console.log(`Updating descriptors`)
