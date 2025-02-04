@@ -4,15 +4,18 @@
   "entries": {
     "wnd": {
       "chain": "westend2",
-      "metadata": ".papi/metadata/wnd.scale"
+      "metadata": ".papi/metadata/wnd.scale",
+      "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
     },
     "turing": {
       "wsUrl": "wss://turing-rpc.avail.so/ws",
-      "metadata": ".papi/metadata/turing.scale"
+      "metadata": ".papi/metadata/turing.scale",
+      "genesis": "0xd3d2f3a3495dc597434a99d7d449ebad6616db45e4e4f178f31cc6fa14378b70"
     },
     "myth": {
       "wsUrl": "wss://polkadot-mythos-rpc.polkadot.io",
-      "metadata": ".papi/metadata/myth.scale"
+      "metadata": ".papi/metadata/myth.scale",
+      "genesis": "0xf6ee56e9c5277df5b4ce6ae9983ee88f3cbed27d31beeb98f9f84f997a1ab0b9"
     }
   }
 }

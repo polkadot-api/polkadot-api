@@ -8,7 +8,7 @@ import {
   mapReferences,
   TypedefNode,
 } from "@polkadot-api/metadata-compatibility"
-import type { V14, V15 } from "@polkadot-api/substrate-bindings"
+import type { HexString, V14, V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import {
   capitalize,
@@ -26,6 +26,7 @@ export const generateMultipleDescriptors = (
     key: string
     metadata: V14 | V15
     knownTypes: KnownTypes
+    genesis?: HexString
   }>,
   paths: {
     client: string
@@ -74,6 +75,7 @@ export const generateMultipleDescriptors = (
       chain.builder,
       chain.key,
       paths,
+      chain.genesis,
     ),
   )
 
@@ -290,7 +292,7 @@ function generateDescriptorValuesContent(
         }),
       ) as Record<string, T>
     const tokenizedCommonTrees = commonTrees.map(replaceTokens)
-    
+
     const unwrap = (
       obj: Record<string, object | number>,
       depth: number,
@@ -306,7 +308,7 @@ function generateDescriptorValuesContent(
               ),
             ]),
           )
-    
+
     const getChainDescriptors = (key: string) =>
       unwrap(replaceTokens(minified[key]), 2)
 

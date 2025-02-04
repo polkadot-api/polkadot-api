@@ -5,6 +5,7 @@
 ## Added
 
 - `getMetadata` in descriptors
+- store genesis-hash whenever possible
 
 ### Fixed
 

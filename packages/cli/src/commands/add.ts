@@ -63,13 +63,14 @@ export async function add(key: string, options: AddOptions) {
 
     if (!options.noPersist) {
       const spinner = ora(`Loading metadata`).start()
-      const { metadataRaw } = (await getMetadata(entry))!
+      const { metadataRaw, genesis } = (await getMetadata(entry))!
 
       spinner.text = "Writing metadata"
       const filename = await storeMetadata(metadataRaw, key)
 
       spinner.succeed(`Metadata saved as ${filename}`)
       entry.metadata = filename
+      entry.genesis = genesis
     }
   }
 
