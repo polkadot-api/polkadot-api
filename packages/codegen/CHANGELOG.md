@@ -2,10 +2,11 @@
 
 ## Unreleased
 
-## Added
+### Added
 
 - `getMetadata` in descriptors
-- store genesis-hash whenever possible
+- Store genesis-hash whenever possible
+- Add known-types priority discrimination
 
 ## 0.12.13 - 2025-01-24
 

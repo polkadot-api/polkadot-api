@@ -1,9 +1,22 @@
 import { mapObject } from "@polkadot-api/utils"
 
-export type KnownTypes = Record<string, string>
-export type RepositoryEntry =
+export type KnownTypes = Record<
+  string,
+  {
+    name: string
+    priority: number
+  }
+>
+
+type RepositoryEntry =
   | string
-  | { name: string; paths?: string[]; type?: string; chains?: string }
+  | {
+      name: string
+      paths?: string[]
+      type?: string
+      chains?: string
+      priority?: number
+    }
 
 export const knownTypesRepository: Record<string, RepositoryEntry> = {
   "7bvp9q4ceuk7": {
@@ -1217,8 +1230,10 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
   },
 }
 
-const knownTypes: KnownTypes = mapObject(
+export const knownTypes: KnownTypes = mapObject(
   knownTypesRepository,
-  (entry: RepositoryEntry) => (typeof entry === "string" ? entry : entry.name),
+  (entry: RepositoryEntry) =>
+    typeof entry === "string"
+      ? { name: entry, priority: 0 }
+      : { name: entry.name, priority: entry.priority ?? 0 },
 )
-export default knownTypes

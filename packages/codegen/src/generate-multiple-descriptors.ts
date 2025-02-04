@@ -17,7 +17,7 @@ import {
 } from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
 import { getUsedTypes } from "./get-used-types"
-import knownTypes, { KnownTypes } from "./known-types"
+import { knownTypes, type KnownTypes } from "./known-types"
 import { defaultDeclarations, getTypesBuilder, Variable } from "./types-builder"
 import { applyWhitelist } from "./whitelist"
 
@@ -114,8 +114,9 @@ function resolveConflicts(
 
   chainData.forEach((chain) =>
     chain.checksums.forEach((checksum) => {
-      const name = chain.knownTypes[checksum]
-      if (!name) return
+      const known = chain.knownTypes[checksum]
+      if (!known) return
+      const { name } = known
       if (!usedNames.has(name)) {
         usedNames.set(name, new Map())
       }
@@ -141,14 +142,39 @@ function resolveConflicts(
     },
   )
 
-  Array.from(new Set(conflictedChecksums)).forEach((checksum) =>
-    chainData.forEach((chain) => {
-      const name = chain.knownTypes[checksum]
-      if (name) {
-        chain.knownTypes[checksum] = capitalize(chain.key) + name
+  const nameToChain = new Map<
+    string,
+    { idx: number | null; priority: number }
+  >()
+  Array.from(new Set(conflictedChecksums)).forEach((checksum) => {
+    chainData.forEach((chain, idx) => {
+      if (!chain.checksums.includes(checksum) || !chain.knownTypes[checksum])
+        return
+      const { name, priority } = chain.knownTypes[checksum]
+      if (!nameToChain.has(name)) {
+        nameToChain.set(name, { idx, priority })
+        return
       }
-    }),
-  )
+      const highest = nameToChain.get(name)!
+      if (priority > highest.priority) {
+        highest.priority = priority
+        if (highest.idx != null) {
+          chainData[highest.idx].knownTypes[checksum].name =
+            capitalize(chainData[highest.idx].key) +
+            chainData[highest.idx].knownTypes[checksum].name
+        }
+        highest.idx = idx
+      } else if (priority === highest.priority) {
+        chain.knownTypes[checksum].name = capitalize(chain.key) + name
+        if (highest.idx != null) {
+          chainData[highest.idx].knownTypes[checksum].name =
+            capitalize(chainData[highest.idx].key) +
+            chainData[highest.idx].knownTypes[checksum].name
+          highest.idx = null
+        }
+      } else chain.knownTypes[checksum].name = capitalize(chain.key) + name
+    })
+  })
 }
 
 function mergeTypes(
