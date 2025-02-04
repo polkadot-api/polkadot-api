@@ -362,7 +362,7 @@ type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
 export type ${prefix}DispatchError = ${dispatchErrorType}
 const asset: IAsset = {} as IAsset
-const getMetadata: () => Promise<Uint8Array> = () => import("./${key}_metadata.ts").then(
+const getMetadata: () => Promise<Uint8Array> = () => import("./${key}_metadata").then(
   module => toBinary('default' in module ? module.default : module)
 )
 const genesis: string | undefined = ${genesis ? `"${genesis}"` : undefined}
