@@ -301,7 +301,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
   e3otks9vj8a3b: {
     name: "TraitsScheduleDispatchTime",
     chains:
-      "polkadot, polkadot.collectives, kusama, paseo, westend, westend.collectives",
+      "polkadot, polkadot.collectives, kusama, paseo, westend, westend.assetHub, westend.collectives",
     paths: ["frame_support.traits.schedule.DispatchTime"],
     type: "Enum(At, After)",
   },
@@ -1017,6 +1017,24 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["sp_mmr_primitives.Error"],
     type: "Enum(InvalidNumericOp, Push, GetRoot, Commit, GenerateProof, Verify, LeafNotFound, PalletNotIncluded, InvalidLeafIndex, InvalidBestKnownBlock)",
   },
+  "3nveejfjt6cjg": {
+    name: "WestendRuntimeRuntimeHoldReason",
+    chains: "polkadot.collectives",
+    paths: ["collectives_polkadot_runtime.RuntimeHoldReason"],
+    type: "Enum(Preimage)",
+  },
+  "629bfqn3u6tle": {
+    name: "IdentityData",
+    chains: "polkadot.people, kusama.people, westend, westend.people",
+    paths: ["pallet_identity.types.Data"],
+    type: "Enum(None, Raw0, Raw1, Raw2, Raw3, Raw4, Raw5, Raw6, Raw7, Raw8, Raw9, Raw10, Raw11, Raw12, Raw13, Raw14, Raw15, Raw16, Raw17, Raw18, Raw19, Raw20, Raw21, Raw22, Raw23, Raw24, Raw25, Raw26, Raw27, Raw28, Raw29, Raw30, Raw31, Raw32, BlakeTwo256, Sha256, Keccak256, ShaThree256)",
+  },
+  "7ujvudkvg12so": {
+    name: "IdentityJudgement",
+    chains: "polkadot.people, kusama.people, westend, westend.people",
+    paths: ["pallet_identity.types.Judgement"],
+    type: "Enum(Unknown, FeePaid, Reasonable, KnownGood, OutOfDate, LowQuality, Erroneous)",
+  },
   a4b928jbpau7j: {
     name: "RecoveryEvent",
     chains: "kusama, westend",
@@ -1056,27 +1074,15 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     paths: ["staging_xcm.v5.junction.NetworkId"],
     type: "Enum(ByGenesis, ByFork, Polkadot, Kusama, Ethereum, BitcoinCore, BitcoinCash, PolkadotBulletin)",
   },
-  "629bfqn3u6tle": {
-    name: "IdentityData",
-    chains: "polkadot.people, kusama.people, westend, westend.people",
-    paths: ["pallet_identity.types.Data"],
-    type: "Enum(None, Raw0, Raw1, Raw2, Raw3, Raw4, Raw5, Raw6, Raw7, Raw8, Raw9, Raw10, Raw11, Raw12, Raw13, Raw14, Raw15, Raw16, Raw17, Raw18, Raw19, Raw20, Raw21, Raw22, Raw23, Raw24, Raw25, Raw26, Raw27, Raw28, Raw29, Raw30, Raw31, Raw32, BlakeTwo256, Sha256, Keccak256, ShaThree256)",
-  },
-  "7ujvudkvg12so": {
-    name: "IdentityJudgement",
-    chains: "polkadot.people, kusama.people, westend, westend.people",
-    paths: ["pallet_identity.types.Judgement"],
-    type: "Enum(Unknown, FeePaid, Reasonable, KnownGood, OutOfDate, LowQuality, Erroneous)",
-  },
   chgaqm88qcdbe: {
-    name: "XcmV5VersionedLocation",
+    name: "XcmVersionedLocation",
     chains:
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedLocation"],
     type: "Enum(V3, V4, V5)",
   },
   "3psnvvr3d6p0t": {
-    name: "XcmV5VersionedXcm",
+    name: "XcmVersionedXcm",
     chains:
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedXcm"],
@@ -1110,14 +1116,14 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
     type: "Enum(Current, Next)",
   },
   fedog0bf6e64f: {
-    name: "XcmV5VersionedAssets",
+    name: "XcmVersionedAssets",
     chains:
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedAssets"],
     type: "Enum(V3, V4, V5)",
   },
   "47gh5t4ppbcdj": {
-    name: "XcmV5VersionedAssetId",
+    name: "XcmVersionedAssetId",
     chains:
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedAssetId"],
@@ -1147,12 +1153,6 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedAsset"],
     type: "Enum(V3, V4, V5)",
-  },
-  "3nveejfjt6cjg": {
-    name: "WestendRuntimeRuntimeHoldReason",
-    chains: "polkadot.collectives",
-    paths: ["collectives_polkadot_runtime.RuntimeHoldReason"],
-    type: "Enum(Preimage)",
   },
 }
 
