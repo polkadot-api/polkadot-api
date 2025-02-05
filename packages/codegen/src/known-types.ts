@@ -204,6 +204,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedXcm"],
     type: "Enum(V3, V4, V5)",
+    priority: 1,
   },
   "3vrnp048j3b2d": {
     name: "BalancesAdjustmentDirection",
@@ -231,6 +232,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedAssetId"],
     type: "Enum(V3, V4, V5)",
+    priority: 1,
   },
   "49em457ob9ou0": {
     name: "ParachainsOrigin",
@@ -892,6 +894,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedLocation"],
     type: "Enum(V3, V4, V5)",
+    priority: 1,
   },
   cjonl4a47pcm8: {
     name: "TransactionPaymentEvent",
@@ -906,6 +909,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedAsset"],
     type: "Enum(V3, V4, V5)",
+    priority: 1,
   },
   cn24k411b4s6t: {
     name: "PolkadotRuntimeCommonAssignedSlotsEvent",
@@ -1094,6 +1098,7 @@ export const knownTypesRepository: Record<string, RepositoryEntry> = {
       "westend, westend.assetHub, westend.bridgeHub, westend.collectives, westend.people",
     paths: ["xcm.VersionedAssets"],
     type: "Enum(V3, V4, V5)",
+    priority: 1,
   },
   fms5l9j358vie: {
     name: "StakingPalletConfigOpBig",
