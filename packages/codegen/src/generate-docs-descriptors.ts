@@ -5,7 +5,7 @@ import {
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
 import { getDocsTypesBuilder } from "@/types-builder"
-import knownTypes from "./known-types"
+import { knownTypes } from "./known-types"
 
 export type FileTree = {
   [key: string]: string | FileTree

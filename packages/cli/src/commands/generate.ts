@@ -3,6 +3,7 @@ import { readPapiConfig } from "@/papiConfig"
 import {
   generateInkTypes,
   generateMultipleDescriptors,
+  type KnownTypes,
 } from "@polkadot-api/codegen"
 import { getInkLookup } from "@polkadot-api/ink-contracts"
 import {
@@ -161,7 +162,7 @@ async function outputCodegen(
     key: string
     metadata: V14 | V15
     metadataRaw: Uint8Array
-    knownTypes: Record<string, string>
+    knownTypes: KnownTypes
     genesis?: HexString
   }>,
   outputFolder: string,

@@ -2,10 +2,10 @@
 
 ## Unreleased
 
-## Added
+### Added
 
 - `getMetadata` in descriptors
-- store genesis-hash whenever possible
+- Store genesis-hash whenever possible
 
 ### Fixed
 

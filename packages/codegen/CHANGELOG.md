@@ -5,7 +5,8 @@
 ### Added
 
 - `getMetadata` in descriptors
-- store genesis-hash whenever possible
+- Store genesis-hash whenever possible
+- Add known-types priority discrimination
 - Add XCM v5 known types
 
 ### Fixed
