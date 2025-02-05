@@ -68,7 +68,7 @@ export const getNewTypes = (
     for (let i = 1; nameToChecksum.has(finalTypeName); i++)
       finalTypeName = typeName + i
 
-    wannabes[variable.checksum] = finalTypeName
+    wannabes[variable.checksum] = { name: finalTypeName, priority: 0 }
     nameToChecksum.set(finalTypeName, {
       checksum: variable.checksum,
       path: x.path,

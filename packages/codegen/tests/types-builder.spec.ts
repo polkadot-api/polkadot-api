@@ -10,7 +10,7 @@ import {
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
 import { V14, V15, metadata } from "@polkadot-api/substrate-bindings"
 import { getLookupFn } from "@polkadot-api/metadata-builders"
-import knownTypes from "@/known-types"
+import { knownTypes } from "@/known-types"
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { getDispatchErrorId } from "@/generate-descriptors"
 
