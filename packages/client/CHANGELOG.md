@@ -4,6 +4,7 @@
 
 ### Added
 
+- `getOfflineApi` which mainly facilitates the creation of extrinsics while being offline.
 - **Codegen:**
   - Add XCM v5 known types
 

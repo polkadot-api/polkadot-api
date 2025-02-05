@@ -1,5 +1,5 @@
 import type { DescriptorValues } from "@polkadot-api/codegen"
-import type { OpaqueKeyHash } from "@polkadot-api/substrate-bindings"
+import type { HexString, OpaqueKeyHash } from "@polkadot-api/substrate-bindings"
 import { FixedSizeArray } from "./types"
 
 export type PlainDescriptor<T> = { _type?: T }
@@ -46,6 +46,8 @@ export type ChainDefinition = {
   }
   asset: PlainDescriptor<any>
   metadataTypes: Promise<Uint8Array>
+  getMetadata: () => Promise<Uint8Array>
+  genesis?: HexString
 }
 
 type BuildTuple<L extends number, E, R extends Array<E>> = R["length"] extends L

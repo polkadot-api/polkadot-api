@@ -1,2 +1,1 @@
-export * as chainSignedExtensions from "./chain"
-export * as userSignedExtensions from "./user"
+export * from "./sign-extensions"

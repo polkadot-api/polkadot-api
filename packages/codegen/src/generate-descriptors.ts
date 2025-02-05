@@ -385,7 +385,7 @@ type IDescriptors = {
   getMetadata: () => Promise<Uint8Array>
   genesis: string | undefined
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata } as any as IDescriptors;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata, genesis } as any as IDescriptors;
 export default _allDescriptors;
 
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
