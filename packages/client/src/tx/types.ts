@@ -141,11 +141,6 @@ export type TxOptions<Asset> = Partial<
          */
         mortality: { mortal: false } | { mortal: true; period: number }
         /**
-         * Asset information to pay fees, tip, etc. By default it'll use the
-         * native token of the chain.
-         */
-        asset: Asset
-        /**
          * Custom nonce for the transaction. Default: retrieve from latest known
          * finalized block.
          */
@@ -161,8 +156,82 @@ export type TxOptions<Asset> = Partial<
          * into the signed-extension Object.
          */
         customSignedExtensions: Record<string, CustomSignedExtensionValues>
+        /**
+         * Asset information to pay fees, tip, etc. By default it'll use the
+         * native token of the chain.
+         */
+        asset?: Asset
       }
 >
+
+export type OfflineTxExtensions<Asset> = void extends Asset
+  ? {
+      /**
+       * Nonce for the signer of the transaction.
+       */
+      nonce: number
+      /**
+       * Mortality of the transaction.
+       */
+      mortality:
+        | { mortal: false }
+        | {
+            mortal: true
+            period: number
+            startAtBlock: { height: number; hash: HexString }
+          }
+      /**
+       * Tip in fundamental units. Default: `0n`
+       */
+      tip?: bigint
+      /**
+       * Custom values for chains that have custom signed-extensions.
+       * The key of the Object should be the signed-extension name and the value
+       * is an Object that accepts 2 possible keys: one for `value`
+       * and the other one for `additionallySigned`. They both receive either
+       * the encoded value as a `Uint8Array` that should be used for the
+       * signed-extension, or the decoded value that PAPI will encode using its
+       * dynamic codecs. At least one of the 2 values must be included into the
+       * signed-extension Object.
+       */
+      customSignedExtensions?: Record<string, CustomSignedExtensionValues>
+    }
+  : {
+      /**
+       * Nonce for the signer of the transaction.
+       */
+      nonce: number
+      /**
+       * Mortality of the transaction.
+       */
+      mortality:
+        | { mortal: false }
+        | {
+            mortal: true
+            period: number
+            startAtBlock: { height: number; hash: HexString }
+          }
+      /**
+       * Tip in fundamental units. Default: `0n`
+       */
+      tip?: bigint
+      /**
+       * Custom values for chains that have custom signed-extensions.
+       * The key of the Object should be the signed-extension name and the value
+       * is an Object that accepts 2 possible keys: one for `value`
+       * and the other one for `additionallySigned`. They both receive either
+       * the encoded value as a `Uint8Array` that should be used for the
+       * signed-extension, or the decoded value that PAPI will encode using its
+       * dynamic codecs. At least one of the 2 values must be included into the
+       * signed-extension Object.
+       */
+      customSignedExtensions?: Record<string, CustomSignedExtensionValues>
+      /**
+       * Asset information to pay fees, tip, etc. By default it'll use the
+       * native token of the chain.
+       */
+      asset?: Asset
+    }
 
 export type TxPromise<Asset> = (
   from: PolkadotSigner,
@@ -345,6 +414,31 @@ export type InnerTxEntry<
         ...args: Arg extends undefined ? [] : [data: Arg]
       ): Transaction<Arg, Pallet, Name, Asset>
     } & CompatibilityFunctions<D>
+
+export type OfflineTxEntry<
+  Arg extends {} | undefined,
+  Pallet extends string,
+  Name extends string,
+  Asset,
+> = (input: Arg) => {
+  /**
+   * Pack the transaction, sends it to the signer, and return the signature
+   * asynchronously. If the signer fails (or the user cancels the signature)
+   * it'll throw an error.
+   *
+   * @param from        `PolkadotSigner`-compliant signer.
+   * @param extensions  Information needed for the transaction extensions
+   *                    that will be signed.
+   * @returns Encoded `SignedExtrinsic` ready for broadcasting.
+   */
+  sign: (
+    from: PolkadotSigner,
+    extensions: OfflineTxExtensions<Asset>,
+  ) => Promise<HexString>
+
+  encodedData: Binary
+  decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
+}
 
 export type TxEntry<
   D,

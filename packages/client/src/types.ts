@@ -17,6 +17,7 @@ import { RuntimeCall } from "./runtime-call"
 import { StorageEntry, StorageEntryWithKeys } from "./storage"
 import type {
   InnerTxEntry,
+  OfflineTxEntry,
   TxBroadcastEvent,
   TxFinalizedPayload,
   TxFromBinary,
@@ -90,6 +91,17 @@ export type TxApi<
   }
 }
 
+export type OfflineTxApi<
+  A extends Record<string, Record<string, any>>,
+  Asset,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends {} | undefined
+      ? OfflineTxEntry<A[K][KK], K & string, KK & string, Asset>
+      : unknown
+  }
+}
+
 export type EvApi<Unsafe, D, A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: EvClient<Unsafe, D, A[K][KK]>
@@ -103,6 +115,12 @@ export type ConstApi<
 > = {
   [K in keyof A]: {
     [KK in keyof A[K]]: ConstantEntry<Unsafe, D, A[K][KK]>
+  }
+}
+
+export type OfflineConstApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK]
   }
 }
 
@@ -143,6 +161,14 @@ export type AnyApi<Unsafe extends true | false, D> = D extends ChainDefinition
 
 export type TypedApi<D extends ChainDefinition> = AnyApi<false, D> & {
   compatibilityToken: Promise<CompatibilityToken<D>>
+}
+
+export type OfflineApi<D extends ChainDefinition> = {
+  constants: OfflineConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
+  tx: OfflineTxApi<
+    TxFromPalletsDef<D["descriptors"]["pallets"]>,
+    D["asset"]["_type"]
+  >
 }
 
 export type UnsafeApi<D> = AnyApi<true, D> & {

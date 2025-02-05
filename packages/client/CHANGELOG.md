@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `getOfflineApi` which mainly facilitates the creation of extrinsics while being offline.
+
 ### Fixed
 
 - Reduce the overhead for accessing the genesis-hash (and other small tweaks)
