@@ -2,10 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+- **Codegen:**
+  - Add XCM v5 known types
+
 ### Fixed
 
 - Reduce the overhead for accessing the genesis-hash (and other small tweaks)
 - Fix potentnial memory leak with sync Observables
+- **Codegen:**
+  - Remove unused known types
 
 ## 1.8.4 - 2025-01-24
 
