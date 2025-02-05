@@ -14,6 +14,7 @@ import {
   onlyCode,
   processPapiPrimitives,
 } from "./internal-types/generate-typescript"
+import type { KnownTypes } from "./known-types"
 
 export interface Variable {
   name: string
@@ -49,7 +50,7 @@ export const getTypesBuilder = (
   declarations: CodeDeclarations,
   getLookupEntryDef: MetadataLookup,
   // checksum -> desired-name
-  knownTypes: Record<string, string>,
+  knownTypes: KnownTypes,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
 ) => {
   const { metadata, call } = getLookupEntryDef
@@ -72,7 +73,7 @@ export const getTypesBuilder = (
   const getName = (checksum: string) => {
     if (!knownTypes[checksum]) return `I${checksum}`
 
-    const originalName = knownTypes[checksum]
+    const { name: originalName } = knownTypes[checksum]
     let name = originalName
     let i = 1
     while (declarations.takenNames.has(name)) name = originalName + i++
@@ -256,7 +257,7 @@ export const getTypesBuilder = (
 
 export const getDocsTypesBuilder = (
   getLookupEntryDef: MetadataLookup,
-  knownTypes: Record<string, string>,
+  knownTypes: KnownTypes,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
 ) => {
   const { metadata, call } = getLookupEntryDef
@@ -322,7 +323,7 @@ export const getDocsTypesBuilder = (
         const variable: Variable = {
           checksum,
           type: "",
-          name: knownTypes[checksum],
+          name: knownTypes[checksum].name,
         }
         declarations.variables.set(checksum, variable)
         const generated = getPapiPrimitive() ?? nativeNodeCodegen(node, next)

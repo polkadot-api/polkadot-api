@@ -17,7 +17,7 @@ import {
 } from "./generate-descriptors"
 import { generateTypes } from "./generate-types"
 import { getUsedTypes } from "./get-used-types"
-import knownTypes, { KnownTypes } from "./known-types"
+import { knownTypes, type KnownTypes } from "./known-types"
 import { defaultDeclarations, getTypesBuilder, Variable } from "./types-builder"
 import { applyWhitelist } from "./whitelist"
 
@@ -110,12 +110,14 @@ function resolveConflicts(
     knownTypes: KnownTypes
   }>,
 ) {
+  // Name => chain => checksum
   const usedNames = new Map<string, Map<string, Set<string>>>()
 
   chainData.forEach((chain) =>
     chain.checksums.forEach((checksum) => {
-      const name = chain.knownTypes[checksum]
-      if (!name) return
+      const known = chain.knownTypes[checksum]
+      if (!known) return
+      const { name } = known
       if (!usedNames.has(name)) {
         usedNames.set(name, new Map())
       }
@@ -126,29 +128,57 @@ function resolveConflicts(
     }),
   )
 
-  const conflictedChecksums = Array.from(usedNames.values()).flatMap(
-    (chainToChecksums) => {
+  const conflictedNames = Array.from(usedNames.entries())
+    .filter(([_, chainToChecksums]) => {
       const checksums = new Set(
         Array.from(chainToChecksums.values()).flatMap((v) => [...v]),
       )
-      if (checksums.size === 1) return []
+      if (checksums.size === 1) return false
       const allAreTheSame = Array.from(chainToChecksums.values()).every(
         (chainChecksums) => chainChecksums.size === checksums.size,
       )
-      if (allAreTheSame) return []
+      if (allAreTheSame) return false
+      return true
+    })
+    .map(([name]) => name)
 
-      return [...checksums]
-    },
-  )
+  conflictedNames.forEach((name) => {
+    const nameChecksums = Array.from(
+      new Set(
+        Array.from(usedNames.get(name)?.values() ?? []).flatMap((v) =>
+          Array.from(v),
+        ),
+      ),
+    )
 
-  Array.from(new Set(conflictedChecksums)).forEach((checksum) =>
-    chainData.forEach((chain) => {
-      const name = chain.knownTypes[checksum]
-      if (name) {
-        chain.knownTypes[checksum] = capitalize(chain.key) + name
-      }
-    }),
-  )
+    const checksumMaxPriority = nameChecksums.map((checksum) => ({
+      checksum,
+      priority: chainData
+        .map((chain) => chain.knownTypes[checksum]?.priority ?? 0)
+        .reduce((a, b) => Math.max(a, b), 0),
+    }))
+    const absoluteMax = checksumMaxPriority
+      .map((v) => v.priority)
+      .reduce((a, b) => Math.max(a, b), 0)
+    const checksumsLowPriority = checksumMaxPriority.filter(
+      (v) => v.priority !== absoluteMax,
+    )
+
+    const checksumsChangingName =
+      checksumsLowPriority.length === checksumMaxPriority.length - 1
+        ? checksumsLowPriority
+        : checksumMaxPriority
+
+    chainData.forEach((chain) =>
+      checksumsChangingName.forEach(({ checksum }) => {
+        if (!chain.knownTypes[checksum]) return
+        chain.knownTypes[checksum] = {
+          name: capitalize(chain.key) + name,
+          priority: chain.knownTypes[checksum].priority,
+        }
+      }),
+    )
+  })
 }
 
 function mergeTypes(
