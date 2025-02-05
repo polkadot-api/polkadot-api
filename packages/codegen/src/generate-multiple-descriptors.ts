@@ -142,37 +142,61 @@ function resolveConflicts(
     },
   )
 
-  const nameToChain = new Map<
+  const nameToHighest = new Map<
     string,
-    { idx: number | null; priority: number }
+    { checksum: string; idxs: number[]; priority: number }
   >()
   Array.from(new Set(conflictedChecksums)).forEach((checksum) => {
     chainData.forEach((chain, idx) => {
       if (!chain.checksums.includes(checksum) || !chain.knownTypes[checksum])
         return
       const { name, priority } = chain.knownTypes[checksum]
-      if (!nameToChain.has(name)) {
-        nameToChain.set(name, { idx, priority })
+      if (!nameToHighest.has(name)) {
+        nameToHighest.set(name, { checksum, idxs: [idx], priority })
         return
       }
-      const highest = nameToChain.get(name)!
+      const highest = nameToHighest.get(name)!
       if (priority > highest.priority) {
         highest.priority = priority
-        if (highest.idx != null) {
-          chainData[highest.idx].knownTypes[checksum].name =
-            capitalize(chainData[highest.idx].key) +
-            chainData[highest.idx].knownTypes[checksum].name
+        if (highest.checksum !== checksum) {
+          highest.idxs.forEach(
+            (idxToChange) =>
+              (chainData[idxToChange].knownTypes[highest.checksum] = {
+                name:
+                  capitalize(chainData[idxToChange].key) +
+                  chainData[idxToChange].knownTypes[highest.checksum].name,
+                priority:
+                  chainData[idxToChange].knownTypes[highest.checksum].priority,
+              }),
+          )
+          highest.idxs = []
+          highest.checksum = checksum
         }
-        highest.idx = idx
+        highest.idxs.push(idx)
       } else if (priority === highest.priority) {
-        chain.knownTypes[checksum].name = capitalize(chain.key) + name
-        if (highest.idx != null) {
-          chainData[highest.idx].knownTypes[checksum].name =
-            capitalize(chainData[highest.idx].key) +
-            chainData[highest.idx].knownTypes[checksum].name
-          highest.idx = null
+        if (highest.checksum !== checksum) {
+          highest.idxs.forEach(
+            (idxToChange) =>
+              (chainData[idxToChange].knownTypes[highest.checksum] = {
+                name:
+                  capitalize(chainData[idxToChange].key) +
+                  chainData[idxToChange].knownTypes[highest.checksum].name,
+                priority:
+                  chainData[idxToChange].knownTypes[highest.checksum].priority,
+              }),
+          )
+          highest.idxs = []
+          highest.checksum = ""
+          chain.knownTypes[checksum] = {
+            name: capitalize(chain.key) + name,
+            priority: chain.knownTypes[checksum].priority,
+          }
+        } else highest.idxs.push(idx)
+      } else
+        chain.knownTypes[checksum] = {
+          name: capitalize(chain.key) + name,
+          priority: chain.knownTypes[checksum].priority,
         }
-      } else chain.knownTypes[checksum].name = capitalize(chain.key) + name
     })
   })
 }
