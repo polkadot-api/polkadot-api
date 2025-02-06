@@ -21,12 +21,12 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@commander-js/extra-typings": "^13.0.0",
+    "@commander-js/extra-typings": "^13.1.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/codegen": "workspace:*",
-    "@types/node": "^22.10.5",
-    "commander": "^13.0.0",
-    "tsup": "^8.3.5",
+    "@types/node": "^22.13.1",
+    "commander": "^13.1.0",
+    "tsup": "^8.3.6",
     "typedoc": "^0.27.6",
     "typedoc-plugin-extras": "^4.0.0",
     "typescript": "^5.7.3"

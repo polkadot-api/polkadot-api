@@ -32,7 +32,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@commander-js/extra-typings": "^13.0.0",
+    "@commander-js/extra-typings": "^13.1.0",
     "@polkadot-api/codegen": "workspace:*",
     "@polkadot-api/ink-contracts": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
@@ -47,15 +47,15 @@
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/wasm-executor": "^0.1.2",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^22.10.5",
-    "commander": "^13.0.0",
+    "@types/node": "^22.13.1",
+    "commander": "^13.1.0",
     "execa": "^9.5.2",
     "fs.promises.exists": "^1.1.4",
-    "ora": "^8.1.1",
+    "ora": "^8.2.0",
     "read-pkg": "^9.0.1",
     "rxjs": "^7.8.1",
     "tsc-prog": "^2.3.0",
-    "tsup": "^8.3.5",
+    "tsup": "^8.3.6",
     "typescript": "^5.7.3",
     "write-package": "^7.1.0"
   },
