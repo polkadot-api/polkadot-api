@@ -80,6 +80,11 @@
       "import": "./dist/specs/polkadot_collectives.mjs",
       "require": "./dist/specs/polkadot_collectives.js"
     },
+    "./polkadot_coretime": {
+      "module": "./dist/specs/polkadot_coretime.mjs",
+      "import": "./dist/specs/polkadot_coretime.mjs",
+      "require": "./dist/specs/polkadot_coretime.js"
+    },
     "./polkadot_people": {
       "module": "./dist/specs/polkadot_people.mjs",
       "import": "./dist/specs/polkadot_people.mjs",
@@ -150,6 +155,7 @@
     "polkadot_asset_hub",
     "polkadot_bridge_hub",
     "polkadot_collectives",
+    "polkadot_coretime",
     "polkadot_people",
     "rococo_v2_2",
     "rococo_v2_2_asset_hub",
