@@ -418,9 +418,16 @@ describe("E2E", async () => {
   })
 
   it("queries opaque storage entries", async () => {
+    // some old polkadot-sdk versions don't include this pallet
+    // ensure that some version tested include it
+    try {
+      await api.query.CoretimeAssignmentProvider.CoreDescriptors.getCompatibilityLevel()
+    } catch {
+      return
+    }
+
     const entries =
       await api.query.CoretimeAssignmentProvider.CoreDescriptors.getEntries()
-    entries
 
     expect(entries.every((x) => !!fromHex(x.keyArgs[0]))).toBe(true)
   })
