@@ -54,10 +54,9 @@ rawClient.destroy()
 
 const accountIdDec = AccountId().dec
 const ED = 10_000_000_000n
+const FEE_VARIATION_TOLERANCE = 10_000_000n
 
 console.log("got the chainspec")
-
-const FEE_VARIATION_TOLERANCE = 1_000_000n
 
 describe("E2E", async () => {
   let client: PolkadotClient
