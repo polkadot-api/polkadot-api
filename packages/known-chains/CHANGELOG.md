@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.0 - 2025-02-06
+
 ### Added
 
 - Add Polkadot coretime chainspec

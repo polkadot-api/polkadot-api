@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.9.0 - 2025-02-06
+
 ### Added
 
 - `getOfflineApi` which mainly facilitates the creation of extrinsics while being offline.
