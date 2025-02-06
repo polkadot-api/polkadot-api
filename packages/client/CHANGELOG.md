@@ -16,6 +16,8 @@
 - Fix potentnial memory leak with sync Observables
 - **Codegen:**
   - Remove unused known types
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.8.4 - 2025-01-24
 
