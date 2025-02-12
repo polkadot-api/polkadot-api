@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Match `ChainDefinition` with descriptors type
+
 ## 1.9.0 - 2025-02-06
 
 ### Added

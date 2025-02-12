@@ -47,7 +47,7 @@ export type ChainDefinition = {
   asset: PlainDescriptor<any>
   metadataTypes: Promise<Uint8Array>
   getMetadata: () => Promise<Uint8Array>
-  genesis?: HexString
+  genesis: HexString | undefined
 }
 
 type BuildTuple<L extends number, E, R extends Array<E>> = R["length"] extends L
