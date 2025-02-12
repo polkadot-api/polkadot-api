@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `IDescriptor`cannot be assigned to `ChainDefinition` when `exactOptionalPropertyTypes` is enabled
+
 ## 0.13.0 - 2025-02-06
 
 ### Added
