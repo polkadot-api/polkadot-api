@@ -46,43 +46,21 @@ const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
   blocks.delete(blockHash)
 }
 
-const getBlocksToUnpin = (blocks: PinnedBlocks, pruned: string[]) => {
-  const result: string[] = [...pruned]
-  let current = blocks.blocks.get(blocks.blocks.get(blocks.finalized)!.parent)
-
-  const trail: string[] = []
-  while (current) {
-    trail.push(current.hash)
-    if (current.refCount === 0 && !current.unpinned) {
-      result.push(current.hash)
-      current.unpinned = true
-    }
-
-    current = blocks.blocks.get(current.parent)
-  }
-
-  const deletedBlocks = [...pruned]
-  for (let i = trail.length - 1; i >= 0; i--) {
-    current = blocks.blocks.get(trail[i])!
-    if (!current.unpinned) break
-    deletedBlocks.push(current.hash)
-  }
-
-  deletedBlocks.forEach((hash) => {
+const deleteBlocks = (blocks: PinnedBlocks, toDelete: string[]) => {
+  toDelete.forEach((hash) => {
     deleteBlock(blocks.blocks, hash)
   })
 
   Object.entries(blocks.runtimes)
     .map(([key, value]) => ({
       key,
-      usages: value.deleteBlocks(deletedBlocks),
+      usages: value.deleteBlocks(toDelete),
     }))
     .filter((x) => x.usages === 0)
     .map((x) => x.key)
     .forEach((unusedRuntime) => {
       delete blocks.runtimes[unusedRuntime]
     })
-  return result
 }
 
 export const getPinnedBlocks$ = (
@@ -204,7 +182,35 @@ export const getPinnedBlocks$ = (
           acc.finalizedRuntime =
             acc.runtimes[blocks.get(acc.finalized)!.runtime]
 
-          onUnpin(getBlocksToUnpin(acc, event.prunedBlockHashes))
+          const { prunedBlockHashes: prunned } = event
+          deleteBlocks(acc, prunned)
+          onUnpin(prunned)
+
+          // The consumer needs to have a chance to start operations
+          // on some of the finalized blocks
+          setTimeout(() => {
+            const trail: string[] = []
+            const toUnpin: string[] = []
+            let current = blocks.get(blocks.get(acc.finalized)!.parent)
+            while (current) {
+              trail.push(current.hash)
+              if (current.refCount === 0 && !current.unpinned) {
+                toUnpin.push(current.hash)
+                current.unpinned = true
+              }
+              current = blocks.get(current.parent)
+            }
+
+            const toDelete: string[] = []
+            for (let i = trail.length - 1; i >= 0; i--) {
+              current = blocks.get(trail[i])!
+              if (!current.unpinned) break
+              toDelete.push(current.hash)
+            }
+
+            deleteBlocks(acc, toDelete)
+            onUnpin(toUnpin)
+          }, 0)
           return acc
         }
 
