@@ -69,9 +69,9 @@ export const fixUnorderedBlocks: ParsedJsonRpcEnhancer = (base) => (onMsg) => {
         }
 
         if (event === "finalized") {
-          result.prunedBlockHashes = result.prunedBlockHashes.filter((x) => {
-            pinnedBlocks.has(x)
-          })
+          result.prunedBlockHashes = result.prunedBlockHashes.filter((x) =>
+            pinnedBlocks.has(x),
+          )
         }
 
         if (event === "newBlock") {

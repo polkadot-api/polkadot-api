@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `fix-unordered-blocks` was preventing pruned blocks to be unpinned
+
 ## 2.3.1 - 2024-10-16
 
 ### Fixed
