@@ -16,6 +16,7 @@ import {
   filter,
   map,
   merge,
+  mergeAll,
   mergeMap,
   noop,
   of,
@@ -227,7 +228,22 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
   const finalized$ = pinnedBlocks$.pipe(
     distinctUntilChanged((a, b) => a.finalized === b.finalized),
-    map((pinned) => toBlockInfo(pinned.blocks.get(pinned.finalized)!)),
+    scan((acc, value) => {
+      let current = value.blocks.get(value.finalized)!
+      const result = [current]
+
+      const latest = acc.at(-1)
+      if (!latest) return result
+
+      while (current.number > latest.number + 1) {
+        current = value.blocks.get(current.parent)!
+        if (!current) break
+        result.unshift(current)
+      }
+      return result
+    }, [] as PinnedBlock[]),
+    mergeAll(),
+    map(toBlockInfo),
     shareLatest,
   )
 
