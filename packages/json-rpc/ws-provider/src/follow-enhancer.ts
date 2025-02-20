@@ -15,6 +15,7 @@ export const followEnhancer: (
   const prematureStops = new Set<string>()
   const preOpId = new Map<string, string>()
   const onGoing = new Set<string>()
+  let methodsPending = true
 
   const result: JsonRpcProvider = (onMsg) => {
     const { send, disconnect } = base((fromProvider) => {
@@ -22,6 +23,22 @@ export const followEnhancer: (
       // it's a response
       if ("id" in parsed) {
         const { id, result } = parsed
+        if (methodsPending && result.methods) {
+          methodsPending = false
+          const methods: string[] = result.methods
+          if (
+            !methods.some((x) => {
+              const [group, , name] = x.split("_")
+              return group === "chainHead" && name === "follow"
+            })
+          ) {
+            methodsPending = true
+            onMsg(fromProvider)
+            forceDisconnect()
+            return
+          }
+        }
+
         const msg = preOpId.get(id)
         if (msg) {
           preOpId.delete(id)
