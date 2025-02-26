@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.1 - 2025-02-26
+
 ### Fixed
 
 - Avoid gaps on `finalizedBlock$` [#943](https://github.com/polkadot-api/polkadot-api/pull/943).

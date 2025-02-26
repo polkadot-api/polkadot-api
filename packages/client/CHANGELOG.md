@@ -2,12 +2,16 @@
 
 ## Unreleased
 
+## 1.9.2 - 2025-02-26
+
 ### Fixed
 
 - Avoid gaps on `finalizedBlock$` [#943](https://github.com/polkadot-api/polkadot-api/pull/943).
 - Make typings work with opaque storage
 - **PolkadotSDK compat:**
   - `fix-unordered-blocks` was preventing pruned blocks to be unpinned
+- **WS Provider:**
+  - It switches endpoint/reconnects if the current endpoint doesn't support the critical methods.
 - **Chains:**
   - Add Polkadot coretime chainspec
 
