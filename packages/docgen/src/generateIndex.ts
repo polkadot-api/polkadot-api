@@ -77,8 +77,9 @@ function getStyle(): string {
   return css`
     body {
       background: #f2f4f8;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
-        Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica,
+        Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
       font-size: 16px;
     }
 
