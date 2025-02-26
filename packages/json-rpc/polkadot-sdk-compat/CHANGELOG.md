@@ -5,6 +5,7 @@
 ### Fixed
 
 - `fix-unordered-blocks` was preventing pruned blocks to be unpinned
+- `translate` re-checks if the method is critical before throwing
 
 ## 2.3.1 - 2024-10-16
 

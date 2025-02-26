@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- It switches endpoint/reconnects if the current endpoint doesn't support the critical methods.
+
 ## 0.3.6 - 2024-11-18
 
 ### Fixed

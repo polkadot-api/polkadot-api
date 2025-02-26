@@ -29,7 +29,7 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
     // originally the _onMsg function is wired up to receive the initial response to
     // our internal rpc_methods request. Once it receives the response, then it applies
     // the necessary transaltions and re-wires the _onMsg to the original one.
-    let _onMsg: (msg: any) => void = ({
+    const preOnMsg: (msg: any) => void = ({
       id,
       result,
       error,
@@ -113,29 +113,45 @@ export const translate: ParsedJsonRpcEnhancer = (base) => {
         }
 
         const mapping = methodMappings[method]
-        if (mapping === null)
-          Promise.resolve().then(() => {
-            originalOnMsg({
-              error: { code: -32603, message: `Method not found: ${method}` },
-              id: rest.id,
+        if (mapping === null) {
+          if (method.split("_")[2] === "follow") {
+            reset()
+            _send({ method, ...rest } as any)
+          } else {
+            Promise.resolve().then(() => {
+              originalOnMsg({
+                error: { code: -32603, message: `Method not found: ${method}` },
+                id: rest.id,
+              })
             })
-          })
-        else
+          }
+        } else
           originalSend({
             method: mapping || method,
             ...rest,
           })
       }
 
-      for (let i = 0; isRunning && i < bufferedMsgs.length; i++)
-        enhancedSend(bufferedMsgs[i])
+      const bufferCopy = [...bufferedMsgs]
       bufferedMsgs = []
+      for (let i = 0; isRunning && i < bufferCopy.length; i++)
+        enhancedSend(bufferCopy[i])
       if (isRunning) _send = enhancedSend
     }
+    let _onMsg = preOnMsg
 
     const { send: originalSend, disconnect } = base((msg: any) => {
       _onMsg(msg)
     })
+    const reset = () => {
+      isRunning = true
+      bufferedMsgs = []
+      _send = (msg: any) => {
+        bufferedMsgs.push(msg)
+      }
+      _onMsg = preOnMsg
+      sendMethodsRequest()
+    }
 
     let nTries = 0
     const sendMethodsRequest = () => {
