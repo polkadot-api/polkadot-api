@@ -5,6 +5,7 @@
 ### Fixed
 
 - Avoid gaps on `finalizedBlock$` [#943](https://github.com/polkadot-api/polkadot-api/pull/943).
+- Make typings work with opaque storage
 - **PolkadotSDK compat:**
   - `fix-unordered-blocks` was preventing pruned blocks to be unpinned
 
