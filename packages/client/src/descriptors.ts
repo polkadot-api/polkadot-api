@@ -63,7 +63,7 @@ type UnwrapFixedSizeArray<T extends Array<any>> = T extends [] | [any, ...any[]]
 type RemapKeys<Key extends Array<any>, Opaque> = {
   [K in keyof Key]: K extends Opaque ? OpaqueKeyHash : Key[K]
 }
-type ApplyOpaque<Key extends Array<any>, Opaque> = never extends Opaque
+type ApplyOpaque<Key extends Array<any>, Opaque> = Opaque extends never
   ? Key
   : RemapKeys<UnwrapFixedSizeArray<Key>, Opaque>
 
