@@ -8,6 +8,8 @@
 - Make typings work with opaque storage
 - **PolkadotSDK compat:**
   - `fix-unordered-blocks` was preventing pruned blocks to be unpinned
+- **Chains:**
+  - Add Polkadot coretime chainspec
 
 ## 1.9.1 - 2025-02-12
 
