@@ -54,6 +54,6 @@
   },
   "devDependencies": {
     "@polkadot-api/metadata-fixtures": "workspace:*",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.2"
   }
 }

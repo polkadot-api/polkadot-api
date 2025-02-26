@@ -14,7 +14,7 @@
     "compile:ledger": "bun build ./src/ledger.ts --compile --outfile ./dist/ledger"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.2"
+    "@types/bun": "^1.2.4"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -33,6 +33,6 @@
     "@scure/bip32": "^1.6.2",
     "@scure/bip39": "^1.5.4",
     "polkadot-api": "workspace:*",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.2"
   }
 }

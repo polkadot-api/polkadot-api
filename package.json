@@ -33,19 +33,19 @@
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
-    "@vitest/coverage-v8": "^3.0.5",
+    "@vitest/coverage-v8": "^3.0.7",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
-    "prettier": "^3.4.2",
-    "rollup": "^4.34.4",
+    "prettier": "^3.5.2",
+    "rollup": "^4.34.8",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-esbuild": "^6.2.0",
     "tslib": "^2.8.1",
-    "tsup": "^8.3.6",
-    "turbo": "^2.4.0",
+    "tsup": "^8.4.0",
+    "turbo": "^2.4.4",
     "typescript": "^5.7.3",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.7"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": "prettier --write"

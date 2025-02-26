@@ -19,10 +19,10 @@
     "@polkadot-api/utils": "workspace:*",
     "@unique-nft/sr25519": "^0.0.2",
     "polkadot-api": "workspace:*",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@types/node": "^22.13.1"
+    "@types/node": "^22.13.5"
   },
   "license": "MIT"
 }
