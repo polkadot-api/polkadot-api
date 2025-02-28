@@ -3,16 +3,19 @@ import {
   isOptionalArg,
   lossLessExhaustMap,
 } from "@/utils"
+import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
 import {
   BlockInfo,
   ChainHead$,
   NotBestBlockError,
   RuntimeContext,
 } from "@polkadot-api/observable-client"
+import { FixedSizeBinary } from "@polkadot-api/substrate-bindings"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
   OperatorFunction,
+  combineLatestWith,
   distinctUntilChanged,
   filter,
   from,
@@ -22,16 +25,13 @@ import {
   pipe,
   shareReplay,
   take,
-  withLatestFrom,
 } from "rxjs"
 import {
   CompatibilityFunctions,
   CompatibilityHelper,
   minCompatLevel,
 } from "./compatibility"
-import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
 import { createWatchEntries } from "./watch-entries"
-import { FixedSizeBinary } from "@polkadot-api/substrate-bindings"
 
 type CallOptions = Partial<{
   /**
@@ -230,7 +230,7 @@ export const createStorageEntry = (
     shareReplay(),
   )
   const bigIntOrNumber: OperatorFunction<number, number | bigint> = pipe(
-    withLatestFrom(sysNumberMapper$),
+    combineLatestWith(sysNumberMapper$),
     map(([input, mapper]) => mapper(input)),
   )
 
