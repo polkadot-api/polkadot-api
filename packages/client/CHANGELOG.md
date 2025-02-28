@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.9.3 - 2025-02-28
+
+### Fixed
+
+- `System.number` waits for one block if requested promptly
+
 ## 1.9.2 - 2025-02-26
 
 ### Fixed
