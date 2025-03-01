@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- keyArgs for storage entries with concat hashes.
+
 ## 1.9.3 - 2025-02-28
 
 ### Fixed
