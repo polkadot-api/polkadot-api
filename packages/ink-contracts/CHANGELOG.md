@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use `@polkadot-api/substrate-bindings` re-exports instead of `scale-ts` directly
+
 ## 0.2.5 - 2025-01-24
 
 ### Fixed

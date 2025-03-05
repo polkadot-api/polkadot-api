@@ -1,18 +1,18 @@
-import { compactNumber } from "@polkadot-api/substrate-bindings"
 import {
   _void,
+  Codec,
   CodecType,
+  compactNumber,
+  enhanceCodec,
+  Option,
+  ScaleEnum,
   str,
+  StringRecord,
   Struct,
   u32,
   u8,
   Vector,
-  Option,
-  enhanceCodec,
-  Enum,
-  StringRecord,
-  Codec,
-} from "scale-ts"
+} from "@polkadot-api/substrate-bindings"
 
 type PjsVariant<O extends StringRecord<Codec<any>>> = {
   [K in keyof O]: {
@@ -21,7 +21,7 @@ type PjsVariant<O extends StringRecord<Codec<any>>> = {
 }[keyof O]
 const Variant = <O extends StringRecord<Codec<any>>>(inner: O) =>
   enhanceCodec(
-    Enum(inner),
+    ScaleEnum(inner),
     (value: PjsVariant<O>) => {
       if (typeof value === "string") {
         return {

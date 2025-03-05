@@ -1,4 +1,4 @@
-import { StringRecord } from "scale-ts"
+import { StringRecord } from "@polkadot-api/substrate-bindings"
 import { InkMetadata } from "./metadata-types"
 
 export type Event = { type: string; value: unknown }
