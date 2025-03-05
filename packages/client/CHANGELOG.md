@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Ensure `System.Number` storage keeps emitting after the first value.
+
 ## 1.9.4 - 2025-03-03
 
 ### Fixed

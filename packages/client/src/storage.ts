@@ -281,7 +281,7 @@ export const createStorageEntry = (
         }),
         distinctUntilChanged(),
         bigIntOrNumber,
-        map((mapped) => ({ raw: "", mapped })),
+        map((mapped) => ({ raw: mapped, mapped })),
       )
 
     if (isBlockHash && Number(args[0]) === 0) {
