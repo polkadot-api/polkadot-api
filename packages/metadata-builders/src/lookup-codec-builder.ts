@@ -5,11 +5,6 @@ import { withCache } from "./with-cache"
 
 const _bytes = scale.Bin()
 
-const bigCompact = scale.createCodec(
-  scale.compact[0],
-  scale.enhanceDecoder(scale.compact[1], BigInt),
-)
-
 const _buildCodec = (
   input: LookupEntry,
   cache: Map<number, Codec<any>>,
@@ -20,7 +15,8 @@ const _buildCodec = (
   if (input.type === "void") return scale._void
   if (input.type === "AccountId32") return _accountId
   if (input.type === "AccountId20") return scale.ethAccount
-  if (input.type === "compact") return input.isBig ? bigCompact : scale.compact
+  if (input.type === "compact")
+    return input.isBig ? scale.compactBn : scale.compactNumber
   if (input.type === "bitSequence") return scale.bitSequence
 
   const buildNextCodec = (nextInput: LookupEntry): Codec<any> =>
