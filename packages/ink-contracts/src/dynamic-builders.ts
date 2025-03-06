@@ -10,7 +10,7 @@ import {
   StringRecord,
   Struct,
   Tuple,
-} from "scale-ts"
+} from "@polkadot-api/substrate-bindings"
 import { InkMetadataLookup } from "./get-lookup"
 import {
   EventParamSpec,

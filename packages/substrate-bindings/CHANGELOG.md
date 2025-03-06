@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Ensure `compactNumber` and `compactBn` always decode to the appropriate type
+
 ## 0.11.0 - 2024-12-18
 
 ### Changed

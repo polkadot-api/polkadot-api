@@ -1,7 +1,6 @@
 import type { EnumVar } from "@polkadot-api/metadata-builders"
 import {
-  Codec,
-  compact,
+  compactNumber,
   Struct,
   Variant,
   type V14,
@@ -27,7 +26,7 @@ export type EntryPointNode =
       value: TypedefNode
     }
 const EntryPointNodeCodec = Variant({
-  lookup: compact as Codec<number>,
+  lookup: compactNumber,
   typedef: TypedefCodec,
 })
 

@@ -454,9 +454,6 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
-      scale-ts:
-        specifier: ^1.6.1
-        version: 1.6.1
 
   packages/json-rpc/json-rpc-provider: {}
 

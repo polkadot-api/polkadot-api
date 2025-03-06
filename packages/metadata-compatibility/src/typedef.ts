@@ -9,11 +9,11 @@ import {
   Variant,
   Vector,
   _void,
-  compact,
+  compactNumber,
   str,
 } from "@polkadot-api/substrate-bindings"
 
-const smallCompact = compact as Codec<number>
+const smallCompact = compactNumber
 export interface StructNode {
   type: "struct"
   value: Array<[string, number]>
@@ -70,7 +70,7 @@ export interface BinaryNode {
   type: "binary"
   value: number | undefined
 }
-const BinaryCodec = Option(compact) as Codec<BinaryNode["value"]>
+const BinaryCodec = Option(compactNumber) as Codec<BinaryNode["value"]>
 
 export interface OptionNode {
   type: "option"

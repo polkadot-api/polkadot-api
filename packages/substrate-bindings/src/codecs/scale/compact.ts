@@ -1,4 +1,4 @@
-import { Codec, compact } from "scale-ts"
+import { compact, enhanceCodec } from "scale-ts"
 
-export const compactNumber = compact as Codec<number>
-export const compactBn = compact as Codec<bigint>
+export const compactNumber = enhanceCodec(compact, (v) => v, Number)
+export const compactBn = enhanceCodec(compact, (v) => v, BigInt)
