@@ -4,3 +4,7 @@ packages:
   - packages/*
   - examples/*
   - integration-tests/*
+onlyBuiltDependencies:
+  - esbuild
+  - node-hid
+  - usb
