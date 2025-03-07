@@ -2,9 +2,12 @@
 
 ## Unreleased
 
+## 1.9.5 - 2025-03-07
+
 ### Fixed
 
 - Ensure `System.Number` storage keeps emitting after the first value.
+- Some cases with a mismatch between `number` and `bigint` types.
 
 ## 1.9.4 - 2025-03-03
 

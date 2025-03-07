@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.11.1 - 2025-03-07
+
 ### Fixed
 
 - Ensure `compactNumber` and `compactBn` always decode to the appropriate type
