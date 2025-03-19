@@ -178,6 +178,9 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         cache.delete(hash)
       })
     },
+    (block) => {
+      cache.delete(block)
+    },
   )
 
   const getRuntimeContext$ = withRefcount((hash: string) =>
@@ -227,6 +230,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   }
 
   const finalized$ = pinnedBlocks$.pipe(
+    filter((x) => !x.recovering),
     distinctUntilChanged((a, b) => a.finalized === b.finalized),
     scan((acc, value) => {
       let current = value.blocks.get(value.finalized)!
@@ -254,6 +258,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   )
 
   const bestBlocks$ = pinnedBlocks$.pipe(
+    filter((x) => !x.recovering),
     distinctUntilChanged(
       (prev, current) =>
         prev.finalized === current.finalized && prev.best === current.best,
