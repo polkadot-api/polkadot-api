@@ -58,7 +58,7 @@ export const getFollow$ = (chainHead: ChainHead) => {
         observer.complete()
         follower?.unfollow()
       }
-    }).pipe(withInitializedNumber(getHeader), retryOnStopError()),
+    }).pipe(withInitializedNumber(getHeader), retryChainHeadError()),
   )
 
   const startFollow = () => {
@@ -76,7 +76,7 @@ export const getFollow$ = (chainHead: ChainHead) => {
   }
 }
 
-const retryOnStopError =
+const retryChainHeadError =
   <T extends { type: string }>() =>
   (source$: Observable<T>) =>
     new Observable<
@@ -92,10 +92,10 @@ const retryOnStopError =
           error: (e) => {
             if (e instanceof StopError) {
               observer.next({ type: "stop-error" })
-              subscription.add(subscribe())
             } else {
-              observer.error(e)
+              console.warn("ChainHead follow request failed, retrying…", e)
             }
+            subscription.add(subscribe())
           },
           complete: () => observer.complete(),
         })

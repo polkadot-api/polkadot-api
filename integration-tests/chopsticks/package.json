@@ -1,0 +1,26 @@
+{
+  "name": "chopsticks-tests",
+  "private": true,
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build-external": "papi",
+    "build": "pnpm build-external",
+    "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "test": "vitest",
+    "server": "chopsticks --endpoint=wss://rpc.ibp.network/paseo --port=8132"
+  },
+  "dependencies": {
+    "@acala-network/chopsticks": "^1.0.3",
+    "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "polkadot-api": "workspace:*",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5"
+  },
+  "license": "MIT"
+}
