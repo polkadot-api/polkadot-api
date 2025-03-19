@@ -1,7 +1,7 @@
 import { spawn } from "child_process"
 import { createWriteStream } from "fs"
 import { createClient, PolkadotClient, UnsafeApi } from "polkadot-api"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { getWsProvider } from "polkadot-api/ws-provider/node"
 import { afterAll, beforeAll } from "vitest"
 
 const ENDPOINT = "wss://rpc.ibp.network/paseo"
