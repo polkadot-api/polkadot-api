@@ -1,8 +1,8 @@
 import { JsonRpcProvider } from "polkadot-api/ws-provider/web"
 
 export interface Interceptor {
-  sending?: (msg: string) => void
-  receiving?: (msg: string) => void
+  sending?: (ctx: InterceptorContext, msg: string) => void
+  receiving?: (ctx: InterceptorContext, msg: string) => void
 }
 
 export type InterceptorContext = {
@@ -20,7 +20,7 @@ export const providerInterceptor = <T>(
     let interceptor: Interceptor = {}
 
     const inner = provider((msg) =>
-      interceptor.receiving ? interceptor.receiving(msg) : onMsg(msg),
+      interceptor.receiving ? interceptor.receiving(ctx, msg) : onMsg(msg),
     )
     const ctx = {
       send: inner.send,
@@ -32,10 +32,87 @@ export const providerInterceptor = <T>(
 
     return {
       send: (msg) =>
-        interceptor.sending ? interceptor.sending(msg) : inner.send(msg),
+        interceptor.sending ? interceptor.sending(ctx, msg) : inner.send(msg),
       disconnect: inner.disconnect,
     }
   }
 
   return [wrappedProvider, () => result]
+}
+
+export const createStopInterceptor = (ctx: InterceptorContext) => {
+  let subscription = ""
+  let followingId = ""
+
+  const interceptor: Interceptor = {
+    sending(ctx, msgStr) {
+      const msg = JSON.parse(msgStr)
+      if (msg.method === "chainHead_v1_follow") {
+        followingId = msg.id
+      }
+      ctx.send(msgStr)
+    },
+    receiving(ctx, msgStr) {
+      const msg = JSON.parse(msgStr)
+      if (msg.id === followingId) {
+        subscription = msg.result
+      }
+      ctx.receive(msgStr)
+    },
+  }
+
+  const controller = {
+    stop: () => {
+      ctx.send(
+        `{"jsonrpc":"2.0","id":"unfollow-${subscription}","method":"chainHead_v1_unfollow","params":["${subscription}"]}`,
+      )
+      ctx.receive(
+        `{"jsonrpc":"2.0","method":"chainHead_v1_followEvent","params":{"subscription":"${subscription}","result":{"event":"stop"}}}`,
+      )
+    },
+  }
+
+  return [interceptor, controller] as const
+}
+
+export const combineInterceptors = (
+  ...interceptors: Interceptor[]
+): Interceptor => {
+  const sending = (ctx: InterceptorContext, msg: string, idx: number) => {
+    if (idx >= interceptors.length) {
+      return ctx.send(msg)
+    }
+    if (interceptors[idx].sending) {
+      interceptors[idx].sending(
+        {
+          send: (msg) => sending(ctx, msg, idx + 1),
+          receive: (msg) => receiving(ctx, msg, idx - 1),
+        },
+        msg,
+      )
+    } else {
+      sending(ctx, msg, idx + 1)
+    }
+  }
+  const receiving = (ctx: InterceptorContext, msg: string, idx: number) => {
+    if (idx < 0) {
+      return ctx.receive(msg)
+    }
+    if (interceptors[idx].receiving) {
+      interceptors[idx].receiving(
+        {
+          send: (msg) => sending(ctx, msg, idx + 1),
+          receive: (msg) => receiving(ctx, msg, idx - 1),
+        },
+        msg,
+      )
+    } else {
+      receiving(ctx, msg, idx - 1)
+    }
+  }
+
+  return {
+    sending: (ctx, msg) => sending(ctx, msg, 0),
+    receiving: (ctx, msg) => receiving(ctx, msg, interceptors.length - 1),
+  }
 }
