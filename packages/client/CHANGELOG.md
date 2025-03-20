@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.9.6 - 2025-03-20
+
 ### Fixed
 
 - chainHead not recovering after RPC error.
