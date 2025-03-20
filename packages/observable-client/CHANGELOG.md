@@ -5,6 +5,8 @@
 ### Fixed
 
 - chainHead not recovering after RPC error.
+- finalized emits blocks that are not pinned after a stop event recovery.
+- cached streams persisting after stop event recovery.
 
 ## 0.8.2 - 2025-03-07
 

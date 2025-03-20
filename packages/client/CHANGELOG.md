@@ -5,6 +5,8 @@
 ### Fixed
 
 - chainHead not recovering after RPC error.
+- finalized emits blocks that are not pinned after a stop event recovery.
+- small memory leak after stop event recovery.
 
 ## 1.9.5 - 2025-03-07
 

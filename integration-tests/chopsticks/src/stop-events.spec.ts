@@ -1,7 +1,7 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
-import { filter, firstValueFrom } from "rxjs"
-import { beforeAll, describe, expect, it } from "vitest"
+import { concatMap, filter, firstValueFrom, shareReplay } from "rxjs"
+import { beforeAll, describe, expect, it, vitest } from "vitest"
 import "./chopsticks"
 import { ALICE, getChopsticksProvider, newBlock } from "./chopsticks"
 import {
@@ -162,7 +162,88 @@ describe("Stop events", () => {
 
     getInterceptor().resume()
 
+    await wait(300)
+    await newBlock()
+
     const account = await accountPromise
     expect(account.nonce).toBeGreaterThan(1000)
+  })
+
+  it("doesn't report unpined finalized blocks after stop recovery", async () => {
+    const createStopAndIgnoreFinalizedInterceptor = (
+      ctx: InterceptorContext,
+    ) => {
+      let subscription = ""
+      let followingId = ""
+
+      const interceptor: Interceptor = {
+        sending(msgStr) {
+          const msg = JSON.parse(msgStr)
+          if (msg.method === "chainHead_v1_follow") {
+            followingId = msg.id
+          }
+          ctx.send(msgStr)
+        },
+        receiving(msgStr) {
+          const msg = JSON.parse(msgStr)
+          if (msg.id === followingId) {
+            subscription = msg.result
+          }
+          if (
+            msg.method === "chainHead_v1_followEvent" &&
+            msg.params.result.event === "finalized"
+          ) {
+            return
+          }
+          ctx.receive(msgStr)
+        },
+      }
+
+      const controller = {
+        stop: () => {
+          ctx.send(
+            `{"jsonrpc":"2.0","id":"unfollow-${subscription}","method":"chainHead_v1_unfollow","params":["${subscription}"]}`,
+          )
+          ctx.receive(
+            `{"jsonrpc":"2.0","method":"chainHead_v1_followEvent","params":{"subscription":"${subscription}","result":{"event":"stop"}}}`,
+          )
+        },
+      }
+
+      return [interceptor, controller] as const
+    }
+
+    const [provider, getInterceptor] = providerInterceptor(
+      getChopsticksProvider(),
+      createStopAndIgnoreFinalizedInterceptor,
+    )
+    const client = createClient(provider)
+    const api = client.getTypedApi(paseo)
+
+    const obs$ = client.finalizedBlock$.pipe(
+      concatMap(async (block) => {
+        const result = await api.query.System.Account.getValue(ALICE, {
+          at: block.hash,
+        })
+        return { hash: block.hash, result }
+      }),
+      shareReplay(1),
+    )
+    const errorFn = vitest.fn()
+    obs$.subscribe({
+      error: errorFn,
+    })
+    await firstValueFrom(obs$)
+
+    const hash = await newBlock(2)
+    console.log(hash)
+    await wait(300)
+
+    getInterceptor().stop()
+
+    await newBlock()
+
+    await firstValueFrom(obs$.pipe(filter((r) => r.hash === hash)))
+    expect(errorFn).not.toHaveBeenCalled()
   })
 })

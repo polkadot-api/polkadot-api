@@ -68,6 +68,7 @@ export const getPinnedBlocks$ = (
   call$: (hash: string, method: string, args: string) => Observable<string>,
   blockUsage$: Subject<BlockUsageEvent>,
   onUnpin: (blocks: string[]) => void,
+  deleteFromCache: (block: string) => void,
 ) => {
   const pinnedBlocks$: Observable<PinnedBlocks> = merge(
     blockUsage$,
@@ -161,6 +162,7 @@ export const getPinnedBlocks$ = (
             for (const [hash, block] of acc.blocks) {
               if (block.recovering) {
                 deleteBlock(acc.blocks, hash)
+                deleteFromCache(hash)
               }
             }
             acc.recovering = false
