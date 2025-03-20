@@ -7,4 +7,5 @@ packages:
 onlyBuiltDependencies:
   - esbuild
   - node-hid
+  - sqlite3
   - usb
