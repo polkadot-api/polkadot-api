@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- prevent the unpinning of blocks from the previous follow subscription after recovering from a `stop` event.
+
 ## 0.8.3 - 2025-03-20
 
 ### Fixed

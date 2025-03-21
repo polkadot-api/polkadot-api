@@ -195,10 +195,14 @@ export const getPinnedBlocks$ = (
             const toUnpin: string[] = []
             let current = blocks.get(blocks.get(acc.finalized)!.parent)
             while (current) {
-              trail.push(current.hash)
+              const { hash } = current
+              trail.push(hash)
               if (current.refCount === 0 && !current.unpinned) {
-                toUnpin.push(current.hash)
                 current.unpinned = true
+                // A stop event took place in-between, then it should
+                // be removed, but not be **actully** unpinned.
+                if (current.recovering) deleteFromCache(hash)
+                else toUnpin.push(hash)
               }
               current = blocks.get(current.parent)
             }
