@@ -60,13 +60,9 @@ type UnwrapFixedSizeArray<T extends Array<any>> = T extends [] | [any, ...any[]]
       ? T
       : BuildTuple<L, E, []>
     : T
-type RemapKeys<Key extends Array<any>, Opaque> = {
+type ApplyOpaque<Key extends Array<any>, Opaque> = {
   [K in keyof Key]: K extends Opaque ? OpaqueKeyHash : Key[K]
 }
-type ApplyOpaque<Key extends Array<any>, Opaque> = RemapKeys<
-  UnwrapFixedSizeArray<Key>,
-  Opaque
->
 
 type ExtractStorage<
   T extends DescriptorEntry<StorageDescriptor<any, any, any, any>>,
@@ -79,8 +75,8 @@ type ExtractStorage<
       infer Opaque
     >
       ? {
-          KeyArgs: Key
-          KeyArgsOut: ApplyOpaque<Key, Opaque>
+          KeyArgs: UnwrapFixedSizeArray<Key>
+          KeyArgsOut: ApplyOpaque<UnwrapFixedSizeArray<Key>, Opaque>
           Value: Value
           IsOptional: Optional
         }
