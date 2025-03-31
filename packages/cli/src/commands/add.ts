@@ -53,6 +53,7 @@ export async function add(key: string, options: AddOptions) {
     spinner.text = "Writing metadata"
     const metadataRaw = opaqueMeta.slice(compactLen)
     const filename = await storeMetadata(metadataRaw, key)
+    spinner.succeed(`Metadata saved as ${filename}`)
 
     entries[key] = {
       metadata: filename,

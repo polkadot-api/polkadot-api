@@ -5,6 +5,7 @@
 ### Fixed
 
 - Display the right type for `FixedSizeArray`-based storage keys
+- CLI: Add from wasm gets stuck with "Writing metadata"
 
 ## 1.9.7 - 2025-03-21
 
