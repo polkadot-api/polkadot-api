@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Add from wasm gets stuck with "Writing metadata"
+
 ## 0.11.4 - 2025-03-21
 
 ### Fixed
