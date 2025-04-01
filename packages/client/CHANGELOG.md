@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- metadata not updating after a runtime upgrade
+
 ## 1.9.8 - 2025-04-01
 
 ### Fixed
