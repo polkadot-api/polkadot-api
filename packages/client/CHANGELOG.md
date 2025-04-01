@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.9.8 - 2025-04-01
+
 ### Fixed
 
 - Display the right type for `FixedSizeArray`-based storage keys
