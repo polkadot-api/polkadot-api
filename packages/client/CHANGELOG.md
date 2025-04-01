@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.9.9 - 2025-04-01
+
 ### Fixed
 
 - metadata not updating after a runtime upgrade
