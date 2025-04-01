@@ -138,9 +138,6 @@ export const getPinnedBlocks$ = (
           } else {
             const parentNode = acc.blocks.get(parent)!
             parentNode.children.add(hash)
-            if (event.newRuntime) {
-              acc.runtimes[hash] = getRuntime(createRuntimeGetter(acc, hash))
-            }
             const block = {
               hash,
               number: parentNode.number + 1,
@@ -151,6 +148,11 @@ export const getPinnedBlocks$ = (
               recovering: false,
             }
             acc.blocks.set(hash, block)
+            if (event.newRuntime) {
+              // getRuntime calls getHash immediately
+              // it assumes pinnedBlocks.runtimes[hash] is empty and pinnedBlocks.blocks.has(hash)
+              acc.runtimes[hash] = getRuntime(createRuntimeGetter(acc, hash))
+            }
             acc.runtimes[block.runtime].addBlock(hash)
           }
 
