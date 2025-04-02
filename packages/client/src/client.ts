@@ -15,7 +15,14 @@ import {
   SubstrateClient,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
-import { Observable, firstValueFrom } from "rxjs"
+import {
+  Observable,
+  catchError,
+  defer,
+  firstValueFrom,
+  map,
+  shareReplay,
+} from "rxjs"
 import {
   CompatibilityToken,
   OpType,
@@ -238,9 +245,17 @@ const createApi = <Unsafe extends true | false, D>(
 export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const rawClient: SubstrateClient = createRawClient(provider)
   const client = getObservableClient(rawClient)
-  const chainHead = client.chainHead$()
-
   const { getChainSpecData } = rawClient
+
+  const { genesis$, ..._chainHead } = client.chainHead$()
+  const chainHead: ChainHead$ = {
+    ..._chainHead,
+    genesis$: defer(getChainSpecData).pipe(
+      map(({ genesisHash }) => genesisHash),
+      catchError(() => genesis$),
+      shareReplay(1),
+    ),
+  }
 
   const _request: <Reply = any, Params extends Array<any> = any[]>(
     method: string,
