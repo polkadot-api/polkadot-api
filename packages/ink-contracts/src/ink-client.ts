@@ -68,6 +68,24 @@ export interface InkEventInterface<E> {
   ) => E[]
 }
 
+type HasDefault<T> = "default" extends keyof T
+  ? T["default"] extends true
+    ? true
+    : false
+  : false
+type GetDefault<M> = keyof {
+  [K in keyof M as HasDefault<M[K]> extends true ? K : never]: true
+}
+
+// T can be the default message or `never`.
+// Typescript doesn't like doing `extends never` (it works for the "false" case, but for the other it will always give back never)
+// One way of running around it is by checking whether an empty object extends an object with that key.
+type WrapDefault<T extends string> = {} extends {
+  [K in T]: K
+}
+  ? string | undefined
+  : T
+
 export interface InkClient<
   D extends InkDescriptors<
     InkStorageDescriptor,
@@ -77,7 +95,9 @@ export interface InkClient<
   >,
 > {
   constructor: InkCallableInterface<D["__types"]["constructors"]>
+  defaultConstructor: WrapDefault<GetDefault<D["__types"]["constructors"]>>
   message: InkCallableInterface<D["__types"]["messages"]>
+  defaultMessage: WrapDefault<GetDefault<D["__types"]["messages"]>>
   storage: InkStorageInterface<D["__types"]["storage"]>
   event: InkEventInterface<D["__types"]["event"]>
 }
