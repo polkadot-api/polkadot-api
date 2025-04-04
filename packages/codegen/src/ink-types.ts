@@ -3,6 +3,7 @@ import {
   MessageParamSpec,
   TypeSpec,
 } from "@polkadot-api/ink-contracts"
+import { anonymizeImports, anonymizeType } from "./anonymize"
 import {
   EnumVariant,
   getInternalTypesBuilder,
@@ -11,7 +12,6 @@ import {
   StructField,
   TypeNode,
 } from "./internal-types"
-import { getReusedNodes } from "./internal-types/reused-nodes"
 import {
   CodegenOutput,
   generateTypescript,
@@ -19,7 +19,7 @@ import {
   nativeNodeCodegen,
   processPapiPrimitives,
 } from "./internal-types/generate-typescript"
-import { anonymizeImports, anonymizeType } from "./anonymize"
+import { getReusedNodes } from "./internal-types/reused-nodes"
 
 export function generateInkTypes(lookup: InkMetadataLookup) {
   const internalBuilder = getInternalTypesBuilder(lookup)
@@ -188,6 +188,7 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
       label: string
       docs: string[]
       types: ReturnType<typeof buildCallable>
+      default?: boolean
     }>,
   ) =>
     generateNodeType({
@@ -208,6 +209,18 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
                 value: callable.types.value,
                 docs: [],
               },
+              ...(callable.default
+                ? [
+                    {
+                      label: "default",
+                      value: {
+                        type: "inline",
+                        value: "true",
+                      },
+                      docs: [],
+                    } satisfies StructField,
+                  ]
+                : []),
             ],
           },
           docs: callable.docs,

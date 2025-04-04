@@ -25,7 +25,8 @@ export const nativeNodeCodegen = (
   node: TypeNode,
   next: (node: TypeNode) => CodegenOutput,
 ): CodegenOutput => {
-  if (node.type === "primitive") return onlyCode(node.value)
+  if (node.type === "primitive" || node.type === "inline")
+    return onlyCode(node.value)
   if (node.type === "chainPrimitive")
     throw new Error("Can't generate chain primitive type " + node.value)
   if (
