@@ -7,7 +7,7 @@ import {
   InkDescriptors,
   InkStorageDescriptor,
 } from "./ink-descriptors"
-import { EventSpecV5 } from "./metadata-types"
+import { ConstructorSpec, EventSpecV5, MessageSpec } from "./metadata-types"
 
 export type InkCallableInterface<T extends InkCallableDescriptor> = <
   L extends string & keyof T,
@@ -18,6 +18,11 @@ export type InkCallableInterface<T extends InkCallableDescriptor> = <
     ? (value?: T[L]["message"]) => Binary
     : (value: T[L]["message"]) => Binary
   decode: (value: { data: Binary }) => T[L]["response"]
+  metadata: {
+    payable: boolean
+    default: boolean
+    mutates: boolean
+  }
 }
 
 export type InkStorageInterface<S extends InkStorageDescriptor> =
@@ -90,9 +95,44 @@ export const getInkClient = <
   const lookup = getInkLookup(inkContract.metadata)
   const builder = getInkDynamicBuilder(lookup)
 
+  const constructorCodec = buildCallable(builder.buildConstructor)
+  const messageCodec = buildCallable(builder.buildMessage)
+
+  const findConstructor = (label: string) => {
+    const result = lookup.metadata.spec.constructors.find(
+      (c) => c.label === label,
+    )
+    if (!result) {
+      throw new Error(`Constructor ${label} not found`)
+    }
+    return result
+  }
+  const findMessage = (label: string) => {
+    const result = lookup.metadata.spec.messages.find((c) => c.label === label)
+    if (!result) {
+      throw new Error(`Message ${label} not found`)
+    }
+    return result
+  }
+
+  const defaultConstructor: any = lookup.metadata.spec.constructors.find(
+    (c) => c.default,
+  )?.label
+  const defaultMessage: any = lookup.metadata.spec.messages.find(
+    (c) => c.default,
+  )?.label
+
   return {
-    constructor: buildCallable(builder.buildConstructor),
-    message: buildCallable(builder.buildMessage),
+    constructor: (label) => ({
+      metadata: getMetadata(findConstructor(label)),
+      ...constructorCodec(label),
+    }),
+    defaultConstructor,
+    message: (label) => ({
+      metadata: getMetadata(findMessage(label)),
+      ...messageCodec(label),
+    }),
+    defaultMessage,
     storage: buildStorage(builder.buildStorage),
     event:
       Number(lookup.metadata.version) === 4
@@ -101,19 +141,26 @@ export const getInkClient = <
   }
 }
 
+const getMetadata = (spec: ConstructorSpec | MessageSpec) => ({
+  payable: spec.payable,
+  default: spec.default,
+  mutates: "mutates" in spec ? spec.mutates : true,
+})
+
 const buildCallable =
   <T extends InkCallableDescriptor>(
     builder:
       | InkDynamicBuilder["buildConstructor"]
       | InkDynamicBuilder["buildMessage"],
-  ): InkCallableInterface<T> =>
+  ) =>
   <L extends string & keyof T>(label: L) => {
     const codecs = builder(label)
 
     return {
       encode: (value?: T[L]["message"]) =>
         Binary.fromBytes(codecs.call.enc(value || {})),
-      decode: (response) => codecs.value.dec(response.data.asBytes()),
+      decode: (response: { data: Binary }) =>
+        codecs.value.dec(response.data.asBytes()),
     }
   }
 
