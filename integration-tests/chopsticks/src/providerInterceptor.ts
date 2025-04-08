@@ -62,13 +62,19 @@ export const createStopInterceptor = (ctx: InterceptorContext) => {
   }
 
   const controller = {
-    stop: () => {
+    sendUnfollow: () => {
       ctx.send(
         `{"jsonrpc":"2.0","id":"unfollow-${subscription}","method":"chainHead_v1_unfollow","params":["${subscription}"]}`,
       )
+    },
+    sendStop: () => {
       ctx.receive(
         `{"jsonrpc":"2.0","method":"chainHead_v1_followEvent","params":{"subscription":"${subscription}","result":{"event":"stop"}}}`,
       )
+    },
+    stop: () => {
+      controller.sendUnfollow()
+      controller.sendStop()
     },
   }
 
