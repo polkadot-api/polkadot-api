@@ -1,9 +1,10 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
 import { concatMap, filter, firstValueFrom, shareReplay } from "rxjs"
-import { beforeAll, describe, expect, it, vitest } from "vitest"
+import { describe, expect, it, vitest } from "vitest"
 import "./chopsticks"
-import { ALICE, getChopsticksProvider, newBlock } from "./chopsticks"
+import { ALICE, getChopsticksProvider } from "./chopsticks"
+import { newBlock } from "./chopsticksUtils"
 import {
   combineInterceptors,
   createStopInterceptor,
@@ -14,11 +15,6 @@ import {
 import { wait } from "./utils"
 
 describe("Stop events", () => {
-  beforeAll(async () => {
-    // Create a new block to pre-initialize chopsticks and prevent tests from timing out.
-    await newBlock()
-  })
-
   it("reconnects after a stop event recovery fails", async () => {
     const [provider, getInterceptor] = providerInterceptor(
       getChopsticksProvider(),
