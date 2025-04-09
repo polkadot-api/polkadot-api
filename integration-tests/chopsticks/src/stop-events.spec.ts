@@ -130,7 +130,7 @@ describe("Stop events", () => {
     expect(errorFn).not.toHaveBeenCalled()
   })
 
-  it.only("recovers after a stop event when there are operations in the operationLimit queue", async () => {
+  it("recovers after a stop event when there are operations in the operationLimit queue", async () => {
     const createStopAndThrottleInterceptor = (ctx: InterceptorContext) => {
       const [stopInterceptor, stopController] = createStopInterceptor(ctx)
 

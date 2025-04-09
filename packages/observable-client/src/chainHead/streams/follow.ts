@@ -90,12 +90,12 @@ const retryChainHeadError =
         source$.subscribe({
           next: (v) => observer.next(v),
           error: (e) => {
+            subscription.add(subscribe())
             if (e instanceof StopError) {
               observer.next({ type: "stop-error" })
             } else {
               console.warn("ChainHead follow request failed, retrying…", e)
             }
-            subscription.add(subscribe())
           },
           complete: () => observer.complete(),
         })
