@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- missing chainHead subscription error after a stop event with operations in operation limit queue
+
 ## 0.8.5 - 2025-03-21
 
 ### Fixed

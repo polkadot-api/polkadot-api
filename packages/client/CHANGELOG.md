@@ -5,6 +5,7 @@
 ### Fixed
 
 - Use `genesisHash` from RPC instead of using an operation if possible
+- missing chainHead subscription error after a stop event with operations in operation limit queue
 
 ## 1.9.9 - 2025-04-01
 
