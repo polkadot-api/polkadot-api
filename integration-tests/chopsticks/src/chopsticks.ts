@@ -1,6 +1,6 @@
 import { spawn } from "child_process"
 import { createWriteStream } from "fs"
-import { createClient } from "polkadot-api"
+import { createClient, PolkadotClient } from "polkadot-api"
 import { getWsProvider } from "polkadot-api/ws-provider/node"
 
 const ENDPOINT = "wss://rpc.ibp.network/paseo"
@@ -9,6 +9,7 @@ const PORT = 8132
 let cleanup = () => {}
 
 export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
 
 export const getChopsticksProvider = () =>
   getWsProvider(`ws://localhost:${PORT}`)
@@ -41,6 +42,9 @@ export const startChopsticks = async () => {
     logStreamErr.close()
   }
 }
+
+export const createBlock = (client: PolkadotClient) =>
+  client._request("dev_newBlock", [])
 
 export const stopChopsticks = () => cleanup()
 

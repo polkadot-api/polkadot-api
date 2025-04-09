@@ -1,9 +1,16 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
-import { concatMap, filter, firstValueFrom, shareReplay } from "rxjs"
+import {
+  combineLatest,
+  concatMap,
+  filter,
+  firstValueFrom,
+  shareReplay,
+  skip,
+} from "rxjs"
 import { describe, expect, it, vitest } from "vitest"
 import "./chopsticks"
-import { ALICE, getChopsticksProvider } from "./chopsticks"
+import { ALICE, BOB, createBlock, getChopsticksProvider } from "./chopsticks"
 import { newBlock } from "./chopsticksUtils"
 import {
   combineInterceptors,
@@ -121,6 +128,117 @@ describe("Stop events", () => {
 
     await firstValueFrom(obs$.pipe(filter((r) => r.hash === hash)))
     expect(errorFn).not.toHaveBeenCalled()
+  })
+
+  it("recovers after a stop event when there are operations in the operationLimit queue", async () => {
+    const createStopAndThrottleInterceptor = (ctx: InterceptorContext) => {
+      const [stopInterceptor, stopController] = createStopInterceptor(ctx)
+
+      const ongoingOperations = new Set<string>()
+      const operationIdToOperation = new Map<string, string>()
+      let throttle = false
+      const interceptor: Interceptor = {
+        sending(ctx, msgStr) {
+          const msg = JSON.parse(msgStr)
+          if (msg.method !== "chainHead_v1_storage") {
+            ctx.send(msgStr)
+            return
+          }
+          if (throttle && ongoingOperations.size >= 1) {
+            setTimeout(() => {
+              ctx.receive(
+                `{"jsonrpc":"2.0","id":"${msg.id}","result":{"result":"limitReached"}}`,
+              )
+            })
+            return
+          }
+          ctx.send(msgStr)
+          ongoingOperations.add(msg.id)
+        },
+        receiving(ctx, msgStr) {
+          const msg = JSON.parse(msgStr)
+          if (ongoingOperations.has(msg.id)) {
+            if (msg.result.result !== "started") {
+              console.log(msg)
+              throw new Error("Operation not started")
+            }
+            operationIdToOperation.set(msg.result.operationId, msg.id)
+            ctx.receive(msgStr)
+            return
+          }
+
+          if (
+            msg.method === "chainHead_v1_followEvent" &&
+            operationIdToOperation.has(msg.params.result.operationId)
+          ) {
+            const op = operationIdToOperation.get(
+              msg.params.result.operationId,
+            )!
+            const sendIt = () => {
+              if (msg.params.result.event === "operationStorageDone") {
+                ongoingOperations.delete(op)
+              }
+              ctx.receive(msgStr)
+            }
+            if (throttle) {
+              setTimeout(sendIt, 500)
+            } else {
+              sendIt()
+            }
+            return
+          }
+          ctx.receive(msgStr)
+        },
+      }
+
+      return [
+        combineInterceptors(stopInterceptor, interceptor),
+        {
+          stop: async () => {
+            stopController.sendUnfollow()
+            ctx.send(
+              `{"jsonrpc":"2.0","id":"dev-nb","method":"dev_newBlock","params":[]}`,
+            )
+            stopController.sendStop()
+          },
+          throttle: () => (throttle = true),
+        },
+      ] as const
+    }
+
+    const [provider, getInterceptor] = providerInterceptor(
+      getChopsticksProvider(),
+      createStopAndThrottleInterceptor,
+    )
+    const client = createClient(provider)
+    const api = client.getTypedApi(paseo)
+
+    // Set up 2 storage subscriptions
+    const alice$ = api.query.System.Account.watchValue(ALICE).pipe(
+      shareReplay(1),
+    )
+    const bob$ = api.query.System.Account.watchValue(BOB).pipe(shareReplay(1))
+    const aliceSub = alice$.subscribe()
+    const bobSub = bob$.subscribe()
+
+    await firstValueFrom(combineLatest([alice$, bob$]))
+
+    getInterceptor().throttle()
+
+    const nextFinalized = firstValueFrom(client.finalizedBlock$.pipe(skip(1)))
+    await createBlock(client)
+    await nextFinalized
+
+    // Wait for the operation setup: the first will start going through, the second will get reported as "operationLimit"
+    await wait(100)
+
+    await getInterceptor().stop()
+
+    await new Promise((resolve) => setTimeout(resolve, 3000))
+
+    aliceSub.unsubscribe()
+    bobSub.unsubscribe()
+    client.destroy()
   })
 })
 
