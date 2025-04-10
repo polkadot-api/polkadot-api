@@ -24,11 +24,11 @@
     "@commander-js/extra-typings": "^13.1.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/codegen": "workspace:*",
-    "@types/node": "^22.13.9",
+    "@types/node": "^22.14.0",
     "commander": "^13.1.0",
     "tsup": "^8.4.0",
     "typedoc": "^0.27.9",
     "typedoc-plugin-extras": "^4.0.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   }
 }
