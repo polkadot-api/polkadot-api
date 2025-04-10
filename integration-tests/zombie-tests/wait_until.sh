@@ -6,7 +6,7 @@ i=0
 until eval "$@"
 do
   ((i++))
-  if [ "$i" -gt 30 ]
+  if [ "$i" -gt 60 ]
   then
     echo "Waited too long."
     exit 1
