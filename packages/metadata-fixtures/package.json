@@ -43,6 +43,6 @@
     "@polkadot-api/substrate-bindings": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^22.13.9"
+    "@types/node": "^22.14.0"
   }
 }
