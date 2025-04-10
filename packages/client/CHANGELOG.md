@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.9.10 - 2025-04-10
+
 ### Fixed
 
 - Use `genesisHash` from RPC instead of using an operation if possible
