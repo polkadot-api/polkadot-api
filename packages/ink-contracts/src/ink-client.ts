@@ -18,7 +18,7 @@ export type InkCallableInterface<T extends InkCallableDescriptor> = <
     ? (value?: T[L]["message"]) => Binary
     : (value: T[L]["message"]) => Binary
   decode: (value: { data: Binary }) => T[L]["response"]
-  metadata: {
+  attributes: {
     payable: boolean
     default: boolean
     mutates: boolean
@@ -144,12 +144,12 @@ export const getInkClient = <
 
   return {
     constructor: (label) => ({
-      metadata: getMetadata(findConstructor(label)),
+      attributes: getAttributes(findConstructor(label)),
       ...constructorCodec(label),
     }),
     defaultConstructor,
     message: (label) => ({
-      metadata: getMetadata(findMessage(label)),
+      attributes: getAttributes(findMessage(label)),
       ...messageCodec(label),
     }),
     defaultMessage,
@@ -161,7 +161,7 @@ export const getInkClient = <
   }
 }
 
-const getMetadata = (spec: ConstructorSpec | MessageSpec) => ({
+const getAttributes = (spec: ConstructorSpec | MessageSpec) => ({
   payable: spec.payable,
   default: spec.default,
   mutates: "mutates" in spec ? spec.mutates : true,
