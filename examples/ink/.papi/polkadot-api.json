@@ -6,10 +6,21 @@
       "wsUrl": "wss://aleph-zero-testnet-rpc.dwellir.com",
       "metadata": ".papi/metadata/testAzero.scale",
       "genesis": "0x05d5279c52c484cc80396535a316add7d47b1c5b9e0398dd1f584149341460c5"
+    },
+    "pop": {
+      "wsUrl": "wss://rpc1.paseo.popnetwork.xyz",
+      "metadata": ".papi/metadata/pop.scale",
+      "genesis": "0xe8b2d197b82a0da1fffca832c050894ebe343b289c61ef439aa694bdcef78aa1"
+    },
+    "wndAh": {
+      "chain": "westend2_asset_hub",
+      "metadata": ".papi/metadata/wndAh.scale",
+      "genesis": "0x67f9723393ef76214df0118c34bbbd3dbebc8ed46a10973a8c969d48fe7598c9"
     }
   },
   "ink": {
     "escrow": ".papi/contracts/escrow.json",
-    "psp22": ".papi/contracts/psp22.json"
+    "psp22": ".papi/contracts/psp22.json",
+    "my_contract": ".papi/contracts/my_contract.json"
   }
 }
