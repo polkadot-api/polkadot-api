@@ -183,11 +183,21 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     return result
   }
 
+  const inlineField = (label: string, type: string): StructField => ({
+    label,
+    value: {
+      type: "inline",
+      value: type,
+    },
+    docs: [],
+  })
   const createCallableDescriptor = (
     callables: Array<{
       label: string
       docs: string[]
       types: ReturnType<typeof buildCallable>
+      mutates?: boolean
+      payable: boolean
       default?: boolean
     }>,
   ) =>
@@ -209,18 +219,9 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
                 value: callable.types.value,
                 docs: [],
               },
-              ...(callable.default
-                ? [
-                    {
-                      label: "default",
-                      value: {
-                        type: "inline",
-                        value: "true",
-                      },
-                      docs: [],
-                    } satisfies StructField,
-                  ]
-                : []),
+              ...(callable.default ? [inlineField("default", "true")] : []),
+              ...(callable.payable ? [inlineField("payable", "true")] : []),
+              ...(callable.mutates ? [inlineField("mutates", "true")] : []),
             ],
           },
           docs: callable.docs,

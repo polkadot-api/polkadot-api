@@ -24,6 +24,8 @@ export type InkCallableDescriptor = Record<
     message: StringRecord<unknown>
     response: StringRecord<unknown>
     default?: boolean
+    payable?: boolean
+    mutates?: boolean
   }
 >
 
