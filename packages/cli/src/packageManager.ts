@@ -48,6 +48,7 @@ async function detectByLockFile(): Promise<Omit<
 const lockFileToPackageManager: Record<string, PackageManager> = {
   "pnpm-lock.yaml": "pnpm",
   "yarn.lock": "yarn",
+  "bun.lock": "bun",
   "bun.lockb": "bun",
   "package-lock.json": "npm",
 }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Support new `bun.lock` lockfile
+
 ## 0.11.7 - 2025-04-10
 
 ### Fixed

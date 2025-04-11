@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **CLI:**
+  - Support `bun.lock` lockfile
+
 ## 1.9.10 - 2025-04-10
 
 ### Fixed
