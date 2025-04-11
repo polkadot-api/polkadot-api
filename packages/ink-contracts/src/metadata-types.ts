@@ -55,7 +55,7 @@ interface InkSpecV5 {
   lang_error: TypeSpec
 }
 
-interface ConstructorSpec {
+export interface ConstructorSpec {
   label: string
   selector: string
   payable: boolean
@@ -65,7 +65,7 @@ interface ConstructorSpec {
   docs: string[]
 }
 
-interface MessageSpec {
+export interface MessageSpec {
   label: string
   selector: string
   mutates: boolean

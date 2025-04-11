@@ -3,6 +3,7 @@ import {
   MessageParamSpec,
   TypeSpec,
 } from "@polkadot-api/ink-contracts"
+import { anonymizeImports, anonymizeType } from "./anonymize"
 import {
   EnumVariant,
   getInternalTypesBuilder,
@@ -11,7 +12,6 @@ import {
   StructField,
   TypeNode,
 } from "./internal-types"
-import { getReusedNodes } from "./internal-types/reused-nodes"
 import {
   CodegenOutput,
   generateTypescript,
@@ -19,7 +19,7 @@ import {
   nativeNodeCodegen,
   processPapiPrimitives,
 } from "./internal-types/generate-typescript"
-import { anonymizeImports, anonymizeType } from "./anonymize"
+import { getReusedNodes } from "./internal-types/reused-nodes"
 
 export function generateInkTypes(lookup: InkMetadataLookup) {
   const internalBuilder = getInternalTypesBuilder(lookup)
@@ -183,11 +183,22 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
     return result
   }
 
+  const inlineField = (label: string, type: string): StructField => ({
+    label,
+    value: {
+      type: "inline",
+      value: type,
+    },
+    docs: [],
+  })
   const createCallableDescriptor = (
     callables: Array<{
       label: string
       docs: string[]
       types: ReturnType<typeof buildCallable>
+      mutates?: boolean
+      payable: boolean
+      default?: boolean
     }>,
   ) =>
     generateNodeType({
@@ -208,6 +219,9 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
                 value: callable.types.value,
                 docs: [],
               },
+              ...(callable.default ? [inlineField("default", "true")] : []),
+              ...(callable.payable ? [inlineField("payable", "true")] : []),
+              ...(callable.mutates ? [inlineField("mutates", "true")] : []),
             ],
           },
           docs: callable.docs,
