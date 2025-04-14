@@ -361,7 +361,7 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "peerDependencies": {
-    "polkadot-api": "*"
+    "polkadot-api": ">=1.9.11"
   }
 }
 `,
