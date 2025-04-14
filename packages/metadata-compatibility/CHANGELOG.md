@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed
+
+- Handle enums with variants that reference themselves
+
+### Changed
+
+- `TypedefNode`'s `EnumNode` has changed to accommodate for self-referencing enums.
+
 ## 0.1.16 - 2025-03-07
 
 ### Fixed

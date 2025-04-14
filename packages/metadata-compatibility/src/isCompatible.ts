@@ -68,7 +68,12 @@ export function isCompatible(
       if (variantValue == null) {
         return true
       }
-      return nextCall(valueEnum.value, variantValue)
+      return nextCall(
+        valueEnum.value,
+        variantValue.type === "inline"
+          ? variantValue.value
+          : getNode(variantValue.value),
+      )
     case "option":
       if (value == null) {
         return true

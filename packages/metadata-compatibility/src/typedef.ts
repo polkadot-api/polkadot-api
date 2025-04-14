@@ -1,6 +1,7 @@
 import type { MetadataPrimitives, Var } from "@polkadot-api/metadata-builders"
 import {
   Codec,
+  Enum,
   Option,
   Self,
   StringRecord,
@@ -44,9 +45,17 @@ const TerminalCodec = Variant(
 
 export interface EnumNode {
   type: "enum"
-  value: Array<[string, TypedefNode | undefined]>
+  value: Array<[string, Enum<{ inline: TypedefNode; lookup: number }>]>
 }
-const EnumCodec = Vector(Tuple(str, Option(Self(() => TypedefCodec))))
+const EnumCodec: Codec<EnumNode["value"]> = Vector(
+  Tuple(
+    str,
+    Variant({
+      inline: Self(() => TypedefCodec),
+      lookup: smallCompact,
+    }),
+  ),
+)
 
 export interface TupleNode {
   type: "tuple"
@@ -70,7 +79,7 @@ export interface BinaryNode {
   type: "binary"
   value: number | undefined
 }
-const BinaryCodec = Option(compactNumber) as Codec<BinaryNode["value"]>
+const BinaryCodec = Option(smallCompact) as Codec<BinaryNode["value"]>
 
 export interface OptionNode {
   type: "option"
@@ -159,15 +168,24 @@ export function mapLookupToTypedef(
     case "enum":
       return {
         type: "enum",
-        value: Object.entries(entry.value).map(([key, params]) => {
-          if (params.type === "lookupEntry") resolve(params.value.id)
-          return [
-            key,
-            params.type === "lookupEntry"
-              ? mapLookupToTypedef(params.value, resolve)
-              : mapLookupToTypedef(params, resolve),
-          ]
-        }),
+        value: Object.entries(entry.value).map(
+          ([key, params]): EnumNode["value"][number] => {
+            if (params.type !== "lookupEntry")
+              return [
+                key,
+                { type: "inline", value: mapLookupToTypedef(params, resolve) },
+              ]
+
+            resolve(params.value.id)
+            return [
+              key,
+              {
+                type: "lookup",
+                value: params.value.id,
+              },
+            ]
+          },
+        ),
       }
     case "struct": {
       const value = Object.entries(entry.value).map(
@@ -246,17 +264,18 @@ export function mapReferences(
         ...node,
         value: node.value.map(([k, v]) => [k, mapFn(v)] as [string, number]),
       }
-    case "enum":
+    case "enum": {
       return {
         ...node,
-        value: node.value.map(
-          ([k, v]) =>
-            [k, v == undefined ? undefined : mapReferences(v, mapFn)] as [
-              string,
-              TypedefNode | undefined,
-            ],
-        ),
+        value: node.value.map(([k, { type, value }]): EnumNode["value"][0] => [
+          k,
+          type === "lookup"
+            ? { type, value: mapFn(value) }
+            : { type, value: mapReferences(value, mapFn) },
+        ]),
       }
+    }
+
     case "binary":
     case "terminal":
       return node
