@@ -182,7 +182,9 @@ function getIsStaticCompatible(
       ])
     case "enum": {
       const enumOrigin = originNode as EnumNode
-      const destVariants = Object.fromEntries(destNode.value)
+      const destVariants = Object.fromEntries(
+        destNode.value.map(([key, value]) => [key, value.value]),
+      )
       const maxLevel =
         enumOrigin.value.length === destNode.value.length
           ? CompatibilityLevel.Identical
@@ -195,7 +197,7 @@ function getIsStaticCompatible(
             ([type, value]) =>
               () =>
                 type in destVariants
-                  ? nextCall(value, destVariants[type])
+                  ? nextCall(value.value, destVariants[type])
                   : unconditional(CompatibilityLevel.Incompatible),
           ),
         ),
