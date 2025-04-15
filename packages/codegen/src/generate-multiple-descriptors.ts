@@ -92,7 +92,11 @@ export const generateMultipleDescriptors = (
       content: file.descriptorTypes,
       exports: file.exports,
     })),
-    typesFileContent: generateTypes(declarations, paths),
+    typesFileContent: generateTypes(
+      declarations,
+      paths,
+      new Set(chainFiles.map((x) => x.commonTypeImports).flat()),
+    ),
     publicTypes: getPublicTypes(declarations.variables),
   }
 }

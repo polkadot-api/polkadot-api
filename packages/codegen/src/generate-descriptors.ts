@@ -426,7 +426,7 @@ type ApiKey<D extends Record<string, Record<string, any>>> =
     }[keyof D & string]
 `
 
-  return { descriptorTypes, descriptorValues, exports }
+  return { descriptorTypes, descriptorValues, exports, commonTypeImports }
 }
 
 export function getAssetId(lookup: MetadataLookup) {
