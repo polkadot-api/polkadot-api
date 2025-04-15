@@ -152,8 +152,7 @@ export const getTypesBuilder = (
     })
   }
 
-  const buildTypeDefinition = (id: number) =>
-    `Anonymize<${buildDefinition(id).code}>`
+  const buildTypeDefinition = (id: number) => buildDefinition(id).code
 
   const buildStorage = (pallet: string, entry: string) => {
     const storageEntry = metadata.pallets
