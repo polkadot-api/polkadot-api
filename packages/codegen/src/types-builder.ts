@@ -137,6 +137,14 @@ export const getTypesBuilder = (
         return onlyCode(anonymize(entry.name))
       }
 
+      // There's a case where circular references doesn't work with Anonymize.
+      // this happened with an option in-between, so we can just inline all of them.
+      if (level > 0 && node.type === "option") {
+        const optionResult = next(node.value)
+
+        return onlyCode(`(${optionResult.code}) | undefined`)
+      }
+
       const variable: Variable = {
         checksum,
         type: "",
