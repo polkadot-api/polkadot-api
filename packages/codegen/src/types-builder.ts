@@ -65,11 +65,8 @@ export const getTypesBuilder = (
       : checksumBuilder.buildComposite(id)!
 
   const internalBuilder = getInternalTypesBuilder(getLookupEntryDef)
-  const anonymize = (varName: string) => {
-    if (!varName.startsWith("I")) return varName
-    const checksum = varName.slice(1)
-    return knownTypes[checksum] ? varName : `Anonymize<${varName}>`
-  }
+  const anonymize = ({ name, checksum }: Variable) =>
+    knownTypes[checksum] ? name : `Anonymize<${name}>`
   const getName = (checksum: string) => {
     if (!knownTypes[checksum]) return `I${checksum}`
 
@@ -134,7 +131,7 @@ export const getTypesBuilder = (
         if (level === 0) {
           typeFileImports.add(entry.name)
         }
-        return onlyCode(anonymize(entry.name))
+        return onlyCode(anonymize(entry))
       }
 
       const variable: Variable = {
@@ -151,12 +148,12 @@ export const getTypesBuilder = (
         getPapiPrimitive(level + 1) ?? nativeNodeCodegen(node, next)
       ).code
 
-      return onlyCode(anonymize(variable.name))
+      return onlyCode(anonymize(variable))
     })
   }
 
   const buildTypeDefinition = (id: number) =>
-    anonymize(buildDefinition(id).code)
+    `Anonymize<${buildDefinition(id).code}>`
 
   const buildStorage = (pallet: string, entry: string) => {
     const storageEntry = metadata.pallets

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- generate: Inline single-use types to avoid circular TSC errors.
+
 ## 0.11.8 - 2025-04-14
 
 ### Fixed
