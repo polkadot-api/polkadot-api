@@ -74,7 +74,7 @@ console.log(`Transferrable amount: ${free - frozen}`)
 
 ## Documentation
 
-Browse our latest docs [here](https://polkadot-api.github.io/polkadot-api-docs/)!
+Browse our latest docs [here](https://papi.how/)!
 
 ## Announcement: Transfer of Ownership
 
