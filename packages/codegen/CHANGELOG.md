@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.3 - 2025-04-16
+
 ### Fixed
 
 - Inline single-use types to avoid circular TSC errors.
