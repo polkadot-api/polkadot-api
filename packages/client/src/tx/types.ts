@@ -133,7 +133,7 @@ export type TxOptions<Asset> = Partial<
          */
         at: HexString | "best" | "finalized"
         /**
-         * Tip in fundamental units. Default: `0`
+         * Tip in fundamental units. Default: `0n`
          */
         tip: bigint
         /**
@@ -436,7 +436,14 @@ export type OfflineTxEntry<
     extensions: OfflineTxExtensions<Asset>,
   ) => Promise<HexString>
 
+  /**
+   * SCALE-encoded callData of the transaction.
+   */
   encodedData: Binary
+  /**
+   * PAPI way of expressing an extrinsic with arguments.
+   * It's useful to pass as a parameter to extrinsics that accept calls.
+   */
   decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
 }
 
