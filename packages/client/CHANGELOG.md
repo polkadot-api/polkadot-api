@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.12 - 2025-04-16
+
 ### Fixed
 
 - descriptors: Inline single-use types to avoid circular TSC errors.
