@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.13.4 - 2025-04-16
+
+### Fixed
+
+- fix nested AnonymousEnum not getting anonymized
+
 ## 0.13.3 - 2025-04-16
 
 ### Fixed
