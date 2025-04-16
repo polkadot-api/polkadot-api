@@ -187,9 +187,9 @@ export interface PolkadotClient {
   getChainSpecData: () => Promise<ChainSpecData>
 
   /**
-   * Observable that emits `BlockInfo` for every new finalized block, without
-   * gaps. It's a multicast and stateful observable, that will synchronously
-   * replay its latest known state.
+   * Observable that emits `BlockInfo` for every new finalized block. It's a
+   * multicast and stateful observable, that will synchronously replay its
+   * latest known state.
    */
   finalizedBlock$: Observable<BlockInfo>
   /**
