@@ -243,7 +243,9 @@ export interface PolkadotClient {
 
   /**
    * Broadcasts a transaction (Promise-based). The promise will resolve when the
-   * transaction is found in a finalized block.
+   * transaction is found in a finalized block; and will reject if the
+   * transaction is invalid and can't be broadcasted, or if it is deemed invalid
+   * later on.
    *
    * @param transaction  SCALE-encoded tx to broadcast.
    * @param at           It can be a block hash, `"finalized"`, or `"best"`.
