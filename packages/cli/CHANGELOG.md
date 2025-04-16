@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.11.10 - 2025-04-16
+
+### Fixed
+
+- generate: Nested enums show up as AnonymousEnum
+
 ## 0.11.9 - 2025-04-16
 
 ### Fixed

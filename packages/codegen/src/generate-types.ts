@@ -40,9 +40,14 @@ const optimizeVariables = (
       const variableToInline = variables.get(checksum)!
       const [target] = [...dependants.get(checksum)!]
       const variable = variables.get(target)!
+
+      const newType = variableToInline.type.startsWith("AnonymousEnum<")
+        ? variableToInline.type.slice(9) // "Anonymous".length
+        : variableToInline.type
+
       variable.type = variable.type.replaceAll(
         `Anonymize<${variableToInline.name}>`,
-        variableToInline.type,
+        newType,
       )
       variables.delete(checksum)
       toRemove.delete(checksum)
