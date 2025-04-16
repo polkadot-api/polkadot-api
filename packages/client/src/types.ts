@@ -205,11 +205,8 @@ export interface PolkadotClient {
    * i.e. a new array is emitted at every event but the reference to its
    * children are stable if the children didn't change.
    *
-   * Note that subscribing to this observable already supersedes the need of
-   * subscribing to `finalizedBlock$`, since the last element of the array will
-   * be the latest known finalized block. There can be gaps between emissions,
-   * i.e. if new best or finalized block jump more than one block only one
-   * emission will be done.
+   * Note that some blocks might not get reported, e.g. if they become finalized
+   * immediately without being part of the best block chain.
    */
   bestBlocks$: Observable<BlockInfo[]>
   /**
