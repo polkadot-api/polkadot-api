@@ -837,6 +837,16 @@ importers:
         specifier: workspace:*
         version: link:../metadata-fixtures
 
+  scripts/bump:
+    dependencies:
+      typescript:
+        specifier: ^5
+        version: 5.8.3
+    devDependencies:
+      '@types/bun':
+        specifier: ^1.2.10
+        version: 1.2.10
+
 packages:
 
   '@acala-network/chopsticks-core@1.0.4':
@@ -1629,6 +1639,9 @@ packages:
   '@types/bn.js@5.1.6':
     resolution: {integrity: sha512-Xh8vSwUeMKeYYrj3cX4lGQgFSF/N03r+tv4AiLl1SucqV+uTQpxRcnM8AkXKHwYP9ZPXOYXRr2KPXpVlIvqh9w==}
 
+  '@types/bun@1.2.10':
+    resolution: {integrity: sha512-eilv6WFM3M0c9ztJt7/g80BDusK98z/FrFwseZgT4bXCq2vPhXD4z8R3oddmAn+R/Nmz9vBn4kweJKmGTZj+lg==}
+
   '@types/bun@1.2.9':
     resolution: {integrity: sha512-epShhLGQYc4Bv/aceHbmBhOz1XgUnuTZgcxjxk+WXwNyDXavv5QHD1QEFV0FwbTSQtNq6g4ZcV6y0vZakTjswg==}
 
@@ -1839,6 +1852,9 @@ packages:
 
   buffer@6.0.3:
     resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
+
+  bun-types@1.2.10:
+    resolution: {integrity: sha512-b5ITZMnVdf3m1gMvJHG+gIfeJHiQPJak0f7925Hxu6ZN5VKA8AGy4GZ4lM+Xkn6jtWxg5S3ldWvfmXdvnkp3GQ==}
 
   bun-types@1.2.9:
     resolution: {integrity: sha512-dk/kOEfQbajENN/D6FyiSgOKEuUi9PWfqKQJEgwKrCMWbjS/S6tEXp178mWvWAcUSYm9ArDlWHZKO3T/4cLXiw==}
@@ -4680,6 +4696,10 @@ snapshots:
     dependencies:
       '@types/node': 22.14.0
 
+  '@types/bun@1.2.10':
+    dependencies:
+      bun-types: 1.2.10
+
   '@types/bun@1.2.9':
     dependencies:
       bun-types: 1.2.9
@@ -4916,6 +4936,10 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
+
+  bun-types@1.2.10:
+    dependencies:
+      '@types/node': 22.14.0
 
   bun-types@1.2.9:
     dependencies:
