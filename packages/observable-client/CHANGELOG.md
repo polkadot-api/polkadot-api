@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+
+- chainHead will not throw when using non-best or non-finalized chain blocks
+
+### Removed
+
+- `NotBestBlockError`
+
 ## 0.8.6 - 2025-04-10
 
 ### Fixed

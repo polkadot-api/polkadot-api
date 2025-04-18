@@ -11,10 +11,3 @@ export class BlockPrunedError extends Error {
     this.name = "BlockPrunedError"
   }
 }
-
-export class NotBestBlockError extends Error {
-  constructor() {
-    super("Block is not best block or finalized")
-    this.name = "NotBestBlockError"
-  }
-}
