@@ -1,5 +1,5 @@
 import { BlockInfo, getObservableClient } from "@/index"
-import { BlockPrunedError, NotBestBlockError } from "@/chainHead/errors"
+import { BlockPrunedError } from "@/chainHead/errors"
 import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {
@@ -510,34 +510,6 @@ describe("observableClient chainHead", () => {
 
       expect(next).not.toHaveBeenCalledWith()
       expect(error).toHaveBeenCalledWith(new BlockPrunedError())
-      expect(complete).not.toHaveBeenCalled()
-
-      cleanup(chainHead.unfollow)
-    })
-
-    it("prevents starting an operation on a non-best block", async () => {
-      const mockClient = createMockSubstrateClient()
-      const client = getObservableClient(mockClient)
-      const chainHead = client.chainHead$()
-
-      const { initialHash } = await initialize(mockClient)
-
-      const [forkA] = sendNewBlockBranch(mockClient, initialHash, 1)
-      const [forkB] = sendNewBlockBranch(mockClient, initialHash, 1)
-
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: forkA.blockHash,
-      })
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: forkB.blockHash,
-      })
-
-      const { next, error, complete } = observe(
-        chainHead.body$(forkA.blockHash),
-      )
-
-      expect(next).not.toHaveBeenCalledWith()
-      expect(error).toHaveBeenCalledWith(new NotBestBlockError())
       expect(complete).not.toHaveBeenCalled()
 
       cleanup(chainHead.unfollow)

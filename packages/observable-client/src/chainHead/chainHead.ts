@@ -29,32 +29,32 @@ import {
 } from "rxjs"
 
 import { withDefaultValue } from "@/utils"
+import { HexString } from "@polkadot-api/substrate-bindings"
 import {
   fromAbortControllerFn,
   getWithOptionalhash$,
   getWithRecovery,
-  withEnsureCanonicalChain,
   withLazyFollower,
   withStopRecovery,
+  withThrowWhenPrune,
 } from "./enhancers"
 import { BlockNotPinnedError } from "./errors"
 import { getRecoveralStorage$ } from "./storage-queries"
 import type {
   BlockUsageEvent,
-  PinnedBlocks,
   PinnedBlock,
+  PinnedBlocks,
   RuntimeContext,
   SystemEvent,
 } from "./streams"
 import { getFollow$, getPinnedBlocks$ } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
-import { HexString } from "@polkadot-api/substrate-bindings"
 
 export type {
-  PinnedBlocks,
-  PinnedBlock,
   FollowEventWithRuntime,
+  PinnedBlock,
+  PinnedBlocks,
   RuntimeContext,
   SystemEvent,
 }
@@ -139,7 +139,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     label: string,
   ) => {
     const canonicalChain = (_fn: (hash: string, ...args: A) => Observable<T>) =>
-      withEnsureCanonicalChain(pinnedBlocks$, follow$, _fn)
+      withThrowWhenPrune(follow$, _fn)
 
     return withInMemory(
       withRefcount(
@@ -154,18 +154,6 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       label,
     )
   }
-
-  const withCanonicalChain: <Args extends Array<any>, T>(
-    fn: (
-      hash: string | null,
-      withCanonical: boolean,
-      ...args: Args
-    ) => Observable<T>,
-    withCanonicalChain?: boolean,
-  ) => (hash: string | null, ...args: Args) => Observable<T> =
-    (fn, withCanonicalChain = true) =>
-    (hash, ...args) =>
-      fn(hash, withCanonicalChain, ...args)
 
   const cache = new Map<string, Map<string, Observable<any>>>()
   const pinnedBlocks$ = getPinnedBlocks$(
@@ -300,8 +288,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
   )
 
   const _body$ = withOptionalHash$(commonEnhancer(lazyFollower("body"), "body"))
-  const body$ = (hash: string) =>
-    upsertCachedStream(hash, "body", _body$(hash, true))
+  const body$ = (hash: string) => upsertCachedStream(hash, "body", _body$(hash))
 
   const _storage$ = commonEnhancer(lazyFollower("storage"), "storage")
 
@@ -313,7 +300,6 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
     >(
       hash: string,
-      withCanonicalChain: boolean,
       type: Type,
       keyMapper: (ctx: RuntimeContext) => string,
       childTrie: string | null = null,
@@ -333,7 +319,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
           const unMapped$ = upsertCachedStream(
             hash,
             `storage-${type}-${key}-${childTrie ?? ""}`,
-            _storage$(hash, withCanonicalChain, type, key, childTrie),
+            _storage$(hash, type, key, childTrie),
           )
 
           return mapper
@@ -371,10 +357,9 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     ),
   )
 
-  const eventsAt$ = (hash: string | null, canonical = false) =>
+  const eventsAt$ = (hash: string | null) =>
     storage$(
       hash,
-      canonical,
       "value",
       (ctx) => ctx.events.key,
       null,
@@ -382,22 +367,14 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     ).pipe(map((x) => x.mapped))
 
   const __call$ = commonEnhancer(lazyFollower("call"), "call")
-  const call$ = withOptionalHash$(
-    (hash: string, canonical: boolean, fn: string, args: string) =>
-      upsertCachedStream(
-        hash,
-        `call-${fn}-${args}`,
-        __call$(hash, canonical, fn, args),
-      ),
+  const call$ = withOptionalHash$((hash: string, fn: string, args: string) =>
+    upsertCachedStream(hash, `call-${fn}-${args}`, __call$(hash, fn, args)),
   )
 
-  const validateTx$ = getValidateTx(
-    withCanonicalChain(call$, false),
-    getRuntimeContext$,
-  )
+  const validateTx$ = getValidateTx(call$, getRuntimeContext$)
 
   const innerBody$ = (hash: string) =>
-    upsertCachedStream(hash, "body", _body$(hash, false))
+    upsertCachedStream(hash, "body", _body$(hash))
 
   const trackTx$ = getTrackTx(pinnedBlocks$, innerBody$, validateTx$, eventsAt$)
   const trackTxWithoutEvents$ = getTrackTx(
@@ -428,13 +405,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
         key = enc(0n)
       }
 
-      return storage$(
-        null,
-        false,
-        "value",
-        () => key,
-        null,
-      ) as Observable<HexString>
+      return storage$(null, "value", () => key, null) as Observable<HexString>
     }),
     shareReplay(1),
   )
@@ -468,10 +439,10 @@ export const getChainHead$ = (chainHead: ChainHead) => {
 
       header$,
       body$,
-      call$: withCanonicalChain(call$),
-      storage$: withCanonicalChain(storage$),
+      call$,
+      storage$,
       storageQueries$,
-      eventsAt$: withCanonicalChain(eventsAt$),
+      eventsAt$,
 
       holdBlock,
       trackTx$,

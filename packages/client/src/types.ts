@@ -217,6 +217,17 @@ export interface PolkadotClient {
   getBestBlocks: () => Promise<BlockInfo[]>
 
   /**
+   * Observable of new blocks that have been discovered by the client.
+   */
+  blocks$: Observable<BlockInfo>
+
+  /**
+   * Observable of all the pinned blocks available. These are the blocks you can
+   * perform operations against.
+   */
+  pinnedBlocks$: Observable<Record<string, BlockInfo>>
+
+  /**
    * Observable to watch Block Body.
    *
    * @param hash  It can be a block hash, `"finalized"`, or `"best"`

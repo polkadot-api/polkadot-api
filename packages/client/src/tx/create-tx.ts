@@ -22,11 +22,7 @@ const lenToDecoder = {
   8: u64.dec,
 }
 
-export const getNonce$ = (
-  call$: ChainHead$["call$"],
-  from: HexString,
-  at: string,
-) =>
+const getNonce$ = (call$: ChainHead$["call$"], from: HexString, at: string) =>
   call$(at, NONCE_RUNTIME_CALL, from).pipe(
     map((result) => {
       const bytes = fromHex(result)
