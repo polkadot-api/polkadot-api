@@ -1,0 +1,10 @@
+{
+  "name": "papi-bump-changelog",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "^1.2.10"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

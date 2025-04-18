@@ -4,6 +4,7 @@ packages:
   - packages/*
   - examples/*
   - integration-tests/*
+  - scripts/bump
 onlyBuiltDependencies:
   - esbuild
   - node-hid

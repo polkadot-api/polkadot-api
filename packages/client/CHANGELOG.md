@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-## 0.9.12 - 2025-04-16
+## 1.9.13 - 2025-04-16
+
+### Fixed
+
+- descriptors: Nested enums show up as AnonymousEnum
+
+## 1.9.12 - 2025-04-16
 
 ### Fixed
 
