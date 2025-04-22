@@ -1,5 +1,4 @@
 import { BlockInfo, getObservableClient } from "@/index"
-import { BlockPrunedError } from "@/chainHead/errors"
 import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {
@@ -466,51 +465,6 @@ describe("observableClient chainHead", () => {
       expect(next).toHaveBeenCalledWith(body)
       expect(error).not.toHaveBeenCalled()
       expect(complete).toHaveBeenCalled()
-
-      cleanup(chainHead.unfollow)
-    })
-
-    it("emits an error if the block becomes pruned", async () => {
-      const mockClient = createMockSubstrateClient()
-      const client = getObservableClient(mockClient)
-      const chainHead = client.chainHead$()
-
-      const { initialHash } = await initialize(mockClient)
-
-      const prunedBranch = sendNewBlockBranch(mockClient, initialHash, 5)
-      const forkA = prunedBranch.at(-1)!
-      const [forkB] = sendNewBlockBranch(mockClient, initialHash, 1)
-
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: forkA.blockHash,
-      })
-
-      const { next, error, complete } = observe(
-        chainHead.body$(forkA.blockHash),
-      )
-      const finalized = observe(chainHead.finalized$)
-
-      // Make sure that when we get the error, finalized has already been called
-      error.callback(() => {
-        expect(finalized.next).toHaveBeenCalled()
-        expect(finalized.next.mock.lastCall![0]).toMatchObject({
-          hash: forkB.blockHash,
-        })
-      })
-
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: forkB.blockHash,
-      })
-      sendFinalized(mockClient, {
-        finalizedBlockHashes: [forkB.blockHash],
-        prunedBlockHashes: prunedBranch.map((b) => b.blockHash),
-      })
-
-      await mockClient.chainHead.mock.body.reply(forkA.blockHash, ["foo"])
-
-      expect(next).not.toHaveBeenCalledWith()
-      expect(error).toHaveBeenCalledWith(new BlockPrunedError())
-      expect(complete).not.toHaveBeenCalled()
 
       cleanup(chainHead.unfollow)
     })

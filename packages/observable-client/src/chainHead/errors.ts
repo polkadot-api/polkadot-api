@@ -4,10 +4,3 @@ export class BlockNotPinnedError extends Error {
     this.name = "BlockNotPinnedError"
   }
 }
-
-export class BlockPrunedError extends Error {
-  constructor() {
-    super("Block pruned")
-    this.name = "BlockPrunedError"
-  }
-}

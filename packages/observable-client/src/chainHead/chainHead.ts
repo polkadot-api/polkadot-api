@@ -36,7 +36,6 @@ import {
   getWithRecovery,
   withLazyFollower,
   withStopRecovery,
-  withThrowWhenPrune,
 } from "./enhancers"
 import { BlockNotPinnedError } from "./errors"
 import { getRecoveralStorage$ } from "./storage-queries"
@@ -137,23 +136,17 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       ...args: [...A, ...[abortSignal: AbortSignal]]
     ) => Promise<T>,
     label: string,
-  ) => {
-    const canonicalChain = (_fn: (hash: string, ...args: A) => Observable<T>) =>
-      withThrowWhenPrune(follow$, _fn)
-
-    return withInMemory(
+  ) =>
+    withInMemory(
       withRefcount(
-        canonicalChain(
-          withStopRecovery(
-            pinnedBlocks$,
-            withRecoveryFn(fromAbortControllerFn(fn)),
-            `stop-${label}`,
-          ),
+        withStopRecovery(
+          pinnedBlocks$,
+          withRecoveryFn(fromAbortControllerFn(fn)),
+          `stop-${label}`,
         ),
       ),
       label,
     )
-  }
 
   const cache = new Map<string, Map<string, Observable<any>>>()
   const pinnedBlocks$ = getPinnedBlocks$(

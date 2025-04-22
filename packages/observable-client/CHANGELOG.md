@@ -9,6 +9,7 @@
 ### Removed
 
 - `NotBestBlockError`
+- `BlockPrunedError`
 
 ## 0.8.6 - 2025-04-10
 

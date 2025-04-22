@@ -32,7 +32,7 @@ export function withStopRecovery<A extends Array<any>, T>(
         next: (v) => {
           const block = v.blocks.get(hash)
           if (!block) {
-            // This branch conflicts with BlockPrunedError, as the block might disappear when it gets pruned
+            // This branch used to conflict with BlockPrunedError, as the block might disappear when it gets pruned
             // We can avoid this conflict by checking that we're actually recovering.
             if (isRecovering) {
               observer.error(new BlockNotPinnedError(hash, label))
