@@ -4,7 +4,11 @@ import { shareLatest } from "./utils"
 
 export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
   pinnedBlocks$.pipe(
-    filter((pinnedBlocks) => !pinnedBlocks.recovering),
+    filter(
+      (pinnedBlocks) =>
+        !pinnedBlocks.recovering &&
+        ["initialized", "newBlock"].includes(pinnedBlocks.lastEvent.type),
+    ),
     scan(
       (acc, pinnedBlocks) => {
         const newReportedBlocks = new Set<string>()
