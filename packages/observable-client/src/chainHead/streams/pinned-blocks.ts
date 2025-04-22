@@ -1,6 +1,15 @@
 import { shareLatest } from "@/utils"
 import { HexString } from "@polkadot-api/substrate-bindings"
-import { Observable, Subject, filter, map, merge, scan } from "rxjs"
+import {
+  Observable,
+  Subject,
+  exhaustMap,
+  filter,
+  map,
+  merge,
+  scan,
+  timer,
+} from "rxjs"
 import { withStopRecovery } from "../enhancers"
 import type { FollowEvent } from "./follow"
 import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
@@ -20,6 +29,10 @@ export interface BlockUsageEvent {
   type: "blockUsage"
   value: { type: "hold"; hash: string } | { type: "release"; hash: string }
 }
+interface CleanupEvent {
+  type: "cleanup"
+}
+type PinnedBlocksEvent = FollowEvent | CleanupEvent | BlockUsageEvent
 
 export type PinnedBlocks = {
   best: string
@@ -28,6 +41,7 @@ export type PinnedBlocks = {
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
   recovering: boolean
+  lastEvent: PinnedBlocksEvent
 }
 
 const createRuntimeGetter = (pinned: PinnedBlocks, startAt: HexString) => {
@@ -68,11 +82,23 @@ export const getPinnedBlocks$ = (
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
 ) => {
+  const cleanup$ = new Subject<void>()
+  const cleanupEvt$ = cleanup$.pipe(
+    exhaustMap(() => timer(0)),
+    map(
+      (): CleanupEvent => ({
+        type: "cleanup" as const,
+      }),
+    ),
+  )
   const pinnedBlocks$: Observable<PinnedBlocks> = merge(
     blockUsage$,
+    cleanupEvt$,
     follow$,
   ).pipe(
     scan((acc, event) => {
+      acc.lastEvent = event
+
       switch (event.type) {
         case "initialized":
           if (acc.recovering) {
@@ -201,24 +227,26 @@ export const getPinnedBlocks$ = (
             current = blocks.get(current.parent)
           }
 
-          // The consumer needs to have a chance to start operations
-          // on some of the finalized blocks
-          setTimeout(() => {
-            const toUnpin: string[] = []
+          cleanup$.next()
 
-            for (const block of blocks.values()) {
-              if (!block.unpinnable) continue
-              if (block.refCount === 0) {
-                toUnpin.push(block.hash)
-              }
-            }
-
-            deleteBlocks(acc, toUnpin)
-            onUnpin(toUnpin)
-          }, 0)
           return acc
         }
+        case "cleanup": {
+          const { blocks } = acc
 
+          const toUnpin: string[] = []
+
+          for (const block of blocks.values()) {
+            if (!block.unpinnable) continue
+            if (block.refCount === 0) {
+              toUnpin.push(block.hash)
+            }
+          }
+
+          deleteBlocks(acc, toUnpin)
+          onUnpin(toUnpin)
+          return acc
+        }
         case "blockUsage": {
           if (!acc.blocks.has(event.value.hash)) return acc
 
@@ -246,4 +274,5 @@ const getInitialPinnedBlocks = (): PinnedBlocks => ({
   blocks: new Map(),
   finalizedRuntime: {} as Runtime,
   recovering: false,
+  lastEvent: null!,
 })
