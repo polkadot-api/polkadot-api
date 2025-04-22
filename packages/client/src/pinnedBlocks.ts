@@ -1,6 +1,5 @@
 import { BlockInfo, PinnedBlocks } from "@polkadot-api/observable-client"
-import { filter, map, mergeMap, Observable, scan, share } from "rxjs"
-import { shareLatest } from "./utils"
+import { filter, mergeMap, Observable, scan, share } from "rxjs"
 
 export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
   pinnedBlocks$.pipe(
@@ -10,9 +9,7 @@ export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
         const newReportedBlocks = new Set<string>()
         const newBlocks: BlockInfo[] = []
 
-        pinnedBlocks.blocks.forEach(({ hash, number, parent, unpinned }) => {
-          if (unpinned) return
-
+        pinnedBlocks.blocks.forEach(({ hash, number, parent }) => {
           newReportedBlocks.add(hash)
           if (!acc.reportedBlocks.has(hash)) {
             newBlocks.push({
@@ -32,20 +29,4 @@ export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
     ),
     mergeMap(({ newBlocks }) => newBlocks),
     share(),
-  )
-
-export const getPinnedBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
-  pinnedBlocks$.pipe(
-    filter((pinnedBlocks) => !pinnedBlocks.recovering),
-    map((pinnedBlocks) =>
-      Object.fromEntries(
-        [...pinnedBlocks.blocks.entries()]
-          .filter(([, { unpinned }]) => !unpinned)
-          .map(([key, { hash, number, parent }]) => [
-            key,
-            { hash, number, parent },
-          ]),
-      ),
-    ),
-    shareLatest,
   )

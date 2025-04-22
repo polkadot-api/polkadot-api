@@ -36,7 +36,7 @@ import {
 import { createConstantEntry } from "./constants"
 import { ChainDefinition } from "./descriptors"
 import { createEventEntry } from "./event"
-import { getNewBlocks$, getPinnedBlocks$ } from "./pinnedBlocks"
+import { getNewBlocks$ } from "./pinnedBlocks"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
@@ -282,8 +282,6 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     getChainSpecData,
 
     blocks$: getNewBlocks$(chainHead.pinnedBlocks$),
-
-    pinnedBlocks$: getPinnedBlocks$(chainHead.pinnedBlocks$),
 
     finalizedBlock$: chainHead.finalized$,
     getFinalizedBlock: () => firstValueFrom(chainHead.finalized$),

@@ -11,8 +11,8 @@ export interface PinnedBlock {
   parent: string
   children: Set<string>
   runtime: string
+  unpinnable: boolean
   refCount: number
-  unpinned?: true
   recovering: boolean
 }
 
@@ -34,9 +34,7 @@ const createRuntimeGetter = (pinned: PinnedBlocks, startAt: HexString) => {
   return () => {
     const runtime = pinned.runtimes[startAt]
     if (!runtime) return pinned.blocks.has(startAt) ? startAt : null
-    const winner = [...runtime.usages]
-      .reverse()
-      .find((x) => !pinned.blocks.get(x)!.unpinned)
+    const winner = [...runtime.usages].at(-1)
     return winner ?? null
   }
 }
@@ -91,8 +89,10 @@ export const getPinnedBlocks$ = (
 
           const lastIdx = event.finalizedBlockHashes.length - 1
           event.finalizedBlockHashes.forEach((hash, i) => {
-            if (acc.blocks.has(hash)) {
-              acc.blocks.get(hash)!.recovering = false
+            const preexistingBlock = acc.blocks.get(hash)
+            if (preexistingBlock) {
+              preexistingBlock.recovering = false
+              preexistingBlock.unpinnable = i !== lastIdx
             } else {
               acc.blocks.set(hash, {
                 hash: hash,
@@ -103,6 +103,7 @@ export const getPinnedBlocks$ = (
                 children: new Set(
                   i === lastIdx ? [] : [event.finalizedBlockHashes[i + 1]],
                 ),
+                unpinnable: i !== lastIdx,
                 runtime: hash,
                 refCount: 0,
                 number: event.number + i,
@@ -144,6 +145,7 @@ export const getPinnedBlocks$ = (
               parent: parent,
               children: new Set<string>(),
               runtime: event.newRuntime ? hash : parentNode.runtime,
+              unpinnable: false,
               refCount: 0,
               recovering: false,
             }
@@ -186,37 +188,32 @@ export const getPinnedBlocks$ = (
           acc.finalizedRuntime =
             acc.runtimes[blocks.get(acc.finalized)!.runtime]
 
-          const { prunedBlockHashes: prunned } = event
-          deleteBlocks(acc, prunned)
-          onUnpin(prunned)
+          event.prunedBlockHashes.forEach((hash) => {
+            const block = acc.blocks.get(hash)
+            if (block) {
+              block.unpinnable = true
+            }
+          })
+
+          let current = blocks.get(blocks.get(acc.finalized)!.parent)
+          while (current && !current.unpinnable) {
+            current.unpinnable = true
+            current = blocks.get(current.parent)
+          }
 
           // The consumer needs to have a chance to start operations
           // on some of the finalized blocks
           setTimeout(() => {
-            const trail: string[] = []
             const toUnpin: string[] = []
-            let current = blocks.get(blocks.get(acc.finalized)!.parent)
-            while (current) {
-              const { hash } = current
-              trail.push(hash)
-              if (current.refCount === 0 && !current.unpinned) {
-                current.unpinned = true
-                // A stop event took place in-between, then it should
-                // be removed, but not be **actully** unpinned.
-                if (current.recovering) deleteFromCache(hash)
-                else toUnpin.push(hash)
+
+            for (const block of blocks.values()) {
+              if (!block.unpinnable) continue
+              if (block.refCount === 0) {
+                toUnpin.push(block.hash)
               }
-              current = blocks.get(current.parent)
             }
 
-            const toDelete: string[] = []
-            for (let i = trail.length - 1; i >= 0; i--) {
-              current = blocks.get(trail[i])!
-              if (!current.unpinned) break
-              toDelete.push(current.hash)
-            }
-
-            deleteBlocks(acc, toDelete)
+            deleteBlocks(acc, toUnpin)
             onUnpin(toUnpin)
           }, 0)
           return acc
@@ -227,14 +224,6 @@ export const getPinnedBlocks$ = (
 
           const block = acc.blocks.get(event.value.hash)!
           block.refCount += event.value.type === "hold" ? 1 : -1
-          if (
-            block.refCount === 0 &&
-            block.number < acc.blocks.get(acc.finalized)!.number &&
-            !block.recovering
-          ) {
-            block.unpinned = true
-            onUnpin([block.hash])
-          }
           return acc
         }
       }

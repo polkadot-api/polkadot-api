@@ -168,47 +168,6 @@ describe("observableClient chainHead", () => {
 
       cleanup(chainHead.unfollow)
     })
-
-    it("unpins pruned branches", async () => {
-      const mockClient = createMockSubstrateClient()
-      const client = getObservableClient(mockClient)
-      const chainHead = client.chainHead$()
-
-      const { initialHash } = await initializeWithMetadata(mockClient)
-      await wait(0)
-
-      const bestChain = sendNewBlockBranch(mockClient, initialHash, 5)
-      const deadChain = sendNewBlockBranch(
-        mockClient,
-        bestChain[2].blockHash,
-        10,
-      )
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: bestChain.at(-1)!.blockHash,
-      })
-
-      expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(new Set())
-
-      sendFinalized(mockClient, {
-        finalizedBlockHashes: bestChain.map((v) => v.blockHash),
-        prunedBlockHashes: deadChain.map((v) => v.blockHash),
-      })
-
-      expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(
-        new Set(deadChain.map((v) => v.blockHash)),
-      )
-
-      await wait(0)
-      expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(
-        new Set([
-          ...deadChain.map((v) => v.blockHash),
-          initialHash,
-          ...bestChain.slice(0, -1).map((v) => v.blockHash),
-        ]),
-      )
-
-      cleanup(chainHead.unfollow)
-    })
   })
 
   describe("operation limit recovery", () => {

@@ -222,7 +222,7 @@ export const submit$ = (
     take(1),
     map((blocks) => {
       const block = blocks.blocks.get(at!)
-      return block && !block.unpinned ? block.hash : blocks.finalized
+      return block ? block.hash : blocks.finalized
     }),
   )
 

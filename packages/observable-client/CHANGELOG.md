@@ -10,6 +10,7 @@
 
 - `NotBestBlockError`
 - `BlockPrunedError`
+- `unpinned` property from `pinnedBlocks`
 
 ## 0.8.6 - 2025-04-10
 

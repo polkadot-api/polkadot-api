@@ -113,8 +113,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       new Observable((observer) => {
         let isPresent = false
         pinnedBlocks$.pipe(take(1)).subscribe((blocks) => {
-          const block = blocks.blocks.get(hash)
-          isPresent = !!block && !block.unpinned
+          isPresent = blocks.blocks.has(hash)
         })
 
         return isPresent
