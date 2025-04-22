@@ -252,6 +252,11 @@ export const getPinnedBlocks$ = (
 
           const block = acc.blocks.get(event.value.hash)!
           block.refCount += event.value.type === "hold" ? 1 : -1
+          if (block.refCount === 0 && !block.recovering && block.unpinnable) {
+            const toUnpin = [block.hash]
+            onUnpin(toUnpin)
+            deleteBlocks(acc, toUnpin)
+          }
           return acc
         }
       }

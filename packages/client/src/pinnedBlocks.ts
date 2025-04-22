@@ -41,7 +41,7 @@ export const getPinnedBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
     filter(
       (pinnedBlocks) =>
         !pinnedBlocks.recovering &&
-        ["initialized", "newBlock", "cleanup"].includes(
+        ["initialized", "newBlock", "cleanup", "blockUsage"].includes(
           pinnedBlocks.lastEvent.type,
         ),
     ),
