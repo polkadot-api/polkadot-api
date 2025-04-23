@@ -1,31 +1,34 @@
 import { BlockInfo, PinnedBlocks } from "@polkadot-api/observable-client"
-import { filter, map, mergeMap, Observable, scan, share } from "rxjs"
+import {
+  distinctUntilChanged,
+  map,
+  mergeMap,
+  Observable,
+  scan,
+  share,
+} from "rxjs"
 import { shareLatest } from "./utils"
 
 export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
   pinnedBlocks$.pipe(
-    filter(
-      (pinnedBlocks) =>
-        !pinnedBlocks.recovering &&
-        ["initialized", "newBlock"].includes(pinnedBlocks.lastEvent.type),
-    ),
     scan(
-      (acc, pinnedBlocks) => {
-        const newReportedBlocks = new Set<string>()
+      ({ reportedBlocks: prevReportedBlocks }, { blocks }) => {
+        const reportedBlocks = new Set<string>(blocks.keys())
         const newBlocks: BlockInfo[] = []
 
-        pinnedBlocks.blocks.forEach(({ hash, number, parent }) => {
-          newReportedBlocks.add(hash)
-          if (!acc.reportedBlocks.has(hash)) {
-            newBlocks.push({
-              hash,
-              number,
-              parent,
-            })
-          }
-        })
+        if (reportedBlocks.size > prevReportedBlocks.size) {
+          blocks.forEach(({ hash, number, parent }) => {
+            if (!prevReportedBlocks.has(hash)) {
+              newBlocks.push({
+                hash,
+                number,
+                parent,
+              })
+            }
+          })
+        }
 
-        return { reportedBlocks: newReportedBlocks, newBlocks }
+        return { reportedBlocks, newBlocks }
       },
       {
         reportedBlocks: new Set<string>(),
@@ -38,18 +41,17 @@ export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
 
 export const getPinnedBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
   pinnedBlocks$.pipe(
-    filter(
-      (pinnedBlocks) =>
-        !pinnedBlocks.recovering &&
-        ["initialized", "newBlock", "cleanup", "blockUsage"].includes(
-          pinnedBlocks.lastEvent.type,
-        ),
-    ),
-    map((pinnedBlocks) =>
+    map(({ blocks }) => ({
+      blocks,
+      s: blocks.size,
+    })),
+    distinctUntilChanged((prev, curr) => prev.s == curr.s),
+    map(({ blocks }) =>
       Object.fromEntries(
-        [...pinnedBlocks.blocks.entries()].map(
-          ([key, { hash, number, parent }]) => [key, { hash, number, parent }],
-        ),
+        [...blocks.entries()].map(([key, { hash, number, parent }]) => [
+          key,
+          { hash, number, parent },
+        ]),
       ),
     ),
     shareLatest,

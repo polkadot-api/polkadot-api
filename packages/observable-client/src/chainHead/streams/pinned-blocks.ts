@@ -32,7 +32,6 @@ export interface BlockUsageEvent {
 interface CleanupEvent {
   type: "cleanup"
 }
-type PinnedBlocksEvent = FollowEvent | CleanupEvent | BlockUsageEvent
 
 export type PinnedBlocks = {
   best: string
@@ -41,7 +40,6 @@ export type PinnedBlocks = {
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
   recovering: boolean
-  lastEvent: PinnedBlocksEvent
 }
 
 const createRuntimeGetter = (pinned: PinnedBlocks, startAt: HexString) => {
@@ -97,8 +95,6 @@ export const getPinnedBlocks$ = (
     follow$,
   ).pipe(
     scan((acc, event) => {
-      acc.lastEvent = event
-
       switch (event.type) {
         case "initialized":
           if (acc.recovering) {
@@ -279,5 +275,4 @@ const getInitialPinnedBlocks = (): PinnedBlocks => ({
   blocks: new Map(),
   finalizedRuntime: {} as Runtime,
   recovering: false,
-  lastEvent: null!,
 })
