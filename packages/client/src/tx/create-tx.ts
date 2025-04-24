@@ -116,6 +116,7 @@ const getNonce$ = (chainHead: ChainHead$, from: HexString) => {
     )
   const followNonce$ = (head: string) =>
     followHead$(head).pipe(
+      take(2),
       switchMap((hash) => getNonceAtBlock$(chainHead.call$, from, hash)),
     )
   const getHeadsNonce$ = (heads: string[]) =>
