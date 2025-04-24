@@ -1,13 +1,6 @@
-import { BlockInfo, PinnedBlocks } from "@polkadot-api/observable-client"
-import {
-  distinctUntilChanged,
-  map,
-  mergeMap,
-  Observable,
-  scan,
-  share,
-} from "rxjs"
-import { shareLatest } from "./utils"
+import { mergeMap, Observable, scan, share } from "rxjs"
+import { BlockInfo } from "./chainHead"
+import { PinnedBlocks } from "./streams"
 
 export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
   pinnedBlocks$.pipe(
@@ -37,22 +30,4 @@ export const getNewBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
     ),
     mergeMap(({ newBlocks }) => newBlocks),
     share(),
-  )
-
-export const getPinnedBlocks$ = (pinnedBlocks$: Observable<PinnedBlocks>) =>
-  pinnedBlocks$.pipe(
-    map(({ blocks }) => ({
-      blocks,
-      s: blocks.size,
-    })),
-    distinctUntilChanged((prev, curr) => prev.s == curr.s),
-    map(({ blocks }) =>
-      Object.fromEntries(
-        [...blocks.entries()].map(([key, { hash, number, parent }]) => [
-          key,
-          { hash, number, parent },
-        ]),
-      ),
-    ),
-    shareLatest,
   )

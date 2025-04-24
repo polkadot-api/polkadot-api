@@ -95,6 +95,11 @@ export const getPinnedBlocks$ = (
     follow$,
   ).pipe(
     scan((acc, event) => {
+      const unpinAndDelete = (toUnpin: string[]) => {
+        deleteBlocks(acc, toUnpin)
+        onUnpin(toUnpin)
+      }
+
       switch (event.type) {
         case "initialized":
           if (acc.recovering) {
@@ -232,8 +237,7 @@ export const getPinnedBlocks$ = (
             .filter(({ unpinnable, refCount }) => unpinnable && !refCount)
             .map(({ hash }) => hash)
 
-          deleteBlocks(acc, toUnpin)
-          onUnpin(toUnpin)
+          unpinAndDelete(toUnpin)
           return acc
         }
         case "blockUsage": {
@@ -243,8 +247,7 @@ export const getPinnedBlocks$ = (
           block.refCount += event.value.type === "hold" ? 1 : -1
           if (block.refCount === 0 && !block.recovering && block.unpinnable) {
             const toUnpin = [block.hash]
-            onUnpin(toUnpin)
-            deleteBlocks(acc, toUnpin)
+            unpinAndDelete(toUnpin)
           }
           return acc
         }

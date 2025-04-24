@@ -38,6 +38,7 @@ import {
   withStopRecovery,
 } from "./enhancers"
 import { BlockNotPinnedError } from "./errors"
+import { getNewBlocks$ } from "./new-blocks"
 import { getRecoveralStorage$ } from "./storage-queries"
 import type {
   BlockUsageEvent,
@@ -425,6 +426,7 @@ export const getChainHead$ = (chainHead: ChainHead) => {
       finalized$,
       best$,
       bestBlocks$,
+      newBlocks$: getNewBlocks$(pinnedBlocks$),
       runtime$,
       metadata$,
       genesis$,

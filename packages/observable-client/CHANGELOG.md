@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `chainHead.newBlocks$` to receive all the blocks discovered by the client.
+
 ### Changed
 
 - chainHead will not throw when using non-best or non-finalized chain blocks
