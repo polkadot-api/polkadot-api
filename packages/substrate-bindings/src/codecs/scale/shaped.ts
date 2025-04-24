@@ -51,8 +51,8 @@ export const Tuple: {
     [K_2 in keyof A_2]: A_2[K_2] extends Decoder<infer D_2> ? D_2 : unknown
   }> & { inner: A_2 }
 } = (...inner) => withInner(OTuple(...inner), inner)
-Tuple.enc = (...iner) => withInner(OTuple.enc(...iner), iner)
-Tuple.dec = (...iner) => withInner(OTuple.dec(...iner), iner)
+Tuple.enc = (...inner) => withInner(OTuple.enc(...inner), inner)
+Tuple.dec = (...inner) => withInner(OTuple.dec(...inner), inner)
 
 export const Vector: {
   <T>(
