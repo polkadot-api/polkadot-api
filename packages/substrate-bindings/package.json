@@ -43,9 +43,9 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@noble/hashes": "^1.7.1",
+    "@noble/hashes": "^1.8.0",
     "@polkadot-api/utils": "workspace:*",
-    "@scure/base": "^1.2.4",
+    "@scure/base": "^1.2.5",
     "scale-ts": "^1.6.1"
   },
   "devDependencies": {
