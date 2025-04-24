@@ -4,6 +4,8 @@
 
 ### Added
 
+- New `getTypedCodecs` API: which provides access the codecs of all possible on-chain interactions.
+
 - client: Observable `blocks$` to receive all the blocks discovered by the client.
 - **Ink!:**
   - `attributes` property to messages and constructors (payable, default, mutates)
