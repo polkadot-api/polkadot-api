@@ -11,6 +11,7 @@ import {
   RuntimeContext,
   getObservableClient,
 } from "@polkadot-api/observable-client"
+import { Binary } from "@polkadot-api/substrate-bindings"
 import {
   SubstrateClient,
   createClient as createRawClient,
@@ -39,7 +40,6 @@ import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import type { AnyApi, PolkadotClient } from "./types"
-import { Binary } from "@polkadot-api/substrate-bindings"
 import { createWatchEntries } from "./watch-entries"
 
 const createApi = <Unsafe extends true | false, D>(
@@ -279,6 +279,8 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const { broadcastTx$ } = client
   return {
     getChainSpecData,
+
+    blocks$: chainHead.newBlocks$,
 
     finalizedBlock$: chainHead.finalized$,
     getFinalizedBlock: () => firstValueFrom(chainHead.finalized$),

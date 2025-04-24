@@ -1,5 +1,4 @@
 import { BlockInfo, getObservableClient } from "@/index"
-import { BlockPrunedError, NotBestBlockError } from "@/chainHead/errors"
 import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {
@@ -170,7 +169,7 @@ describe("observableClient chainHead", () => {
       cleanup(chainHead.unfollow)
     })
 
-    it("unpins pruned branches", async () => {
+    it("unpins pruned branches as soon as refcount reaches 0", async () => {
       const mockClient = createMockSubstrateClient()
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
@@ -190,16 +189,25 @@ describe("observableClient chainHead", () => {
 
       expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(new Set())
 
+      const usedHash = deadChain.at(-3)!.blockHash
+      const bodySub = chainHead.body$(usedHash).subscribe()
+
       sendFinalized(mockClient, {
         finalizedBlockHashes: bestChain.map((v) => v.blockHash),
         prunedBlockHashes: deadChain.map((v) => v.blockHash),
       })
 
+      await wait(0)
       expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(
-        new Set(deadChain.map((v) => v.blockHash)),
+        new Set([
+          ...deadChain.map((v) => v.blockHash).filter((v) => v != usedHash),
+          initialHash,
+          ...bestChain.slice(0, -1).map((v) => v.blockHash),
+        ]),
       )
 
-      await wait(0)
+      bodySub.unsubscribe()
+      await wait(100)
       expect(mockClient.chainHead.mock.unpinnedHashes).toEqual(
         new Set([
           ...deadChain.map((v) => v.blockHash),
@@ -470,52 +478,7 @@ describe("observableClient chainHead", () => {
       cleanup(chainHead.unfollow)
     })
 
-    it("emits an error if the block becomes pruned", async () => {
-      const mockClient = createMockSubstrateClient()
-      const client = getObservableClient(mockClient)
-      const chainHead = client.chainHead$()
-
-      const { initialHash } = await initialize(mockClient)
-
-      const prunedBranch = sendNewBlockBranch(mockClient, initialHash, 5)
-      const forkA = prunedBranch.at(-1)!
-      const [forkB] = sendNewBlockBranch(mockClient, initialHash, 1)
-
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: forkA.blockHash,
-      })
-
-      const { next, error, complete } = observe(
-        chainHead.body$(forkA.blockHash),
-      )
-      const finalized = observe(chainHead.finalized$)
-
-      // Make sure that when we get the error, finalized has already been called
-      error.callback(() => {
-        expect(finalized.next).toHaveBeenCalled()
-        expect(finalized.next.mock.lastCall![0]).toMatchObject({
-          hash: forkB.blockHash,
-        })
-      })
-
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: forkB.blockHash,
-      })
-      sendFinalized(mockClient, {
-        finalizedBlockHashes: [forkB.blockHash],
-        prunedBlockHashes: prunedBranch.map((b) => b.blockHash),
-      })
-
-      await mockClient.chainHead.mock.body.reply(forkA.blockHash, ["foo"])
-
-      expect(next).not.toHaveBeenCalledWith()
-      expect(error).toHaveBeenCalledWith(new BlockPrunedError())
-      expect(complete).not.toHaveBeenCalled()
-
-      cleanup(chainHead.unfollow)
-    })
-
-    it("prevents starting an operation on a non-best block", async () => {
+    it("allows starting an operation on a non-best block", async () => {
       const mockClient = createMockSubstrateClient()
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
@@ -526,9 +489,6 @@ describe("observableClient chainHead", () => {
       const [forkB] = sendNewBlockBranch(mockClient, initialHash, 1)
 
       sendBestBlockChanged(mockClient, {
-        bestBlockHash: forkA.blockHash,
-      })
-      sendBestBlockChanged(mockClient, {
         bestBlockHash: forkB.blockHash,
       })
 
@@ -536,9 +496,12 @@ describe("observableClient chainHead", () => {
         chainHead.body$(forkA.blockHash),
       )
 
-      expect(next).not.toHaveBeenCalledWith()
-      expect(error).toHaveBeenCalledWith(new NotBestBlockError())
-      expect(complete).not.toHaveBeenCalled()
+      const body = ["foo"]
+      await mockClient.chainHead.mock.body.reply(forkA.blockHash, body)
+
+      expect(next).toHaveBeenCalledWith(body)
+      expect(error).not.toHaveBeenCalled()
+      expect(complete).toHaveBeenCalled()
 
       cleanup(chainHead.unfollow)
     })

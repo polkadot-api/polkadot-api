@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added
+
+- `chainHead.newBlocks$` to receive all the blocks discovered by the client.
+
+### Changed
+
+- chainHead will not throw when using non-best or non-finalized chain blocks
+
+### Removed
+
+- `NotBestBlockError`
+- `BlockPrunedError`
+- `unpinned` property from `pinnedBlocks`
+
 ## 0.8.6 - 2025-04-10
 
 ### Fixed

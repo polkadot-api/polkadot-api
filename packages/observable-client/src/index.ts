@@ -2,8 +2,6 @@ export * from "./getObservableClient"
 export { isBestOrFinalizedBlock } from "./chainHead/streams/block-operations"
 export {
   BlockNotPinnedError,
-  BlockPrunedError,
-  NotBestBlockError,
   type AnalyzedBlock,
   type PinnedBlock,
   type BlockInfo,

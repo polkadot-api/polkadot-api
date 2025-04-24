@@ -4,7 +4,8 @@
 
 ### Added
 
-- **Ink!:**:
+- client: Observable `blocks$` to receive all the blocks discovered by the client.
+- **Ink!:**
   - `attributes` property to messages and constructors (payable, default, mutates)
   - inkClient: `defaultConstructor` property with the name of the default constructor.
   - inkClient: `defaultMessage` property with the name of the default message.
