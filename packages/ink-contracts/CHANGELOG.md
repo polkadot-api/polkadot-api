@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- `attributes` property to messages and constructors (payable, default, mutates)
+- inkClient: `defaultConstructor` property with the name of the default constructor.
+- inkClient: `defaultMessage` property with the name of the default message.
+
 ## 0.2.6 - 2025-03-07
 
 ### Fixed

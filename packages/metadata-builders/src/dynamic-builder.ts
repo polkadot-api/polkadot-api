@@ -43,7 +43,9 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       ...args: Parameters<ReturnType<typeof scale.Storage>>
     ) => {
       const keys = storagePallet!(...args)
+      const [, ...encodersWithHash] = args
       return {
+        args: scale.Tuple(...encodersWithHash.map(([codec]) => codec)),
         keys,
         value,
         len,

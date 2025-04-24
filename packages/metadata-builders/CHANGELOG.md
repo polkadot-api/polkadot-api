@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `buildStorage` on the dynamic-builder now also returns an `args` property, which is simply the Tuple codec of the args.
+
 ## 0.10.2 - 2025-03-07
 
 ### Fixed

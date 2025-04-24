@@ -6,8 +6,8 @@ import {
 import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
 import {
   BlockInfo,
+  BlockNotPinnedError,
   ChainHead$,
-  NotBestBlockError,
   RuntimeContext,
 } from "@polkadot-api/observable-client"
 import { FixedSizeBinary } from "@polkadot-api/substrate-bindings"
@@ -269,14 +269,18 @@ export const createStorageEntry = (
     const at = _at ?? null
 
     if (isSystemNumber)
-      return chainHead.bestBlocks$.pipe(
+      return chainHead.pinnedBlocks$.pipe(
         map((blocks) => {
-          if (at === "finalized" || !at) return blocks.at(-1)
-          if (at === "best") return blocks.at(0)
-          return blocks.find((block) => block.hash === at)
-        }),
-        map((block) => {
-          if (!block) throw new NotBestBlockError()
+          const hash =
+            at === "finalized" || !at
+              ? blocks.finalized
+              : at === "best"
+                ? blocks.best
+                : at
+          const block = blocks.blocks.get(hash)
+          if (!block) {
+            throw new BlockNotPinnedError(hash, "System.Number")
+          }
           return block.number
         }),
         distinctUntilChanged(),
