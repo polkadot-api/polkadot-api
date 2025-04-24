@@ -11,6 +11,7 @@ import {
 } from "scale-ts"
 import { mapObject } from "@polkadot-api/utils"
 import { Enum } from "@/types/enum"
+import { withInner } from "./with-inner"
 
 type Tuple<T, N extends number> = readonly [T, ...T[]] & { length: N }
 
@@ -37,12 +38,6 @@ type RestrictedLenTuple<T, O extends StringRecord<any>> = Tuple<
   T,
   TuplifyUnion<keyof O> extends Tuple<any, infer V> ? V : 0
 >
-
-const withInner = <T, I>(codec: T, inner: I): T & { inner: I } => {
-  const result: T & { inner: I } = codec as any
-  result.inner = inner
-  return result
-}
 
 const VariantEnc: <O extends StringRecord<Encoder<any>>>(
   inner: O,

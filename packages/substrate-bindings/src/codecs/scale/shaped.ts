@@ -13,12 +13,7 @@ import {
   DecoderType,
   ResultPayload,
 } from "scale-ts"
-
-const withInner = <T, I>(codec: T, inner: I): T & { inner: I } => {
-  const result: T & { inner: I } = codec as any
-  result.inner = inner
-  return result
-}
+import { withInner } from "./with-inner"
 
 export const Struct: {
   <A extends StringRecord<Codec<any>>>(
