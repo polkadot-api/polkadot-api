@@ -155,7 +155,7 @@ const getNonce$ = (chainHead: ChainHead$, from: HexString) => {
     map((result) => {
       const winner = result.reduce(
         (acc: bigint | number | null, v) =>
-          v.success ? (v.value > (acc ?? 0) ? v.value : acc) : acc,
+          v.success ? (v.value >= (acc ?? 0) ? v.value : acc) : acc,
         null,
       )
 
