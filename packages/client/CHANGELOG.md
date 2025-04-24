@@ -12,6 +12,10 @@
   - inkClient: `defaultConstructor` property with the name of the default constructor.
   - inkClient: `defaultMessage` property with the name of the default message.
 
+### Changed
+
+- Transactions will use the highest nonce available instead of the one found in `finalized` or `best` by default [#1008](https://github.com/polkadot-api/polkadot-api/pull/1008).
+
 ## 1.9.13 - 2025-04-16
 
 ### Fixed
