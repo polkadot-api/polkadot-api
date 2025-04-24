@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.10.0 - 2025-04-24
+
 ### Added
 
 - New `getTypedCodecs` API: which provides access the codecs of all possible on-chain interactions.

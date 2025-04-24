@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2025-04-24
+
 ### Added
 
 - `attributes` property to messages and constructors (payable, default, mutates)

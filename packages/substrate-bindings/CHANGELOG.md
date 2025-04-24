@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.0 - 2025-04-24
+
 ### Added
 
 - Scale higher-order codecs now produce codecs with an `inner` property, so that it's "inner" codecs can be available to the consumer.

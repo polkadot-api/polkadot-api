@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.14.0 - 2025-04-24
+
 ### Changed
 
 - ink: add contract attributes to descriptors (default, payable, mutates)
