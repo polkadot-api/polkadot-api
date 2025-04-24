@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.0 - 2025-04-24
+
 ### Added
 
 - `chainHead.newBlocks$` to receive all the blocks discovered by the client.

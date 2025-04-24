@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/pjs-signer",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
