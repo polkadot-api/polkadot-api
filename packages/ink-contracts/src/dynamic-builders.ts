@@ -112,7 +112,7 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
     Variant(
       Object.fromEntries(
         metadata.spec.events.map((evt) => [evt.label, buildEventCodec(evt)]),
-      ) as StringRecord<Codec<any>>,
+      ) as unknown as StringRecord<Codec<any>>,
     )
 
   return {
