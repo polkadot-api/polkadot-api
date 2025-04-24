@@ -1,11 +1,23 @@
-import { HexString, u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
-import { Observable, combineLatest, map, mergeMap, of, take } from "rxjs"
 import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { _void } from "@polkadot-api/substrate-bindings"
-import { CustomSignedExtensionValues } from "./types"
+import { HexString, u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
+import {
+  Observable,
+  catchError,
+  combineLatest,
+  distinctUntilChanged,
+  filter,
+  map,
+  mergeMap,
+  of,
+  scan,
+  startWith,
+  switchMap,
+  take,
+} from "rxjs"
 import { getSignExtensionsCreator } from "./signed-extensions"
+import { CustomSignedExtensionValues } from "./types"
 
 type HintedSignedExtensions = Partial<{
   tip: bigint
@@ -22,7 +34,11 @@ const lenToDecoder = {
   8: u64.dec,
 }
 
-const getNonce$ = (call$: ChainHead$["call$"], from: HexString, at: string) =>
+const getNonceAtBlock$ = (
+  call$: ChainHead$["call$"],
+  from: HexString,
+  at: string,
+) =>
   call$(at, NONCE_RUNTIME_CALL, from).pipe(
     map((result) => {
       const bytes = fromHex(result)
@@ -51,7 +67,7 @@ export const createTx: (
   combineLatest([
     hinted.nonce
       ? of(hinted.nonce)
-      : getNonce$(chainHead.call$, toHex(signer.publicKey), atBlock.hash),
+      : getNonce$(chainHead, toHex(signer.publicKey)),
     chainHead.getRuntimeContext$(atBlock.hash),
     chainHead.genesis$,
   ]).pipe(
@@ -90,3 +106,64 @@ export const createTx: (
       )
     }),
   )
+
+const getNonce$ = (chainHead: ChainHead$, from: HexString) => {
+  const followHead$ = (head: string) =>
+    chainHead.newBlocks$.pipe(
+      scan((acc, block) => (block.parent === acc ? block.hash : acc), head),
+      startWith(head),
+      distinctUntilChanged(),
+    )
+  const followNonce$ = (head: string) =>
+    followHead$(head).pipe(
+      switchMap((hash) => getNonceAtBlock$(chainHead.call$, from, hash)),
+    )
+  const getHeadsNonce$ = (heads: string[]) =>
+    combineLatest(
+      heads.map((head) =>
+        followNonce$(head).pipe(
+          map((value) => ({
+            success: true as const,
+            value,
+          })),
+          catchError((err) =>
+            of({
+              success: false as const,
+              value: err,
+            }),
+          ),
+        ),
+      ),
+    ).pipe(take(1))
+
+  return chainHead.pinnedBlocks$.pipe(
+    filter((v) => !v.recovering && v.blocks.size > 0),
+    take(1),
+    map(({ blocks, best }) => {
+      // Grab only the heads: those blocks above the best that don't have children and are not getting pruned
+      const bestBlock = blocks.get(best)!
+      return [...blocks.values()]
+        .filter(
+          (v) =>
+            !v.unpinnable &&
+            v.children.size === 0 &&
+            v.number >= bestBlock.number,
+        )
+        .map((v) => v.hash)
+    }),
+    switchMap(getHeadsNonce$),
+    map((result) => {
+      const winner = result.reduce(
+        (acc: bigint | number | null, v) =>
+          v.success ? (v.value > (acc ?? 0) ? v.value : acc) : acc,
+        null,
+      )
+
+      if (winner == null) {
+        // We must have at least one error
+        throw result[0].value
+      }
+      return winner
+    }),
+  )
+}
