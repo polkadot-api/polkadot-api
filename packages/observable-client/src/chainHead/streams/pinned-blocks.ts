@@ -228,16 +228,9 @@ export const getPinnedBlocks$ = (
           return acc
         }
         case "cleanup": {
-          const { blocks } = acc
-
-          const toUnpin: string[] = []
-
-          for (const block of blocks.values()) {
-            if (!block.unpinnable) continue
-            if (block.refCount === 0) {
-              toUnpin.push(block.hash)
-            }
-          }
+          const toUnpin = [...acc.blocks.values()]
+            .filter(({ unpinnable, refCount }) => unpinnable && !refCount)
+            .map(({ hash }) => hash)
 
           deleteBlocks(acc, toUnpin)
           onUnpin(toUnpin)
