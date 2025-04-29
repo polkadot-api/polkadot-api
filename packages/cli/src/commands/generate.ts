@@ -28,7 +28,7 @@ import path, { join, posix, win32 } from "path"
 import process from "process"
 import { readPackage } from "read-pkg"
 import tsc from "tsc-prog"
-import tsup, { build } from "tsup"
+import tsup from "tsup"
 import { updatePackage } from "write-package"
 import { detectPackageManager } from "../packageManager"
 import { CommonOptions } from "./commonOptions"
@@ -291,6 +291,7 @@ async function compileCodegen(packageDir: string) {
   }
 
   await tsup.build({
+    target: "es2022",
     format: ["cjs", "esm"],
     entry: [path.join(srcDir, "index.ts").replaceAll(win32.sep, posix.sep)],
     loader: {
@@ -375,7 +376,7 @@ async function readWhitelist(filename: string): Promise<string[] | null> {
 
   const tmpDir = await mkdtemp(join(tmpdir(), "papi-"))
   try {
-    await build({
+    await tsup.build({
       format: "esm",
       entry: {
         index: filename,
