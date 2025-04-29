@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Pin ES target version for descriptors.
+
 ## 0.11.11 - 2025-04-24
 
 ### Fixed
