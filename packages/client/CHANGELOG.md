@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **CLI:**
+  - Pin ES target version for descriptors.
+
 ## 1.10.0 - 2025-04-24
 
 ### Added
