@@ -96,6 +96,7 @@ export const createTx: (
             }
           : { mortal: false },
         customSignedExtensions,
+        asset: hinted.asset,
       })
 
       return signer.signTx(

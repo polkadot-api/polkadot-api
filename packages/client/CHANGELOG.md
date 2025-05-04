@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Propagate the provided `asset` to the signer.
+
 - **CLI:**
   - Pin ES target version for descriptors.
 
