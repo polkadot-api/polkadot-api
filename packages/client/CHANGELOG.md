@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.10.1 - 2025-05-04
+
 ### Fixed
 
 - Propagate the provided `asset` to the signer.
