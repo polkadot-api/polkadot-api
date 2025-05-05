@@ -2,12 +2,16 @@
 
 ## Unreleased
 
+### Fixed
+
+- **CLI:**
+  - Avoid throwing if there are no chains to generate.
+
 ## 1.10.1 - 2025-05-04
 
 ### Fixed
 
 - Propagate the provided `asset` to the signer.
-
 - **CLI:**
   - Pin ES target version for descriptors.
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid throwing if there are no chains to generate.
+
 ## 0.11.12 - 2025-05-04
 
 ### Fixed

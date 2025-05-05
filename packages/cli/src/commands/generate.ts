@@ -61,6 +61,11 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
+  if (chains.length === 0) {
+    console.log("No entries in polkadot-api.json. Nothing to generate.")
+    return
+  }
+
   console.log(`Generating descriptors`)
   await cleanDescriptorsPackage(config.descriptorPath)
   if (!config.options?.noDescriptorsPackage) {
