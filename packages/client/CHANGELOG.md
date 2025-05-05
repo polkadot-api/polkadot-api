@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid unnecessary warnings when invoking `_request`
+
 ## 1.10.1 - 2025-05-04
 
 ### Fixed

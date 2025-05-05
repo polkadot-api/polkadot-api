@@ -257,11 +257,6 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
     ),
   }
 
-  const _request: <Reply = any, Params extends Array<any> = any[]>(
-    method: string,
-    params: Params,
-  ) => Promise<Reply> = rawClient.request
-
   let runtimeToken: Promise<RuntimeToken>
   const compatibilityToken = new WeakMap<
     ChainDefinition,
@@ -277,13 +272,21 @@ export function createClient(provider: JsonRpcProvider): PolkadotClient {
   const getRuntimeToken = <D>(): Promise<RuntimeToken<D>> =>
     (runtimeToken ??= createRuntimeToken(chainHead))
   const { broadcastTx$ } = client
+
+  const getFinalizedBlock = () => firstValueFrom(chainHead.finalized$)
+  const _request: <Reply = any, Params extends Array<any> = any[]>(
+    method: string,
+    params: Params,
+  ) => Promise<Reply> = (...args) =>
+    getFinalizedBlock().then(() => rawClient.request(...args))
+
   return {
     getChainSpecData,
 
     blocks$: chainHead.newBlocks$,
 
     finalizedBlock$: chainHead.finalized$,
-    getFinalizedBlock: () => firstValueFrom(chainHead.finalized$),
+    getFinalizedBlock,
 
     bestBlocks$: chainHead.bestBlocks$,
     getBestBlocks: () => firstValueFrom(chainHead.bestBlocks$),
