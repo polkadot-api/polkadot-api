@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.10.2 - 2025-05-05
+
 ### Fixed
 
 - Avoid race-conditions when destroying the client.
