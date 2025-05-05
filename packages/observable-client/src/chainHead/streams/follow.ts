@@ -1,34 +1,68 @@
 import { BlockHeader, blockHeader } from "@polkadot-api/substrate-bindings"
 import {
+  BestBlockChanged,
   ChainHead,
+  Finalized,
   FollowEventWithRuntime,
   FollowResponse,
+  Initialized,
+  NewBlockWithRuntime,
   StopError,
 } from "@polkadot-api/substrate-client"
 import {
   Observable,
   ObservedValueOf,
   Subscription,
-  concatMap,
   connectable,
   noop,
-  of,
 } from "rxjs"
+
+type EnhancedFollowEventWithRuntime =
+  | (Initialized & {
+      number: number
+      parentHash: string
+    })
+  | NewBlockWithRuntime
+  | BestBlockChanged
+  | Finalized
 
 const withInitializedNumber =
   (getHeader: (hash: string) => Promise<BlockHeader>) =>
   (source$: Observable<FollowEventWithRuntime>) =>
-    source$.pipe(
-      concatMap((event) => {
-        return event.type !== "initialized"
-          ? of(event)
-          : getHeader(event.finalizedBlockHashes[0]).then((header) => ({
-              ...event,
-              number: header.number,
-              parentHash: header.parentHash,
-            }))
-      }),
-    )
+    new Observable<EnhancedFollowEventWithRuntime>((observer) => {
+      let pending: Array<EnhancedFollowEventWithRuntime> | null = null
+      return source$.subscribe({
+        next(event) {
+          if (event.type === "initialized") {
+            pending = []
+            getHeader(event.finalizedBlockHashes[0])
+              .then((header) => {
+                if (!observer.closed) {
+                  observer.next({
+                    ...event,
+                    number: header.number,
+                    parentHash: header.parentHash,
+                  })
+                  pending!.forEach((e) => {
+                    observer.next(e)
+                  })
+                  pending = null
+                }
+              })
+              .catch((e) => {
+                if (!observer.closed) observer.error(e)
+              })
+          } else if (pending) pending.push(event)
+          else observer.next(event)
+        },
+        error(e) {
+          observer.error(e)
+        },
+        complete() {
+          observer.complete()
+        },
+      })
+    })
 
 export const getFollow$ = (chainHead: ChainHead) => {
   let follower: FollowResponse | null = null
