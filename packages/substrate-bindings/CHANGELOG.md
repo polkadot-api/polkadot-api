@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+- Add Metadata V16 codec.
+- Add `NormalizedMetadata`.
+
+### Removed
+
+- Unused `V14Extrinsic` and `V15Extrinsic` types.
+
 ## 0.12.0 - 2025-04-24
 
 ### Added

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Add support for Metadata V16
+
 ## 1.10.2 - 2025-05-05
 
 ### Fixed
