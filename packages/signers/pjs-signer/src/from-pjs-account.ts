@@ -3,9 +3,8 @@ import { createV4Tx } from "@polkadot-api/signers-common"
 import {
   AccountId,
   Blake2256,
-  type V14,
-  type V15,
   decAnyMetadata,
+  normalizeMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
@@ -41,15 +40,7 @@ export function getPolkadotSignerFromPjs(
     atBlockNumber: number,
     _ = Blake2256,
   ) => {
-    let decMeta: V14 | V15
-    try {
-      const tmpMeta = decAnyMetadata(metadata)
-      if (tmpMeta.metadata.tag !== "v14" && tmpMeta.metadata.tag !== "v15")
-        throw null
-      decMeta = tmpMeta.metadata.value
-    } catch (_) {
-      throw new Error("Unsupported metadata version")
-    }
+    const decMeta = normalizeMetadata(decAnyMetadata(metadata))
 
     const pjs: Partial<SignerPayloadJSON> = {}
     pjs.signedExtensions = []
@@ -85,9 +76,12 @@ export function getPolkadotSignerFromPjs(
       )
     })
 
+    const checkedVersion = version.includes(4) ? 4 : null
+    if (checkedVersion == null)
+      throw new Error("Only extrinsic v4 is supported")
     pjs.address = address
     pjs.method = toHex(callData)
-    pjs.version = version
+    pjs.version = checkedVersion
     pjs.withSignedTransaction = true // we allow the wallet to change the payload
 
     const result = await signPayload(pjs as SignerPayloadJSON)

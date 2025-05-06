@@ -20,11 +20,11 @@ import {
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
 import { getSmProvider } from "@polkadot-api/sm-provider"
-import { V15 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { start } from "@polkadot-api/smoldot"
 import { getMetadataFromProvider } from "./getMetadata"
+import { normalizeMetadata } from "@polkadot-api/substrate-bindings"
 
 const chains = {
   dot: [polkadot],
@@ -119,7 +119,7 @@ async function getCurrentKnownTypes() {
     mapObject(chains, (_, key) =>
       readFile(getMetadataPath(key), "utf-8").then((r) => {
         try {
-          return JSON.parse(r) as V15
+          return normalizeMetadata(JSON.parse(r))
         } catch (ex) {
           console.error(key, ex)
           throw ex
@@ -177,7 +177,7 @@ async function refreshTypes() {
   const metadatas = mapObject(chains, (_, key) =>
     readFile(getMetadataPath(key), "utf-8").then((r) => {
       try {
-        return JSON.parse(r) as V15
+        return normalizeMetadata(JSON.parse(r))
       } catch (ex) {
         console.error(key, ex)
         throw ex

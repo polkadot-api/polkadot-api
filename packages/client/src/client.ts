@@ -119,7 +119,8 @@ const createApi = <Unsafe extends true | false, D>(
       compatibilityHelper(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Tx, pallet, name),
-        (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls, name),
+        (ctx) =>
+          getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls?.type, name),
       ),
       true,
     ),
@@ -134,7 +135,12 @@ const createApi = <Unsafe extends true | false, D>(
         compatibilityToken,
         (r) => r.getPalletEntryPoint(OpType.Event, pallet, name),
         (ctx) =>
-          getEnumEntry(ctx, "values", getPallet(ctx, pallet)?.events, name),
+          getEnumEntry(
+            ctx,
+            "values",
+            getPallet(ctx, pallet)?.events?.type,
+            name,
+          ),
       ),
     ),
   )
@@ -196,7 +202,12 @@ const createApi = <Unsafe extends true | false, D>(
           compatibilityToken,
           (r) => r.getPalletEntryPoint(OpType.Tx, pallet, call),
           (ctx) =>
-            getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls, call),
+            getEnumEntry(
+              ctx,
+              "args",
+              getPallet(ctx, pallet)?.calls?.type,
+              call,
+            ),
         ),
         false,
       )(args)

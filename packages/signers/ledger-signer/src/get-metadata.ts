@@ -1,14 +1,17 @@
 import {
   decAnyMetadata,
+  NormalizedMetadata,
+  normalizeMetadata,
   type HexString,
-  type V15,
 } from "@polkadot-api/substrate-bindings"
 
-export const getMetadata = (input: Uint8Array | HexString): V15 => {
+export const getMetadata = (
+  input: Uint8Array | HexString,
+): NormalizedMetadata<15 | 16> => {
   try {
-    const { metadata } = decAnyMetadata(input)
-    if (metadata.tag !== "v15") throw new Error("Wrong metadata version")
-    return metadata.value
+    const metadata = normalizeMetadata(decAnyMetadata(input))
+    if (metadata.version === 14) throw new Error("Wrong metadata version")
+    return metadata as NormalizedMetadata<15 | 16>
   } catch (e) {
     throw e || new Error("Unable to decode metadata")
   }

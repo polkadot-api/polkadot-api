@@ -83,7 +83,7 @@ export const createEventEntry = <D, T>(
     map(([block, runtime, ctx]) => {
       const eventsIdx = ctx.lookup.metadata.pallets.find(
         (p) => p.name === pallet,
-      )?.events
+      )?.events?.type
       if (
         eventsIdx == null ||
         ctx.lookup.metadata.lookup[eventsIdx].def.tag !== "variant" ||

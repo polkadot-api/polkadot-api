@@ -1,8 +1,8 @@
-import { V15 } from "@polkadot-api/substrate-bindings"
+import { NormalizedMetadata } from "@polkadot-api/substrate-bindings"
 import { LookupValue } from "./codecs"
 
 export const getAccessibleTypes = (
-  metadata: V15,
+  metadata: NormalizedMetadata<15 | 16>,
   definitions: Map<number, LookupValue>,
 ): Map<number, number> => {
   const types = new Set<number>()

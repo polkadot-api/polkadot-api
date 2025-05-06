@@ -133,7 +133,7 @@ export const generateDescriptors = (
     metadata.pallets.map((pallet) => {
       return [
         pallet.name,
-        buildEnumObj(pallet.calls, (name, docs) => ({
+        buildEnumObj(pallet.calls?.type, (name, docs) => ({
           typeRef: checksumToIdx.get(
             checksumBuilder.buildCall(pallet.name, name)!,
           )!,
@@ -149,7 +149,7 @@ export const generateDescriptors = (
     metadata.pallets.map((pallet) => {
       return [
         pallet.name,
-        buildEnumObj(pallet.events, (name, docs) => ({
+        buildEnumObj(pallet.events?.type, (name, docs) => ({
           typeRef: checksumToIdx.get(
             checksumBuilder.buildEvent(pallet.name, name)!,
           )!,
@@ -168,7 +168,7 @@ export const generateDescriptors = (
     metadata.pallets.map((pallet) => {
       return [
         pallet.name,
-        buildEnumObj(pallet.errors, (name, docs) => {
+        buildEnumObj(pallet.errors?.type, (name, docs) => {
           return {
             typeRef: checksumToIdx.get(
               checksumBuilder.buildError(pallet.name, name)!,
@@ -450,7 +450,7 @@ export function getDispatchErrorId(lookup: MetadataLookup) {
   )?.events
   if (systemPalletEventId == null) return
 
-  const systemPalletEvent = lookup(systemPalletEventId)
+  const systemPalletEvent = lookup(systemPalletEventId.type)
   if (systemPalletEvent.type !== "enum") return
 
   const extrinsicFailed = systemPalletEvent.value.ExtrinsicFailed

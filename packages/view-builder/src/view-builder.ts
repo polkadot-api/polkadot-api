@@ -243,7 +243,7 @@ export const getViewBuilder: GetViewBuilder = (
       input: hexStrFromByte(bytes[0]),
     }
 
-    const callsDecoder = getDecoder(palletEntry.calls!)
+    const callsDecoder = getDecoder(palletEntry.calls!.type)
 
     const decoded = callsDecoder(bytes)
 
@@ -300,7 +300,7 @@ export const getViewBuilder: GetViewBuilder = (
     } => {
       const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
 
-      const lookup = getLookupEntryDef(palletEntry[type]!)
+      const lookup = getLookupEntryDef(palletEntry[type]!.type)
       if (lookup.type !== "enum") throw null
 
       const event = lookup.value[name]

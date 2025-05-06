@@ -1,11 +1,15 @@
 import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
-import { V14Lookup } from "@polkadot-api/substrate-bindings"
+import {
+  NormalizedMetadata,
+  normalizeMetadata,
+  V14Lookup,
+} from "@polkadot-api/substrate-bindings"
 import { expect, describe, it, beforeAll } from "vitest"
 import { getChecksumBuilder, getLookupFn } from "@/."
 
-let ksm: Awaited<ReturnType<typeof getKsmMetadata>>
+let ksm: NormalizedMetadata
 beforeAll(async () => {
-  ksm = await getKsmMetadata()
+  ksm = normalizeMetadata(await getKsmMetadata())
 })
 
 describe("getChecksumBuilder snapshots", () => {
@@ -518,7 +522,7 @@ const lookup: V14Lookup = [
     value: { tag: "u64", value: undefined },
   }),
 ]
-const metadataLookup = () => getLookupFn({ lookup } as any)
+const metadataLookup = () => getLookupFn({ lookup, extrinsic: {} } as any)
 
 const createCompositeEntry = <
   T extends Partial<{

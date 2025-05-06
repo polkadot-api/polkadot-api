@@ -4,8 +4,7 @@ import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
 import {
   Blake2256,
   decAnyMetadata,
-  V14,
-  V15,
+  normalizeMetadata,
 } from "@polkadot-api/substrate-bindings"
 
 export function getPolkadotSigner(
@@ -27,15 +26,7 @@ export function getPolkadotSigner(
     _: number,
     hasher = Blake2256,
   ) => {
-    let decMeta: V14 | V15
-    try {
-      const tmpMeta = decAnyMetadata(metadata)
-      if (tmpMeta.metadata.tag !== "v14" && tmpMeta.metadata.tag !== "v15")
-        throw null
-      decMeta = tmpMeta.metadata.value
-    } catch (_) {
-      throw new Error("Unsupported metadata version")
-    }
+    const decMeta = normalizeMetadata(decAnyMetadata(metadata))
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
     decMeta.extrinsic.signedExtensions.map(({ identifier }) => {

@@ -1,11 +1,14 @@
 import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
 import { expect, describe, it, beforeAll } from "vitest"
 import { getDynamicBuilder, getLookupFn } from "@/."
+import { normalizeMetadata } from "@polkadot-api/substrate-bindings"
 
 describe("getDynamicBuilder", () => {
   let builder: ReturnType<typeof getDynamicBuilder>
   beforeAll(async () => {
-    builder = getDynamicBuilder(getLookupFn(await getKsmMetadata()))
+    builder = getDynamicBuilder(
+      getLookupFn(normalizeMetadata(await getKsmMetadata())),
+    )
   })
 
   it("batched call", () => {

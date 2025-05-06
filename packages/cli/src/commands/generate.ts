@@ -14,9 +14,8 @@ import {
   Binary,
   h64,
   HexString,
+  NormalizedMetadata,
   Tuple,
-  V14,
-  V15,
   Vector,
 } from "@polkadot-api/substrate-bindings"
 import { spawn } from "child_process"
@@ -165,7 +164,7 @@ const generateMetadataExportFile = (input: Uint8Array): string =>
 async function outputCodegen(
   chains: Array<{
     key: string
-    metadata: V14 | V15
+    metadata: NormalizedMetadata
     metadataRaw: Uint8Array
     knownTypes: KnownTypes
     genesis?: HexString

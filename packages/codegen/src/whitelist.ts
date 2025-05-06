@@ -1,4 +1,4 @@
-import type { V14, V15 } from "@polkadot-api/substrate-bindings"
+import { NormalizedMetadata } from "@polkadot-api/substrate-bindings"
 import { getUsedTypes } from "./get-used-types"
 import {
   getChecksumBuilder,
@@ -6,9 +6,9 @@ import {
 } from "@polkadot-api/metadata-builders"
 
 export function applyWhitelist(
-  metadata: V14 | V15,
+  metadata: NormalizedMetadata,
   whitelist: string[] | null,
-): V14 | V15 {
+): NormalizedMetadata {
   if (!whitelist) return metadata
 
   const allApis = whitelist.includes("api.*")
@@ -39,16 +39,16 @@ export function applyWhitelist(
   const filterEnum = (
     whitelistPrefix: string,
     palletName: string,
-    lookupIdx: number | undefined,
-  ) => {
-    if (!lookupIdx) return lookupIdx
+    entry: NormalizedMetadata["pallets"][number]["calls"],
+  ): NormalizedMetadata["pallets"][number]["calls"] => {
+    if (!entry) return entry
     if (
       whitelist.includes(`${whitelistPrefix}.*`) ||
       whitelist.includes(`${whitelistPrefix}.${palletName}.*`)
     )
-      return lookupIdx
+      return entry
 
-    const def = metadata.lookup[lookupIdx].def
+    const def = metadata.lookup[entry.type].def
     if (def.tag !== "variant") throw new Error(whitelistPrefix + " not an enum")
 
     const prefixNotIncluded = whitelist.every(
@@ -63,14 +63,19 @@ export function applyWhitelist(
 
     const idx = metadata.lookup.length
     metadata.lookup.push({
-      ...metadata.lookup[lookupIdx],
+      ...metadata.lookup[entry.type],
       id: idx,
       def: {
         tag: "variant",
         value,
       },
     })
-    return idx
+    return "deprecationInfo" in entry
+      ? {
+          type: idx,
+          deprecationInfo: entry.deprecationInfo,
+        }
+      : { type: idx }
   }
   const getEnumLength = (lookupIdx: number | undefined) => {
     if (!lookupIdx) return 0
@@ -100,10 +105,10 @@ export function applyWhitelist(
     )
   }
 
-  const filterPallets = <T extends V14 | V15>(
-    pallets: T["pallets"],
+  const filterPallets = (
+    pallets: NormalizedMetadata["pallets"],
     filterErrors: boolean,
-  ): T["pallets"] =>
+  ): NormalizedMetadata["pallets"] =>
     pallets
       .map((pallet) => {
         if (fullPallets.includes(pallet.name)) return pallet
@@ -124,10 +129,10 @@ export function applyWhitelist(
       })
       .filter(
         (pallet) =>
-          getEnumLength(pallet.calls) +
+          getEnumLength(pallet.calls?.type) +
           pallet.constants.length +
-          getEnumLength(pallet.errors) +
-          getEnumLength(pallet.events) +
+          getEnumLength(pallet.errors?.type) +
+          getEnumLength(pallet.events?.type) +
           (pallet.storage?.items.length ?? 0),
       )
 
