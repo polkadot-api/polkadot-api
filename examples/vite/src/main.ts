@@ -6,16 +6,9 @@ import {
   connectInjectedExtension,
   InjectedPolkadotAccount,
 } from "polkadot-api/pjs-signer"
-import SmWorker from "polkadot-api/smoldot/worker?worker"
-import { getSmProvider } from "polkadot-api/sm-provider"
-import { startFromWorker } from "polkadot-api/smoldot/from-worker"
+import { getWsProvider } from "polkadot-api/ws-provider/web"
 
-const smoldot = startFromWorker(new SmWorker())
-const smoldotWndChain = import("polkadot-api/chains/westend2").then(
-  ({ chainSpec }) => smoldot.addChain({ chainSpec }),
-)
-const jsonRpcProvider = getSmProvider(smoldotWndChain)
-const connection = createClient(jsonRpcProvider)
+const connection = createClient(getWsProvider("ws://127.0.0.1:9944"))
 const testApi = connection.getTypedApi(wnd)
 
 while (!getInjectedExtensions()?.includes("polkadot-js"))

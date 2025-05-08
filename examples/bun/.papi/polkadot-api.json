@@ -16,6 +16,11 @@
       "wsUrl": "wss://polkadot-mythos-rpc.polkadot.io",
       "metadata": ".papi/metadata/myth.scale",
       "genesis": "0xf6ee56e9c5277df5b4ce6ae9983ee88f3cbed27d31beeb98f9f84f997a1ab0b9"
+    },
+    "test": {
+      "wsUrl": "ws://127.0.0.1:9944",
+      "metadata": ".papi/metadata/test.scale",
+      "genesis": "0x011bf26ad725973ab183f0bd9b9da415ca5badf3e0c1f6e6c25e38e4d559fc90"
     }
   }
 }

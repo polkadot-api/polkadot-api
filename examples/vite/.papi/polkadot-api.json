@@ -2,10 +2,10 @@
   "version": 0,
   "descriptorPath": ".papi/descriptors",
   "entries": {
-    "wnd": {
-      "chain": "westend2",
-      "metadata": ".papi/metadata/wnd-metadata.scale",
-      "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
+    "dev": {
+      "wsUrl": "ws://127.0.0.1:9944",
+      "metadata": ".papi/metadata/dev.scale",
+      "genesis": "0x85487295ab56b5aca4b65f619399347702a8b776796a9cef69522dec9fa58b64"
     }
   }
 }
