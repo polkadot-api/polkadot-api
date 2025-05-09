@@ -33,6 +33,8 @@ const storageItem = {
   docs,
 }
 
+const enumRefV14 = Option(compactNumber)
+
 export const v14Pallet = {
   name: str,
   storage: Option(
@@ -41,8 +43,8 @@ export const v14Pallet = {
       items: Vector(Struct(storageItem)),
     }),
   ),
-  calls: Option(compactNumber),
-  events: Option(compactNumber),
+  calls: enumRefV14,
+  events: enumRefV14,
   constants: Vector(
     Struct({
       name: str,
@@ -51,7 +53,7 @@ export const v14Pallet = {
       docs,
     }),
   ),
-  errors: Option(compactNumber),
+  errors: enumRefV14,
   index: u8,
 }
 
@@ -59,6 +61,10 @@ export const v15Pallet = {
   ...v14Pallet,
   docs,
 }
+
+const enumRef = Option(
+  Struct({ type: compactNumber, deprecationInfo: variantDeprecation }),
+)
 
 export const v16Pallet = {
   name: str,
@@ -73,12 +79,8 @@ export const v16Pallet = {
       ),
     }),
   ),
-  calls: Option(
-    Struct({ type: compactNumber, deprecationInfo: variantDeprecation }),
-  ),
-  events: Option(
-    Struct({ type: compactNumber, deprecationInfo: variantDeprecation }),
-  ),
+  calls: enumRef,
+  events: enumRef,
   constants: Vector(
     Struct({
       name: str,
@@ -88,9 +90,7 @@ export const v16Pallet = {
       deprecationInfo: itemDeprecation,
     }),
   ),
-  errors: Option(
-    Struct({ type: compactNumber, deprecationInfo: variantDeprecation }),
-  ),
+  errors: enumRef,
   associatedTypes: Vector(
     Struct({
       name: str,
