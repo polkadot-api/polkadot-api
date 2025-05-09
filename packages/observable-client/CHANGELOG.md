@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-### Fixed
+### Changed
 
-- Add support for Metadata V16
+- Prefer metadata V16 when creating the client.
 
 ## 0.9.1 - 2025-05-05
 

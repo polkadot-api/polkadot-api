@@ -4,7 +4,7 @@ import {
   AccountId,
   Blake2256,
   decAnyMetadata,
-  normalizeMetadata,
+  unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
@@ -40,7 +40,7 @@ export function getPolkadotSignerFromPjs(
     atBlockNumber: number,
     _ = Blake2256,
   ) => {
-    const decMeta = normalizeMetadata(decAnyMetadata(metadata))
+    const decMeta = unifyMetadata(decAnyMetadata(metadata))
 
     const pjs: Partial<SignerPayloadJSON> = {}
     pjs.signedExtensions = []

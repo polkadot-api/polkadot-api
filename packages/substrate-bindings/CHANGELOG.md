@@ -5,7 +5,7 @@
 ### Added
 
 - Add Metadata V16 codec.
-- Add `NormalizedMetadata`.
+- Add `UnifiedMetadata`.
 
 ### Removed
 

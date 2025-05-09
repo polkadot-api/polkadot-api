@@ -10,11 +10,11 @@ import {
   Codec,
   Decoder,
   metadata as metadataCodec,
-  NormalizedMetadata,
-  normalizeMetadata,
   Option,
   SS58String,
   u32,
+  UnifiedMetadata,
+  unifyMetadata,
   Vector,
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
@@ -76,7 +76,7 @@ export const getRuntimeCreator = (
 ) => {
   const getMetadata$ = (
     getHash: () => string | null,
-  ): Observable<{ metadataRaw: Uint8Array; metadata: NormalizedMetadata }> => {
+  ): Observable<{ metadataRaw: Uint8Array; metadata: UnifiedMetadata }> => {
     const recoverCall$ = (method: string, args: string): Observable<string> => {
       const hash = getHash()
       return hash
@@ -102,7 +102,7 @@ export const getRuntimeCreator = (
       map((x) => {
         const metadataRaw = opaqueBytes.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)
-        return { metadata: normalizeMetadata(metadata), metadataRaw }
+        return { metadata: unifyMetadata(metadata), metadataRaw }
       }),
     )
 
@@ -111,7 +111,7 @@ export const getRuntimeCreator = (
         map((x) => {
           const metadataRaw = optionalOpaqueBytes.dec(x)!
           const metadata = metadataCodec.dec(metadataRaw)
-          return { metadata: normalizeMetadata(metadata), metadataRaw }
+          return { metadata: unifyMetadata(metadata), metadataRaw }
         }),
       )
 

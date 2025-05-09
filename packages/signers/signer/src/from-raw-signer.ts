@@ -4,7 +4,7 @@ import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
 import {
   Blake2256,
   decAnyMetadata,
-  normalizeMetadata,
+  unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 
 export function getPolkadotSigner(
@@ -26,7 +26,7 @@ export function getPolkadotSigner(
     _: number,
     hasher = Blake2256,
   ) => {
-    const decMeta = normalizeMetadata(decAnyMetadata(metadata))
+    const decMeta = unifyMetadata(decAnyMetadata(metadata))
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
     decMeta.extrinsic.signedExtensions.map(({ identifier }) => {

@@ -1,15 +1,13 @@
 import {
   decAnyMetadata,
-  NormalizedMetadata,
-  normalizeMetadata,
+  UnifiedMetadata,
+  unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { HexString } from "@polkadot-api/substrate-bindings"
 
-export const getMetadata = (
-  input: Uint8Array | HexString,
-): NormalizedMetadata => {
+export const getMetadata = (input: Uint8Array | HexString): UnifiedMetadata => {
   try {
-    return normalizeMetadata(decAnyMetadata(input))
+    return unifyMetadata(decAnyMetadata(input))
   } catch (e) {
     throw e || new Error("Unable to decode metadata")
   }

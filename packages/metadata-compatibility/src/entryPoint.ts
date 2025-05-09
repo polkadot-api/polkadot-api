@@ -1,7 +1,7 @@
 import type { EnumVar } from "@polkadot-api/metadata-builders"
 import {
   compactNumber,
-  NormalizedMetadata,
+  UnifiedMetadata,
   Struct,
   Variant,
 } from "@polkadot-api/substrate-bindings"
@@ -53,7 +53,7 @@ export const EntryPointCodec = Struct({
 
 export function storageEntryPoint(
   storageEntry: Exclude<
-    NormalizedMetadata["pallets"][number]["storage"],
+    UnifiedMetadata["pallets"][number]["storage"],
     undefined
   >["items"][number],
 ): EntryPoint {
@@ -71,7 +71,7 @@ export function storageEntryPoint(
 }
 
 export function runtimeCallEntryPoint(
-  entry: NormalizedMetadata["apis"][number]["methods"][number],
+  entry: UnifiedMetadata["apis"][number]["methods"][number],
 ): EntryPoint {
   return {
     args: typedefNode({

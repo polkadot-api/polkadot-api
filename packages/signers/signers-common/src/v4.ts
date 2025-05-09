@@ -1,8 +1,8 @@
 import {
   compact,
   enhanceEncoder,
-  NormalizedMetadata,
   u8,
+  UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
@@ -19,7 +19,7 @@ const enum SignerType {
 }
 const unkownSignerType = () => new Error("Unkown signer")
 const getSignerType = (
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
 ): [SignerType, [] | [number]] => {
   const { extrinsic } = metadata
   const getLookup = getLookupFn(metadata)
@@ -69,7 +69,7 @@ const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
 }
 
 export const createV4Tx = (
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   publicKey: Uint8Array,
   signed: Uint8Array,
   extra: Uint8Array[],

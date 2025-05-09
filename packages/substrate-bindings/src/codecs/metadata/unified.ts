@@ -21,7 +21,7 @@ type DeprecationInfo<T> = T extends 16
   ? { deprecationInfo: CodecType<typeof itemDeprecation> }
   : {}
 
-export type NormalizedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
+export type UnifiedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
   version: T
   lookup: V14Lookup
   pallets: Array<
@@ -101,9 +101,9 @@ export type NormalizedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
       custom: Array<[string, { type: number; value: HexString }]>
     })
 
-export const normalizeMetadata = (
+export const unifyMetadata = (
   metadata: Metadata | Metadata["metadata"] | V14 | V15 | V16,
-): NormalizedMetadata => {
+): UnifiedMetadata => {
   // complete metadata
   if ("magicNumber" in metadata) metadata = metadata.metadata
   if ("tag" in metadata) {
@@ -128,7 +128,7 @@ export const normalizeMetadata = (
     return {
       version: 15,
       lookup,
-      pallets: pallets.map((p): NormalizedMetadata<15>["pallets"][number] => ({
+      pallets: pallets.map((p): UnifiedMetadata<15>["pallets"][number] => ({
         ...p,
         calls: p.calls != null ? { type: p.calls } : undefined,
         events: p.events != null ? { type: p.events } : undefined,
@@ -147,7 +147,7 @@ export const normalizeMetadata = (
   return {
     version: 14 as const,
     lookup,
-    pallets: pallets.map((p): NormalizedMetadata<14>["pallets"][number] => ({
+    pallets: pallets.map((p): UnifiedMetadata<14>["pallets"][number] => ({
       ...p,
       calls: p.calls != null ? { type: p.calls } : undefined,
       events: p.events != null ? { type: p.events } : undefined,

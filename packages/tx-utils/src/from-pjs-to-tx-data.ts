@@ -2,12 +2,12 @@ import {
   _void,
   compact,
   createDecoder,
-  NormalizedMetadata,
   Option,
   u16,
   u32,
   u64,
   u8,
+  UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { Mortality, SignerPayloadJSON, TxData } from "./types"
 import { fromHex, mergeUint8 } from "@polkadot-api/utils"
@@ -37,7 +37,7 @@ const optionU32Enc = Option(u32).enc
 
 // TODO: missing named consensus
 const encodePjsOptionNetworkId = (
-  _metadata: NormalizedMetadata,
+  _metadata: UnifiedMetadata,
   networkId: any,
 ): Uint8Array => {
   const keys = Object.keys(networkId)
@@ -56,7 +56,7 @@ const encodePjsOptionNetworkId = (
 }
 
 const encodePjsJunction = (
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   junction: any,
 ): Uint8Array => {
   const keys = Object.keys(junction)
@@ -105,7 +105,7 @@ const encodePjsJunction = (
   }
 }
 const fromPjsAssetIdToSigExt = (
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   pjsAssetId: any,
 ): Uint8Array => {
   // get rid of easy wins
@@ -145,7 +145,7 @@ const fromPjsAssetIdToSigExt = (
 }
 
 export const fromPjsToTxData = (
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   { genesisHash, ...input }: SignerPayloadJSON,
 ): TxData => {
   const eraDecoded = mortalityDec(input.era)

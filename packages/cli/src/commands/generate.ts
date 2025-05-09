@@ -14,7 +14,7 @@ import {
   Binary,
   h64,
   HexString,
-  NormalizedMetadata,
+  UnifiedMetadata,
   Tuple,
   Vector,
 } from "@polkadot-api/substrate-bindings"
@@ -164,7 +164,7 @@ const generateMetadataExportFile = (input: Uint8Array): string =>
 async function outputCodegen(
   chains: Array<{
     key: string
-    metadata: NormalizedMetadata
+    metadata: UnifiedMetadata
     metadataRaw: Uint8Array
     knownTypes: KnownTypes
     genesis?: HexString

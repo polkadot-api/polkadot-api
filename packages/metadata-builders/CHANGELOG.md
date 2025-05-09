@@ -4,7 +4,7 @@
 
 ### Changed
 
-- `getLookupFn` takes a `NormalizedMetadata`, instead of `V14 | V15`.
+- `getLookupFn` takes a `UnifiedMetadata`, instead of `V14 | V15`.
 
 ## 0.11.0 - 2025-04-24
 

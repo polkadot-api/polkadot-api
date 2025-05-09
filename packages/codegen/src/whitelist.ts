@@ -1,4 +1,4 @@
-import { NormalizedMetadata } from "@polkadot-api/substrate-bindings"
+import { UnifiedMetadata } from "@polkadot-api/substrate-bindings"
 import { getUsedTypes } from "./get-used-types"
 import {
   getChecksumBuilder,
@@ -6,9 +6,9 @@ import {
 } from "@polkadot-api/metadata-builders"
 
 export function applyWhitelist(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   whitelist: string[] | null,
-): NormalizedMetadata {
+): UnifiedMetadata {
   if (!whitelist) return metadata
 
   const allApis = whitelist.includes("api.*")
@@ -37,7 +37,7 @@ export function applyWhitelist(
     .filter((v) => !!v)
 
   // this is the same for calls, events, and errors
-  type EnumRef = NormalizedMetadata["pallets"][number]["calls"]
+  type EnumRef = UnifiedMetadata["pallets"][number]["calls"]
   const filterEnum = (
     whitelistPrefix: string,
     palletName: string,
@@ -108,9 +108,9 @@ export function applyWhitelist(
   }
 
   const filterPallets = (
-    pallets: NormalizedMetadata["pallets"],
+    pallets: UnifiedMetadata["pallets"],
     filterErrors: boolean,
-  ): NormalizedMetadata["pallets"] =>
+  ): UnifiedMetadata["pallets"] =>
     pallets
       .map((pallet) => {
         if (fullPallets.includes(pallet.name)) return pallet

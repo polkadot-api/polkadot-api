@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-  NormalizedMetadata,
+  UnifiedMetadata,
   HexString,
   Encoder,
   Bytes,
@@ -83,7 +83,7 @@ const getInnerEnumCodec = (
 export function getViewCodecComponent(
   baseComponents: ViewComponents,
 ): React.FC<{
-  metadata: NormalizedMetadata
+  metadata: UnifiedMetadata
   codecType: number
   value: Uint8Array | HexString
 }> {
@@ -400,12 +400,12 @@ export function getViewCodecComponent(
   }
 
   const result: FC<{
-    metadata: NormalizedMetadata
+    metadata: UnifiedMetadata
     codecType: number
     value: Uint8Array | HexString
   }> = ({ metadata, codecType, value: propsValue }) => {
     const lookupRef = useRef<{
-      metadata: NormalizedMetadata
+      metadata: UnifiedMetadata
       lookup: MetadataLookup
       dynCodecs: ReturnType<typeof getDynamicBuilder>["buildDefinition"]
       refresh: (
@@ -459,12 +459,12 @@ export function getViewCodecComponent(
 }
 
 export function getCodecComponent(baseComponent: ViewComponents): React.FC<{
-  metadata: NormalizedMetadata
+  metadata: UnifiedMetadata
   codecType: number
   value: CodecComponentValue
 }>
 export function getCodecComponent(baseComponent: EditComponents): React.FC<{
-  metadata: NormalizedMetadata
+  metadata: UnifiedMetadata
   codecType: number
   value: CodecComponentValue
   onUpdate?: (newValue: CodecComponentUpdate) => void
@@ -876,13 +876,13 @@ export function getCodecComponent(
   }
 
   const result: FC<{
-    metadata: NormalizedMetadata
+    metadata: UnifiedMetadata
     codecType: number
     value: CodecComponentValue
     onUpdate: (newValue: CodecComponentUpdate) => void
   }> = ({ metadata, codecType, value: propsValue, onUpdate }) => {
     const lookupRef = useRef<{
-      metadata: NormalizedMetadata
+      metadata: UnifiedMetadata
       lookup: MetadataLookup
       dynCodecs: ReturnType<typeof getDynamicBuilder>["buildDefinition"]
       refresh: (

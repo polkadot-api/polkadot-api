@@ -10,7 +10,7 @@ import {
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
 import {
   metadata as metadataCodec,
-  normalizeMetadata,
+  unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { getLookupFn } from "@polkadot-api/metadata-builders"
 import { knownTypes } from "@/known-types"
@@ -22,7 +22,7 @@ let checksumBuilder: ReturnType<typeof getChecksumBuilder>
 
 beforeAll(async () => {
   const metadataRaw = await fs.readFile("./tests/ksm.bin")
-  lookup = getLookupFn(normalizeMetadata(metadataCodec.dec(metadataRaw)))
+  lookup = getLookupFn(unifyMetadata(metadataCodec.dec(metadataRaw)))
   checksumBuilder = getChecksumBuilder(lookup)
 })
 

@@ -10,7 +10,7 @@ import {
 } from "@polkadot-api/metadata-compatibility"
 import type {
   HexString,
-  NormalizedMetadata,
+  UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import {
@@ -27,7 +27,7 @@ import { applyWhitelist } from "./whitelist"
 export const generateMultipleDescriptors = (
   chains: Array<{
     key: string
-    metadata: NormalizedMetadata
+    metadata: UnifiedMetadata
     knownTypes: KnownTypes
     genesis?: HexString
   }>,

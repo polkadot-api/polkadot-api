@@ -1,6 +1,6 @@
 import type {
-  NormalizedMetadata,
   StringRecord,
+  UnifiedMetadata,
   V14Lookup,
 } from "@polkadot-api/substrate-bindings"
 
@@ -107,7 +107,7 @@ const _void: VoidVar = { type: "void" }
 
 export interface MetadataLookup {
   (id: number): LookupEntry
-  metadata: NormalizedMetadata
+  metadata: UnifiedMetadata
   call: number | null
 }
 
@@ -373,7 +373,7 @@ const _denormalizeLookup = (
 export const denormalizeLookup = (lookupData: V14Lookup) =>
   _denormalizeLookup(lookupData)
 
-export const getLookupFn = (metadata: NormalizedMetadata): MetadataLookup => {
+export const getLookupFn = (metadata: UnifiedMetadata): MetadataLookup => {
   const getLookupEntryDef = _denormalizeLookup(metadata.lookup, ({ def }) => {
     if (def.tag === "composite") {
       const moduleErrorLength = getModuleErrorLength(def)

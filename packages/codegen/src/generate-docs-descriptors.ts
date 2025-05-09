@@ -4,7 +4,7 @@ import {
 } from "@polkadot-api/metadata-builders"
 import { getDocsTypesBuilder } from "@/types-builder"
 import { knownTypes } from "./known-types"
-import { NormalizedMetadata } from "@polkadot-api/substrate-bindings"
+import { UnifiedMetadata } from "@polkadot-api/substrate-bindings"
 
 export type FileTree = {
   [key: string]: string | FileTree
@@ -17,7 +17,7 @@ const paths = {
 
 export async function generateDocsDescriptors(
   key: string,
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
 ): Promise<FileTree> {
   const lookup = getLookupFn(metadata)
   const checksumBuilder = getChecksumBuilder(lookup)
@@ -112,7 +112,7 @@ export type __Circular = any;
 }
 
 const buildEnumObj = <T>(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   val: number | undefined,
   cb: (name: string, docs: string[]) => T,
 ): Record<string, T> => {
@@ -128,7 +128,7 @@ const buildEnumObj = <T>(
 }
 
 async function buildErrors(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -157,7 +157,7 @@ async function buildErrors(
 }
 
 async function buildConstants(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -192,7 +192,7 @@ async function buildConstants(
 }
 
 async function buildEvents(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -221,7 +221,7 @@ async function buildEvents(
 }
 
 async function buildCalls(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -250,7 +250,7 @@ async function buildCalls(
 }
 
 async function buildRuntimeCalls(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -282,7 +282,7 @@ async function buildRuntimeCalls(
 }
 
 async function buildStorage(
-  metadata: NormalizedMetadata,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {

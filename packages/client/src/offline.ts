@@ -5,7 +5,7 @@ import {
   Binary,
   Enum,
   metadata as metadataCodec,
-  normalizeMetadata,
+  unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { OfflineApi } from "./types"
@@ -68,7 +68,7 @@ export const getOfflineApi: <D extends ChainDefinition>(
   if (!genesisHex) throw new Error("Missing genesis hash")
   const genesis = fromHex(genesisHex)
   const metadataRaw = await getMetadata()
-  const metadata = normalizeMetadata(metadataCodec.dec(metadataRaw))
+  const metadata = unifyMetadata(metadataCodec.dec(metadataRaw))
   const lookupFn = getLookupFn(metadata)
   const dynamicBuilder = getDynamicBuilder(lookupFn)
   const signExtensionCreator = getSignExtensionsCreator(

@@ -1,15 +1,15 @@
 import { getKsmMetadata } from "@polkadot-api/metadata-fixtures"
 import {
-  NormalizedMetadata,
-  normalizeMetadata,
+  UnifiedMetadata,
+  unifyMetadata,
   V14Lookup,
 } from "@polkadot-api/substrate-bindings"
 import { expect, describe, it, beforeAll } from "vitest"
 import { getChecksumBuilder, getLookupFn } from "@/."
 
-let ksm: NormalizedMetadata
+let ksm: UnifiedMetadata
 beforeAll(async () => {
-  ksm = normalizeMetadata(await getKsmMetadata())
+  ksm = unifyMetadata(await getKsmMetadata())
 })
 
 describe("getChecksumBuilder snapshots", () => {
