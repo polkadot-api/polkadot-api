@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Expose `<key>Apis` type for Runtime APIs.
+
 ## 0.11.13 - 2025-05-05
 
 ### Fixed
