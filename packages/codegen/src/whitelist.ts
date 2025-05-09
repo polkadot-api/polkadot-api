@@ -36,11 +36,13 @@ export function applyWhitelist(
     .map((w) => fullPalletRegex.exec(w)?.[1])
     .filter((v) => !!v)
 
+  // this is the same for calls, events, and errors
+  type EnumRef = NormalizedMetadata["pallets"][number]["calls"]
   const filterEnum = (
     whitelistPrefix: string,
     palletName: string,
-    entry: NormalizedMetadata["pallets"][number]["calls"],
-  ): NormalizedMetadata["pallets"][number]["calls"] => {
+    entry: EnumRef,
+  ): EnumRef => {
     if (!entry) return entry
     if (
       whitelist.includes(`${whitelistPrefix}.*`) ||
