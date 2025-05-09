@@ -100,6 +100,24 @@ type ExtractPlain<T extends DescriptorEntry<PlainDescriptor<any>>> = {
   }
 }
 
+type ExtractRuntime<T extends DescriptorEntry<RuntimeDescriptor<any, any>>> = {
+  [K in keyof T]: {
+    [KK in keyof T[K]]: T[K][KK] extends RuntimeDescriptor<
+      infer Args,
+      infer Value
+    >
+      ? {
+          Args: Args
+          Value: Value
+        }
+      : unknown
+  }
+}
+
+export type ApisFromDef<
+  T extends DescriptorEntry<RuntimeDescriptor<any, any>>,
+> = ExtractRuntime<T>
+
 export type QueryFromPalletsDef<
   T extends PalletsTypedef<any, any, any, any, any>,
 > = ExtractStorage<T["__storage"]>
