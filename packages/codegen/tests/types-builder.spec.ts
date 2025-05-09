@@ -10,7 +10,6 @@ import {
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
 import {
   metadata as metadataCodec,
-  NormalizedMetadata,
   normalizeMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { getLookupFn } from "@polkadot-api/metadata-builders"
@@ -18,14 +17,12 @@ import { knownTypes } from "@/known-types"
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { getDispatchErrorId } from "@/generate-descriptors"
 
-let metadata: NormalizedMetadata
 let lookup: MetadataLookup
 let checksumBuilder: ReturnType<typeof getChecksumBuilder>
 
 beforeAll(async () => {
   const metadataRaw = await fs.readFile("./tests/ksm.bin")
-  metadata = normalizeMetadata(metadataCodec.dec(metadataRaw))
-  lookup = getLookupFn(metadata)
+  lookup = getLookupFn(normalizeMetadata(metadataCodec.dec(metadataRaw)))
   checksumBuilder = getChecksumBuilder(lookup)
 })
 
@@ -140,7 +137,7 @@ describe("types-builder", () => {
     it("collects imports from both common types and papi itself", () => {
       const typesBuilder = getBuilder()
 
-      metadata.pallets.forEach((pallet) => {
+      lookup.metadata.pallets.forEach((pallet) => {
         pallet.storage?.items.forEach(({ name }) =>
           typesBuilder.buildStorage(pallet.name, name),
         )
@@ -153,9 +150,9 @@ describe("types-builder", () => {
           cb: (name: string) => void,
         ) => {
           if (!pallet[type]) return
-          const lookup = metadata.lookup[pallet[type].type]
-          assert(lookup.def.tag === "variant")
-          lookup.def.value.forEach(({ name }) => {
+          const entry = lookup.metadata.lookup[pallet[type].type]
+          assert(entry.def.tag === "variant")
+          entry.def.value.forEach(({ name }) => {
             cb(name)
           })
         }
