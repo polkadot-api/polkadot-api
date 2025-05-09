@@ -1,4 +1,4 @@
-import { _void, Enum, Option, str, Struct, Tuple, u8, Vector } from "scale-ts"
+import { _void, Enum, Option, str, Struct, u8, Vector } from "scale-ts"
 
 export const itemDeprecation = Enum({
   NotDeprecated: _void,
@@ -10,9 +10,9 @@ export const itemDeprecation = Enum({
 })
 
 export const variantDeprecation = Vector(
-  Tuple(
-    u8,
-    Enum(
+  Struct({
+    index: u8,
+    deprecation: Enum(
       {
         DeprecatedWithoutNote: _void,
         Deprecated: Struct({
@@ -22,5 +22,5 @@ export const variantDeprecation = Vector(
       },
       [1, 2],
     ),
-  ),
+  }),
 )
