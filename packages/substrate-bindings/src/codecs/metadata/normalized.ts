@@ -9,7 +9,7 @@ import { V16 } from "./v16"
 import { V15 } from "./v15"
 import { Metadata } from "./metadata"
 
-type Entrypoint<T> =
+type EnumRef<T> =
   | ({
       type: number
     } & (T extends 16
@@ -43,8 +43,8 @@ export type NormalizedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
             >
           }
         | undefined
-      calls: Entrypoint<T>
-      events: Entrypoint<T>
+      calls: EnumRef<T>
+      events: EnumRef<T>
       constants: Array<
         {
           name: string
@@ -53,7 +53,7 @@ export type NormalizedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
           docs: string[]
         } & DeprecationInfo<T>
       >
-      errors: Entrypoint<T>
+      errors: EnumRef<T>
       associatedTypes: Array<{
         name: string
         type: number
