@@ -118,8 +118,7 @@ export const getRuntimeCreator = (
     return versions.pipe(
       catchError(() => of([14])),
       mergeMap((v) =>
-        // TODO: prefer metadata v16 in the future
-        v.includes(15) ? versioned(15) : v.includes(16) ? versioned(16) : v14,
+        v.includes(16) ? versioned(16) : v.includes(15) ? versioned(15) : v14,
       ),
     )
   }
