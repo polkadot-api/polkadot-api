@@ -145,7 +145,7 @@ export const unifyMetadata = (
   // fallback, v14
   const { lookup, extrinsic, pallets } = metadata as V14
   return {
-    version: 14 as const,
+    version: 14,
     lookup,
     pallets: pallets.map((p): UnifiedMetadata<14>["pallets"][number] => ({
       ...p,
