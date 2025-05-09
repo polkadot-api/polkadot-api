@@ -113,5 +113,5 @@ async function writeToFile(file: string, config: PapiConfig) {
   if (file === "package.json") {
     throw new Error("Papi config in package.json is deprecated")
   }
-  return writeFile(file, JSON.stringify(config, null, 2))
+  return writeFile(file, JSON.stringify(config, null, 2) + "\n")
 }

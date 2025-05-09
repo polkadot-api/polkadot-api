@@ -105,7 +105,7 @@ async function cleanDescriptorsPackage(path: string) {
     // We have to keep the package.json in git because otherwise npm install on a fresh repo would fail
     await fs.writeFile(
       join(descriptorsDir, ".gitignore"),
-      "*\n!.gitignore\n!package.json",
+      "*\n!.gitignore\n!package.json\n",
     )
   }
 
