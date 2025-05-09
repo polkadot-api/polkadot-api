@@ -294,6 +294,7 @@ export const generateDescriptors = (
       "Enum",
       "_Enum",
       "GetEnum",
+      "ApisFromDef",
       "QueryFromPalletsDef",
       "TxFromPalletsDef",
       "EventsFromPalletsDef",
@@ -388,6 +389,7 @@ type IDescriptors = {
 const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata, genesis } as any as IDescriptors;
 export default _allDescriptors;
 
+export type ${prefix}Apis = ApisFromDef<IRuntimeCalls>
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
 export type ${prefix}Calls = TxFromPalletsDef<PalletsTypedef>
 export type ${prefix}Events = EventsFromPalletsDef<PalletsTypedef>

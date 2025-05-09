@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Expose `<key>Apis` type for Runtime APIs.
+
+### Fixed
+
+- Ensure final newline is added on all files
+
 ## 0.11.13 - 2025-05-05
 
 ### Fixed
