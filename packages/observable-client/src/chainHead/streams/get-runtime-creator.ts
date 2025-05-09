@@ -13,8 +13,8 @@ import {
   Option,
   SS58String,
   u32,
-  V14,
-  V15,
+  UnifiedMetadata,
+  unifyMetadata,
   Vector,
 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
@@ -66,7 +66,7 @@ export interface Runtime {
   usages: Set<string>
 }
 
-const v15Args = toHex(u32.enc(15))
+const versionedArgs = (v: number) => toHex(u32.enc(v))
 const opaqueBytes = Bytes()
 const optionalOpaqueBytes = Option(opaqueBytes)
 const u32ListDecoder = Vector(u32).dec
@@ -76,7 +76,7 @@ export const getRuntimeCreator = (
 ) => {
   const getMetadata$ = (
     getHash: () => string | null,
-  ): Observable<{ metadataRaw: Uint8Array; metadata: V14 | V15 }> => {
+  ): Observable<{ metadataRaw: Uint8Array; metadata: UnifiedMetadata }> => {
     const recoverCall$ = (method: string, args: string): Observable<string> => {
       const hash = getHash()
       return hash
@@ -102,21 +102,24 @@ export const getRuntimeCreator = (
       map((x) => {
         const metadataRaw = opaqueBytes.dec(x)!
         const metadata = metadataCodec.dec(metadataRaw)
-        return { metadata: metadata.metadata.value as V14, metadataRaw }
+        return { metadata: unifyMetadata(metadata), metadataRaw }
       }),
     )
 
-    const v15 = recoverCall$("Metadata_metadata_at_version", v15Args).pipe(
-      map((x) => {
-        const metadataRaw = optionalOpaqueBytes.dec(x)!
-        const metadata = metadataCodec.dec(metadataRaw)
-        return { metadata: metadata.metadata.value as V15, metadataRaw }
-      }),
-    )
+    const versioned = (v: number) =>
+      recoverCall$("Metadata_metadata_at_version", versionedArgs(v)).pipe(
+        map((x) => {
+          const metadataRaw = optionalOpaqueBytes.dec(x)!
+          const metadata = metadataCodec.dec(metadataRaw)
+          return { metadata: unifyMetadata(metadata), metadataRaw }
+        }),
+      )
 
     return versions.pipe(
       catchError(() => of([14])),
-      mergeMap((v) => (v.includes(15) ? v15 : v14)),
+      mergeMap((v) =>
+        v.includes(16) ? versioned(16) : v.includes(15) ? versioned(15) : v14,
+      ),
     )
   }
 

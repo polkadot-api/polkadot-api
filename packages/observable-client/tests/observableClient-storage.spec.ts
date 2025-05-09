@@ -135,12 +135,12 @@ describe("observableClient chainHead", () => {
             initialHash,
             "value",
             (ctx) => {
-              expect(ctx.lookup.metadata).toEqual(metadata)
+              expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
               return key
             },
             null,
             (data, ctx) => {
-              expect(ctx.lookup.metadata).toEqual(metadata)
+              expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
               return data?.length ?? 0
             },
           )

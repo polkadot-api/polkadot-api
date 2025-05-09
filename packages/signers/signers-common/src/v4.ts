@@ -1,9 +1,8 @@
 import {
-  type V14,
-  type V15,
   compact,
   enhanceEncoder,
   u8,
+  UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
@@ -19,7 +18,9 @@ const enum SignerType {
   Ethereum,
 }
 const unkownSignerType = () => new Error("Unkown signer")
-const getSignerType = (metadata: V14 | V15): [SignerType, [] | [number]] => {
+const getSignerType = (
+  metadata: UnifiedMetadata,
+): [SignerType, [] | [number]] => {
   const { extrinsic } = metadata
   const getLookup = getLookupFn(metadata)
   let address: LookupEntry
@@ -68,7 +69,7 @@ const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
 }
 
 export const createV4Tx = (
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   publicKey: Uint8Array,
   signed: Uint8Array,
   extra: Uint8Array[],

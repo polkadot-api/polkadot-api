@@ -87,7 +87,7 @@ function resolveAddressLookup(lookup: MetadataLookup) {
   const palletCalls = lookup.metadata.pallets.find(
     (p) => p.name === "Proxy",
   )?.calls
-  const callsType = palletCalls != null && lookup(palletCalls)
+  const callsType = palletCalls != null && lookup(palletCalls.type)
   const proxyCall =
     callsType && callsType.type === "enum" ? callsType.value["proxy"] : null
   const argumentType =

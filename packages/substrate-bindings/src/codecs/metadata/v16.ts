@@ -1,15 +1,15 @@
 import { CodecType, Struct, Tuple, Vector, str, u8 } from "scale-ts"
 import { lookup } from "./lookup"
-import { v15Pallet } from "./pallets"
-import { Hex, compactNumber as ty } from "../scale"
-import { runtimeApiV15 } from "./runtime-api"
+import { v16Pallet } from "./pallets"
+import { compactNumber, Hex, compactNumber as ty } from "../scale"
+import { runtimeApi } from "./runtime-api"
 
 const extrinsic = Struct({
-  version: u8,
+  version: Vector(u8),
   address: ty,
   call: ty,
   signature: ty,
-  extra: ty,
+  signedExtensionsByVersion: Vector(Tuple(u8, Vector(compactNumber))),
   signedExtensions: Vector(
     Struct({
       identifier: str,
@@ -19,12 +19,11 @@ const extrinsic = Struct({
   ),
 })
 
-export const v15 = Struct({
+export const v16 = Struct({
   lookup,
-  pallets: Vector(Struct(v15Pallet)),
+  pallets: Vector(Struct(v16Pallet)),
   extrinsic,
-  type: ty,
-  apis: Vector(runtimeApiV15),
+  apis: Vector(runtimeApi),
   outerEnums: Struct({
     call: ty,
     event: ty,
@@ -32,4 +31,4 @@ export const v15 = Struct({
   }),
   custom: Vector(Tuple(str, Struct({ type: ty, value: Hex() }))),
 })
-export type V15 = CodecType<typeof v15>
+export type V16 = CodecType<typeof v16>

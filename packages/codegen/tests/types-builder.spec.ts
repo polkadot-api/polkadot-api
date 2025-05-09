@@ -8,37 +8,33 @@ import {
   getTypesBuilder,
 } from "@/types-builder"
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
-import { V14, V15, metadata } from "@polkadot-api/substrate-bindings"
+import {
+  metadata as metadataCodec,
+  unifyMetadata,
+} from "@polkadot-api/substrate-bindings"
 import { getLookupFn } from "@polkadot-api/metadata-builders"
 import { knownTypes } from "@/known-types"
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { getDispatchErrorId } from "@/generate-descriptors"
 
+let lookup: MetadataLookup
+let checksumBuilder: ReturnType<typeof getChecksumBuilder>
+
+beforeAll(async () => {
+  const metadataRaw = await fs.readFile("./tests/ksm.bin")
+  lookup = getLookupFn(unifyMetadata(metadataCodec.dec(metadataRaw)))
+  checksumBuilder = getChecksumBuilder(lookup)
+})
+
 describe("types-builder", () => {
-  let metadataLookup: MetadataLookup
-  let metadataDecoded: V14 | V15
-  let checksumBuilder: ReturnType<typeof getChecksumBuilder>
-
   const getBuilder = () =>
-    getTypesBuilder(
-      defaultDeclarations(),
-      metadataLookup,
-      knownTypes,
-      checksumBuilder,
-    )
-
-  beforeAll(async () => {
-    const metadataRaw = await fs.readFile("./tests/ksm.bin")
-    metadataDecoded = metadata.dec(metadataRaw).metadata.value as V14 | V15
-    metadataLookup = getLookupFn(metadataDecoded)
-    checksumBuilder = getChecksumBuilder(metadataLookup)
-  })
+    getTypesBuilder(defaultDeclarations(), lookup, knownTypes, checksumBuilder)
 
   describe("buildTypeDefinition", () => {
     it("should generate correct dispatchErrorType", () => {
       const typesBuilder = getBuilder()
 
-      const dispatchErrorId = getDispatchErrorId(metadataLookup)!
+      const dispatchErrorId = getDispatchErrorId(lookup)!
       expect(typesBuilder.buildTypeDefinition(dispatchErrorId)).toEqual(
         "Anonymize<I69ftqh8hqffme>",
       )
@@ -141,11 +137,11 @@ describe("types-builder", () => {
     it("collects imports from both common types and papi itself", () => {
       const typesBuilder = getBuilder()
 
-      metadataDecoded.pallets.forEach((pallet) => {
+      lookup.metadata.pallets.forEach((pallet) => {
         pallet.storage?.items.forEach(({ name }) =>
           typesBuilder.buildStorage(pallet.name, name),
         )
-        pallet.constants?.forEach(({ name }) =>
+        pallet.constants.forEach(({ name }) =>
           typesBuilder.buildConstant(pallet.name, name),
         )
 
@@ -154,9 +150,9 @@ describe("types-builder", () => {
           cb: (name: string) => void,
         ) => {
           if (!pallet[type]) return
-          const lookup = metadataDecoded.lookup[pallet[type]!]
-          assert(lookup.def.tag === "variant")
-          lookup.def.value.forEach(({ name }) => {
+          const entry = lookup.metadata.lookup[pallet[type].type]
+          assert(entry.def.tag === "variant")
+          entry.def.value.forEach(({ name }) => {
             cb(name)
           })
         }
@@ -178,19 +174,8 @@ describe("types-builder", () => {
 })
 
 describe("docs-types-builder", () => {
-  let metadataLookup: MetadataLookup
-  let metadataDecoded: V14 | V15
-  let checksumBuilder: ReturnType<typeof getChecksumBuilder>
-
   const getBuilder = () =>
-    getDocsTypesBuilder(metadataLookup, knownTypes, checksumBuilder)
-
-  beforeAll(async () => {
-    const metadataRaw = await fs.readFile("./tests/ksm.bin")
-    metadataDecoded = metadata.dec(metadataRaw).metadata.value as V14 | V15
-    metadataLookup = getLookupFn(metadataDecoded)
-    checksumBuilder = getChecksumBuilder(metadataLookup)
-  })
+    getDocsTypesBuilder(lookup, knownTypes, checksumBuilder)
 
   describe("buildStorage", () => {
     for (const [pallet, entry, expectedArgs, expectedPayload] of [

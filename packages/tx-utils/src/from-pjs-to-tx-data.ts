@@ -7,8 +7,7 @@ import {
   u32,
   u64,
   u8,
-  V14,
-  V15,
+  UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { Mortality, SignerPayloadJSON, TxData } from "./types"
 import { fromHex, mergeUint8 } from "@polkadot-api/utils"
@@ -38,7 +37,7 @@ const optionU32Enc = Option(u32).enc
 
 // TODO: missing named consensus
 const encodePjsOptionNetworkId = (
-  _metadata: V14 | V15,
+  _metadata: UnifiedMetadata,
   networkId: any,
 ): Uint8Array => {
   const keys = Object.keys(networkId)
@@ -56,7 +55,10 @@ const encodePjsOptionNetworkId = (
   throw new Error("Named consensus not implemented yet")
 }
 
-const encodePjsJunction = (metadata: V14 | V15, junction: any): Uint8Array => {
+const encodePjsJunction = (
+  metadata: UnifiedMetadata,
+  junction: any,
+): Uint8Array => {
   const keys = Object.keys(junction)
   if (keys.length !== 1) throw "Bad length"
   const field = junction[keys[0]]
@@ -103,7 +105,7 @@ const encodePjsJunction = (metadata: V14 | V15, junction: any): Uint8Array => {
   }
 }
 const fromPjsAssetIdToSigExt = (
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   pjsAssetId: any,
 ): Uint8Array => {
   // get rid of easy wins
@@ -143,7 +145,7 @@ const fromPjsAssetIdToSigExt = (
 }
 
 export const fromPjsToTxData = (
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   { genesisHash, ...input }: SignerPayloadJSON,
 ): TxData => {
   const eraDecoded = mortalityDec(input.era)

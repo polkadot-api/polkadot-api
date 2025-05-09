@@ -131,7 +131,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       location: [number, number]
     } => {
       const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-      const lookup = getLookupEntryDef(palletEntry[type]!)
+      const lookup = getLookupEntryDef(palletEntry[type]!.type)
       if (lookup.type !== "enum") throw null
       const entry = lookup.value[name]
 

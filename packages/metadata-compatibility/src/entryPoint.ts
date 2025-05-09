@@ -1,10 +1,9 @@
 import type { EnumVar } from "@polkadot-api/metadata-builders"
 import {
   compactNumber,
+  UnifiedMetadata,
   Struct,
   Variant,
-  type V14,
-  type V15,
 } from "@polkadot-api/substrate-bindings"
 import { isCompatible } from "./isCompatible"
 import { CompatibilityCache, isStaticCompatible } from "./isStaticCompatible"
@@ -54,7 +53,7 @@ export const EntryPointCodec = Struct({
 
 export function storageEntryPoint(
   storageEntry: Exclude<
-    (V15 | V14)["pallets"][number]["storage"],
+    UnifiedMetadata["pallets"][number]["storage"],
     undefined
   >["items"][number],
 ): EntryPoint {
@@ -72,7 +71,7 @@ export function storageEntryPoint(
 }
 
 export function runtimeCallEntryPoint(
-  entry: (V15 | V14)["apis"][number]["methods"][number],
+  entry: UnifiedMetadata["apis"][number]["methods"][number],
 ): EntryPoint {
   return {
     args: typedefNode({

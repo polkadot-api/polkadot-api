@@ -1,11 +1,10 @@
-import { V14, V15 } from "@polkadot-api/substrate-bindings"
-
 import {
   getChecksumBuilder,
   getLookupFn,
 } from "@polkadot-api/metadata-builders"
 import { getDocsTypesBuilder } from "@/types-builder"
 import { knownTypes } from "./known-types"
+import { UnifiedMetadata } from "@polkadot-api/substrate-bindings"
 
 export type FileTree = {
   [key: string]: string | FileTree
@@ -18,7 +17,7 @@ const paths = {
 
 export async function generateDocsDescriptors(
   key: string,
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
 ): Promise<FileTree> {
   const lookup = getLookupFn(metadata)
   const checksumBuilder = getChecksumBuilder(lookup)
@@ -113,7 +112,7 @@ export type __Circular = any;
 }
 
 const buildEnumObj = <T>(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   val: number | undefined,
   cb: (name: string, docs: string[]) => T,
 ): Record<string, T> => {
@@ -129,7 +128,7 @@ const buildEnumObj = <T>(
 }
 
 async function buildErrors(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -139,7 +138,7 @@ async function buildErrors(
         pallet.name,
         {
           docs: pallet.docs,
-          values: buildEnumObj(metadata, pallet.errors, (name, docs) => {
+          values: buildEnumObj(metadata, pallet.errors?.type, (name, docs) => {
             return {
               type: `PlainDescriptor<${docsTypesBuilder.buildError(
                 pallet.name,
@@ -158,7 +157,7 @@ async function buildErrors(
 }
 
 async function buildConstants(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -193,7 +192,7 @@ async function buildConstants(
 }
 
 async function buildEvents(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -203,7 +202,7 @@ async function buildEvents(
         pallet.name,
         {
           docs: pallet.docs,
-          values: buildEnumObj(metadata, pallet.events, (name, docs) => {
+          values: buildEnumObj(metadata, pallet.events?.type, (name, docs) => {
             return {
               type: `PlainDescriptor<${docsTypesBuilder.buildEvent(
                 pallet.name,
@@ -222,7 +221,7 @@ async function buildEvents(
 }
 
 async function buildCalls(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -232,7 +231,7 @@ async function buildCalls(
         pallet.name,
         {
           docs: pallet.docs,
-          values: buildEnumObj(metadata, pallet.calls, (name, docs) => {
+          values: buildEnumObj(metadata, pallet.calls?.type, (name, docs) => {
             return {
               type: `TxDescriptor<${docsTypesBuilder.buildCall(
                 pallet.name,
@@ -251,7 +250,7 @@ async function buildCalls(
 }
 
 async function buildRuntimeCalls(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {
@@ -283,7 +282,7 @@ async function buildRuntimeCalls(
 }
 
 async function buildStorage(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
   getClientImports: () => string[],
 ): Promise<FileTree> {

@@ -246,16 +246,16 @@ export class LedgerSigner {
     ) => {
       const merkleizer = merkleizeMetadata(metadata, networkInfo)
       const digest = merkleizer.digest()
-      const v15 = getMetadata(metadata)
+      const meta = getMetadata(metadata)
       if (
-        v15.extrinsic.signedExtensions.find(
+        meta.extrinsic.signedExtensions.find(
           ({ identifier }) => identifier === METADATA_IDENTIFIER,
         ) == null
       )
         throw new Error("No `CheckMetadataHash` sigExt found")
       const extra: Array<Uint8Array> = []
       const additionalSigned: Array<Uint8Array> = []
-      v15.extrinsic.signedExtensions.map(({ identifier }) => {
+      meta.extrinsic.signedExtensions.map(({ identifier }) => {
         if (identifier === METADATA_IDENTIFIER) {
           extra.push(Uint8Array.from([1]))
           additionalSigned.push(mergeUint8(Uint8Array.from([1]), digest))
@@ -274,7 +274,7 @@ export class LedgerSigner {
         toSign,
         merkleizer.getProofForExtrinsicPayload(toSign),
       )
-      return createV4Tx(v15, publicKey, signature, extra, callData)
+      return createV4Tx(meta, publicKey, signature, extra, callData)
     }
 
     return {

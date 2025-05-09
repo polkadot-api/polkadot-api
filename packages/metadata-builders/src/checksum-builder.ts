@@ -455,9 +455,7 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
     (pallet: string, name: string): bigint | null => {
       try {
         const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-        const enumLookup = getLookupEntryDef(
-          palletEntry[variantType]! as number,
-        )
+        const enumLookup = getLookupEntryDef(palletEntry[variantType]!.type)
         buildDefinition(enumLookup.id)
 
         if (enumLookup.type !== "enum") throw null
