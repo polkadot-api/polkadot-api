@@ -98,7 +98,7 @@ export const v16Pallet = {
       docs,
     }),
   ),
-  viewFunctions: Vector(viewFunction),
+  viewFns: Vector(viewFunction),
   index: u8,
   docs,
   deprecationInfo: itemDeprecation,

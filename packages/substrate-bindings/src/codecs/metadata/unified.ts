@@ -59,7 +59,7 @@ export type UnifiedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
         type: number
         docs: string[]
       }>
-      viewFunctions: Array<CodecType<typeof viewFunction>>
+      viewFns: Array<CodecType<typeof viewFunction>>
       index: number
       docs: string[]
     } & DeprecationInfo<T>
@@ -133,7 +133,7 @@ export const unifyMetadata = (
         calls: p.calls != null ? { type: p.calls } : undefined,
         events: p.events != null ? { type: p.events } : undefined,
         errors: p.errors != null ? { type: p.errors } : undefined,
-        viewFunctions: [],
+        viewFns: [],
         associatedTypes: [],
       })),
       extrinsic: { ...extrinsic, version: [extrinsic.version] },
@@ -152,7 +152,7 @@ export const unifyMetadata = (
       calls: p.calls != null ? { type: p.calls } : undefined,
       events: p.events != null ? { type: p.events } : undefined,
       errors: p.errors != null ? { type: p.errors } : undefined,
-      viewFunctions: [],
+      viewFns: [],
       associatedTypes: [],
     })),
     extrinsic: { ...extrinsic, version: [extrinsic.version] },
