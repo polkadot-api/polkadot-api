@@ -1,8 +1,7 @@
 import type {
   StringRecord,
-  V14,
+  UnifiedMetadata,
   V14Lookup,
-  V15,
 } from "@polkadot-api/substrate-bindings"
 
 export type SignedPrimitive = "i8" | "i16" | "i32" | "i64" | "i128" | "i256"
@@ -108,7 +107,7 @@ const _void: VoidVar = { type: "void" }
 
 export interface MetadataLookup {
   (id: number): LookupEntry
-  metadata: V14 | V15
+  metadata: UnifiedMetadata
   call: number | null
 }
 
@@ -374,7 +373,7 @@ const _denormalizeLookup = (
 export const denormalizeLookup = (lookupData: V14Lookup) =>
   _denormalizeLookup(lookupData)
 
-export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
+export const getLookupFn = (metadata: UnifiedMetadata): MetadataLookup => {
   const getLookupEntryDef = _denormalizeLookup(metadata.lookup, ({ def }) => {
     if (def.tag === "composite") {
       const moduleErrorLength = getModuleErrorLength(def)
@@ -389,7 +388,7 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
                 ? { ..._void, idx: p.index }
                 : {
                     type: "lookupEntry" as const,
-                    value: getLookupEntryDef(p.errors),
+                    value: getLookupEntryDef(p.errors.type),
                     idx: p.index,
                   },
             ]),
@@ -437,11 +436,11 @@ export const getLookupFn = (metadata: V14 | V15): MetadataLookup => {
   }
 
   const getCall = () => {
-    if ("outerEnums" in metadata) {
-      return metadata.outerEnums.call
+    if ("call" in metadata.extrinsic) {
+      return metadata.extrinsic.call
     }
 
-    const extrinsic = metadata.lookup[metadata.extrinsic?.type]
+    const extrinsic = metadata.lookup[metadata.extrinsic.type]
     const call = extrinsic?.params.find((p) => p.name === "Call")
 
     return call?.type ?? null

@@ -22,7 +22,6 @@ const extrinsic = Struct({
     }),
   ),
 })
-export type V14Extrinsic = CodecType<typeof extrinsic>
 
 export const v14 = Struct({
   lookup,

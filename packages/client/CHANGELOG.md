@@ -6,6 +6,10 @@
 
 - Expose `<key>Apis` type for Runtime APIs.
 
+### Changed
+
+- Prefer metadata V16 when creating the client.
+
 ## 1.10.2 - 2025-05-05
 
 ### Fixed

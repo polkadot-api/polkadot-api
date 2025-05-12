@@ -41,6 +41,7 @@ export const getMetadataFromProvider = (
         if (requested) return
         requested = true
 
+        // TODO: migrate to potential metadata v16
         chainHeadFollower
           .call(
             latestFinalized,

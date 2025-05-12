@@ -92,6 +92,10 @@ export const merkleizeMetadata = (
   }: { decimals: number; tokenSymbol: string } & Partial<ExtraInfo>,
 ): MetadataMerkleizer => {
   const metadata = getMetadata(metadataBytes)
+
+  const checkedVersion = metadata.extrinsic.version.includes(4) ? 4 : null
+  if (checkedVersion == null) throw new Error("Only extrinsic v4 is supported")
+
   const { ss58Prefix, buildDefinition } = getDynamicBuilder(
     getLookupFn(metadata),
   )
@@ -153,7 +157,7 @@ export const merkleizeMetadata = (
   }
 
   const extrinsic: ExtrinsicMetadata = {
-    version: metadata.extrinsic.version,
+    version: checkedVersion,
     addressTy: getTypeRef(metadata.extrinsic.address),
     callTy: getTypeRef(metadata.extrinsic.call),
     signatureTy: getTypeRef(metadata.extrinsic.signature),

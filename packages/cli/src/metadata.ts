@@ -3,9 +3,9 @@ import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
 import {
   HexString,
-  V14,
-  V15,
   metadata,
+  UnifiedMetadata,
+  unifyMetadata,
   v15,
 } from "@polkadot-api/substrate-bindings"
 import { getWsProvider } from "@polkadot-api/ws-provider/node"
@@ -119,7 +119,7 @@ const getMetadataFromWsURL = async (wsURL: string) =>
   getMetadataCall(withPolkadotSdkCompat(getWsProvider(wsURL)))
 
 export async function getMetadata(entry: EntryConfig): Promise<{
-  metadata: V15 | V14
+  metadata: UnifiedMetadata
   metadataRaw: Uint8Array
   genesis?: HexString
 } | null> {
@@ -129,11 +129,11 @@ export async function getMetadata(entry: EntryConfig): Promise<{
     const data = await fs.readFile(entry.metadata)
     const metadataRaw = new Uint8Array(data)
 
-    let meta: V14 | V15
+    let meta: UnifiedMetadata
     try {
-      meta = metadata.dec(metadataRaw).metadata.value as V14 | V15
+      meta = unifyMetadata(metadata.dec(metadataRaw))
     } catch (_) {
-      meta = v15.dec(metadataRaw)
+      meta = unifyMetadata(v15.dec(metadataRaw))
     }
 
     return {

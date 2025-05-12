@@ -1,6 +1,8 @@
 import { Hex, compactNumber } from "@/codecs/scale"
 import { Struct, Option, Vector, u8, str, Enum, _void } from "scale-ts"
 import { docs } from "./docs"
+import { itemDeprecation, variantDeprecation } from "./deprecation"
+import { viewFunction } from "./runtime-api"
 
 const hashType = Enum({
   Blake2128: _void,
@@ -14,13 +16,13 @@ const hashType = Enum({
 
 const hashers = Vector(hashType)
 
-const storageMap = Struct({
+export const storageMap = Struct({
   hashers,
   key: compactNumber,
   value: compactNumber,
 })
 
-const storageItem = Struct({
+const storageItem = {
   name: str,
   modifier: u8,
   type: Enum({
@@ -29,20 +31,20 @@ const storageItem = Struct({
   }),
   fallback: Hex(),
   docs,
-})
+}
 
-const storage = Option(
-  Struct({
-    prefix: str,
-    items: Vector(storageItem),
-  }),
-)
+const enumRefV14 = Option(compactNumber)
 
 export const v14Pallet = {
   name: str,
-  storage,
-  calls: Option(compactNumber),
-  events: Option(compactNumber),
+  storage: Option(
+    Struct({
+      prefix: str,
+      items: Vector(Struct(storageItem)),
+    }),
+  ),
+  calls: enumRefV14,
+  events: enumRefV14,
   constants: Vector(
     Struct({
       name: str,
@@ -51,11 +53,53 @@ export const v14Pallet = {
       docs,
     }),
   ),
-  errors: Option(compactNumber),
+  errors: enumRefV14,
   index: u8,
 }
 
 export const v15Pallet = {
   ...v14Pallet,
   docs,
+}
+
+const enumRef = Option(
+  Struct({ type: compactNumber, deprecationInfo: variantDeprecation }),
+)
+
+export const v16Pallet = {
+  name: str,
+  storage: Option(
+    Struct({
+      prefix: str,
+      items: Vector(
+        Struct({
+          ...storageItem,
+          deprecationInfo: itemDeprecation,
+        }),
+      ),
+    }),
+  ),
+  calls: enumRef,
+  events: enumRef,
+  constants: Vector(
+    Struct({
+      name: str,
+      type: compactNumber,
+      value: Hex(),
+      docs,
+      deprecationInfo: itemDeprecation,
+    }),
+  ),
+  errors: enumRef,
+  associatedTypes: Vector(
+    Struct({
+      name: str,
+      type: compactNumber,
+      docs,
+    }),
+  ),
+  viewFunctions: Vector(viewFunction),
+  index: u8,
+  docs,
+  deprecationInfo: itemDeprecation,
 }

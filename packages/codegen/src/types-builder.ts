@@ -203,7 +203,7 @@ export const getTypesBuilder = (
   const buildVariant =
     (type: "errors" | "events" | "calls") => (pallet: string, name: string) => {
       const lookupEntry = getLookupEntryDef(
-        metadata.pallets.find((x) => x.name === pallet)![type]! as number,
+        metadata.pallets.find((x) => x.name === pallet)![type]!.type,
       )
       if (lookupEntry.type !== "enum") throw null
 
@@ -421,7 +421,7 @@ export const getDocsTypesBuilder = (
   const buildVariant =
     (type: "errors" | "events" | "calls") => (pallet: string, name: string) => {
       const lookupEntry = getLookupEntryDef(
-        metadata.pallets.find((x) => x.name === pallet)![type]! as number,
+        metadata.pallets.find((x) => x.name === pallet)![type]!.type,
       )
       if (lookupEntry.type !== "enum") throw null
 
