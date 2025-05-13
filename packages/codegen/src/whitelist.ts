@@ -127,6 +127,7 @@ export function applyWhitelist(
                 items: filterList("query", pallet.name, pallet.storage.items),
               }
             : undefined,
+          viewFns: filterList("view", pallet.name, pallet.viewFns),
         }
       })
       .filter(
@@ -135,7 +136,8 @@ export function applyWhitelist(
           pallet.constants.length +
           getEnumLength(pallet.errors?.type) +
           getEnumLength(pallet.events?.type) +
-          (pallet.storage?.items.length ?? 0),
+          (pallet.storage?.items.length ?? 0) +
+          pallet.viewFns.length,
       )
 
   const pallets = filterPallets(metadata.pallets, false)

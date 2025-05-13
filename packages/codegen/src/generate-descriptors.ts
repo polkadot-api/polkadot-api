@@ -440,8 +440,9 @@ export type ${prefix}WhitelistEntry =
   | \`event.\${NestedKey<PalletsTypedef['__event']>}\`
   | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
   | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
+  | \`view.\${NestedKey<PalletsTypedef['__view']>}\`
 
-type PalletKey = \`*.\${keyof (IStorage & ICalls & IEvent & IError & IConstants & IRuntimeCalls)}\`
+type PalletKey = \`*.\${keyof (IStorage & ICalls & IEvent & IError & IConstants & IRuntimeCalls & IViewFns)}\`
 type NestedKey<D extends Record<string, Record<string, any>>> =
   | "*"
   | {
