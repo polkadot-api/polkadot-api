@@ -190,7 +190,7 @@ export const generateDescriptors = (
       pallet.name,
       Object.fromEntries(
         pallet.viewFns.map((viewFn) => {
-          const { args, value } = typesBuilder.buildViewFns(
+          const { args, value } = typesBuilder.buildViewFn(
             pallet.name,
             viewFn.name,
           )

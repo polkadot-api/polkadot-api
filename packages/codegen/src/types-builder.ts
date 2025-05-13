@@ -184,7 +184,7 @@ export const getTypesBuilder = (
     return { key: returnKey, val, opaque }
   }
 
-  const buildViewFns = (pallet: string, entry: string) => {
+  const buildViewFn = (pallet: string, entry: string) => {
     const viewFn = metadata.pallets
       .find((x) => x.name === pallet)
       ?.viewFns.find((x) => x.name === entry)
@@ -260,7 +260,7 @@ export const getTypesBuilder = (
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
     buildCall: buildVariant("calls"),
-    buildViewFns,
+    buildViewFn,
     buildRuntimeCall,
     buildConstant,
     getTypeFileImports: () => Array.from(typeFileImports),
