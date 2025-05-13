@@ -1,10 +1,16 @@
 import type Transport from "@ledgerhq/hw-transport"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { Binary, u16, u32 } from "@polkadot-api/substrate-bindings"
+import {
+  Binary,
+  ethAccount,
+  HexString,
+  u16,
+  u32,
+} from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 import { getMetadata } from "./get-metadata"
-import { CLA, DEFAULT_SS58, INS, P1, P2 } from "./consts"
+import { CLA, DEFAULT_SS58, INS, P1, P2, PUBKEY_LEN, SIGN_LEN } from "./consts"
 import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
@@ -34,10 +40,6 @@ const encodePath = (path1: number, path2: number) => {
   )
 }
 
-const getPubkeyMapKey = (path1: number, path2: number): string => {
-  return `${path1}:${path2}`
-}
-
 /**
  * ATTENTION: This class requires `Buffer` to be available. This is an Ledger
  * requirement that we need to fulfill. If you are on a browser-based
@@ -45,16 +47,22 @@ const getPubkeyMapKey = (path1: number, path2: number): string => {
  */
 export class LedgerSigner {
   readonly #transport: Transport
-  #pubkeys: Map<string, Promise<Uint8Array>> // `${path1}:${path2}`
+  readonly #schema: "ed25519" | "ecdsa"
+  #pubkeys: Map<string, Promise<Uint8Array>> // `${schema}:${path1}:${path2}, pubkey|addr`
   #deviceId: Promise<number> | null
   #appInfo: ReturnType<typeof this.appInfo> | null
   #verified: Promise<void> | null
 
-  constructor(transport: Transport) {
+  /**
+   * @param transport           Valid and opened transport.
+   * @param [schema="ed25519"]  Signing schema to use. Default: `ed25519`.
+   */
+  constructor(transport: Transport, schema: "ed25519" | "ecdsa" = "ed25519") {
     this.#deviceId = null
     this.#appInfo = null
     this.#verified = null
     this.#transport = transport
+    this.#schema = schema
     this.#pubkeys = new Map()
   }
 
@@ -125,19 +133,19 @@ export class LedgerSigner {
    */
   async deviceId(): Promise<number> {
     if (!this.#deviceId)
-      this.#deviceId = this.#getPublicKey(0, 0).then((v) =>
+      this.#deviceId = this.#getPublicKeyAndAddr(0, 0).then((v) =>
         u32.dec(v.slice(0, 4)),
       )
     return this.#deviceId
   }
 
-  async #getPublicKey(
+  async #getPublicKeyAndAddr(
     path1: number,
     path2: number,
     seeAddressInDevice?: boolean,
     ss58Prefix?: number,
   ): Promise<Uint8Array> {
-    const key = getPubkeyMapKey(path1, path2)
+    const key = `${this.#schema}:${path1}:${path2}`
     if (!seeAddressInDevice && this.#pubkeys.has(key))
       return this.#pubkeys.get(key)!
     if (
@@ -156,10 +164,10 @@ export class LedgerSigner {
       CLA,
       INS.getAddress,
       seeAddressInDevice ? P1.showAddress : P1.getAddress,
-      P2,
+      P2[this.#schema],
       bufToSend,
-    ).then((v) => Uint8Array.from(v).slice(0, 32))
-    this.#pubkeys.set(getPubkeyMapKey(path1, path2), prom)
+    ).then((v) => Uint8Array.from(v).slice(0, -2)) // remove return code
+    this.#pubkeys.set(key, prom)
     return prom
   }
 
@@ -176,7 +184,9 @@ export class LedgerSigner {
    *         different app than Polkadot, etc.
    */
   async getPubkey(path1: number, path2: number = 0): Promise<Uint8Array> {
-    return await this.#getPublicKey(path1, path2)
+    return await this.#getPublicKeyAndAddr(path1, path2).then((v) =>
+      v.slice(0, PUBKEY_LEN[this.#schema]),
+    )
   }
 
   /**
@@ -185,7 +195,8 @@ export class LedgerSigner {
    * This call prevents race conditions and waits until the device is free to
    * receive new messages.
    *
-   * @param ss58Prefix  SS58 prefix for address formatting.
+   * @param ss58Prefix  SS58 prefix for address formatting. This is only
+   *                    relevant for `ed25519` schema.
    * @param path1       Primary derivation index.
    * @param path2       Secondary derivation index. Defaults to 0.
    * @returns Public key.
@@ -197,7 +208,30 @@ export class LedgerSigner {
     path1: number,
     path2: number = 0,
   ): Promise<Uint8Array> {
-    return await this.#getPublicKey(path1, path2, true, ss58Prefix)
+    return await this.#getPublicKeyAndAddr(path1, path2, true, ss58Prefix).then(
+      (v) => v.slice(0, PUBKEY_LEN[this.#schema]),
+    )
+  }
+
+  /**
+   * Get `AccountId20` (ETH-like) for a specific derivation path.
+   *
+   * This call prevents race conditions and waits until the device is free to
+   * receive new messages.
+   *
+   * @param path1  Primary derivation index.
+   * @param path2  Secondary derivation index. Defaults to 0.
+   * @returns AccountId20.
+   * @throws This could throw if the device is not connected, locked, in a
+   *         different app than Polkadot, etc. It throws as well if the
+   *         schema is `ed25519`.
+   */
+  async getAddress20(path1: number, path2: number = 0): Promise<HexString> {
+    if (this.#schema !== "ecdsa")
+      throw new Error("This method only supports `ecdsa` schema.")
+    return await this.#getPublicKeyAndAddr(path1, path2).then((v) =>
+      ethAccount.dec(v.slice(PUBKEY_LEN[this.#schema])),
+    )
   }
 
   async #sign(
@@ -224,14 +258,18 @@ export class LedgerSigner {
         CLA,
         shortMetadata == null ? INS.signRaw : INS.signTx,
         i === 0 ? P1.init : i === chunks.length - 1 ? P1.end : P1.continue,
-        P2,
+        P2[this.#schema],
         chunks[i],
       )
     }
     if (result == null) throw null
 
     // remove return code
-    return Uint8Array.from(result).slice(0, result.length - 2)
+    return Uint8Array.from(result).slice(
+      0,
+      // ed25519 includes as well a `0x00` at the beginning
+      SIGN_LEN[this.#schema] + (this.#schema === "ed25519" ? 1 : 0),
+    )
   }
 
   /**
@@ -254,7 +292,12 @@ export class LedgerSigner {
     path1: number,
     path2: number = 0,
   ): Promise<PolkadotSigner> {
-    const publicKey = await this.#getPublicKey(path1, path2)
+    // ed25519 has public key, ecdsa has addr (20 bytes)
+    const publicKey = await this.#getPublicKeyAndAddr(path1, path2).then((v) =>
+      this.#schema === "ed25519"
+        ? v.slice(0, PUBKEY_LEN[this.#schema])
+        : v.slice(PUBKEY_LEN[this.#schema]),
+    )
     const signTx: PolkadotSigner["signTx"] = async (
       callData,
       signedExtensions,
@@ -297,9 +340,11 @@ export class LedgerSigner {
       publicKey,
       signTx,
       signBytes: getSignBytes(async (x) =>
-        // the signature includes a "0x00" at the beginning, indicating a ed25519 signature
+        // the signature includes a "0x00" at the beginning, indicating a ed25519 signature, ecdsa do not
         // this is not needed for non-extrinsic signatures
-        (await this.#sign(path1, path2, x)).slice(1),
+        (await this.#sign(path1, path2, x)).slice(
+          this.#schema === "ed25519" ? 1 : 0,
+        ),
       ),
     }
   }
