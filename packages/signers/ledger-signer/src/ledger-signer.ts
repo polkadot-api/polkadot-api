@@ -44,11 +44,16 @@ const getPubkeyMapKey = (path1: number, path2: number): string => {
  * environment, make sure you polyfill it.
  */
 export class LedgerSigner {
-  #transport: Transport
-  #pubkeys: Map<string, Uint8Array> // `${path1}:${path2}`
-  #deviceId: number | undefined
+  readonly #transport: Transport
+  #pubkeys: Map<string, Promise<Uint8Array>> // `${path1}:${path2}`
+  #deviceId: Promise<number> | null
+  #appInfo: ReturnType<typeof this.appInfo> | null
+  #verified: Promise<void> | null
 
   constructor(transport: Transport) {
+    this.#deviceId = null
+    this.#appInfo = null
+    this.#verified = null
     this.#transport = transport
     this.#pubkeys = new Map()
   }
@@ -64,12 +69,20 @@ export class LedgerSigner {
   async #safeSend(
     ...params: Parameters<Transport["send"]>
   ): ReturnType<Transport["send"]> {
-    const { appName, appVersion } = await this.appInfo()
-    if (appName !== "Polkadot") throw new Error("Polkadot App is not opened")
-    // from version 100 it is Polkadot Generic App
-    if (Number.parseInt(appVersion.split(".")[0]) < 100)
-      throw new Error(`Polkadot App version ${appVersion} not expected`)
-
+    if (!this.#verified)
+      this.#verified = this.appInfo().then(({ appName, appVersion }) => {
+        if (appName !== "Polkadot")
+          throw new Error("Polkadot App is not opened")
+        const version = appVersion.split(".").map((v) => parseInt(v))
+        if (
+          // from version 100 it is Polkadot Generic App
+          version[0] < 100 ||
+          // ecdsa was only released on 100.0.12
+          (version[0] === 100 && version[1] === 0 && version[2] < 12)
+        )
+          throw new Error(`Polkadot App version ${appVersion} not expected`)
+      })
+    await this.#verified
     return await this.#send(...params)
   }
 
@@ -87,12 +100,16 @@ export class LedgerSigner {
     appVersion: string
   }> {
     // this message is common among Ledger, not only Polkadot app
-    const res = Uint8Array.from(await this.#send(0xb0, 1, 0, 0))
-    const appName = Binary.fromBytes(res.slice(2, 2 + res[1])).asText()
-    const appVersion = Binary.fromBytes(
-      res.slice(2 + res[1] + 1, 2 + res[1] + 1 + res[2 + res[1]]),
-    ).asText()
-    return { appName, appVersion }
+    if (!this.#appInfo)
+      this.#appInfo = this.#send(0xb0, 1, 0, 0).then((v) => {
+        const res = Uint8Array.from(v)
+        const appName = Binary.fromBytes(res.slice(2, 2 + res[1])).asText()
+        const appVersion = Binary.fromBytes(
+          res.slice(2 + res[1] + 1, 2 + res[1] + 1 + res[2 + res[1]]),
+        ).asText()
+        return { appName, appVersion }
+      })
+    return this.#appInfo
   }
 
   /**
@@ -107,9 +124,11 @@ export class LedgerSigner {
    *         different app than Polkadot, etc.
    */
   async deviceId(): Promise<number> {
-    return this.#deviceId == null
-      ? (this.#deviceId = u32.dec((await this.#getPublicKey(0, 0)).slice(0, 4)))
-      : this.#deviceId
+    if (!this.#deviceId)
+      this.#deviceId = this.#getPublicKey(0, 0).then((v) =>
+        u32.dec(v.slice(0, 4)),
+      )
+    return this.#deviceId
   }
 
   async #getPublicKey(
@@ -133,18 +152,15 @@ export class LedgerSigner {
         Uint8Array.from(u16.enc(ss58Prefix ?? DEFAULT_SS58)),
       ),
     )
-    const res = Uint8Array.from(
-      await this.#safeSend(
-        CLA,
-        INS.getAddress,
-        seeAddressInDevice ? P1.showAddress : P1.getAddress,
-        P2,
-        bufToSend,
-      ),
-    )
-    const pubkey = res.slice(0, 32)
-    this.#pubkeys.set(getPubkeyMapKey(path1, path2), pubkey)
-    return pubkey
+    const prom = this.#safeSend(
+      CLA,
+      INS.getAddress,
+      seeAddressInDevice ? P1.showAddress : P1.getAddress,
+      P2,
+      bufToSend,
+    ).then((v) => Uint8Array.from(v).slice(0, 32))
+    this.#pubkeys.set(getPubkeyMapKey(path1, path2), prom)
+    return prom
   }
 
   /**
