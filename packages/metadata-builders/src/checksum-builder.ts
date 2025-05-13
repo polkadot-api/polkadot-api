@@ -391,6 +391,27 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
     }
   }
 
+  const buildViewFns = (pallet: string, entry: string): bigint | null => {
+    try {
+      const viewFn = metadata.pallets
+        .find((x) => x.name === pallet)
+        ?.viewFns.find((x) => x.name === entry)
+      if (!viewFn) throw null
+
+      const argNamesChecksum = getStringChecksum(
+        viewFn.inputs.map((x) => x.name),
+      )
+      const argValuesChecksum = getChecksum(
+        viewFn.inputs.map((x) => buildDefinition(x.type)),
+      )
+      const outputChecksum = buildDefinition(viewFn.output)
+
+      return getChecksum([argNamesChecksum, argValuesChecksum, outputChecksum])
+    } catch (_) {
+      return null
+    }
+  }
+
   const buildRuntimeCall = (api: string, method: string): bigint | null => {
     try {
       const entry = metadata.apis
@@ -496,6 +517,7 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
     buildDefinition: toStringEnhancer(buildDefinition),
     buildRuntimeCall: toStringEnhancer(buildRuntimeCall),
     buildStorage: toStringEnhancer(buildStorage),
+    buildViewFns: toStringEnhancer(buildViewFns),
     buildCall: toStringEnhancer(buildVariant("calls")),
     buildEvent: toStringEnhancer(buildVariant("events")),
     buildError: toStringEnhancer(buildVariant("errors")),

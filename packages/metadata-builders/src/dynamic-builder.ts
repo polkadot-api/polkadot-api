@@ -141,6 +141,18 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       }
     }
 
+  const buildViewFn = (pallet: string, entry: string) => {
+    const fn = metadata.pallets
+      .find((x) => x.name === pallet)
+      ?.viewFns.find((x) => x.name === entry)
+    if (!fn) throw null
+
+    return {
+      args: scale.Tuple(...fn.inputs.map((x) => buildDefinition(x.type))),
+      value: buildDefinition(fn.output),
+    }
+  }
+
   const buildRuntimeCall = (api: string, method: string) => {
     const entry = metadata.apis
       .find((x) => x.name === api)
@@ -158,6 +170,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     buildStorage,
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
+    buildViewFn,
     buildRuntimeCall,
     buildCall: buildVariant("calls"),
     buildConstant,
