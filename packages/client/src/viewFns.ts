@@ -3,13 +3,7 @@ import { ChainHead$ } from "@polkadot-api/observable-client"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { map, mergeMap } from "rxjs"
 import { CompatibilityFunctions, CompatibilityHelper } from "./compatibility"
-import {
-  compactNumber,
-  Variant,
-  Result,
-  Struct,
-  _void,
-} from "@polkadot-api/substrate-bindings"
+import { compactNumber, _void } from "@polkadot-api/substrate-bindings"
 
 type CallOptions = Partial<{
   at: string
@@ -58,14 +52,17 @@ export const createViewFnEntry = (
 
     const result$ = compatibleRuntime$(chainHead, at).pipe(
       mergeMap(([runtime, ctx]) => {
-        if (
-          ctx.lookup.metadata.apis
-            .find(({ name }) => name === RUNTIME_NAMESPACE)
-            ?.methods.find(({ name }) => name === RUNTIME_METHOD) == null
-        )
+        let apiCodec
+        try {
+          apiCodec = ctx.dynamicBuilder.buildRuntimeCall(
+            RUNTIME_NAMESPACE,
+            RUNTIME_METHOD,
+          )
+        } catch {
           throw new Error(
             `Runtime entry RuntimeCall(${RUNTIME_CALL_NAME}) not found`,
           )
+        }
         let viewCodec
         try {
           viewCodec = ctx.dynamicBuilder.buildViewFn(pallet, entry)
@@ -83,22 +80,17 @@ export const createViewFnEntry = (
           compactNumber.enc(viewArgs.length),
           viewArgs,
         )
-        const [, dec] = Result(
-          Struct({
-            _: compactNumber,
-            value: viewCodec.value,
-          }),
-          Variant({
-            NotImplemented: _void,
-            NotFound: _void,
-            Codec: _void,
-          }),
-        )
 
         return chainHead.call$(at, RUNTIME_CALL_NAME, toHex(arg)).pipe(
           map((v) => {
             try {
-              return dec(v)
+              const decoded = apiCodec.value.dec(v)
+              if (
+                !("success" in decoded && "value" in decoded) ||
+                (!("type" in decoded.value) && !("asBytes" in decoded.value))
+              )
+                throw null
+              return decoded
             } catch {
               throw new Error(
                 `Unexpected RuntimeCall(${RUNTIME_CALL_NAME}) type`,
@@ -107,7 +99,7 @@ export const createViewFnEntry = (
           }),
           map(({ success, value }) => {
             if (!success) throw new Error(`ViewFn API Error: ${value.type}`)
-            const decoded = value.value
+            const decoded = viewCodec.value.dec(value.asBytes())
             if (!valuesAreCompatible(runtime, ctx, decoded))
               throw compatibilityError()
             return decoded
