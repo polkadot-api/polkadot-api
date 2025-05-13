@@ -37,7 +37,7 @@ export const customStringifyObject = (
 
 // type -> pallet -> name
 export type DescriptorValues = Record<
-  "storage" | "tx" | "events" | "constants" | "apis",
+  "storage" | "tx" | "events" | "constants" | "apis" | "viewFns",
   Record<string, Record<string, number>>
 >
 
@@ -185,6 +185,31 @@ export const generateDescriptors = (
     }),
   )
 
+  const viewFns = Object.fromEntries(
+    metadata.pallets.map((pallet) => [
+      pallet.name,
+      Object.fromEntries(
+        pallet.viewFns.map((viewFn) => {
+          const { args, value } = typesBuilder.buildViewFns(
+            pallet.name,
+            viewFn.name,
+          )
+          return [
+            viewFn.name,
+            {
+              typeRef: checksumToIdx.get(
+                checksumBuilder.buildViewFns(pallet.name, viewFn.name)!,
+              )!,
+              type: `RuntimeDescriptor<${args}, ${value}>`,
+              name: `view_${pallet.name}_${viewFn.name}`,
+              docs: viewFn.docs,
+            },
+          ]
+        }),
+      ),
+    ]),
+  )
+
   const runtimeCalls = Object.fromEntries(
     metadata.apis.map((api) => [
       api.name,
@@ -234,12 +259,14 @@ export const generateDescriptors = (
   const iEvents = mapDescriptor(events, extractValue)
   const iErrors = mapDescriptor(errors, extractValue)
   const iConstants = mapDescriptor(constants, extractValue)
+  const iViewFns = mapDescriptor(viewFns, extractValue)
 
   const descriptorValues: DescriptorValues = {
     storage: {},
     tx: {},
     events: {},
     constants: {},
+    viewFns: {},
     apis: {},
   }
   const mapObjStr = mapObject as <I, O>(
@@ -249,7 +276,7 @@ export const generateDescriptors = (
   Object.keys(storage).forEach((pallet) => {
     descriptorValues["storage"][pallet] = mapObjStr(
       storage[pallet],
-      (x, _: string) => x.typeRef,
+      (x) => x.typeRef,
     )
     descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
     descriptorValues["events"][pallet] = mapObjStr(
@@ -258,6 +285,10 @@ export const generateDescriptors = (
     )
     descriptorValues["constants"][pallet] = mapObjStr(
       constants[pallet],
+      (x) => x.typeRef,
+    )
+    descriptorValues["viewFns"][pallet] = mapObjStr(
+      viewFns[pallet],
       (x) => x.typeRef,
     )
   })
@@ -300,6 +331,7 @@ export const generateDescriptors = (
       "EventsFromPalletsDef",
       "ErrorsFromPalletsDef",
       "ConstFromPalletsDef",
+      "ViewFnsFromPalletsDef",
       ...typesBuilder.getClientFileImports(),
       ...anonymizeImports,
     ]),
@@ -359,6 +391,7 @@ type ICalls = ${customStringifyObject(iCalls)};
 type IEvent = ${customStringifyObject(iEvents)};
 type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
+type IViewFns = ${customStringifyObject(iViewFns)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
 export type ${prefix}DispatchError = ${dispatchErrorType}
@@ -374,6 +407,7 @@ type PalletsTypedef = {
   __event: IEvent,
   __error: IError,
   __const: IConstants
+  __view: IViewFns
 }
 
 type IDescriptors = {
@@ -395,6 +429,7 @@ export type ${prefix}Calls = TxFromPalletsDef<PalletsTypedef>
 export type ${prefix}Events = EventsFromPalletsDef<PalletsTypedef>
 export type ${prefix}Errors = ErrorsFromPalletsDef<PalletsTypedef>
 export type ${prefix}Constants = ConstFromPalletsDef<PalletsTypedef>
+export type ${prefix}ViewFns = ViewFnsFromPalletsDef<PalletsTypedef>
 ${chainCallType}
 
 export type ${prefix}WhitelistEntry =

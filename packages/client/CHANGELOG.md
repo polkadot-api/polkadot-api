@@ -4,6 +4,7 @@
 
 ### Added
 
+- Add `view` API.
 - Expose `<key>Apis` type for Runtime APIs.
 
 ### Changed

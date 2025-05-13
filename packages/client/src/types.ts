@@ -5,12 +5,13 @@ import { Observable } from "rxjs"
 import { CompatibilityToken, RuntimeToken } from "./compatibility"
 import { ConstantEntry } from "./constants"
 import {
+  ApisFromDef,
   ChainDefinition,
   ConstFromPalletsDef,
   EventsFromPalletsDef,
   QueryFromPalletsDef,
-  RuntimeDescriptor,
   TxFromPalletsDef,
+  ViewFnsFromPalletsDef,
 } from "./descriptors"
 import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
@@ -23,6 +24,7 @@ import type {
   TxFromBinary,
   UnsafeTxEntry,
 } from "./tx"
+import { ViewFn } from "./viewFns"
 
 export type { ChainSpecData }
 
@@ -66,14 +68,23 @@ export type StorageApi<
 export type RuntimeCallsApi<
   Unsafe,
   D,
-  A extends Record<string, Record<string, RuntimeDescriptor<Array<any>, any>>>,
+  A extends Record<string, Record<string, any>>,
 > = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: A[K][KK] extends RuntimeDescriptor<
-      infer Args,
-      infer Value
-    >
-      ? RuntimeCall<Unsafe, D, Args, Value>
+    [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
+      ? RuntimeCall<Unsafe, D, A[K][KK]["Args"], A[K][KK]["Value"]>
+      : unknown
+  }
+}
+
+export type ViewFnApi<
+  Unsafe,
+  D,
+  A extends Record<string, Record<string, any>>,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
+      ? ViewFn<Unsafe, D, A[K][KK]["Args"], A[K][KK]["Value"]>
       : unknown
   }
 }
@@ -143,11 +154,16 @@ export type AnyApi<Unsafe extends true | false, D> = D extends ChainDefinition
       >
       txFromCallData: TxFromBinary<Unsafe, D["asset"]["_type"]>
       event: EvApi<Unsafe, D, EventsFromPalletsDef<D["descriptors"]["pallets"]>>
-      apis: RuntimeCallsApi<Unsafe, D, D["descriptors"]["apis"]>
+      apis: RuntimeCallsApi<Unsafe, D, ApisFromDef<D["descriptors"]["apis"]>>
       constants: ConstApi<
         Unsafe,
         D,
         ConstFromPalletsDef<D["descriptors"]["pallets"]>
+      >
+      view: ViewFnApi<
+        Unsafe,
+        D,
+        ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>
       >
     }
   : {
@@ -157,6 +173,7 @@ export type AnyApi<Unsafe extends true | false, D> = D extends ChainDefinition
       event: UnsafeEntry<EvClient<true, D, any>>
       apis: UnsafeEntry<RuntimeCall<true, D, any, any>>
       constants: UnsafeEntry<ConstantEntry<true, D, any>>
+      view: UnsafeEntry<ViewFn<true, D, any, any>>
     }
 
 export type TypedApi<D extends ChainDefinition> = AnyApi<false, D> & {

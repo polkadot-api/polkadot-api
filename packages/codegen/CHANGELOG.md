@@ -4,6 +4,7 @@
 
 ### Added
 
+- Add `viewFns` code generation
 - Expose `<key>Apis` type for Runtime APIs.
 
 ## 0.14.0 - 2025-04-24

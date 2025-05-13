@@ -184,6 +184,22 @@ export const getTypesBuilder = (
     return { key: returnKey, val, opaque }
   }
 
+  const buildViewFns = (pallet: string, entry: string) => {
+    const viewFn = metadata.pallets
+      .find((x) => x.name === pallet)
+      ?.viewFns.find((x) => x.name === entry)
+    if (!viewFn) throw null
+
+    const innerTuple = viewFn.inputs
+      .map(({ name, type }) => `${name}: ${buildTypeDefinition(type)}`)
+      .join(", ")
+
+    return {
+      args: `[${innerTuple}]`,
+      value: buildTypeDefinition(viewFn.output),
+    }
+  }
+
   const buildRuntimeCall = (api: string, method: string) => {
     const entry = metadata.apis
       .find((x) => x.name === api)
@@ -244,6 +260,7 @@ export const getTypesBuilder = (
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
     buildCall: buildVariant("calls"),
+    buildViewFns,
     buildRuntimeCall,
     buildConstant,
     getTypeFileImports: () => Array.from(typeFileImports),
