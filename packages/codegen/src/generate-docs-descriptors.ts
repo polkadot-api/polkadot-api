@@ -42,6 +42,7 @@ export async function generateDocsDescriptors(
     "EventsFromPalletsDef",
     "ErrorsFromPalletsDef",
     "ConstFromPalletsDef",
+    "ViewFnsFromPalletsDef",
     "SS58String",
     "ResultPayload",
     "TxCallData",
@@ -79,6 +80,11 @@ export async function generateDocsDescriptors(
     docsTypesBuilder,
     getClientImports,
   )
+  const viewFnsOutput = await buildViewFns(
+    metadata,
+    docsTypesBuilder,
+    getClientImports,
+  )
 
   const descriptorsTypesFileContent =
     `import {\n  ${getClientImports().join(",\n  ")}\n} from "${paths.client}";\n` +
@@ -97,7 +103,16 @@ export async function generateDocsDescriptors(
 export type __Circular = any;
 `
 
-  const index = getIndexFileDocs({ chainName: key })
+  const hasSection = {
+    storage: storageOutput.index !== "",
+    runtimeCalls: runtimeCallsOutput.index !== "",
+    errors: errorsOutput.index !== "",
+    constants: constantsOutput.index !== "",
+    events: eventsOutput.index !== "",
+    calls: callsOutput.index !== "",
+    viewFns: viewFnsOutput.index !== "",
+  }
+  const index = getIndexFileDocs({ chainName: key, hasSection })
 
   return {
     index,
@@ -108,6 +123,7 @@ export type __Circular = any;
     Constants: constantsOutput,
     Events: eventsOutput,
     Transactions: callsOutput,
+    ViewFunctions: viewFnsOutput,
   }
 }
 
@@ -281,6 +297,38 @@ async function buildRuntimeCalls(
   return buildTypeFolder(runtimeCalls, getClientImports)
 }
 
+async function buildViewFns(
+  metadata: UnifiedMetadata,
+  docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
+  getClientImports: () => string[],
+): Promise<FileTree> {
+  const viewFns = Object.fromEntries(
+    metadata.pallets.map((pallet) => [
+      pallet.name,
+      {
+        docs: pallet.docs,
+        values: Object.fromEntries(
+          pallet.viewFns.map((fn) => {
+            const { args, value } = docsTypesBuilder.buildViewFn(
+              pallet.name,
+              fn.name,
+            )
+            return [
+              fn.name,
+              {
+                type: `RuntimeDescriptor<${args}, ${value}>`,
+                docs: fn.docs,
+              },
+            ]
+          }),
+        ),
+        descriptorsTypesImports: docsTypesBuilder.recordTypeFileImports(),
+      },
+    ]),
+  )
+  return buildTypeFolder(viewFns, getClientImports)
+}
+
 async function buildStorage(
   metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
@@ -397,7 +445,21 @@ ${docs.map((doc: string) => ` *${doc}`).join("\n")}
 `
 }
 
-function getIndexFileDocs({ chainName }: { chainName: string }): string {
+function getIndexFileDocs({
+  chainName,
+  hasSection,
+}: {
+  chainName: string
+  hasSection: {
+    storage: boolean
+    runtimeCalls: boolean
+    errors: boolean
+    constants: boolean
+    events: boolean
+    calls: boolean
+    viewFns: boolean
+  }
+}): string {
   return `
 /**
  * This is generated documentation for TypedAPI decriptors for **${chainName}** chain  
@@ -421,7 +483,9 @@ function getIndexFileDocs({ chainName }: { chainName: string }): string {
  * @packageDocumentation
  */
 
-/**
+${
+  hasSection.storage
+    ? `/**
  * Storage queries reference
  * 
  * Each item described here is a
@@ -454,7 +518,12 @@ function getIndexFileDocs({ chainName }: { chainName: string }): string {
  */
 export * as Storage from "./Storage";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.constants
+    ? `/**
  * Constants reference
  * 
  * Each item described here is a \`PlainDescriptor<T>\`  
@@ -485,7 +554,12 @@ export * as Storage from "./Storage";
  */
 export * as Constants from "./Constants";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.errors
+    ? `/**
  * Errors
  * 
  * This section is temporarily commented out, 
@@ -497,7 +571,12 @@ export * as Constants from "./Constants";
  */
 // export * as Errors from "./Errors";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.calls
+    ? `/**
  * Transactions reference
  * 
  * Each item described here is a \`TxDescriptor<T>\`, where \`T\` describes
@@ -526,7 +605,12 @@ export * as Constants from "./Constants";
  */
 export * as Transactions from "./Transactions";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.events
+    ? `/**
  * Events
  * 
  * Each item described here is a \`PlainDescriptor<T>\`  
@@ -551,7 +635,40 @@ export * as Transactions from "./Transactions";
  */
 export * as Events from "./Events";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.viewFns
+    ? `/**
+ * View Functions
+ * 
+ * Each item described here is a \`RuntimeDescriptor<Args, ReturnType>\`
+ * 
+ * For example, \`Proxy.is_superset\` is of type
+ * \`\`\`ts
+ * is_superset: RuntimeDescriptor<[to_check: ProxyType, against: ProxyType], boolean>
+ * \`\`\`
+ * and can be called like this:
+ * \`\`\`ts
+ *  const isSuperset = await api.view.Proxy.is_superset(Enum("Any"), Enum("NonTransfer"))
+ *  console.log(isSuperset)
+ * })
+ * \`\`\`
+ * 
+ * @see [PAPI docs](https://papi.how/typed/view) on view functions for more
+ * 
+ * @namespace
+ * @category TypedApi calls
+ */
+export * as ViewFunctions from "./ViewFunctions";
+
+`
+    : ""
+}
+${
+  hasSection.runtimeCalls
+    ? `/**
  * Runtime calls
  * 
  * Each item described here is a \`RuntimeDescriptor<Args, ReturnType>\`
@@ -574,6 +691,9 @@ export * as Events from "./Events";
  */
 export * as RuntimeCalls from "./RuntimeCalls";
 
+`
+    : ""
+}
 /**
  * Descriptors types
  * 
@@ -603,6 +723,5 @@ export * as RuntimeCalls from "./RuntimeCalls";
  * @namespace
  * @category Types
  */
-export * as Types from "./types";
-  `
+export * as Types from "./types";`
 }
