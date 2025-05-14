@@ -97,7 +97,15 @@ export async function generateDocsDescriptors(
 export type __Circular = any;
 `
 
-  const index = getIndexFileDocs({ chainName: key })
+  const hasSection = {
+    storage: storageOutput.index !== "",
+    runtimeCalls: runtimeCallsOutput.index !== "",
+    errors: errorsOutput.index !== "",
+    constants: constantsOutput.index !== "",
+    events: eventsOutput.index !== "",
+    calls: callsOutput.index !== "",
+  }
+  const index = getIndexFileDocs({ chainName: key, hasSection })
 
   return {
     index,
@@ -397,7 +405,20 @@ ${docs.map((doc: string) => ` *${doc}`).join("\n")}
 `
 }
 
-function getIndexFileDocs({ chainName }: { chainName: string }): string {
+function getIndexFileDocs({
+  chainName,
+  hasSection,
+}: {
+  chainName: string
+  hasSection: {
+    storage: boolean
+    runtimeCalls: boolean
+    errors: boolean
+    constants: boolean
+    events: boolean
+    calls: boolean
+  }
+}): string {
   return `
 /**
  * This is generated documentation for TypedAPI decriptors for **${chainName}** chain  
@@ -421,7 +442,9 @@ function getIndexFileDocs({ chainName }: { chainName: string }): string {
  * @packageDocumentation
  */
 
-/**
+${
+  hasSection.storage
+    ? `/**
  * Storage queries reference
  * 
  * Each item described here is a
@@ -454,7 +477,12 @@ function getIndexFileDocs({ chainName }: { chainName: string }): string {
  */
 export * as Storage from "./Storage";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.constants
+    ? `/**
  * Constants reference
  * 
  * Each item described here is a \`PlainDescriptor<T>\`  
@@ -485,7 +513,12 @@ export * as Storage from "./Storage";
  */
 export * as Constants from "./Constants";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.errors
+    ? `/**
  * Errors
  * 
  * This section is temporarily commented out, 
@@ -497,7 +530,12 @@ export * as Constants from "./Constants";
  */
 // export * as Errors from "./Errors";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.calls
+    ? `/**
  * Transactions reference
  * 
  * Each item described here is a \`TxDescriptor<T>\`, where \`T\` describes
@@ -526,7 +564,12 @@ export * as Constants from "./Constants";
  */
 export * as Transactions from "./Transactions";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.events
+    ? `/**
  * Events
  * 
  * Each item described here is a \`PlainDescriptor<T>\`  
@@ -551,7 +594,12 @@ export * as Transactions from "./Transactions";
  */
 export * as Events from "./Events";
 
-/**
+`
+    : ""
+}
+${
+  hasSection.runtimeCalls
+    ? `/**
  * Runtime calls
  * 
  * Each item described here is a \`RuntimeDescriptor<Args, ReturnType>\`
@@ -574,6 +622,9 @@ export * as Events from "./Events";
  */
 export * as RuntimeCalls from "./RuntimeCalls";
 
+`
+    : ""
+}
 /**
  * Descriptors types
  * 
@@ -603,6 +654,5 @@ export * as RuntimeCalls from "./RuntimeCalls";
  * @namespace
  * @category Types
  */
-export * as Types from "./types";
-  `
+export * as Types from "./types";`
 }
