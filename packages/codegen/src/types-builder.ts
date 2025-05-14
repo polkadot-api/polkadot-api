@@ -419,6 +419,22 @@ export const getDocsTypesBuilder = (
     return { args: returnKey, payload, opaque }
   }
 
+  const buildViewFn = (pallet: string, entry: string) => {
+    const fn = metadata.pallets
+      .find((x) => x.name === pallet)
+      ?.viewFns.find((x) => x.name === entry)
+    if (!fn) throw null
+
+    const innerTuple = fn.inputs
+      .map(({ name, type }) => `${name}: ${buildTypeDefinition(type)}`)
+      .join(", ")
+
+    return {
+      args: `[${innerTuple}]`,
+      value: buildTypeDefinition(fn.output),
+    }
+  }
+
   const buildRuntimeCall = (api: string, method: string) => {
     const entry = metadata.apis
       .find((x) => x.name === api)
@@ -497,6 +513,7 @@ export const getDocsTypesBuilder = (
     buildError: buildVariant("errors"),
     buildCall: buildVariant("calls"),
     buildConstant,
+    buildViewFn,
     declarations,
     recordTypeFileImports,
     getClientFileImports: () => Array.from(clientFileImports),

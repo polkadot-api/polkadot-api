@@ -42,6 +42,7 @@ export async function generateDocsDescriptors(
     "EventsFromPalletsDef",
     "ErrorsFromPalletsDef",
     "ConstFromPalletsDef",
+    "ViewFnsFromPalletsDef",
     "SS58String",
     "ResultPayload",
     "TxCallData",
@@ -79,6 +80,11 @@ export async function generateDocsDescriptors(
     docsTypesBuilder,
     getClientImports,
   )
+  const viewFnsOutput = await buildViewFns(
+    metadata,
+    docsTypesBuilder,
+    getClientImports,
+  )
 
   const descriptorsTypesFileContent =
     `import {\n  ${getClientImports().join(",\n  ")}\n} from "${paths.client}";\n` +
@@ -104,6 +110,7 @@ export type __Circular = any;
     constants: constantsOutput.index !== "",
     events: eventsOutput.index !== "",
     calls: callsOutput.index !== "",
+    viewFns: viewFnsOutput.index !== "",
   }
   const index = getIndexFileDocs({ chainName: key, hasSection })
 
@@ -116,6 +123,7 @@ export type __Circular = any;
     Constants: constantsOutput,
     Events: eventsOutput,
     Transactions: callsOutput,
+    ViewFunctions: viewFnsOutput,
   }
 }
 
@@ -289,6 +297,38 @@ async function buildRuntimeCalls(
   return buildTypeFolder(runtimeCalls, getClientImports)
 }
 
+async function buildViewFns(
+  metadata: UnifiedMetadata,
+  docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
+  getClientImports: () => string[],
+): Promise<FileTree> {
+  const viewFns = Object.fromEntries(
+    metadata.pallets.map((pallet) => [
+      pallet.name,
+      {
+        docs: pallet.docs,
+        values: Object.fromEntries(
+          pallet.viewFns.map((fn) => {
+            const { args, value } = docsTypesBuilder.buildViewFn(
+              pallet.name,
+              fn.name,
+            )
+            return [
+              fn.name,
+              {
+                type: `RuntimeDescriptor<${args}, ${value}>`,
+                docs: fn.docs,
+              },
+            ]
+          }),
+        ),
+        descriptorsTypesImports: docsTypesBuilder.recordTypeFileImports(),
+      },
+    ]),
+  )
+  return buildTypeFolder(viewFns, getClientImports)
+}
+
 async function buildStorage(
   metadata: UnifiedMetadata,
   docsTypesBuilder: ReturnType<typeof getDocsTypesBuilder>,
@@ -417,6 +457,7 @@ function getIndexFileDocs({
     constants: boolean
     events: boolean
     calls: boolean
+    viewFns: boolean
   }
 }): string {
   return `
@@ -593,6 +634,34 @@ ${
  * @category TypedApi calls
  */
 export * as Events from "./Events";
+
+`
+    : ""
+}
+${
+  hasSection.viewFns
+    ? `/**
+ * View Functions
+ * 
+ * Each item described here is a \`RuntimeDescriptor<Args, ReturnType>\`
+ * 
+ * For example, \`Proxy.is_superset\` is of type
+ * \`\`\`ts
+ * is_superset: RuntimeDescriptor<[to_check: ProxyType, against: ProxyType], boolean>
+ * \`\`\`
+ * and can be called like this:
+ * \`\`\`ts
+ *  const isSuperset = await api.view.Proxy.is_superset(Enum("Any"), Enum("NonTransfer"))
+ *  console.log(isSuperset)
+ * })
+ * \`\`\`
+ * 
+ * @see [PAPI docs](https://papi.how/typed/view) on view functions for more
+ * 
+ * @namespace
+ * @category TypedApi calls
+ */
+export * as ViewFunctions from "./ViewFunctions";
 
 `
     : ""
