@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- **Signer:**
+  - `withMetadataHash` enhancer
+
 ## 1.10.2 - 2025-05-05
 
 ### Fixed
