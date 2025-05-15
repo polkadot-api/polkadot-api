@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.0 - 2025-05-15
+
 ### Added
 
 - Add `viewFns` checksum and dynamic builder capabilities.
