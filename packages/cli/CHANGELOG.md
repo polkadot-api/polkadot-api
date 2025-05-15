@@ -5,6 +5,7 @@
 ### Fixed
 
 - Ensure final newline is added on all files
+- Fix entry docs not getting stripped properly [#1033](https://github.com/polkadot-api/polkadot-api/issues/1033).
 
 ## 0.11.13 - 2025-05-05
 

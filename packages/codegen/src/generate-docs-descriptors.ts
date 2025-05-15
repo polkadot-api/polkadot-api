@@ -359,7 +359,7 @@ function buildTypeFolder(
       docs.length > 0
         ? `
 /**
-${docs.map((doc: string) => ` *${doc}`).join("\n")}
+${docs.map((doc: string) => ` * ${doc.trim()}`).join("\n")}
  * @packageDocumentation
  */\n\n
 `
@@ -393,7 +393,7 @@ export {${section}_${typeName} as ${typeName}};`,
 
 function formatDocs(docs: string[]): string {
   return `/**
-${docs.map((doc: string) => ` *${doc}`).join("\n")}
+${docs.map((doc: string) => ` * ${doc.trim()}`).join("\n")}
 */
 `
 }
