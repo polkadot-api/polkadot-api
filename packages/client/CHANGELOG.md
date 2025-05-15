@@ -13,6 +13,11 @@
 
 - Prefer metadata V16 when creating the client.
 
+### Fixed
+
+- **CLI:**
+  - Fix entry docs not getting stripped properly [#1033](https://github.com/polkadot-api/polkadot-api/issues/1033).
+
 ## 1.10.2 - 2025-05-05
 
 ### Fixed

@@ -7,6 +7,10 @@
 - Add `viewFns` code generation
 - Expose `<key>Apis` type for Runtime APIs.
 
+### Fixed
+
+- Fix entry docs not getting stripped properly [#1033](https://github.com/polkadot-api/polkadot-api/issues/1033).
+
 ## 0.14.0 - 2025-04-24
 
 ### Changed

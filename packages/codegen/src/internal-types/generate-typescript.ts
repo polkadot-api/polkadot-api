@@ -156,7 +156,7 @@ export const generateObjectCode = (
     code: `{${innerValues
       .map(({ label, docs, value, result }) => {
         const docsPrefix = docs.length
-          ? `\n/**\n${docs.map((doc) => ` *${doc}`).join("\n")}\n */\n`
+          ? `\n/**\n${docs.map((doc) => ` * ${doc.trim()}`).join("\n")}\n */\n`
           : ""
         if (result === null)
           return docsPrefix + `${JSON.stringify(label)}: undefined`

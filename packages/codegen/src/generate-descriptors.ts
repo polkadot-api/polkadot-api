@@ -27,7 +27,7 @@ export const customStringifyObject = (
     .map(([key, value]) => {
       if (isDocs(value)) {
         return `\n\n/**\n${value.docs
-          .map((doc: string) => ` *${doc}`)
+          .map((doc: string) => ` * ${doc.trim()}`)
           .join("\n")}\n */\n${key}: ${customStringifyObject(value.value)}`
       }
       return `${key}: ${value}`
