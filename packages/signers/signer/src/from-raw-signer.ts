@@ -6,6 +6,7 @@ import {
   decAnyMetadata,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
+import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
 
 export function getPolkadotSigner(
   publicKey: Uint8Array,
@@ -48,3 +49,32 @@ export function getPolkadotSigner(
     signBytes: getSignBytes(sign),
   }
 }
+
+const METADATA_IDENTIFIER = "CheckMetadataHash"
+const oneU8 = Uint8Array.from([1])
+
+export const withMetadataHash = (
+  networkInfo: Parameters<typeof merkleizeMetadata>[1],
+  base: PolkadotSigner,
+): PolkadotSigner => ({
+  ...base,
+  signTx: async (callData, signedExtensions, metadata, ...rest) =>
+    base.signTx(
+      callData,
+      signedExtensions[METADATA_IDENTIFIER]
+        ? {
+            ...signedExtensions,
+            [METADATA_IDENTIFIER]: {
+              identifier: METADATA_IDENTIFIER,
+              value: oneU8,
+              additionalSigned: mergeUint8(
+                oneU8,
+                merkleizeMetadata(metadata, networkInfo).digest(),
+              ),
+            },
+          }
+        : signedExtensions,
+      metadata,
+      ...rest,
+    ),
+})

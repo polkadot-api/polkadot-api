@@ -6,6 +6,8 @@
 
 - Add `view` API.
 - Expose `<key>Apis` type for Runtime APIs.
+- **Signer:**
+  - `withMetadataHash` enhancer
 
 ### Changed
 

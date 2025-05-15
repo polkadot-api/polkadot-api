@@ -4,7 +4,7 @@ import {
   entropyToMiniSecret,
   mnemonicToEntropy,
 } from "@polkadot-labs/hdkd-helpers"
-import { getPolkadotSigner } from "polkadot-api/signer"
+import { getPolkadotSigner, withMetadataHash } from "polkadot-api/signer"
 import { createClient } from "polkadot-api"
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
 import { chainSpec } from "polkadot-api/chains/westend2"
@@ -15,10 +15,9 @@ import { start } from "polkadot-api/smoldot"
 const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))
 const derive = sr25519CreateDerive(miniSecret)
 const aliceKeyPair = derive("//Alice")
-const alice = getPolkadotSigner(
-  aliceKeyPair.publicKey,
-  "Sr25519",
-  aliceKeyPair.sign,
+const alice = withMetadataHash(
+  { decimals: 12, tokenSymbol: "WND" },
+  getPolkadotSigner(aliceKeyPair.publicKey, "Sr25519", aliceKeyPair.sign),
 )
 
 // create the client with smoldot

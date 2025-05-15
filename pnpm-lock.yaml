@@ -731,6 +731,9 @@ importers:
       '@noble/hashes':
         specifier: ^1.8.0
         version: 1.8.0
+      '@polkadot-api/merkleize-metadata':
+        specifier: workspace:*
+        version: link:../../merkleize-metadata
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../polkadot-signer
