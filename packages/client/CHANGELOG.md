@@ -4,8 +4,14 @@
 
 ### Added
 
+- Add `view` API.
+- Expose `<key>Apis` type for Runtime APIs.
 - **Signer:**
   - `withMetadataHash` enhancer
+
+### Changed
+
+- Prefer metadata V16 when creating the client.
 
 ## 1.10.2 - 2025-05-05
 

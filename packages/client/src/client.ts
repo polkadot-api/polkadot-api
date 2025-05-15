@@ -41,6 +41,7 @@ import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import type { AnyApi, PolkadotClient } from "./types"
 import { createWatchEntries } from "./watch-entries"
+import { createViewFnEntry } from "./viewFns"
 
 const createApi = <Unsafe extends true | false, D>(
   compatibilityToken: Promise<CompatibilityToken | RuntimeToken>,
@@ -81,7 +82,7 @@ const createApi = <Unsafe extends true | false, D>(
       getWatchEntries,
       compatibilityHelper(
         compatibilityToken,
-        (r) => r.getPalletEntryPoint(OpType.Storage, pallet, name),
+        (r) => r.getEntryPoint(OpType.Storage, pallet, name),
         // TODO this is way sub-optimal. Needs some rethought - maybe a builder for entry points?.
         (ctx) => {
           const item = getPallet(ctx, pallet)?.storage?.items.find(
@@ -118,8 +119,9 @@ const createApi = <Unsafe extends true | false, D>(
       broadcast$,
       compatibilityHelper(
         compatibilityToken,
-        (r) => r.getPalletEntryPoint(OpType.Tx, pallet, name),
-        (ctx) => getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls, name),
+        (r) => r.getEntryPoint(OpType.Tx, pallet, name),
+        (ctx) =>
+          getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls?.type, name),
       ),
       true,
     ),
@@ -132,9 +134,14 @@ const createApi = <Unsafe extends true | false, D>(
       chainHead,
       compatibilityHelper(
         compatibilityToken,
-        (r) => r.getPalletEntryPoint(OpType.Event, pallet, name),
+        (r) => r.getEntryPoint(OpType.Event, pallet, name),
         (ctx) =>
-          getEnumEntry(ctx, "values", getPallet(ctx, pallet)?.events, name),
+          getEnumEntry(
+            ctx,
+            "values",
+            getPallet(ctx, pallet)?.events?.type,
+            name,
+          ),
       ),
     ),
   )
@@ -145,7 +152,7 @@ const createApi = <Unsafe extends true | false, D>(
       name,
       compatibilityHelper(
         compatibilityToken,
-        (r) => r.getPalletEntryPoint(OpType.Const, pallet, name),
+        (r) => r.getEntryPoint(OpType.Const, pallet, name),
         (ctx) => {
           const item = getPallet(ctx, pallet)?.constants.find(
             (c) => c.name === name,
@@ -163,12 +170,29 @@ const createApi = <Unsafe extends true | false, D>(
       chainHead,
       compatibilityHelper(
         compatibilityToken,
-        (r) => r.getApiEntryPoint(api, method),
+        (r) => r.getEntryPoint(OpType.Api, api, method),
         (ctx) =>
           runtimeCallEntryPoint(
             ctx.lookup.metadata.apis
               .find((a) => a.name === api)!
               .methods.find((m) => m.name === method)!,
+          ),
+      ),
+    ),
+  )
+  const view = createProxyPath((pallet, entry) =>
+    createViewFnEntry(
+      pallet,
+      entry,
+      chainHead,
+      compatibilityHelper(
+        compatibilityToken,
+        (r) => r.getEntryPoint(OpType.ViewFns, pallet, entry),
+        (ctx) =>
+          runtimeCallEntryPoint(
+            ctx.lookup.metadata.pallets
+              .find((a) => a.name === pallet)!
+              .viewFns.find((m) => m.name === entry)!,
           ),
       ),
     ),
@@ -194,9 +218,14 @@ const createApi = <Unsafe extends true | false, D>(
         broadcast$,
         compatibilityHelper(
           compatibilityToken,
-          (r) => r.getPalletEntryPoint(OpType.Tx, pallet, call),
+          (r) => r.getEntryPoint(OpType.Tx, pallet, call),
           (ctx) =>
-            getEnumEntry(ctx, "args", getPallet(ctx, pallet)?.calls, call),
+            getEnumEntry(
+              ctx,
+              "args",
+              getPallet(ctx, pallet)?.calls?.type,
+              call,
+            ),
         ),
         false,
       )(args)
@@ -218,6 +247,7 @@ const createApi = <Unsafe extends true | false, D>(
     event,
     apis,
     constants,
+    view,
   } as any
 }
 

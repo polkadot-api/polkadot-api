@@ -1,4 +1,4 @@
-import type { V14, V15 } from "@polkadot-api/substrate-bindings"
+import { UnifiedMetadata } from "@polkadot-api/substrate-bindings"
 import { getUsedTypes } from "./get-used-types"
 import {
   getChecksumBuilder,
@@ -6,9 +6,9 @@ import {
 } from "@polkadot-api/metadata-builders"
 
 export function applyWhitelist(
-  metadata: V14 | V15,
+  metadata: UnifiedMetadata,
   whitelist: string[] | null,
-): V14 | V15 {
+): UnifiedMetadata {
   if (!whitelist) return metadata
 
   const allApis = whitelist.includes("api.*")
@@ -36,19 +36,21 @@ export function applyWhitelist(
     .map((w) => fullPalletRegex.exec(w)?.[1])
     .filter((v) => !!v)
 
+  // this is the same for calls, events, and errors
+  type EnumRef = UnifiedMetadata["pallets"][number]["calls"]
   const filterEnum = (
     whitelistPrefix: string,
     palletName: string,
-    lookupIdx: number | undefined,
-  ) => {
-    if (!lookupIdx) return lookupIdx
+    entry: EnumRef,
+  ): EnumRef => {
+    if (!entry) return entry
     if (
       whitelist.includes(`${whitelistPrefix}.*`) ||
       whitelist.includes(`${whitelistPrefix}.${palletName}.*`)
     )
-      return lookupIdx
+      return entry
 
-    const def = metadata.lookup[lookupIdx].def
+    const def = metadata.lookup[entry.type].def
     if (def.tag !== "variant") throw new Error(whitelistPrefix + " not an enum")
 
     const prefixNotIncluded = whitelist.every(
@@ -63,14 +65,19 @@ export function applyWhitelist(
 
     const idx = metadata.lookup.length
     metadata.lookup.push({
-      ...metadata.lookup[lookupIdx],
+      ...metadata.lookup[entry.type],
       id: idx,
       def: {
         tag: "variant",
         value,
       },
     })
-    return idx
+    return "deprecationInfo" in entry
+      ? {
+          type: idx,
+          deprecationInfo: entry.deprecationInfo,
+        }
+      : { type: idx }
   }
   const getEnumLength = (lookupIdx: number | undefined) => {
     if (!lookupIdx) return 0
@@ -100,10 +107,10 @@ export function applyWhitelist(
     )
   }
 
-  const filterPallets = <T extends V14 | V15>(
-    pallets: T["pallets"],
+  const filterPallets = (
+    pallets: UnifiedMetadata["pallets"],
     filterErrors: boolean,
-  ): T["pallets"] =>
+  ): UnifiedMetadata["pallets"] =>
     pallets
       .map((pallet) => {
         if (fullPallets.includes(pallet.name)) return pallet
@@ -120,15 +127,17 @@ export function applyWhitelist(
                 items: filterList("query", pallet.name, pallet.storage.items),
               }
             : undefined,
+          viewFns: filterList("view", pallet.name, pallet.viewFns),
         }
       })
       .filter(
         (pallet) =>
-          getEnumLength(pallet.calls) +
+          getEnumLength(pallet.calls?.type) +
           pallet.constants.length +
-          getEnumLength(pallet.errors) +
-          getEnumLength(pallet.events) +
-          (pallet.storage?.items.length ?? 0),
+          getEnumLength(pallet.errors?.type) +
+          getEnumLength(pallet.events?.type) +
+          (pallet.storage?.items.length ?? 0) +
+          pallet.viewFns.length,
       )
 
   const pallets = filterPallets(metadata.pallets, false)

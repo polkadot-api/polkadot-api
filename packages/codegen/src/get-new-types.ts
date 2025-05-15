@@ -2,16 +2,14 @@ import {
   getChecksumBuilder,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import type { V15 } from "@polkadot-api/substrate-bindings"
+import type { V14Lookup } from "@polkadot-api/substrate-bindings"
 import { KnownTypes } from "./known-types"
 import { defaultDeclarations, getTypesBuilder } from "./types-builder"
-
-type ArraVal<T extends Array<any>> = T extends Array<infer V> ? V : unknown
 
 export const getNewTypes = (
   lookup: MetadataLookup,
   knownTypes: KnownTypes,
-  getTypeName: (data: ArraVal<V15["lookup"]>) => string | null,
+  getTypeName: (data: V14Lookup[number]) => string | null,
 ) => {
   const { metadata } = lookup
   const checksumBuilder = getChecksumBuilder(lookup)

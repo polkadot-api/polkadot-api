@@ -6,7 +6,7 @@ import {
   ScaleEnum,
   Struct,
   Tuple,
-  V15,
+  V14Lookup,
   Vector,
   _void,
   bool,
@@ -134,7 +134,7 @@ export const extrinsicMetadata = Struct({
   ),
 })
 export type ExtrinsicMetadata = CodecType<typeof extrinsicMetadata>
-export type LookupValue = V15["lookup"] extends Array<infer T> ? T : never
+export type LookupValue = V14Lookup[number]
 
 const versionDecoder = enhanceDecoder(u8[1], (value) => ({
   version: value & ~(1 << 7),

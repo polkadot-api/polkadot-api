@@ -184,6 +184,22 @@ export const getTypesBuilder = (
     return { key: returnKey, val, opaque }
   }
 
+  const buildViewFn = (pallet: string, entry: string) => {
+    const viewFn = metadata.pallets
+      .find((x) => x.name === pallet)
+      ?.viewFns.find((x) => x.name === entry)
+    if (!viewFn) throw null
+
+    const innerTuple = viewFn.inputs
+      .map(({ name, type }) => `${name}: ${buildTypeDefinition(type)}`)
+      .join(", ")
+
+    return {
+      args: `[${innerTuple}]`,
+      value: buildTypeDefinition(viewFn.output),
+    }
+  }
+
   const buildRuntimeCall = (api: string, method: string) => {
     const entry = metadata.apis
       .find((x) => x.name === api)
@@ -203,7 +219,7 @@ export const getTypesBuilder = (
   const buildVariant =
     (type: "errors" | "events" | "calls") => (pallet: string, name: string) => {
       const lookupEntry = getLookupEntryDef(
-        metadata.pallets.find((x) => x.name === pallet)![type]! as number,
+        metadata.pallets.find((x) => x.name === pallet)![type]!.type,
       )
       if (lookupEntry.type !== "enum") throw null
 
@@ -244,6 +260,7 @@ export const getTypesBuilder = (
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
     buildCall: buildVariant("calls"),
+    buildViewFn,
     buildRuntimeCall,
     buildConstant,
     getTypeFileImports: () => Array.from(typeFileImports),
@@ -421,7 +438,7 @@ export const getDocsTypesBuilder = (
   const buildVariant =
     (type: "errors" | "events" | "calls") => (pallet: string, name: string) => {
       const lookupEntry = getLookupEntryDef(
-        metadata.pallets.find((x) => x.name === pallet)![type]! as number,
+        metadata.pallets.find((x) => x.name === pallet)![type]!.type,
       )
       if (lookupEntry.type !== "enum") throw null
 

@@ -13,6 +13,7 @@ import {
 import type { HexString } from "../scale"
 import { v14 } from "./v14"
 import { v15 } from "./v15"
+import { v16 } from "./v16"
 
 const unsupportedFn = () => {
   throw new Error("Unsupported metadata version!")
@@ -42,8 +43,10 @@ export const metadata = Struct({
     v13: unsupported,
     v14,
     v15,
+    v16,
   }),
 })
+export type Metadata = CodecType<typeof metadata>
 
 const opaqueBytes = Bytes()
 const optionOpaque = Option(opaqueBytes)

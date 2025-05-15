@@ -83,19 +83,23 @@ export const getUsedTypes = (
       const checksum = builder.buildConstant(pallet.name, name)!
       addTypeFromEntryPoint(checksum, singleValueEntryPoint(type))
     })
+    pallet.viewFns.forEach((entry) => {
+      const checksum = builder.buildViewFns(pallet.name, entry.name)!
+      addTypeFromEntryPoint(checksum, runtimeCallEntryPoint(entry))
+    })
     buildEnum(
       "args",
-      pallet.calls,
+      pallet.calls?.type,
       (name) => builder.buildCall(pallet.name, name)!,
     )
     buildEnum(
       "values",
-      pallet.events,
+      pallet.events?.type,
       (name) => builder.buildEvent(pallet.name, name)!,
     )
     buildEnum(
       "values",
-      pallet.errors,
+      pallet.errors?.type,
       (name) => builder.buildError(pallet.name, name)!,
     )
   })

@@ -34,12 +34,7 @@ interface RuntimeTokenApi {
 }
 interface CompatibilityTokenApi extends RuntimeTokenApi {
   typedefNodes: TypedefNode[]
-  getPalletEntryPoint: (
-    opType: OpType,
-    pallet: string,
-    name: string,
-  ) => EntryPoint
-  getApiEntryPoint: (name: string, method: string) => EntryPoint
+  getEntryPoint: (opType: OpType, pallet: string, name: string) => EntryPoint
 }
 const compatibilityTokenApi = new WeakMap<
   CompatibilityToken,
@@ -58,6 +53,8 @@ export const enum OpType {
   Tx = "tx",
   Event = "events",
   Const = "constants",
+  ViewFns = "viewFns",
+  Api = "apis",
 }
 
 const EntryPointsCodec = Vector(EntryPointCodec)
@@ -85,18 +82,12 @@ export const createCompatibilityToken = <D extends ChainDefinition>(
     const token = new (CompatibilityToken as any)()
     compatibilityTokenApi.set(token, {
       runtime,
-      getPalletEntryPoint(opType, pallet, name) {
+      getEntryPoint(opType, pallet, name) {
         const idx = descriptors[opType]?.[pallet]?.[name]
         if (idx == null)
           throw new Error(
             `Descriptor for ${opType} ${pallet}.${name} does not exist`,
           )
-        return entryPoints[idx]
-      },
-      getApiEntryPoint(name, method) {
-        const idx = descriptors.apis?.[name]?.[method]
-        if (idx == null)
-          throw new Error(`Descriptor for API ${name}.${method} does not exist`)
         return entryPoints[idx]
       },
       typedefNodes,

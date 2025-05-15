@@ -25,12 +25,14 @@ export type PalletsTypedef<
   Ev extends DescriptorEntry<PlainDescriptor<any>>,
   Err extends DescriptorEntry<PlainDescriptor<any>>,
   Ct extends DescriptorEntry<PlainDescriptor<any>>,
+  Vw extends DescriptorEntry<RuntimeDescriptor<any, any>>,
 > = {
   __storage: St
   __tx: Tx
   __event: Ev
   __error: Err
   __const: Ct
+  __view: Vw
 }
 
 export type ApisTypedef<
@@ -41,7 +43,7 @@ export { DescriptorValues }
 
 export type ChainDefinition = {
   descriptors: Promise<DescriptorValues> & {
-    pallets: PalletsTypedef<any, any, any, any, any>
+    pallets: PalletsTypedef<any, any, any, any, any, any>
     apis: ApisTypedef<any>
   }
   asset: PlainDescriptor<any>
@@ -100,22 +102,44 @@ type ExtractPlain<T extends DescriptorEntry<PlainDescriptor<any>>> = {
   }
 }
 
+type ExtractRuntime<T extends DescriptorEntry<RuntimeDescriptor<any, any>>> = {
+  [K in keyof T]: {
+    [KK in keyof T[K]]: T[K][KK] extends RuntimeDescriptor<
+      infer Args,
+      infer Value
+    >
+      ? {
+          Args: Args
+          Value: Value
+        }
+      : unknown
+  }
+}
+
+export type ApisFromDef<
+  T extends DescriptorEntry<RuntimeDescriptor<any, any>>,
+> = ExtractRuntime<T>
+
 export type QueryFromPalletsDef<
-  T extends PalletsTypedef<any, any, any, any, any>,
+  T extends PalletsTypedef<any, any, any, any, any, any>,
 > = ExtractStorage<T["__storage"]>
 
 export type TxFromPalletsDef<
-  T extends PalletsTypedef<any, any, any, any, any>,
+  T extends PalletsTypedef<any, any, any, any, any, any>,
 > = ExtractTx<T["__tx"]>
 
 export type EventsFromPalletsDef<
-  T extends PalletsTypedef<any, any, any, any, any>,
+  T extends PalletsTypedef<any, any, any, any, any, any>,
 > = ExtractPlain<T["__event"]>
 
 export type ErrorsFromPalletsDef<
-  T extends PalletsTypedef<any, any, any, any, any>,
+  T extends PalletsTypedef<any, any, any, any, any, any>,
 > = ExtractPlain<T["__error"]>
 
 export type ConstFromPalletsDef<
-  T extends PalletsTypedef<any, any, any, any, any>,
+  T extends PalletsTypedef<any, any, any, any, any, any>,
 > = ExtractPlain<T["__const"]>
+
+export type ViewFnsFromPalletsDef<
+  T extends PalletsTypedef<any, any, any, any, any, any>,
+> = ExtractRuntime<T["__view"]>

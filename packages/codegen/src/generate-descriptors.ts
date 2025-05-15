@@ -37,7 +37,7 @@ export const customStringifyObject = (
 
 // type -> pallet -> name
 export type DescriptorValues = Record<
-  "storage" | "tx" | "events" | "constants" | "apis",
+  "storage" | "tx" | "events" | "constants" | "apis" | "viewFns",
   Record<string, Record<string, number>>
 >
 
@@ -133,7 +133,7 @@ export const generateDescriptors = (
     metadata.pallets.map((pallet) => {
       return [
         pallet.name,
-        buildEnumObj(pallet.calls, (name, docs) => ({
+        buildEnumObj(pallet.calls?.type, (name, docs) => ({
           typeRef: checksumToIdx.get(
             checksumBuilder.buildCall(pallet.name, name)!,
           )!,
@@ -149,7 +149,7 @@ export const generateDescriptors = (
     metadata.pallets.map((pallet) => {
       return [
         pallet.name,
-        buildEnumObj(pallet.events, (name, docs) => ({
+        buildEnumObj(pallet.events?.type, (name, docs) => ({
           typeRef: checksumToIdx.get(
             checksumBuilder.buildEvent(pallet.name, name)!,
           )!,
@@ -168,7 +168,7 @@ export const generateDescriptors = (
     metadata.pallets.map((pallet) => {
       return [
         pallet.name,
-        buildEnumObj(pallet.errors, (name, docs) => {
+        buildEnumObj(pallet.errors?.type, (name, docs) => {
           return {
             typeRef: checksumToIdx.get(
               checksumBuilder.buildError(pallet.name, name)!,
@@ -183,6 +183,31 @@ export const generateDescriptors = (
         }),
       ]
     }),
+  )
+
+  const viewFns = Object.fromEntries(
+    metadata.pallets.map((pallet) => [
+      pallet.name,
+      Object.fromEntries(
+        pallet.viewFns.map((viewFn) => {
+          const { args, value } = typesBuilder.buildViewFn(
+            pallet.name,
+            viewFn.name,
+          )
+          return [
+            viewFn.name,
+            {
+              typeRef: checksumToIdx.get(
+                checksumBuilder.buildViewFns(pallet.name, viewFn.name)!,
+              )!,
+              type: `RuntimeDescriptor<${args}, ${value}>`,
+              name: `view_${pallet.name}_${viewFn.name}`,
+              docs: viewFn.docs,
+            },
+          ]
+        }),
+      ),
+    ]),
   )
 
   const runtimeCalls = Object.fromEntries(
@@ -234,12 +259,14 @@ export const generateDescriptors = (
   const iEvents = mapDescriptor(events, extractValue)
   const iErrors = mapDescriptor(errors, extractValue)
   const iConstants = mapDescriptor(constants, extractValue)
+  const iViewFns = mapDescriptor(viewFns, extractValue)
 
   const descriptorValues: DescriptorValues = {
     storage: {},
     tx: {},
     events: {},
     constants: {},
+    viewFns: {},
     apis: {},
   }
   const mapObjStr = mapObject as <I, O>(
@@ -249,7 +276,7 @@ export const generateDescriptors = (
   Object.keys(storage).forEach((pallet) => {
     descriptorValues["storage"][pallet] = mapObjStr(
       storage[pallet],
-      (x, _: string) => x.typeRef,
+      (x) => x.typeRef,
     )
     descriptorValues["tx"][pallet] = mapObjStr(calls[pallet], (x) => x.typeRef)
     descriptorValues["events"][pallet] = mapObjStr(
@@ -258,6 +285,10 @@ export const generateDescriptors = (
     )
     descriptorValues["constants"][pallet] = mapObjStr(
       constants[pallet],
+      (x) => x.typeRef,
+    )
+    descriptorValues["viewFns"][pallet] = mapObjStr(
+      viewFns[pallet],
       (x) => x.typeRef,
     )
   })
@@ -294,11 +325,13 @@ export const generateDescriptors = (
       "Enum",
       "_Enum",
       "GetEnum",
+      "ApisFromDef",
       "QueryFromPalletsDef",
       "TxFromPalletsDef",
       "EventsFromPalletsDef",
       "ErrorsFromPalletsDef",
       "ConstFromPalletsDef",
+      "ViewFnsFromPalletsDef",
       ...typesBuilder.getClientFileImports(),
       ...anonymizeImports,
     ]),
@@ -358,6 +391,7 @@ type ICalls = ${customStringifyObject(iCalls)};
 type IEvent = ${customStringifyObject(iEvents)};
 type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
+type IViewFns = ${customStringifyObject(iViewFns)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 type IAsset = PlainDescriptor<${assetType}>
 export type ${prefix}DispatchError = ${dispatchErrorType}
@@ -373,6 +407,7 @@ type PalletsTypedef = {
   __event: IEvent,
   __error: IError,
   __const: IConstants
+  __view: IViewFns
 }
 
 type IDescriptors = {
@@ -388,11 +423,13 @@ type IDescriptors = {
 const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata, genesis } as any as IDescriptors;
 export default _allDescriptors;
 
+export type ${prefix}Apis = ApisFromDef<IRuntimeCalls>
 export type ${prefix}Queries = QueryFromPalletsDef<PalletsTypedef>
 export type ${prefix}Calls = TxFromPalletsDef<PalletsTypedef>
 export type ${prefix}Events = EventsFromPalletsDef<PalletsTypedef>
 export type ${prefix}Errors = ErrorsFromPalletsDef<PalletsTypedef>
 export type ${prefix}Constants = ConstFromPalletsDef<PalletsTypedef>
+export type ${prefix}ViewFns = ViewFnsFromPalletsDef<PalletsTypedef>
 ${chainCallType}
 
 export type ${prefix}WhitelistEntry =
@@ -403,8 +440,9 @@ export type ${prefix}WhitelistEntry =
   | \`event.\${NestedKey<PalletsTypedef['__event']>}\`
   | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
   | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
+  | \`view.\${NestedKey<PalletsTypedef['__view']>}\`
 
-type PalletKey = \`*.\${keyof (IStorage & ICalls & IEvent & IError & IConstants & IRuntimeCalls)}\`
+type PalletKey = \`*.\${keyof (IStorage & ICalls & IEvent & IError & IConstants & IRuntimeCalls & IViewFns)}\`
 type NestedKey<D extends Record<string, Record<string, any>>> =
   | "*"
   | {
@@ -450,7 +488,7 @@ export function getDispatchErrorId(lookup: MetadataLookup) {
   )?.events
   if (systemPalletEventId == null) return
 
-  const systemPalletEvent = lookup(systemPalletEventId)
+  const systemPalletEvent = lookup(systemPalletEventId.type)
   if (systemPalletEvent.type !== "enum") return
 
   const extrinsicFailed = systemPalletEvent.value.ExtrinsicFailed
