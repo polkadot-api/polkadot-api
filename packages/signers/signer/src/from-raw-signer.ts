@@ -54,7 +54,7 @@ const METADATA_IDENTIFIER = "CheckMetadataHash"
 const oneU8 = Uint8Array.from([1])
 
 export const withMetadataHash = (
-  networkInfo: { decimals: number; tokenSymbol: string },
+  networkInfo: Parameters<typeof merkleizeMetadata>[1],
   base: PolkadotSigner,
 ): PolkadotSigner => ({
   ...base,
