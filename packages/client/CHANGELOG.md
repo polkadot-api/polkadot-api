@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.11.0 - 2025-05-15
+
 ### Added
 
 - Add `view` API.

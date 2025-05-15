@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/known-chains",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",

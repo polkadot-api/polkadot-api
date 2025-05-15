@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.0 - 2025-05-15
+
 ### Added
 
 - Add Metadata V16 codec.

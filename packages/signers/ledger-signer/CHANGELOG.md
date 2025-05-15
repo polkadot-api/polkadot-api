@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2025-05-15
+
 ### Added
 
 - Add support to `ecdsa` (ETH-like) accounts.

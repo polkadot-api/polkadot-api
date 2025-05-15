@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.0 - 2025-05-15
+
 ### Changed
 
 - Prefer metadata V16 when creating the client.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.15.0 - 2025-05-15
+
 ### Added
 
 - Add `viewFns` code generation
