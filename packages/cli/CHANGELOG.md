@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Expose `<key>Apis` type for Runtime APIs.
+
 ### Fixed
 
 - Ensure final newline is added on all files

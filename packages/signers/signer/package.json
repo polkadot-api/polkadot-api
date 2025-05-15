@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@noble/hashes": "^1.8.0",
+    "@polkadot-api/merkleize-metadata": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

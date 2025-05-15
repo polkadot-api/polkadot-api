@@ -6,9 +6,10 @@ import type {
   StringRecord,
   V14,
   V15,
+  V16,
 } from "@polkadot-api/substrate-bindings"
 
-export type { Decoder, HexString, StringRecord, V15, V14 }
+export type { Decoder, HexString, StringRecord, V14, V15, V16 }
 
 export type UnshapedDecoder = {
   shape: Shape

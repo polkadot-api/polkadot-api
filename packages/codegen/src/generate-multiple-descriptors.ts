@@ -8,7 +8,10 @@ import {
   mapReferences,
   TypedefNode,
 } from "@polkadot-api/metadata-compatibility"
-import type { HexString, V14, V15 } from "@polkadot-api/substrate-bindings"
+import type {
+  HexString,
+  UnifiedMetadata,
+} from "@polkadot-api/substrate-bindings"
 import { mapObject } from "@polkadot-api/utils"
 import {
   capitalize,
@@ -24,7 +27,7 @@ import { applyWhitelist } from "./whitelist"
 export const generateMultipleDescriptors = (
   chains: Array<{
     key: string
-    metadata: V14 | V15
+    metadata: UnifiedMetadata
     knownTypes: KnownTypes
     genesis?: HexString
   }>,

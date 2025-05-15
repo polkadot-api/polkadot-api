@@ -4,7 +4,7 @@ import {
   getLookupFn,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import { decAnyMetadata, V14, V15 } from "@polkadot-api/substrate-bindings"
+import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
 import { TypedCodecs } from "./types"
 
 export const createConstantEntry = (
@@ -42,8 +42,9 @@ const withError =
 export const getTypedCodecs = async <D extends ChainDefinition>(
   descriptors: D,
 ): Promise<TypedCodecs<D>> => {
-  const metadata = decAnyMetadata(await descriptors.getMetadata()).metadata
-    .value as V14 | V15
+  const metadata = unifyMetadata(
+    decAnyMetadata(await descriptors.getMetadata()),
+  )
   const target = {}
   const createProxy = (propCall: (prop: string) => unknown) =>
     new Proxy(target, {

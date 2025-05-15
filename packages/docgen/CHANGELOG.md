@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add ViewFunctions section
+
 ## 0.1.23 - 2025-05-05
 
 ### Fixed

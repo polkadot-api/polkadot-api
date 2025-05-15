@@ -4,9 +4,9 @@ import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
 import {
   Blake2256,
   decAnyMetadata,
-  V14,
-  V15,
+  unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
+import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
 
 export function getPolkadotSigner(
   publicKey: Uint8Array,
@@ -27,15 +27,7 @@ export function getPolkadotSigner(
     _: number,
     hasher = Blake2256,
   ) => {
-    let decMeta: V14 | V15
-    try {
-      const tmpMeta = decAnyMetadata(metadata)
-      if (tmpMeta.metadata.tag !== "v14" && tmpMeta.metadata.tag !== "v15")
-        throw null
-      decMeta = tmpMeta.metadata.value
-    } catch (_) {
-      throw new Error("Unsupported metadata version")
-    }
+    const decMeta = unifyMetadata(decAnyMetadata(metadata))
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
     decMeta.extrinsic.signedExtensions.map(({ identifier }) => {
@@ -57,3 +49,32 @@ export function getPolkadotSigner(
     signBytes: getSignBytes(sign),
   }
 }
+
+const METADATA_IDENTIFIER = "CheckMetadataHash"
+const oneU8 = Uint8Array.from([1])
+
+export const withMetadataHash = (
+  networkInfo: Parameters<typeof merkleizeMetadata>[1],
+  base: PolkadotSigner,
+): PolkadotSigner => ({
+  ...base,
+  signTx: async (callData, signedExtensions, metadata, ...rest) =>
+    base.signTx(
+      callData,
+      signedExtensions[METADATA_IDENTIFIER]
+        ? {
+            ...signedExtensions,
+            [METADATA_IDENTIFIER]: {
+              identifier: METADATA_IDENTIFIER,
+              value: oneU8,
+              additionalSigned: mergeUint8(
+                oneU8,
+                merkleizeMetadata(metadata, networkInfo).digest(),
+              ),
+            },
+          }
+        : signedExtensions,
+      metadata,
+      ...rest,
+    ),
+})

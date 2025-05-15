@@ -14,9 +14,8 @@ import {
   Binary,
   h64,
   HexString,
+  UnifiedMetadata,
   Tuple,
-  V14,
-  V15,
   Vector,
 } from "@polkadot-api/substrate-bindings"
 import { spawn } from "child_process"
@@ -165,7 +164,7 @@ const generateMetadataExportFile = (input: Uint8Array): string =>
 async function outputCodegen(
   chains: Array<{
     key: string
-    metadata: V14 | V15
+    metadata: UnifiedMetadata
     metadataRaw: Uint8Array
     knownTypes: KnownTypes
     genesis?: HexString
@@ -367,7 +366,7 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "peerDependencies": {
-    "polkadot-api": ">=1.9.11"
+    "polkadot-api": ">=1.11.0"
   }
 }
 `,

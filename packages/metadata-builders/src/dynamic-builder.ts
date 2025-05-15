@@ -131,7 +131,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       location: [number, number]
     } => {
       const palletEntry = metadata.pallets.find((x) => x.name === pallet)!
-      const lookup = getLookupEntryDef(palletEntry[type]!)
+      const lookup = getLookupEntryDef(palletEntry[type]!.type)
       if (lookup.type !== "enum") throw null
       const entry = lookup.value[name]
 
@@ -140,6 +140,18 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
         codec: buildEnumEntry(lookup.value[name]),
       }
     }
+
+  const buildViewFn = (pallet: string, entry: string) => {
+    const fn = metadata.pallets
+      .find((x) => x.name === pallet)
+      ?.viewFns.find((x) => x.name === entry)
+    if (!fn) throw null
+
+    return {
+      args: scale.Tuple(...fn.inputs.map((x) => buildDefinition(x.type))),
+      value: buildDefinition(fn.output),
+    }
+  }
 
   const buildRuntimeCall = (api: string, method: string) => {
     const entry = metadata.apis
@@ -158,6 +170,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     buildStorage,
     buildEvent: buildVariant("events"),
     buildError: buildVariant("errors"),
+    buildViewFn,
     buildRuntimeCall,
     buildCall: buildVariant("calls"),
     buildConstant,

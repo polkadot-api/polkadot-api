@@ -15,5 +15,16 @@ export const P1 = {
   getAddress: 0,
   showAddress: 1,
 }
-export const P2 = 0
+export const P2 = {
+  ed25519: 0,
+  ecdsa: 2,
+}
+export const PUBKEY_LEN = {
+  ed25519: 32,
+  ecdsa: 33,
+}
+export const SIGN_LEN = {
+  ed25519: 64,
+  ecdsa: 65,
+}
 export const DEFAULT_SS58 = 0
