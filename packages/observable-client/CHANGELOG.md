@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `concatMapEager()` completing if the first inner observable emits synchronously.
+
 ## 0.10.0 - 2025-05-15
 
 ### Changed

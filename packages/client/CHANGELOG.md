@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `event.watch()` completing the observable on specific scenarios.
+
 ## 1.11.0 - 2025-05-15
 
 ### Added
