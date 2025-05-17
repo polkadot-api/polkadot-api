@@ -66,26 +66,30 @@ export const concatMapEager =
         if (!isCompleted) innerSubscriptions.set(idx, subscription)
       }
 
-      topSubscription = source$.subscribe({
-        next(outterValue: I) {
-          const idx = mapperIdx++
-          queues.set(
-            idx,
-            defer(() => mapper(outterValue, idx)),
-          )
-          if (innerSubscriptions.size < concurrent) {
-            nextSubscription()
-          }
-        },
-        error(e: any) {
-          observer.error(e)
-        },
-        complete() {
-          if (innerSubscriptions.size === 0) {
-            observer.complete()
-          }
-        },
-      })
+      // Cover synchronous path sub => nextSubscription => no new values => if (topSubscription == null) complete()
+      topSubscription = new Subscription()
+      topSubscription.add(
+        source$.subscribe({
+          next(outterValue: I) {
+            const idx = mapperIdx++
+            queues.set(
+              idx,
+              defer(() => mapper(outterValue, idx)),
+            )
+            if (innerSubscriptions.size < concurrent) {
+              nextSubscription()
+            }
+          },
+          error(e: any) {
+            observer.error(e)
+          },
+          complete() {
+            if (innerSubscriptions.size === 0) {
+              observer.complete()
+            }
+          },
+        }),
+      )
 
       return () => {
         innerSubscriptions.forEach((subscription) => subscription.unsubscribe())
