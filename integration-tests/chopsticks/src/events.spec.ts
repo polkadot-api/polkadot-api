@@ -12,8 +12,10 @@ describe("events", () => {
 
     const testFn = vi.fn()
     const completeFn = vi.fn()
-    api.event.System.ExtrinsicSuccess.watch().subscribe({
+    const errorFn = vi.fn()
+    const subscription = api.event.System.ExtrinsicSuccess.watch().subscribe({
       next: testFn,
+      error: errorFn,
       complete: completeFn,
     })
 
@@ -21,7 +23,9 @@ describe("events", () => {
 
     expect(testFn).toHaveBeenCalled()
     expect(completeFn).not.toHaveBeenCalled()
+    expect(errorFn).not.toHaveBeenCalled()
 
+    subscription.unsubscribe()
     client.destroy()
   })
 })
