@@ -4,6 +4,12 @@ import { mapObject } from "@polkadot-api/utils"
 import type { EnumVar, MetadataLookup } from "./lookups"
 import { getLookupCodecBuilder } from "./lookup-codec-builder"
 
+const nullCodec = scale.enhanceCodec(
+  scale._void,
+  () => undefined,
+  () => null,
+)
+
 export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
   const { metadata } = getLookupEntryDef
   let buildDefinition = getLookupCodecBuilder(getLookupEntryDef)
@@ -37,6 +43,12 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       .find((x) => x.name === pallet)!
       .storage!.items.find((s) => s.name === entry)!
 
+    // if val is `void` it decodes to `undefined`, making it impossible
+    // to differentiate from a non-existant key
+    // therefore, if the key exists => null, if it doesn't => undefined
+    const withNullVoid = (codec: Codec<any>) =>
+      codec === scale._void ? nullCodec : codec
+
     const storageWithFallback = (
       len: number,
       value: Codec<any>,
@@ -59,12 +71,12 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
     if (storageEntry.type.tag === "plain")
       return storageWithFallback(
         0,
-        buildDefinition(storageEntry.type.value),
+        withNullVoid(buildDefinition(storageEntry.type.value)),
         entry,
       )
 
     const { key, value, hashers } = storageEntry.type.value
-    const val = buildDefinition(value)
+    const val = withNullVoid(buildDefinition(value))
     const hashes = hashers.map((x) => scale[x.tag])
 
     const hashArgs: scale.EncoderWithHash<unknown>[] = (() => {
