@@ -5,8 +5,8 @@ import {
   mnemonicToEntropy,
 } from "@polkadot-labs/hdkd-helpers"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { createClient } from "polkadot-api"
-import { MultiAddress, turing } from "@polkadot-api/descriptors"
+import { createClient, Enum, FixedSizeBinary } from "polkadot-api"
+import { MultiAddress, Pop, turing } from "@polkadot-api/descriptors"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 
@@ -20,25 +20,36 @@ const papiTestSigner = getPolkadotSigner(
 )
 
 const client = createClient(
-  withPolkadotSdkCompat(getWsProvider("wss://turing-rpc.avail.so/ws")),
+  withPolkadotSdkCompat(
+    getWsProvider("wss://pop-testnet.parity-lab.parity.io:443/9910"),
+  ),
 )
 
-const api = client.getTypedApi(turing)
+const api = client.getTypedApi(Pop)
 
 const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
-const transfer = api.tx.Balances.transfer_allow_death({
-  dest: MultiAddress.Id(BOB),
-  value: 12345n,
+const transfer = api.tx.ProofOfInk.apply_with_invitation({
+  inviter: BOB,
+  ticket: "5CiPPseXPECbkjWCa6MnjNokrgYjMqmKndv2rSnekmSK2DjL",
+  signature: {
+    type: "Sr25519",
+    value: FixedSizeBinary.fromBytes(new Uint8Array(64)),
+  },
 })
-
-const estimatedFees = await transfer.getEstimatedFees(BOB, {
-  customSignedExtensions: { CheckAppId: { value: 0 } },
-})
-console.log({ estimatedFees })
 
 transfer
   .signSubmitAndWatch(papiTestSigner, {
-    customSignedExtensions: { CheckAppId: { value: 0 } },
+    customSignedExtensions: {
+      VerifyMultiSignature: {
+        value: Enum("Disabled"),
+      },
+      RestrictOrigins: {
+        value: false,
+      },
+      AsProofOfInkParticipant: {
+        value: Enum("AsInvited", 0),
+      },
+    },
   })
   .subscribe({
     next: (e) => {

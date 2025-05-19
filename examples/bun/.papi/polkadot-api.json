@@ -16,6 +16,11 @@
       "wsUrl": "wss://polkadot-mythos-rpc.polkadot.io",
       "metadata": ".papi/metadata/myth.scale",
       "genesis": "0xf6ee56e9c5277df5b4ce6ae9983ee88f3cbed27d31beeb98f9f84f997a1ab0b9"
+    },
+    "Pop": {
+      "wsUrl": "wss://pop-testnet.parity-lab.parity.io:443/9910",
+      "metadata": ".papi/metadata/Pop.scale",
+      "genesis": "0x3c10ce0ac6e53507bc432315c2de7f0d4af7219b6d7548f0a66036a0668ca8b1"
     }
   }
 }
