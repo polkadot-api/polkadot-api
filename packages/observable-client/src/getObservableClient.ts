@@ -6,6 +6,8 @@ import { noop, Observable, of } from "rxjs"
 import { ChainHead$, getChainHead$ } from "./chainHead"
 import getBroadcastTx$ from "./tx"
 
+const ofNullFn = () => of(null)
+
 export interface ObservableClient {
   chainHead$: (nSubscribers?: number) => ChainHead$
   broadcastTx$: (transaction: string) => Observable<never>
@@ -19,10 +21,12 @@ const clientCache = new Map<
 
 export const getObservableClient = (
   substrateClient: SubstrateClient,
-  getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null> = () =>
-    of(null),
-  setCachedMetadata: (codeHash: string, rawMetadata: Uint8Array) => void = noop,
+  cache: Partial<{
+    getMetadata: (codeHash: string) => Observable<Uint8Array | null>
+    setMetadata: (codeHash: string, rawMetadata: Uint8Array) => void
+  }> = {},
 ): ObservableClient => {
+  const { getMetadata, setMetadata } = cache
   const cached = clientCache.get(substrateClient)
   if (cached) {
     cached.refCount++
@@ -51,8 +55,8 @@ export const getObservableClient = (
       expectedSubscribers ||= _expectedSubscribers || 1
       cachedChainhead ||= getChainHead$(
         substrateClient.chainHead,
-        getCachedMetadata,
-        setCachedMetadata,
+        getMetadata || ofNullFn,
+        setMetadata || noop,
       )
       const [result, start] = cachedChainhead
       if (expectedSubscribers === currentSubscribers) {

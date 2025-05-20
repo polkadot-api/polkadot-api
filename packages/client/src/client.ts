@@ -280,7 +280,7 @@ export type CreateClientOptions = Partial<{
  *                  local store).
  * @example
  *
- *   import { metadatas } from "@polkadot-api/descriptors"
+ *   import { getMetadata } from "@polkadot-api/descriptors"
  *   import { createClient } from "polkadot-api"
  *   import { getSmProvider } from "polkadot-api/sm-provider"
  *   import { chainSpec } from "polkadot-api/chains/polkadot"
@@ -290,7 +290,7 @@ export type CreateClientOptions = Partial<{
  *   const chain = await smoldot.addChain({ chainSpec })
  *
  *   // Connect to the polkadot relay chain.
- *   const client = createClient(getSmProvider(chain), cacheMetadata(metadatas))
+ *   const client = createClient(getSmProvider(chain), { getMetadata })
  *
  */
 export function createClient(
@@ -298,11 +298,12 @@ export function createClient(
   { getMetadata, setMetadata }: CreateClientOptions = {},
 ): PolkadotClient {
   const rawClient: SubstrateClient = createRawClient(provider)
-  const client = getObservableClient(
-    rawClient,
-    getMetadata ? (codeHash: string) => from(getMetadata(codeHash)) : undefined,
+  const client = getObservableClient(rawClient, {
+    getMetadata: getMetadata
+      ? (codeHash: string) => from(getMetadata(codeHash))
+      : undefined,
     setMetadata,
-  )
+  })
   const { getChainSpecData } = rawClient
 
   const { genesis$, ..._chainHead } = client.chainHead$()

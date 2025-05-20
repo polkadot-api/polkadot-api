@@ -1,11 +1,11 @@
 import { CompatibilityLevel, createClient } from "polkadot-api"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
-import { cacheMetadata, wnd } from "@polkadot-api/descriptors"
+import { getMetadata, wnd } from "@polkadot-api/descriptors"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
 
 const client = createClient(
   withLogsRecorder(console.log, getWsProvider("wss://westend-rpc.polkadot.io")),
-  cacheMetadata(),
+  { getMetadata },
 )
 const testApi = client.getTypedApi(wnd)
 

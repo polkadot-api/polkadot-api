@@ -332,78 +332,13 @@ async function compileCodegen(packageDir: string) {
 }
 
 const cacheMetadataStr = `
-/**
- * A utility to cache and retrieve metadata using a provided key (the \`:code:\`
- * hash).
- *
- * This function wraps a metadata-fetching map with optional caching mechanisms.
- * It allows metadata to be retrieved from a persistent store (if available)
- * or directly generated and returned. A setter can be used to store metadata,
- * but is optional.
- *
- * @param persist  - An optional object providing \`set\` and \`get\` functions
- *                 to persist and retrieve metadata using another cache.
- *                 Both functions are optional:
- *
- *                 - \`set\`: Function to store metadata by key.
- *                 - \`get\`: Function to retrieve metadata by key. Should
- *                 return \`null\` if not found (or throw).
- *
- *                 Defaults to a no-op \`set\` function if not provided.
- * @returns An object containing:
- *
- *          - \`getMetadata(key: string): Promise<Uint8Array | null>\`:
- *          Retrieves metadata from the cache if available; otherwise, it
- *          fetches from the original \`metadatas\` map.
- *          Returns \`null\` if the metadata cannot be retrieved or the key
- *          is invalid.
- *
- *          - \`setMetadata(key: string, value: Uint8Array): void\`: Stores
- *          metadata if a \`set\` function was provided. If not, it's a
- *          no-op.
- * @example
- *
- *   import { cacheMetadata } from "@polkadot-api/descriptors"
- *   import { createClient } from "polkadot-api"
- *   import { getSmProvider } from "polkadot-api/sm-provider"
- *   import { chainSpec } from "polkadot-api/chains/polkadot"
- *   import { start } from "polkadot-api/smoldot"
- *
- *   const smoldot = start()
- *   const chain = await smoldot.addChain({ chainSpec })
- *
- *   // Connect to the polkadot relay chain.
- *   const client = createClient(getSmProvider(chain), cacheMetadata())
- *
- */
-export const cacheMetadata = (
-  persist: Partial<{
-    set: (key: HexString, value: Uint8Array) => void
-    get: (key: HexString) => Promise<Uint8Array | null>
-  }> = {
-    set: () => {},
-  },
-): {
-  getMetadata: (codeHash: HexString) => Promise<Uint8Array | null>
-  setMetadata?: (codeHash: HexString, metadata: Uint8Array) => void
-} => {
-  const { set, get } = persist
-  return {
-    getMetadata: async (key: string) => {
-      if (get) {
-        try {
-          const result = await get(key)
-          if (result) return result
-        } catch {}
-      }
-
-      try {
-        return await metadatas[key].getMetadata()
-      } catch {}
-      return null
-    },
-    setMetadata: set,
-  }
+export const getMetadata: (codeHash: string) => Promise<Uint8Array | null> = async (
+  codeHash: string
+)=> {
+  try {
+    return await metadatas[key].getMetadata()
+  } catch {}
+  return null
 }`
 
 const generateIndex = async (
@@ -413,7 +348,6 @@ const generateIndex = async (
   metadatas: Record<string, string>,
 ) => {
   const indexTs = [
-    `import type { HexString } from "@polkadot-api/substrate-bindings";`,
     ...keys.flatMap((key) => [
       `import { default as ${key} } from "./${key}";`,
       `export { ${key} }`,
