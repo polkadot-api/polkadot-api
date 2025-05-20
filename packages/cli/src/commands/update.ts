@@ -45,6 +45,7 @@ export async function update(
       return
     }
     entries[key].genesis = metadata.genesis
+    entries[key].codeHash = metadata.codeHash
 
     spinner.text = `Writing ${key} metadata`
     await writeMetadataToDisk(metadata.metadataRaw, filename)

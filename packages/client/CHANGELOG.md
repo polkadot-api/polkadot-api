@@ -12,6 +12,10 @@
 
 ## 1.11.1 - 2025-05-18
 
+### Added
+
+- Mechanisms to safely cache the metadata, by using the hash of the `:code` as its key.
+
 ### Fixed
 
 - `event.watch()` completing the observable on specific scenarios.

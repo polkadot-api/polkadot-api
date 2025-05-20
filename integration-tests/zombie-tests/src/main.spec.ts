@@ -22,7 +22,7 @@ import {
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { getWsProvider } from "polkadot-api/ws-provider/node"
 import { createClient as createRawClient } from "@polkadot-api/substrate-client"
-import { MultiAddress, roc } from "@polkadot-api/descriptors"
+import { cacheMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
@@ -63,10 +63,14 @@ describe("E2E", async () => {
   console.log("starting the client")
   if (PROVIDER === "sm") {
     const smoldot = start()
-    client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+    client = createClient(
+      getSmProvider(smoldot.addChain({ chainSpec })),
+      cacheMetadata(),
+    )
   } else {
     client = createClient(
       withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934")),
+      cacheMetadata(),
     )
   }
   console.log("client started")

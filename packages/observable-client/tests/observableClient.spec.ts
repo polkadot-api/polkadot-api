@@ -231,9 +231,7 @@ describe("observableClient chainHead", () => {
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       const bodyObserver = observe(chainHead.body$(initialHash))
 
-      // one internal call made by observable-client to get the metadata of the initial hash
-      // so we expect 2 calls
-      const initialCalls = 2
+      const initialCalls = 1
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
         initialHash,
@@ -287,7 +285,7 @@ describe("observableClient chainHead", () => {
       )
       observe(chainHead.body$(initialHash))
 
-      const initialCalls = 3
+      const initialCalls = 2
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
@@ -346,7 +344,7 @@ describe("observableClient chainHead", () => {
       observe(chainHead.body$(initialHash))
       observe(chainHead.call$(newBlocks[0].blockHash, "firstCall", ""))
 
-      const initialCalls = 2
+      const initialCalls = 1
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
@@ -393,7 +391,7 @@ describe("observableClient chainHead", () => {
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       observe(chainHead.body$(initialHash))
 
-      const initialCalls = 2
+      const initialCalls = 1
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         initialHash,
@@ -418,7 +416,7 @@ describe("observableClient chainHead", () => {
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       const bodyObserver = observe(chainHead.body$(initialHash))
 
-      const initialCalls = 2
+      const initialCalls = 1
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         initialHash,
