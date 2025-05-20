@@ -4,7 +4,7 @@
 
 ### Added
 
-- Store the "code-hash" of linked to the metadata, so that it can be safely cached.
+- Store the "code-hash" linked to each metadata, so that it can be safely cached.
 
 ## 0.12.2 - 2025-05-20
 

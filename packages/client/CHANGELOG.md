@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Mechanisms to safely cache the metadata, by using the hash of the `:code` as its key.
+
 ## 1.11.2 - 2025-05-20
 
 ### Fixed
@@ -11,10 +15,6 @@
   - Update `lightSyncState`
 
 ## 1.11.1 - 2025-05-18
-
-### Added
-
-- Mechanisms to safely cache the metadata, by using the hash of the `:code` as its key.
 
 ### Fixed
 
