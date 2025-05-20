@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Now `generateMultipleDescriptors` requires a common file path.
+
 ## 0.15.0 - 2025-05-15
 
 ### Added
