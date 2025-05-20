@@ -336,7 +336,7 @@ export const getMetadata: (codeHash: string) => Promise<Uint8Array | null> = asy
   codeHash: string
 )=> {
   try {
-    return await metadatas[key].getMetadata()
+    return await metadatas[codeHash].getMetadata()
   } catch {}
   return null
 }`
