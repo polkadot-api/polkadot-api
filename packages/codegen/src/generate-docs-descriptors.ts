@@ -362,10 +362,13 @@ async function buildStorage(
                 pallet.name,
                 name,
               )
+              // if val is `void` it decodes to `undefined`, making it impossible
+              // to differentiate from a non-existant key
+              // therefore, if the key exists => null, if it doesn't => undefined
               return [
                 name,
                 {
-                  type: `StorageDescriptor<${args}, ${payload}, ${!modifier}, ${opaque}>`,
+                  type: `StorageDescriptor<${args}, ${payload === "undefined" ? "null" : payload}, ${!modifier}, ${opaque}>`,
                   docs,
                 },
               ]
