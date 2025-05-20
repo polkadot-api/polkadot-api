@@ -88,7 +88,10 @@ export const generateDescriptors = (
               name,
             )
             const checksum = checksumBuilder.buildStorage(pallet.name, name)!
-            const type = `StorageDescriptor<${key}, ${val}, ${!modifier}, ${opaque}>`
+            // if val is `void` it decodes to `undefined`, making it impossible
+            // to differentiate from a non-existant key
+            // therefore, if the key exists => null, if it doesn't => undefined
+            const type = `StorageDescriptor<${key}, ${val === "undefined" ? "null" : val}, ${!modifier}, ${opaque}>`
             return [
               name,
               {

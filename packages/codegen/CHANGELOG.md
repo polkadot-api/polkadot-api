@@ -6,6 +6,10 @@
 
 - Now `generateMultipleDescriptors` requires a common file path.
 
+### Fixed
+
+- Storage entry values decode to `null` if the entry is void.
+
 ## 0.15.0 - 2025-05-15
 
 ### Added
