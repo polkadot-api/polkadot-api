@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Store the "code-hash" linked to each metadata, so that it can be safely cached.
+
 ## 0.12.2 - 2025-05-20
 
 ### Fixed

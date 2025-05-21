@@ -231,6 +231,7 @@ describe("observableClient stopError recovery", () => {
 
     const { initialHash } = await initialize(mockClient)
     const runtimeObs = observe(chainHead.runtime$.pipe(filter(Boolean)))
+    await mockClient.chainHead.mock.storage.reply(initialHash, "0x000000")
     expect(mockClient.chainHead.mock.call).toHaveBeenCalledOnce()
 
     expect(runtimeObs.next).not.toHaveBeenCalled()
@@ -260,6 +261,7 @@ describe("observableClient stopError recovery", () => {
     client.chainHead$()
 
     const { initialHash } = await initialize(mockClient)
+    await mockClient.chainHead.mock.storage.reply(initialHash, "0x000000")
     expect(mockClient.chainHead.mock.call).toHaveBeenCalledOnce()
 
     const newBlock = sendNewBlock(mockClient, {
@@ -322,6 +324,11 @@ describe("observableClient stopError recovery", () => {
         newFinalized.blockHash,
       ],
     })
+
+    await mockClient.chainHead.mock.storage.reply(
+      newFinalized.blockHash,
+      "0x11000000",
+    )
     expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
 
     // We haven't received a new runtime yet

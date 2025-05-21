@@ -71,7 +71,11 @@ const toBlockInfo = ({ hash, number, parent }: PinnedBlock): BlockInfo => ({
   parent,
 })
 
-export const getChainHead$ = (chainHead: ChainHead) => {
+export const getChainHead$ = (
+  chainHead: ChainHead,
+  getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null>,
+  setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
+) => {
   const { getFollower, startFollow, follow$, getHeader } = getFollow$(chainHead)
   const lazyFollower = withLazyFollower(getFollower)
   const { withRecovery, withRecoveryFn } = getWithRecovery()
@@ -149,9 +153,20 @@ export const getChainHead$ = (chainHead: ChainHead) => {
     )
 
   const cache = new Map<string, Map<string, Observable<any>>>()
+
+  const stg = withRefcount(
+    withRecoveryFn(fromAbortControllerFn(lazyFollower("storage"))),
+  )
+  const getCodeHash = (blockHash: string): Observable<HexString> =>
+    // ":code" => "0x3a636f6465"
+    stg(blockHash, "hash", "0x3a636f6465", null).pipe(map((x) => x!))
+
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
+    getCodeHash,
+    getCachedMetadata,
+    setCachedMetadata,
     blockUsage$,
     (blocks) => {
       unpin(blocks)

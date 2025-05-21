@@ -5,17 +5,20 @@
     "wnd": {
       "chain": "westend2",
       "metadata": ".papi/metadata/wnd.scale",
-      "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
+      "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+      "codeHash": "0x8579da39311d91d4fd5586caee968fa2f2de07db6f715126cc438c79c2f18c3d"
     },
     "turing": {
       "wsUrl": "wss://turing-rpc.avail.so/ws",
       "metadata": ".papi/metadata/turing.scale",
-      "genesis": "0xd3d2f3a3495dc597434a99d7d449ebad6616db45e4e4f178f31cc6fa14378b70"
+      "genesis": "0xd3d2f3a3495dc597434a99d7d449ebad6616db45e4e4f178f31cc6fa14378b70",
+      "codeHash": "0x64e6d18a40a1f89d38606ff86d85dc12fb964cc9f105f90731841c3e048349ca"
     },
     "myth": {
       "wsUrl": "wss://polkadot-mythos-rpc.polkadot.io",
       "metadata": ".papi/metadata/myth.scale",
-      "genesis": "0xf6ee56e9c5277df5b4ce6ae9983ee88f3cbed27d31beeb98f9f84f997a1ab0b9"
+      "genesis": "0xf6ee56e9c5277df5b4ce6ae9983ee88f3cbed27d31beeb98f9f84f997a1ab0b9",
+      "codeHash": "0x12e9027fabf41a70d97c1e4c243eaa4a6ed97e73acf36357ae69b5a858cd6854"
     }
   }
 }

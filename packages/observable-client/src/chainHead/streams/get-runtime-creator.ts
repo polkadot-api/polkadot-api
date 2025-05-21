@@ -9,6 +9,7 @@ import {
   Bytes,
   Codec,
   Decoder,
+  HexString,
   metadata as metadataCodec,
   Option,
   SS58String,
@@ -26,6 +27,7 @@ import {
   Observable,
   of,
   shareReplay,
+  tap,
   timer,
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
@@ -49,6 +51,7 @@ export type SystemEvent = {
 export interface RuntimeContext {
   metadataRaw: Uint8Array
   lookup: MetadataLookup
+  codeHash: HexString
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
   events: {
     key: string
@@ -73,52 +76,74 @@ const u32ListDecoder = Vector(u32).dec
 
 export const getRuntimeCreator = (
   call$: (hash: string, method: string, args: string) => Observable<string>,
+  getCodeHash$: (blockHash: string) => Observable<string>,
+  getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null>,
+  setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {
   const getMetadata$ = (
     getHash: () => string | null,
-  ): Observable<{ metadataRaw: Uint8Array; metadata: UnifiedMetadata }> => {
-    const recoverCall$ = (method: string, args: string): Observable<string> => {
-      const hash = getHash()
-      return hash
-        ? call$(hash, method, args).pipe(
-            catchError((e) => {
-              if (e instanceof BlockNotPinnedError)
-                return recoverCall$(method, args)
-              if (e instanceof OperationInaccessibleError)
-                return timer(750).pipe(
-                  mergeMap(() => recoverCall$(method, args)),
-                )
-              throw e
-            }),
-          )
-        : EMPTY
+  ): Observable<{
+    metadataRaw: Uint8Array
+    metadata: UnifiedMetadata
+    codeHash: string
+  }> => {
+    const withRecovery = <Args extends Array<any>, T>(
+      fn: (hash: string, ...args: Args) => Observable<T>,
+    ): ((...args: Args) => Observable<T>) => {
+      const result: (...args: Args) => Observable<T> = (...args) => {
+        const hash = getHash()
+        return hash
+          ? fn(hash, ...args).pipe(
+              catchError((e) => {
+                if (e instanceof BlockNotPinnedError) return result(...args)
+                if (e instanceof OperationInaccessibleError)
+                  return timer(750).pipe(mergeMap(() => result(...args)))
+                throw e
+              }),
+            )
+          : EMPTY
+      }
+      return result
     }
 
-    const versions = recoverCall$("Metadata_metadata_versions", "").pipe(
+    const recoverCall$ = withRecovery(call$)
+    const recoverCodeHash$ = withRecovery(getCodeHash$)
+
+    const versions$ = recoverCall$("Metadata_metadata_versions", "").pipe(
       map(u32ListDecoder),
-    )
-
-    const v14 = recoverCall$("Metadata_metadata", "").pipe(
-      map((x) => {
-        const metadataRaw = opaqueBytes.dec(x)!
-        const metadata = metadataCodec.dec(metadataRaw)
-        return { metadata: unifyMetadata(metadata), metadataRaw }
-      }),
-    )
-
-    const versioned = (v: number) =>
-      recoverCall$("Metadata_metadata_at_version", versionedArgs(v)).pipe(
-        map((x) => {
-          const metadataRaw = optionalOpaqueBytes.dec(x)!
-          const metadata = metadataCodec.dec(metadataRaw)
-          return { metadata: unifyMetadata(metadata), metadataRaw }
-        }),
-      )
-
-    return versions.pipe(
       catchError(() => of([14])),
-      mergeMap((v) =>
-        v.includes(16) ? versioned(16) : v.includes(15) ? versioned(15) : v14,
+    )
+    const versioned$ = (availableVersions: number[]) => {
+      const [v] = availableVersions
+        .filter((x) => x > 13 && x < 17)
+        .sort((a, b) => b - a)
+      return v === 14
+        ? recoverCall$("Metadata_metadata", "").pipe(map(opaqueBytes.dec))
+        : recoverCall$("Metadata_metadata_at_version", versionedArgs(v)).pipe(
+            map((x) => optionalOpaqueBytes.dec(x)!),
+          )
+    }
+    const metadataRaw$ = versions$.pipe(mergeMap(versioned$))
+
+    return recoverCodeHash$().pipe(
+      mergeMap((codeHash) =>
+        getCachedMetadata(codeHash).pipe(
+          catchError(() => of(null)),
+          mergeMap((metadataRaw) =>
+            metadataRaw
+              ? of(metadataRaw)
+              : metadataRaw$.pipe(
+                  tap((raw) => {
+                    setCachedMetadata(codeHash, raw)
+                  }),
+                ),
+          ),
+          map((metadataRaw) => ({
+            codeHash,
+            metadataRaw,
+            metadata: unifyMetadata(metadataCodec.dec(metadataRaw)),
+          })),
+        ),
       ),
     )
   }
@@ -130,7 +155,7 @@ export const getRuntimeCreator = (
     const runtimeContext$: Observable<RuntimeContext> = getMetadata$(
       getHash,
     ).pipe(
-      map(({ metadata, metadataRaw }) => {
+      map(({ metadata, metadataRaw, codeHash }) => {
         const lookup = getLookupFn(metadata)
         const dynamicBuilder = getDynamicBuilder(lookup)
         const events = dynamicBuilder.buildStorage("System", "Events")
@@ -152,6 +177,7 @@ export const getRuntimeCreator = (
         return {
           assetId,
           metadataRaw,
+          codeHash,
           lookup,
           dynamicBuilder,
           events: {

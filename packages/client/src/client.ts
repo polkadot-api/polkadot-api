@@ -11,7 +11,7 @@ import {
   RuntimeContext,
   getObservableClient,
 } from "@polkadot-api/observable-client"
-import { Binary } from "@polkadot-api/substrate-bindings"
+import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import {
   SubstrateClient,
   createClient as createRawClient,
@@ -21,6 +21,7 @@ import {
   catchError,
   defer,
   firstValueFrom,
+  from,
   map,
   shareReplay,
 } from "rxjs"
@@ -251,6 +252,11 @@ const createApi = <Unsafe extends true | false, D>(
   } as any
 }
 
+export type CreateClientOptions = Partial<{
+  getMetadata: (codeHash: HexString) => Promise<Uint8Array | null>
+  setMetadata: (codeHash: HexString, metadata: Uint8Array) => void
+}>
+
 /**
  * This is the top-level export for `polkadot-api`.
  *
@@ -258,8 +264,23 @@ const createApi = <Unsafe extends true | false, D>(
  *                  spec](https://paritytech.github.io/json-rpc-interface-spec/),
  *                  which must support the `chainHead`, `transaction` and
  *                  `chainSpec` groups.
+ * @param options   - *(Optional)* An object that allows customization of
+ *                  metadata handling.
+ *                  You can supply functions to retrieve and/or persist the
+ *                  metadata associated with runtime `codeHash` values:
+ *
+ *                  - `getMetadata`: A function that, given a `codeHash` (the
+ *                  `:code:` hash),
+ *                  returns a `Promise` resolving to a `Uint8Array`
+ *                  representing the metadata,
+ *                  or `null` if unavailable.
+ *                  - `setMetadata`: A function that accepts a `codeHash` and
+ *                  its associated `Uint8Array` metadata,
+ *                  allowing you to persist the metadata (e.g., in a cache or
+ *                  local store).
  * @example
  *
+ *   import { getMetadata } from "@polkadot-api/descriptors"
  *   import { createClient } from "polkadot-api"
  *   import { getSmProvider } from "polkadot-api/sm-provider"
  *   import { chainSpec } from "polkadot-api/chains/polkadot"
@@ -269,12 +290,20 @@ const createApi = <Unsafe extends true | false, D>(
  *   const chain = await smoldot.addChain({ chainSpec })
  *
  *   // Connect to the polkadot relay chain.
- *   const client = createClient(getSmProvider(chain))
+ *   const client = createClient(getSmProvider(chain), { getMetadata })
  *
  */
-export function createClient(provider: JsonRpcProvider): PolkadotClient {
+export function createClient(
+  provider: JsonRpcProvider,
+  { getMetadata, setMetadata }: CreateClientOptions = {},
+): PolkadotClient {
   const rawClient: SubstrateClient = createRawClient(provider)
-  const client = getObservableClient(rawClient)
+  const client = getObservableClient(rawClient, {
+    getMetadata: getMetadata
+      ? (codeHash: string) => from(getMetadata(codeHash))
+      : undefined,
+    setMetadata,
+  })
   const { getChainSpecData } = rawClient
 
   const { genesis$, ..._chainHead } = client.chainHead$()

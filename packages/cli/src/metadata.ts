@@ -42,7 +42,14 @@ async function getSmoldotWorker() {
 const getMetadataCall = async (provider: JsonRpcProvider) => {
   const client = getObservableClient(createClient(provider))
   const { runtime$, unfollow, genesis$ } = client.chainHead$()
-  const { runtime, genesis } = await firstValueFrom(
+  const {
+    runtime: {
+      lookup: { metadata },
+      metadataRaw,
+      codeHash,
+    },
+    genesis,
+  } = await firstValueFrom(
     combineLatest({
       runtime: runtime$.pipe(filter(Boolean)),
       genesis: genesis$,
@@ -53,8 +60,9 @@ const getMetadataCall = async (provider: JsonRpcProvider) => {
   client.destroy()
 
   return {
-    metadata: runtime.lookup.metadata,
-    metadataRaw: runtime.metadataRaw,
+    metadata,
+    metadataRaw,
+    codeHash,
     genesis,
   }
 }
@@ -118,15 +126,21 @@ const getMetadataFromSmoldot = async (chain: string) => {
 const getMetadataFromWsURL = async (wsURL: string) =>
   getMetadataCall(withPolkadotSdkCompat(getWsProvider(wsURL)))
 
-export async function getMetadata(entry: EntryConfig): Promise<{
+export async function getMetadata({
+  metadata: metadataFile,
+  codeHash,
+  genesis,
+  ...entry
+}: EntryConfig): Promise<{
   metadata: UnifiedMetadata
   metadataRaw: Uint8Array
+  codeHash?: HexString
   genesis?: HexString
 } | null> {
   // metadata file always prevails over other entries.
   // cli's update will update the metadata file when the user requests it.
-  if (entry.metadata) {
-    const data = await fs.readFile(entry.metadata)
+  if (metadataFile) {
+    const data = await fs.readFile(metadataFile)
     const metadataRaw = new Uint8Array(data)
 
     let meta: UnifiedMetadata
@@ -139,7 +153,8 @@ export async function getMetadata(entry: EntryConfig): Promise<{
     return {
       metadata: meta,
       metadataRaw,
-      genesis: entry.genesis,
+      codeHash,
+      genesis,
     }
   }
 

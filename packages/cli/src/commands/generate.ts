@@ -167,6 +167,7 @@ async function outputCodegen(
     metadata: UnifiedMetadata
     metadataRaw: Uint8Array
     knownTypes: KnownTypes
+    codeHash?: HexString
     genesis?: HexString
   }>,
   outputFolder: string,
@@ -242,11 +243,14 @@ export default content
       ])
       .flat(),
   )
+
   await generateIndex(
     outputFolder,
     chains.map((chain) => chain.key),
-    descriptorTypesFiles.map((d) => d.exports),
     publicTypes,
+    Object.fromEntries(
+      chains.filter((x) => x.codeHash!!).map((x) => [x.codeHash, x.key]),
+    ),
   )
 
   return hash
@@ -327,20 +331,35 @@ async function compileCodegen(packageDir: string) {
   })
 }
 
+const cacheMetadataStr = `
+export const getMetadata: (codeHash: string) => Promise<Uint8Array | null> = async (
+  codeHash: string
+)=> {
+  try {
+    return await metadatas[codeHash].getMetadata()
+  } catch {}
+  return null
+}`
+
 const generateIndex = async (
   path: string,
   keys: string[],
-  exports: string[][],
   publicTypes: string[],
+  metadatas: Record<string, string>,
 ) => {
   const indexTs = [
-    ...keys.flatMap((key, i) => [
-      `export { ${exports[i].join(",")} } from "./${key}";`,
+    ...keys.flatMap((key) => [
+      `import { default as ${key} } from "./${key}";`,
+      `export { ${key} }`,
       `export type * from "./${key}";`,
     ]),
     `export {`,
     publicTypes.join(", "),
     `} from './common-types';`,
+    `const metadatas = {${Object.entries(metadatas)
+      .map(([codeHash, key]) => `["${codeHash}"]: ${key}`)
+      .join(",\n")}}`,
+    cacheMetadataStr,
   ].join("\n")
   await fs.writeFile(join(path, "index.ts"), indexTs)
 }

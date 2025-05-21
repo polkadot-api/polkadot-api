@@ -8,21 +8,25 @@ export type EntryConfig =
   | {
       metadata: string
       genesis?: string
+      codeHash?: string
     }
   | {
       chainSpec: string
       metadata?: string
       genesis?: string
+      codeHash?: string
     }
   | {
       wsUrl: string
       metadata?: string
       genesis?: string
+      codeHash?: string
     }
   | {
       chain: string
       metadata?: string
       genesis?: string
+      codeHash?: string
     }
 type Entries = Record<string, EntryConfig>
 export interface PapiConfigOptions {
