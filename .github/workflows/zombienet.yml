@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         version:
-          - polkadot-v1.1.0
-          - polkadot-stable2407-5
-          - polkadot-stable2412-1
+          # - polkadot-v1.1.0
+          # - polkadot-stable2407-5
+          # - polkadot-stable2412-1
           - polkadot-stable2503-4
         kind:
           - ws

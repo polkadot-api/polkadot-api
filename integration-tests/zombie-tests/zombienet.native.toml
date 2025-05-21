@@ -1,6 +1,6 @@
 [relaychain]
 default_command = "polkadot"
-default_args = [ "-lparachain=debug" ]
+default_args = [ "-lparachain=debug", "--network-backend=litep2p"]
 
 chain = "westend-local"
 
