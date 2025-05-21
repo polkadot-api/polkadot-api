@@ -307,6 +307,42 @@ describe("E2E", async () => {
     )
   })
 
+  it("different mortality values", async () => {
+    const alice = accounts["alice"]["sr25519"]
+    const bob = accounts["bob"]["sr25519"]
+    const aliceAddress = accountIdDec(alice.publicKey)
+    const bobAddress = accountIdDec(bob.publicKey)
+    const initialNonce =
+      await api.apis.AccountNonceApi.account_nonce(aliceAddress)
+
+    const tx = api.tx.Balances.transfer_allow_death({
+      dest: MultiAddress.Id(bobAddress),
+      value: ED,
+    })
+    let i = 0
+    const submitAndWait = (
+      mortality: { mortal: false } | { mortal: true; period: number },
+    ) =>
+      lastValueFrom(
+        tx.signSubmitAndWatch(alice, { mortality, nonce: initialNonce + i++ }),
+      )
+
+    await Promise.all([
+      submitAndWait({ mortal: false }),
+      submitAndWait({ mortal: true, period: 8 }),
+      submitAndWait({ mortal: true, period: 25 }),
+      submitAndWait({
+        mortal: true,
+        period: api.constants.System.BlockHashCount(token),
+      }),
+    ])
+
+    const currentNonce =
+      await api.apis.AccountNonceApi.account_nonce(aliceAddress)
+
+    expect(currentNonce).toEqual(initialNonce + 4)
+  })
+
   it("keeps on validating transactions after they have been broadcasted", async () => {
     const alice = accounts["alice"]["sr25519"]
     const bob = accounts["bob"]["sr25519"]
