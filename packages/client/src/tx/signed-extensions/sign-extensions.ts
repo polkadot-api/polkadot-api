@@ -90,7 +90,7 @@ export const getSignExtensionsCreator = (
               ? both(
                   mortal({
                     period: mortality.period,
-                    phase: mortality.startAtBlock.height % mortality.period,
+                    startAtBlock: mortality.startAtBlock.height,
                   }),
                   fromHex(mortality.startAtBlock.hash),
                 )
