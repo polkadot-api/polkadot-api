@@ -9,15 +9,7 @@ function trailingZeroes(n: number) {
   return i
 }
 
-function nextPower(n: number) {
-  if ((n & (n - 1)) === 0) return n
-  let count = 0
-  while (n > 0) {
-    n >>= 1
-    count++
-  }
-  return 1 << count
-}
+const nextPower = (n: number) => 1 << Math.ceil(Math.log2(n))
 
 export const mortal = enhanceEncoder(
   Bytes(2)[0],
