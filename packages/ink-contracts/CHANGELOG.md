@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Filter events by contract address for ink!v6
+
 ## 0.3.2 - 2025-05-20
 
 ### Fixed
