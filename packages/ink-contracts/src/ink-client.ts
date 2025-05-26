@@ -254,18 +254,24 @@ const buildEventV5 = <E extends Event>(
     return eventDecoder(undefined)!.dec(value.data.asBytes()) as E
   }
   const filter: InkEventInterface<E>["filter"] = (address, events = []) => {
+    const addrEq = (a: string | Binary) =>
+      (a instanceof Binary ? a.asHex() : a) === address
+
     const contractEvents = events
       .map((v) => ("event" in v ? v : { event: v, topics: v.topics }))
       .filter(
         (v) =>
-          v.event.type === "Contracts" &&
+          (v.event.type === "Contracts" || v.event.type === "Revive") &&
           (v.event.value as any).type === "ContractEmitted" &&
-          (v.event.value as any).value.contract === address,
+          addrEq((v.event.value as any).value.contract),
       )
 
     return contractEvents
       .map((v) => {
-        const eventTopics = v.topics.map((evt) => evt.asHex())
+        const eventTopics = [
+          ...v.topics,
+          ...((v.event.value as any)?.value?.topics ?? []),
+        ].map((evt) => evt.asHex())
         const suitableTopic = eventTopics.find((topic) =>
           metadataEventTopics.has(topic),
         )
