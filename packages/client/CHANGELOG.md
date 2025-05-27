@@ -6,6 +6,7 @@
 
 - Ensure mortality always encode to valid values.
 - ink!: Filter events by contract address for ink!v6
+- Allow checking compatibility for non-existing entry.
 
 ## 1.12.0 - 2025-05-21
 
