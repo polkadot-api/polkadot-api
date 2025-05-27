@@ -6,6 +6,8 @@
 
 - **Smoldot**:
   - Update smoldot to `2.0.34`
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.12.1 - 2025-05-27
 
