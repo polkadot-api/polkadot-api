@@ -14,6 +14,7 @@ import { start } from "polkadot-api/smoldot"
 import {
   AccountId,
   Binary,
+  CompatibilityLevel,
   PolkadotClient,
   SS58String,
   TxEvent,
@@ -457,9 +458,11 @@ describe("E2E", async () => {
   it("queries opaque storage entries", async () => {
     // some old polkadot-sdk versions don't include this pallet
     // ensure that some version tested include it
-    try {
-      await api.query.CoretimeAssignmentProvider.CoreDescriptors.getCompatibilityLevel()
-    } catch {
+    if (
+      !(await api.query.CoretimeAssignmentProvider.CoreDescriptors.isCompatible(
+        CompatibilityLevel.Partial,
+      ))
+    ) {
       return
     }
 

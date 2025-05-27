@@ -169,7 +169,6 @@ export const compatibilityHelper = (
     }
     const compatibilityApi = compatibilityTokenApi.get(descriptors)!
     ctx ||= compatibilityApi.runtime()
-    const descriptorEntryPoint = getDescriptorEntryPoint(compatibilityApi)
     const runtimeEntryPoint = getRuntimeEntryPoint(ctx)
     if (runtimeEntryPoint == null)
       return {
@@ -180,6 +179,7 @@ export const compatibilityHelper = (
 
     const cache = getMetadataCache(ctx)
 
+    const descriptorEntryPoint = getDescriptorEntryPoint(compatibilityApi)
     return entryPointsAreCompatible(
       descriptorEntryPoint,
       (id) => descriptorNodes[id],
