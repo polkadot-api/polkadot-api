@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.12.1 - 2025-05-27
+
 ### Fixed
 
 - Ensure mortality always encode to valid values.
