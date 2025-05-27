@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.12.2 - 2025-05-27
+
 ### Fixed
 
 - **Smoldot**:
