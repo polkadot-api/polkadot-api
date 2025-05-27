@@ -22,7 +22,7 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@types/node": "^22.15.18"
+    "@types/node": "^22.15.21"
   },
   "license": "MIT"
 }
