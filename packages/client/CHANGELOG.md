@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Smoldot**:
+  - Update smoldot to `2.0.34`
+
 ## 1.12.1 - 2025-05-27
 
 ### Fixed
