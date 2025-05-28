@@ -6,33 +6,26 @@ export const createStorageFn = (
 ): Archive["storage"] =>
   abortablePromiseFn((resolve, reject, hash, type, key, childTrie) => {
     const isDescendants = type.startsWith("descendants")
-    let result: any = isDescendants ? [] : null
 
+    let result: any = isDescendants ? [] : null
     const onItem: Parameters<typeof cbStore>[3] = isDescendants
-      ? (items) => {
-          result.push(items)
-        }
-      : (items) => {
-          result = items?.[type as "value"]
+      ? result.push.bind(result)
+      : ({ [type]: res }) => {
+          result = res
         }
 
     return cbStore(
       hash,
       [{ key, type }],
-      childTrie ?? null,
+      childTrie,
       onItem,
       (e) => {
-        result = null
         reject(e)
+        result = null
       },
       () => {
-        try {
-          resolve(result)
-        } catch (e) {
-          reject(e)
-        } finally {
-          result = null
-        }
+        resolve(result)
+        result = null
       },
     )
   })
