@@ -38,11 +38,15 @@ const getRequestCreator =
     )
 
 export const getArchive = (request: ClientRequest<string, any>): Archive => {
-  const creator = getRequestCreator(request)
+  const archiveRequest: ClientRequest<string, any> = (
+    method: string,
+    ...rest
+  ) => request(`archive_v1_${method}`, ...rest)
+  const creator = getRequestCreator(archiveRequest)
 
   const call = creator<
     [hash: string, function: string, callParameters: string]
-  >("archive_v1_call")((
+  >("call")((
     x:
       | { success: true; value: string }
       | { success: false; error: string }
@@ -54,20 +58,17 @@ export const getArchive = (request: ClientRequest<string, any>): Archive => {
     return x.value
   })
 
-  const storageSubscription = createStorageCb(request)
+  const storageSubscription = createStorageCb(archiveRequest)
 
   return {
     call,
-    body: creator<[hash: string]>("archive_v1_body")(
+    body: creator<[hash: string]>("body")(
       withInvalidBlockHash(identity<string[] | null>()),
     ),
-    finalizedHeight: creator<[]>("archive_v1_finalizedHeight")(
-      identity<number>(),
-    ),
-    hashByHeight: creator<[height: number]>("archive_v1_hashByHeight")(
-      identity<string[]>(),
-    ),
-    header: creator<[hash: string]>("archive_v1_header")(
+    finalizedHeight: creator<[]>("finalizedHeight")(identity<number>()),
+    hashByHeight:
+      creator<[height: number]>("hashByHeight")(identity<string[]>()),
+    header: creator<[hash: string]>("header")(
       withInvalidBlockHash(identity<string | null>()),
     ),
     storageSubscription,

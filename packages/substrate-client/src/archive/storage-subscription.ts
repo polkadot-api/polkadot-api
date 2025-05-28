@@ -19,7 +19,7 @@ type StorageErrorEvent = {
 
 export const createStorageCb =
   (
-    request: ClientRequest<
+    archiveRequest: ClientRequest<
       string,
       StorageEvent | StorageDone | StorageErrorEvent
     >,
@@ -35,10 +35,10 @@ export const createStorageCb =
       isRunning = false
     }
 
-    request("archive_v1_storage", [hash, inputs, childTrie], {
+    archiveRequest("storage", [hash, inputs, childTrie], {
       onSuccess: (operationId, followSubscription) => {
         const stopOperation = () => {
-          request("archive_v1_stopStorage", [operationId])
+          archiveRequest("stopStorage", [operationId])
         }
 
         if (!isRunning) return stopOperation()
