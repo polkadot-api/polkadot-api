@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.16.1 - 2025-05-27
+
+### Fixed
+
+- Update dependencies
+
+## 0.16.0 - 2025-05-20
+
+### Changed
+
+- Now `generateMultipleDescriptors` requires a common file path.
+
+### Fixed
+
+- Storage entry values decode to `null` if the entry is void.
+
 ## 0.15.0 - 2025-05-15
 
 ### Added

@@ -5,12 +5,14 @@
     "wnd": {
       "chain": "westend2",
       "metadata": ".papi/metadata/wnd.scale",
-      "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e"
+      "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+      "codeHash": "0x8579da39311d91d4fd5586caee968fa2f2de07db6f715126cc438c79c2f18c3d"
     },
     "wndAssethub": {
       "wsUrl": "wss://westend-asset-hub-rpc.polkadot.io/",
       "metadata": ".papi/metadata/wnd-assethub.scale",
-      "genesis": "0x67f9723393ef76214df0118c34bbbd3dbebc8ed46a10973a8c969d48fe7598c9"
+      "genesis": "0x67f9723393ef76214df0118c34bbbd3dbebc8ed46a10973a8c969d48fe7598c9",
+      "codeHash": "0x4feb092de4a1f796a98fca48d56ee849a3c9c85f4e82d2a420257d0b8c607718"
     }
   }
 }

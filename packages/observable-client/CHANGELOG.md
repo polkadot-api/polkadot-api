@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.11.0 - 2025-05-21
+
+### Added
+
+- Mechanisms to safely cache the metadata, by using the hash of the `:code` as its key.
+
+## 0.10.2 - 2025-05-20
+
+### Fixed
+
+- Update dependencies
+
 ## 0.10.1 - 2025-05-18
 
 ### Fixed

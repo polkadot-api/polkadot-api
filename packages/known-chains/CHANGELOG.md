@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.7.7 - 2025-05-27
+
+### Fixed
+
+- `chains`: Update `lightSyncState`
+
+## 0.7.6 - 2025-05-20
+
+### Fixed
+
+- `chains`: Update `lightSyncState`
+
 ## 0.7.5 - 2025-05-15
 
 ### Fixed

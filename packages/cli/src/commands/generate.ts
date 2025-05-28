@@ -167,6 +167,7 @@ async function outputCodegen(
     metadata: UnifiedMetadata
     metadataRaw: Uint8Array
     knownTypes: KnownTypes
+    codeHash?: HexString
     genesis?: HexString
   }>,
   outputFolder: string,
@@ -174,6 +175,7 @@ async function outputCodegen(
   whitelist: string[] | null,
 ) {
   const {
+    commonFileContent,
     descriptorsFileContent,
     descriptorTypesFiles,
     metadataTypes,
@@ -186,6 +188,7 @@ async function outputCodegen(
       metadataTypes: "./metadataTypes",
       types: "./common-types",
       descriptorValues: "./descriptors",
+      common: "./common",
     },
     {
       whitelist: whitelist ?? undefined,
@@ -204,6 +207,7 @@ async function outputCodegen(
 
   await fs.mkdir(outputFolder, { recursive: true })
 
+  await fs.writeFile(path.join(outputFolder, "common.ts"), commonFileContent)
   // Going through base64 conversion instead of using binary loader because of esbuild issue
   // https://github.com/evanw/esbuild/issues/3894
   const metadataTypesBase64 = Buffer.from(
@@ -239,11 +243,14 @@ export default content
       ])
       .flat(),
   )
+
   await generateIndex(
     outputFolder,
     chains.map((chain) => chain.key),
-    descriptorTypesFiles.map((d) => d.exports),
     publicTypes,
+    Object.fromEntries(
+      chains.filter((x) => x.codeHash!!).map((x) => [x.codeHash, x.key]),
+    ),
   )
 
   return hash
@@ -324,20 +331,35 @@ async function compileCodegen(packageDir: string) {
   })
 }
 
+const cacheMetadataStr = `
+export const getMetadata: (codeHash: string) => Promise<Uint8Array | null> = async (
+  codeHash: string
+)=> {
+  try {
+    return await metadatas[codeHash].getMetadata()
+  } catch {}
+  return null
+}`
+
 const generateIndex = async (
   path: string,
   keys: string[],
-  exports: string[][],
   publicTypes: string[],
+  metadatas: Record<string, string>,
 ) => {
   const indexTs = [
-    ...keys.flatMap((key, i) => [
-      `export { ${exports[i].join(",")} } from "./${key}";`,
+    ...keys.flatMap((key) => [
+      `import { default as ${key} } from "./${key}";`,
+      `export { ${key} }`,
       `export type * from "./${key}";`,
     ]),
     `export {`,
     publicTypes.join(", "),
     `} from './common-types';`,
+    `const metadatas = {${Object.entries(metadatas)
+      .map(([codeHash, key]) => `["${codeHash}"]: ${key}`)
+      .join(",\n")}}`,
+    cacheMetadataStr,
   ].join("\n")
   await fs.writeFile(join(path, "index.ts"), indexTs)
 }
@@ -366,7 +388,7 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "peerDependencies": {
-    "polkadot-api": ">=1.11.0"
+    "polkadot-api": ">=1.11.2"
   }
 }
 `,

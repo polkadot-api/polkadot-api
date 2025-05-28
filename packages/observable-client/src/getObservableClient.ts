@@ -2,9 +2,11 @@ import type {
   SubstrateClient,
   UnsubscribeFn,
 } from "@polkadot-api/substrate-client"
-import { Observable } from "rxjs"
+import { noop, Observable, of } from "rxjs"
 import { ChainHead$, getChainHead$ } from "./chainHead"
 import getBroadcastTx$ from "./tx"
+
+const ofNullFn = () => of(null)
 
 export interface ObservableClient {
   chainHead$: (nSubscribers?: number) => ChainHead$
@@ -19,7 +21,12 @@ const clientCache = new Map<
 
 export const getObservableClient = (
   substrateClient: SubstrateClient,
+  cache: Partial<{
+    getMetadata: (codeHash: string) => Observable<Uint8Array | null>
+    setMetadata: (codeHash: string, rawMetadata: Uint8Array) => void
+  }> = {},
 ): ObservableClient => {
+  const { getMetadata, setMetadata } = cache
   const cached = clientCache.get(substrateClient)
   if (cached) {
     cached.refCount++
@@ -46,7 +53,11 @@ export const getObservableClient = (
     chainHead$: (_expectedSubscribers) => {
       currentSubscribers++
       expectedSubscribers ||= _expectedSubscribers || 1
-      cachedChainhead ||= getChainHead$(substrateClient.chainHead)
+      cachedChainhead ||= getChainHead$(
+        substrateClient.chainHead,
+        getMetadata || ofNullFn,
+        setMetadata || noop,
+      )
       const [result, start] = cachedChainhead
       if (expectedSubscribers === currentSubscribers) {
         const copiedCurrentSubscribers = currentSubscribers

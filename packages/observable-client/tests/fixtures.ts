@@ -147,6 +147,13 @@ export const initializeWithMetadata = async (
 ) => {
   const result = await initialize(mockClient, overrides)
 
+  if (mockClient.chainHead.mock.storage.mock.lastCall)
+    await mockClient.chainHead.mock.storage.reply(
+      mockClient.chainHead.mock.storage.mock.lastCall[0],
+      "0x0000000",
+    )
+  mockClient.chainHead.mock.storage.mockClear()
+
   await mockClient.chainHead.mock.call.reply(
     result.initialHash,
     metadataVersions,

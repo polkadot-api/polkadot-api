@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.1 - 2025-05-20
+
+### Fixed
+
+- Storage entry values decode to `null` if the entry is void.
+
 ## 0.12.0 - 2025-05-15
 
 ### Added

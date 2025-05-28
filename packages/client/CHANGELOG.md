@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+## 1.12.2 - 2025-05-27
+
+### Fixed
+
+- **Smoldot**:
+  - Update smoldot to `2.0.34`
+- **Chains:**:
+  - Update `lightSyncState`
+
+## 1.12.1 - 2025-05-27
+
+### Fixed
+
+- Ensure mortality always encode to valid values.
+- ink!: Filter events by contract address for ink!v6
+- Allow checking compatibility for non-existing entry.
+
+## 1.12.0 - 2025-05-21
+
+### Added
+
+- Mechanisms to safely cache the metadata, by using the hash of the `:code` as its key.
+
+## 1.11.2 - 2025-05-20
+
+### Fixed
+
+- Storage entry values decode to `null` if the entry is void.
+- **Chains:**:
+  - Update `lightSyncState`
+
 ## 1.11.1 - 2025-05-18
 
 ### Fixed

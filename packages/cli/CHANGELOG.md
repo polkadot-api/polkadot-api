@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+## 0.13.2 - 2025-05-27
+
+### Fixed
+
+- Update dependencies
+
+## 0.13.1 - 2025-05-27
+
+### Fixed
+
+- Update dependencies
+
+## 0.13.0 - 2025-05-21
+
+### Added
+
+- Store the "code-hash" linked to each metadata, so that it can be safely cached.
+
+## 0.12.2 - 2025-05-20
+
+### Fixed
+
+- Update dependencies
+
 ## 0.12.1 - 2025-05-18
 
 ### Fixed

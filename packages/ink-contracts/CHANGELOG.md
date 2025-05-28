@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.3.3 - 2025-05-27
+
+### Fixed
+
+- Filter events by contract address for ink!v6
+
+## 0.3.2 - 2025-05-20
+
+### Fixed
+
+- Update dependencies
+
 ## 0.3.1 - 2025-05-15
 
 ### Fixed

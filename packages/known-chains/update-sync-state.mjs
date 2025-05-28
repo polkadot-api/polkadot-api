@@ -6,7 +6,6 @@ const CHAINS = {
   polkadot: "wss://polkadot-rpc.dwellir.com",
   ksmcc3: "wss://rpc-kusama.luckyfriday.io",
   westend2: "wss://westend-rpc.polkadot.io",
-  rococo_v2_2: "wss://rococo-rpc.polkadot.io",
   paseo: "wss://paseo.rpc.amforc.com",
 }
 

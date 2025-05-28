@@ -76,6 +76,9 @@ const deleteBlocks = (blocks: PinnedBlocks, toDelete: string[]) => {
 export const getPinnedBlocks$ = (
   follow$: Observable<FollowEvent>,
   call$: (hash: string, method: string, args: string) => Observable<string>,
+  getCodeHash$: (blockHash: string) => Observable<string>,
+  getCachedMetadata$: (codeHash: string) => Observable<Uint8Array | null>,
+  setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
   blockUsage$: Subject<BlockUsageEvent>,
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
@@ -260,6 +263,9 @@ export const getPinnedBlocks$ = (
 
   const getRuntime = getRuntimeCreator(
     withStopRecovery(pinnedBlocks$, call$, "pinned-blocks"),
+    withStopRecovery(pinnedBlocks$, getCodeHash$, "pinned-blocks"),
+    getCachedMetadata$,
+    setCachedMetadata,
   )
   return pinnedBlocks$
 }
