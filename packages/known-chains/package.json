@@ -35,6 +35,11 @@
       "import": "./dist/specs/ksmcc3_bridge_hub.mjs",
       "require": "./dist/specs/ksmcc3_bridge_hub.js"
     },
+    "./ksmcc3_coretime": {
+      "module": "./dist/specs/ksmcc3_coretime.mjs",
+      "import": "./dist/specs/ksmcc3_coretime.mjs",
+      "require": "./dist/specs/ksmcc3_coretime.js"
+    },
     "./ksmcc3_encointer": {
       "module": "./dist/specs/ksmcc3_encointer.mjs",
       "import": "./dist/specs/ksmcc3_encointer.mjs",
