@@ -3,7 +3,7 @@ import { type ClientRequest } from "../client"
 import { createStorageCb } from "./storage-subscription"
 import { createStorageFn } from "./storage"
 import { Archive } from "./public-types"
-import { InvalidBlockHashError } from "./errors"
+import { CallError, InvalidBlockHashError } from "./errors"
 
 const identity =
   <T, Args extends Array<any> = []>() =>
@@ -54,7 +54,7 @@ export const getArchive = (request: ClientRequest<string, any>): Archive => {
     hash,
   ) => {
     if (!x) throw new InvalidBlockHashError(hash)
-    if (!x.success) throw new Error(x.error)
+    if (!x.success) throw new CallError(x.error)
     return x.value
   })
 

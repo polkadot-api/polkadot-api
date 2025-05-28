@@ -45,21 +45,12 @@ export const createStorageCb =
 
         const doneListening = followSubscription(operationId, {
           next: (event) => {
-            switch (event.event) {
-              case "storage": {
-                const { event: _, ...item } = event
-                onItem(item)
-                break
-              }
-              case "storageDone": {
-                _onDone()
-                break
-              }
-              default: {
-                _onError(new StorageError(event.error))
-                break
-              }
-            }
+            const { event: type } = event
+            if (type === "storage") {
+              const { event: _, ...item } = event
+              onItem(item)
+            } else if (type === "storageDone") _onDone()
+            else _onError(new StorageError(event.error))
           },
           error: onError,
         })
