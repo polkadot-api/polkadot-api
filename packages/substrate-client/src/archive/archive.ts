@@ -6,45 +6,49 @@ import { Archive } from "./public-types"
 import { CallError, InvalidBlockHashError } from "./errors"
 
 const identity =
-  <T, Args extends Array<any> = []>() =>
-  (x: T, ...args: Args): T =>
-    args ? x : x
+  <T>() =>
+  (x: T): T =>
+    x
 
-const withInvalidBlockHash =
-  <T>(
-    fn: (x: T | null, hash: string) => T | null,
-  ): ((x: T | null, hash: string) => T) =>
-  (x, hash) => {
-    const result = fn(x, hash)
+const handleInvalidBlockHash =
+  <T>() =>
+  (result: T | null, hash: string): T => {
     if (result === null) throw new InvalidBlockHashError(hash)
     return result
   }
 
-const getRequestCreator =
-  (request: ClientRequest<any, any>) =>
-  <A extends Array<any>>(method: string) =>
-  <I, O>(mapper: (input: I, ...args: A) => O) =>
-    abortablePromiseFn<O, A>((res, rej, ...args) =>
-      request(method, args, {
-        onSuccess: (x: I) => {
-          try {
-            res(mapper(x, ...args))
-          } catch (e) {
-            rej(e)
-          }
-        },
-        onError: rej,
-      }),
-    )
+export const getArchive = (request: ClientRequest<any, any>): Archive => {
+  const archiveRequest: ClientRequest<any, any> = (method: string, ...rest) =>
+    request(`archive_v1_${method}`, ...rest)
 
-export const getArchive = (request: ClientRequest<string, any>): Archive => {
-  const archiveRequest: ClientRequest<string, any> = (
-    method: string,
-    ...rest
-  ) => request(`archive_v1_${method}`, ...rest)
-  const creator = getRequestCreator(archiveRequest)
+  const fnCreator =
+    <A extends Array<any>>(method: string) =>
+    <I, O>(mapper: (input: I, ...args: A) => O) =>
+      abortablePromiseFn<O, A>((res, rej, ...args) =>
+        archiveRequest(method, args, {
+          onSuccess: (x: I) => {
+            try {
+              res(mapper(x, ...args))
+            } catch (e) {
+              rej(e)
+            }
+          },
+          onError: rej,
+        }),
+      )
 
-  const call = creator<
+  const header = fnCreator<[hash: string]>("header")(
+    handleInvalidBlockHash<string>(),
+  )
+
+  const body = fnCreator<[hash: string]>("body")(
+    handleInvalidBlockHash<string[]>(),
+  )
+
+  const storageSubscription = createStorageCb(archiveRequest)
+  const storage = createStorageFn(storageSubscription)
+
+  const call = fnCreator<
     [hash: string, function: string, callParameters: string]
   >("call")((
     x:
@@ -58,20 +62,17 @@ export const getArchive = (request: ClientRequest<string, any>): Archive => {
     return x.value
   })
 
-  const storageSubscription = createStorageCb(archiveRequest)
+  const finalizedHeight = fnCreator<[]>("finalizedHeight")(identity<number>())
+  const hashByHeight =
+    fnCreator<[height: number]>("hashByHeight")(identity<string[]>())
 
   return {
-    call,
-    body: creator<[hash: string]>("body")(
-      withInvalidBlockHash(identity<string[] | null>()),
-    ),
-    finalizedHeight: creator<[]>("finalizedHeight")(identity<number>()),
-    hashByHeight:
-      creator<[height: number]>("hashByHeight")(identity<string[]>()),
-    header: creator<[hash: string]>("header")(
-      withInvalidBlockHash(identity<string | null>()),
-    ),
+    header,
+    body,
     storageSubscription,
-    storage: createStorageFn(storageSubscription),
+    storage,
+    call,
+    finalizedHeight,
+    hashByHeight,
   }
 }
