@@ -86,6 +86,9 @@ importers:
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
+      '@polkadot-api/substrate-client':
+        specifier: workspace:*
+        version: link:../../packages/substrate-client
       '@polkadot-api/tx-utils':
         specifier: workspace:*
         version: link:../../packages/tx-utils

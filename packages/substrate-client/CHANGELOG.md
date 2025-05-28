@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Support for `archive_v1`
+
 ## 0.3.0 - 2024-11-05
 
 ### Changed
