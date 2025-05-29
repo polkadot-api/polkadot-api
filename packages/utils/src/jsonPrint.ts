@@ -4,7 +4,7 @@ export const jsonPrint = (value: any, indent = 2) =>
     (_, v) =>
       typeof v === "bigint"
         ? `${v}n`
-        : typeof v === "object" && "asHex" in v && typeof v.asHex === "function"
+        : typeof v === "object" && typeof v?.asHex === "function"
           ? v.asHex()
           : v,
     indent,
