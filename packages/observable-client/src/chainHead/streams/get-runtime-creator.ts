@@ -63,6 +63,7 @@ export interface RuntimeContext {
 
 export interface Runtime {
   at: string
+  codeHash$: Observable<string>
   runtime: Observable<RuntimeContext>
   addBlock: (block: string) => Runtime
   deleteBlocks: (blocks: string[]) => number
@@ -74,6 +75,27 @@ const opaqueBytes = Bytes()
 const optionalOpaqueBytes = Option(opaqueBytes)
 const u32ListDecoder = Vector(u32).dec
 
+const withRecovery =
+  (getHash: () => string | null) =>
+  <Args extends Array<any>, T>(
+    fn: (hash: string, ...args: Args) => Observable<T>,
+  ): ((...args: Args) => Observable<T>) => {
+    const result: (...args: Args) => Observable<T> = (...args) => {
+      const hash = getHash()
+      return hash
+        ? fn(hash, ...args).pipe(
+            catchError((e) => {
+              if (e instanceof BlockNotPinnedError) return result(...args)
+              if (e instanceof OperationInaccessibleError)
+                return timer(750).pipe(mergeMap(() => result(...args)))
+              throw e
+            }),
+          )
+        : EMPTY
+    }
+    return result
+  }
+
 export const getRuntimeCreator = (
   call$: (hash: string, method: string, args: string) => Observable<string>,
   getCodeHash$: (blockHash: string) => Observable<string>,
@@ -81,35 +103,14 @@ export const getRuntimeCreator = (
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {
   const getMetadata$ = (
-    getHash: () => string | null,
+    codeHash$: Observable<string>,
+    call$: (method: string, args: string) => Observable<string>,
   ): Observable<{
     metadataRaw: Uint8Array
     metadata: UnifiedMetadata
     codeHash: string
   }> => {
-    const withRecovery = <Args extends Array<any>, T>(
-      fn: (hash: string, ...args: Args) => Observable<T>,
-    ): ((...args: Args) => Observable<T>) => {
-      const result: (...args: Args) => Observable<T> = (...args) => {
-        const hash = getHash()
-        return hash
-          ? fn(hash, ...args).pipe(
-              catchError((e) => {
-                if (e instanceof BlockNotPinnedError) return result(...args)
-                if (e instanceof OperationInaccessibleError)
-                  return timer(750).pipe(mergeMap(() => result(...args)))
-                throw e
-              }),
-            )
-          : EMPTY
-      }
-      return result
-    }
-
-    const recoverCall$ = withRecovery(call$)
-    const recoverCodeHash$ = withRecovery(getCodeHash$)
-
-    const versions$ = recoverCall$("Metadata_metadata_versions", "").pipe(
+    const versions$ = call$("Metadata_metadata_versions", "").pipe(
       map(u32ListDecoder),
       catchError(() => of([14])),
     )
@@ -118,14 +119,14 @@ export const getRuntimeCreator = (
         .filter((x) => x > 13 && x < 17)
         .sort((a, b) => b - a)
       return v === 14
-        ? recoverCall$("Metadata_metadata", "").pipe(map(opaqueBytes.dec))
-        : recoverCall$("Metadata_metadata_at_version", versionedArgs(v)).pipe(
+        ? call$("Metadata_metadata", "").pipe(map(opaqueBytes.dec))
+        : call$("Metadata_metadata_at_version", versionedArgs(v)).pipe(
             map((x) => optionalOpaqueBytes.dec(x)!),
           )
     }
     const metadataRaw$ = versions$.pipe(mergeMap(versioned$))
 
-    return recoverCodeHash$().pipe(
+    return codeHash$.pipe(
       mergeMap((codeHash) =>
         getCachedMetadata(codeHash).pipe(
           catchError(() => of(null)),
@@ -149,11 +150,14 @@ export const getRuntimeCreator = (
   }
 
   return (getHash: () => string | null): Runtime => {
+    const enhancer = withRecovery(getHash)
     const initialHash = getHash()!
     const usages = new Set<string>([initialHash])
+    const codeHash$ = enhancer(getCodeHash$)().pipe(shareReplay(1))
 
     const runtimeContext$: Observable<RuntimeContext> = getMetadata$(
-      getHash,
+      codeHash$,
+      enhancer(call$),
     ).pipe(
       map(({ metadata, metadataRaw, codeHash }) => {
         const lookup = getLookupFn(metadata)
@@ -193,6 +197,7 @@ export const getRuntimeCreator = (
     const result: Runtime = {
       at: initialHash,
       runtime: runtimeContext$,
+      codeHash$,
       addBlock: (block: string) => {
         usages.add(block)
         return result
