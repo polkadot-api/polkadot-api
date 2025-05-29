@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Add `jsonPrint` function
+- **Chains:**
+  - Add Kusama coretime
+
 ## 1.12.2 - 2025-05-27
 
 ### Fixed

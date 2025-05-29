@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add Kusama Coretime
+
 ## 0.7.7 - 2025-05-27
 
 ### Fixed
