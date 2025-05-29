@@ -12,7 +12,7 @@ import {
   bool,
   compact,
   compactNumber,
-  enhanceDecoder,
+  extrinsicFormat,
   str,
   u16,
   u32,
@@ -136,14 +136,9 @@ export const extrinsicMetadata = Struct({
 export type ExtrinsicMetadata = CodecType<typeof extrinsicMetadata>
 export type LookupValue = V14Lookup[number]
 
-const versionDecoder = enhanceDecoder(u8[1], (value) => ({
-  version: value & ~(1 << 7),
-  signed: !!(value & (1 << 7)),
-}))
-
 export const extrinsicDec = Tuple.dec(
   compact[1],
-  versionDecoder,
+  extrinsicFormat[1],
   Bytes(Infinity)[1],
 )
 
