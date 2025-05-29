@@ -7,12 +7,14 @@ import {
   StorageResult,
 } from "@polkadot-api/substrate-client"
 import {
+  EMPTY,
   MonoTypeOperatorFunction,
   Observable,
   ReplaySubject,
   Subject,
   defer,
   distinctUntilChanged,
+  endWith,
   filter,
   map,
   merge,
@@ -448,6 +450,22 @@ export const getChainHead$ = (
     unfollow = startFollow()
   }
 
+  const getRuntime$ = (codeHash: string): Observable<RuntimeContext | null> =>
+    pinnedBlocks$.pipe(
+      take(1),
+      mergeMap(({ runtimes }) =>
+        merge(
+          ...Object.values(runtimes).map((runtime) =>
+            runtime.codeHash$.pipe(
+              mergeMap((_codehash) =>
+                codeHash === _codehash ? runtime.runtime : EMPTY,
+              ),
+            ),
+          ),
+        ).pipe(endWith(null), take(1)),
+      ),
+    )
+
   return [
     {
       follow$,
@@ -458,6 +476,7 @@ export const getChainHead$ = (
       runtime$,
       metadata$,
       genesis$,
+      getRuntime$,
 
       header$,
       body$,
