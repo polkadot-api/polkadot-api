@@ -13,8 +13,8 @@ jobs:
       matrix:
         version:
           - polkadot-v1.1.0
-          - polkadot-stable2407-5
-          - polkadot-stable2412-1
+          - polkadot-stable2412-2
+          - polkadot-stable2503-5
         kind:
           - ws
           - sm
