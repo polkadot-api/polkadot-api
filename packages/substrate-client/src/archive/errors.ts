@@ -1,7 +1,7 @@
-export class InvalidBlockHashError extends Error {
+export class BlockHashNotFoundError extends Error {
   constructor(hash: string) {
     super(`Invalid BlockHash: ${hash}`)
-    this.name = "InvalidBlockHashError"
+    this.name = "BlockHashNotFoundError"
   }
 }
 

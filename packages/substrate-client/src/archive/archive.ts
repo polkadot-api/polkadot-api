@@ -3,7 +3,7 @@ import { type ClientRequest } from "../client"
 import { createStorageCb } from "./storage-subscription"
 import { createStorageFn } from "./storage"
 import { Archive } from "./public-types"
-import { CallError, InvalidBlockHashError } from "./errors"
+import { CallError, BlockHashNotFoundError } from "./errors"
 
 const identity =
   <T>() =>
@@ -13,7 +13,7 @@ const identity =
 const handleInvalidBlockHash =
   <T>() =>
   (result: T | null, hash: string): T => {
-    if (result === null) throw new InvalidBlockHashError(hash)
+    if (result === null) throw new BlockHashNotFoundError(hash)
     return result
   }
 
@@ -57,7 +57,7 @@ export const getArchive = (request: ClientRequest<any, any>): Archive => {
       | null,
     hash,
   ) => {
-    if (!x) throw new InvalidBlockHashError(hash)
+    if (!x) throw new BlockHashNotFoundError(hash)
     if (!x.success) throw new CallError(x.error)
     return x.value
   })

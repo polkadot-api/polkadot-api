@@ -15,7 +15,7 @@ export interface Archive {
     [hash: string, fnName: string, callParameters: string],
     string
   >
-  header: (hash: string) => Promise<string>
+  header: AbortablePromiseFn<[hash: string], string>
   finalizedHeight: AbortablePromiseFn<[], number>
   hashByHeight: AbortablePromiseFn<[height: number], string[]>
   storage: <Type extends StorageItemInput["type"]>(

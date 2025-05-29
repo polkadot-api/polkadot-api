@@ -16,6 +16,6 @@ export {
   OperationInaccessibleError,
   OperationLimitError,
 } from "./chainhead"
-export { StorageError, InvalidBlockHashError, CallError } from "./archive"
+export { StorageError, BlockHashNotFoundError, CallError } from "./archive"
 
 export { createClient, type SubstrateClient } from "./substrate-client"
