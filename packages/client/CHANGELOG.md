@@ -5,6 +5,9 @@
 ### Added
 
 - New storage `.getKey` API, for accessing the key of a storage entry.
+- Add `jsonPrint` function
+- **Chains:**
+  - Add Kusama coretime
 
 ## 1.12.2 - 2025-05-27
 
