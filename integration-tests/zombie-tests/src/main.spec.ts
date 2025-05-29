@@ -471,4 +471,30 @@ describe("E2E", async () => {
 
     expect(entries.every((x) => !!fromHex(x.keyArgs[0]))).toBe(true)
   })
+
+  it("generates correct storage keys", async () => {
+    expect(await api.query.Staking.ErasStakersPaged.getKey()).toEqual(
+      "0x5f3e4907f716ac89b6347d15ececedca6ecf40373c722b0340d3d65c311a4305",
+    )
+    expect(await api.query.Staking.ErasStakersPaged.getKey(0)).toEqual(
+      "0x5f3e4907f716ac89b6347d15ececedca6ecf40373c722b0340d3d65c311a4305b4def25cfda6ef3a00000000",
+    )
+    expect(
+      await api.query.Staking.ErasStakersPaged.getKey(
+        0,
+        "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
+      ),
+    ).toEqual(
+      "0x5f3e4907f716ac89b6347d15ececedca6ecf40373c722b0340d3d65c311a4305b4def25cfda6ef3a00000000803d5aecf59783b17628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
+    )
+    expect(
+      await api.query.Staking.ErasStakersPaged.getKey(
+        0,
+        "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
+        1,
+      ),
+    ).toEqual(
+      "0x5f3e4907f716ac89b6347d15ececedca6ecf40373c722b0340d3d65c311a4305b4def25cfda6ef3a00000000803d5aecf59783b17628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa635153cb1f00942ff401000000",
+    )
+  })
 })

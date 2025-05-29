@@ -10,7 +10,7 @@ import {
   ChainHead$,
   RuntimeContext,
 } from "@polkadot-api/observable-client"
-import { FixedSizeBinary } from "@polkadot-api/substrate-bindings"
+import { FixedSizeBinary, HexString } from "@polkadot-api/substrate-bindings"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
@@ -29,7 +29,10 @@ import {
 import {
   CompatibilityFunctions,
   CompatibilityHelper,
+  CompatibilityToken,
+  getCompatibilityApi,
   minCompatLevel,
+  RuntimeToken,
 } from "./compatibility"
 import { createWatchEntries } from "./watch-entries"
 
@@ -60,6 +63,10 @@ type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
   ? Left | PossibleParents<Left>
   : ArrayPossibleParents<A>
 
+type AllPermutations<A extends Array<any>> = A extends [...infer Left, any]
+  ? AllPermutations<Left> | A
+  : A
+
 // Fixed-size arrays values can't be extracted one-by-one, so that's a specific case
 type ArrayPossibleParents<
   A extends Array<any>,
@@ -72,6 +79,55 @@ type ArrayPossibleParents<
       ? R
       : ArrayPossibleParents<A, [...Count, T], R | Count>
   : never
+
+type GetKey<Args extends Array<any>, Unsafe> = Unsafe extends true
+  ? {
+      /**
+       * Get the storage-key for this storage entry.
+       *
+       * @param args  All keys needed for that storage entry.
+       * @returns Promise that will resolve the hexadecimal value of the
+       *          storage key.
+       */
+      (...args: AllPermutations<Args>): Promise<HexString>
+      /**
+       * Get the storage-key for this storage entry.
+       *
+       * @param ...args       All keys needed for that storage entry.
+       * @param runtimeToken  Token from got with `await
+       *                      typedApi.runtimeToken`
+       * @returns Synchronously returns the hexadecimal value of the
+       *          storage key.
+       */
+      (
+        ...args: [...AllPermutations<Args>, runtimeToken: RuntimeToken]
+      ): HexString
+    }
+  : {
+      /**
+       * Get the storage-key for this storage entry.
+       *
+       * @param args  All keys needed for that storage entry.
+       * @returns Promise that will resolve the hexadecimal value of the
+       *          storage key.
+       */
+      (...args: AllPermutations<Args>): Promise<HexString>
+      /**
+       * Get the storage-key for this storage entry.
+       *
+       * @param ...args             All keys needed for that storage entry.
+       * @param compatibilityToken  Token from got with `await
+       *                            typedApi.compatibilityToken`
+       * @returns Synchronously returns the hexadecimal value of the
+       *          storage key.
+       */
+      (
+        ...args: [
+          ...AllPermutations<Args>,
+          compatibilityToken: CompatibilityToken,
+        ]
+      ): HexString
+    }
 
 type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
   /**
@@ -88,6 +144,7 @@ type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
    *                         changes, `best` or `finalized` (default)
    */
   watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
+  getKey: GetKey<[], Unsafe>
 } & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
 export type StorageEntryWithKeys<
@@ -181,6 +238,8 @@ export type StorageEntryWithKeys<
     }
     entries: Array<{ args: ArgsOut; value: NonNullable<Payload> }>
   }>
+
+  getKey: GetKey<Args, Unsafe>
 } & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
 export type StorageEntry<
@@ -398,9 +457,21 @@ export const createStorageEntry = (
     )
   }
 
+  const getKey = (...args: Array<any>): Promise<string> | string => {
+    const token = args.at(-1)
+    if (token instanceof CompatibilityToken || token instanceof RuntimeToken) {
+      const actualArgs = args.slice(0, -1)
+      const ctx = getCompatibilityApi(token).runtime()
+      if (!argsAreCompatible(token, ctx, actualArgs)) throw incompatibleError()
+      return getCodec(ctx).keys.enc(...actualArgs)
+    }
+    return descriptorsPromise.then((x) => getKey(...args, x))
+  }
+
   return {
     isCompatible,
     getCompatibilityLevel,
+    getKey: getKey as GetKey<any, any>,
     getValue,
     getValues,
     getEntries,
