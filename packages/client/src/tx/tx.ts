@@ -124,7 +124,7 @@ export const createTxEntry = <
       const { location, codec } = codecs
       return {
         callData: Binary.fromBytes(
-          mergeUint8(new Uint8Array(location), codec.enc(arg)),
+          mergeUint8([new Uint8Array(location), codec.enc(arg)]),
         ),
         options: returnOptions,
       }
@@ -217,7 +217,7 @@ export const createTxEntry = <
         getFakeSignature(isEth),
       )
       const encoded = fromHex(await sign(fakeSigner, _options))
-      const args = toHex(mergeUint8(encoded, u32.enc(encoded.length)))
+      const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
 
       const decoder$: Observable<Decoder<PaymentInfo>> = chainHead
         .getRuntimeContext$(null)

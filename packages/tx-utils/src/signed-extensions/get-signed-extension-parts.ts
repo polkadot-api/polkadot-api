@@ -74,8 +74,8 @@ export const getSignedExtensionParts = (
     additionalSignedParts.push(signedExtension.value)
   })
 
-  const extra = mergeUint8(...extraParts)
-  const additionalSigned = mergeUint8(...additionalSignedParts)
+  const extra = mergeUint8(extraParts)
+  const additionalSigned = mergeUint8(additionalSignedParts)
 
   return { extra, additionalSigned }
 }

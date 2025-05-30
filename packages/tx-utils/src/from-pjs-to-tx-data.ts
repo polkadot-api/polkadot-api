@@ -45,13 +45,13 @@ const encodePjsOptionNetworkId = (
   const field = networkId[keys[0]]
   if (keys[0] === "any") return Uint8Array.from([0])
   if (keys[0] === "byGenesis")
-    return mergeUint8(Uint8Array.from([1, 0]), fromHex(field))
+    return mergeUint8([Uint8Array.from([1, 0]), fromHex(field)])
   if (keys[0] === "byFork")
-    return mergeUint8(
+    return mergeUint8([
       Uint8Array.from([1, 1]),
       u64.enc(field.blockNumber),
       fromHex(field.blockHash),
-    )
+    ])
   throw new Error("Named consensus not implemented yet")
 }
 
@@ -64,29 +64,29 @@ const encodePjsJunction = (
   const field = junction[keys[0]]
   switch (keys[0]) {
     case "parachain":
-      return mergeUint8(Uint8Array.from([0]), compact.enc(field))
+      return mergeUint8([Uint8Array.from([0]), compact.enc(field)])
     case "accountId32":
-      return mergeUint8(
+      return mergeUint8([
         Uint8Array.from([1]),
         encodePjsOptionNetworkId(metadata, field.network),
         fromHex(field.id),
-      )
+      ])
     case "accountIndex64":
-      return mergeUint8(
+      return mergeUint8([
         Uint8Array.from([2]),
         encodePjsOptionNetworkId(metadata, field.network),
         compact.enc(field.index),
-      )
+      ])
     case "accountKey20":
-      return mergeUint8(
+      return mergeUint8([
         Uint8Array.from([3]),
         encodePjsOptionNetworkId(metadata, field.network),
         fromHex(field.key),
-      )
+      ])
     case "palletInstance":
-      return mergeUint8(Uint8Array.from([4]), u8.enc(field))
+      return mergeUint8([Uint8Array.from([4]), u8.enc(field)])
     case "generalIndex":
-      return mergeUint8(Uint8Array.from([5]), compact.enc(field))
+      return mergeUint8([Uint8Array.from([5]), compact.enc(field)])
     case "generalKey":
       // General key is not used to locate assets
       throw "Unexpected generalKey type"
@@ -95,11 +95,11 @@ const encodePjsJunction = (
     case "plurality": // Plurality is not used to locate assets
       throw "Unexpected plurality type"
     case "globalConsensus":
-      return mergeUint8(
+      return mergeUint8([
         Uint8Array.from([9]),
         // it is not an option here
         encodePjsOptionNetworkId(metadata, field).slice(1),
-      )
+      ])
     default:
       throw `Unexpected junction type ${keys[0]}`
   }
@@ -121,7 +121,7 @@ const fromPjsAssetIdToSigExt = (
   const key = keys[0]
   if (key === "here") {
     encodedData.push(Uint8Array.from([0]))
-    return mergeUint8(...encodedData)
+    return mergeUint8(encodedData)
   } else if (
     !(
       key.startsWith("x") &&
@@ -141,7 +141,7 @@ const fromPjsAssetIdToSigExt = (
   }
 
   // it is an option
-  return mergeUint8(Uint8Array.from([1]), ...encodedData)
+  return mergeUint8([Uint8Array.from([1]), ...encodedData])
 }
 
 export const fromPjsToTxData = (

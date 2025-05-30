@@ -70,7 +70,7 @@ export const createV4Tx = (
   signingType?: "Ecdsa" | "Ed25519" | "Sr25519",
 ) => {
   const [signerType, addressPrefix] = getSignerType(metadata)
-  const preResult = mergeUint8(
+  const preResult = mergeUint8([
     extrinsicFormat.enc({ version: 4, type: "signed" }),
     // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
     signerType === SignerType.Ethereum
@@ -81,6 +81,6 @@ export const createV4Tx = (
       : new Uint8Array([signingTypeId[signingType], ...signed]),
     ...extra,
     callData,
-  )
-  return mergeUint8(compact.enc(preResult.length), preResult)
+  ])
+  return mergeUint8([compact.enc(preResult.length), preResult])
 }

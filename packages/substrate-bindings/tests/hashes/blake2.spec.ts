@@ -14,6 +14,6 @@ test.prop([fc.uint8Array()])("Blake2128", (input) => {
 
 test.prop([fc.uint8Array()])("Blake2128Concat", (input) => {
   expect(Blake2128Concat(input)).toStrictEqual(
-    mergeUint8(Blake2128(input), input),
+    mergeUint8([Blake2128(input), input]),
   )
 })

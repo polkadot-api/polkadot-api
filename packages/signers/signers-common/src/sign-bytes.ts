@@ -20,5 +20,5 @@ export const getSignBytes =
       isPadded = postBytes[i] === data[postDataStart + i]
     isPadded = isPadded && i === postBytes.length
 
-    return sign(isPadded ? data : mergeUint8(preBytes, data, postBytes))
+    return sign(isPadded ? data : mergeUint8([preBytes, data, postBytes]))
   }

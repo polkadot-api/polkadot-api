@@ -44,10 +44,10 @@ export const Storage = (pallet: string) => {
       [K in keyof A]: A[K] extends EncoderWithHash<infer V> ? V : unknown
     }
   } => {
-    const palletItemEncoded = mergeUint8(
+    const palletItemEncoded = mergeUint8([
       palledEncoded,
       Twox128(textEncoder.encode(name)),
-    )
+    ])
 
     const palletItemEncodedHex = toHex(palletItemEncoded)
 
@@ -92,7 +92,10 @@ export const Storage = (pallet: string) => {
       }
     ): string =>
       toHex(
-        mergeUint8(palletItemEncoded, ...args.map((val, idx) => fns[idx](val))),
+        mergeUint8([
+          palletItemEncoded,
+          ...args.map((val, idx) => fns[idx](val)),
+        ]),
       )
 
     return {
