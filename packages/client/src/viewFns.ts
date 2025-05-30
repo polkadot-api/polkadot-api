@@ -71,7 +71,7 @@ export const createViewFnEntry = (
         }
         if (!argsAreCompatible(runtime, ctx, args)) throw compatibilityError()
         const viewArgs = viewCodec.args.enc(args)
-        const arg = mergeUint8(
+        const arg = mergeUint8([
           fromHex(
             ctx.lookup.metadata.pallets
               .find(({ name }) => name === pallet)!
@@ -79,7 +79,7 @@ export const createViewFnEntry = (
           ),
           compactNumber.enc(viewArgs.length),
           viewArgs,
-        )
+        ])
 
         return chainHead.call$(at, RUNTIME_CALL_NAME, toHex(arg)).pipe(
           map((v) => {

@@ -13,7 +13,7 @@ import { RuntimeContext } from "./streams"
 const external = new Uint8Array([2])
 
 const getValidateTxArgs = (tx: string, hash: string) =>
-  toHex(mergeUint8(external, fromHex(tx), fromHex(hash)))
+  toHex(mergeUint8([external, fromHex(tx), fromHex(hash)]))
 
 const TaggedTransactionQueue = "TaggedTransactionQueue"
 const validateTransaction = "validate_transaction"

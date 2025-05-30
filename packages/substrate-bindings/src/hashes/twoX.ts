@@ -25,4 +25,4 @@ export const Twox256 = (input: Uint8Array): Uint8Array => {
 }
 
 export const Twox64Concat = (encoded: Uint8Array): Uint8Array =>
-  mergeUint8(u64.enc(h64(encoded)), encoded)
+  mergeUint8([u64.enc(h64(encoded)), encoded])

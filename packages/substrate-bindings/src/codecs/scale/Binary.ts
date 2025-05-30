@@ -44,10 +44,10 @@ export class Binary {
 
   asBytes = () => this.#bytes
   asOpaqueBytes = () =>
-    (this.#opaqueBytes ||= mergeUint8(
-      compact[0](this.#bytes.length),
+    (this.#opaqueBytes ||= mergeUint8([
       this.#bytes,
-    ))
+      compact[0](this.#bytes.length),
+    ]))
 
   static fromText(input: string): Binary {
     return new this(textEncoder.encode(input))

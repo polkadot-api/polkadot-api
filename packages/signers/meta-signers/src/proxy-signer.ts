@@ -35,7 +35,7 @@ export function getProxySigner(
           force_proxy_type: proxyParams.type,
           call: callCodec.dec(callData),
         })
-        wrappedCallData = mergeUint8(new Uint8Array(location), payload)
+        wrappedCallData = mergeUint8([new Uint8Array(location), payload])
       } catch (_) {
         throw new Error(
           `Unsupported runtime version: Proxy.proxy not present or changed substantially`,

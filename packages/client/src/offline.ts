@@ -34,7 +34,7 @@ const createOfflineTxEntry = <
 
   return (arg: Arg) => {
     const encodedData = Binary.fromBytes(
-      mergeUint8(locationBytes, codec.enc(arg)),
+      mergeUint8([locationBytes, codec.enc(arg)]),
     )
 
     return {
