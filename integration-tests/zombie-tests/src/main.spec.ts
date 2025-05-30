@@ -471,4 +471,17 @@ describe("E2E", async () => {
 
     expect(entries.every((x) => !!fromHex(x.keyArgs[0]))).toBe(true)
   })
+
+  it("generates correct storage keys", async () => {
+    expect(await api.query.System.Account.getKey()).toEqual(
+      "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9",
+    )
+    expect(
+      await api.query.System.Account.getKey(
+        "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
+      ),
+    ).toEqual(
+      "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da91cdb29d91f7665b36dc5ec5903de32467628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
+    )
+  })
 })

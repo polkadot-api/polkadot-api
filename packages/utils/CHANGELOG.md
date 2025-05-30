@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add `jsonPrint` function
+
 ### Changed
 
 - `mergeUint8` now takes an `Array<Uint8Array>`. Soft deprecate old overload.
