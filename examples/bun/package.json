@@ -14,7 +14,7 @@
     "compile:ledger": "bun build ./src/ledger.ts --compile --outfile ./dist/ledger"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.14"
+    "@types/bun": "^1.2.15"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -26,8 +26,8 @@
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ledger-signer": "workspace:*",
     "@polkadot-api/meta-signers": "workspace:*",
-    "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/tx-utils": "workspace:*",
     "@polkadot-labs/hdkd": "^0.0.16",
     "@polkadot-labs/hdkd-helpers": "^0.0.16",
