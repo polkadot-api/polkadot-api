@@ -38,7 +38,7 @@ export function getPolkadotSigner(
       additionalSigned.push(signedExtension.additionalSigned)
     })
 
-    const toSign = mergeUint8(callData, ...extra, ...additionalSigned)
+    const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
     const signed = await sign(toSign.length > 256 ? hasher(toSign) : toSign)
     return createV4Tx(decMeta, publicKey, signed, extra, callData, signingType)
   }
@@ -67,10 +67,10 @@ export const withMetadataHash = (
             [METADATA_IDENTIFIER]: {
               identifier: METADATA_IDENTIFIER,
               value: oneU8,
-              additionalSigned: mergeUint8(
+              additionalSigned: mergeUint8([
                 oneU8,
                 merkleizeMetadata(metadata, networkInfo).digest(),
-              ),
+              ]),
             },
           }
         : signedExtensions,

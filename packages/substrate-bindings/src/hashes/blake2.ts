@@ -8,4 +8,4 @@ const len16 = { dkLen: 16 }
 export const Blake2128 = (encoded: Uint8Array) => blake2b(encoded, len16)
 
 export const Blake2128Concat = (encoded: Uint8Array) =>
-  mergeUint8(Blake2128(encoded), encoded)
+  mergeUint8([Blake2128(encoded), encoded])

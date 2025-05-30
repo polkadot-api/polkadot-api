@@ -54,7 +54,7 @@ test.prop([fc.uint8Array(), bigU64()])("Twox64Concat", async (input, hash) => {
 
   const { Twox64Concat } = await import(`@/hashes/twoX?${Date.now()}`)
 
-  const expected = mergeUint8(u64.enc(hash), input)
+  const expected = mergeUint8([u64.enc(hash), input])
 
   expect(Twox64Concat(input)).toStrictEqual(expected)
 })

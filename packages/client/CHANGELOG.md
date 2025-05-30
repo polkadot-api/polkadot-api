@@ -9,6 +9,11 @@
 - **Chains:**
   - Add Kusama coretime
 
+### Changed
+
+- **Utils**:
+  - `mergeUint8` now takes an Array<Uint8Array>. Soft deprecate old overload.
+
 ## 1.12.2 - 2025-05-27
 
 ### Fixed

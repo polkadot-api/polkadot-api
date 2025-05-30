@@ -22,7 +22,7 @@ describe("storage", () => {
       const FooStorage = Storage(pallet)
       const FooBarStorage = FooStorage(name)
 
-      const palletItemEncoded = toHex(mergeUint8(hash, hash))
+      const palletItemEncoded = toHex(mergeUint8([hash, hash]))
       expect(FooBarStorage.enc()).toStrictEqual(palletItemEncoded)
     },
   )
@@ -52,7 +52,7 @@ describe("storage", () => {
 
     const FooBarStorage = FooStorage("bar", ...barArgs)
     const expected = toHex(
-      mergeUint8(hash, hash, str.enc(validator), u32.enc(era)),
+      mergeUint8([hash, hash, str.enc(validator), u32.enc(era)]),
     )
 
     expect(FooBarStorage.enc(validator, era)).toStrictEqual(expected)

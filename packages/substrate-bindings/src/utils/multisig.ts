@@ -11,12 +11,12 @@ export const getMultisigAccountId = ({
   signatories: Uint8Array[]
 }) => {
   const sortedSignatories = sortMultisigSignatories(signatories)
-  const payload = mergeUint8(
+  const payload = mergeUint8([
     PREFIX,
     compact.enc(sortedSignatories.length),
     ...sortedSignatories,
     u16.enc(threshold),
-  )
+  ])
   return Blake2256(payload)
 }
 
