@@ -10,6 +10,6 @@ test.prop([fc.uint8Array()])("Blake3256", (input) => {
 
 test.prop([fc.uint8Array()])("Blake3256Concat", (input) => {
   expect(Blake3256Concat(input)).toStrictEqual(
-    mergeUint8(blake3(input, { dkLen: 32 }), input),
+    mergeUint8([blake3(input, { dkLen: 32 }), input]),
   )
 })

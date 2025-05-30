@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `mergeUint8` now takes an `Array<Uint8Array>`. Soft deprecate old overload.
+
 ## 0.1.2 - 2024-10-05
 
 ### Fixed

@@ -20,10 +20,11 @@ import {
 import { getAccessibleTypes } from "./get-accessible-types"
 import { getLookup } from "./get-lookup"
 import { getMetadata } from "./get-metadata"
-import { compactTypeRefs, mergeUint8, toBytes } from "./utils"
+import { compactTypeRefs, toBytes } from "./utils"
 import { decodeAndCollectKnownLeafs } from "./decode-and-collect"
 import { getProofData } from "./proof"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
+import { mergeUint8 } from "@polkadot-api/utils"
 
 export interface MetadataMerkleizer {
   /**

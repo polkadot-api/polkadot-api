@@ -75,7 +75,7 @@ const getInnerEnumCodec = (
           : typeof value === "string"
             ? fromHex(value)
             : new Uint8Array(value)
-      return input.dec(mergeUint8(new Uint8Array([idx]), val)).value
+      return input.dec(mergeUint8([new Uint8Array([idx]), val])).value
     },
   )
 }

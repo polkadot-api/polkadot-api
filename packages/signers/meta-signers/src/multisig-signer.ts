@@ -106,7 +106,10 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
             other_signatories: otherSignatories.map(toAddress),
             call: callCodec.dec(callData),
           })
-          const wrappedCallData = mergeUint8(new Uint8Array(location), payload)
+          const wrappedCallData = mergeUint8([
+            new Uint8Array(location),
+            payload,
+          ])
           return signer.signTx(
             wrappedCallData,
             signedExtensions,
@@ -117,7 +120,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
         } catch (_) {}
       }
 
-      const unsignedExtrinsic = mergeUint8(new Uint8Array([4]), callData)
+      const unsignedExtrinsic = mergeUint8([new Uint8Array([4]), callData])
       const [multisigInfo, weightInfo] = await Promise.all([
         getMultisigInfo(toAddress(multisigId), Binary.fromBytes(callHash)),
         txPaymentInfo(
@@ -155,7 +158,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
                 call_hash: Binary.fromBytes(callHash),
               }),
         })
-        wrappedCallData = mergeUint8(new Uint8Array(location), payload)
+        wrappedCallData = mergeUint8([new Uint8Array(location), payload])
       } catch (_) {
         throw new Error(
           `Unsupported runtime version: Multisig.${method} not present or changed substantially`,

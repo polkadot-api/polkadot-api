@@ -32,12 +32,12 @@ const encodePath = (path1: number, path2: number) => {
   )
     throw new Error(`Invalid path segments ${path1}, ${path2}`)
 
-  return mergeUint8(
+  return mergeUint8([
     START_PATH,
     u32.enc(HARDENED + path1),
     MID_PATH,
     u32.enc(HARDENED + path2),
-  )
+  ])
 }
 
 /**
@@ -155,10 +155,10 @@ export class LedgerSigner {
       throw new Error(`Invalid ss58Prefix ${ss58Prefix}`)
     const bufToSend = Buffer.from(
       // id + ss58 prefix
-      mergeUint8(
+      mergeUint8([
         encodePath(path1, path2),
         Uint8Array.from(u16.enc(ss58Prefix ?? DEFAULT_SS58)),
-      ),
+      ]),
     )
     const prom = this.#safeSend(
       CLA,
@@ -243,9 +243,9 @@ export class LedgerSigner {
   ): Promise<Uint8Array> {
     const path = encodePath(path1, path2)
     const chunks: Buffer[] = []
-    chunks.push(Buffer.from(mergeUint8(path, u16.enc(payload.length))))
+    chunks.push(Buffer.from(mergeUint8([path, u16.enc(payload.length)])))
     const combinedPayload =
-      shortMetadata == null ? payload : mergeUint8(payload, shortMetadata)
+      shortMetadata == null ? payload : mergeUint8([payload, shortMetadata])
     let offset = 0
     while (offset < combinedPayload.length) {
       const chunkEnd = Math.min(offset + 250, combinedPayload.length)
@@ -317,7 +317,7 @@ export class LedgerSigner {
       meta.extrinsic.signedExtensions.map(({ identifier }) => {
         if (identifier === METADATA_IDENTIFIER) {
           extra.push(Uint8Array.from([1]))
-          additionalSigned.push(mergeUint8(Uint8Array.from([1]), digest))
+          additionalSigned.push(mergeUint8([Uint8Array.from([1]), digest]))
           return
         }
         const signedExtension = signedExtensions[identifier]
@@ -326,7 +326,7 @@ export class LedgerSigner {
         extra.push(signedExtension.value)
         additionalSigned.push(signedExtension.additionalSigned)
       })
-      const toSign = mergeUint8(callData, ...extra, ...additionalSigned)
+      const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
       const signature = await this.#sign(
         path1,
         path2,

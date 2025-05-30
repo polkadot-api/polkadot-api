@@ -51,18 +51,18 @@ export const getPjsTxHelper = (metadata: Uint8Array | string) => {
         if (checkedVersion == null)
           throw new Error("Only extrinsic v4 is supported")
 
-        const toSign = mergeUint8(callData, extra, additionalSigned)
+        const toSign = mergeUint8([callData, extra, additionalSigned])
         const signed = await sign(toSign.length > 256 ? hasher(toSign) : toSign)
 
-        const preResult = mergeUint8(
+        const preResult = mergeUint8([
           versionEncoder({ signed: true, version: checkedVersion }),
           // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
           new Uint8Array([0, ...publicKey]),
           new Uint8Array([signingTypeId[signingType], ...signed]),
           extra,
           callData,
-        )
-        return mergeUint8(compact.enc(preResult.length), preResult)
+        ])
+        return mergeUint8([compact.enc(preResult.length), preResult])
       },
     }
   }
