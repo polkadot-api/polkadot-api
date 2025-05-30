@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2025-05-30
+
 ### Added
 
 - Support for `archive_v1`

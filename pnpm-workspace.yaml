@@ -6,6 +6,7 @@ packages:
   - integration-tests/*
   - scripts/bump
 onlyBuiltDependencies:
+  - '@swc/core'
   - esbuild
   - node-hid
   - sqlite3

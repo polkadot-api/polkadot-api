@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.14.0 - 2025-05-30
+
 ### Added
 
 - Add `ExtrinsicFormat` codec

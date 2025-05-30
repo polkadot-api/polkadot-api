@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.13.0 - 2025-05-30
+
 ### Added
 
 - New storage `.getKey` API, for accessing the key of a storage entry.

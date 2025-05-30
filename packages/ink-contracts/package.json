@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/ink-contracts",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
