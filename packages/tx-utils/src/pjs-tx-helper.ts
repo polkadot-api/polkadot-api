@@ -3,20 +3,13 @@ import {
   _void,
   Blake2256,
   compact,
-  enhanceEncoder,
-  u8,
+  extrinsicFormat,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8 } from "@polkadot-api/utils"
 import { SignerPayloadJSON } from "./types"
 import { fromPjsToTxData } from "./from-pjs-to-tx-data"
 import { getSignedExtensionParts } from "./signed-extensions"
 import { getMetadata } from "./get-metadata"
-
-const versionEncoder = enhanceEncoder(
-  u8.enc,
-  (value: { signed: boolean; version: number }) =>
-    (+!!value.signed << 7) | value.version,
-)
 
 const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
   Ed25519: 0,
@@ -55,7 +48,7 @@ export const getPjsTxHelper = (metadata: Uint8Array | string) => {
         const signed = await sign(toSign.length > 256 ? hasher(toSign) : toSign)
 
         const preResult = mergeUint8([
-          versionEncoder({ signed: true, version: checkedVersion }),
+          extrinsicFormat.enc({ version: checkedVersion, type: "signed" }),
           // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
           new Uint8Array([0, ...publicKey]),
           new Uint8Array([signingTypeId[signingType], ...signed]),

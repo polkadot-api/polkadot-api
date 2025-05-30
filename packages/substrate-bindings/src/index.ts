@@ -1,4 +1,5 @@
 export * from "./codecs"
+export * from "./extrinsics"
 export * from "./hashes"
 export * from "./storage"
 export * from "./types"

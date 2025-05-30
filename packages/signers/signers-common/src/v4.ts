@@ -1,17 +1,10 @@
 import {
   compact,
-  enhanceEncoder,
-  u8,
+  extrinsicFormat,
   UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
-
-const versionCodec = enhanceEncoder(
-  u8.enc,
-  (value: { signed: boolean; version: number }) =>
-    (+!!value.signed << 7) | value.version,
-)
 
 const enum SignerType {
   Polkadot,
@@ -78,7 +71,7 @@ export const createV4Tx = (
 ) => {
   const [signerType, addressPrefix] = getSignerType(metadata)
   const preResult = mergeUint8([
-    versionCodec({ signed: true, version: 4 }),
+    extrinsicFormat.enc({ version: 4, type: "signed" }),
     // converting it to a `MultiAddress` enum, where the index 0 is `Id(AccountId)`
     signerType === SignerType.Ethereum
       ? publicKey

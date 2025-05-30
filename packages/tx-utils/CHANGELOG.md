@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Refactor `decodeExtrinsic` to include Extrinsic V5
+
 ## 0.0.13 - 2025-05-20
 
 ### Fixed

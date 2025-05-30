@@ -38,7 +38,7 @@ client.finalizedBlock$
     withLatestFrom(extrinsicDecoder$),
     map(([{ txs, blockInfo }, extrinsicDecoder]) => ({
       blockInfo,
-      txs: txs.map(extrinsicDecoder).filter((x) => x.signed),
+      txs: txs.map(extrinsicDecoder).filter((x) => x.type === "signed"),
     })),
   )
   .subscribe({
