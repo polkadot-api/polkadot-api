@@ -191,7 +191,7 @@ export const merkleizeMetadata = (
 
     for (let i = hashTree.length - 2; i > 0; i -= 2)
       hashTree[(i - 1) / 2] = Blake3256(
-        mergeUint8(hashTree[i], hashTree[i + 1]),
+        mergeUint8([hashTree[i], hashTree[i + 1]]),
       )
 
     return hashTree
@@ -220,7 +220,7 @@ export const merkleizeMetadata = (
     const hashTree = getHashTree()
     const proofs = proofData.proofIdxs.map((idx) => hashTree[idx])
 
-    return mergeUint8(
+    return mergeUint8([
       compact.enc(proofData.leaves.length),
       ...proofData.leaves,
       compact.enc(proofData.leafIdxs.length),
@@ -229,7 +229,7 @@ export const merkleizeMetadata = (
       ...proofs,
       extrinsicMetadata.enc(extrinsic),
       extraInfo.enc(info),
-    )
+    ])
   }
 
   const getProofForExtrinsicPayload = (
@@ -251,7 +251,7 @@ export const merkleizeMetadata = (
     includedInSignedData: Uint8Array | HexString,
   ) => {
     const bytes = mergeUint8(
-      ...[callData, includedInExtrinsic, includedInSignedData].map(toBytes),
+      [callData, includedInExtrinsic, includedInSignedData].map(toBytes),
     )
     return getProofForExtrinsicPayload(bytes)
   }
@@ -276,7 +276,7 @@ export const merkleizeMetadata = (
         : [extrinsic.callTy]
 
     if (txAdditionalSigned) {
-      bytes = mergeUint8(bytes, toBytes(txAdditionalSigned))
+      bytes = mergeUint8([bytes, toBytes(txAdditionalSigned)])
       typeRefs.push(
         ...extrinsic.signedExtensions.map((x) => x.includedInSignedData),
       )
