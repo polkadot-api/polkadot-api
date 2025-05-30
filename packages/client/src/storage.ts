@@ -63,9 +63,7 @@ type PossibleParents<A extends Array<any>> = A extends [...infer Left, any]
   ? Left | PossibleParents<Left>
   : ArrayPossibleParents<A>
 
-type AllPermutations<A extends Array<any>> = A extends [...infer Left, any]
-  ? AllPermutations<Left> | A
-  : A
+type AllPermutations<A extends Array<any>> = PossibleParents<A> | A
 
 // Fixed-size arrays values can't be extracted one-by-one, so that's a specific case
 type ArrayPossibleParents<
