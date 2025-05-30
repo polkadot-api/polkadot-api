@@ -2,7 +2,7 @@
   "name": "papi-bump-changelog",
   "private": true,
   "devDependencies": {
-    "@types/bun": "^1.2.14"
+    "@types/bun": "^1.2.15"
   },
   "peerDependencies": {
     "typescript": "^5"
