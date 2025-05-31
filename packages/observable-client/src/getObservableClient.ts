@@ -1,15 +1,19 @@
-import type {
-  SubstrateClient,
-  UnsubscribeFn,
+import {
+  type SubstrateClient,
+  type UnsubscribeFn,
 } from "@polkadot-api/substrate-client"
 import { noop, Observable, of } from "rxjs"
-import { ChainHead$, getChainHead$ } from "./chainHead"
+import { ChainHead$, getChainHead$, RuntimeContext } from "./chainHead"
 import getBroadcastTx$ from "./tx"
+import { Archive$, getArchive } from "./archive"
 
 const ofNullFn = () => of(null)
 
 export interface ObservableClient {
   chainHead$: (nSubscribers?: number) => ChainHead$
+  archive: (
+    getRuntime: (codeHash: string) => Observable<RuntimeContext | null>,
+  ) => Archive$
   broadcastTx$: (transaction: string) => Observable<never>
   destroy: UnsubscribeFn
 }
@@ -68,6 +72,7 @@ export const getObservableClient = (
       }
       return result
     },
+    archive: getArchive(substrateClient.archive),
     broadcastTx$: getBroadcastTx$(substrateClient.transaction),
     destroy,
   }

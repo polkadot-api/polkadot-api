@@ -24,7 +24,15 @@ export const createMockSubstrateClient = (): MockSubstrateClient => {
   const chainHead = createMockChainHead()
 
   return {
-    archive: null as any,
+    archive: {
+      body: notImplemented,
+      call: notImplemented,
+      header: notImplemented,
+      storage: notImplemented,
+      hashByHeight: notImplemented,
+      finalizedHeight: notImplemented,
+      storageSubscription: notImplemented,
+    },
     getChainSpecData: () =>
       Promise.resolve({
         name: "papi-chain",

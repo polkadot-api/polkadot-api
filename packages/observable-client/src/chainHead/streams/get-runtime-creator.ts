@@ -1,24 +1,17 @@
 import {
   getDynamicBuilder,
-  getLookupFn,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import {
-  AccountId,
   Binary,
-  Bytes,
   Codec,
   Decoder,
   HexString,
   metadata as metadataCodec,
-  Option,
   SS58String,
-  u32,
   UnifiedMetadata,
   unifyMetadata,
-  Vector,
 } from "@polkadot-api/substrate-bindings"
-import { toHex } from "@polkadot-api/utils"
 import {
   catchError,
   EMPTY,
@@ -32,6 +25,7 @@ import {
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
 import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
+import { createRuntimeCtx, getRawMetadata$ } from "@/utils"
 
 export type SystemEvent = {
   phase:
@@ -63,16 +57,33 @@ export interface RuntimeContext {
 
 export interface Runtime {
   at: string
+  codeHash$: Observable<string>
   runtime: Observable<RuntimeContext>
   addBlock: (block: string) => Runtime
   deleteBlocks: (blocks: string[]) => number
   usages: Set<string>
 }
 
-const versionedArgs = (v: number) => toHex(u32.enc(v))
-const opaqueBytes = Bytes()
-const optionalOpaqueBytes = Option(opaqueBytes)
-const u32ListDecoder = Vector(u32).dec
+const withRecovery =
+  (getHash: () => string | null) =>
+  <Args extends Array<any>, T>(
+    fn: (hash: string, ...args: Args) => Observable<T>,
+  ): ((...args: Args) => Observable<T>) => {
+    const result: (...args: Args) => Observable<T> = (...args) => {
+      const hash = getHash()
+      return hash
+        ? fn(hash, ...args).pipe(
+            catchError((e) => {
+              if (e instanceof BlockNotPinnedError) return result(...args)
+              if (e instanceof OperationInaccessibleError)
+                return timer(750).pipe(mergeMap(() => result(...args)))
+              throw e
+            }),
+          )
+        : EMPTY
+    }
+    return result
+  }
 
 export const getRuntimeCreator = (
   call$: (hash: string, method: string, args: string) => Observable<string>,
@@ -81,58 +92,21 @@ export const getRuntimeCreator = (
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {
   const getMetadata$ = (
-    getHash: () => string | null,
+    codeHash$: Observable<string>,
+    rawMetadata$: Observable<Uint8Array>,
   ): Observable<{
     metadataRaw: Uint8Array
     metadata: UnifiedMetadata
     codeHash: string
-  }> => {
-    const withRecovery = <Args extends Array<any>, T>(
-      fn: (hash: string, ...args: Args) => Observable<T>,
-    ): ((...args: Args) => Observable<T>) => {
-      const result: (...args: Args) => Observable<T> = (...args) => {
-        const hash = getHash()
-        return hash
-          ? fn(hash, ...args).pipe(
-              catchError((e) => {
-                if (e instanceof BlockNotPinnedError) return result(...args)
-                if (e instanceof OperationInaccessibleError)
-                  return timer(750).pipe(mergeMap(() => result(...args)))
-                throw e
-              }),
-            )
-          : EMPTY
-      }
-      return result
-    }
-
-    const recoverCall$ = withRecovery(call$)
-    const recoverCodeHash$ = withRecovery(getCodeHash$)
-
-    const versions$ = recoverCall$("Metadata_metadata_versions", "").pipe(
-      map(u32ListDecoder),
-      catchError(() => of([14])),
-    )
-    const versioned$ = (availableVersions: number[]) => {
-      const [v] = availableVersions
-        .filter((x) => x > 13 && x < 17)
-        .sort((a, b) => b - a)
-      return v === 14
-        ? recoverCall$("Metadata_metadata", "").pipe(map(opaqueBytes.dec))
-        : recoverCall$("Metadata_metadata_at_version", versionedArgs(v)).pipe(
-            map((x) => optionalOpaqueBytes.dec(x)!),
-          )
-    }
-    const metadataRaw$ = versions$.pipe(mergeMap(versioned$))
-
-    return recoverCodeHash$().pipe(
+  }> =>
+    codeHash$.pipe(
       mergeMap((codeHash) =>
         getCachedMetadata(codeHash).pipe(
           catchError(() => of(null)),
           mergeMap((metadataRaw) =>
             metadataRaw
               ? of(metadataRaw)
-              : metadataRaw$.pipe(
+              : rawMetadata$.pipe(
                   tap((raw) => {
                     setCachedMetadata(codeHash, raw)
                   }),
@@ -146,53 +120,27 @@ export const getRuntimeCreator = (
         ),
       ),
     )
-  }
 
   return (getHash: () => string | null): Runtime => {
+    const enhancer = withRecovery(getHash)
     const initialHash = getHash()!
     const usages = new Set<string>([initialHash])
+    const codeHash$ = enhancer(getCodeHash$)().pipe(shareReplay(1))
 
     const runtimeContext$: Observable<RuntimeContext> = getMetadata$(
-      getHash,
+      codeHash$,
+      getRawMetadata$(enhancer(call$)),
     ).pipe(
-      map(({ metadata, metadataRaw, codeHash }) => {
-        const lookup = getLookupFn(metadata)
-        const dynamicBuilder = getDynamicBuilder(lookup)
-        const events = dynamicBuilder.buildStorage("System", "Events")
-
-        const assetPayment = metadata.extrinsic.signedExtensions.find(
-          (x) => x.identifier === "ChargeAssetTxPayment",
-        )
-
-        let assetId: null | number = null
-        if (assetPayment) {
-          const assetTxPayment = lookup(assetPayment.type)
-          if (assetTxPayment.type === "struct") {
-            const optionalAssetId = assetTxPayment.value.asset_id
-            if (optionalAssetId.type === "option")
-              assetId = optionalAssetId.value.id
-          }
-        }
-
-        return {
-          assetId,
-          metadataRaw,
-          codeHash,
-          lookup,
-          dynamicBuilder,
-          events: {
-            key: events.keys.enc(),
-            dec: events.value.dec as any,
-          },
-          accountId: AccountId(dynamicBuilder.ss58Prefix),
-        }
-      }),
+      map(({ metadata, metadataRaw, codeHash }) =>
+        createRuntimeCtx(metadata, metadataRaw, codeHash),
+      ),
       shareReplay(1),
     )
 
     const result: Runtime = {
       at: initialHash,
       runtime: runtimeContext$,
+      codeHash$,
       addBlock: (block: string) => {
         usages.add(block)
         return result
