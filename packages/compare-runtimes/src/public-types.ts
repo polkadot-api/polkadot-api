@@ -2,7 +2,7 @@ import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
 
 export type Change =
   | {
-      kind: "const" | "stg" | "call" | "event" | "error" | "view"
+      kind: "const" | "storage" | "call" | "event" | "error" | "view"
       pallet: string
       name: string
     }
@@ -20,7 +20,7 @@ export type ComparedChange =
       compat: CompatibilityLevel
     }
   | {
-      kind: "stg" | "view"
+      kind: "storage" | "view"
       pallet: string
       name: string
       compat: {

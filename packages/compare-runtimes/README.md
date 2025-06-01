@@ -37,7 +37,7 @@ Represents a new or removed runtime item.
 ```ts
 type Change =
   | {
-      kind: "const" | "stg" | "call" | "event" | "error" | "view"
+      kind: "const" | "storage" | "call" | "event" | "error" | "view"
       pallet: string
       name: string
     }
@@ -57,7 +57,7 @@ type ComparedChange =
       compat: CompatibilityLevel
     }
   | {
-      kind: "stg" | "view"
+      kind: "storage" | "view"
       pallet: string
       name: string
       compat: { args: CompatibilityLevel; values: CompatibilityLevel }

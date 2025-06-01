@@ -27,12 +27,11 @@ const getMetadataHelpers = (rawMetadata: Uint8Array) => {
   const metadata = unifyMetadata(decAnyMetadata(rawMetadata))
   const lookupFn = getLookupFn(metadata)
   const typeNodesCache: (TypedefNode | null)[] = []
-  const compat = new Map()
   const getTypeDefNode = (id: number) =>
     (typeNodesCache[id] ||= mapLookupToTypedef(lookupFn(id)))
   const metadataMaps = getMappedMetadata(metadata, lookupFn)
 
-  return { lookupFn, compat, getTypeDefNode, metadataMaps }
+  return { lookupFn, getTypeDefNode, metadataMaps }
 }
 
 const minCompatLevel = (levels: {
@@ -96,12 +95,12 @@ export const compareRuntimes = (
     }
   }
 
-  const compareStg = (pallet: string, name: string): ComparedChange => {
-    const a = prev.metadataMaps.pallets[pallet]!.stg.get(name)!
-    const b = next.metadataMaps.pallets[pallet]!.stg.get(name)!
+  const compareStorage = (pallet: string, name: string): ComparedChange => {
+    const a = prev.metadataMaps.pallets[pallet]!.storage.get(name)!
+    const b = next.metadataMaps.pallets[pallet]!.storage.get(name)!
 
     return {
-      kind: "stg",
+      kind: "storage",
       pallet,
       name,
       compat: entryPointsAreCompatible(
@@ -158,8 +157,8 @@ export const compareRuntimes = (
     switch (x.kind) {
       case "const":
         return compareConst(x.pallet, x.name)
-      case "stg":
-        return compareStg(x.pallet, x.name)
+      case "storage":
+        return compareStorage(x.pallet, x.name)
       case "view":
         return compareViewFn(x.pallet, x.name)
       case "api":

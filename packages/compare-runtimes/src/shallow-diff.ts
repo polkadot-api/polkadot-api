@@ -10,14 +10,14 @@ export const shallowDiff = (
   Object.entries(next.pallets).forEach(([palletName, data]) => {
     ;[
       "const" as const,
-      "stg" as const,
+      "storage" as const,
       "call" as const,
       "event" as const,
       "error" as const,
       "view" as const,
     ].forEach((x) => {
-      ;[...data[x as "stg"].keys()].forEach((key) => {
-        const isInPrev = prev.pallets[palletName]?.[x as "stg"].has(key)
+      ;[...data[x as "storage"].keys()].forEach((key) => {
+        const isInPrev = prev.pallets[palletName]?.[x as "storage"].has(key)
         if (type === "added" ? !isInPrev : isInPrev) {
           result.push({
             kind: x,

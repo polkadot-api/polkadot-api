@@ -25,7 +25,7 @@ export type MetadataMaps = {
   pallets: Record<
     string,
     {
-      stg: Map<
+      storage: Map<
         string,
         NonNullable<
           UnifiedMetadata["pallets"][number]["storage"]
@@ -86,12 +86,12 @@ export const getMappedMetadata = (
       return [palletEntry.name, { const: constants, view }]
     }),
   ) as Record<string, Pick<MetadataMaps["pallets"][string], "const" | "view">>
-  const stg = Object.fromEntries(
+  const storage = Object.fromEntries(
     metadata.pallets.map((palletEntry) => [
       palletEntry.name,
       new Map((palletEntry.storage?.items || []).map((x) => [x.name, x])),
     ]),
-  ) as Record<string, MetadataMaps["pallets"][string]["stg"]>
+  ) as Record<string, MetadataMaps["pallets"][string]["storage"]>
 
   const pallets: MetadataMaps["pallets"] = mapObject(
     palletVariants,
@@ -99,7 +99,7 @@ export const getMappedMetadata = (
       error,
       event,
       call,
-      stg: stg[key],
+      storage: storage[key],
       ...rest[key],
     }),
   )
