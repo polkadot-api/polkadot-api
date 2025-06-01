@@ -440,6 +440,21 @@ importers:
         specifier: workspace:*
         version: link:../utils
 
+  packages/compare-runtimes:
+    dependencies:
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../metadata-builders
+      '@polkadot-api/metadata-compatibility':
+        specifier: workspace:*
+        version: link:../metadata-compatibility
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../utils
+
   packages/descriptors: {}
 
   packages/docgen:

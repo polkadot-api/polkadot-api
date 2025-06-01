@@ -61,6 +61,7 @@ jobs:
             merkleize-metadata,
             metadata-builders,
             metadata-compatibility,
+            compare-runtimes,
             observable-client,
             react-builder,
             signers/signers-common,
