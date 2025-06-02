@@ -2,6 +2,7 @@ export const PACKAGES: Record<string, string> = {
   "@polkadot-api/cli": "cli",
   "polkadot-api": "client",
   "@polkadot-api/codegen": "codegen",
+  "@polkadot-api/compare-runtimes": "compare-runtimes",
   "@polkadot-api/docgen": "docgen",
   "@polkadot-api/ink-contracts": "ink-contracts",
   "@polkadot-api/json-rpc-provider": "json-rpc/json-rpc-provider",
