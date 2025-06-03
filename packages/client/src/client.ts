@@ -10,6 +10,7 @@ import {
   ChainHead$,
   RuntimeContext,
   getObservableClient,
+  withArchive,
 } from "@polkadot-api/observable-client"
 import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import {
@@ -307,12 +308,22 @@ export function createClient(
   const { getChainSpecData } = rawClient
 
   const { genesis$, ..._chainHead } = client.chainHead$()
+  const archive = client.archive(_chainHead.getRuntime$)
   const chainHead: ChainHead$ = {
     ..._chainHead,
     genesis$: defer(getChainSpecData).pipe(
       map(({ genesisHash }) => genesisHash),
       catchError(() => genesis$),
       shareReplay(1),
+    ),
+    storage$: withArchive(_chainHead.storage$, archive.storage$),
+    body$: withArchive(_chainHead.body$, archive.body$),
+    call$: withArchive(_chainHead.call$, archive.call$),
+    header$: withArchive(_chainHead.header$, archive.header$),
+    eventsAt$: withArchive(_chainHead.eventsAt$, archive.eventsAt$),
+    storageQueries$: withArchive(
+      _chainHead.storageQueries$,
+      archive.storageQueries$,
     ),
   }
 
@@ -336,6 +347,7 @@ export function createClient(
   const getRuntimeToken = <D>(): Promise<RuntimeToken<D>> =>
     (runtimeToken ??= createRuntimeToken(chainHead))
   const { broadcastTx$ } = client
+
   return {
     getChainSpecData,
 

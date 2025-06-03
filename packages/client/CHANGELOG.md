@@ -4,6 +4,8 @@
 
 ### Added
 
+- Fallback to `archive_v1` if available.
+
 - **Chains:**
   - Add Paseo and Westend coretime
 

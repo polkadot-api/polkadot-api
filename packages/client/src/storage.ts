@@ -15,6 +15,7 @@ import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
   OperatorFunction,
+  catchError,
   combineLatestWith,
   distinctUntilChanged,
   filter,
@@ -325,33 +326,7 @@ export const createStorageEntry = (
     const { at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    if (isSystemNumber)
-      return chainHead.pinnedBlocks$.pipe(
-        map((blocks) => {
-          const hash =
-            at === "finalized" || !at
-              ? blocks.finalized
-              : at === "best"
-                ? blocks.best
-                : at
-          const block = blocks.blocks.get(hash)
-          if (!block) {
-            throw new BlockNotPinnedError(hash, "System.Number")
-          }
-          return block.number
-        }),
-        distinctUntilChanged(),
-        bigIntOrNumber,
-        map((mapped) => ({ raw: mapped, mapped })),
-      )
-
-    if (isBlockHash && Number(args[0]) === 0) {
-      return chainHead.genesis$.pipe(
-        map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
-      ) as Observable<any>
-    }
-
-    return from(descriptorsPromise).pipe(
+    const result$ = from(descriptorsPromise).pipe(
       mergeMap((descriptors) =>
         chainHead.storage$(
           at,
@@ -378,6 +353,39 @@ export const createStorageEntry = (
         ),
       ),
     )
+
+    const withResultFallback = catchError((e) => {
+      if (e instanceof BlockNotPinnedError) return result$
+      throw e
+    })
+
+    if (isSystemNumber)
+      return chainHead.pinnedBlocks$.pipe(
+        map((blocks) => {
+          const hash =
+            at === "finalized" || !at
+              ? blocks.finalized
+              : at === "best"
+                ? blocks.best
+                : at
+          const block = blocks.blocks.get(hash)
+          if (!block) {
+            throw new BlockNotPinnedError(hash, "System.Number")
+          }
+          return block.number
+        }),
+        distinctUntilChanged(),
+        bigIntOrNumber,
+        map((mapped) => ({ raw: mapped, mapped })),
+        withResultFallback,
+      )
+
+    return isBlockHash && Number(args[0]) === 0
+      ? (chainHead.genesis$.pipe(
+          map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
+          withResultFallback,
+        ) as Observable<any>)
+      : result$
   }
 
   const getValue = async (...args: Array<any>) => {
