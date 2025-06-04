@@ -28,6 +28,7 @@ import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { BlockNotPinnedError } from "polkadot-api"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -76,6 +77,7 @@ describe("E2E", async () => {
 
   console.log("waiting for compatibility token")
   const token = await api.compatibilityToken
+  console.log("got the compatibility token")
 
   it("unsafe API", async () => {
     const unsafe = client.getUnsafeApi<typeof roc>()
@@ -483,5 +485,43 @@ describe("E2E", async () => {
     ).toEqual(
       "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da91cdb29d91f7665b36dc5ec5903de32467628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
     )
+  })
+
+  describe("BlockNotPinnedError", () => {
+    console.log("here we got")
+    const options = {
+      at: "0x750d7c25fd87702beabd86afd4cf1cc2a8cdcab7fae89b189900b4fcf894e0e7",
+    }
+    const aliceAddress = accountIdDec(accounts.alice.ecdsa.publicKey)
+
+    it("BlockNotPinnedError: query", async () => {
+      await expect(
+        api.query.System.Account.getValue(aliceAddress, options),
+      ).rejects.toThrowError(BlockNotPinnedError)
+    })
+
+    it("BlockNotPinnedError: query System.Number", async () => {
+      await expect(
+        api.query.System.Number.getValue(options),
+      ).rejects.toThrowError(BlockNotPinnedError)
+    })
+
+    it("BlockNotPinnedError: apis", async () => {
+      await expect(
+        api.apis.AccountNonceApi.account_nonce(aliceAddress, options),
+      ).rejects.toThrowError(BlockNotPinnedError)
+    })
+
+    it("BlockNotPinnedError: body", async () => {
+      await expect(() => client.getBlockBody(options.at)).rejects.toThrowError(
+        BlockNotPinnedError,
+      )
+    })
+
+    it("BlockNotPinnedError: header", async () => {
+      await expect(client.getBlockHeader(options.at)).rejects.toThrowError(
+        BlockNotPinnedError,
+      )
+    })
   })
 })

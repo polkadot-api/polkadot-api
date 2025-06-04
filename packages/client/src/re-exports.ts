@@ -16,3 +16,4 @@ export {
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
 export { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
+export { BlockNotPinnedError } from "@polkadot-api/observable-client"

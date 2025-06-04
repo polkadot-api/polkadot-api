@@ -179,13 +179,16 @@ export const getChainHead$ = (
     },
   )
 
-  const getRuntimeContext$ = withRefcount((hash: string) =>
-    pinnedBlocks$.pipe(
-      take(1),
-      mergeMap(
-        (pinned) => pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
+  const getRuntimeContext$ = withInMemory(
+    withRefcount((hash: string) =>
+      pinnedBlocks$.pipe(
+        take(1),
+        mergeMap(
+          (pinned) => pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
+        ),
       ),
     ),
+    "getRuntimeCtx",
   )
 
   const withRuntime =
@@ -295,72 +298,82 @@ export const getChainHead$ = (
     usingBlock,
   )
 
-  const _body$ = withOptionalHash$(commonEnhancer(lazyFollower("body"), "body"))
+  const _body$ = commonEnhancer(lazyFollower("body"), "body")
   const body$ = (hash: string) => upsertCachedStream(hash, "body", _body$(hash))
 
   const _storage$ = commonEnhancer(lazyFollower("storage"), "storage")
 
   const storage$ = withOptionalHash$(
-    <
-      Type extends StorageItemInput["type"],
-      M extends
-        | undefined
-        | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
-    >(
-      hash: string,
-      type: Type,
-      keyMapper: (ctx: RuntimeContext) => string,
-      childTrie: string | null = null,
-      mapper?: M,
-    ): Observable<
-      undefined extends M
-        ? StorageResult<Type>
-        : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
-    > =>
-      pinnedBlocks$.pipe(
-        take(1),
-        mergeMap(
-          (pinned) => pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
-        ),
-        mergeMap((ctx) => {
-          const key = keyMapper(ctx)
-          const unMapped$ = upsertCachedStream(
-            hash,
-            `storage-${type}-${key}-${childTrie ?? ""}`,
-            _storage$(hash, type, key, childTrie),
-          )
-
-          return mapper
-            ? upsertCachedStream(
-                hash,
-                `storage-${type}-${key}-${childTrie ?? ""}-dec`,
-                unMapped$.pipe(
-                  map((raw) => ({ raw, mapped: mapper(raw, ctx) })),
-                ),
-              )
-            : unMapped$
-        }),
-      ) as Observable<
+    withInMemory(
+      <
+        Type extends StorageItemInput["type"],
+        M extends
+          | undefined
+          | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
+      >(
+        hash: string,
+        type: Type,
+        keyMapper: (ctx: RuntimeContext) => string,
+        childTrie: string | null = null,
+        mapper?: M,
+      ): Observable<
         undefined extends M
           ? StorageResult<Type>
           : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
-      >,
+      > =>
+        pinnedBlocks$.pipe(
+          take(1),
+          mergeMap(
+            (pinned) =>
+              pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
+          ),
+          mergeMap((ctx) => {
+            const key = keyMapper(ctx)
+            const unMapped$ = upsertCachedStream(
+              hash,
+              `storage-${type}-${key}-${childTrie ?? ""}`,
+              _storage$(hash, type, key, childTrie),
+            )
+
+            return mapper
+              ? upsertCachedStream(
+                  hash,
+                  `storage-${type}-${key}-${childTrie ?? ""}-dec`,
+                  unMapped$.pipe(
+                    map((raw) => ({ raw, mapped: mapper(raw, ctx) })),
+                  ),
+                )
+              : unMapped$
+          }),
+        ) as Observable<
+          undefined extends M
+            ? StorageResult<Type>
+            : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
+        >,
+      "storage",
+    ),
   )
 
   const recoveralStorage$ = getRecoveralStorage$(getFollower, withRecovery)
   const storageQueries$ = withOptionalHash$(
-    withStopRecovery(
-      pinnedBlocks$,
-      (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
-        recoveralStorage$(hash, queries, childTrie ?? null, false),
-      `storageQueries`,
+    withInMemory(
+      withStopRecovery(
+        pinnedBlocks$,
+        (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
+          recoveralStorage$(hash, queries, childTrie ?? null, false),
+        `storageQueries`,
+      ),
+      "storageQueries",
     ),
   )
 
   const header$ = withOptionalHash$(
-    withStopRecovery(
-      pinnedBlocks$,
-      (hash: string) => defer(() => getHeader(hash)),
+    withInMemory(
+      withStopRecovery(
+        pinnedBlocks$,
+        (hash: string) => defer(() => getHeader(hash)),
+        "header",
+      ),
       "header",
     ),
   )
