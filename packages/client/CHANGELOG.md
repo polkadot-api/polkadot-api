@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.13.1 - 2025-06-04
+
 ### Fixed
 
 - Throw \`BlockNotPinned\` when trying to access a non-pinned block.
