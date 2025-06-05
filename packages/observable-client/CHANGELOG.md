@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.11.2 - 2025-06-04
+
+### Fixed
+
+- Throw \`BlockNotPinned\` when trying to access a non-pinned block.
+
 ## 0.11.1 - 2025-05-30
 
 ### Fixed
