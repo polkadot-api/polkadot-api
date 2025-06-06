@@ -1,15 +1,15 @@
 [relaychain]
 default_command = "polkadot"
-default_args = [ "-lparachain=debug" ]
+default_args = ["-lparachain=debug", "--state-pruning=archive-canonical"]
 
 chain = "westend-local"
 
-  [[relaychain.nodes]]
-  name = "alice"
-  validator = true
-  rpc_port = 9933
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+rpc_port = 9933
 
-  [[relaychain.nodes]]
-  name = "bob"
-  rpc_port = 9934
-  validator = true
+[[relaychain.nodes]]
+name = "bob"
+rpc_port = 9934
+validator = true

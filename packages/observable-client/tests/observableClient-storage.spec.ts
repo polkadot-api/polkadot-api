@@ -7,7 +7,6 @@ import { describe, expect, it } from "vitest"
 import { initializeWithMetadata, wait } from "./fixtures"
 import { createMockSubstrateClient } from "./mockSubstrateClient"
 import { observe } from "./observe"
-import { map } from "rxjs"
 
 describe("observableClient chainHead", () => {
   describe("storage$", () => {
@@ -130,21 +129,19 @@ describe("observableClient chainHead", () => {
 
       const key = "foo"
       const observer = observe(
-        chainHead
-          .storage$(
-            initialHash,
-            "value",
-            (ctx) => {
-              expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
-              return key
-            },
-            null,
-            (data, ctx) => {
-              expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
-              return data?.length ?? 0
-            },
-          )
-          .pipe(map((x) => x.mapped)),
+        chainHead.storage$(
+          initialHash,
+          "value",
+          (ctx) => {
+            expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
+            return key
+          },
+          null,
+          (data, ctx) => {
+            expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
+            return data?.length ?? 0
+          },
+        ),
       )
 
       const result = "value"
