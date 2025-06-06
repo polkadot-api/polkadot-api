@@ -60,6 +60,11 @@
       "import": "./dist/specs/paseo_asset_hub.mjs",
       "require": "./dist/specs/paseo_asset_hub.js"
     },
+    "./paseo_coretime": {
+      "module": "./dist/specs/paseo_coretime.mjs",
+      "import": "./dist/specs/paseo_coretime.mjs",
+      "require": "./dist/specs/paseo_coretime.js"
+    },
     "./paseo_people": {
       "module": "./dist/specs/paseo_people.mjs",
       "import": "./dist/specs/paseo_people.mjs",
@@ -129,6 +134,11 @@
       "module": "./dist/specs/westend2_bridge_hub.mjs",
       "import": "./dist/specs/westend2_bridge_hub.mjs",
       "require": "./dist/specs/westend2_bridge_hub.js"
+    },
+    "./westend2_coretime": {
+      "module": "./dist/specs/westend2_coretime.mjs",
+      "import": "./dist/specs/westend2_coretime.mjs",
+      "require": "./dist/specs/westend2_coretime.js"
     },
     "./westend2_collectives": {
       "module": "./dist/specs/westend2_collectives.mjs",
