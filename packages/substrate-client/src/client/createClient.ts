@@ -62,7 +62,9 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
       const parsed = JSON.parse(message)
       ;({ id, result, error, params } = parsed)
 
-      if (id) {
+      if (id === null) throw new Error(params?.error?.message ?? "id null")
+
+      if (id != null) {
         const cb = responses.get(id)
         if (!cb) return
 

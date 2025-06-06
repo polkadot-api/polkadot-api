@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Improve error handling for JSON-RPC replies with a `null` `id`
+
 ## 0.4.0 - 2025-05-30
 
 ### Added
