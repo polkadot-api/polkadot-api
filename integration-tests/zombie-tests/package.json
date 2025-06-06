@@ -11,7 +11,7 @@
     "e2e": "papi update && vitest run --test-timeout=300000"
   },
   "dependencies": {
-    "@noble/curves": "^1.9.1",
+    "@noble/curves": "^1.9.2",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/substrate-bindings": "workspace:*",
@@ -22,7 +22,7 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@types/node": "^22.15.27"
+    "@types/node": "^22.15.30"
   },
   "license": "MIT"
 }
