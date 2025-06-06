@@ -135,15 +135,15 @@
       "import": "./dist/specs/westend2_bridge_hub.mjs",
       "require": "./dist/specs/westend2_bridge_hub.js"
     },
-    "./westend2_coretime": {
-      "module": "./dist/specs/westend2_coretime.mjs",
-      "import": "./dist/specs/westend2_coretime.mjs",
-      "require": "./dist/specs/westend2_coretime.js"
-    },
     "./westend2_collectives": {
       "module": "./dist/specs/westend2_collectives.mjs",
       "import": "./dist/specs/westend2_collectives.mjs",
       "require": "./dist/specs/westend2_collectives.js"
+    },
+    "./westend2_coretime": {
+      "module": "./dist/specs/westend2_coretime.mjs",
+      "import": "./dist/specs/westend2_coretime.mjs",
+      "require": "./dist/specs/westend2_coretime.js"
     },
     "./westend2_people": {
       "module": "./dist/specs/westend2_people.mjs",
@@ -161,10 +161,12 @@
     "ksmcc3",
     "ksmcc3_asset_hub",
     "ksmcc3_bridge_hub",
+    "ksmcc3_coretime",
     "ksmcc3_encointer",
     "ksmcc3_people",
     "paseo",
     "paseo_asset_hub",
+    "paseo_coretime",
     "paseo_people",
     "polkadot",
     "polkadot_asset_hub",
@@ -180,6 +182,7 @@
     "westend2_asset_hub",
     "westend2_bridge_hub",
     "westend2_collectives",
+    "westend2_coretime",
     "westend2_people"
   ],
   "scripts": {

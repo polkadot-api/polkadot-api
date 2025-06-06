@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Add Paseo and Westend Coretime
+
+### Fixed
+
+- Update `lightSyncState`
+
 ## 0.8.0 - 2025-05-30
 
 ### Added

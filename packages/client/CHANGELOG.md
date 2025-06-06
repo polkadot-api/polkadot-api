@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- **Chains:**
+  - Add Paseo and Westend coretime
+
+### Fixed
+
+- **Chains:**:
+  - Update `lightSyncState`
+
 ## 1.13.1 - 2025-06-04
 
 ### Fixed
