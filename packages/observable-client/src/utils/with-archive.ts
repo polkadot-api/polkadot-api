@@ -12,7 +12,8 @@ export const withArchive =
         if (!(e instanceof BlockNotPinnedError)) throw e
 
         return archiveFn(blokHash as string, ...args).pipe(
-          catchError(() => {
+          catchError((actualErr) => {
+            console.warn(actualErr)
             throw e
           }),
         )

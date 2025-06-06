@@ -16,6 +16,7 @@ import {
   distinctUntilChanged,
   endWith,
   filter,
+  identity,
   map,
   merge,
   mergeAll,
@@ -192,7 +193,6 @@ export const getChainHead$ = (
     ),
     "getRuntimeCtx",
   )
-
   const withRuntime =
     <T>(mapper: (x: T) => string) =>
     (source$: Observable<T>): Observable<[T, RuntimeContext]> =>
@@ -319,9 +319,7 @@ export const getChainHead$ = (
         childTrie: string | null = null,
         mapper?: M,
       ): Observable<
-        undefined extends M
-          ? StorageResult<Type>
-          : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
+        undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
       > =>
         pinnedBlocks$.pipe(
           take(1),
@@ -331,26 +329,14 @@ export const getChainHead$ = (
           ),
           mergeMap((ctx) => {
             const key = keyMapper(ctx)
-            const unMapped$ = upsertCachedStream(
+            return upsertCachedStream(
               hash,
               `storage-${type}-${key}-${childTrie ?? ""}`,
               _storage$(hash, type, key, childTrie),
-            )
-
-            return mapper
-              ? upsertCachedStream(
-                  hash,
-                  `storage-${type}-${key}-${childTrie ?? ""}-dec`,
-                  unMapped$.pipe(
-                    map((raw) => ({ raw, mapped: mapper(raw, ctx) })),
-                  ),
-                )
-              : unMapped$
+            ).pipe(mapper ? map((raw) => mapper(raw, ctx)) : identity)
           }),
         ) as Observable<
-          undefined extends M
-            ? StorageResult<Type>
-            : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
+          undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
         >,
       "storage",
     ),
@@ -387,7 +373,7 @@ export const getChainHead$ = (
       (ctx) => ctx.events.key,
       null,
       (x, ctx) => ctx.events.dec(x!),
-    ).pipe(map((x) => x.mapped))
+    )
 
   const __call$ = commonEnhancer(lazyFollower("call"), "call")
   const call$ = withOptionalHash$((hash: string, fn: string, args: string) =>

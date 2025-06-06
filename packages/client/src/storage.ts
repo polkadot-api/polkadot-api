@@ -320,7 +320,9 @@ export const createStorageEntry = (
     )
   }
 
-  const getRawValue$ = (...args: Array<any>) => {
+  const getRawValue$ = (
+    ...args: Array<any>
+  ): Observable<{ raw: string | null; mapped: any }> => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
@@ -344,17 +346,19 @@ export const createStorageEntry = (
           null,
           (data, ctx) => {
             const codecs = getCodec(ctx)
-            const value =
+            const mapped =
               data === null ? codecs.fallback : codecs.value.dec(data)
-            if (!valuesAreCompatible(descriptors, ctx, value))
+            if (!valuesAreCompatible(descriptors, ctx, mapped))
               throw incompatibleError()
-            return value
+            return { raw: data, mapped }
           },
         ),
       ),
     )
 
-    const withResultFallback = catchError((e) => {
+    const withResultFallback: (
+      base: Observable<{ raw: string | null; mapped: any }>,
+    ) => Observable<{ raw: string | null; mapped: any }> = catchError((e) => {
       if (e instanceof BlockNotPinnedError) return result$
       throw e
     })
@@ -376,15 +380,15 @@ export const createStorageEntry = (
         }),
         distinctUntilChanged(),
         bigIntOrNumber,
-        map((mapped) => ({ raw: mapped, mapped })),
+        map((mapped) => ({ raw: mapped.toString(), mapped })),
         withResultFallback,
       )
 
     return isBlockHash && Number(args[0]) === 0
-      ? (chainHead.genesis$.pipe(
+      ? chainHead.genesis$.pipe(
           map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
           withResultFallback,
-        ) as Observable<any>)
+        )
       : result$
   }
 
@@ -406,43 +410,41 @@ export const createStorageEntry = (
     const at = _at ?? null
 
     const descriptors = await descriptorsPromise
-    const result$ = chainHead
-      .storage$(
-        at,
-        "descendantsValues",
-        (ctx) => {
-          const codecs = getCodec(ctx)
-          // TODO partial compatibility check for args that become optional
-          if (
-            minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
-            CompatibilityLevel.Incompatible
-          )
-            throw incompatibleError()
+    const result$ = chainHead.storage$(
+      at,
+      "descendantsValues",
+      (ctx) => {
+        const codecs = getCodec(ctx)
+        // TODO partial compatibility check for args that become optional
+        if (
+          minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
+          CompatibilityLevel.Incompatible
+        )
+          throw incompatibleError()
 
-          if (args.length > codecs.len) throw invalidArgs(args)
-          const actualArgs =
-            args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
-          if (args.length === codecs.len && actualArgs === args)
-            throw invalidArgs(args)
-          return codecs.keys.enc(...actualArgs)
-        },
-        null,
-        (values, ctx) => {
-          const codecs = getCodec(ctx)
-          const decodedValues = values.map(({ key, value }) => ({
-            keyArgs: codecs.keys.dec(key),
-            value: codecs.value.dec(value),
-          }))
-          if (
-            decodedValues.some(
-              ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
-            )
+        if (args.length > codecs.len) throw invalidArgs(args)
+        const actualArgs =
+          args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
+        if (args.length === codecs.len && actualArgs === args)
+          throw invalidArgs(args)
+        return codecs.keys.enc(...actualArgs)
+      },
+      null,
+      (values, ctx) => {
+        const codecs = getCodec(ctx)
+        const decodedValues = values.map(({ key, value }) => ({
+          keyArgs: codecs.keys.dec(key),
+          value: codecs.value.dec(value),
+        }))
+        if (
+          decodedValues.some(
+            ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
           )
-            throw incompatibleError()
-          return decodedValues
-        },
-      )
-      .pipe(toMapped)
+        )
+          throw incompatibleError()
+        return decodedValues
+      },
+    )
     return firstValueFromWithSignal(result$, signal)
   }
 

@@ -325,6 +325,10 @@ export function createClient(
       _chainHead.storageQueries$,
       archive.storageQueries$,
     ),
+    getRuntimeContext$: withArchive(
+      _chainHead.getRuntimeContext$,
+      archive.getRuntimeContext$,
+    ),
   }
 
   const _request: <Reply = any, Params extends Array<any> = any[]>(

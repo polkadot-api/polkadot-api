@@ -52,7 +52,7 @@ export const getArchive =
         }),
       )
 
-    const getRuntimeByBlock$ = (blockHash: string) =>
+    const getRuntimeContext$ = (blockHash: string) =>
       getCodeHash(blockHash).pipe(
         mergeMap((codeHash) => {
           const runtime = runtimes[codeHash]
@@ -72,11 +72,9 @@ export const getArchive =
       childTrie: string | null = null,
       mapper?: M,
     ): Observable<
-      undefined extends M
-        ? StorageResult<Type>
-        : { raw: StorageResult<Type>; mapped: ReturnType<NonNullable<M>> }
+      undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
     > =>
-      getRuntimeByBlock$(hash).pipe(
+      getRuntimeContext$(hash).pipe(
         mergeMap((ctx) =>
           rawStorage$(hash, type, keyMapper(ctx), childTrie).pipe(
             map((x) => (mapper ? mapper(x, ctx) : x)),
@@ -109,9 +107,17 @@ export const getArchive =
         (ctx) => ctx.events.key,
         null,
         (x, ctx) => ctx.events.dec(x!),
-      ).pipe(map((x) => x.mapped))
+      )
 
-    return { body$, header$, storage$, storageQueries$, call$, eventsAt$ }
+    return {
+      body$,
+      header$,
+      storage$,
+      storageQueries$,
+      call$,
+      eventsAt$,
+      getRuntimeContext$,
+    }
   }
 
 export type Archive$ = ReturnType<ReturnType<typeof getArchive>>
