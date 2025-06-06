@@ -20,8 +20,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@ledgerhq/hw-transport-node-hid": "^6.29.6",
-    "@noble/curves": "^1.9.1",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.7",
+    "@noble/curves": "^1.9.2",
     "@noble/hashes": "^1.8.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ledger-signer": "workspace:*",

@@ -8,7 +8,7 @@ import {
 } from "@/papiConfig"
 import { compactNumber } from "@polkadot-api/substrate-bindings"
 import { fromHex } from "@polkadot-api/utils"
-import { getMetadataFromRuntime } from "@polkadot-api/wasm-executor"
+import { getMetadataFromRuntime } from "@polkadot-api/wasm-executor/node"
 import * as fs from "node:fs/promises"
 import ora from "ora"
 import { CommonOptions } from "./commonOptions"

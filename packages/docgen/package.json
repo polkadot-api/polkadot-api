@@ -24,7 +24,7 @@
     "@commander-js/extra-typings": "^14.0.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/codegen": "workspace:*",
-    "@types/node": "^22.15.27",
+    "@types/node": "^22.15.30",
     "commander": "^14.0.0",
     "tsup": "^8.5.0",
     "typedoc": "^0.27.9",
