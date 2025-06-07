@@ -1,5 +1,6 @@
+import { getLookupFn } from "@polkadot-api/metadata-builders"
 import {
-  CompatibilityLevel,
+  CompatibilityResult,
   entryPointsAreCompatible,
   enumValueEntryPointNode,
   mapLookupToTypedef,
@@ -9,9 +10,8 @@ import {
   TypedefNode,
   voidEntryPointNode,
 } from "@polkadot-api/metadata-compatibility"
-import { EnumEntry, getMappedMetadata } from "./mapped-metadata"
 import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
-import { getLookupFn } from "@polkadot-api/metadata-builders"
+import { EnumEntry, getMappedMetadata } from "./mapped-metadata"
 import { ComparedChange, Output } from "./public-types"
 import { shallowDiff } from "./shallow-diff"
 
@@ -34,10 +34,17 @@ const getMetadataHelpers = (rawMetadata: Uint8Array) => {
   return { lookupFn, getTypeDefNode, metadataMaps }
 }
 
-const minCompatLevel = (levels: {
-  args: CompatibilityLevel
-  values: CompatibilityLevel
-}) => Math.min(levels.args, levels.values)
+const minCompatLevel = (results: {
+  args: CompatibilityResult
+  values: CompatibilityResult
+}) => Math.min(results.args.level, results.values.level)
+const compatLevel = (results: {
+  args: CompatibilityResult
+  values: CompatibilityResult
+}) => ({
+  args: results.args.level,
+  values: results.values.level,
+})
 
 export const compareRuntimes = (
   prevMetadata: Uint8Array,
@@ -103,12 +110,14 @@ export const compareRuntimes = (
       kind: "storage",
       pallet,
       name,
-      compat: entryPointsAreCompatible(
-        storageEntryPoint(a),
-        prev.getTypeDefNode,
-        storageEntryPoint(b),
-        next.getTypeDefNode,
-        cache,
+      compat: compatLevel(
+        entryPointsAreCompatible(
+          storageEntryPoint(a),
+          prev.getTypeDefNode,
+          storageEntryPoint(b),
+          next.getTypeDefNode,
+          cache,
+        ),
       ),
     }
   }
@@ -121,12 +130,14 @@ export const compareRuntimes = (
       kind: "view",
       pallet,
       name,
-      compat: entryPointsAreCompatible(
-        runtimeCallEntryPoint(a),
-        prev.getTypeDefNode,
-        runtimeCallEntryPoint(b),
-        next.getTypeDefNode,
-        cache,
+      compat: compatLevel(
+        entryPointsAreCompatible(
+          runtimeCallEntryPoint(a),
+          prev.getTypeDefNode,
+          runtimeCallEntryPoint(b),
+          next.getTypeDefNode,
+          cache,
+        ),
       ),
     }
   }
@@ -139,12 +150,14 @@ export const compareRuntimes = (
       kind: "api",
       group,
       name,
-      compat: entryPointsAreCompatible(
-        runtimeCallEntryPoint(a),
-        prev.getTypeDefNode,
-        runtimeCallEntryPoint(b),
-        next.getTypeDefNode,
-        cache,
+      compat: compatLevel(
+        entryPointsAreCompatible(
+          runtimeCallEntryPoint(a),
+          prev.getTypeDefNode,
+          runtimeCallEntryPoint(b),
+          next.getTypeDefNode,
+          cache,
+        ),
       ),
     }
   }

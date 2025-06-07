@@ -107,8 +107,6 @@ export function isStaticCompatible(
   const destNodeCache = cache.get(destNode)!
   if (destNodeCache.has(originNode)) {
     const result = destNodeCache.get(originNode)
-    // TODO changed this from === to ==. Make sure this was intended (specially for comment on destNodeCache initialization below)
-    // yeahhh... "Remove the temporary `null` value from the cache" says undefined has a different meaning
     if (result == null) {
       // Circular reference hit, return Identical with assumption
       return {
