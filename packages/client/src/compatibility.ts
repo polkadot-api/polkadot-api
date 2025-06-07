@@ -180,13 +180,17 @@ export const compatibilityHelper = (
     const cache = getMetadataCache(ctx)
 
     const descriptorEntryPoint = getDescriptorEntryPoint(compatibilityApi)
-    return entryPointsAreCompatible(
+    const result = entryPointsAreCompatible(
       descriptorEntryPoint,
       (id) => descriptorNodes[id],
       runtimeEntryPoint,
       (id) => getRuntimeTypedef(ctx, id),
       cache.compat,
     )
+    return {
+      args: result.args.level,
+      values: result.values.level,
+    }
   }
 
   const getCompatibilityLevel = withOptionalToken(descriptors, (runtime) =>
