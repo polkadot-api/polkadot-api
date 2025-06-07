@@ -64,13 +64,21 @@ export enum CompatibilityLevel {
  * Can it be done lazily though? In a way that we don't need to go through the whole tree?
  */
 
+export type Change = {
+  path: string
+  id: [number | null, number | null]
+  level: CompatibilityLevel
+}
 export type StaticCompatibleResult = {
   level: CompatibilityLevel
+  // paths causing the compatibility level. Doesn't return `Identical` paths.
+  changes: Array<Change>
+  // set of nodes that are assumed "Identical" (used with circular references)
   assumptions: DoubleSet<TypedefNode>
 }
 export type CompatibilityCache = Map<
   TypedefNode,
-  Map<TypedefNode, CompatibilityLevel | null>
+  Map<TypedefNode, { level: CompatibilityLevel; changes: Array<Change> } | null>
 >
 export function isStaticCompatible(
   originNode: TypedefNode | undefined,
@@ -78,16 +86,19 @@ export function isStaticCompatible(
   destNode: TypedefNode | undefined,
   getDestNode: (id: number) => TypedefNode,
   cache: CompatibilityCache,
+  deep = false,
 ): StaticCompatibleResult {
   if (!destNode && !originNode) {
-    return unconditional(CompatibilityLevel.Identical)
+    return unconditional(CompatibilityLevel.Identical, [])
   }
-  if (!destNode) return unconditional(CompatibilityLevel.BackwardsCompatible)
+  if (!destNode)
+    return unconditional(CompatibilityLevel.BackwardsCompatible, [])
   if (!originNode)
     return unconditional(
       destNode.type === "option"
         ? CompatibilityLevel.BackwardsCompatible
         : CompatibilityLevel.Incompatible,
+      [],
     )
 
   if (!cache.has(destNode)) {
@@ -96,14 +107,17 @@ export function isStaticCompatible(
   const destNodeCache = cache.get(destNode)!
   if (destNodeCache.has(originNode)) {
     const result = destNodeCache.get(originNode)
-    if (result === null) {
+    // TODO changed this from === to ==. Make sure this was intended (specially for comment on destNodeCache initialization below)
+    // yeahhh... "Remove the temporary `null` value from the cache" says undefined has a different meaning
+    if (result == null) {
       // Circular reference hit, return Identical with assumption
       return {
         level: CompatibilityLevel.Identical,
+        changes: [],
         assumptions: new DoubleSet([[originNode, destNode]]),
       }
     }
-    return unconditional(result!)
+    return unconditional(result.level, result.changes)
   }
 
   // Initialize to null for detecting circular references
@@ -120,6 +134,7 @@ export function isStaticCompatible(
         getDestNode,
         cache,
       ),
+    deep,
   )
 
   result.assumptions.delete(originNode, destNode)
@@ -127,7 +142,7 @@ export function isStaticCompatible(
     result.assumptions.isEmpty() ||
     result.level === CompatibilityLevel.Incompatible
   ) {
-    destNodeCache.set(originNode, result.level)
+    destNodeCache.set(originNode, result)
   } else {
     // Remove the temporary `null` value from the cache
     destNodeCache.delete(originNode)
@@ -138,25 +153,50 @@ export function isStaticCompatible(
 function getIsStaticCompatible(
   originNode: TypedefNode,
   destNode: TypedefNode,
-  nextCall: (
+  next: (
     originNode: TypedefNode | number | undefined,
     destNode: TypedefNode | number | undefined,
   ) => StaticCompatibleResult,
+  deep: boolean,
 ): StaticCompatibleResult {
+  const nextCall = (
+    originNode: TypedefNode | number | undefined,
+    destNode: TypedefNode | number | undefined,
+    path: string,
+  ): StaticCompatibleResult => {
+    const result = next(originNode, destNode)
+    return {
+      ...result,
+      changes:
+        result.level < CompatibilityLevel.Identical
+          ? [
+              {
+                id: [
+                  typeof originNode === "number" ? originNode : null,
+                  typeof destNode === "number" ? destNode : null,
+                ],
+                level: result.level,
+                path,
+              },
+            ]
+          : [],
+    }
+  }
+
   if (originNode.type !== destNode.type) {
     if (destNode.type === "option") {
       return withMaxLevel(
-        nextCall(originNode, destNode.value),
+        nextCall(originNode, destNode.value, "some"),
         CompatibilityLevel.BackwardsCompatible,
       )
     }
     if (originNode.type === "option") {
       return withMaxLevel(
-        nextCall(originNode.value, destNode),
+        nextCall(originNode.value, destNode, "some"),
         CompatibilityLevel.Partial,
       )
     }
-    return unconditional(CompatibilityLevel.Incompatible)
+    return unconditional(CompatibilityLevel.Incompatible, [])
   }
 
   switch (destNode.type) {
@@ -165,47 +205,82 @@ function getIsStaticCompatible(
         destNode.value.type === (originNode as TerminalNode).value.type
           ? CompatibilityLevel.Identical
           : CompatibilityLevel.Incompatible,
+        [],
       )
     case "binary":
       const binaryOrigin = originNode as BinaryNode
-      return unconditional(
+      return lengthChange(
         compareOptionalLengths(binaryOrigin.value, destNode.value),
       )
     case "array":
       const arrayOrigin = originNode as ArrayNode
-      const lengthCheck = unconditional(
+      const lengthCheck = lengthChange(
         compareOptionalLengths(arrayOrigin.value.length, destNode.value.length),
       )
-      return strictMerge([
-        lengthCheck,
-        () => nextCall(arrayOrigin.value.typeRef, destNode.value.typeRef),
-      ])
+      return strictMerge(
+        [
+          lengthCheck,
+          () =>
+            nextCall(
+              arrayOrigin.value.typeRef,
+              destNode.value.typeRef,
+              "value",
+            ),
+        ],
+        deep,
+      )
     case "enum": {
       const enumOrigin = originNode as EnumNode
       const destVariants = Object.fromEntries(
         destNode.value.map(([key, value]) => [key, value.value]),
       )
-      const maxLevel =
-        enumOrigin.value.length === destNode.value.length
-          ? CompatibilityLevel.Identical
-          : CompatibilityLevel.BackwardsCompatible
 
       // check whether every possible `origin` value is compatible with dest
-      return withMaxLevel(
-        mergeResults(
-          enumOrigin.value.map(
-            ([type, value]) =>
-              () =>
-                type in destVariants
-                  ? nextCall(value.value, destVariants[type])
-                  : unconditional(CompatibilityLevel.Incompatible),
-          ),
+      let enumResults = mergeResults(
+        enumOrigin.value.map(
+          ([type, value]) =>
+            () =>
+              type in destVariants
+                ? nextCall(value.value, destVariants[type], type)
+                : unconditional(CompatibilityLevel.Incompatible, [
+                    {
+                      id: [
+                        typeof value.value === "number" ? value.value : null,
+                        null,
+                      ],
+                      level: CompatibilityLevel.Incompatible,
+                      path: type,
+                    },
+                  ]),
         ),
-        maxLevel,
       )
+      if (enumOrigin.value.length === destNode.value.length) return enumResults
+      enumResults = withMaxLevel(
+        enumResults,
+        CompatibilityLevel.BackwardsCompatible,
+      )
+
+      // Then add in the missing values as incompatible changes
+      const enumOriginVariants = new Set(enumOrigin.value.map(([key]) => key))
+      enumResults.changes = [
+        ...enumResults.changes,
+        ...destNode.value
+          .filter(([key]) => !enumOriginVariants.has(key))
+          .map(
+            ([key, value]): Change => ({
+              id: [null, typeof value === "number" ? value : null],
+              level: CompatibilityLevel.Incompatible,
+              path: key,
+            }),
+          ),
+      ]
+      return enumResults
     }
     case "option":
-      return nextCall((originNode as OptionNode).value, destNode.value)
+      return withMinLevel(
+        nextCall((originNode as OptionNode).value, destNode.value, "some"),
+        CompatibilityLevel.Partial,
+      )
     case "struct":
       const structOrigin = originNode as StructNode
       const originProperties = Object.fromEntries(structOrigin.value)
@@ -219,28 +294,33 @@ function getIsStaticCompatible(
           destNode.value.map(
             ([key, value]) =>
               () =>
-                nextCall(originProperties[key], value),
+                nextCall(originProperties[key], value, key),
           ),
+          deep,
         ),
         maxLevel,
       )
     case "tuple": {
       const tupleOrigin = originNode as TupleNode
-      const lengthCheck = unconditional(
+      const lengthCheck = lengthChange(
         compareArrayLengths(tupleOrigin.value, destNode.value),
       )
-      return strictMerge([
-        lengthCheck,
-        ...destNode.value.map(
-          (value, idx) => () => nextCall(tupleOrigin.value[idx], value),
-        ),
-      ])
+      return strictMerge(
+        [
+          lengthCheck,
+          ...destNode.value.map(
+            (value, idx) => () =>
+              nextCall(tupleOrigin.value[idx], value, String(idx)),
+          ),
+        ],
+        deep,
+      )
     }
     case "result":
       const resultOrigin = originNode as ResultNode
       return mergeResults([
-        nextCall(resultOrigin.value.ok, destNode.value.ok),
-        nextCall(resultOrigin.value.ko, destNode.value.ko),
+        nextCall(resultOrigin.value.ok, destNode.value.ok, "ok"),
+        nextCall(resultOrigin.value.ko, destNode.value.ko, "ko"),
       ])
   }
 }
@@ -249,15 +329,26 @@ const withMaxLevel = (
   result: StaticCompatibleResult,
   level: CompatibilityLevel,
 ): StaticCompatibleResult => ({
+  // Changes stay the same. Use case: Option<Incompatible>, the option should show up as Partial, but the change should indicate that the inner one is incompatible.
   ...result,
   // Confusing yes, but it's Math.min. If we do withMaxLevel(result, 1), we expect to get at most [1] as a result
   level: Math.min(result.level, level),
 })
-const noAssumptions = new DoubleSet<TypedefNode>()
-export const unconditional = (
+const withMinLevel = (
+  result: StaticCompatibleResult,
   level: CompatibilityLevel,
 ): StaticCompatibleResult => ({
+  ...result,
+  level: Math.max(result.level, level),
+})
+
+const noAssumptions = new DoubleSet<TypedefNode>()
+const unconditional = (
+  level: CompatibilityLevel,
+  changes: Array<Change>,
+): StaticCompatibleResult => ({
   level,
+  changes,
   assumptions: noAssumptions,
 })
 
@@ -265,16 +356,19 @@ export const unconditional = (
  * Merges multiple results, following the most "strict" one, (semantically an
  * AND)
  */
-export const strictMerge = (
+const strictMerge = (
   results: Array<StaticCompatibleResult | (() => StaticCompatibleResult)>,
+  deep: boolean,
 ): StaticCompatibleResult => {
-  let merged = unconditional(CompatibilityLevel.Identical)
+  let merged = unconditional(CompatibilityLevel.Identical, [])
 
   for (const resultFn of results) {
     const result = typeof resultFn === "function" ? resultFn() : resultFn
     // On early return we don't need to keep the other assumptions
-    if (result.level === CompatibilityLevel.Incompatible) return result
+    if (!deep && result.level === CompatibilityLevel.Incompatible) return result
 
+    if (result.level !== CompatibilityLevel.Identical)
+      merged.changes = [...merged.changes, ...result.changes]
     merged.assumptions.addAll(result.assumptions.values)
     merged.level = Math.min(merged.level, result.level)
   }
@@ -288,13 +382,15 @@ export const strictMerge = (
 const mergeResults = (
   results: Array<StaticCompatibleResult | (() => StaticCompatibleResult)>,
 ): StaticCompatibleResult => {
-  if (!results.length) return unconditional(CompatibilityLevel.Identical)
+  if (!results.length) return unconditional(CompatibilityLevel.Identical, [])
 
   let hasCompatibles = false
 
-  let merged = unconditional(CompatibilityLevel.Identical)
+  let merged = unconditional(CompatibilityLevel.Identical, [])
   for (const resultFn of results) {
     const result = typeof resultFn === "function" ? resultFn() : resultFn
+    if (result.level !== CompatibilityLevel.Identical)
+      merged.changes = [...merged.changes, ...result.changes]
     if (result.level === CompatibilityLevel.Incompatible) {
       merged.level = Math.min(merged.level, CompatibilityLevel.Partial)
       continue
@@ -307,10 +403,25 @@ const mergeResults = (
 
   return hasCompatibles
     ? merged
-    : unconditional(CompatibilityLevel.Incompatible)
+    : unconditional(CompatibilityLevel.Incompatible, merged.changes)
 }
 
-export const compareArrayLengths = (
+const lengthChange = (level: CompatibilityLevel): StaticCompatibleResult => ({
+  assumptions: noAssumptions,
+  changes:
+    level === CompatibilityLevel.Identical
+      ? []
+      : [
+          {
+            id: [null, null],
+            level,
+            path: "length",
+          },
+        ],
+  level,
+})
+
+const compareArrayLengths = (
   origin: unknown[],
   dest: unknown[],
 ): CompatibilityLevel =>
@@ -320,7 +431,7 @@ export const compareArrayLengths = (
       ? CompatibilityLevel.BackwardsCompatible
       : CompatibilityLevel.Incompatible
 
-export const compareOptionalLengths = (
+const compareOptionalLengths = (
   origin: number | undefined,
   dest: number | undefined,
 ): CompatibilityLevel =>
