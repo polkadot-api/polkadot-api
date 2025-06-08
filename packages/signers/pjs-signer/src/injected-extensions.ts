@@ -1,3 +1,4 @@
+import { getPolkadotSignerFromModern } from "./from-modern-account"
 import { getPolkadotSignerFromPjs } from "./from-pjs-account"
 import type {
   InjectedAccount,
@@ -28,35 +29,32 @@ export const connectInjectedExtension = async (
 
   if (!entry) throw new Error(`Unavailable extension: "${name}"`)
 
-  const enabledExtension = await entry.enable(dappName)
-  const signPayload = enabledExtension.signer.signPayload.bind(
-    enabledExtension.signer,
-  )
-  const signRaw = enabledExtension.signer.signRaw.bind(enabledExtension.signer)
+  const { signer, accounts } = await entry.enable(dappName)
+
+  const signRaw = signer.signRaw.bind(signer)
+  const signPayload = signer.signPayload?.bind(signer)
+  const signTx = signer.signTx?.bind(signer)
+  const createSigner = (x: string) =>
+    signTx
+      ? getPolkadotSignerFromModern(x, signTx, signRaw)
+      : getPolkadotSignerFromPjs(x, signPayload, signRaw)
 
   const toPolkadotInjected = (
     accounts: InjectedAccount[],
   ): InjectedPolkadotAccount[] =>
     accounts
       .filter(({ type }) => supportedAccountTypes.has(type!))
-      .map((x) => {
-        const polkadotSigner = getPolkadotSignerFromPjs(
-          x.address,
-          signPayload,
-          signRaw,
-        )
-        return {
-          ...x,
-          polkadotSigner,
-        }
-      })
+      .map((x) => ({
+        ...x,
+        polkadotSigner: createSigner(x.address),
+      }))
 
   let currentAccounts: InjectedPolkadotAccount[] = toPolkadotInjected(
-    await enabledExtension.accounts.get(),
+    await accounts.get(),
   )
 
   const listeners = new Set<(accounts: InjectedPolkadotAccount[]) => void>()
-  const stop = enabledExtension.accounts.subscribe((x) => {
+  const stop = accounts.subscribe((x) => {
     currentAccounts = toPolkadotInjected(x)
     listeners.forEach((cb) => {
       cb(currentAccounts)

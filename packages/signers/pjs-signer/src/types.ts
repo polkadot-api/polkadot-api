@@ -119,6 +119,22 @@ export type SignPayload = (
   payload: SignerPayloadJSON,
 ) => Promise<{ signature: string; signedTransaction?: string | Uint8Array }>
 
+export interface SignTransactionInput {
+  publicKey: HexString
+  callData: HexString
+  signedExtensions: Array<{
+    identifier: string
+    value: HexString
+    additionalSigned: HexString
+  }>
+  metadata: HexString
+  atBlockNumber: number
+}
+
+export type SignTransaction = (
+  payload: SignTransactionInput,
+) => Promise<HexString>
+
 export type SignRaw = (payload: {
   address: string
   data: HexString
@@ -127,6 +143,7 @@ export type SignRaw = (payload: {
 
 export interface PjsInjectedExtension {
   signer: {
+    signTx?: SignTransaction
     signPayload: SignPayload
     signRaw: SignRaw
   }
