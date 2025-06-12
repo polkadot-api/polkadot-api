@@ -15,6 +15,7 @@ import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
   OperatorFunction,
+  catchError,
   combineLatestWith,
   distinctUntilChanged,
   filter,
@@ -319,11 +320,41 @@ export const createStorageEntry = (
     )
   }
 
-  const getRawValue$ = (...args: Array<any>) => {
+  const getRawValue$ = (
+    ...args: Array<any>
+  ): Observable<{ raw: string | null; mapped: any }> => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
+
+    const result$ = from(descriptorsPromise).pipe(
+      mergeMap((descriptors) =>
+        chainHead.storage$(
+          at,
+          "value",
+          (ctx) => {
+            const codecs = getCodec(ctx)
+            const actualArgs =
+              args.length === codecs.len ? args : args.slice(0, -1)
+            if (args !== actualArgs && !isLastArgOptional)
+              throw invalidArgs(args)
+            if (!argsAreCompatible(descriptors, ctx, actualArgs))
+              throw incompatibleError()
+            return codecs.keys.enc(...actualArgs)
+          },
+          null,
+          (data, ctx) => {
+            const codecs = getCodec(ctx)
+            const mapped =
+              data === null ? codecs.fallback : codecs.value.dec(data)
+            if (!valuesAreCompatible(descriptors, ctx, mapped))
+              throw incompatibleError()
+            return { raw: data, mapped }
+          },
+        ),
+      ),
+    )
 
     if (isSystemNumber)
       return chainHead.pinnedBlocks$.pipe(
@@ -342,42 +373,18 @@ export const createStorageEntry = (
         }),
         distinctUntilChanged(),
         bigIntOrNumber,
-        map((mapped) => ({ raw: mapped, mapped })),
+        map((mapped) => ({ raw: mapped.toString(), mapped })),
+        catchError((e) => {
+          if (e instanceof BlockNotPinnedError) return result$
+          throw e
+        }),
       )
 
-    if (isBlockHash && Number(args[0]) === 0) {
-      return chainHead.genesis$.pipe(
-        map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
-      ) as Observable<any>
-    }
-
-    return from(descriptorsPromise).pipe(
-      mergeMap((descriptors) =>
-        chainHead.storage$(
-          at,
-          "value",
-          (ctx) => {
-            const codecs = getCodec(ctx)
-            const actualArgs =
-              args.length === codecs.len ? args : args.slice(0, -1)
-            if (args !== actualArgs && !isLastArgOptional)
-              throw invalidArgs(args)
-            if (!argsAreCompatible(descriptors, ctx, actualArgs))
-              throw incompatibleError()
-            return codecs.keys.enc(...actualArgs)
-          },
-          null,
-          (data, ctx) => {
-            const codecs = getCodec(ctx)
-            const value =
-              data === null ? codecs.fallback : codecs.value.dec(data)
-            if (!valuesAreCompatible(descriptors, ctx, value))
-              throw incompatibleError()
-            return value
-          },
-        ),
-      ),
-    )
+    return isBlockHash && Number(args[0]) === 0
+      ? chainHead.genesis$.pipe(
+          map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
+        )
+      : result$
   }
 
   const getValue = async (...args: Array<any>) => {
@@ -398,43 +405,41 @@ export const createStorageEntry = (
     const at = _at ?? null
 
     const descriptors = await descriptorsPromise
-    const result$ = chainHead
-      .storage$(
-        at,
-        "descendantsValues",
-        (ctx) => {
-          const codecs = getCodec(ctx)
-          // TODO partial compatibility check for args that become optional
-          if (
-            minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
-            CompatibilityLevel.Incompatible
-          )
-            throw incompatibleError()
+    const result$ = chainHead.storage$(
+      at,
+      "descendantsValues",
+      (ctx) => {
+        const codecs = getCodec(ctx)
+        // TODO partial compatibility check for args that become optional
+        if (
+          minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
+          CompatibilityLevel.Incompatible
+        )
+          throw incompatibleError()
 
-          if (args.length > codecs.len) throw invalidArgs(args)
-          const actualArgs =
-            args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
-          if (args.length === codecs.len && actualArgs === args)
-            throw invalidArgs(args)
-          return codecs.keys.enc(...actualArgs)
-        },
-        null,
-        (values, ctx) => {
-          const codecs = getCodec(ctx)
-          const decodedValues = values.map(({ key, value }) => ({
-            keyArgs: codecs.keys.dec(key),
-            value: codecs.value.dec(value),
-          }))
-          if (
-            decodedValues.some(
-              ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
-            )
+        if (args.length > codecs.len) throw invalidArgs(args)
+        const actualArgs =
+          args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
+        if (args.length === codecs.len && actualArgs === args)
+          throw invalidArgs(args)
+        return codecs.keys.enc(...actualArgs)
+      },
+      null,
+      (values, ctx) => {
+        const codecs = getCodec(ctx)
+        const decodedValues = values.map(({ key, value }) => ({
+          keyArgs: codecs.keys.dec(key),
+          value: codecs.value.dec(value),
+        }))
+        if (
+          decodedValues.some(
+            ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
           )
-            throw incompatibleError()
-          return decodedValues
-        },
-      )
-      .pipe(toMapped)
+        )
+          throw incompatibleError()
+        return decodedValues
+      },
+    )
     return firstValueFromWithSignal(result$, signal)
   }
 

@@ -9,7 +9,7 @@ import {
   switchMap,
   tap,
 } from "rxjs"
-import { expect, describe, it } from "vitest"
+import { expect, describe, it, beforeAll } from "vitest"
 import { start } from "polkadot-api/smoldot"
 import {
   AccountId,
@@ -18,7 +18,9 @@ import {
   PolkadotClient,
   SS58String,
   TxEvent,
+  TypedApi,
   createClient,
+  BlockNotPinnedError,
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { getWsProvider } from "polkadot-api/ws-provider/node"
@@ -28,7 +30,6 @@ import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
-import { BlockNotPinnedError } from "polkadot-api"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -40,6 +41,7 @@ const fakeSigner = (from: Uint8Array) =>
 const { PROVIDER } = process.env
 if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
+let ARCHIVE = false
 const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
 const getChainspec = async (count = 1): Promise<{}> => {
   try {
@@ -71,9 +73,17 @@ describe("E2E", async () => {
       withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934")),
       { getMetadata },
     )
+    const { methods } = await client._request<{ methods: string[] }, []>(
+      "rpc_methods",
+      [],
+    )
+    ARCHIVE = methods.some((m) => m.startsWith("archive_v1"))
+    console.log("ARCHIVE", ARCHIVE)
+    if (!ARCHIVE) console.log(JSON.stringify(methods))
   }
   console.log("client started")
   const api = client.getTypedApi(roc)
+  const firstBlock = client.getFinalizedBlock()
 
   console.log("waiting for compatibility token")
   const token = await api.compatibilityToken
@@ -488,11 +498,10 @@ describe("E2E", async () => {
   })
 
   describe("BlockNotPinnedError", () => {
-    console.log("here we got")
     const options = {
       at: "0x750d7c25fd87702beabd86afd4cf1cc2a8cdcab7fae89b189900b4fcf894e0e7",
     }
-    const aliceAddress = accountIdDec(accounts.alice.ecdsa.publicKey)
+    const aliceAddress = accountIdDec(accounts.alice.sr25519.publicKey)
 
     it("BlockNotPinnedError: query", async () => {
       await expect(
@@ -524,4 +533,56 @@ describe("E2E", async () => {
       )
     })
   })
+
+  if (PROVIDER === "ws" && ARCHIVE) {
+    describe("archive", async () => {
+      const aliceAddress = accountIdDec(accounts.alice.sr25519.publicKey)
+      let newClient: PolkadotClient
+      const oldBlock = await firstBlock
+      console.log("oldBlock", oldBlock.hash)
+      const options = { at: oldBlock.hash }
+      let oldApi: TypedApi<typeof roc>
+
+      beforeAll(async () => {
+        do {
+          newClient?.destroy()
+          console.log("creating archive client")
+          newClient = createClient(
+            withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934")),
+          )
+        } while ((await newClient.getFinalizedBlock()).hash === oldBlock.hash)
+        oldApi = newClient.getTypedApi(roc)
+      })
+
+      it("Archive: query", async () => {
+        const {
+          data: { free },
+        } = await oldApi.query.System.Account.getValue(aliceAddress, options)
+        expect(free).toBeGreaterThan(0n)
+      })
+
+      it("Archive: query System.Number", async () => {
+        expect(await oldApi.query.System.Number.getValue(options)).toEqual(
+          oldBlock.number,
+        )
+      })
+
+      it("Archive: apis", async () => {
+        expect(
+          await oldApi.apis.AccountNonceApi.account_nonce(
+            aliceAddress,
+            options,
+          ),
+        ).toEqual(0)
+      })
+
+      it("Archive: body", async () => {
+        expect((await newClient.getBlockBody(options.at)).length).not.toBe(0)
+      })
+
+      it("Archive: header", async () => {
+        expect(await newClient.getBlockHeader(options.at)).not.toBeNull()
+      })
+    })
+  }
 })
