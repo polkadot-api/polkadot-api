@@ -356,13 +356,6 @@ export const createStorageEntry = (
       ),
     )
 
-    const withResultFallback: (
-      base: Observable<{ raw: string | null; mapped: any }>,
-    ) => Observable<{ raw: string | null; mapped: any }> = catchError((e) => {
-      if (e instanceof BlockNotPinnedError) return result$
-      throw e
-    })
-
     if (isSystemNumber)
       return chainHead.pinnedBlocks$.pipe(
         map((blocks) => {
@@ -381,13 +374,15 @@ export const createStorageEntry = (
         distinctUntilChanged(),
         bigIntOrNumber,
         map((mapped) => ({ raw: mapped.toString(), mapped })),
-        withResultFallback,
+        catchError((e) => {
+          if (e instanceof BlockNotPinnedError) return result$
+          throw e
+        }),
       )
 
     return isBlockHash && Number(args[0]) === 0
       ? chainHead.genesis$.pipe(
           map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
-          withResultFallback,
         )
       : result$
   }
