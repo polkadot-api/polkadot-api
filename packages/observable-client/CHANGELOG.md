@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- `archive` functionalities
+
+### Changed
+
+- remove `{raw: HexString, mapped: T}` interface, from chainHead.storage
+
 ## 0.11.2 - 2025-06-04
 
 ### Fixed
