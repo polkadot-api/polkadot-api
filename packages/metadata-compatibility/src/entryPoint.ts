@@ -6,7 +6,12 @@ import {
   Variant,
 } from "@polkadot-api/substrate-bindings"
 import { isCompatible } from "./isCompatible"
-import { CompatibilityCache, isStaticCompatible } from "./isStaticCompatible"
+import {
+  Change,
+  CompatibilityCache,
+  CompatibilityLevel,
+  isStaticCompatible,
+} from "./isStaticCompatible"
 import {
   mapLookupToTypedef,
   mapReferences,
@@ -97,13 +102,22 @@ export function singleValueEntryPoint(value: number): EntryPoint {
   }
 }
 
+export interface CompatibilityResult {
+  level: CompatibilityLevel
+  changes: Array<Change>
+}
+
 export function entryPointsAreCompatible(
   descriptorEntry: EntryPoint,
   getDescriptorNode: (id: number) => TypedefNode,
   runtimeEntry: EntryPoint,
   getRuntimeNode: (id: number) => TypedefNode,
   cache: CompatibilityCache,
-) {
+  deep?: boolean,
+): {
+  args: CompatibilityResult
+  values: CompatibilityResult
+} {
   const resolveNode = (
     node: EntryPointNode,
     getTypedef: (id: number) => TypedefNode,
@@ -118,14 +132,16 @@ export function entryPointsAreCompatible(
       resolveNode(runtimeEntry.args, getRuntimeNode),
       getRuntimeNode,
       cache,
-    ).level,
+      deep,
+    ),
     values: isStaticCompatible(
       resolveNode(runtimeEntry.values, getRuntimeNode),
       getRuntimeNode,
       resolveNode(descriptorEntry.values, getDescriptorNode),
       getDescriptorNode,
       cache,
-    ).level,
+      deep,
+    ),
   }
 }
 

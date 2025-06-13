@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Added
+
+- `StaticCompatibleResult` includes `changes`, the list of changes that led to the compatibility level result.
+- `isStaticCompatible` has a new `deep` parameter to prevent returning early.
+
+### Changed
+
+- `entryPointsAreCompatible` now returns `{ level, changes }` for both args and values.
+
+### Fixed
+
+- `Option<T>` => `Option<R>` when T and R are incompatible should be Partial instead of Incompatible.
+
 ## 0.2.4 - 2025-05-30
 
 ### Fixed

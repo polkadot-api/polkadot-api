@@ -11,12 +11,16 @@
 
 ### Fixed
 
-- **Chains:**:
+- **Chains:**
 
   - Update `lightSyncState`
 
-- **Smoldot:**:
+- **Smoldot:**
+
   - Update smoldot to `2.0.36`
+
+- **Compatibility:**
+  - `Option<T>` => `Option<R>` when T and R are incompatible should be Partial instead of Incompatible.
 
 ## 1.13.1 - 2025-06-04
 
