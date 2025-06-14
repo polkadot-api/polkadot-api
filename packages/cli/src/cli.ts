@@ -54,6 +54,10 @@ export function getCli({
       ),
     )
     .option("--wasm <filename>", "Source from runtime wasm file")
+    .option(
+      "--at <block hash or number>",
+      "Only for -w/--wsUrl. Fetch the metadata for a specific block or hash",
+    )
     .option("--no-persist", "Do not persist the metadata as a file")
     .addOption(skipCodegen)
     .addOption(whitelist)

@@ -18,6 +18,7 @@ export type EntryConfig =
     }
   | {
       wsUrl: string
+      at?: string
       metadata?: string
       genesis?: string
       codeHash?: string

@@ -11,7 +11,15 @@ import {
 import { getWsProvider } from "@polkadot-api/ws-provider/node"
 import { Worker } from "node:worker_threads"
 import { getObservableClient } from "@polkadot-api/observable-client"
-import { combineLatest, filter, firstValueFrom } from "rxjs"
+import {
+  combineLatest,
+  filter,
+  firstValueFrom,
+  from,
+  map,
+  of,
+  switchMap,
+} from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
@@ -39,9 +47,29 @@ async function getSmoldotWorker() {
   return smoldotWorker
 }
 
-const getMetadataCall = async (provider: JsonRpcProvider) => {
-  const client = getObservableClient(createClient(provider))
-  const { runtime$, unfollow, genesis$ } = client.chainHead$()
+const getMetadataCall = async (provider: JsonRpcProvider, at?: string) => {
+  const substrateClient = createClient(provider)
+  const client = getObservableClient(substrateClient)
+  const { runtime$, unfollow, genesis$, getRuntime$ } = client.chainHead$()
+  const archive = client.archive(getRuntime$)
+
+  const getRuntimeCtx$ = () => {
+    if (!at) return runtime$.pipe(filter(Boolean))
+    // if it's a number
+    const hash$ =
+      at.length < 32 && /^\d+$/.test(at)
+        ? from(substrateClient.archive.hashByHeight(Number(at))).pipe(
+            map(([hash]) => {
+              if (!hash) {
+                throw new Error(`Can't find block number "${at}"`)
+              }
+              return hash
+            }),
+          )
+        : of(at)
+    return hash$.pipe(switchMap(archive.getRuntimeContext$))
+  }
+
   const {
     runtime: {
       lookup: { metadata },
@@ -51,7 +79,7 @@ const getMetadataCall = async (provider: JsonRpcProvider) => {
     genesis,
   } = await firstValueFrom(
     combineLatest({
-      runtime: runtime$.pipe(filter(Boolean)),
+      runtime: getRuntimeCtx$(),
       genesis: genesis$,
     }),
   )
@@ -123,8 +151,8 @@ const getMetadataFromSmoldot = async (chain: string) => {
   }
 }
 
-const getMetadataFromWsURL = async (wsURL: string) =>
-  getMetadataCall(withPolkadotSdkCompat(getWsProvider(wsURL)))
+const getMetadataFromWsURL = async (wsURL: string, at?: string) =>
+  getMetadataCall(withPolkadotSdkCompat(getWsProvider(wsURL)), at)
 
 export async function getMetadata({
   metadata: metadataFile,
@@ -168,7 +196,7 @@ export async function getMetadata({
   }
 
   if ("wsUrl" in entry) {
-    return getMetadataFromWsURL(entry.wsUrl)
+    return getMetadataFromWsURL(entry.wsUrl, entry.at)
   }
 
   return null
