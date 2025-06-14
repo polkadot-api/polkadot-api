@@ -14,6 +14,7 @@ import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
 import { EnumEntry, getMappedMetadata } from "./mapped-metadata"
 import { ComparedChange, Output } from "./public-types"
 import { shallowDiff } from "./shallow-diff"
+import { mapObject } from "@polkadot-api/utils"
 
 const getEnumEntry = (entry: EnumEntry, side: "args" | "values") => {
   const node = enumValueEntryPointNode(entry)
@@ -102,6 +103,27 @@ export const compareRuntimes = (
     }
   }
 
+  const compareExtension = (name: string): ComparedChange => {
+    const prevExtensions = prev.metadataMaps.extensions[name]
+    const newExtensions = next.metadataMaps.extensions[name]
+
+    return {
+      kind: "extension",
+      name,
+      compat: mapObject(prevExtensions, (type, key) =>
+        minCompatLevel(
+          entryPointsAreCompatible(
+            singleValueEntryPoint(type),
+            prev.getTypeDefNode,
+            singleValueEntryPoint(newExtensions[key]),
+            next.getTypeDefNode,
+            cache,
+          ),
+        ),
+      ),
+    }
+  }
+
   const compareStorage = (pallet: string, name: string): ComparedChange => {
     const a = prev.metadataMaps.pallets[pallet]!.storage.get(name)!
     const b = next.metadataMaps.pallets[pallet]!.storage.get(name)!
@@ -176,6 +198,8 @@ export const compareRuntimes = (
         return compareViewFn(x.pallet, x.name)
       case "api":
         return compareRuntimeApi(x.group, x.name)
+      case "extension":
+        throw compareExtension(x.name)
       default:
         return compareEnumEntries(x as any)
     }
