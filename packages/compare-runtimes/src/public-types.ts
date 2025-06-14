@@ -11,6 +11,10 @@ export type Change =
       group: string
       name: string
     }
+  | {
+      kind: "extension"
+      name: string
+    }
 
 export type ComparedChange =
   | {
@@ -35,6 +39,14 @@ export type ComparedChange =
       compat: {
         args: CompatibilityLevel
         values: CompatibilityLevel
+      }
+    }
+  | {
+      kind: "extension"
+      name: string
+      compat: {
+        type: CompatibilityLevel
+        additionalSigned: CompatibilityLevel
       }
     }
 
