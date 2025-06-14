@@ -7,7 +7,12 @@
 - Fallback to `archive_v1` if available.
 
 - **Chains:**
+
   - Add Paseo and Westend coretime
+
+- **CLI**
+
+  - `add` command: `--at` option to specify a block number or hash.
 
 ### Fixed
 

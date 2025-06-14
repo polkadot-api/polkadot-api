@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- add: `--at` option to specify a block number or hash.
+
 ## 0.13.4 - 2025-06-04
 
 ### Fixed
