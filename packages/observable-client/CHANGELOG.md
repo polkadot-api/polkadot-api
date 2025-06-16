@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.0 - 2025-06-16
+
 ### Added
 
 - `archive` functionalities

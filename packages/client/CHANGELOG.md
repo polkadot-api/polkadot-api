@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.14.0 - 2025-06-16
+
 ### Added
 
 - Fallback to `archive_v1` if available.
