@@ -34,6 +34,13 @@ export async function update(
       return
     }
 
+    if ("at" in entry) {
+      console.warn(
+        `Key ${key} is based on a specific block ${entry.at}, skipping update`,
+      )
+      return
+    }
+
     const metadata = await getMetadata(entry as EntryConfig)
     // For those without other sources than metadata file, we get a null.
     if (!metadata) {

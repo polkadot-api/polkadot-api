@@ -24,6 +24,8 @@ export interface AddOptions extends CommonOptions {
   name?: string
   wasm?: string
   noPersist?: boolean
+  // only for wsUrl
+  at?: string
 }
 
 export async function add(key: string, options: AddOptions) {
@@ -100,6 +102,7 @@ const entryFromOptions = (options: AddOptions): EntryConfig => {
   if (options.wsUrl) {
     return {
       wsUrl: options.wsUrl,
+      at: options.at,
     }
   }
   if (options.chainSpec) {
