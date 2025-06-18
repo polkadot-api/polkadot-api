@@ -63,4 +63,5 @@ export type TypedCodecs<T extends ChainDefinition> = {
   event: ExtractPlainCodec<T["descriptors"]["pallets"]["__event"]>
   apis: ExtractRuntimeCodec<T["descriptors"]["apis"]>
   constants: ExtractPlainCodec<T["descriptors"]["pallets"]["__const"]>
+  view: ExtractRuntimeCodec<T["descriptors"]["pallets"]["__view"]>
 }
