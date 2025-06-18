@@ -70,6 +70,7 @@ export const getTypedCodecs = async <D extends ChainDefinition>(
     buildConstant,
     buildCall,
     buildEvent,
+    buildViewFn,
   } = getDynamicBuilder(lookup)
 
   return {
@@ -83,5 +84,6 @@ export const getTypedCodecs = async <D extends ChainDefinition>(
     ),
     apis: createProxyPath(withError(buildRuntimeCall, "Runtime API")),
     constants: createProxyPath(withError(buildConstant, "Constant")),
+    view: createProxyPath(withError(buildViewFn, "ViewFn")),
   } as TypedCodecs<D>
 }

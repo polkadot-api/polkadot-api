@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Add View Functions to typed codecs
+
 ## 1.14.0 - 2025-06-16
 
 ### Added
@@ -9,23 +13,16 @@
 - Fallback to `archive_v1` if available.
 
 - **Chains:**
-
   - Add Paseo and Westend coretime
-
 - **CLI**
-
   - `add` command: `--at` option to specify a block number or hash.
 
 ### Fixed
 
 - **Chains:**
-
   - Update `lightSyncState`
-
 - **Smoldot:**
-
   - Update smoldot to `2.0.36`
-
 - **Compatibility:**
   - `Option<T>` => `Option<R>` when T and R are incompatible should be Partial instead of Incompatible.
 
