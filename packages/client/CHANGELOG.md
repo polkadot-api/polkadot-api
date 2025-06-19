@@ -5,6 +5,8 @@
 ### Fixed
 
 - Add View Functions to typed codecs
+- Improve the logic for performing the initial validation prior to broadcasting a transaction,
+  which was flawed because in some instances was deeming certain transactions as invalid, when they were actually valid.
 
 ## 1.14.0 - 2025-06-16
 

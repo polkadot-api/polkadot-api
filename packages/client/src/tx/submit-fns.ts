@@ -7,14 +7,18 @@ import {
 import {
   EMPTY,
   Observable,
+  catchError,
   concat,
   distinctUntilChanged,
   filter,
   lastValueFrom,
   map,
+  merge,
   mergeMap,
   of,
+  reduce,
   take,
+  takeWhile,
 } from "rxjs"
 import {
   ChainHead$,
@@ -201,7 +205,6 @@ export const submit$ = (
   chainHead: ChainHead$,
   broadcastTx$: (tx: string) => Observable<never>,
   tx: HexString,
-  at?: HexString,
   emitSign = false,
 ): Observable<TxEvent> => {
   const txHash = hashFromTx(tx)
@@ -218,23 +221,71 @@ export const submit$ = (
       ...rest,
     }) as any
 
-  const at$ = chainHead.pinnedBlocks$.pipe(
+  const validate$ = chainHead.pinnedBlocks$.pipe(
     take(1),
-    map((blocks) => {
-      const block = blocks.blocks.get(at!)
-      return block ? block.hash : blocks.finalized
-    }),
-  )
-
-  const validate$: Observable<never> = at$.pipe(
-    mergeMap((at) =>
-      chainHead.validateTx$(at, tx).pipe(
-        filter((x) => !x.success),
+    mergeMap((blocks) => {
+      let bestBlocks: string[] = []
+      return blocks.finalizedRuntime.runtime.pipe(
+        map((r) => r.getMortalityFromTx(tx)),
+        catchError(() => of({ mortal: false as const })),
         map((x) => {
-          throw new InvalidTxError(x.value)
+          const { best, finalized } = blocks
+
+          // before we start doing async stuff, we must "take a picture"
+          // of the current lineage of best-blocks
+          let current = best
+          while (current !== finalized) {
+            bestBlocks.push(current)
+            current = blocks.blocks.get(current)!.parent
+          }
+          bestBlocks.push(finalized)
+
+          if (!x.mortal) return [finalized, best]
+
+          const { phase, period } = x
+          const bestBlock = blocks.blocks.get(best)!
+          const topNumber = bestBlock.number
+          const txBlockNumber =
+            Math.floor((topNumber - phase) / period) * period + phase
+
+          let result = [blocks.blocks.get(blocks.finalized)!]
+          while (result.length && result[0].number < txBlockNumber) {
+            result = result
+              .flatMap((x) => [...x.children])
+              .map((x) => blocks.blocks.get(x)!)
+              .filter(Boolean)
+          }
+          return (result.length ? result : [bestBlock]).map((x) => x.hash)
         }),
-      ),
-    ),
+        mergeMap((toCheck) =>
+          merge(
+            ...[...new Set(toCheck)].map((at) =>
+              chainHead
+                .validateTx$(at, tx)
+                .pipe(map((result) => ({ at, result }))),
+            ),
+          ),
+        ),
+        takeWhile(({ result }) => !result.success, true),
+        reduce(
+          (acc, curr) => [...acc, curr],
+          [] as { at: string; result: ResultPayload<any, any> }[],
+        ),
+        map((results) => {
+          const badOnes = new Map(
+            results
+              .filter(({ result }) => !result.success)
+              .map((x) => [x.at, x.result]),
+          )
+          if (badOnes.size < results.length) return null
+
+          throw new InvalidTxError(
+            badOnes.get(bestBlocks.find((x) => badOnes.has(x))!)!.value,
+          )
+        }),
+        filter(Boolean),
+      )
+    }),
   )
 
   const track$ = new Observable<AnalyzedBlock>((observer) => {
@@ -285,9 +336,9 @@ export const submit = async (
   chainHead: ChainHead$,
   broadcastTx$: (tx: string) => Observable<never>,
   transaction: HexString,
-  at?: HexString,
+  _at?: HexString,
 ): Promise<TxFinalizedPayload> =>
-  lastValueFrom(submit$(chainHead, broadcastTx$, transaction, at)).then((x) => {
+  lastValueFrom(submit$(chainHead, broadcastTx$, transaction)).then((x) => {
     if (x.type !== "finalized") throw null
     const result: TxFinalizedPayload = { ...x }
     delete (result as any).type

@@ -199,9 +199,7 @@ export const createTxEntry = <
 
     const signSubmitAndWatch: TxObservable<Asset> = (from, _options) =>
       _sign(from, _options).pipe(
-        mergeMap(({ tx, block }) =>
-          submit$(chainHead, broadcast, tx, block.hash, true),
-        ),
+        mergeMap(({ tx }) => submit$(chainHead, broadcast, tx, true)),
       )
 
     const getPaymentInfo = async (
