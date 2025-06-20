@@ -278,12 +278,6 @@ const buildEventV5 = <E extends Event>(
         try {
           return decode((v.event.value as any).value, suitableTopic)
         } catch (ex) {
-          console.error(`Contract ${address} emitted an incompatible event`, {
-            event: (v.event.value as any).value.data.asHex(),
-            eventTopics,
-            metadataEventTopics: [...metadataEventTopics],
-            hasAnonymousEvents,
-          })
           return null
         }
       })
