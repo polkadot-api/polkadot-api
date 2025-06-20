@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.0 - 2025-06-20
+
 ### Added
 
 - `RuntimeContext` exposes a new function: `getMortalityFromTx`, which can be used to obtain the mortality date from a tx.

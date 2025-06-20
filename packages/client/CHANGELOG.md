@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.14.1 - 2025-06-20
+
 ### Fixed
 
 - Add View Functions to typed codecs
