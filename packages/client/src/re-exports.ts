@@ -6,6 +6,7 @@ export type {
   GetEnum,
   ResultPayload,
   EnumVariant,
+  BlockHeader,
 } from "@polkadot-api/substrate-bindings"
 export {
   AccountId,
@@ -16,4 +17,7 @@ export {
   getSs58AddressInfo,
 } from "@polkadot-api/substrate-bindings"
 export { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
-export { BlockNotPinnedError } from "@polkadot-api/observable-client"
+export {
+  type BlockInfo,
+  BlockNotPinnedError,
+} from "@polkadot-api/observable-client"

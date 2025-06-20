@@ -5,6 +5,7 @@
 ### Fixed
 
 - Add View Functions to typed codecs
+- Export missing types: `BlockInfo` and `BlockHeader`
 - Improve the logic for performing the initial validation prior to broadcasting a transaction,
   which was flawed because in some instances was deeming certain transactions as invalid, when they were actually valid.
 
