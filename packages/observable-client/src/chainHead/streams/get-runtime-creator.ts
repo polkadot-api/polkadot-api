@@ -42,6 +42,12 @@ export type SystemEvent = {
   topics: Array<Binary>
 }
 
+export type Mortality =
+  | {
+      mortal: false
+    }
+  | { mortal: true; period: number; phase: number }
+
 export interface RuntimeContext {
   metadataRaw: Uint8Array
   lookup: MetadataLookup
@@ -53,6 +59,7 @@ export interface RuntimeContext {
   }
   accountId: Codec<SS58String>
   assetId: number | null
+  getMortalityFromTx: Decoder<Mortality>
 }
 
 export interface Runtime {

@@ -370,7 +370,7 @@ export function createClient(
       firstValueFrom(chainHead.header$(hash ?? null)),
 
     submit: (...args) => submit(chainHead, broadcastTx$, ...args),
-    submitAndWatch: (...args) => submit$(chainHead, broadcastTx$, ...args),
+    submitAndWatch: (tx) => submit$(chainHead, broadcastTx$, tx),
 
     getTypedApi: <D extends ChainDefinition>(chainDefinition: D) => {
       const token = getChainToken(chainDefinition)
