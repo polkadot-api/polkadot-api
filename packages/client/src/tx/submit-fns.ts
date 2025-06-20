@@ -280,7 +280,14 @@ export const submit$ = (
           if (badOnes.size < results.length) return null
 
           throw new InvalidTxError(
-            badOnes.get(bestBlocks.find((x) => badOnes.has(x))!)!.value,
+            badOnes.get(
+              // there is a possible, but very unlikely, race-condition in which:
+              // we have received a new block that is about to be flagged as best,
+              // and that its height is higher than all the others, but the notification
+              // that sets it as best has not arrived yet. In that case, that block wouldn't
+              // be in the lineage of the best-blocks, but then it would be the only one in the list of `badOnes`
+              bestBlocks.find((x) => badOnes.has(x)) ?? [...badOnes.keys()][0],
+            )!.value,
           )
         }),
         filter(Boolean),
