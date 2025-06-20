@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Remove unnecessary `console.error` when decoding an unknown event.
+
 ## 0.3.4 - 2025-05-30
 
 ### Fixed
