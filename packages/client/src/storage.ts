@@ -41,7 +41,7 @@ type CallOptions = Partial<{
   /**
    * `at` could be a blockHash, `best`, or `finalized` (default)
    */
-  at: string
+  at: "best" | "finalised" | ({} & string)
   /**
    * `signal` allows you to abort an ongoing Promise. See [MDN
    * docs](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) for

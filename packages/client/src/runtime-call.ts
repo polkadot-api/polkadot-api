@@ -5,7 +5,15 @@ import { map, mergeMap } from "rxjs"
 import { CompatibilityFunctions, CompatibilityHelper } from "./compatibility"
 
 type CallOptions = Partial<{
-  at: string
+  /**
+   * `at` could be a blockHash, `best`, or `finalized` (default)
+   */
+  at: "best" | "finalized" | ({} & string)
+  /**
+   * `signal` allows you to abort an ongoing Promise. See [MDN
+   * docs](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) for
+   * more information
+   */
   signal: AbortSignal
 }>
 
