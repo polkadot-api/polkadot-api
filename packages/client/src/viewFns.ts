@@ -7,7 +7,7 @@ import { compactNumber, _void } from "@polkadot-api/substrate-bindings"
 
 type CallOptions = Partial<{
   /**
-   * `at` could be a blockHash, `best`, or `finalized` (default)
+   * `at` could be a block-hash, `best`, or `finalized` (default)
    */
   at: "best" | "finalized" | ({} & string)
   /**
