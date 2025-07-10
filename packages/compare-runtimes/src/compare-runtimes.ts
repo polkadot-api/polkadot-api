@@ -199,7 +199,7 @@ export const compareRuntimes = (
       case "api":
         return compareRuntimeApi(x.group, x.name)
       case "extension":
-        throw compareExtension(x.name)
+        return compareExtension(x.name)
       default:
         return compareEnumEntries(x as any)
     }

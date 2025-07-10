@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.2 - 2025-07-10
+
+### Fixed
+
+- Bug with the `extension` entry
+
 ## 0.2.1 - 2025-06-16
 
 ### Fixed
