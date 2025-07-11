@@ -1,42 +1,19 @@
-import { concatBytes, randomBytes } from "@noble/hashes/utils"
-import { compact } from "scale-ts"
 import { describe, expect, test } from "vitest"
-import { bitSequence } from "@/."
+import { BitSeq } from "@/."
+import { toHex } from "@polkadot-api/utils"
 
-describe("bitSequence", () => {
-  test("it correctly encodes/decodes its inputs while only taking the necessary bytes", () => {
-    // 9 bits required 2 bytes
-    const bitsLen = 9
-    const nine = compact.enc(bitsLen)
+describe("BitSeq", () => {
+  test("it correctly encodes/decodes with lsb and msb", () => {
+    const lsb = BitSeq()
+    const msb = BitSeq(false)
 
-    const otherData = randomBytes(10)
-    const expectedBytes = otherData.slice(0, 2)
-    const input = concatBytes(nine, otherData)
+    const input = "0x349f05" // bitsLen: 13, bytes: [159, 5]
+    const decLsb: Array<0 | 1> = [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0]
+    const decMsb: Array<0 | 1> = [1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0]
 
-    const decoded = bitSequence.dec(input)
-
-    expect(decoded).toEqual({
-      bitsLen,
-      bytes: expectedBytes,
-    })
-
-    const encoded = bitSequence.enc(decoded)
-    expect(encoded).toEqual(input.slice(0, nine.length + expectedBytes.length))
-  })
-
-  test("it throws when trying to encode it with more bits than avaiable", () => {
-    expect(() =>
-      bitSequence.enc({
-        bitsLen: 8,
-        bytes: new Uint8Array(1),
-      }),
-    ).not.toThrowError()
-
-    expect(() =>
-      bitSequence.enc({
-        bitsLen: 9,
-        bytes: new Uint8Array(1),
-      }),
-    ).toThrowError()
+    expect(lsb.dec(input)).toEqual(decLsb)
+    expect(msb.dec(input)).toEqual(decMsb)
+    expect(toHex(lsb.enc(decLsb))).toEqual(input)
+    expect(toHex(msb.enc(decMsb))).toEqual("0x349f00")
   })
 })

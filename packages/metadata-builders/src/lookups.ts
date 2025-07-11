@@ -24,7 +24,10 @@ export type CompactVar = {
   isBig: boolean
   size: UnsignedPrimitive
 }
-export type BitSequenceVar = { type: "bitSequence" }
+export type BitSequenceVar = {
+  type: "bitSequence"
+  isLSB: boolean
+}
 export type AccountId32 = { type: "AccountId32" }
 export type AccountId20 = { type: "AccountId20" }
 export type TerminalVar =
@@ -314,6 +317,9 @@ const _denormalizeLookup = (
     // bitSequence
     return {
       type: def.tag,
+      isLSB: (lookupData[def.value.bitOrderType].path.at(-1) ?? "LSB")
+        .toUpperCase()
+        .startsWith("LSB"),
     }
   })
 

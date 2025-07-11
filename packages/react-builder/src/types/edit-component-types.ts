@@ -58,6 +58,9 @@ export type EditBool = FC<EditBoolInterface>
 export type EditStrInterface = EditPrimitiveComponentProps<string>
 export type EditStr = FC<EditStrInterface>
 
+export type EditBitSeqInterface = EditPrimitiveComponentProps<Array<0 | 1>>
+export type EditBitSeq = FC<EditBitSeqInterface>
+
 export type EditBytesInterface = EditPrimitiveComponentProps<Binary> & {
   len?: number
 }
@@ -141,4 +144,5 @@ export interface EditComponents {
   CStruct: EditStruct
   COption: EditOption
   CResult: EditResult
+  CBitSeq: EditBitSeq
 }

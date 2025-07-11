@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `BitSeq` component must be provided for encodeding/decoding `BitSequence` fields.
+
 ## 0.2.9 - 2025-05-30
 
 ### Fixed
