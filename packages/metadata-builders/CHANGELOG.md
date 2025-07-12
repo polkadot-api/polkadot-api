@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Improve types of lookup `BitSequenceVar`
+- dynamic-builder now uses `scale.BitSec` for Bit-Sequences
+
 ## 0.12.2 - 2025-05-30
 
 ### Fixed

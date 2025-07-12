@@ -25,6 +25,7 @@ import type {
   EditStr,
   ViewAccountId,
   ViewBigNumber,
+  ViewBitSeq,
   ViewBool,
   ViewComponents,
   ViewEthAccount,
@@ -103,6 +104,7 @@ export function getViewCodecComponent(
     CStruct,
     COption,
     CResult,
+    CBitSeq,
   } = baseComponents as ViewComponents
 
   const CodecComponent: React.FC<{
@@ -363,6 +365,7 @@ export function getViewCodecComponent(
       | ViewBool
       | ViewStr
       | ViewAccountId
+      | ViewBitSeq
       | ViewEthAccount = null as any
 
     switch (entry.type) {
@@ -383,7 +386,8 @@ export function getViewCodecComponent(
         break
       }
       case "bitSequence": {
-        return null
+        ResultComponent = CBitSeq
+        break
       }
       case "AccountId32": {
         ResultComponent = CAccountId

@@ -87,7 +87,7 @@ export function processPapiPrimitives(
 
   if (node.type === "chainPrimitive") {
     return node.value === "BitSequence"
-      ? onlyCode(`{bytes: Uint8Array, bitsLen: number}`)
+      ? onlyCode(`Array<0 | 1>`)
       : {
           code: node.value,
           imports: {

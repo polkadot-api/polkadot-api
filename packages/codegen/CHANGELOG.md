@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- `BitSequence` types are now: `Array<0 | 1>`
+
 ## 0.16.4 - 2025-06-20
 
 ### Fixed

@@ -17,7 +17,7 @@ const _buildCodec = (
   if (input.type === "AccountId20") return scale.ethAccount
   if (input.type === "compact")
     return input.isBig ? scale.compactBn : scale.compactNumber
-  if (input.type === "bitSequence") return scale.bitSequence
+  if (input.type === "bitSequence") return scale.BitSeq(input.isLSB)
 
   const buildNextCodec = (nextInput: LookupEntry): Codec<any> =>
     buildCodec(nextInput, cache, stack, _accountId)

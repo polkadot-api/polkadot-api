@@ -44,6 +44,9 @@ export type ViewBool = FC<ViewBoolInterface>
 export type ViewStrInterface = ViewPrimitiveComponentProps<string>
 export type ViewStr = FC<ViewStrInterface>
 
+export type ViewBitSeqInterface = ViewPrimitiveComponentProps<Array<0 | 1>>
+export type ViewBitSeq = FC<ViewBitSeqInterface>
+
 export type ViewBytesInterface = ViewPrimitiveComponentProps<Binary> & {
   len?: number
 }
@@ -123,4 +126,5 @@ export interface ViewComponents {
   CStruct: ViewStruct
   COption: ViewOption
   CResult: ViewResult
+  CBitSeq: ViewBitSeq
 }
