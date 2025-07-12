@@ -44,6 +44,7 @@ import { createTxEntry, submit, submit$ } from "./tx"
 import type { AnyApi, PolkadotClient } from "./types"
 import { createWatchEntries } from "./watch-entries"
 import { createViewFnEntry } from "./viewFns"
+import { firstValueFromWithSignal } from "./utils"
 
 const createApi = <Unsafe extends true | false, D>(
   compatibilityToken: Promise<CompatibilityToken | RuntimeToken>,
@@ -386,6 +387,14 @@ export function createClient(
         runtimeToken: token,
       })
     },
+
+    rawQuery: (key, { at, signal } = {}) =>
+      firstValueFromWithSignal(
+        chainHead.storage$(at ?? null, "value", () =>
+          key.match(/0x[0-9a-fA-F]+/) ? key : Binary.fromText(key).asHex(),
+        ),
+        signal,
+      ),
 
     destroy: () => {
       chainHead.unfollow()

@@ -312,6 +312,18 @@ export interface PolkadotClient {
   getUnsafeApi: <D>() => UnsafeApi<D>
 
   /**
+   * Returns a Promise that resolves into the encoded value of a storage entry
+   * or `null` if the key doesn't have a corresponding value.
+   *
+   * @param storageKey  Either one of the well-known substrate storage keys
+   *                    or an hexadecimal storage key.
+   */
+  rawQuery: (
+    storageKey: HexString | string,
+    options?: PullOptions,
+  ) => Promise<HexString | null>
+
+  /**
    * This will `unfollow` the provider, disconnect and error every subscription.
    * After calling it nothing can be done with the client.
    */
@@ -346,3 +358,16 @@ export type TxCallData = {
     value: any
   }
 }
+
+export type PullOptions = Partial<{
+  /**
+   * `at` could be a block-hash, `best`, or `finalized` (default)
+   */
+  at: "best" | "finalized" | ({} & string)
+  /**
+   * `signal` allows you to abort an ongoing Promise. See [MDN
+   * docs](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) for
+   * more information
+   */
+  signal: AbortSignal
+}>
