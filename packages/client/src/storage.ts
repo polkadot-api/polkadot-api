@@ -36,23 +36,11 @@ import {
   RuntimeToken,
 } from "./compatibility"
 import { createWatchEntries } from "./watch-entries"
-
-type CallOptions = Partial<{
-  /**
-   * `at` could be a blockHash, `best`, or `finalized` (default)
-   */
-  at: "best" | "finalised" | ({} & string)
-  /**
-   * `signal` allows you to abort an ongoing Promise. See [MDN
-   * docs](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) for
-   * more information
-   */
-  signal: AbortSignal
-}>
+import { PullOptions } from "./types"
 
 type WithCallOptions<Args extends Array<any>> = [
   ...args: Args,
-  options?: CallOptions,
+  options?: PullOptions,
 ]
 
 type WithWatchOptions<Args extends Array<any>> = [
@@ -135,7 +123,7 @@ type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
    * @param options  Optionally set which block to target (latest known
    *                 finalized is the default) and an AbortSignal.
    */
-  getValue: (options?: CallOptions) => Promise<Payload>
+  getValue: (options?: PullOptions) => Promise<Payload>
   /**
    * Watch changes in `Payload` (observable-based) for the storage entry.
    *
@@ -182,7 +170,7 @@ export type StorageEntryWithKeys<
    */
   getValues: (
     keys: Array<[...Args]>,
-    options?: CallOptions,
+    options?: PullOptions,
   ) => Promise<Array<Payload>>
   /**
    * Get an Array of `Payload` (Promise-based) for the storage entry with a
@@ -325,7 +313,7 @@ export const createStorageEntry = (
   ): Observable<{ raw: string | null; mapped: any }> => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
-    const { at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
+    const { at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
     const result$ = from(descriptorsPromise).pipe(
@@ -390,7 +378,7 @@ export const createStorageEntry = (
   const getValue = async (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
-    const { signal }: CallOptions = isLastArgOptional ? lastArg : {}
+    const { signal }: PullOptions = isLastArgOptional ? lastArg : {}
 
     return firstValueFromWithSignal(
       getRawValue$(...args).pipe(toMapped),
@@ -401,7 +389,7 @@ export const createStorageEntry = (
   const getEntries = async (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
-    const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
+    const { signal, at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
     const descriptors = await descriptorsPromise
@@ -443,7 +431,7 @@ export const createStorageEntry = (
     return firstValueFromWithSignal(result$, signal)
   }
 
-  const getValues = (keyArgs: Array<Array<any>>, options?: CallOptions) =>
+  const getValues = (keyArgs: Array<Array<any>>, options?: PullOptions) =>
     Promise.all(
       keyArgs.map((args) => getValue(...(options ? [...args, options] : args))),
     )

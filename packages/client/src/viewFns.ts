@@ -4,23 +4,11 @@ import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { map, mergeMap } from "rxjs"
 import { CompatibilityFunctions, CompatibilityHelper } from "./compatibility"
 import { compactNumber, _void } from "@polkadot-api/substrate-bindings"
-
-type CallOptions = Partial<{
-  /**
-   * `at` could be a block-hash, `best`, or `finalized` (default)
-   */
-  at: "best" | "finalized" | ({} & string)
-  /**
-   * `signal` allows you to abort an ongoing Promise. See [MDN
-   * docs](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) for
-   * more information
-   */
-  signal: AbortSignal
-}>
+import { PullOptions } from "./types"
 
 type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
-  ? [options?: CallOptions]
-  : [...args: Args, options?: CallOptions]
+  ? [options?: PullOptions]
+  : [...args: Args, options?: PullOptions]
 
 export type ViewFn<Unsafe, D, Args extends Array<any>, Payload> = {
   /**
@@ -55,7 +43,7 @@ export const createViewFnEntry = (
   const fn = (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
-    const { signal, at: _at }: CallOptions = isLastArgOptional ? lastArg : {}
+    const { signal, at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
     const result$ = compatibleRuntime$(chainHead, at).pipe(
