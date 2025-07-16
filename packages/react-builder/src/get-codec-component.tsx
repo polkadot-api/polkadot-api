@@ -18,6 +18,7 @@ import { fromHex, mapObject, mergeUint8 } from "@polkadot-api/utils"
 import type {
   EditAccountId,
   EditBigNumber,
+  EditBitSeq,
   EditBool,
   EditComponents,
   EditEthAccount,
@@ -480,6 +481,7 @@ export function getCodecComponent(
     CVoid,
     CAccountId,
     CBigNumber,
+    CBitSeq,
     CNumber,
     CBool,
     CStr,
@@ -835,6 +837,7 @@ export function getCodecComponent(
       | EditBool
       | EditStr
       | EditAccountId
+      | EditBitSeq
       | EditEthAccount = null as any
 
     switch (entry.type) {
@@ -855,7 +858,8 @@ export function getCodecComponent(
         break
       }
       case "bitSequence": {
-        return null
+        ResultComponent = CBitSeq
+        break
       }
       case "AccountId32": {
         ResultComponent = CAccountId
