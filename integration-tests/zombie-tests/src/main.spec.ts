@@ -3,6 +3,7 @@ import {
   combineLatest,
   filter,
   firstValueFrom,
+  identity,
   lastValueFrom,
   map,
   NEVER,
@@ -24,12 +25,17 @@ import {
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { getWsProvider } from "polkadot-api/ws-provider/node"
-import { createClient as createRawClient } from "@polkadot-api/substrate-client"
+import {
+  createClient as createRawClient,
+  JsonRpcProvider,
+} from "@polkadot-api/substrate-client"
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { withLogsRecorder } from "polkadot-api/logs-provider"
+import { appendFileSync } from "fs"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -38,11 +44,42 @@ const fakeSigner = (from: Uint8Array) =>
 
 // The retrial system is needed because often the `sync_state_genSyncSpec`
 // request fails immediately after starting zombienet.
-const { PROVIDER } = process.env
+let { PROVIDER, VERSION } = process.env
+
+let enhancer: (input: JsonRpcProvider) => JsonRpcProvider = identity
+let appendSmLog:
+  | ((level: number, target: string, message: string) => void)
+  | undefined = undefined
+
+if (VERSION) {
+  const jsonRpcFileName = `./${VERSION}_JSON_RPC`
+  enhancer = (input) =>
+    withLogsRecorder(
+      (log) => appendFileSync(jsonRpcFileName, log + "\n"),
+      input,
+    )
+
+  const smoldotFileName = `./${VERSION}_SMOLDOT`
+  appendSmLog = (level: number, target: string, message: string) => {
+    const msg = `${tickDate} (${level})${target}\n${message}\n`
+    if (level <= 3) console.log(msg)
+    appendFileSync(smoldotFileName, msg)
+  }
+}
+
+let tickDate = ""
+const setTickDate = () => {
+  tickDate = new Date().toISOString()
+  setTimeout(setTickDate, 0)
+}
+setTickDate()
+
 if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
 let ARCHIVE = false
-const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
+const rawClient = createRawClient(
+  enhancer(getWsProvider("ws://127.0.0.1:9934/")),
+)
 const getChainspec = async (count = 1): Promise<{}> => {
   try {
     return await rawClient.request<{}>("sync_state_genSyncSpec", [false])
@@ -66,11 +103,16 @@ describe("E2E", async () => {
   let client: PolkadotClient
   console.log("starting the client")
   if (PROVIDER === "sm") {
-    const smoldot = start()
-    client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+    const smoldot = start({
+      logCallback: appendSmLog,
+      maxLogLevel: appendSmLog ? 7 : 3,
+    })
+    client = createClient(
+      enhancer(getSmProvider(smoldot.addChain({ chainSpec }))),
+    )
   } else {
     client = createClient(
-      withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934")),
+      enhancer(withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934"))),
       { getMetadata },
     )
     const { methods } = await client._request<{ methods: string[] }, []>(

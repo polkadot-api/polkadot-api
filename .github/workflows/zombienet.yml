@@ -60,11 +60,14 @@ jobs:
           source wait_until.sh 'curl -s "127.0.0.1:9934"'
         working-directory: integration-tests/zombie-tests
       - name: Run test
-        run: PROVIDER=${{ matrix.kind }} pnpm e2e
+        run: PROVIDER=${{ matrix.kind }} VERSION=${{matrix.version}} pnpm e2e
         working-directory: integration-tests/zombie-tests
       - name: Store logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: zombie-logs
-          path: integration-tests/zombie-tests/zombienet_logs
+          name: Logs
+          path: |
+            integration-tests/zombie-tests/zombienet_logs
+            integration-tests/zombie-tests/${{matrix.version}}_JSON_RPC
+            integration-tests/zombie-tests/${{matrix.version}}_SMOLDOT
