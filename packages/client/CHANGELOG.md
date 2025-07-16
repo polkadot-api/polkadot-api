@@ -5,6 +5,15 @@
 ### Added
 
 - New `rawQuery` API on the `client`, which allows you to performm raw storage queries. It can be useful for reading the `:code` and/or other substrate internal storage values.
+- Export `PullOptions` interface
+
+### Fixed
+
+- Narrow type of `at` property of `PullOptions`, which provides a better intellisense DX
+- Improve types of `BitSequence` chain interactions, they now yield an `Array<0 | 1>`
+
+- **Chains:**
+  - Update `lightSyncState`
 
 ## 1.14.1 - 2025-06-20
 
