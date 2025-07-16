@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.15.0 - 2025-07-16
+
 ### Added
 
 - New `rawQuery` API on the `client`, which allows you to performm raw storage queries. It can be useful for reading the `:code` and/or other substrate internal storage values.

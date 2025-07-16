@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.15.0 - 2025-07-16
+
 ### Added
 
 - `BitSeq` codec-creator with an enhanced input/output data-structure
