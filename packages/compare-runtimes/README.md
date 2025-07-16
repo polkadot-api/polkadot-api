@@ -5,11 +5,9 @@ A lightweight yet powerful TypeScript library to **compare runtime metadata betw
 ## ✨ Features
 
 - Detect added, removed, or changed runtime elements:
-
   - Constants, Storage items, Calls, Events, Errors, View Functions, APIs
 
 - Classify compatibility as:
-
   - [`Identical`, `BackwardsCompatible`, `Partial`, or `Incompatible`](https://papi.how/typed#getcompatibilitylevel)
 
 - Simple, typed API for easy integration into CLI tools, CI pipelines, or dashboards

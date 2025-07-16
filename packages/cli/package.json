@@ -47,7 +47,7 @@
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/wasm-executor": "^0.2.1",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^22.15.30",
+    "@types/node": "^24.0.14",
     "commander": "^14.0.0",
     "execa": "^9.6.0",
     "fs.promises.exists": "^1.1.4",
@@ -61,6 +61,6 @@
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@swc/core": "^1.11.31"
+    "@swc/core": "^1.12.14"
   }
 }

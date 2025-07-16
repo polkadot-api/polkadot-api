@@ -28,16 +28,16 @@
     ]
   },
   "devDependencies": {
-    "@fast-check/vitest": "^0.2.1",
+    "@fast-check/vitest": "^0.2.2",
     "@homer0/prettier-plugin-jsdoc": "^10.0.0",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "@vitest/coverage-v8": "^3.2.2",
+    "@vitest/coverage-v8": "^3.2.4",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.0",
-    "prettier": "^3.5.3",
-    "rollup": "^4.41.2",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "rollup": "^4.45.1",
     "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-esbuild": "^6.2.1",
     "tslib": "^2.8.1",
@@ -45,7 +45,7 @@
     "turbo": "^2.5.4",
     "typescript": "^5.8.3",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.2"
+    "vitest": "^3.2.4"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md}": "prettier --write"
