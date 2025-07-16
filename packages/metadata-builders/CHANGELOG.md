@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.0 - 2025-07-16
+
 ### Changed
 
 - Improve types of lookup `BitSequenceVar`
