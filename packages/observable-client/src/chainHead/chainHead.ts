@@ -35,7 +35,7 @@ import { withDefaultValue } from "@/utils"
 import { HexString } from "@polkadot-api/substrate-bindings"
 import {
   fromAbortControllerFn,
-  getWithOptionalhash$,
+  getWithOptionalHash$,
   getWithRecovery,
   withLazyFollower,
   withStopRecovery,
@@ -294,7 +294,7 @@ export const getChainHead$ = (
 
   const metadata$ = runtime$.pipe(map((x) => x?.lookup.metadata ?? null))
 
-  const withOptionalHash$ = getWithOptionalhash$(
+  const withOptionalHash$ = getWithOptionalHash$(
     finalized$.pipe(map((b) => b.hash)),
     best$.pipe(map((b) => b.hash)),
     usingBlock,

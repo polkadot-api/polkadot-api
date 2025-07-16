@@ -1,5 +1,5 @@
 export { getWithRecovery } from "./operationLimitRecovery"
-export { getWithOptionalhash$ } from "./optionalHash"
+export { getWithOptionalHash$ } from "./optionalHash"
 export { fromAbortControllerFn } from "./fromAbortControllerFn"
 export { withLazyFollower } from "./lazyFollower"
 export { withStopRecovery } from "./withStopRecovery"

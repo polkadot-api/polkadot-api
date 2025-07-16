@@ -24,7 +24,7 @@ const operable = <T>(source$: Observable<T>) => {
   return result
 }
 
-export const getWithOptionalhash$ = (
+export const getWithOptionalHash$ = (
   finalized$: Observable<string>,
   best$: Observable<string>,
   usingBlock: <T>(blockHash: string) => MonoTypeOperatorFunction<T>,
