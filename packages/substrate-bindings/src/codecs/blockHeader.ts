@@ -26,12 +26,13 @@ const diggestVal = Struct({
 
 const diggest = Variant(
   {
+    other: Hex(),
     consensus: diggestVal,
     seal: diggestVal,
     preRuntime: diggestVal,
     runtimeUpdated: _void,
   },
-  [4, 5, 6, 8],
+  [0, 4, 5, 6, 8],
 )
 
 const hex32 = Hex(32)
