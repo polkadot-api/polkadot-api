@@ -26,7 +26,7 @@ const diggestVal = Struct({
 
 const diggest = Variant(
   {
-    other: Hex(),
+    other: Bytes(),
     consensus: diggestVal,
     seal: diggestVal,
     preRuntime: diggestVal,
