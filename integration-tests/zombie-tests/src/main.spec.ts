@@ -6,8 +6,10 @@ import {
   identity,
   lastValueFrom,
   map,
+  mergeMap,
   NEVER,
   switchMap,
+  take,
   tap,
 } from "rxjs"
 import { expect, describe, it, beforeAll } from "vitest"
@@ -126,6 +128,19 @@ describe("E2E", async () => {
   console.log("client started")
   const api = client.getTypedApi(roc)
   const firstBlock = client.getFinalizedBlock()
+
+  it("does not throw BlockNotPinnedError on initial blocks", async () => {
+    await lastValueFrom(
+      client.blocks$.pipe(
+        take(3),
+        mergeMap(async (block) =>
+          api.query.System.Events.getValue({ at: block.hash }),
+        ),
+      ),
+    )
+
+    expect(true).toBe(true)
+  })
 
   console.log("waiting for compatibility token")
   const token = await api.compatibilityToken

@@ -102,6 +102,7 @@ export const createViewFnEntry = (
           }),
         )
       }),
+      chainHead.withHodl(at),
     )
 
     return firstValueFromWithSignal(result$, signal)

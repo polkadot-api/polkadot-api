@@ -5,6 +5,8 @@
 ### Fixed
 
 - Handle `initialized` events that carry finalized-blocks with different runtimes
+- Prevent the `BlockNotPinnedError` from happening when starting operations on initial blocks.
+  This issue was happening because the client was preventing certain initial-blocks from being pinned until the descriptors (or the `runtimeToken`) had been resolved.
 
 ## 1.15.0 - 2025-07-16
 
