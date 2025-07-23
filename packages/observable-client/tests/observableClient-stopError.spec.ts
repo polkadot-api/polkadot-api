@@ -329,7 +329,7 @@ describe("observableClient stopError recovery", () => {
       newFinalized.blockHash,
       "0x11000000",
     )
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
 
     // We haven't received a new runtime yet
     expect(runtimeObs.next).toHaveBeenCalledOnce()
@@ -342,7 +342,7 @@ describe("observableClient stopError recovery", () => {
         newFinalized.blockHash,
       ],
     })
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(4)
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
 
     expect(runtimeObs.error).not.toHaveBeenCalled()
     expect(runtimeObs.next).toHaveBeenCalledTimes(1)
