@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.2 - 2025-07-23
+
 ### Fixed
 
 - Handle `initialized` events that carry finalized-blocks with different runtimes
