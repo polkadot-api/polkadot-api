@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/docgen",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "author": "Yuri Volkov (https://github.com/mutantcornholio)",
   "license": "MIT",
   "sideEffects": true,

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.15.1 - 2025-07-23
+
 ### Fixed
 
 - Add missing `Other` variant to `DigestItem` codec
