@@ -105,25 +105,27 @@ export const getPinnedBlocks$ = (
 
       switch (event.type) {
         case "initialized":
-          if (acc.recovering) {
-            const isConnected = event.finalizedBlockHashes.some((hash) =>
-              acc.blocks.has(hash),
-            )
-            if (!isConnected) {
-              acc = getInitialPinnedBlocks()
-            }
-          }
-
-          const [finalizedHash] = event.finalizedBlockHashes.slice(-1)
-          acc.finalized = acc.best = finalizedHash
+          if (
+            acc.recovering &&
+            !event.finalizedBlockHashes.some((hash) => acc.blocks.has(hash))
+          )
+            acc = getInitialPinnedBlocks()
 
           const lastIdx = event.finalizedBlockHashes.length - 1
+          acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
+          let latestRuntime = acc.finalizedRuntime.at
+
           event.finalizedBlockHashes.forEach((hash, i) => {
+            const unpinnable = i !== lastIdx
             const preexistingBlock = acc.blocks.get(hash)
+
             if (preexistingBlock) {
               preexistingBlock.recovering = false
-              preexistingBlock.unpinnable = i !== lastIdx
+              preexistingBlock.unpinnable = unpinnable
             } else {
+              const isNewRuntime = event.runtimeChanges.has(hash)
+              if (isNewRuntime) latestRuntime = hash
+
               acc.blocks.set(hash, {
                 hash: hash,
                 parent:
@@ -133,25 +135,20 @@ export const getPinnedBlocks$ = (
                 children: new Set(
                   i === lastIdx ? [] : [event.finalizedBlockHashes[i + 1]],
                 ),
-                unpinnable: i !== lastIdx,
-                runtime: hash,
+                unpinnable,
+                runtime: latestRuntime,
                 refCount: 0,
                 number: event.number + i,
                 recovering: false,
               })
+
+              // it must happen after setting the block
+              if (isNewRuntime)
+                acc.finalizedRuntime = acc.runtimes[hash] = getRuntime(
+                  createRuntimeGetter(acc, hash),
+                )
             }
           })
-
-          const finalizedRuntime = Object.values(acc.runtimes).find((runtime) =>
-            runtime.usages.has(finalizedHash),
-          )
-
-          acc.finalizedRuntime =
-            finalizedRuntime ??
-            (acc.runtimes[finalizedHash] = getRuntime(
-              createRuntimeGetter(acc, finalizedHash),
-            ))
-
           return acc
 
         case "stop-error":

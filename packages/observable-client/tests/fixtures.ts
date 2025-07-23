@@ -116,6 +116,13 @@ export const initialize = async (
     initialHash,
     encodeHeader(header),
   )
+  if (initialized.finalizedBlockHashes.length > 1) {
+    await mockClient.chainHead.mock.storage.reply(initialHash, "0x010203")
+    await mockClient.chainHead.mock.storage.reply(
+      initialized.finalizedBlockHashes.at(-1)!,
+      "0x010203",
+    )
+  }
   // Wait a microtask, internally the code is mapping values through .then(), but it's guaranteed the result will come in the same macro task
   await waitMicro()
 

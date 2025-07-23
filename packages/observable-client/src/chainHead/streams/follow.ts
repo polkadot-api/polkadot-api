@@ -21,25 +21,85 @@ type EnhancedFollowEventWithRuntime =
   | (Initialized & {
       number: number
       parentHash: string
+      runtimeChanges: Set<string>
     })
   | NewBlockWithRuntime
   | BestBlockChanged
   | Finalized
 
-const withInitializedNumber =
-  (getHeader: (hash: string) => Promise<BlockHeader>) =>
-  (source$: Observable<FollowEventWithRuntime>) =>
+const createGetRuntimeChanges = (
+  getCodeHash: (block: string) => Promise<string>,
+) => {
+  const getRuntimeChanges = async (
+    blocks: Array<string>,
+    firstId: { idx: number; id: string },
+    lastId: { idx: number; id: string },
+  ): Promise<Array<string>> => {
+    const firstBlock = blocks[firstId.idx]
+    const lastBlock = blocks[lastId.idx]
+    if (blocks.length === 2) return [firstBlock, lastBlock]
+
+    const middleIdx = firstId.idx + Math.floor((lastId.idx - firstId.idx) / 2)
+    const middle = {
+      idx: middleIdx,
+      id: await getCodeHash(blocks[middleIdx]),
+    }
+
+    if (middle.id === firstId.id)
+      return getRuntimeChanges(blocks, middle, lastId)
+
+    if (middle.id === lastId.id)
+      return getRuntimeChanges(blocks, firstId, middle)
+
+    const [left, [_SKIP, ...right]] = await Promise.all([
+      getRuntimeChanges(blocks, firstId, middle),
+      getRuntimeChanges(blocks, middle, lastId),
+    ])
+    return [...left, ...right]
+  }
+
+  return async (blocks: Array<string>): Promise<Array<string>> => {
+    if (blocks.length < 2) return blocks
+
+    const lastIdx = blocks.length - 1
+    const [initialBlock] = blocks
+    const lastBlock = blocks[lastIdx]
+
+    const [firstId, lastId] = await Promise.all(
+      [initialBlock, lastBlock].map(getCodeHash),
+    )
+    if (firstId === lastId) return [blocks[0]]
+
+    return getRuntimeChanges(
+      blocks,
+      { idx: 0, id: firstId },
+      { idx: lastIdx, id: lastId },
+    )
+  }
+}
+
+const withInitializedNumber = (
+  getHeader: (hash: string) => Promise<BlockHeader>,
+  getCodeHash: (block: string) => Promise<string>,
+) => {
+  const getRuntimeChanges = createGetRuntimeChanges(getCodeHash)
+  return (source$: Observable<FollowEventWithRuntime>) =>
     new Observable<EnhancedFollowEventWithRuntime>((observer) => {
       let pending: Array<EnhancedFollowEventWithRuntime> | null = null
       return source$.subscribe({
         next(event) {
           if (event.type === "initialized") {
             pending = []
-            getHeader(event.finalizedBlockHashes[0])
-              .then((header) => {
+            Promise.all([
+              getHeader(event.finalizedBlockHashes[0]),
+              getRuntimeChanges(event.finalizedBlockHashes),
+            ])
+              .then(([header, changes]) => {
                 if (!observer.closed) {
                   observer.next({
-                    ...event,
+                    type: "initialized",
+                    finalizedBlockHashes: event.finalizedBlockHashes,
+                    runtimeChanges: new Set(changes),
                     number: header.number,
                     parentHash: header.parentHash,
                   })
@@ -63,6 +123,7 @@ const withInitializedNumber =
         },
       })
     })
+}
 
 export const getFollow$ = (chainHead: ChainHead) => {
   let follower: FollowResponse | null = null
@@ -75,6 +136,15 @@ export const getFollow$ = (chainHead: ChainHead) => {
 
   const getHeader = (hash: string) =>
     getFollower().header(hash).then(blockHeader.dec)
+
+  const getCodeHash = async (blockHash: string) =>
+    // ":code" => "0x3a636f6465"
+    getFollower().storage(
+      blockHash,
+      "hash",
+      "0x3a636f6465",
+      null,
+    ) as Promise<string>
 
   const follow$ = connectable(
     new Observable<FollowEventWithRuntime>((observer) => {
@@ -92,7 +162,10 @@ export const getFollow$ = (chainHead: ChainHead) => {
         observer.complete()
         follower?.unfollow()
       }
-    }).pipe(withInitializedNumber(getHeader), retryChainHeadError()),
+    }).pipe(
+      withInitializedNumber(getHeader, getCodeHash),
+      retryChainHeadError(),
+    ),
   )
 
   const startFollow = () => {
