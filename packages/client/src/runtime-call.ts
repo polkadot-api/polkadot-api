@@ -60,6 +60,7 @@ export const createRuntimeCallEntry = (
           }),
         )
       }),
+      chainHead.withHodl(at),
     )
 
     return firstValueFromWithSignal(result$, signal)

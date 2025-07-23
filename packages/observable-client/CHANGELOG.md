@@ -5,6 +5,11 @@
 ### Fixed
 
 - Handle `initialized` events that carry finalized-blocks with different runtimes
+- Implementation of the `chainHead.holdBlock` function
+
+### Added
+
+- `chainHead.withHodl` operator
 
 ## 0.13.1 - 2025-07-16
 

@@ -342,6 +342,7 @@ export const createStorageEntry = (
           },
         ),
       ),
+      chainHead.withHodl(at),
     )
 
     if (isSystemNumber)
@@ -392,41 +393,45 @@ export const createStorageEntry = (
     const { signal, at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const descriptors = await descriptorsPromise
-    const result$ = chainHead.storage$(
-      at,
-      "descendantsValues",
-      (ctx) => {
-        const codecs = getCodec(ctx)
-        // TODO partial compatibility check for args that become optional
-        if (
-          minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
-          CompatibilityLevel.Incompatible
-        )
-          throw incompatibleError()
+    const result$ = from(descriptorsPromise).pipe(
+      mergeMap((descriptors) =>
+        chainHead.storage$(
+          at,
+          "descendantsValues",
+          (ctx) => {
+            const codecs = getCodec(ctx)
+            // TODO partial compatibility check for args that become optional
+            if (
+              minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
+              CompatibilityLevel.Incompatible
+            )
+              throw incompatibleError()
 
-        if (args.length > codecs.len) throw invalidArgs(args)
-        const actualArgs =
-          args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
-        if (args.length === codecs.len && actualArgs === args)
-          throw invalidArgs(args)
-        return codecs.keys.enc(...actualArgs)
-      },
-      null,
-      (values, ctx) => {
-        const codecs = getCodec(ctx)
-        const decodedValues = values.map(({ key, value }) => ({
-          keyArgs: codecs.keys.dec(key),
-          value: codecs.value.dec(value),
-        }))
-        if (
-          decodedValues.some(
-            ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
-          )
-        )
-          throw incompatibleError()
-        return decodedValues
-      },
+            if (args.length > codecs.len) throw invalidArgs(args)
+            const actualArgs =
+              args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
+            if (args.length === codecs.len && actualArgs === args)
+              throw invalidArgs(args)
+            return codecs.keys.enc(...actualArgs)
+          },
+          null,
+          (values, ctx) => {
+            const codecs = getCodec(ctx)
+            const decodedValues = values.map(({ key, value }) => ({
+              keyArgs: codecs.keys.dec(key),
+              value: codecs.value.dec(value),
+            }))
+            if (
+              decodedValues.some(
+                ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
+              )
+            )
+              throw incompatibleError()
+            return decodedValues
+          },
+        ),
+      ),
+      chainHead.withHodl(at),
     )
     return firstValueFromWithSignal(result$, signal)
   }

@@ -84,24 +84,20 @@ export const getChainHead$ = (
   const { withRecovery, withRecoveryFn } = getWithRecovery()
 
   const blockUsage$ = new Subject<BlockUsageEvent>()
-  const holdBlock = (hash: string) => {
-    blockUsage$.next({ type: "blockUsage", value: { type: "hold", hash } })
-    return () => {
-      setTimeout(() => {
-        blockUsage$.next({
-          type: "blockUsage",
-          value: { type: "release", hash },
-        })
-      }, 0)
-    }
-  }
 
   const usingBlock: <T>(blockHash: string) => MonoTypeOperatorFunction<T> =
-    (blockHash: string) => (base) =>
+    (hash: string) => (base) =>
       new Observable((observer) => {
-        const release = holdBlock(blockHash)
+        blockUsage$.next({ type: "blockUsage", value: { type: "hold", hash } })
         const subscription = base.subscribe(observer)
-        subscription.add(release)
+        subscription.add(() => {
+          setTimeout(() => {
+            blockUsage$.next({
+              type: "blockUsage",
+              value: { type: "release", hash },
+            })
+          }, 0)
+        })
         return subscription
       })
 
@@ -452,6 +448,52 @@ export const getChainHead$ = (
       ),
     )
 
+  const holdBlock = (blockHash: string | null, shouldThrow = false) => {
+    let hash = blockHash || "finalized"
+    let isPresent = false
+    started &&
+      pinnedBlocks$.pipe(take(1)).subscribe((blocks) => {
+        hash = blocks[hash as "best" | "finalized"] || hash
+        isPresent = blocks.blocks.has(hash)
+      })
+
+    if (!isPresent) {
+      if (shouldThrow) throw new BlockNotPinnedError(hash, "holdBlock")
+      return noop
+    }
+
+    blockUsage$.next({
+      type: "blockUsage",
+      value: {
+        type: "hold",
+        hash,
+      },
+    })
+
+    let tearDown = () => {
+      blockUsage$.next({
+        type: "blockUsage",
+        value: {
+          type: "release",
+          hash,
+        },
+      })
+      tearDown = noop
+    }
+    return () => {
+      tearDown()
+    }
+  }
+
+  const withHodl =
+    (blockHash: string | null) =>
+    <T>(base: Observable<T>) =>
+      new Observable<T>((observer) => {
+        const subscription = base.subscribe(observer)
+        if (!subscription.closed) subscription.add(holdBlock(blockHash))
+        return subscription
+      })
+
   return [
     {
       follow$,
@@ -471,6 +513,7 @@ export const getChainHead$ = (
       storageQueries$,
       eventsAt$,
 
+      withHodl,
       holdBlock,
       trackTx$,
       trackTxWithoutEvents$,
