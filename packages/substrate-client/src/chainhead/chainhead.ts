@@ -1,4 +1,10 @@
-import type { ClientRequest, FollowSubscriptionCb } from "@/client"
+import {
+  DestroyedError,
+  Subscriber,
+  getSubscriptionsManager,
+  ClientRequest,
+  FollowSubscriptionCb,
+} from "@polkadot-api/raw-client"
 import type {
   FollowEventWithRuntimeRpc,
   FollowEventWithoutRuntimeRpc,
@@ -12,12 +18,7 @@ import type {
   FollowEventWithRuntime,
   FollowResponse,
 } from "./public-types"
-import {
-  Subscriber,
-  getSubscriptionsManager,
-  noop,
-  deferred,
-} from "@/internal-utils"
+import { noop, deferred } from "@/internal-utils"
 import { createBodyFn } from "./body"
 import { createCallFn } from "./call"
 import { createHeaderFn } from "./header"
@@ -25,7 +26,6 @@ import { createStorageFn } from "./storage"
 import { createUnpinFn } from "./unpin"
 import { DisjointError, StopError } from "./errors"
 import { createStorageCb } from "./storage-subscription"
-import { DestroyedError } from "@/client/DestroyedError"
 import { chainHead } from "@/methods"
 
 type FollowEventRpc =

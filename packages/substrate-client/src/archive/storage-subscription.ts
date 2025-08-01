@@ -1,4 +1,4 @@
-import type { ClientRequest } from "@/client"
+import type { ClientRequest } from "@polkadot-api/raw-client"
 import { noop } from "@polkadot-api/utils"
 import { Archive } from "./public-types"
 import { StorageItemResponse } from "@/chainhead"

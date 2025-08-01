@@ -1,4 +1,4 @@
-import { ClientRequest } from "./client"
+import { type ClientRequest } from "@polkadot-api/raw-client"
 import { abortablePromiseFn } from "./internal-utils"
 import { chainSpec } from "./methods"
 

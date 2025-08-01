@@ -5,7 +5,7 @@ import {
   setupChainHeadWithSubscription,
 } from "./fixtures"
 import { DisjointError, FollowResponse } from "@/chainhead"
-import { RpcError } from "@/client"
+import { RpcError } from "@/."
 
 describe.each([
   ["unpin", [["someHash", "someOtherHash"]], null, undefined],
