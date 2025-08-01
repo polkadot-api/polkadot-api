@@ -24,6 +24,7 @@
     "@noble/curves": "^1.9.2",
     "@noble/hashes": "^1.8.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/legacy-provider": "workspace:*",
     "@polkadot-api/ledger-signer": "workspace:*",
     "@polkadot-api/meta-signers": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

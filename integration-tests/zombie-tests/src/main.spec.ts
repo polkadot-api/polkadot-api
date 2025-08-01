@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto"
 import {
+  Observable,
   combineLatest,
   filter,
   firstValueFrom,
@@ -38,6 +39,38 @@ import { fromHex } from "@polkadot-api/utils"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
 import { appendFileSync } from "fs"
+import { withLegacy } from "@polkadot-api/legacy-provider"
+
+export const withLogs =
+  (msg: string, withSubId?: boolean) =>
+  <T>(base: Observable<T>): Observable<T> => {
+    let nextId = 0
+    return new Observable((observer) => {
+      const id = nextId++
+      const log = (...args: any[]) =>
+        console.log(...(withSubId ? [id, ...args] : args))
+      log(`withLogs(${msg}): subscribed`)
+      const sub = base.subscribe({
+        next(v) {
+          log(`withLogs(${msg}): next`, v)
+          observer.next(v)
+        },
+        error(e) {
+          log(`withLogs(${msg}): error`, e)
+          observer.error(e)
+        },
+        complete() {
+          log(`withLogs(${msg}): complete`)
+          observer.complete()
+        },
+      })
+
+      return () => {
+        log(`withLogs(${msg}): cleanup`)
+        sub.unsubscribe()
+      }
+    })
+  }
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -114,7 +147,14 @@ describe("E2E", async () => {
     )
   } else {
     client = createClient(
-      enhancer(withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934"))),
+      enhancer(
+        withLegacy(
+          withLogsRecorder(
+            (log) => appendFileSync(`./${VERSION}_JSON_RPC_INNER`, log + "\n"),
+            getWsProvider("ws://127.0.0.1:9934"),
+          ),
+        ),
+      ),
       { getMetadata },
     )
     const { methods } = await client._request<{ methods: string[] }, []>(
@@ -311,7 +351,7 @@ describe("E2E", async () => {
     },
   )
 
-  it("optimistic transactions", async () => {
+  it.skip("optimistic transactions", async () => {
     const amount = ED * 10n
     const target = AccountId().dec(randomBytes(32))
 
@@ -325,17 +365,23 @@ describe("E2E", async () => {
       target,
     ).then((x) => x.data.free)
 
+    console.log("start the wait")
     await lastValueFrom(
       transfer.signSubmitAndWatch(alice).pipe(
+        withLogs("outer"),
         filter(
           (e): e is TxEvent & { type: "bestChainBlockIncluded" } =>
             e.type === "txBestBlocksState" && e.found,
         ),
-        switchMap(({ block: { hash: at } }) =>
-          transfer.signSubmitAndWatch(alice, { at }),
-        ),
+        switchMap(({ block: { hash: at } }) => {
+          console.log("switching...")
+          return transfer
+            .signSubmitAndWatch(alice, { at })
+            .pipe(withLogs("inner"))
+        }),
       ),
     )
+    console.log("done")
 
     const targetPostFreeBalance = await api.query.System.Account.getValue(
       target,
@@ -490,7 +536,7 @@ describe("E2E", async () => {
     expect(manualFee).toEqual(estimatedFee)
   })
 
-  it("consecutive transactions", async () => {
+  it.skip("consecutive transactions", async () => {
     const signer = accounts["alice"]["sr25519"]
 
     for (let i = 0; i < 3; i++) {

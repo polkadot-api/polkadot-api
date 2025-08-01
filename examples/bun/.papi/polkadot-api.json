@@ -19,6 +19,12 @@
       "metadata": ".papi/metadata/myth.scale",
       "genesis": "0xf6ee56e9c5277df5b4ce6ae9983ee88f3cbed27d31beeb98f9f84f997a1ab0b9",
       "codeHash": "0x12e9027fabf41a70d97c1e4c243eaa4a6ed97e73acf36357ae69b5a858cd6854"
+    },
+    "hyp": {
+      "wsUrl": "wss://hyperbridge-paseo-rpc.blockops.network",
+      "metadata": ".papi/metadata/hyp.scale",
+      "genesis": "0x5388faf792c5232566d21493929b32c1f20a9c2b03e95615eefec2aa26d64b73",
+      "codeHash": "0x77f3756469e38cfe4fdc49ce10d88e4e0c67a622ec81b62b4ca9fd7f735a5397"
     }
   }
 }

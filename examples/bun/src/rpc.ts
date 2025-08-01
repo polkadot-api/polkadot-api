@@ -1,43 +1,27 @@
-import { CompatibilityLevel, createClient } from "polkadot-api"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
-import { getMetadata, wnd } from "@polkadot-api/descriptors"
+import { createClient } from "polkadot-api"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { getWsProvider } from "polkadot-api/ws-provider/web"
 
 const client = createClient(
-  withLogsRecorder(console.log, getWsProvider("wss://westend-rpc.polkadot.io")),
-  { getMetadata },
+  withPolkadotSdkCompat(
+    withLogsRecorder(
+      console.log,
+      getWsProvider("wss://fullnode.centrifuge.io/"),
+    ),
+  ),
 )
-const testApi = client.getTypedApi(wnd)
 
-const isCompatible = (level: CompatibilityLevel) =>
-  level >= CompatibilityLevel.BackwardsCompatible
+const api = client.getUnsafeApi()
 
-async function run() {
-  const genesisHash = await testApi.query.System.BlockHash.getValue(0)
-  console.log("genesisHash", genesisHash.asHex())
+console.log(await client.getFinalizedBlock())
 
-  const nominationsQuotaIsCompatible = isCompatible(
-    await testApi.apis.StakingApi.nominations_quota.getCompatibilityLevel(),
-  )
-  console.log({ nominationsQuotaIsCompatible })
+console.log("waiting runtime token")
+console.log(await api.runtimeToken)
+console.log("got runtime token")
 
-  const token = await testApi.compatibilityToken
-
-  const auctionEndingIsCompatible = isCompatible(
-    testApi.constants.Auctions.EndingPeriod.getCompatibilityLevel(token),
-  )
-
-  console.log({ auctionEndingIsCompatible })
-
-  if (auctionEndingIsCompatible) {
-    console.log(testApi.constants.Auctions.EndingPeriod(token))
-  }
-
-  const chainSpecData = await client.getChainSpecData()
-  console.log({ chainSpecData })
-
-  client.destroy()
-}
-
-await run()
-process.exit(0)
+console.log(
+  await api.query.System.Account.getValue(
+    "5GvW9jJnq5J7KYAtYfdi88zXxVT3Z6dHHr6cgBgMpkVhPVrp",
+  ),
+)

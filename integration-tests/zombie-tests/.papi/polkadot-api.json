@@ -5,8 +5,8 @@
     "roc": {
       "wsUrl": "ws://127.0.0.1:9934",
       "metadata": "roc.scale",
-      "genesis": "0x4545454545454545454545454545454545454545454545454545454545454545",
-      "codeHash": "0xc6d3b27120ce96d9cdb9744aaed5c4a65e9baaf943e5b77ddcd0930a10f9ac40"
+      "genesis": "0x3f84a29eec89dfc96da0a0a1ac939e11e847c2331a16d45c247cc7b5cbbda288",
+      "codeHash": "0x58884f27eedc89d89fa7ae5df924f83cfd14759d189f988c8fe0fa5b91456798"
     }
   }
 }
