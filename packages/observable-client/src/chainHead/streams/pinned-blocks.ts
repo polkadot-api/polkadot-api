@@ -147,6 +147,8 @@ export const getPinnedBlocks$ = (
                 acc.finalizedRuntime = acc.runtimes[hash] = getRuntime(
                   createRuntimeGetter(acc, hash),
                 )
+
+              acc.runtimes[latestRuntime].usages.add(hash)
             }
           })
           return acc
@@ -182,6 +184,7 @@ export const getPinnedBlocks$ = (
               // it assumes pinnedBlocks.runtimes[hash] is empty and pinnedBlocks.blocks.has(hash)
               acc.runtimes[hash] = getRuntime(createRuntimeGetter(acc, hash))
             }
+
             acc.runtimes[block.runtime].addBlock(hash)
           }
 

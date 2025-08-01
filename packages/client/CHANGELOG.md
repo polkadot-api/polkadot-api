@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix "Cannot read properties of undefined (reading 'runtime')" issue.
+
 ## 1.15.1 - 2025-07-23
 
 ### Fixed
