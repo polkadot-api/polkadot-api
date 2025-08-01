@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Increase the runtime usage of the initialized blocks.
+
 ## 0.13.2 - 2025-07-23
 
 ### Fixed
