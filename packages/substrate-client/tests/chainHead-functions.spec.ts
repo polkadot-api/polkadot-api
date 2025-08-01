@@ -15,7 +15,7 @@ describe.each([
   (name, args, result, expectedResult) => {
     it("sends the correct message", async () => {
       const { provider, SUBSCRIPTION_ID, chainHead } =
-        await setupChainHeadWithSubscription()
+        setupChainHeadWithSubscription()
 
       provider.getNewMessages()
       chainHead[name](...(args as [any]))
@@ -29,7 +29,7 @@ describe.each([
     })
 
     it("resolves the correct response", async () => {
-      const { provider, chainHead } = await setupChainHeadWithSubscription()
+      const { provider, chainHead } = setupChainHeadWithSubscription()
 
       const promise = chainHead[name](...(args as [any]))
       provider.replyLast({ result })
@@ -38,7 +38,7 @@ describe.each([
     })
 
     it("rejects the JSON-RPC Error when the request fails", async () => {
-      const { provider, chainHead } = await setupChainHeadWithSubscription()
+      const { provider, chainHead } = setupChainHeadWithSubscription()
 
       const promise = chainHead[name](...(args as [any]))
       provider.replyLast({ error: parseError })
@@ -47,7 +47,7 @@ describe.each([
     })
 
     it("rejects with an `DisjointError` when the function is created after `unfollow`", async () => {
-      const { chainHead } = await setupChainHead()
+      const { chainHead } = setupChainHead()
 
       chainHead.unfollow()
 
@@ -57,7 +57,7 @@ describe.each([
     })
 
     it("rejects an `DisjointError` when the follow subscription fails and the operation is pending", async () => {
-      const { provider, chainHead } = await setupChainHead()
+      const { provider, chainHead } = setupChainHead()
 
       const promise = chainHead[name](...(args as [any]))
       // The errored JSON-RPC response comes **after** the user has called `header`/`unpin`
@@ -69,7 +69,7 @@ describe.each([
     })
 
     it("rejects an `DisjointError` when the follow subscription fails for any subsequent operation", async () => {
-      const { provider, chainHead } = await setupChainHead()
+      const { provider, chainHead } = setupChainHead()
 
       // The errored JSON-RPC response comes **before** the user has called `header`/`unpin`
       provider.replyLast({
