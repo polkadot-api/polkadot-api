@@ -1,5 +1,5 @@
 import { abortablePromiseFn } from "@/internal-utils"
-import { type ClientRequest } from "../client"
+import { type ClientRequest } from "@polkadot-api/raw-client"
 import { createStorageCb } from "./storage-subscription"
 import { createStorageFn } from "./storage"
 import { Archive } from "./public-types"

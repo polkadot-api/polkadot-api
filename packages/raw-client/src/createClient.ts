@@ -2,11 +2,11 @@ import type {
   JsonRpcConnection,
   JsonRpcProvider,
 } from "@polkadot-api/json-rpc-provider"
-import { UnsubscribeFn } from "../common-types"
 import { RpcError, IRpcError } from "./RpcError"
-import { getSubscriptionsManager, Subscriber } from "@/internal-utils"
+import { getSubscriptionsManager, Subscriber } from "./subscriptions-manager"
 import { DestroyedError } from "./DestroyedError"
 
+type UnsubscribeFn = () => void
 export type FollowSubscriptionCb<T> = (
   subscriptionId: string,
   cb: Subscriber<T>,

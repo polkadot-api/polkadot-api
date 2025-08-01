@@ -1,6 +1,6 @@
 {
-  "name": "@polkadot-api/substrate-client",
-  "version": "0.4.1",
+  "name": "@polkadot-api/raw-client",
+  "version": "0.1.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -37,15 +37,13 @@
   "scripts": {
     "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm build-core",
-    "test": "vitest",
+    "test": "echo 'no tests'",
     "coverage": "vitest run --coverage",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@polkadot-api/raw-client": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*"
   }
 }
