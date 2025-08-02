@@ -153,19 +153,22 @@ export const generateObjectCode = (
   }))
 
   return {
-    code: `{${innerValues
-      .map(({ label, docs, value, result }) => {
-        const docsPrefix = docs.length
-          ? `\n/**\n${docs.map((doc) => ` * ${doc.trim()}`).join("\n")}\n */\n`
-          : ""
-        if (result === null)
-          return docsPrefix + `${JSON.stringify(label)}: undefined`
+    code:
+      innerValues.length === 0
+        ? "Record<string, never>"
+        : `{${innerValues
+            .map(({ label, docs, value, result }) => {
+              const docsPrefix = docs.length
+                ? `\n/**\n${docs.map((doc) => ` * ${doc.trim()}`).join("\n")}\n */\n`
+                : ""
+              if (result === null)
+                return docsPrefix + `${JSON.stringify(label)}: undefined`
 
-        const isOptional = value?.type === "option"
-        const key = JSON.stringify(label) + (isOptional ? "?" : "")
-        return docsPrefix + `${key}: ${result.code}`
-      })
-      .join(", ")}}`,
+              const isOptional = value?.type === "option"
+              const key = JSON.stringify(label) + (isOptional ? "?" : "")
+              return docsPrefix + `${key}: ${result.code}`
+            })
+            .join(", ")}}`,
     imports: mergeImports(innerValues.map((v) => v.result?.imports ?? {})),
   }
 }
