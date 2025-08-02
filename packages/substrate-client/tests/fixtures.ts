@@ -128,7 +128,7 @@ export const createTestClient = () => {
   }
 }
 
-export async function setupChainHead(
+export function setupChainHead(
   withRuntime: boolean = true,
   onMsgFn?: (event: FollowEventWithRuntime) => void,
   onErrorFn?: (error: any) => void,
@@ -139,8 +139,6 @@ export async function setupChainHead(
 
   const chainHead = client.chainHead(withRuntime, onMsg as any, onError)
 
-  await new Promise((res) => setTimeout(res, 0))
-
   return {
     client,
     chainHead,
@@ -150,16 +148,12 @@ export async function setupChainHead(
   }
 }
 
-export async function setupChainHeadWithSubscription(
+export function setupChainHeadWithSubscription(
   withRuntime?: boolean,
   onMsgFn?: (event: FollowEventWithRuntime) => void,
   onErrorFn?: (error: any) => void,
 ) {
-  const { provider, ...rest } = await setupChainHead(
-    withRuntime,
-    onMsgFn,
-    onErrorFn,
-  )
+  const { provider, ...rest } = setupChainHead(withRuntime, onMsgFn, onErrorFn)
   provider.getNewMessages()
 
   const SUBSCRIPTION_ID = "SUBSCRIPTION_ID"
@@ -187,11 +181,10 @@ export async function setupChainHeadWithSubscription(
   }
 }
 
-export async function setupChainHeadOperation<
+export function setupChainHeadOperation<
   Name extends "body" | "call" | "storage",
 >(name: Name, ...args: Parameters<FollowResponse[Name]>) {
-  const { provider, chainHead, ...rest } =
-    await setupChainHeadWithSubscription()
+  const { provider, chainHead, ...rest } = setupChainHeadWithSubscription()
   provider.getNewMessages()
 
   const operationPromise = (chainHead[name] as any)(
@@ -207,11 +200,11 @@ export type ChainHeadOperation =
   | { name: "call" }
   | { name: "storage"; discardedItems: number }
 
-export async function setupChainHeadOperationSubscription<
+export function setupChainHeadOperationSubscription<
   Name extends ChainHeadOperation,
 >(op: Name, ...args: Parameters<FollowResponse[ChainHeadOperation["name"]]>) {
   const { name, ...extras } = op
-  const { provider, sendSubscription, ...rest } = await setupChainHeadOperation(
+  const { provider, sendSubscription, ...rest } = setupChainHeadOperation(
     name,
     ...args,
   )

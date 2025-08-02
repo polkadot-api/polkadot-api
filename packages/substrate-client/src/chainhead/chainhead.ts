@@ -49,83 +49,88 @@ export function getChainHead(
     onFollowError: (e: Error) => void,
   ): FollowResponse => {
     const subscriptions = getSubscriptionsManager<OperationEventsRpc>()
-
     const ongoingRequests = new Set<() => void>()
     const deferredFollow = deferred<string | Error>()
+    // If it's:
+    // - a (deferred)`Promise`: it means that the susbscription is active AND that the response to the follow request has not been resolved
+    // - a `string`: it means that the subscription is active and that the response to the follow request has been successful.
+    // - `null`: it means that the subscription is inactive (for whatever reason: error or unsubscription)
     let followSubscription: Promise<string | Error> | string | null =
       deferredFollow.promise
+
+    let stopListeningToFollowEvents = noop
+    const unfollowRequest = (subscriptionId: string) => {
+      request(chainHead.unfollow, [subscriptionId])
+    }
+
+    const stopEverything = (sendUnfollow: boolean) => {
+      stopListeningToFollowEvents()
+      // if it's `null` it means that everything has already been stopped
+      if (followSubscription === null) return
+
+      if (sendUnfollow) {
+        if (followSubscription instanceof Promise) {
+          followSubscription.then((x) => {
+            if (typeof x === "string") unfollowRequest(x)
+          })
+        } else unfollowRequest(followSubscription)
+      }
+      followSubscription = null
+      ongoingRequests.forEach((cb) => {
+        cb()
+      })
+      ongoingRequests.clear()
+      subscriptions.errorAll(new DisjointError())
+    }
 
     const onAllFollowEventsNext = (event: FollowEventRpc) => {
       if (isOperationEvent(event)) {
         if (!subscriptions.has(event.operationId))
           console.warn("Uknown operationId on", event)
-
         return subscriptions.next(event.operationId, event)
       }
 
-      if (event.event !== "stop") {
-        if (event.event === "initialized") {
-          return onFollowEvent({
-            type: event.event,
-            finalizedBlockHashes: event.finalizedBlockHashes,
-            finalizedBlockRuntime: (event as any).finalizedBlockRuntime,
-          })
-        }
-
-        const { event: type, ...rest } = event
-        // This is kinda dangerous, but YOLO
-        return onFollowEvent({ type, ...rest } as any)
+      switch (event.event) {
+        case "stop":
+          onFollowError(new StopError())
+          return stopEverything(false)
+        case "initialized":
+        case "newBlock":
+        case "bestBlockChanged":
+        case "finalized":
+          const { event: type, ...rest } = event
+          return onFollowEvent({ type, ...rest } as any)
       }
-
-      onFollowError(new StopError())
-      unfollow(false)
+      console.warn("Invalid event", event)
     }
 
     const onAllFollowEventsError = (error: Error) => {
       onFollowError(error)
-      unfollow(!(error instanceof DestroyedError))
+      stopEverything(!(error instanceof DestroyedError))
     }
 
-    const onFollowRequestSuccess = (
-      subscriptionId: string,
-      follow: FollowSubscriptionCb<FollowEventRpc>,
-    ) => {
-      const done = follow(subscriptionId, {
-        next: onAllFollowEventsNext,
-        error: onAllFollowEventsError,
-      })
-
-      unfollow = (sendUnfollow = true) => {
+    request(chainHead.follow, [withRuntime], {
+      onSuccess: (
+        subscriptionId: string,
+        follow: FollowSubscriptionCb<FollowEventRpc>,
+      ) => {
+        // If the consumer has unsubscribed in between, then it will be `null`
+        // and it should stay that way
+        if (followSubscription instanceof Promise) {
+          followSubscription = subscriptionId
+          stopListeningToFollowEvents = follow(subscriptionId, {
+            next: onAllFollowEventsNext,
+            error: onAllFollowEventsError,
+          })
+        }
+        deferredFollow.res(subscriptionId)
+      },
+      onError: (e: Error) => {
         followSubscription = null
-        unfollow = noop
-        done()
-        sendUnfollow && request(chainHead.unfollow, [subscriptionId])
-        subscriptions.errorAll(new DisjointError())
-        ongoingRequests.forEach((cb) => {
-          cb()
-        })
-        ongoingRequests.clear()
-      }
-
-      followSubscription = subscriptionId
-      deferredFollow.res(subscriptionId)
-    }
-
-    const onFollowRequestError = (e: Error) => {
-      if (e instanceof DestroyedError) {
-        unfollow(false)
-      } else {
+        deferredFollow.res(e)
         onFollowError(e)
-      }
-      followSubscription = null
-      deferredFollow.res(e)
-    }
-
-    let unfollow: (internal?: boolean) => void = request(
-      chainHead.follow,
-      [withRuntime],
-      { onSuccess: onFollowRequestSuccess, onError: onFollowRequestError },
-    )
+      },
+    })
 
     const fRequest: ClientInnerRequest<any, any> = (method, params, cb) => {
       const disjoint = () => {
@@ -191,8 +196,7 @@ export function getChainHead(
 
     return {
       unfollow() {
-        unfollow()
-        followSubscription = null
+        stopEverything(true)
       },
       body: createBodyFn(fRequest),
       call: createCallFn(fRequest),
