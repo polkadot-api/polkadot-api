@@ -3,10 +3,12 @@ import { createClient } from "@polkadot-api/raw-client"
 import { getBlocks$ } from "./blocks"
 import { createDescendantValues } from "./descendant-values"
 import { endWith, filter, map, merge, Observable, take } from "rxjs"
+import { Blake2256 } from "@polkadot-api/substrate-bindings"
+import { fromHex, toHex } from "@polkadot-api/utils"
+import { DecentHeader } from "@/types"
 
 export const createUpstream = (provider: JsonRpcProvider) => {
-  const { request, disconnect: rawDisconnect } = createClient(provider)
-  const getBlocks = getBlocks$(request)
+  const { request, disconnect } = createClient(provider)
 
   const simpleRequest = <Args extends Array<any>, Payload>(
     method: string,
@@ -14,6 +16,7 @@ export const createUpstream = (provider: JsonRpcProvider) => {
     onSuccess: (value: Payload) => void,
     onError: (e: any) => void,
   ): (() => void) => request(method, params, { onSuccess, onError })
+
   const obsRequest = <Args extends Array<any>, Payload>(
     method: string,
     params: Args,
@@ -31,6 +34,11 @@ export const createUpstream = (provider: JsonRpcProvider) => {
         },
       ),
     )
+
+  const getHeader = (hash: string) =>
+    obsRequest<[string], DecentHeader>("chain_getHeader", [hash])
+
+  const getBlocks = getBlocks$(request, getHeader)
 
   const runtimeCall = (atBlock: string, method: string, data: string) =>
     obsRequest<[string, string, string], string | null>("state_call", [
@@ -57,9 +65,14 @@ export const createUpstream = (provider: JsonRpcProvider) => {
       ),
     )
 
-  const stgDescendantHashes = (_: string, __: string) =>
-    new Observable<Array<[string, string]>>((observer) =>
-      observer.error("not implemented"),
+  const stgDescendantHashes = (at: string, rootKey: string) =>
+    stgDescendantValues(at, rootKey).pipe(
+      map((results) =>
+        results.map(
+          ([key, value]) =>
+            [key, toHex(Blake2256(fromHex(value)))] as [string, string],
+        ),
+      ),
     )
 
   const stgClosestDescendant = (_: string, __: string) =>
@@ -98,18 +111,14 @@ export const createUpstream = (provider: JsonRpcProvider) => {
     endWith(null),
     take(1),
     map((x) => {
-      if (!x) throw "Could not fetch genensis hash"
+      if (!x) throw new Error("Could not fetch genensis hash")
       return x
     }),
   )
 
-  const disconnect = () => {
-    getBlocks.stop()
-    rawDisconnect()
-  }
-
   return {
     getBlocks,
+    getHeader,
     stgValue,
     stgHash,
     stgDescendantValues,

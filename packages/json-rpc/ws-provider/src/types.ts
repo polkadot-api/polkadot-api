@@ -35,6 +35,7 @@ export interface WsProviderConfig {
   endpoints: Array<string | { uri: string; protocol: string[] }>
   onStatusChanged?: (status: StatusChange) => void
   timeout?: number
+  innerEnhancer?: (input: JsonRpcProvider) => JsonRpcProvider
 }
 
 export interface GetWsProviderInput {

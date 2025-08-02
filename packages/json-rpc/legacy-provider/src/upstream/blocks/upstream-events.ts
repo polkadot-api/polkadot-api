@@ -17,20 +17,10 @@ import {
   withLatestFrom,
 } from "rxjs"
 
-export const getUpstreamEvents = (request: ClientRequest<any, any>) => {
-  const getHeader = (hash: string) =>
-    new Observable<DecentHeader>((observer) =>
-      request("chain_getHeader", [hash], {
-        onSuccess(x: ShittyHeader) {
-          observer.next(fromShittyHeader(x))
-          observer.complete()
-        },
-        onError(e) {
-          observer.error(e)
-        },
-      }),
-    )
-
+export const getUpstreamEvents = (
+  request: ClientRequest<any, any>,
+  getHeader: (hash: string) => Observable<DecentHeader>,
+) => {
   const getHeaders$ = (
     startMethod: string,
     stopMethod: string,

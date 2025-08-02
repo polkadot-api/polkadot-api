@@ -1,19 +1,21 @@
-import { CompatibilityLevel, createClient } from "polkadot-api"
+import { createClient } from "polkadot-api"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
 import { wnd } from "@polkadot-api/descriptors"
+import { withLegacy } from "@polkadot-api/legacy-provider"
 
-const wsProvider = getWsProvider(
-  [
+const wsProvider = getWsProvider({
+  endpoints: [
     "wss://polkadot-rpc.publicnode.com",
     "wss://polkadot-public-rpc.blockops.network/ws",
     "wss://rpc.ibp.network/polkadot",
     "wss://rpc-polkadot.luckyfriday.io",
     "wss://polkadot.api.onfinality.io/public-ws",
   ],
-  (x) => {
+  onStatusChanged: (x) => {
     console.log(x)
   },
-)
+  innerEnhancer: withLegacy,
+})
 const client = createClient(wsProvider)
 const testApi = client.getTypedApi(wnd)
 
