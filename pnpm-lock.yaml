@@ -666,6 +666,12 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
 
+  packages/raw-client:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/json-rpc-provider
+
   packages/react-builder:
     dependencies:
       '@polkadot-api/metadata-builders':
@@ -828,6 +834,9 @@ importers:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc/json-rpc-provider
+      '@polkadot-api/raw-client':
+        specifier: workspace:*
+        version: link:../raw-client
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils

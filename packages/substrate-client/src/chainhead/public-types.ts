@@ -1,5 +1,5 @@
 import type { AbortablePromiseFn, UnsubscribeFn } from "@/common-types"
-import { Subscriber } from "@/internal-utils"
+import type { Subscriber } from "@polkadot-api/raw-client"
 
 export type FollowInnerSubscriptionCb<T> = (
   subscriptionId: string,

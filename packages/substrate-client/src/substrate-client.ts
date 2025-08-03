@@ -1,7 +1,10 @@
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import {
+  ClientRequestCb,
+  createClient as createRawClient,
+} from "@polkadot-api/raw-client"
 import { getTransaction } from "./transaction/transaction"
 import { getChainHead } from "./chainhead"
-import { ClientRequestCb, createClient as createRawClient } from "./client"
 import type { ChainHead } from "./chainhead"
 import type { Transaction } from "./transaction"
 import { UnsubscribeFn } from "./common-types"

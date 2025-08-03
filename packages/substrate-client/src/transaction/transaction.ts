@@ -1,5 +1,5 @@
 import { noop } from "@/internal-utils"
-import { type ClientRequest } from "../client"
+import { type ClientRequest } from "@polkadot-api/raw-client"
 import { transaction } from "@/methods"
 
 export const getTransaction =
