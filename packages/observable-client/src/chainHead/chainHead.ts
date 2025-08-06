@@ -168,7 +168,9 @@ export const getChainHead$ = (
     setCachedMetadata,
     blockUsage$,
     (blocks) => {
-      unpin(blocks)
+      unpin(blocks).catch((err) => {
+        console.error("unpin", err)
+      })
       blocks.forEach((hash) => {
         cache.delete(hash)
       })
