@@ -2,7 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
 - Avoid runtime error when the reply to `chainHead_v1_follow` comes synchronously.
+- Prevent uncaught RPC error on unpin
 
 ## 1.15.2 - 2025-08-01
 
