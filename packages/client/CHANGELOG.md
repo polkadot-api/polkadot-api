@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.15.3 - 2025-08-07
+
 ### Fixed
 
 - Avoid runtime error when the reply to `chainHead_v1_follow` comes synchronously.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.13.4 - 2025-08-07
+
 ### Fixed
 
 - Prevent uncaught RPC error on unpin
