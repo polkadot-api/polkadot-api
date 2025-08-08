@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.15.4 - 2025-08-08
+
+### Fixed
+
+- Fixed broken dependency link
+
 ## 1.15.3 - 2025-08-07
 
 ### Fixed
