@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Export type `{prefix}Types` from generated descriptors for each chain.
+
 ## 0.17.1 - 2025-07-23
 
 ### Fixed
