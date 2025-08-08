@@ -398,7 +398,7 @@ type PalletsTypedef = {
   __view: IViewFns
 }
 
-export type ${prefix}Types = {
+export type ${prefix} = {
   descriptors: {
     pallets: PalletsTypedef,
     apis: IRuntimeCalls
@@ -408,7 +408,7 @@ export type ${prefix}Types = {
   getMetadata: () => Promise<Uint8Array>
   genesis: string | undefined
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata, genesis } as any as ${prefix}Types;
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata, genesis } as any as ${prefix};
 export default _allDescriptors;
 
 export type ${prefix}Apis = ApisFromDef<IRuntimeCalls>
