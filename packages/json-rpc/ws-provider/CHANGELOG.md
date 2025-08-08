@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `innerEnhancer` option: allows to provide an enhancer that will be applied at the lowest possible level, before any of the internal enhancers of the ws-provider are applied.
+
 ## 0.4.1 - 2025-07-16
 
 ### Fixed

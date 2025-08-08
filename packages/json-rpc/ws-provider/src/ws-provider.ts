@@ -7,6 +7,7 @@ import {
   WsProviderConfig,
 } from "./types"
 import { followEnhancer } from "./follow-enhancer"
+import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 
 const timeoutError: StatusChange = {
   type: WsEvent.ERROR,
@@ -27,6 +28,7 @@ export const getInternalWsProvider = (
     let endpoints: Array<[string, string | string[]] | [string]> = []
     let onStatusChanged: (status: StatusChange) => void = noop
     let timeout = 3_500
+    let innerEnhancer: (base: JsonRpcProvider) => JsonRpcProvider = (x) => x
 
     const [firstArg] = args
     if (
@@ -37,6 +39,7 @@ export const getInternalWsProvider = (
       endpoints = mapEndpoints(firstArg.endpoints)
       onStatusChanged = firstArg.onStatusChanged ?? noop
       timeout = firstArg.timeout ?? timeout
+      innerEnhancer = firstArg.innerEnhancer ?? ((x) => x)
     } else {
       if (typeof args[1] === "function")
         onStatusChanged = args[1] as (status: StatusChange) => void
@@ -127,9 +130,23 @@ export const getInternalWsProvider = (
           }),
         )
 
+        let _onInnerMessage: (msg: string) => void
+        const inner = innerEnhancer((onInnerMessage) => {
+          _onInnerMessage = onInnerMessage
+          return {
+            send: (m) => {
+              socket.send(m)
+            },
+            disconnect: () => {
+              disconnect()
+            },
+          }
+        })
+
         return (onMessage, onHalt) => {
+          const connection = inner(onMessage)
           const _onMessage = (e: MessageEvent) => {
-            if (typeof e.data === "string") onMessage(e.data)
+            if (typeof e.data === "string") _onInnerMessage(e.data)
           }
           const innerHalt =
             (reason: WsEvent.CLOSE | WsEvent.ERROR) => (e: any) => {
@@ -158,12 +175,7 @@ export const getInternalWsProvider = (
             if (withHalt) onClose({})
           }
 
-          return {
-            send: (msg) => {
-              socket.send(msg)
-            },
-            disconnect,
-          }
+          return connection
         }
       }),
       () => {

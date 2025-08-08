@@ -8,12 +8,13 @@
     "build": "pnpm build-external",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "e2e": "papi update && vitest run --test-timeout=300000"
+    "e2e": "papi update && vitest run --test-timeout=300000 --bail=1"
   },
   "dependencies": {
     "@noble/curves": "^1.9.2",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/legacy-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
