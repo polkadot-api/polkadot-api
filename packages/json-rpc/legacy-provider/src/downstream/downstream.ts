@@ -1,6 +1,6 @@
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { createUpstream } from "@/upstream"
-import { createChainSpec } from "./chainspec"
+import { chainSpecMethods, createChainSpec } from "./chainspec"
 import { chainHeadMethods, createChainHead } from "./chain-head"
 import { createTransactionFns, transactionMethods } from "./transaction"
 import { archiveMethods, createArchive } from "./archive"
@@ -8,7 +8,7 @@ import { Blake2256 } from "@polkadot-api/substrate-bindings"
 import { withNumericIds } from "@/with-numeric"
 
 const supportedMethods = [
-  chainHeadMethods,
+  chainSpecMethods,
   archiveMethods,
   chainHeadMethods,
   transactionMethods,
@@ -71,6 +71,7 @@ export const createDownstream =
             (id !== null && typeof id !== "string" && typeof id !== "number") ||
             typeof method !== "string"
           ) {
+            console.warn(`Invalid message:\n${msg}`)
             return
           }
           if (method === "rpc_methods") {
@@ -80,7 +81,7 @@ export const createDownstream =
                   methods: [
                     ...supportedMethods,
                     ...methods.filter(
-                      (method) => !supportedMethods.includes(method as any),
+                      (method) => !supportedMethods.includes(method),
                     ),
                   ],
                 })

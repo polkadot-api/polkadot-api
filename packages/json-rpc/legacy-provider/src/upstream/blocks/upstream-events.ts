@@ -64,21 +64,21 @@ export const getUpstreamEvents = (
     "chain_unsubscribeFinalizedHeads",
   ).pipe(shareReplay(1))
 
-  const getRecurseiveHeader = (hash: string): Observable<DecentHeader> =>
+  const getRecursiveHeader = (hash: string): Observable<DecentHeader> =>
     getHeader(hash).pipe(
       mergeMap((header) =>
-        concat(of(header), getRecurseiveHeader(header.parent)),
+        concat(of(header), getRecursiveHeader(header.parent)),
       ),
     )
 
-  const gap$: Observable<DecentHeader[]> = combineLatest(
+  const gap$: Observable<DecentHeader[]> = combineLatest([
     allHeads$.pipe(take(1)),
     finalized$.pipe(take(1)),
-  ).pipe(
+  ]).pipe(
     mergeMap(([latest, fin]) => {
       const nMissing = latest.number - fin.number - 1
       return concat(
-        getRecurseiveHeader(latest.parent).pipe(take(Math.max(0, nMissing))),
+        getRecursiveHeader(latest.parent).pipe(take(Math.max(0, nMissing))),
         of(fin),
       )
     }),

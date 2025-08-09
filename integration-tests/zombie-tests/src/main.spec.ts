@@ -55,14 +55,14 @@ let appendSmLog:
   | undefined = undefined
 
 if (VERSION) {
-  const jsonRpcFileName = `./${VERSION}_JSON_RPC`
+  const jsonRpcFileName = `./${VERSION}_${PROVIDER}_JSON_RPC`
   enhancer = (input) =>
     withLogsRecorder(
       (log) => appendFileSync(jsonRpcFileName, log + "\n"),
       input,
     )
 
-  const smoldotFileName = `./${VERSION}_SMOLDOT`
+  const smoldotFileName = `./${VERSION}_${PROVIDER}_SMOLDOT`
   appendSmLog = (level: number, target: string, message: string) => {
     const msg = `${tickDate} (${level})${target}\n${message}\n`
     if (level <= 3) console.log(msg)
@@ -101,7 +101,6 @@ const ED = 10_000_000_000n
 const FEE_VARIATION_TOLERANCE = 10_000_000n
 
 console.log("got the chainspec")
-appendFileSync(`./${VERSION}_JSON_RPC_INNER`, "\n")
 
 describe("E2E", async () => {
   let client: PolkadotClient
@@ -126,7 +125,10 @@ describe("E2E", async () => {
               legacyEnhancer(
                 withLogsRecorder(
                   (log) =>
-                    appendFileSync(`./${VERSION}_JSON_RPC_INNER`, log + "\n"),
+                    appendFileSync(
+                      `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
+                      log + "\n",
+                    ),
                   base,
                 ),
               ),
@@ -635,7 +637,7 @@ describe("E2E", async () => {
                       withLogsRecorder(
                         (log) =>
                           appendFileSync(
-                            `./${VERSION}_JSON_RPC_INNER`,
+                            `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
                             log + "\n",
                           ),
                         base,
