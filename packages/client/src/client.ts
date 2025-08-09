@@ -359,6 +359,7 @@ export function createClient(
     getChainSpecData,
 
     blocks$: chainHead.newBlocks$,
+    hodlBlock: (block: HexString) => chainHead.holdBlock(block, true),
 
     finalizedBlock$: chainHead.finalized$,
     getFinalizedBlock: () => firstValueFrom(chainHead.finalized$),
