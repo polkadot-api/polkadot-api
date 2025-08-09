@@ -35,9 +35,10 @@ import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
 import { appendFileSync } from "fs"
+import { withLegacy } from "@polkadot-api/legacy-provider"
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -54,14 +55,14 @@ let appendSmLog:
   | undefined = undefined
 
 if (VERSION) {
-  const jsonRpcFileName = `./${VERSION}_JSON_RPC`
+  const jsonRpcFileName = `./${VERSION}_${PROVIDER}_JSON_RPC`
   enhancer = (input) =>
     withLogsRecorder(
       (log) => appendFileSync(jsonRpcFileName, log + "\n"),
       input,
     )
 
-  const smoldotFileName = `./${VERSION}_SMOLDOT`
+  const smoldotFileName = `./${VERSION}_${PROVIDER}_SMOLDOT`
   appendSmLog = (level: number, target: string, message: string) => {
     const msg = `${tickDate} (${level})${target}\n${message}\n`
     if (level <= 3) console.log(msg)
@@ -76,7 +77,7 @@ const setTickDate = () => {
 }
 setTickDate()
 
-if (PROVIDER !== "sm" && PROVIDER !== "ws")
+if (PROVIDER !== "sm" && PROVIDER !== "ws" && PROVIDER !== "ws-legacy")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
 let ARCHIVE = false
 const rawClient = createRawClient(
@@ -113,8 +114,27 @@ describe("E2E", async () => {
       enhancer(getSmProvider(smoldot.addChain({ chainSpec }))),
     )
   } else {
+    const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
+    const compatEnhancer = PROVIDER === "ws" ? withPolkadotSdkCompat : identity
     client = createClient(
-      enhancer(withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934"))),
+      enhancer(
+        compatEnhancer(
+          getWsProvider({
+            endpoints: ["ws://127.0.0.1:9934"],
+            innerEnhancer: (base) =>
+              legacyEnhancer(
+                withLogsRecorder(
+                  (log) =>
+                    appendFileSync(
+                      `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
+                      log + "\n",
+                    ),
+                  base,
+                ),
+              ),
+          }),
+        ),
+      ),
       { getMetadata },
     )
     const { methods } = await client._request<{ methods: string[] }, []>(
@@ -331,9 +351,9 @@ describe("E2E", async () => {
           (e): e is TxEvent & { type: "bestChainBlockIncluded" } =>
             e.type === "txBestBlocksState" && e.found,
         ),
-        switchMap(({ block: { hash: at } }) =>
-          transfer.signSubmitAndWatch(alice, { at }),
-        ),
+        switchMap(({ block: { hash: at } }) => {
+          return transfer.signSubmitAndWatch(alice, { at })
+        }),
       ),
     )
 
@@ -602,10 +622,30 @@ describe("E2E", async () => {
 
       beforeAll(async () => {
         do {
+          const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
+          const compatEnhancer =
+            PROVIDER === "ws" ? withPolkadotSdkCompat : identity
           newClient?.destroy()
           console.log("creating archive client")
           newClient = createClient(
-            withPolkadotSdkCompat(getWsProvider("ws://127.0.0.1:9934")),
+            enhancer(
+              compatEnhancer(
+                getWsProvider({
+                  endpoints: ["ws://127.0.0.1:9934"],
+                  innerEnhancer: (base) =>
+                    legacyEnhancer(
+                      withLogsRecorder(
+                        (log) =>
+                          appendFileSync(
+                            `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
+                            log + "\n",
+                          ),
+                        base,
+                      ),
+                    ),
+                }),
+              ),
+            ),
           )
         } while ((await newClient.getFinalizedBlock()).hash === oldBlock.hash)
         oldApi = newClient.getTypedApi(roc)

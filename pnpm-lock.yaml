@@ -247,6 +247,9 @@ importers:
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)
+      '@polkadot-api/legacy-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/legacy-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -506,6 +509,25 @@ importers:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../json-rpc-provider
+
+  packages/json-rpc/legacy-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/raw-client':
+        specifier: workspace:*
+        version: link:../../raw-client
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
+    devDependencies:
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/json-rpc/logs-provider:
     dependencies:

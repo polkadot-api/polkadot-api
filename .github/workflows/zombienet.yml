@@ -18,6 +18,7 @@ jobs:
           - polkadot-stable2503-5
         kind:
           - ws
+          - ws-legacy
           - sm
     runs-on: ubuntu-latest
     steps:
@@ -67,7 +68,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Logs
-          path: |
-            integration-tests/zombie-tests/zombienet_logs
-            integration-tests/zombie-tests/${{matrix.version}}_JSON_RPC
-            integration-tests/zombie-tests/${{matrix.version}}_SMOLDOT
+          path: integration-tests/zombie-tests/${{matrix.version}}*
