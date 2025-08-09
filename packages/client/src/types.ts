@@ -239,6 +239,14 @@ export interface PolkadotClient {
   blocks$: Observable<BlockInfo>
 
   /**
+   * Ensures that a block stays available, even after it has been finalized and
+   * no operations are running for that block.
+   *
+   * @returns A callback function to release the block.
+   */
+  hodlBlock: (blockHash: HexString) => () => void
+
+  /**
    * Observable to watch Block Body.
    *
    * @param hash  It can be a block hash, `"finalized"`, or `"best"`
