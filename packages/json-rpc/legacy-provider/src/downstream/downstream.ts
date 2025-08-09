@@ -57,7 +57,7 @@ export const createDownstream =
         chainSpec: createChainSpec(upstream, reply, err),
         chainHead: createChainHead(upstream, reply, err, notification),
         archive: createArchive(upstream, reply, err, notification),
-        transaction: createTransactionFns(upstream, reply, err),
+        transaction: createTransactionFns(upstream, reply),
       }
       return {
         send: (msg) => {

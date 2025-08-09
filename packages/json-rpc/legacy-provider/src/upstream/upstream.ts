@@ -124,5 +124,6 @@ export const createUpstream = (
     disconnect,
     methods,
     request: simpleRequest,
+    obsRequest,
   }
 }

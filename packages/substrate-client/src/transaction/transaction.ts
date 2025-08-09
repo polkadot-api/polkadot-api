@@ -5,16 +5,20 @@ import { transaction } from "@/methods"
 export const getTransaction =
   (request: ClientRequest<string, any>) =>
   (tx: string, error: (e: Error) => void) => {
-    let cancel = request(transaction.broadcast, [tx], {
-      onSuccess: (subscriptionId) => {
-        cancel =
-          subscriptionId === null
-            ? noop
-            : () => {
-                request(transaction.stop, [subscriptionId])
-              }
+    let isDone = false
+    let cancel = () => {
+      isDone = true
+    }
 
-        if (subscriptionId === null) {
+    request(transaction.broadcast, [tx], {
+      onSuccess: (subscriptionId) => {
+        if (subscriptionId !== null) {
+          cancel = () => {
+            request(transaction.stop, [subscriptionId])
+            cancel = noop
+          }
+          if (isDone) cancel()
+        } else if (!isDone) {
           error(new Error("Max # of broadcasted transactions has been reached"))
         }
       },
