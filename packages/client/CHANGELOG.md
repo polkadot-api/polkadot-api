@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+- **Codegen:**
+  - `@polkadot-api/descriptors` now exports the descriptors type for each chain by using the key as name (convenience for `typeof ${key}`)
+
+## 1.15.4 - 2025-08-08
+
+### Fixed
+
+- Fixed broken dependency link
+
 ## 1.15.3 - 2025-08-07
 
 ### Fixed

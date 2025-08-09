@@ -6,6 +6,12 @@
 
 - Avoid runtime error when the reply to `transaction_v1_broadcast` comes synchronously.
 
+## 0.4.3 - 2025-08-08
+
+### Fixed
+
+- Update dependencies
+
 ## 0.4.2 - 2025-08-07
 
 ### Fixed

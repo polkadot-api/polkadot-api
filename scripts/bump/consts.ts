@@ -16,6 +16,7 @@ export const PACKAGES: Record<string, string> = {
   "@polkadot-api/metadata-builders": "metadata-builders",
   "@polkadot-api/metadata-compatibility": "metadata-compatibility",
   "@polkadot-api/observable-client": "observable-client",
+  "@polkadot-api/raw-client": "raw-client",
   "@polkadot-api/react-builder": "react-builder",
   "@polkadot-api/ledger-signer": "signers/ledger-signer",
   "@polkadot-api/meta-signers": "signers/meta-signers",

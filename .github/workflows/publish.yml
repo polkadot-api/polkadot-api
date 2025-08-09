@@ -63,6 +63,7 @@ jobs:
             metadata-compatibility,
             compare-runtimes,
             observable-client,
+            raw-client,
             react-builder,
             signers/signers-common,
             signers/ledger-signer,
