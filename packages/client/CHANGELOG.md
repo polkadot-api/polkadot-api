@@ -4,6 +4,9 @@
 
 ### Added
 
+- New `hodlBlock` API on the `client`: ensures that a block stays available, even after it has been finalized and
+  no operations are running for that block.
+
 - **Codegen:**
   - `@polkadot-api/descriptors` now exports the descriptors type for each chain by using the key as name (convenience for `typeof ${key}`)
 
