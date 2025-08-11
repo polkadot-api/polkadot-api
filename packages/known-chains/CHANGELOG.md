@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update `lightSyncState` and Westend bootnodes
+
 ## 0.9.3 - 2025-08-07
 
 ### Fixed
