@@ -52,7 +52,7 @@ jobs:
       - name: Run a local relaychain using zombienet
         run: |
           export PATH=$(pwd):$PATH
-          npx --yes @zombienet/cli@1.3.128 \
+          npx --yes @zombienet/cli@1.3.133 \
             --provider native \
             --dir zombienet_logs \
             spawn zombienet.native.toml \

@@ -114,7 +114,7 @@ export const decodeAndCollectKnownLeafs = (
   typeRefs: Array<TypeRef>,
   lookup: Lookup,
 ): Array<number> => {
-  let input = new Uint8Array()
+  let input: Uint8Array<ArrayBufferLike> = new Uint8Array()
   createDecoder((_input) => {
     input = _input
   })(data)
