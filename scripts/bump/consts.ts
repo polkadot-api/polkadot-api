@@ -7,6 +7,7 @@ export const PACKAGES: Record<string, string> = {
   "@polkadot-api/ink-contracts": "ink-contracts",
   "@polkadot-api/json-rpc-provider": "json-rpc/json-rpc-provider",
   "@polkadot-api/json-rpc-provider-proxy": "json-rpc/json-rpc-provider-proxy",
+  "@polkadot-api/legacy-provider": "json-rpc/legacy-provider",
   "@polkadot-api/logs-provider": "json-rpc/logs-provider",
   "@polkadot-api/polkadot-sdk-compat": "json-rpc/polkadot-sdk-compat",
   "@polkadot-api/sm-provider": "json-rpc/sm-provider",

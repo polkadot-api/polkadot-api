@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.4 - 2025-08-11
+
 ### Fixed
 
 - Avoid runtime error when the reply to `transaction_v1_broadcast` comes synchronously.
