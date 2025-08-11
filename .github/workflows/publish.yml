@@ -53,6 +53,7 @@ jobs:
             ink-contracts,
             json-rpc/json-rpc-provider,
             json-rpc/json-rpc-provider-proxy,
+            json-rpc/legacy-provider,
             json-rpc/logs-provider,
             json-rpc/polkadot-sdk-compat,
             json-rpc/sm-provider,

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.0 - 2025-08-11
+
 ### Added
 
 - Export descriptors type for each chain.

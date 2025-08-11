@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.21 - 2025-08-11
+
 ### Fixed
 
 - Ensure compilation with Typescript 5.9

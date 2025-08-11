@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.16.0 - 2025-08-11
+
 ### Added
 
 - New `hodlBlock` API on the `client`: ensures that a block stays available, even after it has been finalized and no operations are running for that block.
