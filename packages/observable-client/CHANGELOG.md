@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Make `@polkadot-api/substrate-client` a regular dependency instead of peerDependency.
+
 ## 0.13.5 - 2025-08-11
 
 ### Fixed
