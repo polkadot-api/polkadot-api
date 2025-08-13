@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Fixed an issue that happened sometimes when recovering from a `stop` event, because the first block from the `initialized` event was always deemed as carrying a new runtime with it.
 - Make `@polkadot-api/substrate-client` a regular dependency instead of peerDependency.
 
 ## 0.13.5 - 2025-08-11
