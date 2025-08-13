@@ -13,12 +13,15 @@ const ADD_UPDATE_DEPS = "### Fixed\n\n- Update dependencies\n\n"
 export const DIRECT_DEPS = Object.fromEntries(
   await Promise.all(
     Object.entries(PACKAGES).map(async ([pkg, dir]) => {
-      const { dependencies } = JSON.parse(
+      const { dependencies, peerDependencies } = JSON.parse(
         await Bun.file(`packages/${dir}/package.json`).text(),
       )
       return [
         pkg,
-        Object.keys(dependencies ?? {}).filter((k) => k in PACKAGES),
+        Object.keys({
+          ...(dependencies ?? {}),
+          ...(peerDependencies ?? {}),
+        }).filter((k) => k in PACKAGES),
       ] satisfies [string, string[]]
     }),
   ),

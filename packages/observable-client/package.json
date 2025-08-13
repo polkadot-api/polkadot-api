@@ -44,12 +44,12 @@
     "prepack": "pnpm run build"
   },
   "peerDependencies": {
-    "@polkadot-api/substrate-client": "workspace:*",
     "rxjs": ">=7.8.0"
   },
   "dependencies": {
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
