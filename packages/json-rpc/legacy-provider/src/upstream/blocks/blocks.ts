@@ -11,6 +11,7 @@ import {
   map,
   merge,
   mergeMap,
+  noop,
   Observable,
   share,
   shareReplay,
@@ -176,7 +177,9 @@ export const getBlocks = ({
     share(),
   )
 
-  const subscription = merge(ready$, updates$).subscribe()
+  const subscription = merge(ready$, updates$).subscribe({
+    error: noop, // the errors are propagated downstream
+  })
 
   const result = (subId: string) => {
     const getInitialized = () => {

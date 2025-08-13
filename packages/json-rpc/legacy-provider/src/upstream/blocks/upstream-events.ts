@@ -40,7 +40,12 @@ export const getUpstreamEvents = (
           })
           const unsubscribe = () => {
             done()
-            request(stopMethod, [subId])
+            try {
+              request(stopMethod, [subId], {
+                onError: noop,
+                onSuccess: noop,
+              })
+            } catch {}
           }
           if (stop !== null) unsubscribe()
           else stop = unsubscribe

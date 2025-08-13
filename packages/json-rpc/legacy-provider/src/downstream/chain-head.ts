@@ -57,8 +57,7 @@ export const createChainHead = (
       error(e) {
         console.error(e)
         cleanUp()
-        // TODO: fix this shit
-        // notification("chainHead_v1_followEvent", token, { event: "stop" })
+        notification("chainHead_v1_followEvent", token, { event: "stop" })
       },
     })
     cleanUp = () => {
