@@ -2,12 +2,14 @@ import { shareLatest } from "@/utils"
 import { HexString } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
+  Observer,
   Subject,
   exhaustMap,
   filter,
   map,
   merge,
   scan,
+  tap,
   timer,
 } from "rxjs"
 import { withStopRecovery } from "../enhancers"
@@ -81,10 +83,13 @@ export const getPinnedBlocks$ = (
   getCachedMetadata$: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
   blockUsage$: Subject<BlockUsageEvent>,
-  onNewBlock: (block: BlockInfo) => void,
+  newBlocks: Observer<BlockInfo>,
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
 ) => {
+  const onNewBlock = (block: BlockInfo) => {
+    newBlocks.next(block)
+  }
   const cleanup$ = new Subject<void>()
   const cleanupEvt$ = cleanup$.pipe(
     exhaustMap(() => timer(0)),
@@ -268,6 +273,11 @@ export const getPinnedBlocks$ = (
     }, getInitialPinnedBlocks()),
     filter((x) => !!x.finalizedRuntime.runtime),
     map((x) => ({ ...x })),
+    tap({
+      error(e) {
+        newBlocks.error(e)
+      },
+    }),
     shareLatest,
   )
 

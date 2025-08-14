@@ -167,9 +167,7 @@ export const getChainHead$ = (
     getCachedMetadata,
     setCachedMetadata,
     blockUsage$,
-    (block) => {
-      newBlocks$.next(block)
-    },
+    newBlocks$,
     (blocks) => {
       unpin(blocks).catch((err) => {
         console.error("unpin", err)
