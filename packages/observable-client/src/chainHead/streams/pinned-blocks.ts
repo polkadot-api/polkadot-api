@@ -2,17 +2,20 @@ import { shareLatest } from "@/utils"
 import { HexString } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
+  Observer,
   Subject,
   exhaustMap,
   filter,
   map,
   merge,
   scan,
+  tap,
   timer,
 } from "rxjs"
 import { withStopRecovery } from "../enhancers"
 import type { FollowEvent } from "./follow"
 import { Runtime, getRuntimeCreator } from "./get-runtime-creator"
+import { BlockInfo } from "../chainHead"
 
 export interface PinnedBlock {
   hash: string
@@ -80,9 +83,13 @@ export const getPinnedBlocks$ = (
   getCachedMetadata$: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
   blockUsage$: Subject<BlockUsageEvent>,
+  newBlocks: Observer<BlockInfo>,
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
 ) => {
+  const onNewBlock = (block: BlockInfo) => {
+    newBlocks.next(block)
+  }
   const cleanup$ = new Subject<void>()
   const cleanupEvt$ = cleanup$.pipe(
     exhaustMap(() => timer(0)),
@@ -118,6 +125,7 @@ export const getPinnedBlocks$ = (
           acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
           let latestRuntime = acc.finalizedRuntime.at
 
+          const newBlocks: Array<BlockInfo> = []
           event.finalizedBlockHashes.forEach((hash, i) => {
             const unpinnable = i !== lastIdx
             const preexistingBlock = acc.blocks.get(hash)
@@ -126,39 +134,36 @@ export const getPinnedBlocks$ = (
               preexistingBlock.recovering = false
               preexistingBlock.unpinnable = unpinnable
             } else {
-              const height = event.number + i
+              const number = event.number + i
+              const isNew = number > latestFinalizedHeight
               const isNewRuntime =
-                event.runtimeChanges.has(hash) &&
-                !acc.runtimes[hash] &&
-                height > latestFinalizedHeight
-
+                event.runtimeChanges.has(hash) && !acc.runtimes[hash] && isNew
               if (isNewRuntime) latestRuntime = hash
+              const parent =
+                i === 0 ? event.parentHash : event.finalizedBlockHashes[i - 1]
 
               acc.blocks.set(hash, {
                 hash: hash,
-                parent:
-                  i === 0
-                    ? event.parentHash
-                    : event.finalizedBlockHashes[i - 1],
+                parent,
                 children: new Set(
                   i === lastIdx ? [] : [event.finalizedBlockHashes[i + 1]],
                 ),
                 unpinnable,
                 runtime: latestRuntime,
                 refCount: 0,
-                number: height,
+                number,
                 recovering: false,
               })
-
               // it must happen after setting the block
               if (isNewRuntime)
                 acc.finalizedRuntime = acc.runtimes[hash] = getRuntime(
                   createRuntimeGetter(acc, hash),
                 )
-
               acc.runtimes[latestRuntime].usages.add(hash)
+              if (isNew) newBlocks.push({ hash, number, parent })
             }
           })
+          newBlocks.forEach(onNewBlock)
           return acc
 
         case "stop-error":
@@ -176,9 +181,10 @@ export const getPinnedBlocks$ = (
           } else {
             const parentNode = acc.blocks.get(parent)!
             parentNode.children.add(hash)
+            const number = parentNode.number + 1
             const block = {
               hash,
-              number: parentNode.number + 1,
+              number,
               parent: parent,
               children: new Set<string>(),
               runtime: event.newRuntime ? hash : parentNode.runtime,
@@ -194,6 +200,7 @@ export const getPinnedBlocks$ = (
             }
 
             acc.runtimes[block.runtime].addBlock(hash)
+            onNewBlock({ hash, number, parent })
           }
 
           return acc
@@ -266,6 +273,11 @@ export const getPinnedBlocks$ = (
     }, getInitialPinnedBlocks()),
     filter((x) => !!x.finalizedRuntime.runtime),
     map((x) => ({ ...x })),
+    tap({
+      error(e) {
+        newBlocks.error(e)
+      },
+    }),
     shareLatest,
   )
 

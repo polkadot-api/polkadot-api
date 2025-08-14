@@ -41,7 +41,6 @@ import {
   withStopRecovery,
 } from "./enhancers"
 import { BlockNotPinnedError } from "./errors"
-import { getNewBlocks$ } from "./new-blocks"
 import { getRecoveralStorage$ } from "./storage-queries"
 import type {
   BlockUsageEvent,
@@ -160,6 +159,7 @@ export const getChainHead$ = (
     // ":code" => "0x3a636f6465"
     stg(blockHash, "hash", "0x3a636f6465", null).pipe(map((x) => x!))
 
+  const newBlocks$ = new Subject<BlockInfo>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
@@ -167,6 +167,7 @@ export const getChainHead$ = (
     getCachedMetadata,
     setCachedMetadata,
     blockUsage$,
+    newBlocks$,
     (blocks) => {
       unpin(blocks).catch((err) => {
         console.error("unpin", err)
@@ -502,7 +503,7 @@ export const getChainHead$ = (
       finalized$,
       best$,
       bestBlocks$,
-      newBlocks$: getNewBlocks$(pinnedBlocks$),
+      newBlocks$,
       runtime$,
       metadata$,
       genesis$,
