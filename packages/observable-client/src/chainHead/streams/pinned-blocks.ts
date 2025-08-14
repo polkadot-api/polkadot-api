@@ -111,6 +111,9 @@ export const getPinnedBlocks$ = (
           )
             acc = getInitialPinnedBlocks()
 
+          const latestFinalizedHeight =
+            acc.blocks.get(acc.finalized)?.number ?? -1
+
           const lastIdx = event.finalizedBlockHashes.length - 1
           acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
           let latestRuntime = acc.finalizedRuntime.at
@@ -123,7 +126,12 @@ export const getPinnedBlocks$ = (
               preexistingBlock.recovering = false
               preexistingBlock.unpinnable = unpinnable
             } else {
-              const isNewRuntime = event.runtimeChanges.has(hash)
+              const height = event.number + i
+              const isNewRuntime =
+                event.runtimeChanges.has(hash) &&
+                !acc.runtimes[hash] &&
+                height > latestFinalizedHeight
+
               if (isNewRuntime) latestRuntime = hash
 
               acc.blocks.set(hash, {
@@ -138,7 +146,7 @@ export const getPinnedBlocks$ = (
                 unpinnable,
                 runtime: latestRuntime,
                 refCount: 0,
-                number: event.number + i,
+                number: height,
                 recovering: false,
               })
 
