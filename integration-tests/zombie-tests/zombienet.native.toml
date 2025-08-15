@@ -2,7 +2,7 @@
 default_command = "polkadot"
 default_args = ["-lparachain=debug", "--state-pruning=archive-canonical"]
 
-chain = "westend-local"
+chain = "rococo-local"
 
 [[relaychain.nodes]]
 name = "alice"

@@ -97,7 +97,7 @@ const chainSpec = JSON.stringify(await getChainspec())
 rawClient.destroy()
 
 const accountIdDec = AccountId().dec
-const ED = 10_000_000_000n
+const ED = 10_000_000_000n / 300n
 const FEE_VARIATION_TOLERANCE = 10_000_000n
 
 console.log("got the chainspec")
