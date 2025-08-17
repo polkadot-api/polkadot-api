@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.2 - 2025-08-17
+
+### Fixed
+
+- Avoid redundant `finalized` event.
+
 ## 0.2.1 - 2025-08-14
 
 ### Fixed
