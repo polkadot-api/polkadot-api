@@ -15,6 +15,7 @@ import {
   Observable,
   share,
   shareReplay,
+  skip,
   tap,
   withLatestFrom,
 } from "rxjs"
@@ -142,7 +143,10 @@ export const getBlocks = ({
 
   const updates$ = merge(
     allHeads$.pipe(map((value) => ({ type: "new" as const, value }))),
-    finalized$.pipe(map((value) => ({ type: "fin" as const, value }))),
+    finalized$.pipe(
+      skip(1),
+      map((value) => ({ type: "fin" as const, value })),
+    ),
   ).pipe(
     mergeMap((x) => {
       if (finalized === "") return EMPTY
