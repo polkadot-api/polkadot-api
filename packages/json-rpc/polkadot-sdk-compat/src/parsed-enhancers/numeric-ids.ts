@@ -5,17 +5,19 @@ export const withNumericIds: ParsedJsonRpcEnhancer = (base) => (onMsg) => {
   const numberToOriginal = new Map<number, string>()
 
   const { send: originalSend, disconnect } = base((message: any) => {
-    if (numberToOriginal.has(message.id))
-      message.id = numberToOriginal.get(message.id)
+    const { id } = message
+    if (numberToOriginal.has(id)) {
+      message.id = numberToOriginal.get(id)
+      numberToOriginal.delete(id)
+    }
     onMsg(message)
   })
 
   return {
     send: (msg: { id?: any }) => {
       if ("id" in msg) {
-        const id = nextId++
-        numberToOriginal.set(id, msg.id)
-        msg.id = id
+        numberToOriginal.set(nextId, msg.id)
+        msg.id = nextId++
       }
       originalSend(msg)
     },

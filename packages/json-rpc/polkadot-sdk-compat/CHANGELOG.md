@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `withNumericIds` avoid small mem-leak
+
 ## 2.3.2 - 2025-02-26
 
 ### Fixed
