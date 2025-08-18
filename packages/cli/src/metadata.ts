@@ -189,7 +189,7 @@ const getMetadataFromWsURL = (wsURL: string, at?: string) =>
   firstValueFrom(
     merge(
       getMetadataCallWithError(withPolkadotSdkCompat(getWsProvider(wsURL)), at),
-      timer(5000).pipe(
+      timer(3_000).pipe(
         concatMap(() =>
           merge(
             ...[Blake2256, keccak_256].map((hasher) =>
