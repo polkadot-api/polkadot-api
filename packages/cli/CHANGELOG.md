@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Support websockets with legacy RPC endpoints.
+
 ## 0.14.8 - 2025-08-11
 
 ### Fixed
