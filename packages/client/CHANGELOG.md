@@ -7,6 +7,9 @@
 - Fixed small memory leak on new-blocks.
 - Fixed an issue that happened sometimes when recovering from a `stop` event, because the first block from the `initialized` event was always deemed as carrying a new runtime with it.
 
+- **CLI**
+  - Support WS with legacy RPCs.
+
 ## 1.16.1 - 2025-08-11
 
 ### Fixed

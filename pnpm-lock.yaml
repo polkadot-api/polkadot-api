@@ -278,6 +278,9 @@ importers:
       '@commander-js/extra-typings':
         specifier: ^14.0.0
         version: 14.0.0(commander@14.0.0)
+      '@noble/hashes':
+        specifier: ^1.8.0
+        version: 1.8.0
       '@polkadot-api/codegen':
         specifier: workspace:*
         version: link:../codegen
@@ -290,6 +293,9 @@ importers:
       '@polkadot-api/known-chains':
         specifier: workspace:*
         version: link:../known-chains
+      '@polkadot-api/legacy-provider':
+        specifier: workspace:*
+        version: link:../json-rpc/legacy-provider
       '@polkadot-api/metadata-compatibility':
         specifier: workspace:*
         version: link:../metadata-compatibility

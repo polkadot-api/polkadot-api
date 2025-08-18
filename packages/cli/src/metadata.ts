@@ -2,6 +2,7 @@ import { createClient } from "@polkadot-api/substrate-client"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
 import {
+  Blake2256,
   HexString,
   metadata,
   UnifiedMetadata,
@@ -12,13 +13,20 @@ import { getWsProvider } from "@polkadot-api/ws-provider/node"
 import { Worker } from "node:worker_threads"
 import { getObservableClient } from "@polkadot-api/observable-client"
 import {
+  catchError,
   combineLatest,
+  concatMap,
   filter,
   firstValueFrom,
   from,
   map,
+  merge,
+  mergeMap,
+  Observable,
   of,
   switchMap,
+  take,
+  timer,
 } from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
@@ -28,6 +36,8 @@ import { withPolkadotSdkCompat } from "@polkadot-api/polkadot-sdk-compat"
 import { startFromWorker } from "@polkadot-api/smoldot/from-node-worker"
 import { Client as SmoldotClient } from "@polkadot-api/smoldot"
 import { getSmProvider } from "@polkadot-api/sm-provider"
+import { withLegacy } from "@polkadot-api/legacy-provider"
+import { keccak_256 } from "@noble/hashes/sha3"
 
 const workerPath = fileURLToPath(
   import.meta.resolve("@polkadot-api/smoldot/node-worker"),
@@ -47,53 +57,69 @@ async function getSmoldotWorker() {
   return smoldotWorker
 }
 
-const getMetadataCall = async (provider: JsonRpcProvider, at?: string) => {
-  const substrateClient = createClient(provider)
-  const client = getObservableClient(substrateClient)
-  const { runtime$, unfollow, genesis$, getRuntime$ } = client.chainHead$()
-  const archive = client.archive(getRuntime$)
+type GetMetadataPayload = {
+  metadata: UnifiedMetadata
+  metadataRaw: Uint8Array
+  codeHash: string
+  genesis: string
+}
+const getMetadataCall = (provider: JsonRpcProvider, at?: string) =>
+  new Observable<GetMetadataPayload>((observer) => {
+    const substrateClient = createClient(provider)
+    const client = getObservableClient(substrateClient)
+    const { runtime$, unfollow, genesis$, getRuntime$ } = client.chainHead$()
+    const archive = client.archive(getRuntime$)
 
-  const getRuntimeCtx$ = () => {
-    if (!at) return runtime$.pipe(filter(Boolean))
-    // if it's a number
-    const hash$ =
-      at.length < 32 && /^\d+$/.test(at)
-        ? from(substrateClient.archive.hashByHeight(Number(at))).pipe(
-            map(([hash]) => {
-              if (!hash) {
-                throw new Error(`Can't find block number "${at}"`)
-              }
-              return hash
-            }),
-          )
-        : of(at)
-    return hash$.pipe(switchMap(archive.getRuntimeContext$))
-  }
+    const getRuntimeCtx$ = () => {
+      if (!at) return runtime$.pipe(filter(Boolean))
+      // if it's a number
+      const hash$ =
+        at.length < 32 && /^\d+$/.test(at)
+          ? from(substrateClient.archive.hashByHeight(Number(at))).pipe(
+              map(([hash]) => {
+                if (!hash) {
+                  throw new Error(`Can't find block number "${at}"`)
+                }
+                return hash
+              }),
+            )
+          : of(at)
+      return hash$.pipe(switchMap(archive.getRuntimeContext$))
+    }
 
-  const {
-    runtime: {
-      lookup: { metadata },
-      metadataRaw,
-      codeHash,
-    },
-    genesis,
-  } = await firstValueFrom(
-    combineLatest({
+    const subscription = combineLatest({
       runtime: getRuntimeCtx$(),
       genesis: genesis$,
-    }),
-  )
+    })
+      .pipe(
+        take(1),
+        map(
+          ({
+            runtime: {
+              lookup: { metadata },
+              metadataRaw,
+              codeHash,
+            },
+            genesis,
+          }) => ({
+            metadata,
+            metadataRaw,
+            codeHash,
+            genesis,
+          }),
+        ),
+      )
+      .subscribe(observer)
 
-  unfollow()
-  client.destroy()
+    subscription.add(() => {
+      try {
+        unfollow()
+        client.destroy()
+      } catch {}
+    })
 
-  return {
-    metadata,
-    metadataRaw,
-    codeHash,
-    genesis,
-  }
-}
+    return subscription
+  })
 
 const getChainSpecs = (
   chain: string,
@@ -139,7 +165,7 @@ const getMetadataFromSmoldot = async (chain: string) => {
         potentialRelayChains,
       }),
     )
-    return await getMetadataCall(provider)
+    return await firstValueFrom(getMetadataCall(provider))
   } finally {
     workerRefCount--
     if (workerRefCount === 0) {
@@ -151,8 +177,41 @@ const getMetadataFromSmoldot = async (chain: string) => {
   }
 }
 
-const getMetadataFromWsURL = async (wsURL: string, at?: string) =>
-  getMetadataCall(withPolkadotSdkCompat(getWsProvider(wsURL)), at)
+const getMetadataCallWithError = (
+  ...input: Parameters<typeof getMetadataCall>
+) =>
+  getMetadataCall(...input).pipe(
+    map((value) => ({ success: true as const, value })),
+    catchError((error) => of({ success: false as const, error })),
+  )
+
+const getMetadataFromWsURL = (wsURL: string, at?: string) =>
+  firstValueFrom(
+    merge(
+      getMetadataCallWithError(withPolkadotSdkCompat(getWsProvider(wsURL)), at),
+      timer(3_000).pipe(
+        concatMap(() =>
+          merge(
+            ...[Blake2256, keccak_256].map((hasher) =>
+              getMetadataCallWithError(
+                getWsProvider({
+                  endpoints: [wsURL],
+                  innerEnhancer: withLegacy(hasher),
+                }),
+                at,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ).pipe(
+      mergeMap((x, idx) => {
+        if (x.success) return [x.value]
+        if (idx < 2) return []
+        throw x.error
+      }),
+    ),
+  )
 
 export async function getMetadata({
   metadata: metadataFile,
