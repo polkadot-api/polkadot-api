@@ -1,16 +1,10 @@
 import { toHex } from "@polkadot-api/utils"
 import { createDecoder, type HexString } from "../codecs"
-import { type TrieNode, trieNodeDec } from "./node-decoder"
+import { trieNodeDec } from "./node-decoder"
 import { Blake2256 } from "@/hashes"
+import { type ProofTrieNode } from "./types"
 
-type Hasher = (input: Uint8Array) => Uint8Array
-
-export type ProofTrieNode = {
-  hash: HexString
-  parent?: HexString
-} & (TrieNode | { type: "Raw"; value: HexString })
-
-export const TrieNodeWithHash = (hasher: Hasher) =>
+export const TrieNodeWithHash = (hasher: (input: Uint8Array) => Uint8Array) =>
   createDecoder((input): ProofTrieNode => {
     const hash = toHex(hasher(new Uint8Array(input.buffer)))
     try {
