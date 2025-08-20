@@ -58,8 +58,8 @@ const getHeader = (
 
   let nNibles = firstByte & (0xff >> (8 - bitsLeft))
   if (nNibles === 2 ** bitsLeft - 1) {
-    const current = byte(bytes)
-    do nNibles += current
+    let current: number
+    do nNibles += current = byte(bytes)
     while (current === 255)
   }
 

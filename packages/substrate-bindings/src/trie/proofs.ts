@@ -55,10 +55,10 @@ export const validateProofs = <T extends HexString | Uint8Array>(
     }
 
     if (p.type === "BranchWithHash" || p.type === "LeafWithHash") {
-      const child = proofsRecord[p.value]
+      const childHash = p.value
+      const child = proofsRecord[childHash]
       if (!child) return
 
-      const childHash = p.value
       roots.delete(childHash)
       if (child.type !== "Raw") {
         Object.keys(child).forEach((k) => delete (child as any)[k])
