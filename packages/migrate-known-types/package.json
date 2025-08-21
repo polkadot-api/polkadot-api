@@ -29,6 +29,6 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^24.2.1"
+    "@types/node": "^24.3.0"
   }
 }
