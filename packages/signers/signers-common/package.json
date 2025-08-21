@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/signers-common",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
