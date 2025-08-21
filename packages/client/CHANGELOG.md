@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.16.2 - 2025-08-21
+
 ### Fixed
 
 - Fixed small memory leak on new-blocks.
