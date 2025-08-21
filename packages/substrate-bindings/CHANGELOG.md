@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Utils for dealing with the `trie`: `trieNodeDec` and `validateProofs`
+
 ## 0.15.1 - 2025-07-23
 
 ### Fixed
