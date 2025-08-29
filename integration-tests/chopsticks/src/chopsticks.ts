@@ -19,6 +19,7 @@ export const startChopsticks = async () => {
   const logStreamErr = createWriteStream("./chopsticks_err.log")
   const chopsticksProcess = spawn("pnpm", [
     "chopsticks",
+    `--block=0x446a006b992b7a760f718f0f7040aa94a10f8c329b46af7315ea7947fac2691e`,
     `--endpoint=${ENDPOINT}`,
     `--port=${PORT}`,
   ])
