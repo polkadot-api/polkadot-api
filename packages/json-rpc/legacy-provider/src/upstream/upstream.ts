@@ -5,6 +5,7 @@ import { createDescendantValues } from "./descendant-values"
 import { map, Observable } from "rxjs"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { withLatestFromBp } from "@/utils/with-latest-from-bp"
+import { createClosestDescendantMerkleValue } from "./proofs"
 
 export const createUpstream = (provider: JsonRpcProvider) => {
   const { request, disconnect } = createClient(provider)
@@ -77,10 +78,7 @@ export const createUpstream = (provider: JsonRpcProvider) => {
       ),
     )
 
-  const stgClosestDescendant = (_: string, __: string) =>
-    new Observable<string | null>((observer) =>
-      observer.error("not implemented"),
-    )
+  const stgClosestDescendant = createClosestDescendantMerkleValue(obsRequest)
 
   const [stgValue, stgHash] = ["state_getStorage", "state_getStorageHash"].map(
     (method) => (atBlock: string, key: string) =>
