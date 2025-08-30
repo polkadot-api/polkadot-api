@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid BlockNotPinned runtime error caused by the `initialized` event not mutating the `pinnedBlocks` Object.
+- Ensure that body requests recover from `OperationInacdessible` errors.
+
 ## 1.16.2 - 2025-08-21
 
 ### Fixed

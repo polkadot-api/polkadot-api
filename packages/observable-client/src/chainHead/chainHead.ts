@@ -38,6 +38,7 @@ import {
   getWithOptionalHash$,
   getWithRecovery,
   withLazyFollower,
+  withOperationInaccessibleRetry,
   withStopRecovery,
 } from "./enhancers"
 import { BlockNotPinnedError } from "./errors"
@@ -300,7 +301,10 @@ export const getChainHead$ = (
   )
 
   const _body$ = commonEnhancer(lazyFollower("body"), "body")
-  const body$ = (hash: string) => upsertCachedStream(hash, "body", _body$(hash))
+  const body$ = (hash: string) =>
+    withOperationInaccessibleRetry(
+      upsertCachedStream(hash, "body", _body$(hash)),
+    )
 
   const _storage$ = commonEnhancer(lazyFollower("storage"), "storage")
 
