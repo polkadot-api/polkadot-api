@@ -2,27 +2,14 @@ import {
   MonoTypeOperatorFunction,
   Observable,
   catchError,
-  concatMap,
   mergeMap,
   take,
   throwError,
-  timer,
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
-import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
+import { withOperationInaccessibleRetry } from "./operation-inaccessible-retry"
 
 const dynamicBlocks = new Set(["best", "finalized", null])
-
-const operable = <T>(source$: Observable<T>) => {
-  const result: Observable<T> = source$.pipe(
-    catchError((e) =>
-      e instanceof OperationInaccessibleError
-        ? timer(750).pipe(concatMap(() => result))
-        : throwError(() => e),
-    ),
-  )
-  return result
-}
 
 export const getWithOptionalHash$ = (
   finalized$: Observable<string>,
@@ -34,7 +21,7 @@ export const getWithOptionalHash$ = (
     ) =>
     (hash: string | null, ...args: Args) => {
       if (!dynamicBlocks.has(hash))
-        return operable(fn(hash as string, ...args)).pipe(
+        return withOperationInaccessibleRetry(fn(hash as string, ...args)).pipe(
           usingBlock(hash as string),
         )
 
@@ -48,6 +35,6 @@ export const getWithOptionalHash$ = (
             : throwError(() => e)
         }),
       )
-      return operable(result$)
+      return withOperationInaccessibleRetry(result$)
     }
 }
