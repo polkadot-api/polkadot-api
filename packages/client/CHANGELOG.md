@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid BlockNotPinned runtime error caused by the `initialized` event not mutating the `pinnedBlocks` Object.
+
 ## 1.16.2 - 2025-08-21
 
 ### Fixed

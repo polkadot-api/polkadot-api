@@ -116,7 +116,7 @@ export const getPinnedBlocks$ = (
             acc.recovering &&
             !event.finalizedBlockHashes.some((hash) => acc.blocks.has(hash))
           )
-            acc = getInitialPinnedBlocks()
+            acc = Object.assign(acc, getInitialPinnedBlocks())
 
           const latestFinalizedHeight =
             acc.blocks.get(acc.finalized)?.number ?? -1
