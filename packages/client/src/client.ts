@@ -355,8 +355,15 @@ export function createClient(
     (runtimeToken ??= createRuntimeToken(chainHead))
   const { broadcastTx$ } = client
 
+  const getMetadata$ = (at: HexString) =>
+    chainHead.getRuntimeContext$(at).pipe(map((ctx) => ctx.metadataRaw))
+
   return {
     getChainSpecData,
+
+    getMetadata$,
+    getMetadata: (atBlock: HexString, signal?: AbortSignal) =>
+      firstValueFromWithSignal(getMetadata$(atBlock), signal),
 
     blocks$: chainHead.newBlocks$,
     hodlBlock: (block: HexString) => chainHead.holdBlock(block, true),
