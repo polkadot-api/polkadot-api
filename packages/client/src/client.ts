@@ -358,7 +358,7 @@ export function createClient(
   const getMetadata$ = (at: HexString) =>
     chainHead.getRuntimeContext$(at).pipe(map((ctx) => ctx.metadataRaw))
 
-  return {
+  const result: PolkadotClient = {
     getChainSpecData,
 
     getMetadata$,
@@ -414,4 +414,8 @@ export function createClient(
 
     _request,
   }
+
+  ;(result as any).___INTERNAL_DO_NOT_USE = chainHead
+
+  return result
 }
