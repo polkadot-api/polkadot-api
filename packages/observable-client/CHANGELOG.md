@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Remove unnecessary cache
+
 ## 0.13.8 - 2025-09-01
 
 ### Fixed

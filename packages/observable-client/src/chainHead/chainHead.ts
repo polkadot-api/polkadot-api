@@ -79,7 +79,7 @@ export const getChainHead$ = (
   getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {
-  const { getFollower, startFollow, follow$, getHeader } = getFollow$(chainHead)
+  const { getFollower, unfollow, follow$, getHeader } = getFollow$(chainHead)
   const lazyFollower = withLazyFollower(getFollower)
   const { withRecovery, withRecoveryFn } = getWithRecovery()
 
@@ -411,23 +411,12 @@ export const getChainHead$ = (
     }),
     shareReplay(1),
   )
-
   // calling `unfollow` also kills the subscription due to the fact
   // that `follow$` completes, which makes all other streams to
   // also complete (or error, in the case of ongoing operations)
   merge(runtime$, bestBlocks$).subscribe({
     error() {},
   })
-
-  let unfollow = noop
-  let started: boolean | null = false
-  let nSubscribers: number = 0
-  const start = (_nSubscribers: number) => {
-    nSubscribers += _nSubscribers
-    started = true
-
-    unfollow = startFollow()
-  }
 
   const getRuntime$ = (codeHash: string): Observable<RuntimeContext | null> =>
     merge(
@@ -444,7 +433,7 @@ export const getChainHead$ = (
     let hash = blockHash || "finalized"
     hash = pinnedBlocks$.state[hash as "best" | "finalized"] || hash
 
-    if (!started || !pinnedBlocks$.state.blocks.has(hash)) {
+    if (!pinnedBlocks$.state.blocks.has(hash)) {
       if (shouldThrow) throw new BlockNotPinnedError(hash, "holdBlock")
       return noop
     }
@@ -481,45 +470,34 @@ export const getChainHead$ = (
         return subscription
       })
 
-  return [
-    {
-      follow$,
-      finalized$,
-      best$,
-      bestBlocks$,
-      newBlocks$,
-      runtime$,
-      metadata$,
-      genesis$,
-      getRuntime$,
+  return {
+    follow$,
+    unfollow,
+    finalized$,
+    best$,
+    bestBlocks$,
+    newBlocks$,
+    runtime$,
+    metadata$,
+    genesis$,
+    getRuntime$,
 
-      header$,
-      body$,
-      call$,
-      storage$,
-      storageQueries$,
-      eventsAt$,
+    header$,
+    body$,
+    call$,
+    storage$,
+    storageQueries$,
+    eventsAt$,
 
-      withHodl,
-      holdBlock,
-      trackTx$,
-      trackTxWithoutEvents$,
-      validateTx$,
-      pinnedBlocks$,
-      withRuntime,
-      getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
-      unfollow: () => {
-        if (started == null) return
-        nSubscribers--
-        if (started && !nSubscribers) {
-          started = null
-          unfollow()
-          unfollow = noop
-        }
-      },
-    },
-    start,
-  ] as const
+    withHodl,
+    holdBlock,
+    trackTx$,
+    trackTxWithoutEvents$,
+    validateTx$,
+    pinnedBlocks$,
+    withRuntime,
+    getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
+  }
 }
 
-export type ChainHead$ = ReturnType<typeof getChainHead$>[0]
+export type ChainHead$ = ReturnType<typeof getChainHead$>

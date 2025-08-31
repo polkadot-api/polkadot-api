@@ -30,34 +30,14 @@ export interface SubstrateClient {
   ) => UnsubscribeFn
 }
 
-const clientCache = new Map<
-  JsonRpcProvider,
-  { client: SubstrateClient; refCount: number }
->()
-
 export const createClient = (provider: JsonRpcProvider): SubstrateClient => {
-  const cached = clientCache.get(provider)
-  if (cached) {
-    cached.refCount++
-    return cached.client
-  }
-
   const { request, disconnect } = createRawClient(provider)
-  const destroy = () => {
-    const cached = clientCache.get(provider)
-    if (!cached || cached.refCount <= 1) {
-      clientCache.delete(provider)
-      disconnect()
-    } else {
-      cached.refCount--
-    }
-  }
-  const client: SubstrateClient = {
+  return {
     archive: getArchive(request),
     chainHead: getChainHead(request),
     transaction: getTransaction(request),
     getChainSpecData: createGetChainSpec(request),
-    destroy,
+    destroy: disconnect,
     request: abortablePromiseFn(
       <T>(
         onSuccess: (value: T) => void,
@@ -68,6 +48,4 @@ export const createClient = (provider: JsonRpcProvider): SubstrateClient => {
     ),
     _request: request,
   }
-  clientCache.set(provider, { client, refCount: 1 })
-  return client
 }

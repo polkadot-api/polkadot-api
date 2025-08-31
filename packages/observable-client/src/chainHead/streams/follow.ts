@@ -9,13 +9,7 @@ import {
   NewBlockWithRuntime,
   StopError,
 } from "@polkadot-api/substrate-client"
-import {
-  Observable,
-  ObservedValueOf,
-  Subscription,
-  connectable,
-  noop,
-} from "rxjs"
+import { Observable, ObservedValueOf, Subscription, noop, share } from "rxjs"
 
 type EnhancedFollowEventWithRuntime =
   | (Initialized & {
@@ -146,40 +140,34 @@ export const getFollow$ = (chainHead: ChainHead) => {
       null,
     ) as Promise<string>
 
-  const follow$ = connectable(
-    new Observable<FollowEventWithRuntime>((observer) => {
-      follower = chainHead(
-        true,
-        (e) => {
-          observer.next(e)
-        },
-        (e) => {
-          follower = null
-          observer.error(e)
-        },
-      )
-      unfollow = () => {
-        observer.complete()
-        follower?.unfollow()
-      }
-    }).pipe(
-      withInitializedNumber(getHeader, getCodeHash),
-      retryChainHeadError(),
-    ),
-  )
-
-  const startFollow = () => {
-    follow$.connect()
-    return () => {
-      unfollow()
+  const follow$ = new Observable<FollowEventWithRuntime>((observer) => {
+    follower = chainHead(
+      true,
+      (e) => {
+        observer.next(e)
+      },
+      (e) => {
+        follower = null
+        observer.error(e)
+      },
+    )
+    unfollow = () => {
+      observer.complete()
+      follower?.unfollow()
     }
-  }
+  }).pipe(
+    withInitializedNumber(getHeader, getCodeHash),
+    retryChainHeadError(),
+    share(),
+  )
 
   return {
     getHeader,
     getFollower,
-    startFollow,
     follow$,
+    unfollow: () => {
+      unfollow()
+    },
   }
 }
 
