@@ -99,6 +99,8 @@ export const getPinnedBlocks$ = (
       }),
     ),
   )
+
+  const state: PinnedBlocks = getInitialPinnedBlocks()
   const pinnedBlocks$: Observable<PinnedBlocks> = merge(
     blockUsage$,
     cleanupEvt$,
@@ -270,7 +272,7 @@ export const getPinnedBlocks$ = (
           return acc
         }
       }
-    }, getInitialPinnedBlocks()),
+    }, state),
     filter((x) => !!x.finalizedRuntime.runtime),
     map((x) => ({ ...x })),
     tap({
@@ -280,14 +282,13 @@ export const getPinnedBlocks$ = (
     }),
     shareLatest,
   )
-
   const getRuntime = getRuntimeCreator(
     withStopRecovery(pinnedBlocks$, call$, "pinned-blocks"),
     withStopRecovery(pinnedBlocks$, getCodeHash$, "pinned-blocks"),
     getCachedMetadata$,
     setCachedMetadata,
   )
-  return pinnedBlocks$
+  return Object.assign(pinnedBlocks$, { state })
 }
 
 const getInitialPinnedBlocks = (): PinnedBlocks => ({

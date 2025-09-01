@@ -114,16 +114,11 @@ export const getChainHead$ = (
       label: string,
     ): ((hash: string, ...args: A) => Observable<T>) =>
     (hash, ...args) =>
-      new Observable((observer) => {
-        let isPresent = false
-        pinnedBlocks$.pipe(take(1)).subscribe((blocks) => {
-          isPresent = blocks.blocks.has(hash)
-        })
-
-        return isPresent
+      new Observable((observer) =>
+        pinnedBlocks$.state.blocks.has(hash)
           ? fn(hash, ...args).subscribe(observer)
-          : observer.error(new BlockNotPinnedError(hash, label))
-      })
+          : observer.error(new BlockNotPinnedError(hash, label)),
+      )
 
   const unpin = (hashes: string[]) =>
     getFollower()
@@ -183,13 +178,11 @@ export const getChainHead$ = (
   )
 
   const getRuntimeContext$ = withInMemory(
-    withRefcount((hash: string) =>
-      pinnedBlocks$.pipe(
-        take(1),
-        mergeMap(
-          (pinned) => pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
-        ),
-      ),
+    withRefcount(
+      (hash: string) =>
+        pinnedBlocks$.state.runtimes[
+          pinnedBlocks$.state.blocks.get(hash)!.runtime
+        ].runtime,
     ),
     "getRuntimeCtx",
   )
@@ -324,12 +317,9 @@ export const getChainHead$ = (
       ): Observable<
         undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
       > =>
-        pinnedBlocks$.pipe(
-          take(1),
-          mergeMap(
-            (pinned) =>
-              pinned.runtimes[pinned.blocks.get(hash)!.runtime].runtime,
-          ),
+        pinnedBlocks$.state.runtimes[
+          pinnedBlocks$.state.blocks.get(hash)!.runtime
+        ].runtime.pipe(
           mergeMap((ctx) => {
             const key = keyMapper(ctx)
             return upsertCachedStream(
@@ -440,31 +430,21 @@ export const getChainHead$ = (
   }
 
   const getRuntime$ = (codeHash: string): Observable<RuntimeContext | null> =>
-    pinnedBlocks$.pipe(
-      take(1),
-      mergeMap(({ runtimes }) =>
-        merge(
-          ...Object.values(runtimes).map((runtime) =>
-            runtime.codeHash$.pipe(
-              mergeMap((_codehash) =>
-                codeHash === _codehash ? runtime.runtime : EMPTY,
-              ),
-            ),
+    merge(
+      ...Object.values(pinnedBlocks$.state.runtimes).map((runtime) =>
+        runtime.codeHash$.pipe(
+          mergeMap((_codehash) =>
+            codeHash === _codehash ? runtime.runtime : EMPTY,
           ),
-        ).pipe(endWith(null), take(1)),
+        ),
       ),
-    )
+    ).pipe(endWith(null), take(1))
 
   const holdBlock = (blockHash: string | null, shouldThrow = false) => {
     let hash = blockHash || "finalized"
-    let isPresent = false
-    started &&
-      pinnedBlocks$.pipe(take(1)).subscribe((blocks) => {
-        hash = blocks[hash as "best" | "finalized"] || hash
-        isPresent = blocks.blocks.has(hash)
-      })
+    hash = pinnedBlocks$.state[hash as "best" | "finalized"] || hash
 
-    if (!isPresent) {
+    if (!started || !pinnedBlocks$.state.blocks.has(hash)) {
       if (shouldThrow) throw new BlockNotPinnedError(hash, "holdBlock")
       return noop
     }
