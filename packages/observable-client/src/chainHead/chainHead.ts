@@ -28,6 +28,7 @@ import {
   shareReplay,
   switchMap,
   take,
+  takeWhile,
   tap,
 } from "rxjs"
 
@@ -50,7 +51,7 @@ import type {
   RuntimeContext,
   SystemEvent,
 } from "./streams"
-import { getFollow$, getPinnedBlocks$ } from "./streams"
+import { getFollow$, getPinnedBlocks$, toBlockInfo } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
 
@@ -66,13 +67,8 @@ export type BlockInfo = {
   hash: string
   number: number
   parent: string
+  hasNewRuntime: boolean
 }
-
-const toBlockInfo = ({ hash, number, parent }: PinnedBlock): BlockInfo => ({
-  hash,
-  number,
-  parent,
-})
 
 export const getChainHead$ = (
   chainHead: ChainHead,
@@ -155,7 +151,7 @@ export const getChainHead$ = (
     // ":code" => "0x3a636f6465"
     stg(blockHash, "hash", "0x3a636f6465", null).pipe(map((x) => x!))
 
-  const newBlocks$ = new Subject<BlockInfo>()
+  const newBlocks$ = new Subject<BlockInfo | null>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
@@ -476,7 +472,7 @@ export const getChainHead$ = (
     finalized$,
     best$,
     bestBlocks$,
-    newBlocks$,
+    newBlocks$: newBlocks$.pipe(takeWhile(Boolean)),
     runtime$,
     metadata$,
     genesis$,

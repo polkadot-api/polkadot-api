@@ -26,6 +26,7 @@ export interface PinnedBlock {
   unpinnable: boolean
   refCount: number
   recovering: boolean
+  hasNewRuntime: boolean
 }
 
 export interface BlockUsageEvent {
@@ -44,6 +45,18 @@ export type PinnedBlocks = {
   finalizedRuntime: Runtime
   recovering: boolean
 }
+
+export const toBlockInfo = ({
+  hash,
+  number,
+  parent,
+  hasNewRuntime,
+}: PinnedBlock): BlockInfo => ({
+  hash,
+  number,
+  parent,
+  hasNewRuntime,
+})
 
 const createRuntimeGetter = (pinned: PinnedBlocks, startAt: HexString) => {
   return () => {
@@ -83,12 +96,12 @@ export const getPinnedBlocks$ = (
   getCachedMetadata$: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
   blockUsage$: Subject<BlockUsageEvent>,
-  newBlocks: Observer<BlockInfo>,
+  newBlocks$: Observer<BlockInfo | null>,
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
 ) => {
-  const onNewBlock = (block: BlockInfo) => {
-    newBlocks.next(block)
+  const onNewBlock = (block: PinnedBlock) => {
+    newBlocks$.next(toBlockInfo(block))
   }
   const cleanup$ = new Subject<void>()
   const cleanupEvt$ = cleanup$.pipe(
@@ -117,8 +130,10 @@ export const getPinnedBlocks$ = (
           if (
             acc.recovering &&
             !event.finalizedBlockHashes.some((hash) => acc.blocks.has(hash))
-          )
+          ) {
             acc = Object.assign(acc, getInitialPinnedBlocks())
+            newBlocks$.next(null)
+          }
 
           const latestFinalizedHeight =
             acc.blocks.get(acc.finalized)?.number ?? -1
@@ -127,7 +142,7 @@ export const getPinnedBlocks$ = (
           acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
           let latestRuntime = acc.finalizedRuntime.at
 
-          const newBlocks: Array<BlockInfo> = []
+          const newBlocks: Array<PinnedBlock> = []
           event.finalizedBlockHashes.forEach((hash, i) => {
             const unpinnable = i !== lastIdx
             const preexistingBlock = acc.blocks.get(hash)
@@ -138,14 +153,17 @@ export const getPinnedBlocks$ = (
             } else {
               const number = event.number + i
               const isNew = number > latestFinalizedHeight
-              const isNewRuntime =
+              const requiresFromNewRuntime =
                 event.runtimeChanges.has(hash) && !acc.runtimes[hash] && isNew
-              if (isNewRuntime) latestRuntime = hash
+              if (requiresFromNewRuntime) latestRuntime = hash
               const parent =
                 i === 0 ? event.parentHash : event.finalizedBlockHashes[i - 1]
 
-              acc.blocks.set(hash, {
+              const block = {
                 hash: hash,
+                hasNewRuntime: i
+                  ? event.runtimeChanges.has(hash)
+                  : event.hasNewRuntime,
                 parent,
                 children: new Set(
                   i === lastIdx ? [] : [event.finalizedBlockHashes[i + 1]],
@@ -155,14 +173,15 @@ export const getPinnedBlocks$ = (
                 refCount: 0,
                 number,
                 recovering: false,
-              })
+              }
+              acc.blocks.set(hash, block)
               // it must happen after setting the block
-              if (isNewRuntime)
+              if (requiresFromNewRuntime)
                 acc.finalizedRuntime = acc.runtimes[hash] = getRuntime(
                   createRuntimeGetter(acc, hash),
                 )
               acc.runtimes[latestRuntime].usages.add(hash)
-              if (isNew) newBlocks.push({ hash, number, parent })
+              if (isNew) newBlocks.push(block)
             }
           })
           newBlocks.forEach(onNewBlock)
@@ -193,6 +212,7 @@ export const getPinnedBlocks$ = (
               unpinnable: false,
               refCount: 0,
               recovering: false,
+              hasNewRuntime: !!event.newRuntime,
             }
             acc.blocks.set(hash, block)
             if (event.newRuntime) {
@@ -202,7 +222,7 @@ export const getPinnedBlocks$ = (
             }
 
             acc.runtimes[block.runtime].addBlock(hash)
-            onNewBlock({ hash, number, parent })
+            onNewBlock(block)
           }
 
           return acc
@@ -277,7 +297,7 @@ export const getPinnedBlocks$ = (
     map((x) => ({ ...x })),
     tap({
       error(e) {
-        newBlocks.error(e)
+        newBlocks$.error(e)
       },
     }),
     shareLatest,

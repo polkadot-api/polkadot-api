@@ -49,6 +49,7 @@ describe("observableClient chainHead", () => {
         hash: initialized.finalizedBlockHashes[0],
         number: header.number,
         parent: header.parentHash,
+        hasNewRuntime: false,
       } satisfies BlockInfo)
       expect(error).not.toHaveBeenCalled()
       expect(complete).not.toHaveBeenCalled()
@@ -78,6 +79,7 @@ describe("observableClient chainHead", () => {
         hash: newBlock.blockHash,
         number: initialNumber + 1,
         parent: newBlock.parentBlockHash,
+        hasNewRuntime: false,
       } satisfies BlockInfo)
       expect(error).not.toHaveBeenCalled()
       expect(complete).not.toHaveBeenCalled()
@@ -109,6 +111,7 @@ describe("observableClient chainHead", () => {
         hash: newBlock.blockHash,
         number: initialNumber + 1,
         parent: newBlock.parentBlockHash,
+        hasNewRuntime: false,
       } satisfies BlockInfo)
       expect(error).not.toHaveBeenCalled()
       expect(complete).not.toHaveBeenCalled()

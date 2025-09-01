@@ -16,6 +16,7 @@ type EnhancedFollowEventWithRuntime =
       number: number
       parentHash: string
       runtimeChanges: Set<string>
+      hasNewRuntime: boolean
     })
   | NewBlockWithRuntime
   | BestBlockChanged
@@ -96,6 +97,9 @@ const withInitializedNumber = (
                     runtimeChanges: new Set(changes),
                     number: header.number,
                     parentHash: header.parentHash,
+                    hasNewRuntime: header.digests.some(
+                      (d) => d.type === "runtimeUpdated",
+                    ),
                   })
                   pending!.forEach((e) => {
                     observer.next(e)

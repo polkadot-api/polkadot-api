@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- `BlockInfo` now exposes `hasNewRuntime` property.
+
 ### Fixed
 
 - Remove unnecessary cache
+- `newBlocks$` completes when there is no block continuity.
 
 ## 0.13.8 - 2025-09-01
 
