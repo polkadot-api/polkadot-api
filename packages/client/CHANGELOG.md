@@ -2,12 +2,18 @@
 
 ## Unreleased
 
+## 1.16.4 - 2025-09-01
+
+### Fixed
+
+- Fix internal concurrency issues.
+
 ## 1.16.3 - 2025-08-31
 
 ### Fixed
 
 - Avoid BlockNotPinned runtime error caused by the `initialized` event not mutating the `pinnedBlocks` Object.
-- Ensure that body requests recover from `OperationInacdessible` errors.
+- Ensure that body requests recover from `OperationInaccessible` errors.
 - **Chains:**:
   - Update `lightSyncState`
 
