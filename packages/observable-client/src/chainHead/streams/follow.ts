@@ -9,19 +9,14 @@ import {
   NewBlockWithRuntime,
   StopError,
 } from "@polkadot-api/substrate-client"
-import {
-  Observable,
-  ObservedValueOf,
-  Subscription,
-  connectable,
-  noop,
-} from "rxjs"
+import { Observable, ObservedValueOf, Subscription, noop, share } from "rxjs"
 
 type EnhancedFollowEventWithRuntime =
   | (Initialized & {
       number: number
       parentHash: string
       runtimeChanges: Set<string>
+      hasNewRuntime: boolean
     })
   | NewBlockWithRuntime
   | BestBlockChanged
@@ -102,6 +97,9 @@ const withInitializedNumber = (
                     runtimeChanges: new Set(changes),
                     number: header.number,
                     parentHash: header.parentHash,
+                    hasNewRuntime: header.digests.some(
+                      (d) => d.type === "runtimeUpdated",
+                    ),
                   })
                   pending!.forEach((e) => {
                     observer.next(e)
@@ -146,40 +144,34 @@ export const getFollow$ = (chainHead: ChainHead) => {
       null,
     ) as Promise<string>
 
-  const follow$ = connectable(
-    new Observable<FollowEventWithRuntime>((observer) => {
-      follower = chainHead(
-        true,
-        (e) => {
-          observer.next(e)
-        },
-        (e) => {
-          follower = null
-          observer.error(e)
-        },
-      )
-      unfollow = () => {
-        observer.complete()
-        follower?.unfollow()
-      }
-    }).pipe(
-      withInitializedNumber(getHeader, getCodeHash),
-      retryChainHeadError(),
-    ),
-  )
-
-  const startFollow = () => {
-    follow$.connect()
-    return () => {
-      unfollow()
+  const follow$ = new Observable<FollowEventWithRuntime>((observer) => {
+    follower = chainHead(
+      true,
+      (e) => {
+        observer.next(e)
+      },
+      (e) => {
+        follower = null
+        observer.error(e)
+      },
+    )
+    unfollow = () => {
+      observer.complete()
+      follower?.unfollow()
     }
-  }
+  }).pipe(
+    withInitializedNumber(getHeader, getCodeHash),
+    retryChainHeadError(),
+    share(),
+  )
 
   return {
     getHeader,
     getFollower,
-    startFollow,
     follow$,
+    unfollow: () => {
+      unfollow()
+    },
   }
 }
 

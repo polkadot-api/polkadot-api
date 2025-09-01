@@ -355,8 +355,15 @@ export function createClient(
     (runtimeToken ??= createRuntimeToken(chainHead))
   const { broadcastTx$ } = client
 
-  return {
+  const getMetadata$ = (at: HexString) =>
+    chainHead.getRuntimeContext$(at).pipe(map((ctx) => ctx.metadataRaw))
+
+  const result: PolkadotClient = {
     getChainSpecData,
+
+    getMetadata$,
+    getMetadata: (atBlock: HexString, signal?: AbortSignal) =>
+      firstValueFromWithSignal(getMetadata$(atBlock), signal),
 
     blocks$: chainHead.newBlocks$,
     hodlBlock: (block: HexString) => chainHead.holdBlock(block, true),
@@ -407,4 +414,8 @@ export function createClient(
 
     _request,
   }
+
+  ;(result as any).___INTERNAL_DO_NOT_USE = chainHead
+
+  return result
 }

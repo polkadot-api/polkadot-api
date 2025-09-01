@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+- `getMetadata$` and `getMetadata` client APIs to facilitate the retrieval of the most modern stable version of the metadata.
+- `BlockInfo` now exposes `hasNewRuntime` property.
+
+### Fixed
+
+- `blocks$` completes when there is no block continuity.
+
 ## 1.16.4 - 2025-09-01
 
 ### Fixed
