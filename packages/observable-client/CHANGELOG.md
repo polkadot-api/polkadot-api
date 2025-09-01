@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix `pinnedBlocks` race-conditions triggered by synchronously reading its state via subscriptions.
+
 ## 0.13.7 - 2025-08-31
 
 ### Fixed
