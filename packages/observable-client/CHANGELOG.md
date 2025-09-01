@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- hodlBlock waits until pinned-blocks emit
+
 ## 0.13.7 - 2025-08-31
 
 ### Fixed

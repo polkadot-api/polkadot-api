@@ -456,39 +456,46 @@ export const getChainHead$ = (
     )
 
   const holdBlock = (blockHash: string | null, shouldThrow = false) => {
-    let hash = blockHash || "finalized"
-    let isPresent = false
+    blockHash ??= "finalized"
+
+    let tearDown = noop
+    const ready = new Subject<void>()
     started &&
       pinnedBlocks$.pipe(take(1)).subscribe((blocks) => {
-        hash = blocks[hash as "best" | "finalized"] || hash
-        isPresent = blocks.blocks.has(hash)
+        const hash = blocks[blockHash as "best" | "finalized"] || blockHash
+        const isPresent = blocks.blocks.has(hash)
+
+        if (!isPresent) {
+          if (shouldThrow) throw new BlockNotPinnedError(hash, "holdBlock")
+          ready.complete()
+          return
+        }
+        blockUsage$.next({
+          type: "blockUsage",
+          value: {
+            type: "hold",
+            hash,
+          },
+        })
+        tearDown = () => {
+          blockUsage$.next({
+            type: "blockUsage",
+            value: {
+              type: "release",
+              hash,
+            },
+          })
+          tearDown = noop
+        }
+        ready.complete()
       })
 
-    if (!isPresent) {
-      if (shouldThrow) throw new BlockNotPinnedError(hash, "holdBlock")
-      return noop
-    }
-
-    blockUsage$.next({
-      type: "blockUsage",
-      value: {
-        type: "hold",
-        hash,
-      },
-    })
-
-    let tearDown = () => {
-      blockUsage$.next({
-        type: "blockUsage",
-        value: {
-          type: "release",
-          hash,
+    return () => {
+      ready.subscribe({
+        complete() {
+          tearDown()
         },
       })
-      tearDown = noop
-    }
-    return () => {
-      tearDown()
     }
   }
 
