@@ -2,7 +2,7 @@ import { fc, test } from "@fast-check/vitest"
 import { expect } from "vitest"
 import { mergeUint8 } from "@polkadot-api/utils"
 import { Blake2128, Blake2256, Blake2128Concat } from "@/hashes/blake2"
-import { blake2b } from "@noble/hashes/blake2b"
+import { blake2b } from "@noble/hashes/blake2.js"
 
 test.prop([fc.uint8Array()])("Blake2256", (input) => {
   expect(Blake2256(input)).toStrictEqual(blake2b(input, { dkLen: 32 }))

@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
-    "@noble/hashes": "^1.8.0",
+    "@noble/hashes": "^2.0.0",
     "@polkadot-api/codegen": "workspace:*",
     "@polkadot-api/ink-contracts": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",

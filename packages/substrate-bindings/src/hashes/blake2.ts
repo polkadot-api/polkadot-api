@@ -1,5 +1,5 @@
 import { mergeUint8 } from "@polkadot-api/utils"
-import { blake2b } from "@noble/hashes/blake2b"
+import { blake2b } from "@noble/hashes/blake2.js"
 
 const len32 = { dkLen: 32 }
 export const Blake2256 = (encoded: Uint8Array) => blake2b(encoded, len32)

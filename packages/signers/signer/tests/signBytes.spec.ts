@@ -1,7 +1,7 @@
 import { expect, describe, it } from "vitest"
 import { getPolkadotSigner } from "@/from-raw-signer"
 import { fromHex, toHex } from "@polkadot-api/utils"
-import { ed25519 } from "@noble/curves/ed25519"
+import { ed25519 } from "@noble/curves/ed25519.js"
 import { Binary } from "@polkadot-api/substrate-bindings"
 
 const aliceEd25519PrivKey = fromHex(

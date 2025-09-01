@@ -5,8 +5,8 @@ import { Binary, createClient } from "polkadot-api"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { myth } from "@polkadot-api/descriptors"
-import { secp256k1 } from "@noble/curves/secp256k1"
-import { keccak_256 } from "@noble/hashes/sha3"
+import { secp256k1 } from "@noble/curves/secp256k1.js"
+import { keccak_256 } from "@noble/hashes/sha3.js"
 
 function getEvmPolkadotSigner(mnemonic: string): PolkadotSigner {
   const seed = mnemonicToSeedSync(mnemonic, "")
@@ -16,13 +16,11 @@ function getEvmPolkadotSigner(mnemonic: string): PolkadotSigner {
   ).slice(-20)
 
   const sign = (data: Uint8Array) => {
-    const signature = secp256k1.sign(keccak_256(data), keyPair.privateKey!)
-    const signedBytes = signature.toCompactRawBytes()
-    const len = signedBytes.length
-    const result = new Uint8Array(len + 1)
-    result.set(signedBytes)
-    result[len] = signature.recovery
-    return result
+    const signature = secp256k1.sign(keccak_256(data), keyPair.privateKey!, {
+      prehash: false,
+      format: "recovered",
+    })
+    return Uint8Array.from([...signature.slice(1), signature[0]])
   }
 
   return getPolkadotSigner(publicAddress, "Ecdsa", sign)

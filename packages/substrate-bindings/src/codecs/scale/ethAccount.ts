@@ -1,10 +1,10 @@
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { Bytes, createCodec, createDecoder } from "scale-ts"
-import { keccak_256 as keccak } from "@noble/hashes/sha3"
+import { keccak_256 as keccak } from "@noble/hashes/sha3.js"
 
 const getFormattedAddress = (hexAddress: string) => {
   const nonChecksum = hexAddress.slice(2)
-  const hashedAddress = toHex(keccak(nonChecksum)).slice(2)
+  const hashedAddress = toHex(keccak(fromHex(hexAddress))).slice(2)
 
   const result = new Array(40)
 
