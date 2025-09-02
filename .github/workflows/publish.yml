@@ -6,23 +6,30 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - "22"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-20.x-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-20.x-turbo-
-      - uses: pnpm/action-setup@v3
-      - name: Setup Node.js 20.x
+            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
@@ -42,8 +49,13 @@ jobs:
   publish:
     needs: [build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       matrix:
+        node-version:
+          - "22"
         value:
           [
             cli,
@@ -80,27 +92,27 @@ jobs:
             view-builder,
           ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check if version has been updated
         id: check
-        uses: EndBug/version-check@v2
+        uses: EndBug/version-check@d17247dd94ca7b39d0b0691399be8d7c510622c9
         with:
           diff-search: true
           file-name: ./packages/${{ matrix.value }}/package.json
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         if: steps.check.outputs.changed == 'true'
         with:
           path: .turbo
-          key: ${{ runner.os }}-20.x-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-20.x-turbo-
-      - uses: pnpm/action-setup@v3
+            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
+      - uses: pnpm/action-setup@v4
         if: steps.check.outputs.changed == 'true'
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js ${{ matrix.node-version }}
         if: steps.check.outputs.changed == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
@@ -116,3 +128,4 @@ jobs:
           pnpm publish --no-git-checks --access=public --tag latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"

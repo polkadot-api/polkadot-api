@@ -7,10 +7,15 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
       matrix:
+        node-version:
+          - "22"
         version:
           - polkadot-v1.1.0
           - polkadot-stable2407-5
@@ -22,19 +27,19 @@ jobs:
           - sm
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-20.x-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-20.x-turbo-
-      - uses: pnpm/action-setup@v3
-      - name: Setup Node.js 20
+            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "pnpm"
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
       - name: Install deps
         run: pnpm install
       - name: Build core
