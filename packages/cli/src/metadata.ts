@@ -37,7 +37,7 @@ import { startFromWorker } from "@polkadot-api/smoldot/from-node-worker"
 import { Client as SmoldotClient } from "@polkadot-api/smoldot"
 import { getSmProvider } from "@polkadot-api/sm-provider"
 import { withLegacy } from "@polkadot-api/legacy-provider"
-import { keccak_256 } from "@noble/hashes/sha3"
+import { keccak_256 } from "@noble/hashes/sha3.js"
 
 const workerPath = fileURLToPath(
   import.meta.resolve("@polkadot-api/smoldot/node-worker"),

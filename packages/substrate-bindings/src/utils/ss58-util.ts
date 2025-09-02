@@ -1,5 +1,5 @@
 import { base58 } from "@scure/base"
-import { blake2b } from "@noble/hashes/blake2b"
+import { blake2b } from "@noble/hashes/blake2.js"
 
 const SS58_PREFIX = new TextEncoder().encode("SS58PRE")
 const CHECKSUM_LENGTH = 2

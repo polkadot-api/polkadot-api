@@ -11,7 +11,7 @@
     "e2e": "papi update && vitest run --test-timeout=300000 --bail=1"
   },
   "dependencies": {
-    "@noble/curves": "^1.9.7",
+    "@noble/curves": "^2.0.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/legacy-provider": "workspace:*",

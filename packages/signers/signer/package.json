@@ -43,7 +43,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@noble/hashes": "^1.8.0",
+    "@noble/hashes": "^2.0.0",
     "@polkadot-api/merkleize-metadata": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
@@ -51,6 +51,6 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^1.9.7"
+    "@noble/curves": "^2.0.0"
   }
 }

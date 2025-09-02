@@ -9,6 +9,7 @@
 
 ### Fixed
 
+- Update to @noble v2 libraries. This bumps the NodeJS required version to 20.19
 - `blocks$` completes when there is no block continuity.
 
 ## 1.16.4 - 2025-09-01

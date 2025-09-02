@@ -3,8 +3,8 @@ import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { Blake2256 } from "@polkadot-api/substrate-bindings"
 import Sr25519Account from "@unique-nft/sr25519"
-import { ed25519 } from "@noble/curves/ed25519"
-import { secp256k1 } from "@noble/curves/secp256k1"
+import { ed25519 } from "@noble/curves/ed25519.js"
+import { secp256k1 } from "@noble/curves/secp256k1.js"
 
 const accounts: Record<
   "alice" | "bob",
@@ -38,14 +38,13 @@ const bobEd25519PrivKey = fromHex(
 })
 
 const signEcdsa = (value: Uint8Array, priv: Uint8Array) => {
-  const signature = secp256k1.sign(Blake2256(value), priv)
-  const signedBytes = signature.toCompactRawBytes()
+  const signature = secp256k1.sign(Blake2256(value), priv, {
+    prehash: false,
+    format: "recovered",
+  })
 
-  const result = new Uint8Array(signedBytes.length + 1)
-  result.set(signedBytes)
-  result[signedBytes.length] = signature.recovery
-
-  return result
+  // signature comes as `vrs`, we need `rsv`
+  return Uint8Array.from([...signature.slice(1), signature[0]])
 }
 
 const aliceSecp256PrivKey = fromHex(
