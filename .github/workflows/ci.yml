@@ -44,3 +44,11 @@ jobs:
         run: pnpm test
       - name: Run Integration Tests
         run: pnpm test:ci
+
+  # this allows our branch protection mechanism to work with matrix-based runs
+  build-status:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always()
+    steps:
+      - run: ${{!contains(needs.*.result, 'failure')}}
