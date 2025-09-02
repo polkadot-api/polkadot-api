@@ -7,7 +7,6 @@ import {
   lastValueFrom,
   map,
   mergeMap,
-  NEVER,
   switchMap,
   take,
   tap,
@@ -149,24 +148,27 @@ describe("E2E", async () => {
   const api = client.getTypedApi(roc)
   const firstBlock = client.getFinalizedBlock()
 
-  it("does not throw BlockNotPinnedError on initial blocks", async () => {
-    await lastValueFrom(
-      client.blocks$.pipe(
-        take(3),
-        mergeMap(async (block) =>
-          api.query.System.Events.getValue({ at: block.hash }),
+  it.concurrent(
+    "does not throw BlockNotPinnedError on initial blocks",
+    async () => {
+      await lastValueFrom(
+        client.blocks$.pipe(
+          take(3),
+          mergeMap(async (block) =>
+            api.query.System.Events.getValue({ at: block.hash }),
+          ),
         ),
-      ),
-    )
+      )
 
-    expect(true).toBe(true)
-  })
+      expect(true).toBe(true)
+    },
+  )
 
   console.log("waiting for compatibility token")
   const token = await api.compatibilityToken
   console.log("got the compatibility token")
 
-  it("unsafe API", async () => {
+  it.concurrent("unsafe API", async () => {
     const unsafe = client.getUnsafeApi<typeof roc>()
     expect(unsafe.runtimeToken).toBeDefined()
     const unsTok = await unsafe.runtimeToken
@@ -176,15 +178,7 @@ describe("E2E", async () => {
     expect(unsafe.constants.Balances.ExistentialDeposit(unsTok)).toEqual(ED)
   })
 
-  it("evaluates constant values", () => {
-    const ss58Prefix = api.constants.System.SS58Prefix(token)
-    expect(ss58Prefix).toEqual(42)
-
-    const ed = api.constants.Balances.ExistentialDeposit(token)
-    expect(ed).toEqual(ED)
-  })
-
-  it("reads from storage", async () => {
+  it.concurrent("reads from storage", async () => {
     const finalized = await firstValueFrom(client.finalizedBlock$)
     const number = await api.query.System.Number.getValue({
       at: finalized.hash,
@@ -193,7 +187,66 @@ describe("E2E", async () => {
     expect(number).toEqual(finalized.number)
   })
 
-  it("sr25519 transactions", async () => {
+  it.concurrent("queries opaque storage entries", async () => {
+    // some old polkadot-sdk versions don't include this pallet
+    // ensure that some version tested include it
+    if (
+      !api.query.CoretimeAssignmentProvider.CoreDescriptors.isCompatible(
+        CompatibilityLevel.Partial,
+        token,
+      )
+    ) {
+      return
+    }
+
+    const entries =
+      await api.query.CoretimeAssignmentProvider.CoreDescriptors.getEntries()
+
+    expect(entries.every((x) => !!fromHex(x.keyArgs[0]))).toBe(true)
+  })
+
+  it.concurrent("runtime call with extrinsic as input", async () => {
+    const tx = api.tx.System.remark({
+      remark: Binary.fromHex("hello world!"),
+    })
+    const binaryExtrinsic = Binary.fromOpaqueHex(
+      await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
+    )
+
+    const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
+      api.apis.TransactionPaymentApi.query_info(
+        binaryExtrinsic,
+        binaryExtrinsic.asOpaqueBytes().length,
+      ),
+      tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey),
+    ])
+
+    expect(manualFee).toEqual(estimatedFee)
+  })
+
+  it.concurrent("evaluates constant values", () => {
+    const ss58Prefix = api.constants.System.SS58Prefix(token)
+    expect(ss58Prefix).toEqual(42)
+
+    const ed = api.constants.Balances.ExistentialDeposit(token)
+    expect(ed).toEqual(ED)
+  })
+
+  it.concurrent("generates correct storage keys", () => {
+    expect(api.query.System.Account.getKey(token)).toEqual(
+      "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9",
+    )
+    expect(
+      api.query.System.Account.getKey(
+        "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
+        token,
+      ),
+    ).toEqual(
+      "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da91cdb29d91f7665b36dc5ec5903de32467628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
+    )
+  })
+
+  it.concurrent("sr25519 transactions", async () => {
     const amount = ED * 10n
     const targets = Object.values(accounts)
       .map((account) =>
@@ -252,17 +305,15 @@ describe("E2E", async () => {
       Number(bobActualFee / FEE_VARIATION_TOLERANCE),
     )
 
-    const [alicePostNonce, bobPostNonce] = await Promise.all(
-      [alice, bob].map((who) =>
-        api.apis.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
-      ),
-    )
-
-    const targetsPostFreeBalances = await Promise.all(
-      targets.map((target) =>
-        api.query.System.Account.getValue(target).then((x) => x.data.free),
-      ),
-    )
+    const [alicePostNonce, bobPostNonce, ...targetsPostFreeBalances] =
+      await Promise.all([
+        ...[alice, bob].map((who) =>
+          api.apis.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
+        ),
+        ...targets.map((target) =>
+          api.query.System.Account.getValue(target).then((x) => x.data.free),
+        ),
+      ])
 
     expect(targetsPostFreeBalances).toEqual(
       targetsInitialFreeBalances.map((x) => x + amount),
@@ -276,7 +327,7 @@ describe("E2E", async () => {
     expect(reEncodedTx.getEncodedData(token).asHex()).toBe(txCallData.asHex())
   })
 
-  it.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(
+  it.concurrent.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(
     "%s transactions",
     async (type) => {
       const alice = accounts["alice"][type]
@@ -364,7 +415,7 @@ describe("E2E", async () => {
     expect(targetPostFreeBalance).toEqual(targetPreFreeBalance + amount * 2n)
   })
 
-  it("custom nonce transactions", async () => {
+  it("custom nonce and mortality transactions", async () => {
     const alice = accounts["alice"]["sr25519"]
     const bob = accounts["bob"]["sr25519"]
     const bobAddress = accountIdDec(bob.publicKey)
@@ -379,58 +430,40 @@ describe("E2E", async () => {
       value: ED,
     })
 
-    const N_PARALLEL_TRANSACTIONS = 3
+    const N_PARALLEL_TRANSACTIONS = 4
+    const mortalities: Array<
+      { mortal: false } | { mortal: true; period: number }
+    > = [
+      { mortal: true, period: 8 },
+      { mortal: true, period: 25 },
+      {
+        mortal: true,
+        period: api.constants.System.BlockHashCount(token),
+      },
+      { mortal: false },
+    ]
     await Promise.all(
       Array(N_PARALLEL_TRANSACTIONS)
         .fill(null)
         .map((_, diff) =>
-          transsferTx.signAndSubmit(alice, { nonce: aliceInitialNonce + diff }),
+          transsferTx.signAndSubmit(alice, {
+            nonce: aliceInitialNonce + diff,
+            mortality: mortalities[diff],
+          }),
         ),
     )
 
-    const bobCurrentBalance = await api.query.System.Account.getValue(
-      bobAddress,
-    ).then((x) => x.data.free)
+    const [aliceCurrentNonce, bobCurrentBalance] = await Promise.all([
+      api.apis.AccountNonceApi.account_nonce(accountIdDec(alice.publicKey)),
+      api.query.System.Account.getValue(bobAddress).then((x) => x.data.free),
+    ])
 
+    expect(aliceCurrentNonce).toEqual(
+      aliceInitialNonce + N_PARALLEL_TRANSACTIONS,
+    )
     expect(bobCurrentBalance).toEqual(
       bobInitialBalance + ED * BigInt(N_PARALLEL_TRANSACTIONS),
     )
-  })
-
-  it("different mortality values", async () => {
-    const alice = accounts["alice"]["sr25519"]
-    const bob = accounts["bob"]["sr25519"]
-    const aliceAddress = accountIdDec(alice.publicKey)
-    const bobAddress = accountIdDec(bob.publicKey)
-    const initialNonce =
-      await api.apis.AccountNonceApi.account_nonce(aliceAddress)
-
-    const tx = api.tx.Balances.transfer_allow_death({
-      dest: MultiAddress.Id(bobAddress),
-      value: ED,
-    })
-    let i = 0
-    const submitAndWait = (
-      mortality: { mortal: false } | { mortal: true; period: number },
-    ) =>
-      lastValueFrom(
-        tx.signSubmitAndWatch(alice, { mortality, nonce: initialNonce + i++ }),
-      )
-
-    await Promise.all([
-      submitAndWait({ mortal: false }),
-      submitAndWait({ mortal: true, period: 8 }),
-      submitAndWait({ mortal: true, period: 25 }),
-      submitAndWait({
-        mortal: true,
-        period: api.constants.System.BlockHashCount(token),
-      }),
-    ])
-
-    const currentNonce =
-      await api.apis.AccountNonceApi.account_nonce(aliceAddress)
-
-    expect(currentNonce).toEqual(initialNonce + 4)
   })
 
   it("keeps on validating transactions after they have been broadcasted", async () => {
@@ -491,120 +524,37 @@ describe("E2E", async () => {
     expect(result.length).toEqual(addresses.length)
   })
 
-  it("runtime call with extrinsic as input", async () => {
-    const tx = api.tx.System.remark({
-      remark: Binary.fromHex("hello world!"),
-    })
-    const binaryExtrinsic = Binary.fromOpaqueHex(
-      await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
-    )
-
-    const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
-      api.apis.TransactionPaymentApi.query_info(
-        binaryExtrinsic,
-        binaryExtrinsic.asOpaqueBytes().length,
-      ),
-      tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey),
-    ])
-
-    expect(manualFee).toEqual(estimatedFee)
-  })
-
-  it("consecutive transactions", async () => {
-    const signer = accounts["alice"]["sr25519"]
-
-    for (let i = 0; i < 3; i++) {
-      const intialNonce = await api.apis.AccountNonceApi.account_nonce(
-        accountIdDec(signer.publicKey),
-      )
-
-      const tx = api.tx.System.remark({
-        remark: Binary.fromHex("first"),
-      })
-
-      const initialInBestBlock$ = tx
-        .signSubmitAndWatch(signer)
-        .pipe(filter((x) => x.type === "txBestBlocksState"))
-
-      await lastValueFrom(
-        initialInBestBlock$.pipe(
-          switchMap((x) =>
-            x.found
-              ? tx.signSubmitAndWatch(signer, { at: x.block.hash })
-              : NEVER,
-          ),
-        ),
-      )
-
-      const finalNonce = await api.apis.AccountNonceApi.account_nonce(
-        accountIdDec(signer.publicKey),
-      )
-
-      expect(finalNonce).toBe(intialNonce + 2)
-    }
-  })
-
-  it("queries opaque storage entries", async () => {
-    // some old polkadot-sdk versions don't include this pallet
-    // ensure that some version tested include it
-    if (
-      !(await api.query.CoretimeAssignmentProvider.CoreDescriptors.isCompatible(
-        CompatibilityLevel.Partial,
-      ))
-    ) {
-      return
-    }
-
-    const entries =
-      await api.query.CoretimeAssignmentProvider.CoreDescriptors.getEntries()
-
-    expect(entries.every((x) => !!fromHex(x.keyArgs[0]))).toBe(true)
-  })
-
-  it("generates correct storage keys", async () => {
-    expect(await api.query.System.Account.getKey()).toEqual(
-      "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9",
-    )
-    expect(
-      await api.query.System.Account.getKey(
-        "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
-      ),
-    ).toEqual(
-      "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da91cdb29d91f7665b36dc5ec5903de32467628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
-    )
-  })
-
   describe("BlockNotPinnedError", () => {
     const options = {
       at: "0x750d7c25fd87702beabd86afd4cf1cc2a8cdcab7fae89b189900b4fcf894e0e7",
     }
     const aliceAddress = accountIdDec(accounts.alice.sr25519.publicKey)
 
-    it("BlockNotPinnedError: query", async () => {
+    it.concurrent("BlockNotPinnedError: query", async () => {
       await expect(
         api.query.System.Account.getValue(aliceAddress, options),
       ).rejects.toThrowError(BlockNotPinnedError)
     })
 
-    it("BlockNotPinnedError: query System.Number", async () => {
+    it.concurrent("BlockNotPinnedError: query System.Number", async () => {
       await expect(
         api.query.System.Number.getValue(options),
       ).rejects.toThrowError(BlockNotPinnedError)
     })
 
-    it("BlockNotPinnedError: apis", async () => {
+    it.concurrent("BlockNotPinnedError: apis", async () => {
       await expect(
         api.apis.AccountNonceApi.account_nonce(aliceAddress, options),
       ).rejects.toThrowError(BlockNotPinnedError)
     })
 
-    it("BlockNotPinnedError: body", async () => {
+    it.concurrent("BlockNotPinnedError: body", async () => {
       await expect(() => client.getBlockBody(options.at)).rejects.toThrowError(
         BlockNotPinnedError,
       )
     })
 
-    it("BlockNotPinnedError: header", async () => {
+    it.concurrent("BlockNotPinnedError: header", async () => {
       await expect(client.getBlockHeader(options.at)).rejects.toThrowError(
         BlockNotPinnedError,
       )
@@ -651,20 +601,20 @@ describe("E2E", async () => {
         oldApi = newClient.getTypedApi(roc)
       })
 
-      it("Archive: query", async () => {
+      it.concurrent("Archive: query", async () => {
         const {
           data: { free },
         } = await oldApi.query.System.Account.getValue(aliceAddress, options)
         expect(free).toBeGreaterThan(0n)
       })
 
-      it("Archive: query System.Number", async () => {
+      it.concurrent("Archive: query System.Number", async () => {
         expect(await oldApi.query.System.Number.getValue(options)).toEqual(
           oldBlock.number,
         )
       })
 
-      it("Archive: apis", async () => {
+      it.concurrent("Archive: apis", async () => {
         expect(
           await oldApi.apis.AccountNonceApi.account_nonce(
             aliceAddress,
@@ -673,11 +623,11 @@ describe("E2E", async () => {
         ).toEqual(0)
       })
 
-      it("Archive: body", async () => {
+      it.concurrent("Archive: body", async () => {
         expect((await newClient.getBlockBody(options.at)).length).not.toBe(0)
       })
 
-      it("Archive: header", async () => {
+      it.concurrent("Archive: header", async () => {
         expect(await newClient.getBlockHeader(options.at)).not.toBeNull()
       })
     })
