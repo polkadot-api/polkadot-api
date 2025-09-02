@@ -1,6 +1,5 @@
 import dts from "rollup-plugin-dts"
 import esbuild from "rollup-plugin-esbuild"
-import alias from "@rollup/plugin-alias"
 import json from "@rollup/plugin-json"
 import path from "path"
 import { readdir } from "node:fs/promises"
@@ -13,24 +12,11 @@ const reexports = (await readdir("src/reexports"))
 
 const commonOptions = {
   input: ["src/index.ts", ...reexports],
-  external: (id) => !/^[./]/.test(id) && !/^@\//.test(id),
+  external: (id) => !/^[./]/.test(id),
 }
 
-const absoluteAlias = alias({
-  entries: [
-    {
-      find: "@",
-      // In tsconfig this would be like `"paths": { "@/*": ["./src/*"] }`
-      replacement: path.resolve("./src"),
-      customResolver: resolve({
-        extensions: [".js", ".ts"],
-      }),
-    },
-  ],
-})
-
 const dtsReexportPaths = {
-  generateBundle: (v, b, i) => {
+  generateBundle: (_, b, _) => {
     Object.values(b).forEach((v) => {
       v.fileName = v.fileName.replace("src/", "")
       v.preliminaryFileName = v.preliminaryFileName.replace("src/", "")
@@ -38,7 +24,7 @@ const dtsReexportPaths = {
   },
 }
 const cjsReexportPaths = {
-  generateBundle: (v, b, i) => {
+  generateBundle: (_, b, _) => {
     Object.values(b).forEach((v) => {
       if (
         (v.facadeModuleId
@@ -74,7 +60,7 @@ const getUmdPackage = (input) => {
 export default [
   {
     ...commonOptions,
-    plugins: [absoluteAlias, esbuild(), cjsReexportPaths],
+    plugins: [esbuild(), cjsReexportPaths],
     output: [
       {
         dir: `dist`,
@@ -92,7 +78,7 @@ export default [
   },
   {
     ...commonOptions,
-    plugins: [absoluteAlias, dts(), dtsReexportPaths],
+    plugins: [dts(), dtsReexportPaths],
     output: {
       dir: `dist`,
       format: "es",
@@ -112,14 +98,13 @@ export default [
     .map((n) => ({
       input: n,
       external: () => false,
-      plugins: [absoluteAlias, resolve(), esbuild({ minify: true })],
+      plugins: [resolve(), esbuild({ minify: true })],
       output: getUmdPackage(n),
     })),
   {
     input: "src/cli.ts",
-    external: (id) => !/^[./]/.test(id) && !/^@\//.test(id),
+    external: (id) => !/^[./]/.test(id),
     plugins: [
-      absoluteAlias,
       json(),
       esbuild(),
       {

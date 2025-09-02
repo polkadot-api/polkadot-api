@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",
     "target": "ES2022",
     "module": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ES2023"],
     "importHelpers": true,
-    "declaration": false,
     "sourceMap": false,
     "strict": true,
     "noImplicitAny": true,
@@ -19,6 +19,8 @@
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "moduleResolution": "Bundler",
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true
   }
 }
