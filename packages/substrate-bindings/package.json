@@ -10,16 +10,7 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "node": {
-        "production": {
-          "import": "./dist/esm/index.mjs",
-          "require": "./dist/min/index.js",
-          "default": "./dist/index.js"
-        },
-        "import": "./dist/esm/index.mjs",
-        "require": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
+      "types": "./dist/src/index.d.ts",
       "module": "./dist/esm/index.mjs",
       "import": "./dist/esm/index.mjs",
       "require": "./dist/index.js",
@@ -30,7 +21,7 @@
   "main": "./dist/index.js",
   "module": "./dist/esm/index.mjs",
   "browser": "./dist/esm/index.mjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "files": [
     "dist"
   ],

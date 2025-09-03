@@ -10,16 +10,7 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "node": {
-        "production": {
-          "import": "./dist/esm/index.mjs",
-          "require": "./dist/min/index.js",
-          "default": "./dist/index.js"
-        },
-        "import": "./dist/esm/index.mjs",
-        "require": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
+      "types": "./dist/src/index.d.ts",
       "module": "./dist/esm/index.mjs",
       "import": "./dist/esm/index.mjs",
       "require": "./dist/index.js",

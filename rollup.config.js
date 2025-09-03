@@ -1,4 +1,4 @@
-import dts from "rollup-plugin-dts"
+import typescript from "@rollup/plugin-typescript"
 import esbuild from "rollup-plugin-esbuild"
 
 const commonOptions = {
@@ -27,9 +27,9 @@ export default [
   },
   {
     ...commonOptions,
-    plugins: [dts()],
+    plugins: [typescript({ emitDeclarationOnly: true, outDir: "dist" })],
     output: {
-      file: `dist/index.d.ts`,
+      dir: "dist",
       format: "es",
     },
   },

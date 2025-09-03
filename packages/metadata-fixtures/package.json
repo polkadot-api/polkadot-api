@@ -11,17 +11,11 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "node": {
-        "production": {
-          "import": "./dist/index.mjs",
-          "require": "./dist/min/index.js"
-        },
-        "import": "./dist/index.mjs",
-        "require": "./dist/index.js"
-      },
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "types": "./dist/src/index.d.ts",
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
