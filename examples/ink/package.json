@@ -4,7 +4,7 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "^1.2.20"
+    "@types/bun": "^1.2.21"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -12,8 +12,8 @@
   "dependencies": {
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ink-contracts": "workspace:*",
-    "@polkadot-labs/hdkd": "^0.0.22",
-    "@polkadot-labs/hdkd-helpers": "^0.0.22",
+    "@polkadot-labs/hdkd": "^0.0.23",
+    "@polkadot-labs/hdkd-helpers": "^0.0.23",
     "polkadot-api": "workspace:*",
     "rxjs": "7.8.2"
   }
