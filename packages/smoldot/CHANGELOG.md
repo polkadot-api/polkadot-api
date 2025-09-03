@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Update smoldot to `2.0.37`
+- Update smoldot to `2.0.38`
 
 ## 0.3.10 - 2025-06-16
 
