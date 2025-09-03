@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.17.0 - 2025-09-03
+
 ### Added
 
 - `getMetadata$` and `getMetadata` client APIs to facilitate the retrieval of the most modern stable version of the metadata.

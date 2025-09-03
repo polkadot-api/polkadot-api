@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.14.0 - 2025-09-03
+
 ### Added
 
 - `BlockInfo` now exposes `hasNewRuntime` property.
