@@ -279,10 +279,6 @@ describe("E2E", async () => {
   })
 
   it.concurrent("invalid transaction", async () => {
-    // TODO: smoldot has a bug in signature verification, making this test crash
-    // skipping only for smoldot
-    // https://github.com/smol-dot/smoldot/issues/2169
-    if (PROVIDER === "sm") return
     const fake = fakeSigner(accounts.alice.sr25519.publicKey)
     const err = await lastValueFrom(
       api.tx.System.remark({ remark: Binary.fromText("TEST") })
