@@ -13,6 +13,8 @@
 - `blocks$` completes when there is no block continuity.
 - **Smoldot:**
   - Update smoldot to `2.0.37`
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.16.4 - 2025-09-01
 
