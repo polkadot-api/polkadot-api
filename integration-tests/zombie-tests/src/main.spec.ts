@@ -31,7 +31,7 @@ import {
   JsonRpcProvider,
 } from "@polkadot-api/substrate-client"
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
-import { accounts } from "./keyring"
+import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
@@ -246,7 +246,37 @@ describe("E2E", async () => {
     )
   })
 
-  it.concurrent("sr25519 transactions", async () => {
+  // this test needs to run concurrently with "fund accounts" one
+  it.concurrent("invalid tx on finalized, valid on best", async () => {
+    const previousNonceProm = api.apis.AccountNonceApi.account_nonce(
+      accountIdDec(unusedSigner.publicKey),
+    )
+    // let's wait until they have enough balance
+    await firstValueFrom(
+      api.query.System.Account.watchValue(
+        accountIdDec(unusedSigner.publicKey),
+        "best",
+      ).pipe(
+        map((x) => x.data.free),
+        filter((balance) => balance >= ED * 2n),
+      ),
+    )
+    await api.tx.System.remark_with_event({
+      remark: Binary.fromText("NEW ACCOUNT"),
+    }).signAndSubmit(unusedSigner)
+
+    const [previousNonce, currentNonce] = await Promise.all([
+      previousNonceProm,
+      api.apis.AccountNonceApi.account_nonce(
+        accountIdDec(unusedSigner.publicKey),
+      ),
+    ])
+
+    expect(currentNonce).toEqual(previousNonce + 1)
+  })
+
+  // this test needs to run concurrently with "invalid tx on finalized" one
+  it.concurrent("sr25519 transactions, fund accounts", async () => {
     const amount = ED * 10n
     const targets = Object.values(accounts)
       .map((account) =>
@@ -256,6 +286,8 @@ describe("E2E", async () => {
       )
       .flat()
       .map((x) => accountIdDec(x.publicKey))
+
+    targets.push(accountIdDec(unusedSigner.publicKey))
 
     const alice = accounts["alice"]["sr25519"]
     const bob = accounts["bob"]["sr25519"]
