@@ -7,20 +7,20 @@ import {
 import {
   EMPTY,
   Observable,
-  catchError,
   concat,
+  defer,
   distinctUntilChanged,
   filter,
+  ignoreElements,
   lastValueFrom,
   map,
   merge,
   mergeMap,
   of,
-  reduce,
   take,
-  takeWhile,
 } from "rxjs"
 import {
+  BlockInfo,
   ChainHead$,
   PinnedBlocks,
   SystemEvent,
@@ -182,7 +182,6 @@ type TransactionValidityError = Enum<{
   }>
 }>
 */
-
 export class InvalidTxError extends Error {
   error: any // likely to be a `TransactionValidityError`
   constructor(e: any) {
@@ -221,78 +220,54 @@ export const submit$ = (
       ...rest,
     }) as any
 
-  const validate$ = chainHead.pinnedBlocks$.pipe(
-    take(1),
-    mergeMap((blocks) => {
-      let bestBlocks: string[] = []
-      return blocks.finalizedRuntime.runtime.pipe(
-        map((r) => r.getMortalityFromTx(tx)),
-        catchError(() => of({ mortal: false as const })),
-        map((x) => {
-          const { best, finalized } = blocks
+  const pinnedBlocks = chainHead.pinnedBlocks$.state
+  const getHeightFromMortality = (
+    mortality:
+      | {
+          mortal: false
+        }
+      | {
+          mortal: true
+          period: number
+          phase: number
+        },
+  ) => {
+    if (!mortality.mortal) return 0
+    const { phase, period } = mortality
+    const topNumber = pinnedBlocks.blocks.get(pinnedBlocks.best)!.number
+    return (
+      Math.floor((Math.max(topNumber, phase) - phase) / period) * period + phase
+    )
+  }
 
-          // before we start doing async stuff, we must "take a picture"
-          // of the current lineage of best-blocks
-          let current = best
-          while (current !== finalized) {
-            bestBlocks.push(current)
-            current = blocks.blocks.get(current)!.parent
-          }
-          bestBlocks.push(finalized)
+  const getTipsFromHeight = (height: number): BlockInfo[] => {
+    let tips: BlockInfo[] = [...pinnedBlocks.blocks.values()].filter(
+      (block) => !block.unpinnable && !block.children.size,
+    )
+    const finalized = pinnedBlocks.blocks.get(pinnedBlocks.finalized)!
+    tips = finalized.children ? [finalized, ...tips] : tips
 
-          if (!x.mortal) return [finalized, best]
+    return tips.filter((x) => x.number >= height)
+  }
 
-          const { phase, period } = x
-          const bestBlock = blocks.blocks.get(best)!
-          const topNumber = bestBlock.number
-          const txBlockNumber =
-            Math.floor((topNumber - phase) / period) * period + phase
-
-          let result = [blocks.blocks.get(blocks.finalized)!]
-          while (result.length && result[0].number < txBlockNumber) {
-            result = result
-              .flatMap((x) => [...x.children])
-              .map((x) => blocks.blocks.get(x)!)
-              .filter(Boolean)
-          }
-          return (result.length ? result : [bestBlock]).map((x) => x.hash)
-        }),
-        mergeMap((toCheck) =>
-          merge(
-            ...[...new Set(toCheck)].map((at) =>
-              chainHead
-                .validateTx$(at, tx)
-                .pipe(map((result) => ({ at, result }))),
-            ),
-          ),
+  const validateTxAt$ = ({ hash }: BlockInfo) => chainHead.validateTx$(hash, tx)
+  const validate$: Observable<never> = defer(() =>
+    pinnedBlocks.finalizedRuntime.runtime.pipe(
+      map((r) => r.getMortalityFromTx(tx)),
+      map(getHeightFromMortality),
+      map(getTipsFromHeight),
+      mergeMap((blocksToValidate) =>
+        merge(...blocksToValidate.map(validateTxAt$)).pipe(
+          filter(({ success, value }, idx) => {
+            if (!success && idx === blocksToValidate.length - 1)
+              throw new InvalidTxError(value)
+            return success
+          }),
+          take(1),
         ),
-        takeWhile(({ result }) => !result.success, true),
-        reduce(
-          (acc, curr) => [...acc, curr],
-          [] as { at: string; result: ResultPayload<any, any> }[],
-        ),
-        map((results) => {
-          const badOnes = new Map(
-            results
-              .filter(({ result }) => !result.success)
-              .map((x) => [x.at, x.result]),
-          )
-          if (badOnes.size < results.length) return null
-
-          throw new InvalidTxError(
-            badOnes.get(
-              // there is a possible, but very unlikely, race-condition in which:
-              // we have received a new block that is about to be flagged as best,
-              // and that its height is higher than all the others, but the notification
-              // that sets it as best has not arrived yet. In that case, that block wouldn't
-              // be in the lineage of the best-blocks, but then it would be the only one in the list of `badOnes`
-              bestBlocks.find((x) => badOnes.has(x)) ?? [...badOnes.keys()][0],
-            )!.value,
-          )
-        }),
-        filter(Boolean),
-      )
-    }),
+      ),
+      ignoreElements(),
+    ),
   )
 
   const track$ = new Observable<AnalyzedBlock>((observer) => {

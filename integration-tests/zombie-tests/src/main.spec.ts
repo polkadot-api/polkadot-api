@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto"
 import {
+  catchError,
   combineLatest,
   filter,
   firstValueFrom,
@@ -7,6 +8,7 @@ import {
   lastValueFrom,
   map,
   mergeMap,
+  of,
   switchMap,
   take,
   tap,
@@ -23,6 +25,7 @@ import {
   TypedApi,
   createClient,
   BlockNotPinnedError,
+  InvalidTxError,
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { getWsProvider } from "polkadot-api/ws-provider/node"
@@ -31,7 +34,7 @@ import {
   JsonRpcProvider,
 } from "@polkadot-api/substrate-client"
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
-import { accounts } from "./keyring"
+import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
@@ -246,7 +249,51 @@ describe("E2E", async () => {
     )
   })
 
-  it.concurrent("sr25519 transactions", async () => {
+  // this test needs to run concurrently with "fund accounts" one
+  it.concurrent("invalid tx on finalized, valid on best", async () => {
+    const previousNonceProm = api.apis.AccountNonceApi.account_nonce(
+      accountIdDec(unusedSigner.publicKey),
+    )
+    // let's wait until they have enough balance
+    await firstValueFrom(
+      api.query.System.Account.watchValue(
+        accountIdDec(unusedSigner.publicKey),
+        "best",
+      ).pipe(
+        map((x) => x.data.free),
+        filter((balance) => balance >= ED * 2n),
+      ),
+    )
+    await api.tx.System.remark_with_event({
+      remark: Binary.fromText("NEW ACCOUNT"),
+    }).signAndSubmit(unusedSigner)
+
+    const [previousNonce, currentNonce] = await Promise.all([
+      previousNonceProm,
+      api.apis.AccountNonceApi.account_nonce(
+        accountIdDec(unusedSigner.publicKey),
+      ),
+    ])
+
+    expect(currentNonce).toEqual(previousNonce + 1)
+  })
+
+  it.concurrent("invalid transaction", async () => {
+    // TODO: smoldot has a bug in signature verification, making this test crash
+    // skipping only for smoldot
+    // https://github.com/smol-dot/smoldot/issues/2169
+    if (PROVIDER === "sm") return
+    const fake = fakeSigner(accounts.alice.sr25519.publicKey)
+    const err = await lastValueFrom(
+      api.tx.System.remark({ remark: Binary.fromText("TEST") })
+        .signSubmitAndWatch(fake)
+        .pipe(catchError((err) => of(err))),
+    )
+    expect(err).instanceOf(InvalidTxError)
+  })
+
+  // this test needs to run concurrently with "invalid tx on finalized" one
+  it.concurrent("sr25519 transactions, fund accounts", async () => {
     const amount = ED * 10n
     const targets = Object.values(accounts)
       .map((account) =>
@@ -256,6 +303,8 @@ describe("E2E", async () => {
       )
       .flat()
       .map((x) => accountIdDec(x.publicKey))
+
+    targets.push(accountIdDec(unusedSigner.publicKey))
 
     const alice = accounts["alice"]["sr25519"]
     const bob = accounts["bob"]["sr25519"]

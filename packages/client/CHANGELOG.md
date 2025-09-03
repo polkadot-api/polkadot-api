@@ -9,6 +9,7 @@
 
 ### Fixed
 
+- Improve validation logic prior to broadcast.
 - Update to @noble v2 libraries. This bumps the NodeJS required version to 20.19
 - `blocks$` completes when there is no block continuity.
 - **Smoldot:**

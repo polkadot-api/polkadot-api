@@ -63,4 +63,14 @@ const bobSecp256PrivKey = fromHex(
   )
 })
 
+// use only for "invalid tx on finalized block"
+const unusedSK = fromHex(
+  "0xb6dc15f8b139996bbffcf6a53861ff44be8860d7144628d6651eeb3e7c3e2bac",
+)
+export const unusedSigner = getPolkadotSigner(
+  ed25519.getPublicKey(unusedSK),
+  "Ed25519",
+  (i) => ed25519.sign(i, unusedSK),
+)
+
 export { accounts }
