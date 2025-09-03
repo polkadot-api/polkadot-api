@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto"
 import {
+  catchError,
   combineLatest,
   filter,
   firstValueFrom,
@@ -7,6 +8,7 @@ import {
   lastValueFrom,
   map,
   mergeMap,
+  of,
   switchMap,
   take,
   tap,
@@ -23,6 +25,7 @@ import {
   TypedApi,
   createClient,
   BlockNotPinnedError,
+  InvalidTxError,
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { getWsProvider } from "polkadot-api/ws-provider/node"
@@ -273,6 +276,16 @@ describe("E2E", async () => {
     ])
 
     expect(currentNonce).toEqual(previousNonce + 1)
+  })
+
+  it.concurrent("invalid transaction", async () => {
+    const fake = fakeSigner(accounts.alice.sr25519.publicKey)
+    const err = await lastValueFrom(
+      api.tx.System.remark({ remark: Binary.fromText("TEST") })
+        .signSubmitAndWatch(fake)
+        .pipe(catchError((err) => of(err))),
+    )
+    expect(err).instanceOf(InvalidTxError)
   })
 
   // this test needs to run concurrently with "invalid tx on finalized" one
