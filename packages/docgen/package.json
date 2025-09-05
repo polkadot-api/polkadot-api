@@ -1,7 +1,11 @@
 {
   "name": "@polkadot-api/docgen",
-  "version": "0.2.20",
+  "version": "0.2.21",
   "author": "Yuri Volkov (https://github.com/mutantcornholio)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polkadot-api/polkadot-api.git"
+  },
   "license": "MIT",
   "sideEffects": true,
   "type": "module",

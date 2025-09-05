@@ -1,10 +1,10 @@
 {
   "name": "@polkadot-api/smoldot",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/polkdaot-api/polkadot-api.git"
+    "url": "git+https://github.com/polkadot-api/polkadot-api.git"
   },
   "license": "MIT",
   "exports": {
