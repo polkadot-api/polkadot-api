@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.1 - 2025-09-03
+
 ### Fixed
 
 - Update to @noble v2

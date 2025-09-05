@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.5 - 2025-09-03
+
 ### Fixed
 
 - Remove unnecessary cache
