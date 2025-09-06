@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `ChainHead` derives the hasher from the header and it exports a `hasher$` Observable.
+
 ## 0.14.1 - 2025-09-05
 
 ### Fixed

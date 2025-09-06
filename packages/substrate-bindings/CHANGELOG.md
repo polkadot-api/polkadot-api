@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Export `Keccak256`
+
 ## 0.16.2 - 2025-09-05
 
 ### Fixed

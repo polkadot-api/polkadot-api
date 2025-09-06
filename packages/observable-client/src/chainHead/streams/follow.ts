@@ -1,4 +1,5 @@
-import { BlockHeader, blockHeader } from "@polkadot-api/substrate-bindings"
+import { getHasherFromHeader, type Hasher } from "@/hashers"
+import { blockHeader, HexString } from "@polkadot-api/substrate-bindings"
 import {
   BestBlockChanged,
   ChainHead,
@@ -74,22 +75,45 @@ const createGetRuntimeChanges = (
 }
 
 const withInitializedNumber = (
-  getHeader: (hash: string) => Promise<BlockHeader>,
+  getFollower: () => FollowResponse,
   getCodeHash: (block: string) => Promise<string>,
 ) => {
   const getRuntimeChanges = createGetRuntimeChanges(getCodeHash)
-  return (source$: Observable<FollowEventWithRuntime>) =>
+  let resolveHasher: (input: Hasher) => void = noop
+  let _hasher: Promise<Hasher> | Hasher
+  const hasher$ = new Observable<Hasher>((observer) => {
+    if (_hasher instanceof Promise) {
+      _hasher.then((h) => {
+        observer.next(h)
+        observer.complete()
+      })
+    } else {
+      observer.next(_hasher)
+      observer.complete()
+    }
+  })
+
+  _hasher = new Promise<Hasher>((res) => {
+    resolveHasher = (input) => res((_hasher = input))
+  })
+
+  const getRawHeader = (blockHash: HexString) => getFollower().header(blockHash)
+
+  const operator = (source$: Observable<FollowEventWithRuntime>) =>
     new Observable<EnhancedFollowEventWithRuntime>((observer) => {
       let pending: Array<EnhancedFollowEventWithRuntime> | null = null
       return source$.subscribe({
         next(event) {
           if (event.type === "initialized") {
             pending = []
+            const [blockHash] = event.finalizedBlockHashes
             Promise.all([
-              getHeader(event.finalizedBlockHashes[0]),
+              getRawHeader(blockHash),
               getRuntimeChanges(event.finalizedBlockHashes),
             ])
-              .then(([header, changes]) => {
+              .then(([rawHeader, changes]) => {
+                resolveHasher(getHasherFromHeader(rawHeader, blockHash))
+                const header = blockHeader.dec(rawHeader)
                 if (!observer.closed) {
                   observer.next({
                     type: "initialized",
@@ -121,6 +145,13 @@ const withInitializedNumber = (
         },
       })
     })
+
+  return {
+    getHeader: (blockHash: HexString) =>
+      getRawHeader(blockHash).then(blockHeader[1]),
+    hasher$,
+    operator,
+  }
 }
 
 export const getFollow$ = (chainHead: ChainHead) => {
@@ -132,9 +163,6 @@ export const getFollow$ = (chainHead: ChainHead) => {
     return follower
   }
 
-  const getHeader = (hash: string) =>
-    getFollower().header(hash).then(blockHeader.dec)
-
   const getCodeHash = async (blockHash: string) =>
     // ":code" => "0x3a636f6465"
     getFollower().storage(
@@ -144,6 +172,10 @@ export const getFollow$ = (chainHead: ChainHead) => {
       null,
     ) as Promise<string>
 
+  const { hasher$, operator, getHeader } = withInitializedNumber(
+    getFollower,
+    getCodeHash,
+  )
   const follow$ = new Observable<FollowEventWithRuntime>((observer) => {
     follower = chainHead(
       true,
@@ -159,14 +191,11 @@ export const getFollow$ = (chainHead: ChainHead) => {
       observer.complete()
       follower?.unfollow()
     }
-  }).pipe(
-    withInitializedNumber(getHeader, getCodeHash),
-    retryChainHeadError(),
-    share(),
-  )
+  }).pipe(operator, retryChainHeadError(), share())
 
   return {
     getHeader,
+    hasher$,
     getFollower,
     follow$,
     unfollow: () => {
@@ -203,5 +232,7 @@ const retryChainHeadError =
     })
 
 export type FollowEvent =
-  | ObservedValueOf<ReturnType<ReturnType<typeof withInitializedNumber>>>
+  | ObservedValueOf<
+      ReturnType<ReturnType<typeof withInitializedNumber>["operator"]>
+    >
   | { type: "stop-error" }
