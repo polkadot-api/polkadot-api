@@ -1,6 +1,5 @@
 import {
   Binary,
-  Blake2256,
   HexString,
   ResultPayload,
 } from "@polkadot-api/substrate-bindings"
@@ -28,10 +27,7 @@ import {
 import { AnalyzedBlock } from "@polkadot-api/observable-client"
 import { TxEvent, TxEventsPayload, TxFinalizedPayload } from "./types"
 import { continueWith } from "@/utils"
-import { fromHex, toHex } from "@polkadot-api/utils"
-
-// TODO: make it dynamic based on the tx-function of the client
-const hashFromTx = (tx: HexString) => toHex(Blake2256(fromHex(tx)))
+import { fromHex } from "@polkadot-api/utils"
 
 const computeState = (
   analized$: Observable<AnalyzedBlock>,
@@ -205,114 +201,122 @@ export const submit$ = (
   broadcastTx$: (tx: string) => Observable<never>,
   tx: HexString,
   emitSign = false,
-): Observable<TxEvent> => {
-  const txHash = hashFromTx(tx)
-  const getTxEvent = <
-    Type extends TxEvent["type"],
-    Rest extends Omit<TxEvent & { type: Type }, "type" | "txHash">,
-  >(
-    type: Type,
-    rest: Rest,
-  ): TxEvent & { type: Type } =>
-    ({
-      type,
-      txHash,
-      ...rest,
-    }) as any
+): Observable<TxEvent> =>
+  chainHead.hasher$.pipe(
+    mergeMap((hasher) => {
+      const txHash = hasher(fromHex(tx))
+      const getTxEvent = <
+        Type extends TxEvent["type"],
+        Rest extends Omit<TxEvent & { type: Type }, "type" | "txHash">,
+      >(
+        type: Type,
+        rest: Rest,
+      ): TxEvent & { type: Type } =>
+        ({
+          type,
+          txHash,
+          ...rest,
+        }) as any
 
-  const pinnedBlocks = chainHead.pinnedBlocks$.state
-  const getHeightFromMortality = (
-    mortality:
-      | {
-          mortal: false
-        }
-      | {
-          mortal: true
-          period: number
-          phase: number
-        },
-  ) => {
-    if (!mortality.mortal) return 0
-    const { phase, period } = mortality
-    const topNumber = pinnedBlocks.blocks.get(pinnedBlocks.best)!.number
-    return (
-      Math.floor((Math.max(topNumber, phase) - phase) / period) * period + phase
-    )
-  }
+      const pinnedBlocks = chainHead.pinnedBlocks$.state
+      const getHeightFromMortality = (
+        mortality:
+          | {
+              mortal: false
+            }
+          | {
+              mortal: true
+              period: number
+              phase: number
+            },
+      ) => {
+        if (!mortality.mortal) return 0
+        const { phase, period } = mortality
+        const topNumber = pinnedBlocks.blocks.get(pinnedBlocks.best)!.number
+        return (
+          Math.floor((Math.max(topNumber, phase) - phase) / period) * period +
+          phase
+        )
+      }
 
-  const getTipsFromHeight = (height: number): BlockInfo[] => {
-    let tips: BlockInfo[] = [...pinnedBlocks.blocks.values()].filter(
-      (block) => !block.unpinnable && !block.children.size,
-    )
-    const finalized = pinnedBlocks.blocks.get(pinnedBlocks.finalized)!
-    tips = finalized.children ? [finalized, ...tips] : tips
+      const getTipsFromHeight = (height: number): BlockInfo[] => {
+        let tips: BlockInfo[] = [...pinnedBlocks.blocks.values()].filter(
+          (block) => !block.unpinnable && !block.children.size,
+        )
+        const finalized = pinnedBlocks.blocks.get(pinnedBlocks.finalized)!
+        tips = finalized.children ? [finalized, ...tips] : tips
 
-    return tips.filter((x) => x.number >= height)
-  }
+        return tips.filter((x) => x.number >= height)
+      }
 
-  const validateTxAt$ = ({ hash }: BlockInfo) => chainHead.validateTx$(hash, tx)
-  const validate$: Observable<never> = defer(() =>
-    pinnedBlocks.finalizedRuntime.runtime.pipe(
-      map((r) => r.getMortalityFromTx(tx)),
-      map(getHeightFromMortality),
-      map(getTipsFromHeight),
-      mergeMap((blocksToValidate) =>
-        merge(...blocksToValidate.map(validateTxAt$)).pipe(
-          filter(({ success, value }, idx) => {
-            if (!success && idx === blocksToValidate.length - 1)
-              throw new InvalidTxError(value)
-            return success
-          }),
-          take(1),
+      const validateTxAt$ = ({ hash }: BlockInfo) =>
+        chainHead.validateTx$(hash, tx)
+      const validate$: Observable<never> = defer(() =>
+        pinnedBlocks.finalizedRuntime.runtime.pipe(
+          map((r) => r.getMortalityFromTx(tx)),
+          map(getHeightFromMortality),
+          map(getTipsFromHeight),
+          mergeMap((blocksToValidate) =>
+            merge(...blocksToValidate.map(validateTxAt$)).pipe(
+              filter(({ success, value }, idx) => {
+                if (!success && idx === blocksToValidate.length - 1)
+                  throw new InvalidTxError(value)
+                return success
+              }),
+              take(1),
+            ),
+          ),
+          ignoreElements(),
         ),
-      ),
-      ignoreElements(),
-    ),
-  )
+      )
 
-  const track$ = new Observable<AnalyzedBlock>((observer) => {
-    const subscription = chainHead.trackTx$(tx).subscribe(observer)
-    subscription.add(
-      broadcastTx$(tx).subscribe({
-        error(e) {
-          observer.error(e)
-        },
-      }),
-    )
-    return subscription
-  })
-
-  const bestBlockState$ = computeState(track$, chainHead.pinnedBlocks$).pipe(
-    map((x) => {
-      if (!x.found)
-        return getTxEvent("txBestBlocksState", {
-          found: false,
-          isValid: x.validity?.success !== false,
-        })
-
-      return getTxEvent("txBestBlocksState", {
-        found: true,
-        block: {
-          index: x.index,
-          number: x.number,
-          hash: x.hash,
-        },
-        ...getTxSuccessFromSystemEvents(x.events, x.index),
+      const track$ = new Observable<AnalyzedBlock>((observer) => {
+        const subscription = chainHead.trackTx$(tx).subscribe(observer)
+        subscription.add(
+          broadcastTx$(tx).subscribe({
+            error(e) {
+              observer.error(e)
+            },
+          }),
+        )
+        return subscription
       })
+
+      const bestBlockState$ = computeState(
+        track$,
+        chainHead.pinnedBlocks$,
+      ).pipe(
+        map((x) => {
+          if (!x.found)
+            return getTxEvent("txBestBlocksState", {
+              found: false,
+              isValid: x.validity?.success !== false,
+            })
+
+          return getTxEvent("txBestBlocksState", {
+            found: true,
+            block: {
+              index: x.index,
+              number: x.number,
+              hash: x.hash,
+            },
+            ...getTxSuccessFromSystemEvents(x.events, x.index),
+          })
+        }),
+      )
+
+      return concat(
+        emitSign ? of(getTxEvent("signed", {})) : EMPTY,
+        validate$,
+        of(getTxEvent("broadcasted", {})),
+        bestBlockState$.pipe(
+          continueWith(({ found, type, ...rest }) =>
+            found ? of(getTxEvent("finalized", rest as any)) : EMPTY,
+          ),
+        ),
+      )
     }),
   )
-
-  return concat(
-    emitSign ? of(getTxEvent("signed", {})) : EMPTY,
-    validate$,
-    of(getTxEvent("broadcasted", {})),
-    bestBlockState$.pipe(
-      continueWith(({ found, type, ...rest }) =>
-        found ? of(getTxEvent("finalized", rest as any)) : EMPTY,
-      ),
-    ),
-  )
-}
 
 export const submit = async (
   chainHead: ChainHead$,
