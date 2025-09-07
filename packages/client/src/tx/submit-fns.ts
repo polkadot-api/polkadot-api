@@ -9,6 +9,7 @@ import {
   concat,
   defer,
   distinctUntilChanged,
+  endWith,
   filter,
   ignoreElements,
   lastValueFrom,
@@ -16,7 +17,9 @@ import {
   merge,
   mergeMap,
   of,
+  race,
   take,
+  takeWhile,
 } from "rxjs"
 import {
   BlockInfo,
@@ -243,6 +246,13 @@ export const submit$ = (
         let tips: BlockInfo[] = [...pinnedBlocks.blocks.values()].filter(
           (block) => !block.unpinnable && !block.children.size,
         )
+        const higherTip = tips.reduce(
+          (acc, { number }) => Math.max(acc, number),
+          0,
+        )
+        // take only tips "with chance to become canonical"
+        tips = tips.filter(({ number }) => number >= higherTip - 1)
+
         const finalized = pinnedBlocks.blocks.get(pinnedBlocks.finalized)!
         tips = finalized.children ? [finalized, ...tips] : tips
 
@@ -256,16 +266,39 @@ export const submit$ = (
           map((r) => r.getMortalityFromTx(tx)),
           map(getHeightFromMortality),
           map(getTipsFromHeight),
-          mergeMap((blocksToValidate) =>
-            merge(...blocksToValidate.map(validateTxAt$)).pipe(
-              filter(({ success, value }, idx) => {
-                if (!success && idx === blocksToValidate.length - 1)
-                  throw new InvalidTxError(value)
-                return success
+          mergeMap((blocksToValidate) => {
+            let err: InvalidTxError
+            return merge(
+              ...blocksToValidate.map((b) =>
+                race(
+                  validateTxAt$(b),
+                  chainHead.finalized$.pipe(
+                    takeWhile((finalized) => {
+                      if (finalized.number < b.number) return true
+                      let curr = b
+                      while (curr.number > finalized.number) {
+                        const parent = pinnedBlocks.blocks.get(curr.hash)
+                        if (!parent) return false
+                        curr = parent
+                      }
+                      if (curr.hash !== finalized.hash) return false
+                      return true
+                    }),
+                    ignoreElements(),
+                    endWith({ success: "ignore" as const }),
+                  ),
+                ),
+              ),
+            ).pipe(
+              filter((v, idx) => {
+                if (v.success === true) return true
+                if (v.success === false) err ??= new InvalidTxError(v.value)
+                if (idx === blocksToValidate.length - 1 && err) throw err
+                return false
               }),
               take(1),
-            ),
-          ),
+            )
+          }),
           ignoreElements(),
         ),
       )
