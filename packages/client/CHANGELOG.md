@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Infer the hasher function from the block-header.
+
 ## 1.17.1 - 2025-09-05
 
 ### Fixed

@@ -75,7 +75,8 @@ export const getChainHead$ = (
   getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {
-  const { getFollower, unfollow, follow$, getHeader } = getFollow$(chainHead)
+  const { getFollower, unfollow, follow$, getHeader, hasher$ } =
+    getFollow$(chainHead)
   const lazyFollower = withLazyFollower(getFollower)
   const { withRecovery, withRecoveryFn } = getWithRecovery()
 
@@ -476,6 +477,7 @@ export const getChainHead$ = (
     runtime$,
     metadata$,
     genesis$,
+    hasher$,
     getRuntime$,
 
     header$,
