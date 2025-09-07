@@ -246,10 +246,7 @@ export const submit$ = (
         let tips: BlockInfo[] = [...pinnedBlocks.blocks.values()].filter(
           (block) => !block.unpinnable && !block.children.size,
         )
-        const higherTip = tips.reduce(
-          (acc, { number }) => Math.max(acc, number),
-          0,
-        )
+        const higherTip = Math.max(...tips.map(({ number }) => number))
         // take only tips "with chance to become canonical"
         tips = tips.filter(({ number }) => number >= higherTip - 1)
 
@@ -281,18 +278,19 @@ export const submit$ = (
                         if (!parent) return false
                         curr = parent
                       }
-                      if (curr.hash !== finalized.hash) return false
-                      return true
+                      return curr.hash === finalized.hash
                     }),
                     ignoreElements(),
-                    endWith({ success: "ignore" as const }),
+                    endWith({ success: null }),
                   ),
                 ),
               ),
             ).pipe(
               filter((v, idx) => {
-                if (v.success === true) return true
+                // save first error
                 if (v.success === false) err ??= new InvalidTxError(v.value)
+
+                if (v.success) return true
                 if (idx === blocksToValidate.length - 1 && err) throw err
                 return false
               }),
