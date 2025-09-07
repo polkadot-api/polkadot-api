@@ -9,6 +9,7 @@ import {
   concat,
   defer,
   distinctUntilChanged,
+  endWith,
   filter,
   ignoreElements,
   lastValueFrom,
@@ -16,7 +17,9 @@ import {
   merge,
   mergeMap,
   of,
+  race,
   take,
+  takeWhile,
 } from "rxjs"
 import {
   BlockInfo,
@@ -243,6 +246,10 @@ export const submit$ = (
         let tips: BlockInfo[] = [...pinnedBlocks.blocks.values()].filter(
           (block) => !block.unpinnable && !block.children.size,
         )
+        const higherTip = Math.max(...tips.map(({ number }) => number))
+        // take only tips "with chance to become canonical"
+        tips = tips.filter(({ number }) => number >= higherTip - 1)
+
         const finalized = pinnedBlocks.blocks.get(pinnedBlocks.finalized)!
         tips = finalized.children ? [finalized, ...tips] : tips
 
@@ -256,16 +263,40 @@ export const submit$ = (
           map((r) => r.getMortalityFromTx(tx)),
           map(getHeightFromMortality),
           map(getTipsFromHeight),
-          mergeMap((blocksToValidate) =>
-            merge(...blocksToValidate.map(validateTxAt$)).pipe(
-              filter(({ success, value }, idx) => {
-                if (!success && idx === blocksToValidate.length - 1)
-                  throw new InvalidTxError(value)
-                return success
+          mergeMap((blocksToValidate) => {
+            let err: InvalidTxError
+            return merge(
+              ...blocksToValidate.map((b) =>
+                race(
+                  validateTxAt$(b),
+                  chainHead.finalized$.pipe(
+                    takeWhile((finalized) => {
+                      if (finalized.number < b.number) return true
+                      let curr = b
+                      while (curr.number > finalized.number) {
+                        const parent = pinnedBlocks.blocks.get(curr.hash)
+                        if (!parent) return false
+                        curr = parent
+                      }
+                      return curr.hash === finalized.hash
+                    }),
+                    ignoreElements(),
+                    endWith({ success: null }),
+                  ),
+                ),
+              ),
+            ).pipe(
+              filter((v, idx) => {
+                // save first error
+                if (v.success === false) err ??= new InvalidTxError(v.value)
+
+                if (v.success) return true
+                if (idx === blocksToValidate.length - 1 && err) throw err
+                return false
               }),
               take(1),
-            ),
-          ),
+            )
+          }),
           ignoreElements(),
         ),
       )

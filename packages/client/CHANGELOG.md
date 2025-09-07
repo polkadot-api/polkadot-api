@@ -5,6 +5,7 @@
 ### Fixed
 
 - Infer the hasher function from the block-header.
+- Cancel tx validation calls if the target becomes pruned
 
 ## 1.17.1 - 2025-09-05
 
