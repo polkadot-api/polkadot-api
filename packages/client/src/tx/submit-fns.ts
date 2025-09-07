@@ -272,9 +272,9 @@ export const submit$ = (
                   chainHead.finalized$.pipe(
                     takeWhile((finalized) => {
                       if (finalized.number < b.number) return true
-                      let curr = b
-                      while (curr.number > finalized.number) {
-                        const parent = pinnedBlocks.blocks.get(curr.hash)
+                      let curr = finalized
+                      while (curr.number > b.number) {
+                        const parent = pinnedBlocks.blocks.get(curr.parent)
                         if (!parent) return false
                         curr = parent
                       }
