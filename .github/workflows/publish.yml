@@ -27,10 +27,9 @@ jobs:
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v4
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
-          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
         run: pnpm install
@@ -110,10 +109,9 @@ jobs:
         if: steps.check.outputs.changed == 'true'
       - name: Setup Node.js ${{ matrix.node-version }}
         if: steps.check.outputs.changed == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
-          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
         if: steps.check.outputs.changed == 'true'
