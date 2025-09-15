@@ -832,8 +832,8 @@ importers:
         specifier: ^24.3.0
         version: 24.3.0
       smoldot:
-        specifier: 2.0.38
-        version: 2.0.38
+        specifier: 2.0.39
+        version: 2.0.39
 
   packages/substrate-bindings:
     dependencies:
@@ -3344,8 +3344,8 @@ packages:
   smoldot@2.0.26:
     resolution: {integrity: sha512-F+qYmH4z2s2FK+CxGj8moYcd1ekSIKH8ywkdqlOz88Dat35iB1DIYL11aILN46YSGMzQW/lbJNS307zBSDN5Ig==}
 
-  smoldot@2.0.38:
-    resolution: {integrity: sha512-t9JurRhBkxST/z5sjjmQB8JMaAC5ydRZBZ7a62nSHJF+CRE6IO4JadGxFhxUPTvoDvdLOelzfNu4v09bAOA/6w==}
+  smoldot@2.0.39:
+    resolution: {integrity: sha512-yFMSzI6nkqWFTNao99lBA/TguUFU+bR3A5UGTDd/QqqB12jqzvZnmW/No6l2rKmagt8Qx/KybMNowV/E28znhA==}
 
   socks-proxy-agent@6.2.1:
     resolution: {integrity: sha512-a6KW9G+6B3nWZ1yB8G7pJwL3ggLy1uTzKAgCb7ttblwqdz9fMGJUuTy3uFzEP48FAs9FLILlmzDlE2JJhVQaXQ==}
@@ -6608,7 +6608,7 @@ snapshots:
       - utf-8-validate
     optional: true
 
-  smoldot@2.0.38:
+  smoldot@2.0.39:
     dependencies:
       ws: 8.18.3
     transitivePeerDependencies:
