@@ -1,11 +1,13 @@
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { Bytes, createCodec, createDecoder } from "scale-ts"
 import { Keccak256 } from "../../hashes"
+import { textEncoder } from "./fixed-str"
 
 const getFormattedAddress = (hexAddress: string) => {
   const nonChecksum = hexAddress.slice(2)
-  const hashedAddress = toHex(Keccak256(fromHex(hexAddress))).slice(2)
-
+  const hashedAddress = toHex(Keccak256(textEncoder.encode(nonChecksum))).slice(
+    2,
+  )
   const result = new Array(40)
 
   for (let i = 0; i < 40; i++) {
