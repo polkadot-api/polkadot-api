@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `ethAccount` correctly encodes valid addresses.
+
 ### Added
 
 - Export `Keccak256`

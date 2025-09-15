@@ -1,6 +1,6 @@
 import { Bytes, enhanceCodec } from "scale-ts"
 
-const textEncoder = new TextEncoder()
+export const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
 
 export const fixedStr = (nBytes: number) =>
