@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.3 - 2025-09-15
+
 ### Fixed
 
 - `ethAccount` correctly encodes valid addresses.

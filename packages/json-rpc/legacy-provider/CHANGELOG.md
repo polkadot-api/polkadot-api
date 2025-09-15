@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2025-09-15
+
 ### Changed
 
 - The hasher is now inferred. Therefore, `withLegacy` does not receive any arguments.
