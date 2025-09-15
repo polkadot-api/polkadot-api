@@ -13,19 +13,23 @@ import {
   mergeMap,
   noop,
   Observable,
+  of,
   share,
   shareReplay,
   skip,
   tap,
   withLatestFrom,
 } from "rxjs"
+import { HexString } from "@polkadot-api/substrate-bindings"
 
 export const getBlocks = ({
   initial$,
   allHeads$,
-  finalized$: finHeader$,
+  finalized$,
+  getHeader$,
+  hasher$,
 }: UpstreamEvents) => {
-  const finalized$ = finHeader$.pipe(map((x) => x.hash))
+  const finalizedhash$ = finalized$.pipe(map((x) => x.hash))
   const blocks = new Map<
     string,
     DecentHeader & {
@@ -96,7 +100,7 @@ export const getBlocks = ({
   }
 
   const ready$ = initial$.pipe(
-    withLatestFrom(finalized$),
+    withLatestFrom(finalizedhash$),
     map(([initial, fin]) => {
       initial.forEach(addBlock)
       finalized = fin
@@ -143,7 +147,7 @@ export const getBlocks = ({
 
   const updates$ = merge(
     allHeads$.pipe(map((value) => ({ type: "new" as const, value }))),
-    finalized$.pipe(
+    finalizedhash$.pipe(
       skip(1),
       map((value) => ({ type: "fin" as const, value })),
     ),
@@ -185,7 +189,7 @@ export const getBlocks = ({
     error: noop, // the errors are propagated downstream
   })
 
-  const result = (subId: string) => {
+  const upstream = (subId: string) => {
     const getInitialized = () => {
       const finalizedBlockHashes: string[] = []
       let current = blocks.get(finalized)
@@ -246,10 +250,16 @@ export const getBlocks = ({
       unpin,
     }
   }
-
-  result.stop = () => {
+  upstream.stop = () => {
     subscription.unsubscribe()
   }
-  result.finalized$ = finHeader$
-  return result
+  return {
+    upstream,
+    finalized$,
+    getHeader$: (hash: HexString): Observable<DecentHeader> => {
+      const block = blocks.get(hash)
+      return block ? of(block) : getHeader$(hash)
+    },
+    hasher$,
+  }
 }

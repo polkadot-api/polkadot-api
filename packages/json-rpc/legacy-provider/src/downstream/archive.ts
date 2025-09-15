@@ -95,7 +95,7 @@ export const createArchive = (
         )
       case archiveMethods.finalizedHeight:
         return obsReply(
-          upstream.getBlocks.finalized$.pipe(
+          upstream.finalized$.pipe(
             map((x) => x.number),
             take(1),
           ),
@@ -105,7 +105,9 @@ export const createArchive = (
       case archiveMethods.hashByHeight:
         return obsReply(upstream.getBlockHash$(firstArg))
       case archiveMethods.header:
-        return obsReply(upstream.getHeader(firstArg).pipe(map((h) => h.header)))
+        return obsReply(
+          upstream.getHeader$(firstArg).pipe(map((h) => h.header)),
+        )
       case archiveMethods.stopStorage: {
         const sub = subscriptions.get(firstArg)
         return sub ? sub() : err(rId, -32602, "Invalid args")

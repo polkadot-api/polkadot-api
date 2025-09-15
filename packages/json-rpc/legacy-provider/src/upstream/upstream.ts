@@ -4,14 +4,9 @@ import { getBlocks$ } from "./blocks"
 import { createDescendantValues } from "./descendant-values"
 import { map, Observable } from "rxjs"
 import { fromHex, toHex } from "@polkadot-api/utils"
-import { ShittyHeader } from "@/types"
-import { getFromShittyHeader } from "@/utils/fromShittyHeader"
+import { withLatestFromBp } from "@/utils/with-latest-from-bp"
 
-export const createUpstream = (
-  provider: JsonRpcProvider,
-  hasher: (input: Uint8Array) => Uint8Array,
-) => {
-  const fromShittyHeader = getFromShittyHeader(hasher)
+export const createUpstream = (provider: JsonRpcProvider) => {
   const { request, disconnect } = createClient(provider)
 
   const simpleRequest = <Args extends Array<any>, Payload>(
@@ -39,12 +34,12 @@ export const createUpstream = (
       ),
     )
 
-  const getHeader = (hash: string) =>
-    obsRequest<[string], ShittyHeader>("chain_getHeader", [hash]).pipe(
-      map(fromShittyHeader),
-    )
-
-  const getBlocks = getBlocks$(request, getHeader, fromShittyHeader)
+  const {
+    upstream: getBlocks,
+    finalized$,
+    getHeader$,
+    hasher$,
+  } = getBlocks$(request, obsRequest)
 
   const runtimeCall = (atBlock: string, method: string, data: string) =>
     obsRequest<[string, string, string], string | null>("state_call", [
@@ -73,7 +68,8 @@ export const createUpstream = (
 
   const stgDescendantHashes = (at: string, rootKey: string) =>
     stgDescendantValues(at, rootKey).pipe(
-      map((results) =>
+      withLatestFromBp(hasher$),
+      map(([hasher, results]) =>
         results.map(
           ([key, value]) =>
             [key, toHex(hasher(fromHex(value)))] as [string, string],
@@ -109,8 +105,9 @@ export const createUpstream = (
 
   return {
     getBlocks,
-    getHeader,
+    finalized$,
     getBlockHash$,
+    getHeader$,
     stgValue,
     stgHash,
     stgDescendantValues,

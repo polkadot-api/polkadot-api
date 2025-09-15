@@ -1,5 +1,9 @@
 import { DecentHeader, ShittyHeader } from "@/types"
+import { getFromShittyHeader } from "@/utils/fromShittyHeader"
+import { getHasherFromBlock } from "@/utils/get-hasher-from-block"
+import { withLatestFromBp } from "@/utils/with-latest-from-bp"
 import { ClientRequest } from "@polkadot-api/raw-client"
+import { HexString } from "@polkadot-api/substrate-bindings"
 import { noop } from "@polkadot-api/utils"
 import {
   combineLatest,
@@ -8,8 +12,10 @@ import {
   mergeMap,
   Observable,
   of,
+  pipe,
   share,
   shareReplay,
+  Subject,
   take,
   takeUntil,
   toArray,
@@ -17,12 +23,36 @@ import {
 
 export const getUpstreamEvents = (
   request: ClientRequest<any, any>,
-  getHeader: (hash: string) => Observable<DecentHeader>,
-  fromShittyHeader: (header: ShittyHeader) => DecentHeader,
+  request$: <Args extends Array<any>, Payload>(
+    method: string,
+    params: Args,
+  ) => Observable<Payload>,
 ) => {
+  const firstFinHeader$ = new Subject<ShittyHeader>()
+  const hasher$ = firstFinHeader$.pipe(
+    mergeMap((h) =>
+      request$<[number | string], HexString>("chain_getBlockHash", [
+        h.number,
+      ]).pipe(map(getHasherFromBlock(h))),
+    ),
+    shareReplay(1),
+  )
+  const fromShittyHeader$ = hasher$.pipe(
+    map(getFromShittyHeader),
+    shareReplay(1),
+  )
+  const toNiceHeader = pipe(
+    withLatestFromBp<
+      (x: ShittyHeader) => ReturnType<ReturnType<typeof getFromShittyHeader>>,
+      ShittyHeader
+    >(fromShittyHeader$),
+    map(([fromShittyHeader, shitHeader]) => fromShittyHeader(shitHeader)),
+  )
+
   const getHeaders$ = (
     startMethod: string,
     stopMethod: string,
+    isFin = false,
   ): Observable<DecentHeader> =>
     new Observable<ShittyHeader>((observer) => {
       const onError = (e: any) => {
@@ -30,10 +60,16 @@ export const getUpstreamEvents = (
       }
 
       let stop: (() => void) | null = null
+      let isFirstFin = isFin
       ;(request as ClientRequest<string, ShittyHeader>)(startMethod, [], {
         onSuccess: (subId, followSub) => {
           const done = followSub(subId, {
             next: (v) => {
+              if (isFirstFin) {
+                isFirstFin = false
+                firstFinHeader$.next(v)
+                firstFinHeader$.complete()
+              }
               observer.next(v)
             },
             error: onError,
@@ -57,7 +93,7 @@ export const getUpstreamEvents = (
         stop?.()
         stop = noop
       }
-    }).pipe(map(fromShittyHeader))
+    }).pipe(toNiceHeader)
 
   const allHeads$ = getHeaders$(
     "chain_subscribeAllHeads",
@@ -67,10 +103,16 @@ export const getUpstreamEvents = (
   const finalized$ = getHeaders$(
     "chain_subscribeFinalizedHeads",
     "chain_unsubscribeFinalizedHeads",
+    true,
   ).pipe(shareReplay(1))
 
+  const getHeader$ = (hash: string) =>
+    request$<[string], ShittyHeader>("chain_getHeader", [hash]).pipe(
+      toNiceHeader,
+    )
+
   const getRecursiveHeader = (hash: string): Observable<DecentHeader> =>
-    getHeader(hash).pipe(
+    getHeader$(hash).pipe(
       mergeMap((header) =>
         concat(of(header), getRecursiveHeader(header.parent)),
       ),
@@ -99,6 +141,8 @@ export const getUpstreamEvents = (
     initial$,
     allHeads$,
     finalized$,
+    hasher$,
+    getHeader$,
   }
 }
 

@@ -2,7 +2,6 @@ import { createClient } from "@polkadot-api/substrate-client"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import * as fs from "node:fs/promises"
 import {
-  Blake2256,
   HexString,
   metadata,
   UnifiedMetadata,
@@ -37,7 +36,6 @@ import { startFromWorker } from "@polkadot-api/smoldot/from-node-worker"
 import { Client as SmoldotClient } from "@polkadot-api/smoldot"
 import { getSmProvider } from "@polkadot-api/sm-provider"
 import { withLegacy } from "@polkadot-api/legacy-provider"
-import { keccak_256 } from "@noble/hashes/sha3.js"
 
 const workerPath = fileURLToPath(
   import.meta.resolve("@polkadot-api/smoldot/node-worker"),
@@ -191,23 +189,19 @@ const getMetadataFromWsURL = (wsURL: string, at?: string) =>
       getMetadataCallWithError(withPolkadotSdkCompat(getWsProvider(wsURL)), at),
       timer(3_000).pipe(
         concatMap(() =>
-          merge(
-            ...[Blake2256, keccak_256].map((hasher) =>
-              getMetadataCallWithError(
-                getWsProvider({
-                  endpoints: [wsURL],
-                  innerEnhancer: withLegacy(hasher),
-                }),
-                at,
-              ),
-            ),
+          getMetadataCallWithError(
+            getWsProvider({
+              endpoints: [wsURL],
+              innerEnhancer: withLegacy(),
+            }),
+            at,
           ),
         ),
       ),
     ).pipe(
       mergeMap((x, idx) => {
         if (x.success) return [x.value]
-        if (idx < 2) return []
+        if (idx < 1) return []
         throw x.error
       }),
     ),
