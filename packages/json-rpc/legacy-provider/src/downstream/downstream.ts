@@ -4,7 +4,6 @@ import { chainSpecMethods, createChainSpec } from "./chainspec"
 import { chainHeadMethods, createChainHead } from "./chain-head"
 import { createTransactionFns, transactionMethods } from "./transaction"
 import { archiveMethods, createArchive } from "./archive"
-import { Blake2256 } from "@polkadot-api/substrate-bindings"
 import { withNumericIds } from "@/with-numeric"
 
 const supportedMethods = [
@@ -17,9 +16,9 @@ const supportedMethods = [
   .flat()
 
 export const createDownstream =
-  (hasher: (input: Uint8Array) => Uint8Array = Blake2256) =>
+  () =>
   (upstreamProvider: JsonRpcProvider): JsonRpcProvider => {
-    const upstream = createUpstream(withNumericIds(upstreamProvider), hasher)
+    const upstream = createUpstream(withNumericIds(upstreamProvider))
     return (onMessage) => {
       const jsonRpc = (
         input:

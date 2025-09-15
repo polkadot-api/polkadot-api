@@ -34,7 +34,7 @@ export const createTransactionFns = (
           .pipe(
             catchError((_, source) => concat(timer(5_000), source)),
             takeUntil(
-              upstream.getBlocks.finalized$.pipe(
+              upstream.finalized$.pipe(
                 ignoreElements(),
                 catchError(() => {
                   ongoing.delete(token)
