@@ -2,10 +2,17 @@
 
 ## Unreleased
 
+## 1.17.2 - 2025-09-15
+
 ### Fixed
 
 - Infer the hasher function from the block-header.
 - Cancel tx validation calls if the target becomes pruned
+- `ethAccount` correctly encodes valid addresses.
+- **Smoldot:**
+  - Update smoldot to `2.0.39`
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.17.1 - 2025-09-05
 
