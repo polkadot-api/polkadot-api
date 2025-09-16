@@ -4,11 +4,11 @@
 
 ### Added
 
-## 1.17.2 - 2025-09-15
-
 - **WS Provider:**
   - New default export with an improved API. The `/web` and `/node` sub-path exports should be considered deprecated.
     The new export only has one overload: The first argument are the endpoitns, and the second argument is the config which now accepts a custom `WebSockecClass`.
+
+## 1.17.2 - 2025-09-15
 
 ### Fixed
 
