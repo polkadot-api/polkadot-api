@@ -7,7 +7,7 @@ import {
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { createClient } from "polkadot-api"
 import { MultiAddress, turing } from "@polkadot-api/descriptors"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { getWsProvider } from "polkadot-api/ws-provider"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 
 const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))

@@ -9,6 +9,17 @@
   "license": "MIT",
   "sideEffects": false,
   "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/index/esm/index.mjs",
+        "require": "./dist/index/index.js",
+        "default": "./dist/index/index.js"
+      },
+      "module": "./dist/index/esm/index.mjs",
+      "import": "./dist/index/esm/index.mjs",
+      "require": "./dist/index/index.js",
+      "default": "./dist/index/index.js"
+    },
     "./node": {
       "types": "./dist/node/node.d.ts",
       "module": "./dist/node/esm/node.mjs",
@@ -41,9 +52,7 @@
   "dependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
+    "@types/ws": "^8.18.1",
     "ws": "^8.18.3"
-  },
-  "devDependencies": {
-    "@types/ws": "^8.18.1"
   }
 }

@@ -1,8 +1,9 @@
 import { WebSocket } from "ws"
-import { getInternalWsProvider } from "./ws-provider"
+import { getLegacyWsProvider } from "./legacy-provider"
 export type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 
-export * from "./types"
+export * from "./types-common"
+export * from "./types-legacy"
 
 class WS extends WebSocket {
   close() {
@@ -10,6 +11,10 @@ class WS extends WebSocket {
   }
 }
 
-export const getWsProvider = getInternalWsProvider(
+/**
+ * @deprecated This export will be removed in PAPI v2. Migrate as follows:
+ *             `import { getWsProvider } from "polkadot-api/ws-provider"
+ */
+export const getWsProvider = getLegacyWsProvider(
   WS as unknown as typeof globalThis.WebSocket,
 )

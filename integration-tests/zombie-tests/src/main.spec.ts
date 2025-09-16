@@ -28,7 +28,7 @@ import {
   InvalidTxError,
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
-import { getWsProvider } from "polkadot-api/ws-provider/node"
+import { getWsProvider } from "polkadot-api/ws-provider"
 import {
   createClient as createRawClient,
   JsonRpcProvider,
@@ -121,8 +121,7 @@ describe("E2E", async () => {
     client = createClient(
       enhancer(
         compatEnhancer(
-          getWsProvider({
-            endpoints: ["ws://127.0.0.1:9934"],
+          getWsProvider("ws://127.0.0.1:9934", {
             innerEnhancer: (base) =>
               legacyEnhancer(
                 withLogsRecorder(
@@ -625,8 +624,7 @@ describe("E2E", async () => {
           newClient = createClient(
             enhancer(
               compatEnhancer(
-                getWsProvider({
-                  endpoints: ["ws://127.0.0.1:9934"],
+                getWsProvider("ws://127.0.0.1:9934", {
                   innerEnhancer: (base) =>
                     legacyEnhancer(
                       withLogsRecorder(
