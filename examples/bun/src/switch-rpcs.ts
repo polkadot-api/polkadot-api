@@ -1,5 +1,5 @@
-import { CompatibilityLevel, createClient } from "polkadot-api"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { createClient } from "polkadot-api"
+import { getWsProvider } from "polkadot-api/ws-provider"
 import { wnd } from "@polkadot-api/descriptors"
 
 const wsProvider = getWsProvider(
@@ -10,8 +10,10 @@ const wsProvider = getWsProvider(
     "wss://rpc-polkadot.luckyfriday.io",
     "wss://polkadot.api.onfinality.io/public-ws",
   ],
-  (x) => {
-    console.log(x)
+  {
+    onStatusChanged: (x) => {
+      console.log(x)
+    },
   },
 )
 const client = createClient(wsProvider)

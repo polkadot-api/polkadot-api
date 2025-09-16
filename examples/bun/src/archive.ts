@@ -1,4 +1,4 @@
-import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { getWsProvider } from "polkadot-api/ws-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 

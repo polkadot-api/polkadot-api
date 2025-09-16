@@ -9,6 +9,7 @@ export const reexports = [
   fromId("pjs-signer"),
   fromId("signer"),
   fromId("sm-provider"),
+  fromId("ws-provider"),
   fromId("ws-provider/node"),
   fromId("ws-provider/web"),
   ["chains", "@polkadot-api/known-chains"],

@@ -32,4 +32,8 @@ const generateEntry = (entry) => [
   },
 ]
 
-export default [...generateEntry("web"), ...generateEntry("node")]
+export default [
+  ...generateEntry("web"),
+  ...generateEntry("node"),
+  ...generateEntry("index"),
+]

@@ -84,6 +84,18 @@
       "require": "./dist/reexports/sm-provider.js",
       "default": "./dist/reexports/sm-provider.js"
     },
+    "./ws-provider": {
+      "types": "./dist/reexports/ws-provider.d.ts",
+      "node": {
+        "import": "./dist/esm/reexports/ws-provider.mjs",
+        "require": "./dist/reexports/ws-provider.js",
+        "default": "./dist/reexports/ws-provider.js"
+      },
+      "module": "./dist/esm/reexports/ws-provider.mjs",
+      "import": "./dist/esm/reexports/ws-provider.mjs",
+      "require": "./dist/reexports/ws-provider.js",
+      "default": "./dist/reexports/ws-provider.js"
+    },
     "./ws-provider/*": {
       "types": "./dist/reexports/ws-provider_*.d.ts",
       "node": {
