@@ -142,6 +142,7 @@ export const getUpstreamEvents = (
     allHeads$,
     finalized$,
     hasher$,
+    getRecursiveHeader,
     getHeader$,
   }
 }

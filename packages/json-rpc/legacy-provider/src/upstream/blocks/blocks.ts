@@ -7,7 +7,10 @@ import {
 import { UpstreamEvents } from "./upstream-events"
 import {
   concat,
+  concatMap,
+  debounceTime,
   EMPTY,
+  filter,
   map,
   merge,
   mergeMap,
@@ -17,7 +20,10 @@ import {
   share,
   shareReplay,
   skip,
+  take,
+  takeWhile,
   tap,
+  toArray,
   withLatestFrom,
 } from "rxjs"
 import { HexString } from "@polkadot-api/substrate-bindings"
@@ -28,6 +34,7 @@ export const getBlocks = ({
   finalized$,
   getHeader$,
   hasher$,
+  getRecursiveHeader,
 }: UpstreamEvents) => {
   const finalizedhash$ = finalized$.pipe(map((x) => x.hash))
   const blocks = new Map<
@@ -145,10 +152,42 @@ export const getBlocks = ({
     }
   }
 
+  const isPresent = (blockHash: string) =>
+    blocks.has(blockHash) || finalized === ""
+
+  // The initial blocks from `chain_unsubscribeAllHeads` are a royal mess,
+  // you may get a block that's 3 blocks above the currently finalized block,
+  // and a few seconds later receive a block that is 5 blocks above the currently
+  // finalized block that's from a different fork. So, this logic accounts for
+  // these exepctional cases that happen with the initial emissions of `allHeads$`.
+  const allHeadsFixed$ = allHeads$.pipe(
+    concatMap((newBlock) =>
+      isPresent(newBlock.parent)
+        ? [newBlock]
+        : getRecursiveHeader(newBlock.parent).pipe(
+            takeWhile((x) => !isPresent(x.parent), true),
+            toArray(),
+            mergeMap((blocks) => [...blocks.reverse(), newBlock]),
+          ),
+    ),
+    share(),
+  )
+
   const updates$ = merge(
-    allHeads$.pipe(map((value) => ({ type: "new" as const, value }))),
+    allHeadsFixed$.pipe(map((value) => ({ type: "new" as const, value }))),
     finalizedhash$.pipe(
       skip(1),
+      concatMap((blockHash) =>
+        isPresent(blockHash)
+          ? [blockHash]
+          : // it could happen that we are still loading the initial "new-blocks"
+            allHeadsFixed$.pipe(
+              debounceTime(0),
+              map(() => blockHash),
+              filter(isPresent),
+              take(1),
+            ),
+      ),
       map((value) => ({ type: "fin" as const, value })),
     ),
   ).pipe(

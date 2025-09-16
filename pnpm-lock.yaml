@@ -80,6 +80,9 @@ importers:
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
+      '@polkadot-api/legacy-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/legacy-provider
       '@polkadot-api/meta-signers':
         specifier: workspace:*
         version: link:../../packages/signers/meta-signers
