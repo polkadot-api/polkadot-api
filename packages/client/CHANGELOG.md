@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Remove annoying console warnings.
+
 ### Added
 
 - **WS Provider:**
