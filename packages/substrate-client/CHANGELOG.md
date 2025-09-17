@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Remove annoying console warnings.
+
 ## 0.4.6 - 2025-09-05
 
 ### Fixed
