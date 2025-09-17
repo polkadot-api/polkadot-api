@@ -5,6 +5,7 @@
 ### Fixed
 
 - Support `closestDescendantMerkleValue` storage requests
+- Handle possible race-condition with the initial emissions from `chain_subscribeAllHeads`
 
 ## 0.3.0 - 2025-09-15
 

@@ -25,6 +25,7 @@
     "@noble/hashes": "^2.0.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ledger-signer": "workspace:*",
+    "@polkadot-api/legacy-provider": "workspace:*",
     "@polkadot-api/meta-signers": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
