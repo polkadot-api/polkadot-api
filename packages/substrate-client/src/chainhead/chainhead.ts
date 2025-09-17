@@ -84,11 +84,8 @@ export function getChainHead(
     }
 
     const onAllFollowEventsNext = (event: FollowEventRpc) => {
-      if (isOperationEvent(event)) {
-        if (!subscriptions.has(event.operationId))
-          console.warn("Uknown operationId on", event)
+      if (isOperationEvent(event))
         return subscriptions.next(event.operationId, event)
-      }
 
       switch (event.event) {
         case "stop":
@@ -101,7 +98,6 @@ export function getChainHead(
           const { event: type, ...rest } = event
           return onFollowEvent({ type, ...rest } as any)
       }
-      console.warn("Invalid event", event)
     }
 
     const onAllFollowEventsError = (error: Error) => {
