@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/substrate-client",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",

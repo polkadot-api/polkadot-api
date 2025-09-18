@@ -10,10 +10,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
+    "@types/node": "^24.5.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
-    "vite": "^7.1.4"
+    "vite": "^7.1.6"
   },
   "dependencies": {
     "@polkadot-api/descriptors": "file:.papi/descriptors",

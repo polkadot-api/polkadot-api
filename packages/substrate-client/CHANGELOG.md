@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.7 - 2025-09-18
+
 ### Fixed
 
 - Remove annoying console warnings.

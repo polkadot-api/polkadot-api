@@ -2,15 +2,19 @@
 
 ## Unreleased
 
-### Fixed
-
-- Remove annoying console warnings.
+## 1.18.0 - 2025-09-18
 
 ### Added
 
 - **WS Provider:**
   - New default export with an improved API. The `/web` and `/node` sub-path exports should be considered deprecated.
     The new export only has one overload: The first argument are the endpoitns, and the second argument is the config which now accepts a custom `WebSockecClass`.
+
+### Fixed
+
+- Remove annoying console warnings.
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.17.2 - 2025-09-15
 
