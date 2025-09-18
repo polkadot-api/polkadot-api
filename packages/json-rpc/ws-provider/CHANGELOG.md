@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2025-09-18
+
 ### Added
 
 - New default export with an improved API. The `/web` and `/node` sub-path exports should be considered deprecated.

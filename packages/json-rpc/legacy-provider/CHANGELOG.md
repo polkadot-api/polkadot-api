@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.1 - 2025-09-18
+
 ### Fixed
 
 - Support `closestDescendantMerkleValue` storage requests
