@@ -5,6 +5,8 @@
 ### Fixed
 
 - Remove annoying console warnings.
+- **Chains:**:
+  - Update `lightSyncState`
 
 ### Added
 
