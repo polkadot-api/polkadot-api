@@ -53,6 +53,6 @@
     "@ledgerhq/hw-transport": "6"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0"
+    "@types/node": "^24.5.2"
   }
 }
