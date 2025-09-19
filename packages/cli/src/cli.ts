@@ -1,6 +1,7 @@
 import { Option, program } from "@commander-js/extra-typings"
 import type { add, generate, ink, remove, update } from "./commands"
 import * as knownChains from "@polkadot-api/known-chains"
+import { sol } from "./commands/sol"
 
 export type Commands = {
   add: typeof add
@@ -104,6 +105,27 @@ export function getCli({
     .addOption(skipCodegen)
     .addOption(whitelist)
     .action(ink.remove)
+
+  const solCommand = program
+    .command("sol")
+    .description("Add, update or remove solidity contracts")
+  solCommand
+    .command("add")
+    .description("Add or update a solidity contract")
+    .argument("<file>", ".abi file for the contract")
+    .argument("<key>", "Key identifier for the contract")
+    .addOption(config)
+    .addOption(skipCodegen)
+    .addOption(whitelist)
+    .action(sol.add)
+  solCommand
+    .command("remove")
+    .description("Remove a solidity contract")
+    .argument("<key>", "Key identifier for the contract to remove")
+    .addOption(config)
+    .addOption(skipCodegen)
+    .addOption(whitelist)
+    .action(sol.remove)
 
   return program
 }

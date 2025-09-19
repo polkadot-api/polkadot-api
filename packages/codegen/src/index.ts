@@ -9,3 +9,4 @@ export {
   type KnownTypes,
 } from "./known-types"
 export { generateInkTypes } from "./ink-types"
+export { generateSolTypes } from "./sol-types"

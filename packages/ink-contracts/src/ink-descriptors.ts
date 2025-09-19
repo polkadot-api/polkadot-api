@@ -9,7 +9,8 @@ export interface InkDescriptors<
   C extends InkCallableDescriptor,
   E extends Event,
 > {
-  metadata: InkMetadata
+  metadata?: InkMetadata
+  abi?: unknown
   __types: {
     storage: S
     messages: M
