@@ -58,20 +58,21 @@ function generatePrimitiveType(primitive: AbiPrimitive) {
     case "address":
       return "Address"
     case "bool":
-      return "bool"
+      return "boolean"
     case "fixed":
     case "ufixed":
+      // Spec'ed, but not implemented in solc yet.
       return "Decimal<18>"
     case "function":
       return "FunctionRef"
     case "bytes":
-      return "Uint8Array"
+      return "Binary"
     case "string":
       return "string"
   }
 
   if (primitive.startsWith("bytes")) {
-    return "Uint8Array"
+    return "Binary"
   }
 
   const intMatch = intRegex.exec(primitive)
@@ -131,7 +132,11 @@ function generateStructType(params?: Array<TypedVariable>): string {
 }
 
 function generateFunctionType(fnAbi: FunctionAbi) {
-  return `"${fnAbi}": { message: ${generateStructType(fnAbi.inputs)}, response: ${generateStructType(fnAbi.outputs)} }`
+  if (!fnAbi.name) {
+    console.log(fnAbi)
+    throw new Error("Function needs a name")
+  }
+  return `"${fnAbi.name}": { message: ${generateStructType(fnAbi.inputs)}, response: ${generateStructType(fnAbi.outputs)} }`
 }
 
 export function generateSolTypes(abi: Abi) {
@@ -175,10 +180,12 @@ export function generateSolTypes(abi: Abi) {
 
   const result = `
     import type { InkDescriptors } from 'polkadot-api/ink';
+    import type { Enum, Binary } from 'polkadot-api';
 
-    type Address = \`0x\${string}\`
+    type HexString = \`0x\${string}\`
+    type Address = HexString
     type Decimal<T extends number> = { value: bigint, decimals: T }
-    type FunctionRef = { address: Address, selector: Uint8Array }
+    type FunctionRef = { address: Address, selector: HexString }
 
     type StorageDescriptor = {};
     type MessagesDescriptor = ${messagesDescriptor};
