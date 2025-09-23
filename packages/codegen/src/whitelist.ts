@@ -1,9 +1,5 @@
+import { getLookupFn } from "@polkadot-api/metadata-builders"
 import { UnifiedMetadata } from "@polkadot-api/substrate-bindings"
-import { getUsedTypes } from "./get-used-types"
-import {
-  getChecksumBuilder,
-  getLookupFn,
-} from "@polkadot-api/metadata-builders"
 
 export function applyWhitelist(
   metadata: UnifiedMetadata,
@@ -144,9 +140,9 @@ export function applyWhitelist(
 
   const visitedIdxs: number[] = []
   const lookup = getLookupFn({ ...metadata, apis, pallets })
-  getUsedTypes(lookup, getChecksumBuilder(lookup)).checksums.forEach((_, idx) =>
-    visitedIdxs.push(idx),
-  )
+  // getUsedTypes(lookup, getChecksumBuilder(lookup)).checksums.forEach((_, idx) =>
+  //   visitedIdxs.push(idx),
+  // )
   let hasModuleError = false
   for (const idx of visitedIdxs) {
     const visited = lookup(idx)

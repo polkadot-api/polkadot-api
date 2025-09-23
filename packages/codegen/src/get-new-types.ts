@@ -8,18 +8,13 @@ import { defaultDeclarations, getTypesBuilder } from "./types-builder"
 
 export const getNewTypes = (
   lookup: MetadataLookup,
-  knownTypes: KnownTypes,
+  _knownTypes: KnownTypes,
   getTypeName: (data: V14Lookup[number]) => string | null,
 ) => {
   const { metadata } = lookup
   const checksumBuilder = getChecksumBuilder(lookup)
   let declarations = defaultDeclarations()
-  let typesBuilder = getTypesBuilder(
-    declarations,
-    lookup,
-    knownTypes,
-    checksumBuilder,
-  )
+  let typesBuilder = getTypesBuilder(declarations, lookup, {}, checksumBuilder)
 
   let ignoredIds = new Set<number>(
     "outerEnums" in metadata
@@ -74,12 +69,7 @@ export const getNewTypes = (
   })
 
   declarations = defaultDeclarations()
-  typesBuilder = getTypesBuilder(
-    declarations,
-    lookup,
-    wannabes,
-    checksumBuilder,
-  )
+  typesBuilder = getTypesBuilder(declarations, lookup, {}, checksumBuilder)
 
   metadata.lookup.forEach(({ id }) => {
     typesBuilder.buildDefinition(id)

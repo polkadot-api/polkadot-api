@@ -1,17 +1,16 @@
 import {
   getChecksumBuilder,
+  LookupEntry,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import {
   EntryPoint,
-  TypedefNode,
-  mapLookupToTypedef,
-  runtimeCallEntryPoint,
-  storageEntryPoint,
   enumValueEntryPointNode,
-  singleValueEntryPoint,
-  voidEntryPointNode,
   mapEntryPointReferences,
+  runtimeCallEntryPoint,
+  singleValueEntryPoint,
+  storageEntryPoint,
+  voidEntryPointNode,
 } from "@polkadot-api/metadata-compatibility"
 
 /**
@@ -28,10 +27,8 @@ export const getUsedTypes = (
   lookup: MetadataLookup,
   builder: ReturnType<typeof getChecksumBuilder>,
 ) => {
-  const checksums: string[] = new Array(lookup.metadata.lookup.length)
   const visited = new Set<string>()
-  const types = new Map<string, TypedefNode>()
-  const entryPoints = new Map<string, EntryPoint>()
+  const types = new Map<string, LookupEntry>()
 
   const addTypeFromLookup = (id: number | undefined) => {
     if (id == null) return
@@ -39,35 +36,28 @@ export const getUsedTypes = (
     if (!checksum) {
       throw new Error("Unreachable: checksum not available for lookup type")
     }
-    checksums[id] = checksum
     // We can't use `types` directly, because mapLookupToTypedef can recursively call this function.
     if (visited.has(checksum)) return
     visited.add(checksum)
-    types.set(checksum, mapLookupToTypedef(lookup(id), addTypeFromLookup))
+    types.set(checksum, lookup(id))
   }
-  const addTypeFromEntryPoint = (checksum: string, entry: EntryPoint) => {
-    entryPoints.set(checksum, entry)
+  const addTypeFromEntryPoint = (entry: EntryPoint) => {
     mapEntryPointReferences(entry, (id) => {
       addTypeFromLookup(id)
       return id
     })
   }
 
-  const buildEnum = (
-    side: "args" | "values",
-    val: number | undefined,
-    cb: (name: string) => string,
-  ) => {
+  const buildEnum = (side: "args" | "values", val: number | undefined) => {
     if (val === undefined) return
     const entry = lookup(val)
 
     if (entry.type === "void") return
     if (entry.type !== "enum") throw new Error("Expected enum")
 
-    Object.entries(entry.value).forEach(([name, value]) => {
-      const checksum = cb(name)
+    Object.values(entry.value).forEach((value) => {
       const node = enumValueEntryPointNode(value)
-      addTypeFromEntryPoint(checksum, {
+      addTypeFromEntryPoint({
         args: side === "args" ? node : voidEntryPointNode,
         values: side === "args" ? voidEntryPointNode : node,
       })
@@ -76,40 +66,24 @@ export const getUsedTypes = (
 
   lookup.metadata.pallets.forEach((pallet) => {
     pallet.storage?.items.forEach((entry) => {
-      const checksum = builder.buildStorage(pallet.name, entry.name)!
-      addTypeFromEntryPoint(checksum, storageEntryPoint(entry))
+      addTypeFromEntryPoint(storageEntryPoint(entry))
     })
-    pallet.constants.forEach(({ name, type }) => {
-      const checksum = builder.buildConstant(pallet.name, name)!
-      addTypeFromEntryPoint(checksum, singleValueEntryPoint(type))
+    pallet.constants.forEach(({ type }) => {
+      addTypeFromEntryPoint(singleValueEntryPoint(type))
     })
     pallet.viewFns.forEach((entry) => {
-      const checksum = builder.buildViewFns(pallet.name, entry.name)!
-      addTypeFromEntryPoint(checksum, runtimeCallEntryPoint(entry))
+      addTypeFromEntryPoint(runtimeCallEntryPoint(entry))
     })
-    buildEnum(
-      "args",
-      pallet.calls?.type,
-      (name) => builder.buildCall(pallet.name, name)!,
-    )
-    buildEnum(
-      "values",
-      pallet.events?.type,
-      (name) => builder.buildEvent(pallet.name, name)!,
-    )
-    buildEnum(
-      "values",
-      pallet.errors?.type,
-      (name) => builder.buildError(pallet.name, name)!,
-    )
+    buildEnum("args", pallet.calls?.type)
+    buildEnum("values", pallet.events?.type)
+    buildEnum("values", pallet.errors?.type)
   })
 
   lookup.metadata.apis.forEach((api) =>
     api.methods.forEach((method) => {
-      const checksum = builder.buildRuntimeCall(api.name, method.name)!
-      addTypeFromEntryPoint(checksum, runtimeCallEntryPoint(method))
+      addTypeFromEntryPoint(runtimeCallEntryPoint(method))
     }),
   )
 
-  return { types, entryPoints, checksums }
+  return { types }
 }

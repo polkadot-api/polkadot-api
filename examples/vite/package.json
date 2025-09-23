@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "papi && vite",
-    "build-external": "papi --whitelist whitelist.ts && tsc && vite build",
+    "build-external": "tsc && vite build",
     "build": "pnpm build-external",
     "preview": "vite preview"
   },

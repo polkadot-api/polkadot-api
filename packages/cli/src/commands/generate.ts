@@ -23,7 +23,7 @@ import { existsSync } from "fs"
 import fsExists from "fs.promises.exists"
 import fs, { mkdtemp, rm } from "fs/promises"
 import { tmpdir } from "os"
-import path, { join, posix, win32 } from "path"
+import path, { dirname, join, posix, win32 } from "path"
 import process from "process"
 import { readPackage } from "read-pkg"
 import tsc from "tsc-prog"
@@ -76,9 +76,9 @@ export async function generate(opts: GenerateOptions) {
 
   const whitelist = opts.whitelist ? await readWhitelist(opts.whitelist) : null
   const descriptorSrcDir = join(descriptorsDir, "src")
-  const hash = await outputCodegen(
+  await outputCodegen(
     chains,
-    descriptorSrcDir,
+    join(process.cwd(), "src/papi"),
     clientPath,
     whitelist,
   )
@@ -87,7 +87,6 @@ export async function generate(opts: GenerateOptions) {
     outputInkCodegen(config.ink, descriptorSrcDir)
   }
 
-  await replacePackageJson(descriptorsDir, hash)
   await compileCodegen(descriptorsDir)
   await fs.rm(descriptorSrcDir, { recursive: true })
   if (!config.options?.noDescriptorsPackage) {
@@ -174,14 +173,7 @@ async function outputCodegen(
   clientPath: string,
   whitelist: string[] | null,
 ) {
-  const {
-    commonFileContent,
-    descriptorsFileContent,
-    descriptorTypesFiles,
-    metadataTypes,
-    typesFileContent,
-    publicTypes,
-  } = generateMultipleDescriptors(
+  const { chainFiles, types, typesFile } = generateMultipleDescriptors(
     chains,
     {
       client: clientPath,
@@ -195,65 +187,28 @@ async function outputCodegen(
     },
   )
 
-  const hash = h64(
-    Binary.fromText(
-      Array.from(metadataTypes.checksumToIdx.keys()).join(""),
-    ).asBytes(),
-  )
-
   const EntryPointsCodec = Vector(EntryPointCodec)
   const TypedefsCodec = Vector(TypedefCodec)
   const TypesCodec = Tuple(EntryPointsCodec, TypedefsCodec)
 
   await fs.mkdir(outputFolder, { recursive: true })
 
-  await fs.writeFile(path.join(outputFolder, "common.ts"), commonFileContent)
-  // Going through base64 conversion instead of using binary loader because of esbuild issue
-  // https://github.com/evanw/esbuild/issues/3894
-  const metadataTypesBase64 = Buffer.from(
-    TypesCodec.enc([metadataTypes.entryPoints, metadataTypes.typedefs]),
-  ).toString("base64")
+  await fs.writeFile(path.join(outputFolder, "typedef.ts"), typesFile)
+  await fs.writeFile(path.join(outputFolder, "types.ts"), types)
 
-  await fs.writeFile(
-    path.join(outputFolder, "metadataTypes.ts"),
-    `
-const content = "${metadataTypesBase64}"
-export default content
-    `,
-  )
-  await fs.writeFile(
-    path.join(outputFolder, "descriptors.ts"),
-    descriptorsFileContent,
-  )
-  await fs.writeFile(
-    path.join(outputFolder, "common-types.ts"),
-    typesFileContent,
-  )
-  await Promise.all(
-    chains
-      .map((chain, i) => [
-        fs.writeFile(
-          join(outputFolder, `${chain.key}.ts`),
-          descriptorTypesFiles[i].content,
-        ),
-        fs.writeFile(
-          join(outputFolder, `${chain.key}_metadata.ts`),
-          generateMetadataExportFile(chain.metadataRaw),
-        ),
-      ])
-      .flat(),
-  )
+  const createdFolders = new Set<string>()
+  for (const files of chainFiles) {
+    for (const filename in files) {
+      const filePath = path.join(outputFolder, filename)
+      const dir = dirname(filePath)
+      if (!createdFolders.has(dir)) {
+        await fs.mkdir(dir, { recursive: true })
+        createdFolders.add(dir)
+      }
 
-  await generateIndex(
-    outputFolder,
-    chains.map((chain) => chain.key),
-    publicTypes,
-    Object.fromEntries(
-      chains.filter((x) => x.codeHash!!).map((x) => [x.codeHash, x.key]),
-    ),
-  )
-
-  return hash
+      await fs.writeFile(filePath, files[filename])
+    }
+  }
 }
 
 async function outputInkCodegen(

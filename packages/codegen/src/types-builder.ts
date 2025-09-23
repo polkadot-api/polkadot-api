@@ -50,7 +50,7 @@ export const getTypesBuilder = (
   declarations: CodeDeclarations,
   getLookupEntryDef: MetadataLookup,
   // checksum -> desired-name
-  knownTypes: KnownTypes,
+  names: Record<string, string>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
 ) => {
   const { metadata, call } = getLookupEntryDef
@@ -66,17 +66,11 @@ export const getTypesBuilder = (
 
   const internalBuilder = getInternalTypesBuilder(getLookupEntryDef)
   const anonymize = ({ name, checksum }: Variable) =>
-    knownTypes[checksum] ? name : `Anonymize<${name}>`
+    names[checksum] ? name : `Anonymize<${name}>`
   const getName = (checksum: string) => {
-    if (!knownTypes[checksum]) return `I${checksum}`
+    if (!names[checksum]) return `I${checksum}`
 
-    const { name: originalName } = knownTypes[checksum]
-    let name = originalName
-    let i = 1
-    while (declarations.takenNames.has(name)) name = originalName + i++
-
-    declarations.takenNames.add(name)
-    return name
+    return names[checksum]
   }
 
   const buildDefinition = (id: number) => {
@@ -100,7 +94,7 @@ export const getTypesBuilder = (
         const papiPrimitive = processPapiPrimitives(
           node,
           next,
-          !!checksum && !!knownTypes[checksum],
+          !!checksum && !!names[checksum],
         )
         if (!papiPrimitive) return null
         papiPrimitive.imports.client?.forEach((name) => {

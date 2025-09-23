@@ -1,3 +1,4 @@
 .vite
 dist
 src/codegen
+src/papi

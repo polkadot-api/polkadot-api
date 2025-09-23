@@ -37,3 +37,4 @@ export type {
 export type { CompatibilityToken, RuntimeToken } from "./compatibility"
 export * from "./offline"
 export { getTypedCodecs } from "./typed-codecs/typed-codecs"
+export type { LookupEntry } from "@polkadot-api/metadata-builders"

@@ -47,7 +47,6 @@ export function capitalize(value: string) {
 
 export const generateDescriptors = (
   lookupFn: MetadataLookup,
-  checksumToIdx: Map<string, number>,
   typesBuilder: ReturnType<typeof getTypesBuilder>,
   checksumBuilder: ReturnType<typeof getChecksumBuilder>,
   key: string,
@@ -60,6 +59,10 @@ export const generateDescriptors = (
   },
   genesis?: string,
 ) => {
+  const checksumToIdx = {
+    get: (..._args: any[]) => 0,
+  }
+
   const prefix = capitalize(key)
   const { metadata } = lookupFn
   const buildEnumObj = <T>(
