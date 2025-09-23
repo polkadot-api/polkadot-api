@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.18.1 - 2025-09-23
+
+### Fixed
+
+- Fix `txHash` field on transaction events: should be an hexadecimal string value.
+
 ## 1.18.0 - 2025-09-18
 
 ### Added
