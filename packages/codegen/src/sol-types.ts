@@ -178,6 +178,11 @@ export function generateSolTypes(abi: Abi) {
     ...constructor,
   })} }`
 
+  const events = abi.filter((v) => v.type === "event")
+  const eventsDescriptor = `Enum<{
+    ${events.map((evt) => `"${evt.name}": ${generateStructType(evt.inputs)}`).join(",\n")}
+  }>`
+
   const result = `
     import type { InkDescriptors } from 'polkadot-api/ink';
     import type { Enum, Binary } from 'polkadot-api';
@@ -190,7 +195,7 @@ export function generateSolTypes(abi: Abi) {
     type StorageDescriptor = {};
     type MessagesDescriptor = ${messagesDescriptor};
     type ConstructorsDescriptor = ${constructorsDescriptor};
-    type EventDescriptor = Enum<{}>;
+    type EventDescriptor = ${eventsDescriptor};
 
     export const descriptor: InkDescriptors<StorageDescriptor, MessagesDescriptor, ConstructorsDescriptor, EventDescriptor> = { abi: ${JSON.stringify(abi)} } as any;
   `
