@@ -30,7 +30,7 @@ import {
 import { AnalyzedBlock } from "@polkadot-api/observable-client"
 import { TxEvent, TxEventsPayload, TxFinalizedPayload } from "./types"
 import { continueWith } from "@/utils"
-import { fromHex } from "@polkadot-api/utils"
+import { fromHex, toHex } from "@polkadot-api/utils"
 
 const computeState = (
   analized$: Observable<AnalyzedBlock>,
@@ -207,7 +207,7 @@ export const submit$ = (
 ): Observable<TxEvent> =>
   chainHead.hasher$.pipe(
     mergeMap((hasher) => {
-      const txHash = hasher(fromHex(tx))
+      const txHash = toHex(hasher(fromHex(tx)))
       const getTxEvent = <
         Type extends TxEvent["type"],
         Rest extends Omit<TxEvent & { type: Type }, "type" | "txHash">,
