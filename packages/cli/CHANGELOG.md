@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.15.0 - 2025-09-25
+
 ### Added
 
 - `sol` subcommand analogous to `ink` for managing solidity contracts.

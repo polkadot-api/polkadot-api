@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.0 - 2025-09-25
+
 ### Added
 
 - `generateSolTypes(abi)` to generate contract descriptors from ABI

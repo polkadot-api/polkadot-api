@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2025-09-25
+
 ### Added
 
 - Add support solidity contracts
