@@ -112,6 +112,10 @@ export const getInkClient = <
 >(
   inkContract: D,
 ): InkClient<D> => {
+  if (!inkContract.metadata) {
+    throw new Error("Ink client needs the contract metadata")
+  }
+
   const lookup = getInkLookup(inkContract.metadata)
   const builder = getInkDynamicBuilder(lookup)
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add support solidity contracts
+
 ## 0.3.11 - 2025-09-15
 
 ### Fixed

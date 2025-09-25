@@ -1,4 +1,3 @@
-import { StringRecord } from "@polkadot-api/substrate-bindings"
 import { InkMetadata } from "./metadata-types"
 
 export type Event = { type: string; value: unknown }
@@ -9,7 +8,8 @@ export interface InkDescriptors<
   C extends InkCallableDescriptor,
   E extends Event,
 > {
-  metadata: InkMetadata
+  metadata?: InkMetadata
+  abi?: unknown
   __types: {
     storage: S
     messages: M
@@ -21,8 +21,8 @@ export interface InkDescriptors<
 export type InkCallableDescriptor = Record<
   string,
   {
-    message: StringRecord<unknown>
-    response: StringRecord<unknown>
+    message: unknown
+    response: unknown
     default?: boolean
     payable?: boolean
     mutates?: boolean

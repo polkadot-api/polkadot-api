@@ -3,6 +3,7 @@ import { readPapiConfig } from "@/papiConfig"
 import {
   generateInkTypes,
   generateMultipleDescriptors,
+  generateSolTypes,
   type KnownTypes,
 } from "@polkadot-api/codegen"
 import { getInkLookup } from "@polkadot-api/ink-contracts"
@@ -83,8 +84,8 @@ export async function generate(opts: GenerateOptions) {
     whitelist,
   )
 
-  if (config.ink) {
-    outputInkCodegen(config.ink, descriptorSrcDir)
+  if (config.ink || config.sol) {
+    outputContractCodegen(config, descriptorSrcDir)
   }
 
   await replacePackageJson(descriptorsDir, hash)
@@ -256,21 +257,37 @@ export default content
   return hash
 }
 
-async function outputInkCodegen(
-  contracts: Record<string, string>,
+async function outputContractCodegen(
+  contracts: {
+    ink?: Record<string, string>
+    sol?: Record<string, string>
+  },
   outputFolder: string,
 ) {
-  console.log("Generating ink! types")
+  console.log("Generating smart contract types")
 
   const contractsFolder = join(outputFolder, "contracts")
   if (!existsSync(contractsFolder))
     await fs.mkdir(contractsFolder, { recursive: true })
 
   const imports: string[] = []
-  for (const [key, metadata] of Object.entries(contracts)) {
+  for (const [key, metadata] of Object.entries(contracts.ink ?? {})) {
     try {
       const types = generateInkTypes(
         getInkLookup(JSON.parse(await fs.readFile(metadata, "utf-8"))),
+      )
+      await fs.writeFile(join(contractsFolder, `${key}.ts`), types)
+      imports.push(`export { descriptor as ${key} } from './${key}'`)
+    } catch (ex) {
+      console.error("Exception when generating descriptors for contract " + key)
+      console.error(ex)
+    }
+  }
+
+  for (const [key, metadata] of Object.entries(contracts.sol ?? {})) {
+    try {
+      const types = generateSolTypes(
+        JSON.parse(await fs.readFile(metadata, "utf-8")),
       )
       await fs.writeFile(join(contractsFolder, `${key}.ts`), types)
       imports.push(`export { descriptor as ${key} } from './${key}'`)

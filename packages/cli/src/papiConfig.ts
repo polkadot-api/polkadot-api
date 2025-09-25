@@ -38,6 +38,7 @@ export type PapiConfig = {
   descriptorPath: string
   entries: Record<string, EntryConfig>
   ink?: Record<string, string>
+  sol?: Record<string, string>
   options?: Partial<PapiConfigOptions>
 }
 
