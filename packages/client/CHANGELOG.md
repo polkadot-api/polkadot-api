@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed
+
+- **WS Provider:**
+  - Typescript import when moduleResolution = node.
+- **Codegen:**
+  - Fix solidity `tuple[]` contract codegen.
+  - Weaken solidity `HexString` types.
+
 ## 1.19.0 - 2025-09-25
 
 ### Added
