@@ -10,6 +10,7 @@
   "sideEffects": false,
   "exports": {
     ".": {
+      "types": "./dist/index/index.d.ts",
       "node": {
         "import": "./dist/index/esm/index.mjs",
         "require": "./dist/index/index.js",
@@ -36,6 +37,7 @@
     },
     "./package.json": "./package.json"
   },
+  "types": "./dist/index/index.d.ts",
   "files": [
     "dist",
     "web",
