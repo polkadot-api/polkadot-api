@@ -89,13 +89,16 @@ function generatePrimitiveType(primitive: AbiPrimitive) {
 }
 
 const arrayRegex = /^(.+)\[(\d+)\]$/
-function generateVariableType(variable: TypedVariable) {
+function generateVariableType(variable: TypedVariable): string {
   if (variable.type === "tuple") {
     return generateStructType(variable.components)
   }
 
   if (variable.type.endsWith("[]")) {
-    return `Array<${generatePrimitiveType(variable.type.replace("[]", "") as AbiPrimitive)}>`
+    return `Array<${generateVariableType({
+      ...variable,
+      type: variable.type.replace("[]", "") as AbiType,
+    })}>`
   }
 
   const arrayMatch = arrayRegex.exec(variable.type)
@@ -185,9 +188,8 @@ export function generateSolTypes(abi: Abi) {
 
   const result = `
     import type { InkDescriptors } from 'polkadot-api/ink';
-    import type { Enum, Binary } from 'polkadot-api';
+    import type { HexString, Enum, Binary } from 'polkadot-api';
 
-    type HexString = \`0x\${string}\`
     type Address = HexString
     type Decimal<T extends number> = { value: bigint, decimals: T }
     type FunctionRef = { address: Address, selector: HexString }

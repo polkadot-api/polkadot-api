@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix solidity `tuple[]` contract codegen
+- Relax solidity `HexString` types
+
 ## 0.19.0 - 2025-09-25
 
 ### Added
