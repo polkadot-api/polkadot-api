@@ -19,6 +19,10 @@ export const followEnhancer: (
 
   const result: JsonRpcProvider = (onMsg) => {
     const { send, disconnect } = base((fromProvider) => {
+      let nStops: { latest: number; count: number } = {
+        latest: Date.now(),
+        count: 0,
+      }
       const parsed = JSON.parse(fromProvider)
       // it's a response
       if ("id" in parsed) {
@@ -64,11 +68,17 @@ export const followEnhancer: (
         // it's a notifiaction
         const { subscription, result } = (parsed as any).params
         if (result?.event === "stop") {
+          const diff = Date.now() - nStops.latest
+          nStops.latest += diff
+          nStops.count = diff < 1000 ? nStops.count + 1 : 1
+
           if (onGoing.has(subscription)) onGoing.delete(subscription)
           else prematureStops.add(subscription)
         }
       }
+
       onMsg(fromProvider)
+      if (nStops.count > 2) forceDisconnect()
     })
 
     return {
