@@ -8,6 +8,7 @@
 
 - **WS Provider:**
   - Typescript import when moduleResolution = node.
+  - Ensure that it attempts to switch endpoints when it finds a faulty RPC that's constantly emitting `stop` events
 - **Codegen:**
   - Fix solidity `tuple[]` contract codegen.
   - Weaken solidity `HexString` types.

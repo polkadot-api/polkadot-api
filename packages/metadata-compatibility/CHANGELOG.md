@@ -2,37 +2,7 @@
 
 ## Unreleased
 
-## 0.3.6 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.5 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.4 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.3 - 2025-08-21
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.2 - 2025-07-23
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.1 - 2025-07-16
+## 0.3.1 to 0.3.6 - 2025-09-15
 
 ### Fixed
 
@@ -53,25 +23,7 @@
 
 - `Option<T>` => `Option<R>` when T and R are incompatible should be Partial instead of Incompatible.
 
-## 0.2.4 - 2025-05-30
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.3 - 2025-05-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.2 - 2025-05-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.1 - 2025-04-24
+## 0.2.1 to 0.2.4 - 2025-05-30
 
 ### Fixed
 
@@ -87,43 +39,7 @@
 
 - `TypedefNode`'s `EnumNode` has changed to accommodate for self-referencing enums.
 
-## 0.1.16 - 2025-03-07
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.15 - 2025-01-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.14 - 2024-12-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.13 - 2024-12-10
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.12 - 2024-11-22
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.11 - 2024-10-29
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.10 - 2024-10-24
+## 0.1.10 to 0.1.16 - 2025-03-07
 
 ### Fixed
 
@@ -145,13 +61,7 @@
 
 - Target ES2022 when bundling
 
-## 0.1.7 - 2024-10-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.6 - 2024-09-24
+## 0.1.6 to 0.1.7 - 2024-10-03
 
 ### Fixed
 
@@ -175,13 +85,7 @@
 
 - Update and remove unused dependencies
 
-## 0.1.2 - 2024-08-12
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.1 - 2024-07-25
+## 0.1.1 to 0.1.2 - 2024-08-12
 
 ### Fixed
 

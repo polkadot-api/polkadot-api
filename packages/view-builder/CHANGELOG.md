@@ -2,79 +2,7 @@
 
 ## Unreleased
 
-## 0.4.13 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.12 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.11 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.10 - 2025-08-21
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.9 - 2025-07-23
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.8 - 2025-07-16
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.7 - 2025-05-30
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.6 - 2025-05-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.5 - 2025-05-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.4 - 2025-04-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.3 - 2025-03-07
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.2 - 2025-01-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.4.1 - 2024-12-18
+## 0.4.1 to 0.4.13 - 2025-09-15
 
 ### Fixed
 
@@ -90,25 +18,7 @@
 
 - Update dependencies
 
-## 0.3.12 - 2024-11-22
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.11 - 2024-10-29
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.10 - 2024-10-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.9 - 2024-10-11
+## 0.3.9 to 0.3.12 - 2024-11-22
 
 ### Fixed
 
@@ -120,13 +30,7 @@
 
 - Target ES2022 when bundling
 
-## 0.3.7 - 2024-10-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.6 - 2024-09-24
+## 0.3.6 to 0.3.7 - 2024-10-03
 
 ### Fixed
 
@@ -138,25 +42,7 @@
 
 - Fix issue with recursive shapes reported on [#679](https://github.com/polkadot-api/polkadot-api/issues/679)
 
-## 0.3.4 - 2024-09-04
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.3 - 2024-08-28
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.2 - 2024-08-12
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.1 - 2024-07-25
+## 0.3.1 to 0.3.4 - 2024-09-04
 
 ### Fixed
 
@@ -172,13 +58,9 @@
 
 - Changed build to show individual files on source map explorers [#567](https://github.com/polkadot-api/polkadot-api/pull/567)
 
-## 0.2.2 - 2024-07-11
+## 0.2.1 to 0.2.2 - 2024-07-11
 
 ### Fixed
-
-- Update dependencies
-
-## 0.2.1 - 2024-07-03
 
 - Update dependencies
 
