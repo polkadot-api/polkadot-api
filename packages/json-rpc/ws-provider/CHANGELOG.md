@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.1 - 2025-09-29
+
 ### Fixed
 
 - Typescript import when moduleResolution = node
