@@ -5,6 +5,7 @@
 ### Fixed
 
 - Typescript import when moduleResolution = node
+- Ensure that it attempts to switch endpoints when it finds a faulty RPC that's constantly emitting `stop` events
 
 ## 0.6.0 - 2025-09-18
 
