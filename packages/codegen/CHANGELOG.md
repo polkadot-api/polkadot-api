@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.1 - 2025-09-29
+
 ### Fixed
 
 - Fix solidity `tuple[]` contract codegen
