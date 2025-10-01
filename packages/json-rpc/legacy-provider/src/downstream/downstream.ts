@@ -117,6 +117,9 @@ export const createDownstream =
           )
         },
         disconnect: () => {
+          groups.chainHead.stop()
+          groups.archive.stop()
+          groups.transaction.stop()
           upstream.disconnect()
         },
       }

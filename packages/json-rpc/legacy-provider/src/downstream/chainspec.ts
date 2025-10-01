@@ -21,8 +21,7 @@ export const createChainSpec = (
       (result) => {
         reply(rId, result)
       },
-      (e: any) => {
-        console.error(e)
+      () => {
         err(rId, -32602, "Invalid")
       },
     )

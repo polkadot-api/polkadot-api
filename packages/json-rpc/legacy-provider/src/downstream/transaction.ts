@@ -17,12 +17,11 @@ export const createTransactionFns = (
   upstream: ReturnType<typeof createUpstream>,
   reply: (id: string, result: any) => void,
 ) => {
-  return (rId: string, method: string, args: any[]) => {
-    const ongoing = new Map<string, Subscription>()
+  const ongoing = new Map<string, Subscription>()
+  const result = (rId: string, method: string, args: any[]) => {
     if (method === transactionMethods.stop) {
       const [token] = args
-      const sub = ongoing.get(token)
-      sub?.unsubscribe()
+      ongoing.get(token)?.unsubscribe()
       ongoing.delete(token)
       reply(rId, null)
     } else if (method === transactionMethods.broadcast) {
@@ -32,7 +31,11 @@ export const createTransactionFns = (
         upstream
           .obsRequest("author_submitExtrinsic", args)
           .pipe(
+            // We want to make sure that we keep on retrying if there
+            // are errors with the `author_submitExtrinsic` request
             catchError((_, source) => concat(timer(5_000), source)),
+            // This logic ensures that the subscription dies if an
+            // upstream error (like the client being destroyed) takes place
             takeUntil(
               upstream.finalized$.pipe(
                 ignoreElements(),
@@ -50,4 +53,11 @@ export const createTransactionFns = (
       throw null
     }
   }
+
+  result.stop = () => {
+    ongoing.forEach((s) => s.unsubscribe())
+    ongoing.clear()
+  }
+
+  return result
 }

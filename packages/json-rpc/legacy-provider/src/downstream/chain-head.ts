@@ -3,6 +3,7 @@ import { createOpaqueToken } from "@/utils/create-opaque-token"
 import { noop } from "@polkadot-api/utils"
 import { finalize } from "rxjs"
 import { areItemsValid, getStg$ } from "./storage"
+import { getMsgFromErr } from "@/utils/message-from-error"
 
 export const chainHeadMethods = Object.fromEntries(
   [
@@ -54,8 +55,7 @@ export const createChainHead = (
       next(v) {
         notification("chainHead_v1_followEvent", token, v)
       },
-      error(e) {
-        console.error(e)
+      error() {
         cleanUp()
         notification("chainHead_v1_followEvent", token, { event: "stop" })
       },
@@ -127,11 +127,10 @@ export const createChainHead = (
       },
       (e) => {
         operations.delete(operationId)
-        console.error(e)
         notification("chainHead_v1_call", followId, {
           event: "operationError",
           operationId,
-          error: "", // TODO: figure this out
+          error: getMsgFromErr(e),
         })
       },
     )
@@ -159,11 +158,10 @@ export const createChainHead = (
       },
       (e) => {
         operations.delete(operationId)
-        console.error(e)
         notification("chainHead_v1_body", followId, {
           event: "operationError",
           operationId,
-          error: "", // TODO: figure this out
+          error: getMsgFromErr(e),
         })
       },
     )
@@ -209,11 +207,10 @@ export const createChainHead = (
           })
         },
         (e) => {
-          console.error(e)
           innerNotifiaction({
             event: "operationError",
             operationId,
-            error: "", // TODO: figure this out
+            error: getMsgFromErr(e),
           })
         },
         () => {
@@ -230,7 +227,7 @@ export const createChainHead = (
       })
   }
 
-  return (rId: string, method: string, params: Array<any>) => {
+  const result = (rId: string, method: string, params: Array<any>) => {
     if (method === chainHeadMethods.follow) return follow(rId)
     const [followId, ...rest] = params as [string, ...any[]]
     const ctx = subscriptions.get(followId)
@@ -281,4 +278,11 @@ export const createChainHead = (
     }
     throw null
   }
+
+  result.stop = () => {
+    subscriptions.forEach((x) => {
+      x.cleanUp()
+    })
+  }
+  return result
 }
