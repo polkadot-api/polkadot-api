@@ -4,8 +4,8 @@
 
 ### Fixed
 
-- Improved logic for dealing with unexpected blocks comming from `chain_subscribeAllHeads`
-- Bettter error handling and cleanup logic.
+- Improved logic for dealing with unexpected blocks coming from `chain_subscribeAllHeads`
+- Better error handling and cleanup logic.
 
 ## 0.3.1 - 2025-09-18
 
