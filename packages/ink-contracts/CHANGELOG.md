@@ -8,37 +8,7 @@
 
 - Add support solidity contracts
 
-## 0.3.11 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.10 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.9 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.8 - 2025-08-21
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.7 - 2025-07-23
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.6 - 2025-07-16
+## 0.3.6 to 0.3.11 - 2025-09-15
 
 ### Fixed
 
@@ -62,13 +32,7 @@
 
 - Filter events by contract address for ink!v6
 
-## 0.3.2 - 2025-05-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.1 - 2025-05-15
+## 0.3.1 to 0.3.2 - 2025-05-20
 
 ### Fixed
 
@@ -88,25 +52,7 @@
 
 - Use `@polkadot-api/substrate-bindings` re-exports instead of `scale-ts` directly
 
-## 0.2.5 - 2025-01-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.4 - 2024-12-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.3 - 2024-12-10
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.2 - 2024-11-22
+## 0.2.2 to 0.2.5 - 2025-01-24
 
 ### Fixed
 
@@ -128,13 +74,7 @@
 
 - Dynamic builder and client accept event topics for event decoding.
 
-## 0.1.2 - 2024-10-29
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.1 - 2024-10-24
+## 0.1.1 to 0.1.2 - 2024-10-29
 
 ### Fixed
 

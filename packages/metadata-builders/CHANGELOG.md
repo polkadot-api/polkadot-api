@@ -2,31 +2,7 @@
 
 ## Unreleased
 
-## 0.13.5 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.4 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.3 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.2 - 2025-08-21
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.1 - 2025-07-23
+## 0.13.1 to 0.13.5 - 2025-09-15
 
 ### Fixed
 
@@ -85,19 +61,7 @@
 
 - Expose whole `keys` and `value` codecs for storage
 
-## 0.9.3 - 2024-12-10
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.2 - 2024-11-22
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.1 - 2024-10-29
+## 0.9.1 to 0.9.3 - 2024-12-10
 
 ### Fixed
 

@@ -15,25 +15,7 @@
 
 - `generateSolTypes(abi)` to generate contract descriptors from ABI
 
-## 0.18.4 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.18.3 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.18.2 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.18.1 - 2025-08-21
+## 0.18.1 to 0.18.4 - 2025-09-15
 
 ### Fixed
 
@@ -57,25 +39,7 @@
 
 - `BitSequence` types are now: `Array<0 | 1>`
 
-## 0.16.4 - 2025-06-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.16.3 - 2025-06-16
-
-### Fixed
-
-- Update dependencies
-
-## 0.16.2 - 2025-05-30
-
-### Fixed
-
-- Update dependencies
-
-## 0.16.1 - 2025-05-27
+## 0.16.1 to 0.16.4 - 2025-06-20
 
 ### Fixed
 
@@ -120,13 +84,7 @@
 
 - Inline single-use types to avoid circular TSC errors.
 
-## 0.13.2 - 2025-04-14
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.1 - 2025-03-07
+## 0.13.1 to 0.13.2 - 2025-04-14
 
 ### Fixed
 
@@ -151,13 +109,7 @@
 
 - Fix crash when generating code for some chains.
 
-## 0.12.12 - 2024-12-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.12.11 - 2024-12-10
+## 0.12.11 to 0.12.12 - 2024-12-18
 
 ### Fixed
 
@@ -175,19 +127,7 @@
 
 - Account for storage entries that use opaque hashers.
 
-## 0.12.8 - 2024-11-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.12.7 - 2024-10-29
-
-### Fixed
-
-- Update dependencies
-
-## 0.12.6 - 2024-10-24
+## 0.12.6 to 0.12.8 - 2024-11-15
 
 ### Fixed
 

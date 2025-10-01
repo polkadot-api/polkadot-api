@@ -2,37 +2,7 @@
 
 ## Unreleased
 
-## 0.2.8 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.7 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.6 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.5 - 2025-08-21
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.4 - 2025-07-23
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.3 - 2025-07-16
+## 0.2.3 to 0.2.8 - 2025-09-15
 
 ### Fixed
 

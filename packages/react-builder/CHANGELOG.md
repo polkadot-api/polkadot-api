@@ -2,37 +2,7 @@
 
 ## Unreleased
 
-## 0.3.7 - 2025-09-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.6 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.5 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.4 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.3 - 2025-08-21
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.2 - 2025-07-23
+## 0.3.2 to 0.3.7 - 2025-09-18
 
 ### Fixed
 
@@ -50,55 +20,7 @@
 
 - `BitSeq` component must be provided for encodeding/decoding `BitSequence` fields.
 
-## 0.2.9 - 2025-05-30
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.8 - 2025-05-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.7 - 2025-05-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.6 - 2025-04-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.5 - 2025-03-07
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.4 - 2025-01-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.3 - 2024-12-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.2 - 2024-12-10
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.1 - 2024-11-22
+## 0.2.1 to 0.2.9 - 2025-05-30
 
 ### Fixed
 
