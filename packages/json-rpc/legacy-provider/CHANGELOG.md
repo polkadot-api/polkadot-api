@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Improved logic for dealing with unexpected blocks coming from `chain_subscribeAllHeads`
+- Better error handling and cleanup logic.
+
 ## 0.3.1 - 2025-09-18
 
 ### Fixed

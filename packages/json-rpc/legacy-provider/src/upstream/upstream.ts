@@ -40,6 +40,7 @@ export const createUpstream = (provider: JsonRpcProvider) => {
     finalized$,
     getHeader$,
     hasher$,
+    clean,
   } = getBlocks$(request, obsRequest)
 
   const runtimeCall = (atBlock: string, method: string, data: string) =>
@@ -116,7 +117,10 @@ export const createUpstream = (provider: JsonRpcProvider) => {
     chainName,
     properties,
     genesisHash,
-    disconnect,
+    disconnect: () => {
+      disconnect()
+      clean()
+    },
     methods,
     request: simpleRequest,
     obsRequest,

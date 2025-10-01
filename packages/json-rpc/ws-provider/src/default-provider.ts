@@ -169,6 +169,7 @@ export const getWsProvider = (
           socket.removeEventListener("close", onClose)
           forceSocketClose()
           if (withHalt) onClose({})
+          connection.disconnect()
         }
 
         return connection

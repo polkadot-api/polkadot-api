@@ -1,7 +1,8 @@
 import { createUpstream } from "@/upstream/upstream"
 import { createOpaqueToken } from "@/utils/create-opaque-token"
-import { finalize, map, Observable, take } from "rxjs"
+import { finalize, map, Observable, Subscription, take } from "rxjs"
 import { areItemsValid, getStg$ } from "./storage"
+import { getMsgFromErr } from "@/utils/message-from-error"
 
 export const archiveMethods = Object.fromEntries(
   [
@@ -22,7 +23,8 @@ export const createArchive = (
   err: (id: string, code: number, msg: string) => void,
   notification: (method: string, subscription: string, result: any) => void,
 ) => {
-  const subscriptions = new Map<string, () => void>()
+  const stgSubscriptions = new Map<string, Subscription>()
+
   const stg = (
     reply: (x: string) => void,
     at: string,
@@ -45,7 +47,7 @@ export const createArchive = (
     const subscription = getStg$(upstream, at, items)
       .pipe(
         finalize(() => {
-          subscriptions.delete(subId)
+          stgSubscriptions.delete(subId)
         }),
       )
       .subscribe(
@@ -55,30 +57,28 @@ export const createArchive = (
           )
         },
         (e) => {
-          console.error(e)
-          innerNotifiaction({ event: "storageError", error: "" }) // TODO: figure this out
+          innerNotifiaction({ event: "storageError", error: getMsgFromErr(e) })
         },
         () => {
           innerNotifiaction({ event: "storageDone" })
         },
       )
 
-    if (!subscription.closed)
-      subscriptions.set(subId, () => {
-        subscription.unsubscribe()
-      })
+    if (!subscription.closed) stgSubscriptions.set(subId, subscription)
   }
 
-  return (rId: string, name: string, params: Array<any>) => {
+  const result = (rId: string, name: string, params: Array<any>) => {
     const innerReply = (value: any) => {
       reply(rId, value)
     }
 
     const obsReply = (input: Observable<any>) => {
+      // There is no need to keep these subscriptions around
+      // b/c killing upstream will also kill this subscription
       input.subscribe({
         next: innerReply,
         error: (e) => {
-          err(rId, e.code ?? -1, e.error ?? "")
+          err(rId, e.code ?? -1, getMsgFromErr(e))
         },
       })
     }
@@ -109,8 +109,8 @@ export const createArchive = (
           upstream.getHeader$(firstArg).pipe(map((h) => h.header)),
         )
       case archiveMethods.stopStorage: {
-        const sub = subscriptions.get(firstArg)
-        return sub ? sub() : err(rId, -32602, "Invalid args")
+        const sub = stgSubscriptions.get(firstArg)
+        return sub ? sub.unsubscribe() : err(rId, -32602, "Invalid args")
       }
       case archiveMethods.storage:
         return areItemsValid(secondArg)
@@ -119,4 +119,11 @@ export const createArchive = (
     }
     throw null
   }
+
+  result.stop = () => {
+    ;[...stgSubscriptions].forEach(([, s]) => s.unsubscribe())
+    stgSubscriptions.clear()
+  }
+
+  return result
 }
