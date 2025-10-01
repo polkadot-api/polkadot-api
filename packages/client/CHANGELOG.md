@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- **WS Provider:**
+  - Ensure that it attempts to switch endpoints when it finds a faulty RPC that's constantly emitting `stop` events
+  - Propagate `innerEnhancer` disconnection
+
 ## 1.19.1 - 2025-09-29
 
 ### Fixed
