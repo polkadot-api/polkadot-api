@@ -57,7 +57,7 @@ export const createArchive = (
           )
         },
         (e) => {
-          innerNotifiaction({ event: "storageError", error: getMsgFromErr(e) }) // TODO: figure this out
+          innerNotifiaction({ event: "storageError", error: getMsgFromErr(e) })
         },
         () => {
           innerNotifiaction({ event: "storageDone" })
