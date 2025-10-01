@@ -6,6 +6,8 @@ const methods: Record<string, "follow" | "unfollow"> = {}
   methods[`chainHead_${version}_unfollow`] = "unfollow"
 })
 
+const resetStops = () => ({ latest: Date.now(), count: 0 })
+
 export const followEnhancer: (
   input: JsonRpcProvider,
   forceDisconnect: () => void,
@@ -16,13 +18,10 @@ export const followEnhancer: (
   const preOpId = new Map<string, string>()
   const onGoing = new Set<string>()
   let methodsRequestId: string | undefined
+  let nStops: { latest: number; count: number } = resetStops()
 
   const result: JsonRpcProvider = (onMsg) => {
     const { send, disconnect } = base((fromProvider) => {
-      let nStops: { latest: number; count: number } = {
-        latest: Date.now(),
-        count: 0,
-      }
       const parsed = JSON.parse(fromProvider)
       // it's a response
       if ("id" in parsed) {
@@ -78,7 +77,10 @@ export const followEnhancer: (
       }
 
       onMsg(fromProvider)
-      if (nStops.count > 2) forceDisconnect()
+      if (nStops.count > 2) {
+        nStops = resetStops()
+        forceDisconnect()
+      }
     })
 
     return {

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Ensure that it attempts to switch endpoints when it finds a faulty RPC that's constantly emitting `stop` events (2nd attempt)
+
 ## 0.6.1 - 2025-09-29
 
 ### Fixed
