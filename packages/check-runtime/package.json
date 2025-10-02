@@ -1,0 +1,57 @@
+{
+  "name": "@polkadot-api/check-runtime",
+  "version": "0.0.1",
+  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polkadot-api/polkadot-api.git"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "bin": "./bin/cli.mjs",
+  "engines": {
+    "node": ">=v22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "node": {
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
+  "browser": "./dist/esm/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "cli"
+  ],
+  "scripts": {
+    "build-core": "tsc --noEmit && rollup -c",
+    "build": "pnpm build-core",
+    "test": "echo 'no tests'",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "@commander-js/extra-typings": "^14.0.0",
+    "@acala-network/chopsticks-core": "^1.2.2",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:",
+    "@polkadot-api/merkleize-metadata": "workspace:",
+    "@polkadot-api/substrate-bindings": "workspace:",
+    "@polkadot-labs/hdkd": "^0.0.25",
+    "@polkadot-labs/hdkd-helpers": "^0.0.26",
+    "polkadot-api": "workspace:",
+    "rxjs": "^7.8.2"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base",
+  "include": ["src", "tests"],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "baseUrl": "src",
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}

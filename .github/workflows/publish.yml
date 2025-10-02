@@ -57,6 +57,7 @@ jobs:
           - "22"
         value:
           [
+            check-runtime,
             cli,
             client,
             codegen,

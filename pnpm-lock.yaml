@@ -74,6 +74,9 @@ importers:
       '@noble/hashes':
         specifier: ^2.0.0
         version: 2.0.0
+      '@polkadot-api/check-runtime':
+        specifier: workspace:*
+        version: link:../../packages/check-runtime
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:examples/bun/.papi/descriptors(polkadot-api@packages+client)
@@ -275,6 +278,36 @@ importers:
       '@types/node':
         specifier: ^24.5.2
         version: 24.5.2
+
+  packages/check-runtime:
+    dependencies:
+      '@acala-network/chopsticks-core':
+        specifier: ^1.2.2
+        version: 1.2.2
+      '@commander-js/extra-typings':
+        specifier: ^14.0.0
+        version: 14.0.0(commander@14.0.1)
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: 'workspace:'
+        version: link:../json-rpc/json-rpc-provider-proxy
+      '@polkadot-api/merkleize-metadata':
+        specifier: 'workspace:'
+        version: link:../merkleize-metadata
+      '@polkadot-api/substrate-bindings':
+        specifier: 'workspace:'
+        version: link:../substrate-bindings
+      '@polkadot-labs/hdkd':
+        specifier: ^0.0.25
+        version: 0.0.25
+      '@polkadot-labs/hdkd-helpers':
+        specifier: ^0.0.26
+        version: 0.0.26
+      polkadot-api:
+        specifier: 'workspace:'
+        version: link:../client
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/cli:
     dependencies:
@@ -1264,12 +1297,20 @@ packages:
     resolution: {integrity: sha512-RiwZZeJnsTnhT+/gg2KvITJZhK5oagQrpZo+yQyd3mv3D5NAG2qEeEHpw7IkXRlpkoD45wl2o4ydHAvY9wyEfw==}
     engines: {node: '>= 20.19.0'}
 
+  '@noble/curves@2.0.1':
+    resolution: {integrity: sha512-vs1Az2OOTBiP4q0pwjW5aF0xp9n4MxVrmkFBxc6EKZc6ddYx5gaZiAsZoq0uRRXWbi3AT/sBqn05eRPtn1JCPw==}
+    engines: {node: '>= 20.19.0'}
+
   '@noble/hashes@1.8.0':
     resolution: {integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==}
     engines: {node: ^14.21.3 || >=16}
 
   '@noble/hashes@2.0.0':
     resolution: {integrity: sha512-h8VUBlE8R42+XIDO229cgisD287im3kdY6nbNZJFjc6ZvKIXPYXe6Vc/t+kyjFdMFyt5JpapzTsEg8n63w5/lw==}
+    engines: {node: '>= 20.19.0'}
+
+  '@noble/hashes@2.0.1':
+    resolution: {integrity: sha512-XlOlEbQcE9fmuXxrVTXCTlG2nlRXa9Rj3rr5Ue/+tX+nmkgbX720YHh0VR3hBF9xDvwnb8D2shVGOwNx+ulArw==}
     engines: {node: '>= 20.19.0'}
 
   '@npmcli/fs@1.1.1':
@@ -1361,8 +1402,14 @@ packages:
   '@polkadot-labs/hdkd-helpers@0.0.25':
     resolution: {integrity: sha512-GwHayBuyHKfzvGD0vG47NbjFeiK6rRQHQAn1syut9nt0mhXMg4yb3tJ//IyM317qWuDU3HbD2OIp5jKDEQz2/A==}
 
+  '@polkadot-labs/hdkd-helpers@0.0.26':
+    resolution: {integrity: sha512-mp3GCSiOQeh4aPt+DYBQq6UnX/tKgYUH5F75knjW3ATSA90ifEEWWjRan0Bddt4QKYKamaDGadK9GbVREgzQFw==}
+
   '@polkadot-labs/hdkd@0.0.24':
     resolution: {integrity: sha512-qU5z4QMKrh67D1i3TEw7u5Q+AVah93Yyi1teX2dl12Bdmi2HzFz2db1z92gCuUnRdYq6xnfSQz54Bmy6bF+E5w==}
+
+  '@polkadot-labs/hdkd@0.0.25':
+    resolution: {integrity: sha512-+yZJC1TE4ZKdfoILw8nGxu3H/klrYXm9GdVB0kcyQDecq320ThUmM1M4l8d1F/3QD0Nez9NwHi9t5B++OgJU5A==}
 
   '@polkadot/api-augment@16.4.7':
     resolution: {integrity: sha512-euQOOSxpozB2VEWf4H8RuEyjkMrL7ARcdYG95tkoBUbHDACublPmGcR/v5fYkfEEap8gWcXaMfXvdGFaKw7DQQ==}
@@ -4379,9 +4426,15 @@ snapshots:
     dependencies:
       '@noble/hashes': 2.0.0
 
+  '@noble/curves@2.0.1':
+    dependencies:
+      '@noble/hashes': 2.0.1
+
   '@noble/hashes@1.8.0': {}
 
   '@noble/hashes@2.0.0': {}
+
+  '@noble/hashes@2.0.1': {}
 
   '@npmcli/fs@1.1.1':
     dependencies:
@@ -4486,9 +4539,21 @@ snapshots:
       '@scure/sr25519': 0.3.0
       scale-ts: 1.6.1
 
+  '@polkadot-labs/hdkd-helpers@0.0.26':
+    dependencies:
+      '@noble/curves': 2.0.1
+      '@noble/hashes': 2.0.1
+      '@scure/base': 2.0.0
+      '@scure/sr25519': 0.3.0
+      scale-ts: 1.6.1
+
   '@polkadot-labs/hdkd@0.0.24':
     dependencies:
       '@polkadot-labs/hdkd-helpers': 0.0.25
+
+  '@polkadot-labs/hdkd@0.0.25':
+    dependencies:
+      '@polkadot-labs/hdkd-helpers': 0.0.26
 
   '@polkadot/api-augment@16.4.7':
     dependencies:
