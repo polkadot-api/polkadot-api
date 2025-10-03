@@ -4,7 +4,6 @@ import { alice } from "./alice"
 import { noop, toHex } from "polkadot-api/utils"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 import { Struct, u32, u128 } from "@polkadot-api/substrate-bindings"
-import { destroyWorker } from "@acala-network/chopsticks-core"
 
 if (typeof process === "object" && "env" in process)
   process.env.LOG_LEVEL = "fatal"
@@ -21,7 +20,7 @@ const getChopsticksProvider = (
   }> = {},
 ) =>
   getSyncProvider(async () => {
-    const { ChopsticksProvider, setup } = await import(
+    const { ChopsticksProvider, setup, destroyWorker } = await import(
       "@acala-network/chopsticks-core"
     )
     const chain = await setup({ endpoint, block, runtimeLogLevel: 0 })
