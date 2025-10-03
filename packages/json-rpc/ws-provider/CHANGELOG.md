@@ -10,8 +10,8 @@
 
 ### Added
 
-- `heartbeatTimeout` option to control how long to wait without having received notifications from the server beforeswitching
-  switching connections. It defaults to 40 secs.
+- `heartbeatTimeout` option to control how long to wait without having received notifications from the server before switching
+  connections. It defaults to 40 secs.
 
 ## 0.6.2 - 2025-10-03
 
