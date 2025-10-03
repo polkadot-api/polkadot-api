@@ -152,6 +152,7 @@ export const getWsProvider = (
             disconnect(true)
           }, heartbeatTimeout)
         }
+        heartbeat()
 
         const connection = inner(onMessage)
         const _onMessage = (e: MessageEvent) => {
