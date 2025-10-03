@@ -44,13 +44,14 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@commander-js/extra-typings": "^14.0.0",
     "@acala-network/chopsticks-core": "^1.2.2",
+    "@commander-js/extra-typings": "^14.0.0",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:",
     "@polkadot-api/merkleize-metadata": "workspace:",
     "@polkadot-api/substrate-bindings": "workspace:",
     "@polkadot-labs/hdkd": "^0.0.25",
     "@polkadot-labs/hdkd-helpers": "^0.0.26",
+    "ora": "^9.0.0",
     "polkadot-api": "workspace:",
     "rxjs": "^7.8.2"
   }

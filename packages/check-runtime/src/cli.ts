@@ -5,8 +5,18 @@ import { getProblems } from "./get-problems"
 import { HexString } from "polkadot-api"
 import { toHex } from "polkadot-api/utils"
 import { readFile } from "node:fs/promises"
+import ora from "ora"
 import { Problem } from "./problems"
 import { version } from "../package.json"
+const messages: Record<Problem, string> = {
+  [Problem.ANCIENT_METADATA]:
+    "This runtime doesn't expose a modern (>=14) metadata",
+  [Problem.MISSING_RUNTIME_APIS]: `The runtime APIs are missing. Plese have a look at this: https://github.com/polkadot-api/polkadot-api/issues/1164#issuecomment-3332177905`,
+  [Problem.MISSING_MODERN_METADATA]: `This runtime only exposes metadata v14.`,
+  [Problem.MISSING_CHECK_METADATA_HASH_EXTENSION]: `The extrinsic doesn't support the CheckMetadataHash extension, therefore this runtime won't work well with transactions signed by offline devices`,
+  [Problem.WRONG_OR_MISSING_METADATA_HASH]: `This runtime was not compiled with the proper metadata-hash, and thus transactions correctly using the CheckMetadataHash extension will be deemed invalid`,
+  [Problem.DIFFERENT_METADATA_HASHES]: `The metadata-hash differs from metadata v15 and metadata v16`,
+}
 
 function getCli() {
   program
@@ -34,24 +44,37 @@ function getCli() {
     .action(async (uri, options) => {
       let wasm: HexString | undefined = undefined
       if (options.wasm) {
-        let isFile: boolean
+        let isUri: boolean
         try {
           new URL(options.wasm)
-          isFile = true
+          isUri = true
         } catch {
-          isFile = false
+          isUri = false
         }
 
-        if (isFile) {
-          console.log("Downloading the WASM file...")
-          wasm = toHex(await (await fetch(options.wasm)).bytes())
+        if (isUri) {
+          const spinner = ora("Downloading the WASM file...").start()
+          try {
+            wasm = toHex(await (await fetch(options.wasm)).bytes())
+          } catch (e) {
+            spinner.fail("There was a problem while downloading the WASM")
+            throw e
+          }
+          spinner.succeed("The WASM file was successfully downloaded")
         } else {
-          console.log("Loading WASM file...")
-          wasm = toHex(new Uint8Array(await readFile(options.wasm)))
+          const spinner = ora("Loading WASM file from disk...").start()
+          try {
+            wasm = toHex(new Uint8Array(await readFile(options.wasm)))
+          } catch (e) {
+            spinner.fail("There was a problem loading the WASM file from disk")
+            throw e
+          }
         }
       }
 
-      console.log(`Checking for common problems. This may take a while...`)
+      const spinner = ora(
+        `Checking for common problems. This may take a while...`,
+      ).start()
       const problems = await getProblems(uri, {
         wasm,
         block: options.at,
@@ -64,17 +87,8 @@ function getCli() {
         },
       })
 
-      const messages: Record<Problem, string> = {
-        [Problem.ANCIENT_METADATA]:
-          "This runtime doesn't expose a modern (>=14) metadata",
-        [Problem.MISSING_RUNTIME_APIS]: `The runtime APIs are missing. Plese have a look at this: https://github.com/polkadot-api/polkadot-api/issues/1164#issuecomment-3332177905`,
-        [Problem.MISSING_MODERN_METADATA]: `This runtime only exposes metadata v14.`,
-        [Problem.MISSING_CHECK_METADATA_HASH_EXTENSION]: `The extrinsic doesn't support the CheckMetadataHash extension, therefore this runtime won't work well with transactions signed by offline devices`,
-        [Problem.WRONG_OR_MISSING_METADATA_HASH]: `This runtime was not compiled with the proper metadata-hash, and thus transactions correctly using the CheckMetadataHash extension will be deemed invalid`,
-        [Problem.DIFFERENT_METADATA_HASHES]: `The metadata-hash differs from metadata v15 and metadata v16`,
-      }
       if (problems.length) {
-        console.warn(
+        spinner.fail(
           `${problems.length > 1 ? "Some issues were found" : "An issue was found"} with this runtime:`,
         )
         problems.forEach((problem) => {
@@ -82,7 +96,7 @@ function getCli() {
         })
         process.exit(1)
       }
-      console.log("Everything looks great!")
+      spinner.succeed("Everything looks great!")
       process.exit(0)
     })
 

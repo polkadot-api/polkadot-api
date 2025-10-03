@@ -4,10 +4,12 @@ import { alice } from "./alice"
 import { noop, toHex } from "polkadot-api/utils"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 import { Struct, u32, u128 } from "@polkadot-api/substrate-bindings"
+import { destroyWorker } from "@acala-network/chopsticks-core"
 
 if (typeof process === "object" && "env" in process)
   process.env.LOG_LEVEL = "fatal"
 
+let nActiveClients = 0
 const getChopsticksProvider = (
   endpoint: string,
   {
@@ -30,6 +32,7 @@ const getChopsticksProvider = (
     await innerProvider.isReady
 
     return (onMessage) => {
+      nActiveClients++
       const subscriptions = new Set<string | number>()
       return {
         send: async (message: string) => {
@@ -86,6 +89,7 @@ const getChopsticksProvider = (
           }
         },
         disconnect: () => {
+          nActiveClients--
           const subscriptionsCopy = [...subscriptions]
           subscriptions.clear()
           Promise.all(
@@ -99,6 +103,7 @@ const getChopsticksProvider = (
           )
             .catch(noop)
             .then(() => chain.close().then(() => innerProvider.disconnect()))
+            .then(() => (!nActiveClients ? destroyWorker() : null))
             .catch(noop)
         },
       }

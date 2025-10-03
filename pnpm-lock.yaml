@@ -302,6 +302,9 @@ importers:
       '@polkadot-labs/hdkd-helpers':
         specifier: ^0.0.26
         version: 0.0.26
+      ora:
+        specifier: ^9.0.0
+        version: 9.0.0
       polkadot-api:
         specifier: 'workspace:'
         version: link:../client
