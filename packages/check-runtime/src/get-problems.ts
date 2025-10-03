@@ -12,6 +12,8 @@ import { alice } from "./alice"
 import { getChopsticksClient } from "./chopsticks"
 import { Problem } from "./problems"
 
+const DEV_APIS = ["TryRuntime", "Benchmark"]
+
 export const getProblems = async (
   uri: string,
   options: Partial<{
@@ -45,6 +47,10 @@ export const getProblems = async (
 
     const problems: Array<Problem> = []
     if (!metadata.apis.length) problems.push(Problem.MISSING_RUNTIME_APIS)
+    else if (
+      metadata.apis.some((x) => DEV_APIS.includes(x.name) && x.methods.length)
+    )
+      problems.push(Problem.DEV_APIS_PRESENT)
 
     let { symbol, decimals } = options.token ?? {}
 

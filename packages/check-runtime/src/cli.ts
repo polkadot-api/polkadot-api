@@ -12,6 +12,7 @@ const messages: Record<Problem, string> = {
   [Problem.ANCIENT_METADATA]:
     "This runtime doesn't expose a modern (>=14) metadata",
   [Problem.MISSING_RUNTIME_APIS]: `The runtime APIs are missing. Plese have a look at this: https://github.com/polkadot-api/polkadot-api/issues/1164#issuecomment-3332177905`,
+  [Problem.DEV_APIS_PRESENT]: `The runtime has APIs that are only meant for development ("RunBenchmark" and/or "TryRuntime"). These APIs should not be present in a production build.`,
   [Problem.MISSING_MODERN_METADATA]: `This runtime only exposes metadata v14.`,
   [Problem.MISSING_CHECK_METADATA_HASH_EXTENSION]: `The extrinsic doesn't support the CheckMetadataHash extension, therefore this runtime won't work well with transactions signed by offline devices`,
   [Problem.WRONG_OR_MISSING_METADATA_HASH]: `This runtime was not compiled with the proper metadata-hash, and thus transactions correctly using the CheckMetadataHash extension will be deemed invalid`,
