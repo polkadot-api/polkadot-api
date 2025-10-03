@@ -6,7 +6,7 @@
 
 - Sometimes WebSocket connections become stale without triggering a "close" event. The only way to detec that
   is through either the `ping/pong` control frame events, or by reacting when it's been too long without receiving
-  a notificaion from the server. This release applies a heartbeat strategy which prevents connections from becoming stale.
+  a notification from the server. This release applies a heartbeat strategy which prevents connections from becoming stale.
 
 ### Added
 
