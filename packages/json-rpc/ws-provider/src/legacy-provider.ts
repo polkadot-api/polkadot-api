@@ -13,7 +13,8 @@ export const getLegacyWsProvider = (
 ): GetWsProviderInput => {
   return (...args): WsJsonRpcProvider => {
     let endpoints: Array<[string, string | string[]] | [string]> = []
-    let { timeout, innerEnhancer, onStatusChanged } = defaultConfig
+    let { heartbeatTimeout, timeout, innerEnhancer, onStatusChanged } =
+      defaultConfig
 
     const [firstArg] = args
     if (
@@ -24,6 +25,7 @@ export const getLegacyWsProvider = (
       endpoints = mapEndpoints(firstArg.endpoints)
       onStatusChanged = firstArg.onStatusChanged ?? noop
       timeout = firstArg.timeout ?? timeout
+      heartbeatTimeout = firstArg.heartbeatTimeout ?? heartbeatTimeout
       innerEnhancer = firstArg.innerEnhancer ?? ((x) => x)
     } else {
       if (typeof args[1] === "function")
