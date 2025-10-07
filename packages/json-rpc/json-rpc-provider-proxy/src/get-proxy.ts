@@ -106,7 +106,7 @@ export const getProxy: ReconnectableJsonRpcConnection = (
     if (state.type === State.Done) return
     const parsed = JSON.parse(msg)
 
-    // Transaction methods are purely syntethic, so they myst be handled separately
+    // Transaction methods are purely synthetic, so they must be handled separately
     if ("id" in parsed) {
       const { method, id, params } = parsed as {
         method: string
