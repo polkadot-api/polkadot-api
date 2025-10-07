@@ -128,7 +128,7 @@ export const getProxy: ReconnectableJsonRpcConnection = (
           )
 
           if (state.type === State.Connected && active && active.upToken) {
-            // The response from this request will be ignorned later on
+            // The response from this request will be ignored later on
             // because it won't be among the ongoing requests. so, it won't get to downstream
             state.connection.send(
               jsonRpcMsg({
