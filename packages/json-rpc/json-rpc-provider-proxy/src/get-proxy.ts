@@ -36,7 +36,7 @@ export const getProxy: ReconnectableJsonRpcConnection = (
           string,
           { tx: string; synToken: string; upToken?: string }
         >
-        // the key is the upstream id, the value is the syntethic token
+        // the key is the upstream id, the value is the synthetic token
         pendingBroadcasts: Map<string, string>
 
         // These are requests for which their replies should be propagated downstream
