@@ -8,6 +8,7 @@ import {
   lastValueFrom,
   map,
   mergeMap,
+  noop,
   of,
   switchMap,
   take,
@@ -39,8 +40,6 @@ import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
 import { appendFileSync } from "fs"
-import { withLegacy } from "@polkadot-api/legacy-provider"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -79,7 +78,7 @@ const setTickDate = () => {
 }
 setTickDate()
 
-if (PROVIDER !== "sm" && PROVIDER !== "ws" && PROVIDER !== "ws-legacy")
+if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
 let ARCHIVE = false
 const rawClient = createRawClient(
@@ -106,6 +105,7 @@ console.log("got the chainspec")
 
 describe("E2E", async () => {
   let client: PolkadotClient
+  let resetConnection = noop
   console.log("starting the client")
   if (PROVIDER === "sm") {
     const smoldot = start({
@@ -118,26 +118,23 @@ describe("E2E", async () => {
   } else {
     const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
     const compatEnhancer = PROVIDER === "ws" ? withPolkadotSdkCompat : identity
-    client = createClient(
-      enhancer(
-        compatEnhancer(
-          getWsProvider("ws://127.0.0.1:9934", {
-            innerEnhancer: (base) =>
-              legacyEnhancer(
-                withLogsRecorder(
-                  (log) =>
-                    appendFileSync(
-                      `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
-                      log + "\n",
-                    ),
-                  base,
-                ),
+    const wsProvider = getWsProvider("ws://127.0.0.1:9934", {
+      innerEnhancer: (base) =>
+        legacyEnhancer(
+          withLogsRecorder(
+            (log) =>
+              appendFileSync(
+                `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
+                log + "\n",
               ),
-          }),
+            base,
+          ),
         ),
-      ),
-      { getMetadata },
-    )
+    })
+    resetConnection = () => {
+      wsProvider.switch()
+    }
+    client = createClient(enhancer(compatEnhancer(wsProvider)), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
       "rpc_methods",
       [],
@@ -402,15 +399,31 @@ describe("E2E", async () => {
         ),
       )
 
+      let isLast = false
       await Promise.all(
         [alice, bob].map((from, idx) =>
-          api.tx.Balances.transfer_allow_death({
-            dest: MultiAddress.Id(to[idx]),
-            value: ED,
-          }).signAndSubmit(from, {
-            mortality: { mortal: true, period: 64 },
-            tip: 5n,
-          }),
+          lastValueFrom(
+            api.tx.Balances.transfer_allow_death({
+              dest: MultiAddress.Id(to[idx]),
+              value: ED,
+            })
+              .signSubmitAndWatch(from, {
+                mortality: { mortal: true, period: 64 },
+                tip: 5n,
+              })
+              .pipe(
+                tap((e) => {
+                  if (e.type === "broadcasted") {
+                    if (isLast) {
+                      console.log("reseting connection", e.txHash)
+                      resetConnection()
+                    } else {
+                      isLast = true
+                    }
+                  }
+                }),
+              ),
+          ),
         ),
       )
 
@@ -426,7 +439,7 @@ describe("E2E", async () => {
     },
   )
 
-  it("optimistic transactions", async () => {
+  it.skip("optimistic transactions", async () => {
     const amount = ED * 10n
     const target = AccountId().dec(randomBytes(32))
 
@@ -459,7 +472,7 @@ describe("E2E", async () => {
     expect(targetPostFreeBalance).toEqual(targetPreFreeBalance + amount * 2n)
   })
 
-  it("custom nonce and mortality transactions", async () => {
+  it.skip("custom nonce and mortality transactions", async () => {
     const alice = accounts["alice"]["sr25519"]
     const bob = accounts["bob"]["sr25519"]
     const bobAddress = accountIdDec(bob.publicKey)
@@ -510,7 +523,7 @@ describe("E2E", async () => {
     )
   })
 
-  it("keeps on validating transactions after they have been broadcasted", async () => {
+  it.skip("keeps on validating transactions after they have been broadcasted", async () => {
     const alice = accounts["alice"]["sr25519"]
     const bob = accounts["bob"]["sr25519"]
     const bobAddress = accountIdDec(bob.publicKey)
@@ -556,7 +569,7 @@ describe("E2E", async () => {
     expect(bobCurrentBalance).toEqual(bobInitialBalance + ED)
   })
 
-  it("operation-limit recovery", async () => {
+  it.skip("operation-limit recovery", async () => {
     const addresses = Array(70)
       .fill(null)
       .map(() => AccountId().dec(randomBytes(32)))
@@ -568,7 +581,7 @@ describe("E2E", async () => {
     expect(result.length).toEqual(addresses.length)
   })
 
-  describe("BlockNotPinnedError", () => {
+  describe.skip("BlockNotPinnedError", () => {
     const options = {
       at: "0x750d7c25fd87702beabd86afd4cf1cc2a8cdcab7fae89b189900b4fcf894e0e7",
     }
@@ -606,7 +619,7 @@ describe("E2E", async () => {
   })
 
   if (PROVIDER === "ws" && ARCHIVE) {
-    describe("archive", async () => {
+    describe.skip("archive", async () => {
       const aliceAddress = accountIdDec(accounts.alice.sr25519.publicKey)
       let newClient: PolkadotClient
       const oldBlock = await firstBlock

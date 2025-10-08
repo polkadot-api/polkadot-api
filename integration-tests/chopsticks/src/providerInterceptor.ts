@@ -1,4 +1,4 @@
-import { JsonRpcProvider } from "polkadot-api/ws-provider/web"
+import { JsonRpcProvider } from "polkadot-api/ws-provider"
 
 export interface Interceptor {
   sending?: (ctx: InterceptorContext, msg: string) => void

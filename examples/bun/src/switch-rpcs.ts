@@ -1,17 +1,18 @@
 import { createClient } from "polkadot-api"
-import { getWsProvider } from "polkadot-api/ws-provider"
+import { getWsProvider, WsEvent } from "polkadot-api/ws-provider"
 import { wnd } from "@polkadot-api/descriptors"
+const wsEvents = {
+  [WsEvent.CLOSE]: "CLOSE",
+  [WsEvent.ERROR]: "ERROR",
+  [WsEvent.CONNECTED]: "CONNECTED",
+  [WsEvent.CONNECTING]: "CONNECTING",
+}
 
 const wsProvider = getWsProvider(
-  [
-    "wss://polkadot-rpc.publicnode.com",
-    "wss://polkadot-public-rpc.blockops.network/ws",
-    "wss://rpc.ibp.network/polkadot",
-    "wss://rpc-polkadot.luckyfriday.io",
-    "wss://polkadot.api.onfinality.io/public-ws",
-  ],
+  ["wss://api.interlay.io/parachain", "wss://rpc-interlay.luckyfriday.io/"],
   {
     onStatusChanged: (x) => {
+      console.log(wsEvents[x.type])
       console.log(x)
     },
   },
@@ -27,8 +28,14 @@ testApi.query.System.Account.watchValue(
 console.log("sync switch")
 wsProvider.switch()
 
+let nTries = 1
 const switchWs = async () => {
-  await new Promise((res) => setTimeout(res, 12_000))
+  if (nTries++ > 4) {
+    console.log("done!")
+    client.destroy()
+    return
+  }
+  await new Promise((res) => setTimeout(res, 15_000))
   console.log("switching")
   wsProvider.switch()
   switchWs()

@@ -1,7 +1,4 @@
-import type {
-  JsonRpcConnection,
-  JsonRpcProvider,
-} from "@polkadot-api/json-rpc-provider"
+import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { RpcError, IRpcError } from "./RpcError"
 import { getSubscriptionsManager, Subscriber } from "./subscriptions-manager"
 import { DestroyedError } from "./DestroyedError"
@@ -29,37 +26,44 @@ export interface Client {
 }
 
 let nextClientId = 1
-export const createClient = (gProvider: JsonRpcProvider): Client => {
+
+interface ParsedJsonRpcConnection {
+  send: <T extends {}>(message: T) => void
+  disconnect: () => void
+}
+
+type ParsedJsonRpcProvider = (
+  onMesage: <T extends {}>(message: T) => void,
+) => ParsedJsonRpcConnection
+
+export const createParsedClient = (
+  gProvider: ParsedJsonRpcProvider,
+): Client => {
   let clientId = nextClientId++
   const responses = new Map<string, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
 
-  let connection: JsonRpcConnection | null = null
-
+  let connection: ParsedJsonRpcConnection | null = null
   const send = (
     id: string,
     method: string,
     params: Array<boolean | string | number | null>,
   ) => {
-    connection!.send(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        id,
-        method,
-        params,
-      }),
-    )
+    connection!.send({
+      jsonrpc: "2.0",
+      id,
+      method,
+      params,
+    })
   }
 
-  function onMessage(message: string): void {
+  function onMessage(parsed: any): void {
     try {
       let id: string,
         result,
         error: IRpcError | undefined,
         params: { subscription: any; result: any; error?: IRpcError },
         subscription: string
-
-      const parsed = JSON.parse(message)
       ;({ id, result, error, params } = parsed)
 
       if (id === null) throw new Error(params?.error?.message ?? "id null")
@@ -93,10 +97,11 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
         subscriptions.next(subscriptionId, result)
       }
     } catch (e) {
-      console.warn("Error parsing incomming message: " + message)
+      console.warn("Error parsing incomming message: " + JSON.stringify(parsed))
       console.error(e)
     }
   }
+
   connection = gProvider(onMessage)
 
   const disconnect = () => {
@@ -129,3 +134,17 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
     disconnect,
   }
 }
+
+export const createClient = (gProvider: JsonRpcProvider): Client =>
+  createParsedClient((onParsedMsg) => {
+    const { disconnect, send } = gProvider((msg) =>
+      onParsedMsg(JSON.parse(msg)),
+    )
+
+    return {
+      send(x) {
+        send(JSON.stringify(x))
+      },
+      disconnect,
+    }
+  })

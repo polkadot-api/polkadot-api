@@ -1,6 +1,9 @@
-import { JsonRpcConnection } from "@polkadot-api/json-rpc-provider"
+export interface GenericRpcConnection<T> {
+  send: (message: T) => void
+  disconnect: () => void
+}
 
-export type AsyncJsonRpcProvider = (
-  onMessage: (message: string) => void,
-  onHalt: () => void,
-) => JsonRpcConnection
+export type AsyncJsonRpcProvider<T = string> = (
+  onMessage: (message: T) => void,
+  onHalt: (e?: any) => void,
+) => GenericRpcConnection<T>

@@ -2,13 +2,6 @@ import { withLogsRecorder } from "polkadot-api/logs-provider"
 import { type JsonRpcProvider } from "polkadot-api/ws-provider"
 import { createWriteStream, unlinkSync } from "fs"
 
-let tickDate = ""
-const setTickDate = () => {
-  tickDate = new Date().toISOString() // This way we know which events took place inside the same macro-task
-  setTimeout(setTickDate, 0)
-}
-setTickDate()
-
 export const withLogs = (
   fileName: string,
   provider: JsonRpcProvider,

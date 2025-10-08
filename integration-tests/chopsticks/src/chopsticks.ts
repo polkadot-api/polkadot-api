@@ -1,7 +1,7 @@
 import { spawn } from "child_process"
 import { createWriteStream } from "fs"
 import { createClient, PolkadotClient } from "polkadot-api"
-import { getWsProvider } from "polkadot-api/ws-provider/node"
+import { getWsProvider } from "polkadot-api/ws-provider"
 
 const ENDPOINT = "wss://rpc.ibp.network/paseo"
 const PORT = 8132

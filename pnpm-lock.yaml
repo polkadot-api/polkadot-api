@@ -80,9 +80,6 @@ importers:
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
-      '@polkadot-api/legacy-provider':
-        specifier: workspace:*
-        version: link:../../packages/json-rpc/legacy-provider
       '@polkadot-api/meta-signers':
         specifier: workspace:*
         version: link:../../packages/signers/meta-signers
@@ -250,9 +247,6 @@ importers:
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)
-      '@polkadot-api/legacy-provider':
-        specifier: workspace:*
-        version: link:../../packages/json-rpc/legacy-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -293,18 +287,12 @@ importers:
       '@polkadot-api/known-chains':
         specifier: workspace:*
         version: link:../known-chains
-      '@polkadot-api/legacy-provider':
-        specifier: workspace:*
-        version: link:../json-rpc/legacy-provider
       '@polkadot-api/metadata-compatibility':
         specifier: workspace:*
         version: link:../metadata-compatibility
       '@polkadot-api/observable-client':
         specifier: workspace:*
         version: link:../observable-client
-      '@polkadot-api/polkadot-sdk-compat':
-        specifier: workspace:*
-        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/sm-provider':
         specifier: workspace:*
         version: link:../json-rpc/sm-provider
@@ -393,9 +381,6 @@ importers:
       '@polkadot-api/pjs-signer':
         specifier: workspace:*
         version: link:../signers/pjs-signer
-      '@polkadot-api/polkadot-sdk-compat':
-        specifier: workspace:*
-        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../signers/polkadot-signer
@@ -516,32 +501,7 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc-provider
 
-  packages/json-rpc/legacy-provider:
-    dependencies:
-      '@polkadot-api/json-rpc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc-provider
-      '@polkadot-api/raw-client':
-        specifier: workspace:*
-        version: link:../../raw-client
-      '@polkadot-api/substrate-bindings':
-        specifier: workspace:*
-        version: link:../../substrate-bindings
-      '@polkadot-api/utils':
-        specifier: workspace:*
-        version: link:../../utils
-    devDependencies:
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
-
   packages/json-rpc/logs-provider:
-    dependencies:
-      '@polkadot-api/json-rpc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc-provider
-
-  packages/json-rpc/polkadot-sdk-compat:
     dependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
@@ -568,12 +528,25 @@ importers:
       '@polkadot-api/json-rpc-provider-proxy':
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
+      '@polkadot-api/raw-client':
+        specifier: workspace:*
+        version: link:../../raw-client
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
       '@types/ws':
         specifier: ^8.18.1
         version: 8.18.1
       ws:
         specifier: ^8.18.3
         version: 8.18.3
+    devDependencies:
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/known-chains:
     devDependencies:
