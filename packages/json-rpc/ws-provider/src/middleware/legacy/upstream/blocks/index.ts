@@ -1,7 +1,7 @@
+import type { Observable } from "rxjs"
 import type { ClientRequest } from "@polkadot-api/raw-client"
 import { getBlocks } from "./blocks"
 import { getUpstreamEvents } from "./upstream-events"
-import { Observable } from "rxjs"
 
 export const getBlocks$ = (
   request: ClientRequest<any, any>,

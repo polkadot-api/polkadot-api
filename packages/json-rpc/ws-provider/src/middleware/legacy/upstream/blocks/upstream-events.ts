@@ -1,12 +1,12 @@
+import { ClientRequest } from "@polkadot-api/raw-client"
+import { HexString } from "@polkadot-api/substrate-bindings"
+import { noop } from "@polkadot-api/utils"
+import { concat, map, mergeMap, Observable, of, pipe, Subject } from "rxjs"
 import { DecentHeader, ShittyHeader } from "../../types"
 import { getFromShittyHeader } from "../../utils/fromShittyHeader"
 import { getHasherFromBlock } from "../../utils/get-hasher-from-block"
 import { shareLatest } from "../../utils/share-latest"
 import { withLatestFromBp } from "../../utils/with-latest-from-bp"
-import { ClientRequest } from "@polkadot-api/raw-client"
-import { HexString } from "@polkadot-api/substrate-bindings"
-import { noop } from "@polkadot-api/utils"
-import { concat, map, mergeMap, Observable, of, pipe, Subject } from "rxjs"
 
 export const getUpstreamEvents = (
   request: ClientRequest<any, any>,

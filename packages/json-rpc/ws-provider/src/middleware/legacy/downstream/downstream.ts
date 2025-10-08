@@ -1,11 +1,11 @@
+import { noop } from "@polkadot-api/utils"
+import { createParsedClient } from "@polkadot-api/raw-client"
 import { createUpstream } from "../upstream"
 import { chainSpecMethods, createChainSpec } from "./chainspec"
 import { chainHeadMethods, createChainHead } from "./chain-head"
 import { createTransactionFns, transactionMethods } from "./transaction"
 import { archiveMethods, createArchive } from "./archive"
-import { ParsedJsonRpcProvider } from "@/middleware/types"
-import { noop } from "@polkadot-api/utils"
-import { createParsedClient } from "@polkadot-api/raw-client"
+import { type ParsedJsonRpcProvider } from "../../../middleware/types"
 
 const supportedMethods = [
   chainSpecMethods,

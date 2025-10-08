@@ -1,11 +1,4 @@
 import {
-  BestBlockChangedEvent,
-  DecentHeader,
-  InitializedEvent,
-  NewBlockEvent,
-} from "../../types"
-import { UpstreamEvents } from "./upstream-events"
-import {
   concat,
   concatMap,
   debounceTime,
@@ -23,6 +16,13 @@ import {
   tap,
 } from "rxjs"
 import { HexString } from "@polkadot-api/substrate-bindings"
+import type {
+  BestBlockChangedEvent,
+  DecentHeader,
+  InitializedEvent,
+  NewBlockEvent,
+} from "../../types"
+import { UpstreamEvents } from "./upstream-events"
 import { shareLatest } from "../../utils/share-latest"
 
 export const getBlocks = ({

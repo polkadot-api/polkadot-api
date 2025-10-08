@@ -116,25 +116,11 @@ describe("E2E", async () => {
       enhancer(getSmProvider(smoldot.addChain({ chainSpec }))),
     )
   } else {
-    const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
-    const compatEnhancer = PROVIDER === "ws" ? withPolkadotSdkCompat : identity
-    const wsProvider = getWsProvider("ws://127.0.0.1:9934", {
-      innerEnhancer: (base) =>
-        legacyEnhancer(
-          withLogsRecorder(
-            (log) =>
-              appendFileSync(
-                `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
-                log + "\n",
-              ),
-            base,
-          ),
-        ),
-    })
+    const wsProvider = getWsProvider("ws://127.0.0.1:9934")
     resetConnection = () => {
       wsProvider.switch()
     }
-    client = createClient(enhancer(compatEnhancer(wsProvider)), { getMetadata })
+    client = createClient(enhancer(wsProvider), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
       "rpc_methods",
       [],
@@ -629,29 +615,10 @@ describe("E2E", async () => {
 
       beforeAll(async () => {
         do {
-          const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
-          const compatEnhancer =
-            PROVIDER === "ws" ? withPolkadotSdkCompat : identity
           newClient?.destroy()
           console.log("creating archive client")
           newClient = createClient(
-            enhancer(
-              compatEnhancer(
-                getWsProvider("ws://127.0.0.1:9934", {
-                  innerEnhancer: (base) =>
-                    legacyEnhancer(
-                      withLogsRecorder(
-                        (log) =>
-                          appendFileSync(
-                            `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
-                            log + "\n",
-                          ),
-                        base,
-                      ),
-                    ),
-                }),
-              ),
-            ),
+            enhancer(getWsProvider("ws://127.0.0.1:9934")),
           )
         } while ((await newClient.getFinalizedBlock()).hash === oldBlock.hash)
         oldApi = newClient.getTypedApi(roc)

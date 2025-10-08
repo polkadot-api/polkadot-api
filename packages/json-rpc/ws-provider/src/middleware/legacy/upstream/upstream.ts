@@ -1,10 +1,10 @@
+import { ClientRequest } from "@polkadot-api/raw-client"
+import { fromHex, toHex } from "@polkadot-api/utils"
+import { map, Observable } from "rxjs"
 import { getBlocks$ } from "./blocks"
 import { createDescendantValues } from "../../utils"
-import { map, Observable } from "rxjs"
-import { fromHex, toHex } from "@polkadot-api/utils"
 import { withLatestFromBp } from "../utils/with-latest-from-bp"
 import { createClosestDescendantMerkleValue } from "./proofs"
-import { ClientRequest } from "@polkadot-api/raw-client"
 
 export const createUpstream = (request: ClientRequest<any, any>) => {
   const simpleRequest = <Args extends Array<any>, Payload>(

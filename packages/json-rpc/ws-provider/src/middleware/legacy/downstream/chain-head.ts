@@ -1,7 +1,7 @@
-import { createUpstream } from "../upstream/upstream"
-import { createOpaqueToken } from "../utils/create-opaque-token"
 import { noop } from "@polkadot-api/utils"
 import { finalize } from "rxjs"
+import { createUpstream } from "../upstream/upstream"
+import { createOpaqueToken } from "../utils/create-opaque-token"
 import { areItemsValid, getStg$ } from "./storage"
 import { getMsgFromErr } from "../utils/message-from-error"
 

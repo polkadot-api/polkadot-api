@@ -1,6 +1,6 @@
-import { ShittyHeader } from "../types"
 import { compact } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { ShittyHeader } from "../types"
 
 export const getFromShittyHeader =
   (hasher: (input: Uint8Array) => Uint8Array) =>

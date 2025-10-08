@@ -2,13 +2,12 @@ import {
   AsyncJsonRpcProvider,
   getSyncProvider,
 } from "@polkadot-api/json-rpc-provider-proxy"
-import { StatusChange, WsJsonRpcProvider, WsEvent } from "./types-common"
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import { noop } from "@polkadot-api/utils"
+import { StatusChange, WsJsonRpcProvider, WsEvent } from "./types-common"
 import { WebSocketClass } from "./types-new"
 import { withSocket } from "./with-socket"
-import { midleware } from "./middleware/middleware"
-
-export const noop = () => {}
+import { midleware } from "./middleware"
 
 export const defaultConfig: {
   onStatusChanged: (status: StatusChange) => void
@@ -33,6 +32,7 @@ export const getWsProvider = (
     | Array<string | { uri: string; protocol: string | string[] }>,
   config?: Partial<{
     onStatusChanged: (status: StatusChange) => void
+    innerEnhancer: (input: JsonRpcProvider) => JsonRpcProvider
     timeout: number
     heartbeatTimeout: number
     websocketClass: WebSocketClass
@@ -41,6 +41,7 @@ export const getWsProvider = (
   const {
     onStatusChanged: _onStatuChanged,
     timeout,
+    innerEnhancer,
     heartbeatTimeout,
   } = {
     ...defaultConfig,
@@ -58,29 +59,36 @@ export const getWsProvider = (
   let status: StatusChange = { type: WsEvent.CLOSE, event: null }
   const onStatusChanged = (x: StatusChange) => _onStatuChanged((status = x))
 
-  const socketProvider = withSocket(
-    () => {
-      const [uri, protocols] =
-        switchTo || actualEndpoints[idx++ % endpoints.length]
-      switchTo = null
-      onStatusChanged({
-        type: WsEvent.CONNECTING,
-        uri,
-        protocols,
-      })
-      return [
-        (latestSocket = new WebsocketClass(uri, protocols)),
-        () => {
-          onStatusChanged({
-            type: WsEvent.CONNECTED,
-            uri,
-            protocols,
-          })
-        },
-      ]
-    },
-    heartbeatTimeout,
-    timeout,
+  const enhanced =
+    (input: AsyncJsonRpcProvider): AsyncJsonRpcProvider =>
+    (onMsg, onHalt) =>
+      innerEnhancer((innerOnMsg) => input(innerOnMsg, onHalt))(onMsg)
+
+  const socketProvider = enhanced(
+    withSocket(
+      () => {
+        const [uri, protocols] =
+          switchTo || actualEndpoints[idx++ % endpoints.length]
+        switchTo = null
+        onStatusChanged({
+          type: WsEvent.CONNECTING,
+          uri,
+          protocols,
+        })
+        return [
+          (latestSocket = new WebsocketClass(uri, protocols)),
+          () => {
+            onStatusChanged({
+              type: WsEvent.CONNECTED,
+              uri,
+              protocols,
+            })
+          },
+        ]
+      },
+      heartbeatTimeout,
+      timeout,
+    ),
   )
 
   const provider: AsyncJsonRpcProvider = midleware((onMsg, onHalt) =>

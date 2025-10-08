@@ -1,6 +1,6 @@
-import { noop } from "rxjs"
-import { ParsedJsonRpcProvider } from "./types"
 import { createParsedClient } from "@polkadot-api/raw-client"
+import { noop } from "@polkadot-api/utils"
+import { ParsedJsonRpcProvider } from "./types"
 
 export const jsonObj = <T extends {}>(input: T) => ({
   jsonrpc: "2.0",

@@ -1,5 +1,5 @@
-import { createUpstream } from "../upstream/upstream"
 import { filter, map, merge } from "rxjs"
+import { createUpstream } from "../upstream/upstream"
 
 const validStorageTypes = new Set([
   "value",

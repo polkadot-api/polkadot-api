@@ -1,10 +1,10 @@
-import { ParsedJsonRpcEnhancer } from "./types"
 import { getAsyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
-import { noop } from "../provider"
+import { createParsedClient } from "@polkadot-api/raw-client"
+import { ParsedJsonRpcEnhancer } from "./types"
 import { jsonObj } from "./utils"
 import { modern } from "./modern"
-import { createParsedClient } from "@polkadot-api/raw-client"
 import { getLegacy } from "./legacy"
+import { noop } from "@polkadot-api/utils"
 
 const isModern = (methods: string[]): boolean =>
   methods.some(

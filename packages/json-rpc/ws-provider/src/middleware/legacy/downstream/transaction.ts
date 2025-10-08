@@ -1,5 +1,3 @@
-import { createUpstream } from "../upstream/upstream"
-import { createOpaqueToken } from "../utils/create-opaque-token"
 import {
   catchError,
   concat,
@@ -8,6 +6,8 @@ import {
   takeUntil,
   timer,
 } from "rxjs"
+import { createUpstream } from "../upstream/upstream"
+import { createOpaqueToken } from "../utils/create-opaque-token"
 
 export const transactionMethods = Object.fromEntries(
   ["broadcast", "stop"].map((key) => [key, `transaction_v1_${key}`] as const),
