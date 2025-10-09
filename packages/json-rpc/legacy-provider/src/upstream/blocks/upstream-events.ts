@@ -1,25 +1,12 @@
 import { DecentHeader, ShittyHeader } from "@/types"
 import { getFromShittyHeader } from "@/utils/fromShittyHeader"
 import { getHasherFromBlock } from "@/utils/get-hasher-from-block"
+import { shareLatest } from "@/utils/share-latest"
 import { withLatestFromBp } from "@/utils/with-latest-from-bp"
 import { ClientRequest } from "@polkadot-api/raw-client"
 import { HexString } from "@polkadot-api/substrate-bindings"
 import { noop } from "@polkadot-api/utils"
-import {
-  combineLatest,
-  concat,
-  map,
-  mergeMap,
-  Observable,
-  of,
-  pipe,
-  share,
-  shareReplay,
-  Subject,
-  take,
-  takeUntil,
-  toArray,
-} from "rxjs"
+import { concat, map, mergeMap, Observable, of, pipe, Subject } from "rxjs"
 
 export const getUpstreamEvents = (
   request: ClientRequest<any, any>,
@@ -35,12 +22,9 @@ export const getUpstreamEvents = (
         h.number,
       ]).pipe(map(getHasherFromBlock(h))),
     ),
-    shareReplay(1),
+    shareLatest,
   )
-  const fromShittyHeader$ = hasher$.pipe(
-    map(getFromShittyHeader),
-    shareReplay(1),
-  )
+  const fromShittyHeader$ = hasher$.pipe(map(getFromShittyHeader), shareLatest)
   const toNiceHeader = pipe(
     withLatestFromBp<
       (x: ShittyHeader) => ReturnType<ReturnType<typeof getFromShittyHeader>>,
@@ -98,13 +82,13 @@ export const getUpstreamEvents = (
   const allHeads$ = getHeaders$(
     "chain_subscribeAllHeads",
     "chain_unsubscribeAllHeads",
-  ).pipe(share())
+  )
 
   const finalized$ = getHeaders$(
     "chain_subscribeFinalizedHeads",
     "chain_unsubscribeFinalizedHeads",
     true,
-  ).pipe(shareReplay(1))
+  )
 
   const getHeader$ = (hash: string) =>
     request$<[string], ShittyHeader>("chain_getHeader", [hash]).pipe(
@@ -118,27 +102,7 @@ export const getUpstreamEvents = (
       ),
     )
 
-  const gap$: Observable<DecentHeader[]> = combineLatest([
-    allHeads$.pipe(take(1)),
-    finalized$.pipe(take(1)),
-  ]).pipe(
-    mergeMap(([latest, fin]) => {
-      const nMissing = latest.number - fin.number - 1
-      return concat(
-        getRecursiveHeader(latest.parent).pipe(take(Math.max(0, nMissing))),
-        of(fin),
-      )
-    }),
-    toArray(),
-    share(),
-  )
-  const collected$ = allHeads$.pipe(takeUntil(gap$), toArray())
-  const initial$ = combineLatest([collected$, gap$]).pipe(
-    map(([collected, gap]) => [...gap.reverse(), ...collected]),
-  )
-
   return {
-    initial$,
     allHeads$,
     finalized$,
     hasher$,

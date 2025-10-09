@@ -8,52 +8,208 @@ import { UpstreamEvents } from "./upstream-events"
 import {
   concat,
   concatMap,
+  debounceTime,
+  delay,
   filter,
   map,
   merge,
   mergeMap,
-  noop,
   Observable,
   of,
   share,
-  shareReplay,
-  skip,
+  Subject,
   take,
   takeWhile,
   tap,
-  toArray,
-  withLatestFrom,
 } from "rxjs"
 import { HexString } from "@polkadot-api/substrate-bindings"
+import { shareLatest } from "@/utils/share-latest"
 
 export const getBlocks = ({
-  initial$,
   allHeads$,
-  finalized$,
+  finalized$: finalizedWire$,
   getHeader$,
   hasher$,
   getRecursiveHeader,
 }: UpstreamEvents) => {
-  const finalizedhash$ = finalized$.pipe(map((x) => x.hash))
-  const blocks = new Map<
-    string,
-    DecentHeader & {
-      children: Set<string>
-      usages: Set<string>
-    }
-  >()
-  let prevFin = ""
-  let finalized = ""
-  let best = ""
-  let activeSubscriptions = new Set<string>()
+  const connectedBlocks = {
+    blocks: new Map<
+      string,
+      DecentHeader & {
+        children: Set<string>
+        usages: Set<string>
+      }
+    >(),
+    prevFin: "",
+    finalized: "",
+    best: "",
+  }
 
   const getTree = (root: string, result: string[] = []): string[] => {
     result.push(root)
-    blocks.get(root)!.children.forEach((c) => {
+    connectedBlocks.blocks.get(root)!.children.forEach((c) => {
       getTree(c, result)
     })
     return result
   }
+
+  const addBlock = (block: DecentHeader) => {
+    const { blocks } = connectedBlocks
+    const { hash, parent } = block
+    const me = {
+      ...block,
+      children: new Set<string>(),
+      usages: new Set<string>(),
+    }
+    blocks.set(hash, me)
+    blocks.get(parent)?.children.add(hash)
+    return me
+  }
+
+  const setBestFromFinalized = () => {
+    connectedBlocks.best = connectedBlocks.finalized
+    let bestHeight = 0
+    const { finalized, blocks } = connectedBlocks
+    getTree(finalized)
+      .map((x) => blocks.get(x)!)
+      .forEach((x) => {
+        if (x.number > bestHeight) {
+          bestHeight = x.number
+          connectedBlocks.best = x.hash
+        }
+      })
+  }
+
+  const pendingBlocks = new Map<
+    string,
+    {
+      hash: string
+      header: DecentHeader | null
+      children: Set<string>
+    }
+  >()
+
+  const trimPending = (root: string) => {
+    const desc = [...pendingBlocks.get(root)!.children]
+    pendingBlocks.delete(root)
+    desc.forEach(trimPending)
+  }
+
+  const getPendingTree = (
+    root: string,
+    result: Array<DecentHeader> = [],
+  ): Array<DecentHeader> => {
+    const me = pendingBlocks.get(root)!
+    if (!me.header) return result
+    result.push(me.header)
+    me!.children.forEach((c) => {
+      getPendingTree(c, result)
+    })
+    return result
+  }
+
+  const _newBlocks$ = new Subject<string>()
+  const onError = (e: any) => _newBlocks$.error(e)
+  const _finalized$ = finalizedWire$.pipe(
+    concatMap((header, idx) => {
+      const { hash } = header
+      if (!idx) {
+        addBlock(header)
+        connectedBlocks.finalized = connectedBlocks.best = header.hash
+      }
+      return connectedBlocks.blocks.has(hash)
+        ? of(hash)
+        : _newBlocks$.pipe(
+            filter((x) => x === hash),
+            // some of the following blocks could be prunned b/c of this finalized event.
+            // So, we have to make sure that this "batch" of _newBlocks has been flushed.
+            debounceTime(0),
+            take(1),
+          )
+    }),
+    share(),
+  )
+
+  allHeads$.subscribe((header) => {
+    const { parent, hash } = header
+    if (connectedBlocks.blocks.has(parent)) {
+      addBlock(header)
+      _newBlocks$.next(hash)
+    } else {
+      pendingBlocks.set(hash, {
+        hash: header.hash,
+        header,
+        children: new Set<string>(),
+      })
+
+      if (!pendingBlocks.has(parent)) {
+        pendingBlocks.set(parent, {
+          hash: parent,
+          header: null,
+          children: new Set(),
+        })
+
+        getRecursiveHeader(parent)
+          .pipe(
+            takeWhile((result) => {
+              let me = pendingBlocks.get(result.hash)
+              if (!me) return false // it was trimmed before b/c it was a prunned branch
+              me.header = result
+
+              const finalized = connectedBlocks.blocks.get(
+                connectedBlocks.finalized,
+              )
+
+              // let's check if we have to prune this
+              if (finalized && result.number <= finalized.number) {
+                while (pendingBlocks.has(me.header?.parent ?? ""))
+                  me = pendingBlocks.get(me.header!.parent)!
+                trimPending(me.hash)
+                return false
+              }
+
+              if (connectedBlocks.blocks.has(result.parent)) {
+                let target = connectedBlocks.blocks.get(result.parent)!
+                const diff = target.number - finalized!.number
+                for (let i = 0; i < diff; i++) {
+                  const nextTarget = connectedBlocks.blocks.get(target.parent)
+                  if (!nextTarget) break
+                  target = nextTarget
+                }
+
+                // it descends from the finalized block, all good...
+                if (target === finalized) {
+                  const pendingOnes = getPendingTree(result.hash)
+                  pendingOnes.forEach((h) => {
+                    pendingBlocks.delete(h.hash)
+                    addBlock(h)
+                    _newBlocks$.next(h.hash)
+                  })
+                } else trimPending(result.hash) // it was a pruned branch
+
+                return false
+              }
+
+              const pendingParent = pendingBlocks.get(result.parent)
+              // another subscription is loading it already
+              if (pendingParent) {
+                pendingParent.children.add(result.hash)
+                return false
+              }
+
+              pendingBlocks.set(result.parent, {
+                hash: result.parent,
+                header: null,
+                children: new Set([result.hash]),
+              })
+              return true
+            }),
+          )
+          .subscribe({ error: onError })
+      }
+      pendingBlocks.get(parent)!.children.add(hash)
+    }
+  }, onError)
 
   const getFinalizedEvent = (): {
     event: "finalized"
@@ -62,6 +218,7 @@ export const getBlocks = ({
   } => {
     const prunedBlockHashes: string[] = []
     const finalizedBlockHashes: string[] = []
+    const { blocks, finalized, prevFin } = connectedBlocks
 
     let current = blocks.get(finalized)!
     let prev = blocks.get(current.parent)
@@ -79,44 +236,9 @@ export const getBlocks = ({
     return { event: "finalized", prunedBlockHashes, finalizedBlockHashes }
   }
 
-  const setBestFromFinalized = () => {
-    best = finalized
-    let bestHeight = 0
-    getTree(finalized)
-      .map((x) => blocks.get(x)!)
-      .forEach((x) => {
-        if (x.number > bestHeight) {
-          bestHeight = x.number
-          best = x.hash
-        }
-      })
-  }
-
-  const addBlock = (block: DecentHeader) => {
-    const { hash, parent } = block
-    const me = {
-      ...block,
-      children: new Set<string>(),
-      usages: new Set<string>(),
-    }
-    blocks.set(hash, me)
-    blocks.get(parent)?.children.add(hash)
-    return me
-  }
-
-  const ready$ = initial$.pipe(
-    withLatestFrom(finalizedhash$),
-    map(([initial, fin]) => {
-      initial.forEach(addBlock)
-      finalized = fin
-      setBestFromFinalized()
-      return null
-    }),
-    shareReplay(1),
-  )
-
+  let activeSubscriptions = new Set<string>()
   const getNewBlockEvent = (blockHash: string) => {
-    const block = blocks.get(blockHash)!
+    const block = connectedBlocks.blocks.get(blockHash)!
     activeSubscriptions.forEach((subId) => {
       block.usages.add(subId)
     })
@@ -138,6 +260,7 @@ export const getBlocks = ({
   }
 
   const tryRemove = (blockHash: string, up?: boolean) => {
+    const { blocks } = connectedBlocks
     const block = blocks.get(blockHash)
     if (!block || block.usages.size > 0) return
 
@@ -150,48 +273,15 @@ export const getBlocks = ({
     }
   }
 
-  const ignoreUntilReady: <T>(input: Observable<T>) => Observable<T> = filter(
-    () => finalized !== "",
-  )
-  const isPresent = (blockHash: string) => blocks.has(blockHash)
-
-  // The initial blocks from `chain_unsubscribeAllHeads` are a royal mess,
-  // you may get a block that's 3 blocks above the currently finalized block,
-  // and a few seconds later receive a block that is 5 blocks above the currently
-  // finalized block that's from a different fork. So, this logic accounts for
-  // these exepctional cases that happen with the initial emissions of `allHeads$`.
-  const allHeadsEvents$ = allHeads$.pipe(
-    ignoreUntilReady,
-    concatMap((newBlock) =>
-      isPresent(newBlock.parent)
-        ? [newBlock]
-        : getRecursiveHeader(newBlock.parent).pipe(
-            takeWhile((x) => !isPresent(x.parent), true),
-            toArray(),
-            mergeMap((blocks) => [...blocks.reverse(), newBlock]),
-          ),
+  const updates$ = merge(
+    _newBlocks$.pipe(
+      map((hash) => ({
+        type: "new" as const,
+        value: connectedBlocks.blocks.get(hash)!,
+      })),
     ),
-    map((value) => ({ type: "new" as const, value })),
-    share(),
-  )
-
-  const finalizedEvents$ = finalizedhash$.pipe(
-    skip(1),
-    ignoreUntilReady,
-    concatMap((blockHash) =>
-      isPresent(blockHash)
-        ? [blockHash]
-        : // it could happen that we are still loading the initial "new-blocks"
-          allHeadsEvents$.pipe(
-            map(() => blockHash),
-            filter(isPresent),
-            take(1),
-          ),
-    ),
-    map((value) => ({ type: "fin" as const, value })),
-  )
-
-  const updates$ = merge(allHeadsEvents$, finalizedEvents$).pipe(
+    _finalized$.pipe(map((hash) => ({ type: "fin" as const, value: hash }))),
+  ).pipe(
     mergeMap((x) => {
       if (x.type === "new") {
         const block = x.value
@@ -201,35 +291,59 @@ export const getBlocks = ({
           | ReturnType<typeof getNewBlockEvent>
           | { event: "bestBlockChanged"; bestBlockHash: string }
         > = [getNewBlockEvent(hash)]
-        if (block.number > blocks.get(best)!.number) {
-          best = hash
+        if (
+          block.number >
+          connectedBlocks.blocks.get(connectedBlocks.best)!.number
+        ) {
+          connectedBlocks.best = hash
           result.push({ event: "bestBlockChanged", bestBlockHash: hash })
         }
         return result
       }
 
-      prevFin = finalized
-      finalized = x.value
-      let prevBest = best
+      connectedBlocks.prevFin = connectedBlocks.finalized
+      connectedBlocks.finalized = x.value
+      let prevBest = connectedBlocks.best
       setBestFromFinalized()
       const result: Array<
         | ReturnType<typeof getFinalizedEvent>
         | { event: "bestBlockChanged"; bestBlockHash: string }
       > = [getFinalizedEvent()]
 
-      if (prevBest !== best)
-        result.unshift({ event: "bestBlockChanged", bestBlockHash: best })
+      if (prevBest !== connectedBlocks.best)
+        result.unshift({
+          event: "bestBlockChanged",
+          bestBlockHash: connectedBlocks.best,
+        })
       return result
     }),
     share(),
   )
 
-  const subscription = merge(ready$, updates$).subscribe({
-    error: noop, // the errors are propagated downstream
+  const ready$ = _newBlocks$.pipe(
+    filter(() => !pendingBlocks.size),
+    take(1),
+    delay(0), // allows for the first bunch of _newBlock events to settle on the latest updated state
+    map(() => null),
+    shareLatest,
+  )
+
+  const finalized$ = ready$.pipe(
+    mergeMap(() =>
+      _finalized$.pipe(
+        map((hash) => connectedBlocks.blocks.get(hash)! as DecentHeader),
+      ),
+    ),
+    shareLatest,
+  )
+
+  merge(updates$, finalized$).subscribe({
+    error: onError,
   })
 
   const upstream = (subId: string) => {
     const getInitialized = () => {
+      const { blocks, finalized } = connectedBlocks
       const finalizedBlockHashes: string[] = []
       let current = blocks.get(finalized)
       while (current && finalizedBlockHashes.length < 10) {
@@ -246,7 +360,7 @@ export const getBlocks = ({
     }
 
     const unpin = (blockHash: string) => {
-      const block = blocks.get(blockHash)
+      const block = connectedBlocks.blocks.get(blockHash)
       if (block) {
         block.usages.delete(subId)
         tryRemove(blockHash)
@@ -257,6 +371,7 @@ export const getBlocks = ({
       InitializedEvent | NewBlockEvent | BestBlockChangedEvent
     > = ready$.pipe(
       mergeMap(() => {
+        const { best, finalized } = connectedBlocks
         const others: Array<NewBlockEvent | BestBlockChangedEvent> = getTree(
           finalized,
         )
@@ -283,20 +398,25 @@ export const getBlocks = ({
         }),
         share(),
       ),
-      getHeader: (blockHash: string) => blocks.get(blockHash)?.header ?? null,
+      getHeader: (blockHash: string) =>
+        connectedBlocks.blocks.get(blockHash)?.header ?? null,
       isPinned: (blockHash: string) =>
-        !!blocks.get(blockHash)?.usages.has(subId),
+        !!connectedBlocks.blocks.get(blockHash)?.usages.has(subId),
       unpin,
     }
   }
-  upstream.stop = () => {
-    subscription.unsubscribe()
+
+  const clean = () => {
+    pendingBlocks.clear()
+    connectedBlocks.blocks.clear()
   }
+
   return {
+    clean,
     upstream,
     finalized$,
     getHeader$: (hash: HexString): Observable<DecentHeader> => {
-      const block = blocks.get(hash)
+      const block = connectedBlocks.blocks.get(hash)
       return block ? of(block) : getHeader$(hash)
     },
     hasher$,

@@ -15,10 +15,12 @@ export const defaultConfig: {
   onStatusChanged: (status: StatusChange) => void
   innerEnhancer: (input: JsonRpcProvider) => JsonRpcProvider
   timeout: number
+  heartbeatTimeout: number
 } = {
   onStatusChanged: noop,
   innerEnhancer: (x: JsonRpcProvider) => x,
   timeout: 5_000,
+  heartbeatTimeout: 40_000,
 }
 
 export const mapEndpoints = (
@@ -34,10 +36,11 @@ export const getWsProvider = (
     onStatusChanged: (status: StatusChange) => void
     innerEnhancer: (input: JsonRpcProvider) => JsonRpcProvider
     timeout: number
+    heartbeatTimeout: number
     websocketClass: WebSocketClass
   }>,
 ): WsJsonRpcProvider => {
-  const { onStatusChanged, innerEnhancer, timeout } = {
+  const { onStatusChanged, innerEnhancer, timeout, heartbeatTimeout } = {
     ...defaultConfig,
     ...config,
   }
@@ -140,12 +143,25 @@ export const getWsProvider = (
       })
 
       return (onMessage, onHalt) => {
+        let heartbeatToken: NodeJS.Timeout
+        const heartbeat = () => {
+          clearTimeout(heartbeatToken)
+
+          heartbeatToken = setTimeout(() => {
+            console.warn(`Terminate: heartbeat timeout`)
+            disconnect(true)
+          }, heartbeatTimeout)
+        }
+        heartbeat()
+
         const connection = inner(onMessage)
         const _onMessage = (e: MessageEvent) => {
+          heartbeat()
           if (typeof e.data === "string") _onInnerMessage(e.data)
         }
         const innerHalt =
           (reason: WsEvent.CLOSE | WsEvent.ERROR) => (e: any) => {
+            clearTimeout(heartbeatToken)
             console.warn(`WS halt (${reason})`)
             onStatusChanged(
               (status = {
@@ -158,17 +174,21 @@ export const getWsProvider = (
         const onError = innerHalt(WsEvent.ERROR)
         const onClose = innerHalt(WsEvent.CLOSE)
 
+        socket.addEventListener("ping", heartbeat)
         socket.addEventListener("message", _onMessage)
         socket.addEventListener("error", onError)
         socket.addEventListener("close", onClose)
         disconnect = (withHalt) => {
+          clearTimeout(heartbeatToken)
           outerCleanup()
           disconnect = noop
+          socket.removeEventListener("ping", heartbeat)
           socket.removeEventListener("message", _onMessage)
           socket.removeEventListener("error", onError)
           socket.removeEventListener("close", onClose)
           forceSocketClose()
           if (withHalt) onClose({})
+          connection.disconnect()
         }
 
         return connection
