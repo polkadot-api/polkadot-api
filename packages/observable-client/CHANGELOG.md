@@ -309,13 +309,7 @@
 
 - Target ES2022 when bundling
 
-## 0.5.7 - 2024-10-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.5.6 - 2024-09-24
+## 0.5.6 to 0.5.7 - 2024-10-03
 
 ### Fixed
 

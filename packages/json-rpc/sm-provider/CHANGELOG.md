@@ -2,31 +2,7 @@
 
 ## Unreleased
 
-## 0.1.11 - 2025-09-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.10 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.9 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.8 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.1.7 - 2024-11-18
+## 0.1.7 to 0.1.11 - 2025-09-18
 
 ### Fixed
 
@@ -38,13 +14,7 @@
 
 - Prevent the smoldot provider from entering in an infinite loop when either smoldot or the chain crashes.
 
-## 0.1.5 - 2024-10-06
-
-- Update dependencies
-
-## 0.1.4 - 2024-10-06
-
-### Fixed
+## 0.1.4 to 0.1.5 - 2024-10-06
 
 - Update dependencies
 

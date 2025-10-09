@@ -69,7 +69,7 @@
 
 ## 1.0.1 - 2024-07-18
 
-## Fixed
+### Fixed
 
 - Improved intellisense name for default export
 

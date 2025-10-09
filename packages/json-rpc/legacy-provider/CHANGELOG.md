@@ -22,19 +22,7 @@
 
 - The hasher is now inferred. Therefore, `withLegacy` does not receive any arguments.
 
-## 0.2.5 - 2025-09-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.4 - 2025-09-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.2.3 - 2025-08-21
+## 0.2.3 to 0.2.5 - 2025-09-05
 
 ### Fixed
 

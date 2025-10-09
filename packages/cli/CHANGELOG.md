@@ -2,13 +2,7 @@
 
 ## Unreleased
 
-## 0.15.2 - 2025-10-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.15.1 - 2025-09-29
+## 0.15.1 to 0.15.2 - 2025-10-03
 
 ### Fixed
 
@@ -20,19 +14,7 @@
 
 - `sol` subcommand analogous to `ink` for managing solidity contracts.
 
-## 0.14.15 - 2025-09-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.14 - 2025-09-15
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.13 - 2025-09-05
+## 0.14.13 to 0.14.15 - 2025-09-18
 
 ### Fixed
 
@@ -44,13 +26,7 @@
 
 - Update to @noble v2
 
-## 0.14.11 - 2025-09-01
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.10 - 2025-08-31
+## 0.14.10 to 0.14.11 - 2025-09-01
 
 ### Fixed
 
@@ -62,49 +38,7 @@
 
 - Support websockets with legacy RPC endpoints.
 
-## 0.14.8 - 2025-08-11
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.7 - 2025-08-11
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.6 - 2025-08-08
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.5 - 2025-08-07
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.4 - 2025-08-01
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.3 - 2025-07-23
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.2 - 2025-07-16
-
-### Fixed
-
-- Update dependencies
-
-## 0.14.1 - 2025-06-20
+## 0.14.1 to 0.14.8 - 2025-08-11
 
 ### Fixed
 
@@ -116,25 +50,7 @@
 
 - add: `--at` option to specify a block number or hash.
 
-## 0.13.4 - 2025-06-04
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.3 - 2025-05-30
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.2 - 2025-05-27
-
-### Fixed
-
-- Update dependencies
-
-## 0.13.1 - 2025-05-27
+## 0.13.1 to 0.13.4 - 2025-06-04
 
 ### Fixed
 
@@ -146,13 +62,7 @@
 
 - Store the "code-hash" linked to each metadata, so that it can be safely cached.
 
-## 0.12.2 - 2025-05-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.12.1 - 2025-05-18
+## 0.12.1 to 0.12.2 - 2025-05-20
 
 ### Fixed
 
@@ -206,13 +116,7 @@
 - Support new `bun.lock` lockfile
 - Update dependencies
 
-## 0.11.7 - 2025-04-10
-
-### Fixed
-
-- Update dependencies
-
-## 0.11.6 - 2025-04-01
+## 0.11.6 to 0.11.7 - 2025-04-10
 
 ### Fixed
 
@@ -224,29 +128,11 @@
 
 - Add from wasm gets stuck with "Writing metadata"
 
-## 0.11.4 - 2025-03-21
+## 0.11.1 to 0.11.4 - 2025-03-21
 
 ### Fixed
 
 - Update dependencies
-
-## 0.11.3 - 2025-03-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.11.2 - 2025-03-07
-
-### Fixed
-
-- Update dependencies
-
-## 0.11.1 - 2025-02-26
-
-### Fixed
-
-- Update dependencies.
 
 ## 0.11.0 - 2025-02-06
 
@@ -288,37 +174,7 @@
 
 - Require `version` at `getCli`
 
-## 0.9.23 - 2024-12-17
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.22 - 2024-12-10
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.21 - 2024-11-22
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.20 - 2024-11-19
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.19 - 2024-11-18
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.18 - 2024-11-15
+## 0.9.18 to 0.9.23 - 2024-12-17
 
 ### Fixed
 
@@ -341,25 +197,7 @@
 
 - Patch `@polkadot-api/observable-client` bug
 
-## 0.9.14 - 2024-11-05
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.13 - 2024-10-29
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.12 - 2024-10-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.11 - 2024-10-24
+## 0.9.11 to 0.9.14 - 2024-11-05
 
 ### Fixed
 
@@ -371,13 +209,7 @@
 
 - Fix unable to run codegen on windows
 
-## 0.9.9 - 2024-10-16
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.8 - 2024-10-16
+## 0.9.8 to 0.9.9 - 2024-10-16
 
 ### Fixed
 
@@ -399,25 +231,7 @@
 
 - Target ES2022 when bundling
 
-## 0.9.4 - 2024-10-03
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.3 - 2024-09-24
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.2 - 2024-09-20
-
-### Fixed
-
-- Update dependencies
-
-## 0.9.1 - 2024-09-20
+## 0.9.1 to 0.9.4 - 2024-10-03
 
 ### Fixed
 
@@ -433,17 +247,11 @@
 
 - Reduced startup memory usage due to esbuild issue [#711](https://github.com/polkadot-api/polkadot-api/pull/711)
 
-## 0.8.2 - 2024-09-10
+## 0.8.1 to 0.8.2 - 2024-09-10
 
 ### Fixed
 
 - Update dependencies
-
-## 0.8.1 - 2024-09-04
-
-### Fixed
-
-- Update dependencies.
 
 ## 0.8.0 - 2024-08-28
 
