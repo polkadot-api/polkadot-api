@@ -39,13 +39,13 @@ export class Binary {
 
   asText = () => (this.#str ??= textDecoder.decode(this.#bytes))
 
-  asHex = () => (this.#hex ||= toHex(this.#bytes)) as `0x${string}`
+  asHex = () => (this.#hex ??= toHex(this.#bytes)) as `0x${string}`
   asOpaqueHex = () =>
-    (this.#opaqueHex ||= toHex(this.asBytes())) as `0x${string}`
+    (this.#opaqueHex ??= toHex(this.asBytes())) as `0x${string}`
 
   asBytes = () => this.#bytes
   asOpaqueBytes = () =>
-    (this.#opaqueBytes ||= mergeUint8([
+    (this.#opaqueBytes ??= mergeUint8([
       this.#bytes,
       compact[0](this.#bytes.length),
     ]))
