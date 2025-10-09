@@ -14,15 +14,15 @@
     "compile:ledger": "bun build ./src/ledger.ts --compile --outfile ./dist/ledger"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.22"
+    "@types/bun": "^1.2.23"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@ledgerhq/hw-transport-node-hid": "^6.29.11",
-    "@noble/curves": "^2.0.0",
-    "@noble/hashes": "^2.0.0",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.13",
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/ledger-signer": "workspace:*",
     "@polkadot-api/legacy-provider": "workspace:*",
@@ -30,10 +30,10 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/tx-utils": "workspace:*",
-    "@polkadot-labs/hdkd": "^0.0.24",
-    "@polkadot-labs/hdkd-helpers": "^0.0.25",
-    "@scure/bip32": "^2.0.0",
-    "@scure/bip39": "^2.0.0",
+    "@polkadot-labs/hdkd": "^0.0.25",
+    "@polkadot-labs/hdkd-helpers": "^0.0.26",
+    "@scure/bip32": "^2.0.1",
+    "@scure/bip39": "^2.0.1",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.2"
   }
