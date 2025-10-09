@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use `0x${string}` type for `Binary.asHex()`
+
 ## 1.19.2 - 2025-10-03
 
 ### Fixed
