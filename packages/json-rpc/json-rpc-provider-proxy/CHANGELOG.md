@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.5 - 2025-10-09
+
 ### Fixed
 
 - Make transaction methods resilient to reconnections

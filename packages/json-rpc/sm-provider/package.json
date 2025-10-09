@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/sm-provider",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",

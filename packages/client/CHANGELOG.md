@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.20.0 - 2025-10-09
+
 ### Added
 
 - **WS Provider:**

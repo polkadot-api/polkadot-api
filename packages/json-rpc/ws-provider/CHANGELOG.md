@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.0 - 2025-10-09
+
 ### Added
 
 - `heartbeatTimeout` option to control how long to wait without having received notifications from the server before switching connections.
