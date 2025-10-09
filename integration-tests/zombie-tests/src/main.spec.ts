@@ -212,9 +212,7 @@ describe("E2E", async () => {
       remark: Binary.fromText("hello world!"),
     })
     const binaryExtrinsic = Binary.fromOpaqueHex(
-      (await tx.sign(
-        fakeSigner(accounts["alice"]["sr25519"].publicKey),
-      )) as `0x${string}`,
+      await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
     )
 
     const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([

@@ -8,10 +8,9 @@ import {
   createCodec,
 } from "scale-ts"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import type { HexString } from "./Hex"
 import { SS58String } from "@/utils"
 import { AccountId } from "./AccountId"
-
-type HexString = `0x${string}`
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
@@ -40,8 +39,9 @@ export class Binary {
 
   asText = () => (this.#str ??= textDecoder.decode(this.#bytes))
 
-  asHex = () => (this.#hex ||= toHex(this.#bytes) as HexString)
-  asOpaqueHex = () => (this.#opaqueHex ||= toHex(this.asBytes()) as HexString)
+  asHex = () => (this.#hex ||= toHex(this.#bytes)) as `0x${string}`
+  asOpaqueHex = () =>
+    (this.#opaqueHex ||= toHex(this.asBytes())) as `0x${string}`
 
   asBytes = () => this.#bytes
   asOpaqueBytes = () =>

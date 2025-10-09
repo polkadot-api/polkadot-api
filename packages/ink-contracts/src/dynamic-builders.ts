@@ -127,7 +127,7 @@ export const getInkDynamicBuilder = (metadataLookup: InkMetadataLookup) => {
 export type InkDynamicBuilder = ReturnType<typeof getInkDynamicBuilder>
 
 const prependBytes = <T>(codec: Codec<T>, hex: string) => {
-  const bytes = Binary.fromHex(hex as `0x${string}`).asBytes()
+  const bytes = Binary.fromHex(hex).asBytes()
   const wrappedCodec = Tuple(Bytes(bytes.length), codec)
   return enhanceCodec(
     wrappedCodec,

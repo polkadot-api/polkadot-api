@@ -64,9 +64,7 @@ function getStorageLayout(metadata: InkMetadata, lookup: V14Lookup) {
       const keyPrefix =
         Number(metadata.version) === 4
           ? Binary.fromBytes(
-              Binary.fromHex(node.root.root_key as `0x${string}`)
-                .asBytes()
-                .reverse(),
+              Binary.fromHex(node.root.root_key).asBytes().reverse(),
             ).asHex()
           : node.root.root_key
 
