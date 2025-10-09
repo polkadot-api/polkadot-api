@@ -2,16 +2,15 @@
 
 ## Unreleased
 
-### Fixed
-
-- Sometimes WebSocket connections become stale without triggering a "close" event. The only way to detect that
-  is through either the `ping/pong` control frame events, or by reacting when it's been too long without receiving
-  a notification from the server. This release applies a heartbeat strategy which prevents connections from becoming stale.
-
 ### Added
 
-- `heartbeatTimeout` option to control how long to wait without having received notifications from the server before switching
-  connections. It defaults to 40 secs.
+- `heartbeatTimeout` option to control how long to wait without having received notifications from the server before switching connections.
+  It defaults to 40 secs.
+
+### Fixed
+
+- WebSocket connections might become stale without triggering a "close" event. The only way to detect that is through either the `ping/pong` control frame events, or by reacting when it's been too long without receiving a notification from the server.
+  This release applies a heartbeat strategy which prevents connections from becoming stale.
 
 ## 0.6.2 - 2025-10-03
 
