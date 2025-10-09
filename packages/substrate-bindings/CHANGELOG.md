@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-### Added
+### Fixed
 
-- Use strongly typed hex string (`0x${string}`) for `Binary` inputs & outputs.
+- Use `0x${string}` type for `Binary.asHex()`
 
 ## 0.16.3 - 2025-09-15
 
