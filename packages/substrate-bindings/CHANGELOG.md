@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Use strongly typed hex string (`0x${string}`) for `Binary` inputs & outputs.
+
 ## 0.16.3 - 2025-09-15
 
 ### Fixed

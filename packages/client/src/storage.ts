@@ -371,7 +371,10 @@ export const createStorageEntry = (
 
     return isBlockHash && Number(args[0]) === 0
       ? chainHead.genesis$.pipe(
-          map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
+          map((raw) => ({
+            raw,
+            mapped: FixedSizeBinary.fromHex(raw as `0x${string}`),
+          })),
         )
       : result$
   }

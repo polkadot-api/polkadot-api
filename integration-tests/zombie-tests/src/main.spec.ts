@@ -209,10 +209,12 @@ describe("E2E", async () => {
 
   it.concurrent("runtime call with extrinsic as input", async () => {
     const tx = api.tx.System.remark({
-      remark: Binary.fromHex("hello world!"),
+      remark: Binary.fromText("hello world!"),
     })
     const binaryExtrinsic = Binary.fromOpaqueHex(
-      await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
+      (await tx.sign(
+        fakeSigner(accounts["alice"]["sr25519"].publicKey),
+      )) as `0x${string}`,
     )
 
     const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
