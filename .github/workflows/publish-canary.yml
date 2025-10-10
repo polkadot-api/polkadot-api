@@ -1,0 +1,123 @@
+name: Publish Canary
+
+on:
+  push:
+    branches:
+      - v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - "22"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org
+      - name: Install deps
+        run: pnpm install
+      - name: Build core
+        run: pnpm turbo build-core --cache-dir=.turbo
+      - name: Install papi
+        run: pnpm install
+      - name: Build external
+        run: pnpm build-external
+      - name: Lint
+        run: pnpm lint
+      - name: Test
+        run: pnpm test
+      - name: Run Integration Tests
+        run: pnpm test:ci
+  publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      matrix:
+        node-version:
+          - "22"
+        value:
+          [
+            cli,
+            client,
+            codegen,
+            docgen,
+            ink-contracts,
+            json-rpc/json-rpc-provider,
+            json-rpc/json-rpc-provider-proxy,
+            json-rpc/legacy-provider,
+            json-rpc/logs-provider,
+            json-rpc/polkadot-sdk-compat,
+            json-rpc/sm-provider,
+            json-rpc/ws-provider,
+            known-chains,
+            merkleize-metadata,
+            metadata-builders,
+            metadata-compatibility,
+            compare-runtimes,
+            observable-client,
+            raw-client,
+            react-builder,
+            signers/signers-common,
+            signers/ledger-signer,
+            signers/pjs-signer,
+            signers/polkadot-signer,
+            signers/signer,
+            signers/meta-signers,
+            smoldot,
+            substrate-bindings,
+            substrate-client,
+            tx-utils,
+            utils,
+            view-builder,
+          ]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
+      - uses: pnpm/action-setup@v4
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org
+      - name: Install deps
+        run: pnpm install
+      - name: Build
+        run: pnpm turbo build-core --cache-dir=.turbo
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Bump versions
+        run: |
+          bun run scripts/bump/prerelease.ts
+      - name: Publish
+        working-directory: packages/${{ matrix.value }}
+        run: |
+          pnpm publish --no-git-checks --access=public --tag canary
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
