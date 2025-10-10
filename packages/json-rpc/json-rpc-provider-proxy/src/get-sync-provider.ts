@@ -1,13 +1,13 @@
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { getProxy } from "./get-proxy"
-import { AsyncJsonRpcProvider } from "./public-types"
+import { InnerJsonRpcProvider } from "./public-types"
 import { ConnectableJsonRpcConnection } from "./internal-types"
 
 const noop = () => {}
 
 export const getSyncProvider =
   (
-    input: (onResult: (x: AsyncJsonRpcProvider | null) => void) => () => void,
+    input: (onResult: (x: InnerJsonRpcProvider | null) => void) => () => void,
   ): JsonRpcProvider =>
   (onMessage) => {
     let proxy: ConnectableJsonRpcConnection | null = getProxy(onMessage)
@@ -17,14 +17,15 @@ export const getSyncProvider =
       const token = setTimeout(() => {
         stop = input((cb) => {
           stop = noop
-          if (!cb) start()
-          else if (proxy)
-            proxy.connect((onMsg, onHalt) =>
-              cb(onMsg, (e) => {
+          if (!cb) {
+            start()
+          } else if (proxy)
+            proxy.connect((onMsg, onHalt) => {
+              return cb(onMsg, (e) => {
                 onHalt(e)
                 start()
-              }),
-            )
+              })
+            })
         })
       }, 0)
       stop = () => clearTimeout(token)

@@ -1,13 +1,13 @@
 import {
-  AsyncJsonRpcProvider,
   getSyncProvider,
+  InnerJsonRpcProvider,
 } from "@polkadot-api/json-rpc-provider-proxy"
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import { noop } from "@polkadot-api/utils"
 import { StatusChange, WsJsonRpcProvider, WsEvent } from "./types-common"
 import { WebSocketClass } from "./types-new"
 import { withSocket } from "./with-socket"
-import { midleware } from "./middleware"
+import { middleware } from "./middleware"
 
 export const defaultConfig: {
   onStatusChanged: (status: StatusChange) => void
@@ -59,10 +59,26 @@ export const getWsProvider = (
   let status: StatusChange = { type: WsEvent.CLOSE, event: null }
   const onStatusChanged = (x: StatusChange) => _onStatuChanged((status = x))
 
-  const enhanced =
-    (input: AsyncJsonRpcProvider): AsyncJsonRpcProvider =>
+  const haltInterceptor =
+    (cb: (e: any) => void, base: InnerJsonRpcProvider): InnerJsonRpcProvider =>
     (onMsg, onHalt) =>
-      innerEnhancer((innerOnMsg) => input(innerOnMsg, onHalt))(onMsg)
+      base(onMsg, (e) => {
+        cb(e)
+        onHalt(e)
+      })
+
+  const enhanced = (input: InnerJsonRpcProvider): InnerJsonRpcProvider =>
+    haltInterceptor(
+      (e) => {
+        console.log("OUT got it", e)
+      },
+      (onMsg, onHalt) =>
+        innerEnhancer((innerOnMsg) =>
+          haltInterceptor((e) => {
+            console.log("IN got it", e)
+          }, input)(innerOnMsg, onHalt),
+        )(onMsg),
+    )
 
   const socketProvider = enhanced(
     withSocket(
@@ -91,29 +107,44 @@ export const getWsProvider = (
     ),
   )
 
-  const provider: AsyncJsonRpcProvider = midleware((onMsg, onHalt) =>
-    socketProvider(onMsg, (e) => {
-      onStatusChanged({
-        type: WsEvent.ERROR,
-        event: e,
-      })
-      onHalt(e)
-    }),
+  const provider: InnerJsonRpcProvider = haltInterceptor(
+    (e) => {
+      console.log("SUPPER OUTTTER got it", e)
+    },
+    middleware((onMsg, onHalt) =>
+      socketProvider(onMsg, (e) => {
+        onStatusChanged({
+          type: WsEvent.ERROR,
+          event: e,
+        })
+        onHalt(e)
+      }),
+    ),
   )
 
   let isFirst = true
-  const result = getSyncProvider((onReady) => {
-    if (isFirst) {
-      isFirst = false
-      onReady(provider)
-      return noop
-    }
+  const result: JsonRpcProvider = (onMsg) => {
+    const { send, disconnect } = getSyncProvider((onReady) => {
+      console.log("ENTERING...")
+      if (isFirst) {
+        isFirst = false
+        onReady(provider)
+        return noop
+      }
 
-    const token = setTimeout(onReady, 300, provider)
-    return () => {
-      clearTimeout(token)
+      const token = setTimeout(onReady, 300, provider)
+      return () => {
+        clearTimeout(token)
+      }
+    })(onMsg)
+    return {
+      send,
+      disconnect() {
+        console.log("DISCONNECTED")
+        disconnect()
+      },
     }
-  })
+  }
 
   const switchFn: WsJsonRpcProvider["switch"] = (...args) => {
     if (status.type === WsEvent.CLOSE) return

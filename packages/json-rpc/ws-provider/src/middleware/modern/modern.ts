@@ -1,4 +1,4 @@
-import { ParsedJsonRpcEnhancer } from "../types"
+import { Middleware } from "../types"
 import { followEnhancer } from "./fix-follow"
 import { fixChainSpec } from "./chain-spec"
 import { fixDescendantValues } from "./fix-descendant-values"
@@ -19,5 +19,5 @@ const middlewares = [
   followEnhancer,
 ]
 
-export const modern: ParsedJsonRpcEnhancer = (base) =>
+export const modern: Middleware = (base) =>
   middlewares.reduce((a, b) => b(a), base)

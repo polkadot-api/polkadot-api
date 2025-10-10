@@ -1,21 +1,19 @@
+import { getAsyncProvider } from "./middleware/utils/get-async-provider"
 import { WsEvent } from "./types-common"
-import {
-  AsyncJsonRpcProvider,
-  getAsyncProvider,
-} from "@polkadot-api/json-rpc-provider-proxy"
 import { noop } from "@polkadot-api/utils"
 
 export const withSocket = (
   getWebsocket: () => [WebSocket, () => void],
   heartbeatTimeout: number,
   connectionTimeout: number,
-): AsyncJsonRpcProvider =>
+) =>
   getAsyncProvider((onReady) => {
     const [socket, onConnected] = getWebsocket()
 
     let suicide: (e?: any) => void = () => {
       suicide = noop
       cleanup()
+      console.log("ON READY NULLLL")
       onReady(null)
     }
 
@@ -44,6 +42,8 @@ export const withSocket = (
     }
 
     const onError = (event: any) => {
+      console.error(new Error("caca de la vaca"))
+
       suicide({
         type: WsEvent.ERROR,
         event,
@@ -86,7 +86,7 @@ export const withSocket = (
 
         const _onMessage = (e: MessageEvent) => {
           heartbeat()
-          if (typeof e.data === "string") onMsg(e.data)
+          if (typeof e.data === "string") onMsg(JSON.parse(e.data))
         }
 
         socket.addEventListener("ping", heartbeat)
@@ -95,7 +95,7 @@ export const withSocket = (
         socket.addEventListener("close", onClose)
         return {
           send(m) {
-            socket.send(m)
+            socket.send(JSON.stringify(m))
           },
           disconnect,
         }

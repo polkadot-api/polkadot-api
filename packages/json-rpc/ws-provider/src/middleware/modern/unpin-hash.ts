@@ -1,16 +1,13 @@
 import { chainHead } from "./methods"
-import type { ParsedJsonRpcEnhancer } from "../types"
+import type { Middleware } from "../types"
+import { JsonRpcRequest } from "@polkadot-api/json-rpc-provider"
 
-export const unpinHash: ParsedJsonRpcEnhancer =
+export const unpinHash: Middleware =
   (base) =>
   (...args) => {
     const { send: _send, disconnect } = base(...args)
 
-    const send = (msg: {
-      id?: string
-      method?: string
-      params?: Array<any>
-    }) => {
+    const send = (msg: JsonRpcRequest) => {
       const { method, params, id, ...rest } = msg
       if (method == chainHead.unpin && params && Array.isArray(params[1])) {
         params[1].forEach((hash, idx) => {

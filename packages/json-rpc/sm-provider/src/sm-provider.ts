@@ -5,7 +5,10 @@ import {
   JsonRpcDisabledError,
   type Chain,
 } from "@polkadot-api/smoldot"
-import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import type {
+  JsonRpcProvider,
+  JsonRpcResponse,
+} from "@polkadot-api/json-rpc-provider"
 import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 let pending: Promise<any> | null
@@ -41,16 +44,18 @@ export const getSmProvider = (
             }
           }
 
-          const onMsgIn = (msg: string | null = null) => {
+          const onMsgIn = (msg: JsonRpcResponse | null = null) => {
             if (isListening!) return
             msg && onMsgOut(msg)
-            chain.nextJsonRpcResponse().then(onMsgIn, onhalt)
+            chain
+              .nextJsonRpcResponse()
+              .then((x) => onMsgIn(JSON.parse(x)), onhalt)
           }
           onMsgIn()
 
           return {
             send(msg) {
-              isListening && chain.sendJsonRpc(msg)
+              isListening && chain.sendJsonRpc(JSON.stringify(msg))
             },
             disconnect() {
               isListening = false

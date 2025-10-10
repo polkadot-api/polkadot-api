@@ -1,13 +1,3 @@
-export interface ParsedJsonRpcConnection {
-  send: <T extends {}>(message: T) => void
-  disconnect: () => void
-}
+import { InnerJsonRpcProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
-export type ParsedJsonRpcProvider = (
-  onMesage: <T extends {}>(message: T) => void,
-  onHalt: (e?: any) => void,
-) => ParsedJsonRpcConnection
-
-export type ParsedJsonRpcEnhancer = (
-  base: ParsedJsonRpcProvider,
-) => ParsedJsonRpcProvider
+export type Middleware = (base: InnerJsonRpcProvider) => InnerJsonRpcProvider

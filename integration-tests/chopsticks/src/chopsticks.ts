@@ -5,22 +5,23 @@ import { getWsProvider, WsEvent } from "polkadot-api/ws-provider"
 import { withLogs } from "./with-logs"
 
 const ENDPOINT = "wss://rpc.ibp.network/paseo"
-const PORT = 8132
+const PORT = 1714
 
 let cleanup = () => {}
 
 export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
 
+let count = 0
 export const getChopsticksProvider = () =>
   withLogs(
-    "RPC.log",
+    `RPC${count++}.log`,
     getWsProvider(`ws://localhost:${PORT}`, {
       onStatusChanged: (x) => {
         console.log(wsEvents[x.type])
         console.log(x)
       },
-      innerEnhancer: (x) => withLogs("INNER_RPC.log", x),
+      innerEnhancer: (x) => withLogs(`${count++}INNER_RPC.log`, x),
     }),
   )
 

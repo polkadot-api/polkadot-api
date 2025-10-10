@@ -225,6 +225,9 @@ importers:
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:integration-tests/chopsticks/.papi/descriptors(polkadot-api@packages+client)
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/json-rpc-provider
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client

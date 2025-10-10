@@ -1,19 +1,22 @@
-import { AsyncJsonRpcProvider, GenericRpcConnection } from "./public-types"
-
-const noop = () => {}
+import {
+  JsonRpcConnection,
+  JsonRpcRequest,
+} from "@polkadot-api/json-rpc-provider"
+import { InnerJsonRpcProvider } from "@polkadot-api/json-rpc-provider-proxy"
+import { noop } from "@polkadot-api/utils"
 
 export const getAsyncProvider =
   <T = string>(
     input: (
-      onResult: (x: AsyncJsonRpcProvider<T> | null) => void,
+      onResult: (x: InnerJsonRpcProvider<T> | null) => void,
     ) => () => void,
-  ): AsyncJsonRpcProvider<T> =>
+  ): InnerJsonRpcProvider<T> =>
   (onMessage, _onHalt) => {
     // null -> loading
     // undefined -> destroyed
-    let connection: GenericRpcConnection<T> | null | undefined = null
+    let connection: JsonRpcConnection<T> | null | undefined = null
 
-    let pending: Array<T> = []
+    let pending: Array<JsonRpcRequest> = []
     const done = () => {
       stop()
       onHalt = stop = noop

@@ -1,7 +1,7 @@
-import type { ParsedJsonRpcEnhancer } from "../types"
+import type { Middleware } from "../types"
 import { chainSpec } from "./methods"
 
-export const fixChainSpec: ParsedJsonRpcEnhancer =
+export const fixChainSpec: Middleware =
   (base) =>
   (...args) => {
     const { send: originalSend, disconnect } = base(...args)

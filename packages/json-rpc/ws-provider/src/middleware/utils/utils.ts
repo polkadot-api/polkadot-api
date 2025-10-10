@@ -1,9 +1,10 @@
-import { createParsedClient } from "@polkadot-api/raw-client"
+import { JsonRpcMessage, JsonRpcRequest } from "@polkadot-api/json-rpc-provider"
+import { InnerJsonRpcProvider } from "@polkadot-api/json-rpc-provider-proxy"
+import { createClient } from "@polkadot-api/raw-client"
 import { noop } from "@polkadot-api/utils"
-import { ParsedJsonRpcProvider } from "./types"
 
 export const jsonObj = <T extends {}>(input: T) => ({
-  jsonrpc: "2.0",
+  jsonrpc: "2.0" as const,
   ...input,
 })
 
@@ -116,16 +117,16 @@ export const createDescendantValues = (
   }
 }
 
-export const getRequest = (base: ParsedJsonRpcProvider) => {
-  let clientSend: (msg: {}) => void = noop
-  let clientReceive: (msg: {}) => void = noop
+export const getRequest = (base: InnerJsonRpcProvider) => {
+  let clientSend: (msg: JsonRpcRequest) => void = noop
+  let clientReceive: (msg: JsonRpcMessage) => void = noop
 
   const cleanup = () => {
     clientSend = noop
     clientReceive = noop
   }
 
-  const { request } = createParsedClient((clientMsg) => {
+  const { request } = createClient((clientMsg) => {
     clientReceive = clientMsg
     return {
       disconnect: noop,
@@ -142,7 +143,7 @@ export const getRequest = (base: ParsedJsonRpcProvider) => {
     onError: (e: any) => void,
   ): (() => void) => request(method, params, { onSuccess, onError })
 
-  const provider: ParsedJsonRpcProvider = (onMsg, onHalt) => {
+  const provider: InnerJsonRpcProvider = (onMsg, onHalt) => {
     const { send, disconnect } = base(
       (msg) => {
         clientReceive(msg)

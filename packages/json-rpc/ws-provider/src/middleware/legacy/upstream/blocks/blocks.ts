@@ -2,7 +2,6 @@ import {
   concat,
   concatMap,
   debounceTime,
-  delay,
   filter,
   map,
   merge,
@@ -24,6 +23,37 @@ import type {
 } from "../../types"
 import { UpstreamEvents } from "./upstream-events"
 import { shareLatest } from "../../utils/share-latest"
+
+export const withLogs =
+  (msg: string, withSubId?: boolean) =>
+  <T>(base: Observable<T>): Observable<T> => {
+    let nextId = 0
+    return new Observable((observer) => {
+      const id = nextId++
+      const log = (...args: any[]) =>
+        console.log(...(withSubId ? [id, ...args] : args))
+      log(`withLogs(${msg}): subscribed`)
+      const sub = base.subscribe({
+        next(v) {
+          log(`withLogs(${msg}): next`, v)
+          observer.next(v)
+        },
+        error(e) {
+          log(`withLogs(${msg}): error`, e)
+          observer.error(e)
+        },
+        complete() {
+          log(`withLogs(${msg}): complete`)
+          observer.complete()
+        },
+      })
+
+      return () => {
+        log(`withLogs(${msg}): cleanup`)
+        sub.unsubscribe()
+      }
+    })
+  }
 
 export const getBlocks = ({
   allHeads$,
@@ -151,9 +181,13 @@ export const getBlocks = ({
 
         getRecursiveHeader(parent)
           .pipe(
+            withLogs(`getRecursiveHeader${parent}`),
             takeWhile((result) => {
               let me = pendingBlocks.get(result.hash)
-              if (!me) return false // it was trimmed before b/c it was a prunned branch
+              if (!me) {
+                console.log("not in pendingBlocks")
+                return false // it was trimmed before b/c it was a prunned branch
+              }
               me.header = result
 
               const finalized = connectedBlocks.blocks.get(
@@ -165,6 +199,9 @@ export const getBlocks = ({
                 while (pendingBlocks.has(me.header?.parent ?? ""))
                   me = pendingBlocks.get(me.header!.parent)!
                 trimPending(me.hash)
+                console.log("pruned?")
+                console.log({ finalized })
+                console.log({ result })
                 return false
               }
 
@@ -187,6 +224,7 @@ export const getBlocks = ({
                   })
                 } else trimPending(result.hash) // it was a pruned branch
 
+                console.log("connectedBlocks has parent!")
                 return false
               }
 
@@ -194,6 +232,7 @@ export const getBlocks = ({
               // another subscription is loading it already
               if (pendingParent) {
                 pendingParent.children.add(result.hash)
+                console.log("another subscription is loading it")
                 return false
               }
 
@@ -202,6 +241,7 @@ export const getBlocks = ({
                 header: null,
                 children: new Set([result.hash]),
               })
+              console.log("keeps going")
               return true
             }),
           )
@@ -320,20 +360,16 @@ export const getBlocks = ({
     share(),
   )
 
-  const ready$ = _newBlocks$.pipe(
-    filter(() => !pendingBlocks.size),
-    take(1),
-    delay(0), // allows for the first bunch of _newBlock events to settle on the latest updated state
+  const ready$ = of(1).pipe(
+    mergeMap(() =>
+      connectedBlocks.blocks.size ? [1] : _finalized$.pipe(take(1)),
+    ),
     map(() => null),
     shareLatest,
   )
 
-  const finalized$ = ready$.pipe(
-    mergeMap(() =>
-      _finalized$.pipe(
-        map((hash) => connectedBlocks.blocks.get(hash)! as DecentHeader),
-      ),
-    ),
+  const finalized$ = _finalized$.pipe(
+    map((hash) => connectedBlocks.blocks.get(hash)! as DecentHeader),
     shareLatest,
   )
 
@@ -377,11 +413,10 @@ export const getBlocks = ({
         )
           .slice(1)
           .map(getNewBlockEvent)
-        if (others.length)
-          others.push({
-            event: "bestBlockChanged" as const,
-            bestBlockHash: best,
-          })
+        others.push({
+          event: "bestBlockChanged" as const,
+          bestBlockHash: best,
+        })
         return [getInitialized(), ...others]
       }),
     )
@@ -397,6 +432,7 @@ export const getBlocks = ({
           },
         }),
         share(),
+        withLogs(`bocks${subId}`),
       ),
       getHeader: (blockHash: string) =>
         connectedBlocks.blocks.get(blockHash)?.header ?? null,

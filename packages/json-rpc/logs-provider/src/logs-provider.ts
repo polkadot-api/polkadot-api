@@ -1,4 +1,7 @@
-import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import {
+  JsonRpcMessage,
+  JsonRpcProvider,
+} from "@polkadot-api/json-rpc-provider"
 import Queue from "./queue"
 import { In, OUT, Out } from "./types"
 
@@ -59,7 +62,7 @@ export const logsProvider = (
   return (onMsg) => {
     const clientId = nextClientId++
     const logs = allLogs.get(clientId)!
-    const pending = new Queue<string>()
+    const pending = new Queue<JsonRpcMessage>()
     let idx = 0
 
     let transactions = new Map<string, string>()
@@ -77,7 +80,7 @@ export const logsProvider = (
             break
           }
 
-          const received = pending.pop()
+          const received = JSON.stringify(pending.pop())
 
           if (
             expected.msg.includes(
@@ -97,7 +100,7 @@ export const logsProvider = (
             throw new Error("unexpected messaged was received")
           }
         } else {
-          onMsg(expected.msg)
+          onMsg(JSON.parse(expected.msg))
           const nextOne = logs[idx + 1]
           if (nextOne)
             await new Promise((res) =>

@@ -1,12 +1,23 @@
 import { ClientRequest } from "@polkadot-api/raw-client"
 import { HexString } from "@polkadot-api/substrate-bindings"
 import { noop } from "@polkadot-api/utils"
-import { concat, map, mergeMap, Observable, of, pipe, Subject } from "rxjs"
+import {
+  catchError,
+  concat,
+  map,
+  mergeMap,
+  Observable,
+  of,
+  pipe,
+  Subject,
+} from "rxjs"
 import { DecentHeader, ShittyHeader } from "../../types"
 import { getFromShittyHeader } from "../../utils/fromShittyHeader"
 import { getHasherFromBlock } from "../../utils/get-hasher-from-block"
 import { shareLatest } from "../../utils/share-latest"
 import { withLatestFromBp } from "../../utils/with-latest-from-bp"
+
+const INITIAL_ERROR = {}
 
 export const getUpstreamEvents = (
   request: ClientRequest<any, any>,
@@ -70,7 +81,9 @@ export const getUpstreamEvents = (
           if (stop !== null) unsubscribe()
           else stop = unsubscribe
         },
-        onError,
+        onError() {
+          onError(INITIAL_ERROR)
+        },
       })
 
       return () => {
@@ -82,6 +95,15 @@ export const getUpstreamEvents = (
   const allHeads$ = getHeaders$(
     "chain_subscribeAllHeads",
     "chain_unsubscribeAllHeads",
+  ).pipe(
+    catchError((e) => {
+      if (e === INITIAL_ERROR)
+        return getHeaders$(
+          "chain_subscribeNewHeads",
+          "chain_unsubscribeNewHeads",
+        )
+      throw e
+    }),
   )
 
   const finalized$ = getHeaders$(
