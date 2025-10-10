@@ -13,7 +13,6 @@ export const withSocket = (
     let suicide: (e?: any) => void = () => {
       suicide = noop
       cleanup()
-      console.log("ON READY NULLLL")
       onReady(null)
     }
 
@@ -24,7 +23,6 @@ export const withSocket = (
       const time = isFirst ? connectionTimeout : heartbeatTimeout
       isFirst = false
       heartbeatToken = setTimeout(() => {
-        console.warn(`Terminate: heartbeat timeout....` + socket.url)
         suicide({
           type: WsEvent.ERROR,
           event: { type: "timeout" },
@@ -42,8 +40,6 @@ export const withSocket = (
     }
 
     const onError = (event: any) => {
-      console.error(new Error("caca de la vaca"))
-
       suicide({
         type: WsEvent.ERROR,
         event,

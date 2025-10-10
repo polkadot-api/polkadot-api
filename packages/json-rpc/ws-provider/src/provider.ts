@@ -59,24 +59,33 @@ export const getWsProvider = (
   let status: StatusChange = { type: WsEvent.CLOSE, event: null }
   const onStatusChanged = (x: StatusChange) => _onStatuChanged((status = x))
 
-  const haltInterceptor =
-    (cb: (e: any) => void, base: InnerJsonRpcProvider): InnerJsonRpcProvider =>
-    (onMsg, onHalt) =>
-      base(onMsg, (e) => {
-        cb(e)
-        onHalt(e)
-      })
-
   const enhanced =
     (input: InnerJsonRpcProvider): InnerJsonRpcProvider =>
-    (onMsg, onHalt) =>
-      innerEnhancer((innerOnMsg) => input(innerOnMsg, onHalt))(onMsg)
+    (onMsg, onHalt) => {
+      const enhancedConnection = innerEnhancer((innerOnMsg) => {
+        let { send, disconnect } = input(innerOnMsg, (e) => {
+          // the inner connection has halted so we can't
+          // call its original disconnect
+          disconnect = noop
+
+          enhancedConnection.disconnect()
+          onHalt(e)
+        })
+        return {
+          send,
+          disconnect() {
+            disconnect()
+          },
+        }
+      })(onMsg)
+      return enhancedConnection
+    }
 
   const socketProvider = enhanced(
     withSocket(
       () => {
         const [uri, protocols] =
-          switchTo || actualEndpoints[idx++ % endpoints.length]
+          switchTo || actualEndpoints[idx++ % actualEndpoints.length]
         switchTo = null
         onStatusChanged({
           type: WsEvent.CONNECTING,
@@ -99,25 +108,19 @@ export const getWsProvider = (
     ),
   )
 
-  const provider: InnerJsonRpcProvider = haltInterceptor(
-    (e) => {
-      console.log("SUPPER OUTTTER got it", e)
-    },
-    middleware((onMsg, onHalt) =>
-      socketProvider(onMsg, (e) => {
-        onStatusChanged({
-          type: WsEvent.ERROR,
-          event: e,
-        })
-        onHalt(e)
-      }),
-    ),
+  const provider: InnerJsonRpcProvider = middleware((onMsg, onHalt) =>
+    socketProvider(onMsg, (e) => {
+      onStatusChanged({
+        type: WsEvent.ERROR,
+        event: e,
+      })
+      onHalt(e)
+    }),
   )
 
   let isFirst = true
   const result: JsonRpcProvider = (onMsg) => {
     const { send, disconnect } = getSyncProvider((onReady) => {
-      console.log("ENTERING...")
       if (isFirst) {
         isFirst = false
         onReady(provider)

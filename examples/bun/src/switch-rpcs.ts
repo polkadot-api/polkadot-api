@@ -1,6 +1,7 @@
 import { createClient } from "polkadot-api"
 import { getWsProvider, WsEvent } from "polkadot-api/ws-provider"
 import { wnd } from "@polkadot-api/descriptors"
+import { withLogs } from "./with-logs"
 const wsEvents = {
   [WsEvent.CLOSE]: "CLOSE",
   [WsEvent.ERROR]: "ERROR",
@@ -15,8 +16,10 @@ const wsProvider = getWsProvider(
       console.log(wsEvents[x.type])
       console.log(x)
     },
+    innerEnhancer: (x) => withLogs("some logs", x),
   },
 )
+
 const client = createClient(wsProvider)
 const testApi = client.getTypedApi(wnd)
 
@@ -30,12 +33,11 @@ wsProvider.switch()
 
 let nTries = 1
 const switchWs = async () => {
-  if (nTries++ > 4) {
-    console.log("done!")
+  if (nTries++ > 8) {
     client.destroy()
     return
   }
-  await new Promise((res) => setTimeout(res, 15_000))
+  await new Promise((res) => setTimeout(res, 5_000))
   console.log("switching")
   wsProvider.switch()
   switchWs()

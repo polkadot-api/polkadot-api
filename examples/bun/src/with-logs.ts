@@ -6,10 +6,10 @@ export const withLogs = (
   fileName: string,
   provider: JsonRpcProvider,
 ): JsonRpcProvider => {
+  try {
+    unlinkSync(fileName)
+  } catch {}
   return (onMsg) => {
-    try {
-      unlinkSync(fileName)
-    } catch {}
     const file = createWriteStream(fileName, { flags: "a" })
     const base = withLogsRecorder((log) => {
       file.write(log + "\n")

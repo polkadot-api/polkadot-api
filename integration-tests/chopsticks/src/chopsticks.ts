@@ -5,7 +5,7 @@ import { getWsProvider, WsEvent } from "polkadot-api/ws-provider"
 import { withLogs } from "./with-logs"
 
 const ENDPOINT = "wss://rpc.ibp.network/paseo"
-const PORT = 1714
+const PORT = 2017
 
 let cleanup = () => {}
 
