@@ -4,6 +4,9 @@ on:
   pull_request:
   merge_group:
   workflow_dispatch:
+  push:
+    branches:
+      - v2
 
 permissions:
   contents: read
