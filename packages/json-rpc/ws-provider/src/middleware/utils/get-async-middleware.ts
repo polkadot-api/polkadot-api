@@ -33,7 +33,10 @@ export const getAsyncMiddleware =
       done()
       onHaltOut(e)
     }
-    const innerCon = base(interceptedMessage, interceptedHalt)
+    const innerCon = base(
+      (msg) => interceptedMessage(msg),
+      (e) => interceptedHalt(e),
+    )
     let { disconnect } = innerCon
     const { request } = createClient((innerClientOnMsg) => {
       interceptedMessage = innerClientOnMsg
@@ -43,9 +46,8 @@ export const getAsyncMiddleware =
     if (isOn)
       stopRequest = input((cb) => {
         stopRequest = noop
-        if (!cb) {
-          interceptedHalt()
-        } else {
+        if (!cb) interceptedHalt()
+        else {
           ;({ send, disconnect } = cb((onMiddleMsg, onMiddleHalt) => {
             interceptedHalt = (e?: any) => {
               done()

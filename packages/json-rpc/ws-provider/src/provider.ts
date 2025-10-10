@@ -67,18 +67,10 @@ export const getWsProvider = (
         onHalt(e)
       })
 
-  const enhanced = (input: InnerJsonRpcProvider): InnerJsonRpcProvider =>
-    haltInterceptor(
-      (e) => {
-        console.log("OUT got it", e)
-      },
-      (onMsg, onHalt) =>
-        innerEnhancer((innerOnMsg) =>
-          haltInterceptor((e) => {
-            console.log("IN got it", e)
-          }, input)(innerOnMsg, onHalt),
-        )(onMsg),
-    )
+  const enhanced =
+    (input: InnerJsonRpcProvider): InnerJsonRpcProvider =>
+    (onMsg, onHalt) =>
+      innerEnhancer((innerOnMsg) => input(innerOnMsg, onHalt))(onMsg)
 
   const socketProvider = enhanced(
     withSocket(

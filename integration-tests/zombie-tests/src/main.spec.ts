@@ -8,7 +8,6 @@ import {
   lastValueFrom,
   map,
   mergeMap,
-  noop,
   of,
   switchMap,
   take,
@@ -105,7 +104,6 @@ console.log("got the chainspec")
 
 describe("E2E", async () => {
   let client: PolkadotClient
-  let resetConnection = noop
   console.log("starting the client")
   if (PROVIDER === "sm") {
     const smoldot = start({
@@ -117,9 +115,6 @@ describe("E2E", async () => {
     )
   } else {
     const wsProvider = getWsProvider("ws://127.0.0.1:9934")
-    resetConnection = () => {
-      wsProvider.switch()
-    }
     client = createClient(enhancer(wsProvider), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
       "rpc_methods",
@@ -385,30 +380,16 @@ describe("E2E", async () => {
         ),
       )
 
-      let isLast = false
       await Promise.all(
         [alice, bob].map((from, idx) =>
           lastValueFrom(
             api.tx.Balances.transfer_allow_death({
               dest: MultiAddress.Id(to[idx]),
               value: ED,
-            })
-              .signSubmitAndWatch(from, {
-                mortality: { mortal: true, period: 64 },
-                tip: 5n,
-              })
-              .pipe(
-                tap((e) => {
-                  if (e.type === "broadcasted") {
-                    if (isLast) {
-                      console.log("reseting connection", e.txHash)
-                      resetConnection()
-                    } else {
-                      isLast = true
-                    }
-                  }
-                }),
-              ),
+            }).signSubmitAndWatch(from, {
+              mortality: { mortal: true, period: 64 },
+              tip: 5n,
+            }),
           ),
         ),
       )
