@@ -1,4 +1,3 @@
-import { withLegacy } from "@polkadot-api/legacy-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 import { HexString } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
@@ -27,11 +26,7 @@ if (PROVIDER === "sm") {
   rawClient.destroy()
   const smClient = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
 
-  const legacyClient = createClient(
-    getWsProvider(ZOMBIENET_URI, {
-      innerEnhancer: withLegacy(),
-    }),
-  )
+  const legacyClient = createClient(getWsProvider(ZOMBIENET_URI, {}))
 
   let targetBlock: HexString = ""
   const smBlocks = new Set<string>()
