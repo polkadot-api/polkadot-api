@@ -19,14 +19,14 @@ export const withLogsRecorder = (
     setTickDate()
 
     const result = input((msg) => {
-      persistLog(`${clientId}-${tickDate}-${IN}-${msg}`)
+      persistLog(`${clientId}-${tickDate}-${IN}-${JSON.stringify(msg)}`)
       onMsg(msg)
     })
 
     return {
       ...result,
       send: (msg) => {
-        persistLog(`${clientId}-${tickDate}-${OUT}-${msg}`)
+        persistLog(`${clientId}-${tickDate}-${OUT}-${JSON.stringify(msg)}`)
         result.send(msg)
       },
       disconnect() {

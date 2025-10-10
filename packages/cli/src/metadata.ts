@@ -8,34 +8,28 @@ import {
   unifyMetadata,
   v15,
 } from "@polkadot-api/substrate-bindings"
-import { getWsProvider } from "@polkadot-api/ws-provider/node"
+import { getWsProvider } from "@polkadot-api/ws-provider"
 import { Worker } from "node:worker_threads"
 import { getObservableClient } from "@polkadot-api/observable-client"
 import {
   catchError,
   combineLatest,
-  concatMap,
   filter,
   firstValueFrom,
   from,
   map,
-  merge,
-  mergeMap,
   Observable,
   of,
   switchMap,
   take,
-  timer,
 } from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
 import * as knownChains from "@polkadot-api/known-chains"
-import { withPolkadotSdkCompat } from "@polkadot-api/polkadot-sdk-compat"
 import { startFromWorker } from "@polkadot-api/smoldot/from-node-worker"
 import { Client as SmoldotClient } from "@polkadot-api/smoldot"
 import { getSmProvider } from "@polkadot-api/sm-provider"
-import { withLegacy } from "@polkadot-api/legacy-provider"
 
 const workerPath = fileURLToPath(
   import.meta.resolve("@polkadot-api/smoldot/node-worker"),
@@ -185,23 +179,9 @@ const getMetadataCallWithError = (
 
 const getMetadataFromWsURL = (wsURL: string, at?: string) =>
   firstValueFrom(
-    merge(
-      getMetadataCallWithError(withPolkadotSdkCompat(getWsProvider(wsURL)), at),
-      timer(3_000).pipe(
-        concatMap(() =>
-          getMetadataCallWithError(
-            getWsProvider({
-              endpoints: [wsURL],
-              innerEnhancer: withLegacy(),
-            }),
-            at,
-          ),
-        ),
-      ),
-    ).pipe(
-      mergeMap((x, idx) => {
-        if (x.success) return [x.value]
-        if (idx < 1) return []
+    getMetadataCallWithError(getWsProvider(wsURL), at).pipe(
+      map((x) => {
+        if (x.success) return x.value
         throw x.error
       }),
     ),

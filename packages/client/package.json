@@ -36,18 +36,6 @@
       "require": "./dist/reexports/logs-provider.js",
       "default": "./dist/reexports/logs-provider.js"
     },
-    "./polkadot-sdk-compat": {
-      "types": "./dist/reexports/polkadot-sdk-compat.d.ts",
-      "node": {
-        "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
-        "require": "./dist/reexports/polkadot-sdk-compat.js",
-        "default": "./dist/reexports/polkadot-sdk-compat.js"
-      },
-      "module": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
-      "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
-      "require": "./dist/reexports/polkadot-sdk-compat.js",
-      "default": "./dist/reexports/polkadot-sdk-compat.js"
-    },
     "./pjs-signer": {
       "types": "./dist/reexports/pjs-signer.d.ts",
       "node": {
@@ -95,18 +83,6 @@
       "import": "./dist/esm/reexports/ws-provider.mjs",
       "require": "./dist/reexports/ws-provider.js",
       "default": "./dist/reexports/ws-provider.js"
-    },
-    "./ws-provider/*": {
-      "types": "./dist/reexports/ws-provider_*.d.ts",
-      "node": {
-        "import": "./dist/esm/reexports/ws-provider_*.mjs",
-        "require": "./dist/reexports/ws-provider_*.js",
-        "default": "./dist/reexports/ws-provider_*.js"
-      },
-      "module": "./dist/esm/reexports/ws-provider_*.mjs",
-      "import": "./dist/esm/reexports/ws-provider_*.mjs",
-      "require": "./dist/reexports/ws-provider_*.js",
-      "default": "./dist/reexports/ws-provider_*.js"
     },
     "./chains": {
       "types": "./dist/reexports/chains.d.ts",
@@ -189,7 +165,6 @@
     "dist",
     "bin",
     "logs-provider",
-    "polkadot-sdk-compat",
     "pjs-signer",
     "signer",
     "sm-provider",
@@ -220,7 +195,6 @@
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
     "@polkadot-api/pjs-signer": "workspace:*",
-    "@polkadot-api/polkadot-sdk-compat": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signer": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",

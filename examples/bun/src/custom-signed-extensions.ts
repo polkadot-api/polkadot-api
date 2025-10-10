@@ -8,7 +8,6 @@ import { getPolkadotSigner } from "polkadot-api/signer"
 import { createClient } from "polkadot-api"
 import { MultiAddress, turing } from "@polkadot-api/descriptors"
 import { getWsProvider } from "polkadot-api/ws-provider"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 
 const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))
 const derive = sr25519CreateDerive(miniSecret)
@@ -19,9 +18,7 @@ const papiTestSigner = getPolkadotSigner(
   papiTest.sign,
 )
 
-const client = createClient(
-  withPolkadotSdkCompat(getWsProvider("wss://turing-rpc.avail.so/ws")),
-)
+const client = createClient(getWsProvider("wss://turing-rpc.avail.so/ws"))
 
 const api = client.getTypedApi(turing)
 

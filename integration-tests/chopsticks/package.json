@@ -16,6 +16,7 @@
   "dependencies": {
     "@acala-network/chopsticks": "^1.2.2",
     "@polkadot-api/cli": "workspace:*",
+    "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.2"

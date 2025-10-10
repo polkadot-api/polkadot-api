@@ -1,8 +1,11 @@
-import type {
-  JsonRpcConnection,
-  JsonRpcProvider,
+import {
+  isResponse,
+  type JsonRpcConnection,
+  type JsonRpcId,
+  type JsonRpcMessage,
+  type JsonRpcProvider,
 } from "@polkadot-api/json-rpc-provider"
-import { RpcError, IRpcError } from "./RpcError"
+import { RpcError } from "./RpcError"
 import { getSubscriptionsManager, Subscriber } from "./subscriptions-manager"
 import { DestroyedError } from "./DestroyedError"
 
@@ -31,72 +34,54 @@ export interface Client {
 let nextClientId = 1
 export const createClient = (gProvider: JsonRpcProvider): Client => {
   let clientId = nextClientId++
-  const responses = new Map<string, ClientRequestCb<any, any>>()
+  const responses = new Map<JsonRpcId, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
 
   let connection: JsonRpcConnection | null = null
-
   const send = (
     id: string,
     method: string,
     params: Array<boolean | string | number | null>,
   ) => {
-    connection!.send(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        id,
-        method,
-        params,
-      }),
-    )
+    connection!.send({
+      jsonrpc: "2.0",
+      id,
+      method,
+      params,
+    })
   }
 
-  function onMessage(message: string): void {
-    try {
-      let id: string,
-        result,
-        error: IRpcError | undefined,
-        params: { subscription: any; result: any; error?: IRpcError },
-        subscription: string
+  function onMessage(parsed: JsonRpcMessage): void {
+    if (isResponse(parsed)) {
+      const { id } = parsed
+      const cb = responses.get(id)
+      if (!cb) return
 
-      const parsed = JSON.parse(message)
-      ;({ id, result, error, params } = parsed)
+      responses.delete(id)
 
-      if (id === null) throw new Error(params?.error?.message ?? "id null")
-
-      if (id != null) {
-        const cb = responses.get(id)
-        if (!cb) return
-
-        responses.delete(id)
-
-        return error
-          ? cb.onError(new RpcError(error))
-          : cb.onSuccess(result, (opaqueId, subscriber) => {
-              const subscriptionId = opaqueId
-              subscriptions.subscribe(subscriptionId, subscriber)
-              return () => {
-                subscriptions.unsubscribe(subscriptionId)
-              }
-            })
-      }
-
-      // at this point, it means that it should be a notification
-      ;({ subscription, result, error } = params)
-      if (!subscription || (!error && !Object.hasOwn(params, "result"))) throw 0
-
-      const subscriptionId = subscription
-
-      if (error) {
-        subscriptions.error(subscriptionId, new RpcError(error!))
-      } else {
-        subscriptions.next(subscriptionId, result)
-      }
-    } catch (e) {
-      console.warn("Error parsing incomming message: " + message)
-      console.error(e)
+      return "error" in parsed
+        ? cb.onError(new RpcError(parsed.error))
+        : cb.onSuccess(parsed.result, (opaqueId, subscriber) => {
+            const subscriptionId = opaqueId
+            subscriptions.subscribe(subscriptionId, subscriber)
+            return () => {
+              subscriptions.unsubscribe(subscriptionId)
+            }
+          })
     }
+
+    if (parsed.id === undefined) {
+      // at this point, it means that it should be a notification
+      const { params } = parsed
+      const { subscription: subscriptionId, result, error } = params
+      if (subscriptionId && ("result" in params || error)) {
+        if (error) subscriptions.error(subscriptionId, new RpcError(error!))
+        else subscriptions.next(subscriptionId, result)
+      }
+    } else
+      console.warn("Error parsing incomming message: " + JSON.stringify(parsed))
   }
+
   connection = gProvider(onMessage)
 
   const disconnect = () => {

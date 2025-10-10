@@ -6,9 +6,12 @@ import {
   type Chain,
 } from "@polkadot-api/smoldot"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
-import { getSyncProvider } from "@polkadot-api/json-rpc-provider-proxy"
+import {
+  getSyncProvider,
+  InnerJsonRpcProvider,
+} from "@polkadot-api/json-rpc-provider-proxy"
 
-let pending: Promise<Chain> | null
+let pending: Promise<any> | null
 
 const isRecoverable = (error: any) =>
   !(
@@ -19,40 +22,54 @@ const isRecoverable = (error: any) =>
   )
 
 export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
-  getSyncProvider(async () => {
-    while (pending) await pending
-
+  getSyncProvider((onReady) => {
+    let isRunning = true
     let resolvedChain: Chain
-    if (chain instanceof Promise) {
-      pending = chain
-      resolvedChain = await chain
-      pending = null
-    } else resolvedChain = chain
-
-    return (listener, onError) => {
-      let listening = true
+    const provider: InnerJsonRpcProvider = (onMsg, onHalt) => {
+      let listening = isRunning
       ;(async () => {
         do {
           let message = ""
           try {
             message = await resolvedChain.nextJsonRpcResponse()
           } catch (e) {
-            if (listening && isRecoverable(e)) onError()
+            if (listening && isRecoverable(e)) {
+              onHalt(e)
+            }
             return
           }
           if (!listening) break
-          listener(message)
+          onMsg(JSON.parse(message))
         } while (listening)
       })()
 
       return {
-        send(msg: string) {
-          resolvedChain.sendJsonRpc(msg)
+        send(msg) {
+          resolvedChain.sendJsonRpc(JSON.stringify(msg))
         },
         disconnect() {
           listening = false
           resolvedChain.remove()
         },
       }
+    }
+
+    ;(async () => {
+      try {
+        while (isRunning && pending) await pending
+        if (chain instanceof Promise) {
+          pending = chain.catch(() => {})
+          resolvedChain = await chain
+          pending = null
+        } else resolvedChain = chain
+
+        onReady(isRunning ? provider : null)
+      } catch {
+        onReady(null)
+      }
+    })()
+
+    return () => {
+      isRunning = false
     }
   })

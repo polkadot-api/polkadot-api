@@ -6,7 +6,7 @@
       "wsUrl": "ws://127.0.0.1:9934",
       "metadata": "roc.scale",
       "genesis": "0x4545454545454545454545454545454545454545454545454545454545454545",
-      "codeHash": "0xc6d3b27120ce96d9cdb9744aaed5c4a65e9baaf943e5b77ddcd0930a10f9ac40"
+      "codeHash": "0x38035587e5e760b199277f7342a179970ffcd15dbb77ac8e388535958d86e94f"
     }
   }
 }

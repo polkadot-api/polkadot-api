@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- BREAKING: the input of `getSyncProvider` is now a callback to be resolved when it's ready, and it returns an unsubscription function that should abort the inner async task.
+- BREAKING: uses `JsonRpcProvider` v1.
+
 ## 0.2.5 - 2025-10-09
 
 ### Fixed

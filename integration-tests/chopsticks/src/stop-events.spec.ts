@@ -20,6 +20,11 @@ import {
   providerInterceptor,
 } from "./providerInterceptor"
 import { wait } from "./utils"
+import {
+  isRequest,
+  isResponse,
+  JsonRpcId,
+} from "@polkadot-api/json-rpc-provider"
 
 describe("Stop events", () => {
   it("reconnects after a stop event recovery fails", async () => {
@@ -78,15 +83,15 @@ describe("Stop events", () => {
       const [stopInterceptor, stopController] = createStopInterceptor(ctx)
 
       const interceptor: Interceptor = {
-        receiving(ctx, msgStr) {
-          const msg = JSON.parse(msgStr)
+        receiving(ctx, msg) {
           if (
+            isRequest(msg) &&
             msg.method === "chainHead_v1_followEvent" &&
             msg.params.result.event === "finalized"
           ) {
             return
           }
-          ctx.receive(msgStr)
+          ctx.receive(msg)
         },
       }
 
@@ -134,40 +139,45 @@ describe("Stop events", () => {
     const createStopAndThrottleInterceptor = (ctx: InterceptorContext) => {
       const [stopInterceptor, stopController] = createStopInterceptor(ctx)
 
-      const ongoingOperations = new Set<string>()
-      const operationIdToOperation = new Map<string, string>()
+      const ongoingOperations = new Set<JsonRpcId>()
+      const operationIdToOperation = new Map<string, JsonRpcId>()
       let throttle = false
       const interceptor: Interceptor = {
-        sending(ctx, msgStr) {
-          const msg = JSON.parse(msgStr)
+        sending(ctx, msg) {
           if (msg.method !== "chainHead_v1_storage") {
-            ctx.send(msgStr)
+            ctx.send(msg)
             return
           }
           if (throttle && ongoingOperations.size >= 1) {
             setTimeout(() => {
               ctx.receive(
-                `{"jsonrpc":"2.0","id":"${msg.id}","result":{"result":"limitReached"}}`,
+                JSON.parse(
+                  `{"jsonrpc":"2.0","id":"${msg.id}","result":{"result":"limitReached"}}`,
+                ),
               )
             })
             return
           }
-          ctx.send(msgStr)
-          ongoingOperations.add(msg.id)
+          ctx.send(msg)
+          ongoingOperations.add(msg.id!)
         },
-        receiving(ctx, msgStr) {
-          const msg = JSON.parse(msgStr)
-          if (ongoingOperations.has(msg.id)) {
+        receiving(ctx, msg) {
+          if (
+            isResponse(msg) &&
+            "result" in msg &&
+            ongoingOperations.has(msg.id)
+          ) {
             if (msg.result.result !== "started") {
               console.log(msg)
               throw new Error("Operation not started")
             }
             operationIdToOperation.set(msg.result.operationId, msg.id)
-            ctx.receive(msgStr)
+            ctx.receive(msg)
             return
           }
 
           if (
+            "method" in msg &&
             msg.method === "chainHead_v1_followEvent" &&
             operationIdToOperation.has(msg.params.result.operationId)
           ) {
@@ -178,7 +188,7 @@ describe("Stop events", () => {
               if (msg.params.result.event === "operationStorageDone") {
                 ongoingOperations.delete(op)
               }
-              ctx.receive(msgStr)
+              ctx.receive(msg)
             }
             if (throttle) {
               setTimeout(sendIt, 500)
@@ -187,7 +197,7 @@ describe("Stop events", () => {
             }
             return
           }
-          ctx.receive(msgStr)
+          ctx.receive(msg)
         },
       }
 
@@ -197,7 +207,9 @@ describe("Stop events", () => {
           stop: async () => {
             stopController.sendUnfollow()
             ctx.send(
-              `{"jsonrpc":"2.0","id":"dev-nb","method":"dev_newBlock","params":[]}`,
+              JSON.parse(
+                `{"jsonrpc":"2.0","id":"dev-nb","method":"dev_newBlock","params":[]}`,
+              ),
             )
             stopController.sendStop()
           },
@@ -248,12 +260,12 @@ const createStopAndHODLInterceptor = (ctx: InterceptorContext) => {
   let holdMessages = false
 
   const interceptor: Interceptor = {
-    sending(ctx, msgStr) {
+    sending(ctx, msg) {
       if (holdMessages) {
-        heldMessages.push(msgStr)
+        heldMessages.push(JSON.stringify(msg))
         return
       }
-      ctx.send(msgStr)
+      ctx.send(msg)
     },
   }
 
@@ -268,12 +280,14 @@ const createStopAndHODLInterceptor = (ctx: InterceptorContext) => {
       const msg = JSON.parse(heldMessages[0])
       heldMessages.length = 0
       ctx.receive(
-        `{"jsonrpc":"2.0","id":"${msg.id}","error":{ "code": -32800, "message": "Too many connections" }}`,
+        JSON.parse(
+          `{"jsonrpc":"2.0","id":"${msg.id}","error":{ "code": -32800, "message": "Too many connections" }}`,
+        ),
       )
     },
     resume: () => {
       holdMessages = false
-      heldMessages.forEach(ctx.send)
+      heldMessages.forEach((m) => ctx.send(JSON.parse(m)))
       heldMessages.length = 0
     },
   }

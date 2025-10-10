@@ -3,7 +3,6 @@ import { HDKey } from "@scure/bip32"
 import { getPolkadotSigner, type PolkadotSigner } from "polkadot-api/signer"
 import { Binary, createClient } from "polkadot-api"
 import { getWsProvider } from "polkadot-api/ws-provider"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { myth } from "@polkadot-api/descriptors"
 import { secp256k1 } from "@noble/curves/secp256k1.js"
 import { keccak_256 } from "@noble/hashes/sha3.js"
@@ -29,9 +28,7 @@ function getEvmPolkadotSigner(mnemonic: string): PolkadotSigner {
 const yourSeedPhrase = ""
 const signer = getEvmPolkadotSigner(yourSeedPhrase)
 
-const client = createClient(
-  withPolkadotSdkCompat(getWsProvider("wss://moonbase-rpc.dwellir.com")),
-)
+const client = createClient(getWsProvider("wss://moonbase-rpc.dwellir.com"))
 const api = client.getTypedApi(myth)
 
 const tx = api.tx.System.remark({
