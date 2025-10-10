@@ -1,4 +1,3 @@
-import { withLegacy } from "@polkadot-api/legacy-provider"
 import { createClient } from "@polkadot-api/substrate-client"
 import { HexString } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
@@ -6,6 +5,7 @@ import { start } from "polkadot-api/smoldot"
 import { getWsProvider } from "polkadot-api/ws-provider"
 import { noop } from "rxjs"
 import { it, describe, expect } from "vitest"
+import { innerEnhancer } from "./inner-enhancer"
 
 let { PROVIDER } = process.env
 const ZOMBIENET_URI = "ws://127.0.0.1:9934/"
@@ -29,7 +29,7 @@ if (PROVIDER === "sm") {
 
   const legacyClient = createClient(
     getWsProvider(ZOMBIENET_URI, {
-      innerEnhancer: withLegacy(),
+      innerEnhancer,
     }),
   )
 

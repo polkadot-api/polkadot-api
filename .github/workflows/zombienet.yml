@@ -24,7 +24,6 @@ jobs:
           - polkadot-stable2506-1
         kind:
           - ws
-          - ws-legacy
           - sm
     runs-on: ubuntu-latest
     steps:
