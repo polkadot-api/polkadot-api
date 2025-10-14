@@ -2,6 +2,7 @@ import {
   concat,
   concatMap,
   debounceTime,
+  defer,
   filter,
   map,
   merge,
@@ -322,13 +323,14 @@ export const getBlocks = ({
     share(),
   )
 
-  const ready$ = of(1).pipe(
-    mergeMap(() =>
-      connectedBlocks.blocks.size ? [1] : _finalized$.pipe(take(1)),
-    ),
-    map(() => null),
-    shareLatest,
-  )
+  const ready$ = defer(() =>
+    connectedBlocks.blocks.size
+      ? [null]
+      : _finalized$.pipe(
+          take(1),
+          map(() => null),
+        ),
+  ).pipe(shareLatest)
 
   const finalized$ = _finalized$.pipe(
     map((hash) => connectedBlocks.blocks.get(hash)! as DecentHeader),

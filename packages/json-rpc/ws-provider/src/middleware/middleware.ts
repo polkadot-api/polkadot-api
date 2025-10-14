@@ -4,10 +4,12 @@ import { modern } from "./modern"
 import { withNumericIds } from "./numeric-ids"
 import { Middleware } from "./types"
 
+const modernGroups = ["chainHead", "transaction", "chainSpec", "archive"].map(
+  (name) => `${name}_v1`,
+)
+
 const isModern = (methods: string[]): boolean =>
-  methods.some((x) => x.startsWith("chainHead_v1")) &&
-  methods.some((x) => x.startsWith("transaction_v1")) &&
-  methods.some((x) => x.startsWith("archive_v1"))
+  modernGroups.every((group) => methods.some((m) => m.startsWith(group)))
 
 const layers: Array<Middleware> = [
   withNumericIds,

@@ -11,7 +11,7 @@ const smoldotParaChain = Promise.all([
   smoldot.addChain({ chainSpec, potentialRelayChains: [relayChain] }),
 )
 
-const provider = getSmProvider(smoldotParaChain)
+const provider = getSmProvider(() => smoldotParaChain)
 export const paraChain = createClient(provider)
 
 export const PARACHAIN_ID = 1000

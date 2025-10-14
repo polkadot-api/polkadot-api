@@ -2,7 +2,6 @@ import { spawn } from "child_process"
 import { createWriteStream } from "fs"
 import { createClient, PolkadotClient } from "polkadot-api"
 import { getWsProvider, WsEvent } from "polkadot-api/ws-provider"
-import { withLogs } from "./with-logs"
 
 const ENDPOINT = "wss://rpc.ibp.network/paseo"
 const PORT = 8132
@@ -19,15 +18,11 @@ const wsEvents = {
   [WsEvent.CONNECTING]: "CONNECTING",
 }
 export const getChopsticksProvider = () =>
-  withLogs(
-    `OUT_RPC.log`,
-    getWsProvider(`ws://localhost:${PORT}`, {
-      onStatusChanged: (x) => {
-        console.log(wsEvents[x.type])
-      },
-      innerEnhancer: (x) => withLogs(`IN_RPC.log`, x),
-    }),
-  )
+  getWsProvider(`ws://localhost:${PORT}`, {
+    onStatusChanged: (x) => {
+      console.log(wsEvents[x.type])
+    },
+  })
 
 export const startChopsticks = async () => {
   const logStream = createWriteStream("./chopsticks.log")

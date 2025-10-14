@@ -15,18 +15,20 @@ export const getSyncProvider =
     let stop = noop
     let start = () => {
       const token = setTimeout(() => {
-        stop = input((cb) => {
+        let isWaiting = true
+        const result = input((cb) => {
+          isWaiting = false
           stop = noop
-          if (!cb) {
-            start()
-          } else if (proxy)
-            proxy.connect((onMsg, onHalt) => {
-              return cb(onMsg, (e) => {
+          if (!cb) start()
+          else if (proxy)
+            proxy.connect((onMsg, onHalt) =>
+              cb(onMsg, (e) => {
                 onHalt(e)
                 start()
-              })
-            })
+              }),
+            )
         })
+        if (isWaiting) stop = result
       }, 0)
       stop = () => clearTimeout(token)
     }

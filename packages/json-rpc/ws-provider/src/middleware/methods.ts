@@ -32,7 +32,7 @@ export const methodsRouter = (
         onSuccess: ({ methods }: { methods: string[] }) => {
           const applyMethods = withMethods(methods)
           const route = getMiddleware(methods)
-          onReady((base) => applyMethods(route(base)))
+          onReady((base) => route(applyMethods(base)))
         },
         onError: () => {
           if (nTries > 3) {

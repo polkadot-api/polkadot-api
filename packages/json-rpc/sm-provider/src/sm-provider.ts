@@ -1,10 +1,4 @@
-import {
-  AddChainError,
-  AlreadyDestroyedError,
-  CrashError,
-  JsonRpcDisabledError,
-  type Chain,
-} from "@polkadot-api/smoldot"
+import { JsonRpcDisabledError, type Chain } from "@polkadot-api/smoldot"
 import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import {
   getSyncProvider,
@@ -13,15 +7,11 @@ import {
 
 let pending: Promise<any> | null
 
-const isRecoverable = (error: any) =>
-  !(
-    error instanceof AddChainError ||
-    error instanceof AlreadyDestroyedError ||
-    error instanceof CrashError ||
-    error instanceof JsonRpcDisabledError
-  )
+const chains = new WeakSet<Chain>()
 
-export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
+export const getSmProvider = (
+  getChain: () => Chain | Promise<Chain>,
+): JsonRpcProvider =>
   getSyncProvider((onReady) => {
     let isRunning = true
     let resolvedChain: Chain
@@ -33,8 +23,9 @@ export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
           try {
             message = await resolvedChain.nextJsonRpcResponse()
           } catch (e) {
-            if (listening && isRecoverable(e)) {
-              onHalt(e)
+            if (listening) {
+              if (e instanceof JsonRpcDisabledError) console.error(e)
+              else onHalt(e)
             }
             return
           }
@@ -55,17 +46,28 @@ export const getSmProvider = (chain: Chain | Promise<Chain>): JsonRpcProvider =>
     }
 
     ;(async () => {
+      while (isRunning && pending) await pending
+
       try {
-        while (isRunning && pending) await pending
+        const chain = getChain()
         if (chain instanceof Promise) {
           pending = chain.catch(() => {})
           resolvedChain = await chain
           pending = null
         } else resolvedChain = chain
 
-        onReady(isRunning ? provider : null)
+        if (chains.has(resolvedChain)) {
+          console.warn(
+            "Can't re-use Chain: Make sure to return a new Chain on the getSmProvider factory",
+          )
+          return
+        }
+        chains.add(resolvedChain)
+
+        if (isRunning) onReady(provider)
+        else resolvedChain.remove()
       } catch {
-        onReady(null)
+        if (isRunning) onReady(null)
       }
     })()
 

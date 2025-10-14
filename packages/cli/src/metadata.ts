@@ -151,7 +151,7 @@ const getMetadataFromSmoldot = async (chain: string) => {
         smoldot.addChain({ chainSpec }),
       ),
     )
-    const provider = getSmProvider(
+    const provider = getSmProvider(() =>
       smoldot.addChain({
         chainSpec: chainSpecs.chainSpec,
         potentialRelayChains,

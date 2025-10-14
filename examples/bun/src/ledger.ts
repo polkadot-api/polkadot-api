@@ -7,7 +7,9 @@ import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 
 const smoldot = start()
-const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+const client = createClient(
+  getSmProvider(() => smoldot.addChain({ chainSpec })),
+)
 const api = client.getTypedApi(wnd)
 
 const transport = await TransportNodeHid.create()

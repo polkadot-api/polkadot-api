@@ -7,7 +7,7 @@ export const smoldotRelayChain = import("polkadot-api/chains/westend2").then(
   ({ chainSpec }) => smoldot.addChain({ chainSpec }),
 )
 
-const provider = getSmProvider(smoldotRelayChain)
+const provider = getSmProvider(() => smoldotRelayChain)
 export const relayChain = createClient(provider)
 
 export const relayChainApi = relayChain.getTypedApi(wnd)

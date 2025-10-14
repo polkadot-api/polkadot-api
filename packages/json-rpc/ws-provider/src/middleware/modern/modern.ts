@@ -1,6 +1,5 @@
 import { Middleware } from "../types"
 import { followEnhancer } from "./fix-follow"
-import { fixChainSpec } from "./chain-spec"
 import { fixDescendantValues } from "./fix-descendant-values"
 import { fixPrematureBlocks } from "./fix-premature-blocks"
 import { fixUnorderedBlocks } from "./fix-unordered-blocks"
@@ -14,7 +13,6 @@ const middlewares = [
   patchChainHeadEvents,
   fixPrematureBlocks,
   fixUnorderedBlocks,
-  fixChainSpec,
   fixDescendantValues,
   followEnhancer,
 ]

@@ -20,7 +20,9 @@ export const JSONprint = (e: unknown) =>
 
 const smoldot = start()
 
-const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+const client = createClient(
+  getSmProvider(() => smoldot.addChain({ chainSpec })),
+)
 const api = client.getTypedApi(wnd)
 
 const extrinsicDecoder$ = defer(() =>

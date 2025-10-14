@@ -106,7 +106,7 @@ describe("E2E", async () => {
       maxLogLevel: appendSmLog ? 7 : 3,
     })
     client = createClient(
-      enhancer(getSmProvider(smoldot.addChain({ chainSpec }))),
+      enhancer(getSmProvider(() => smoldot.addChain({ chainSpec }))),
     )
   } else {
     const wsProvider = getWsProvider("ws://127.0.0.1:9934", {

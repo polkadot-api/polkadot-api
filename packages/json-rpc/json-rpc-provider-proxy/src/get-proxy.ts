@@ -68,10 +68,9 @@ export const getProxy: ReconnectableJsonRpcConnection = (
     if (state.type === State.Connected) {
       if (isResponse(parsed)) {
         const { id } = parsed
-        const pendingBroadcast = state.pendingBroadcasts.get(id)
-        if (pendingBroadcast) {
+        const synToken = state.pendingBroadcasts.get(id)
+        if (synToken) {
           state.pendingBroadcasts.delete(id)
-          const synToken = pendingBroadcast
 
           // it's guaranteed to be there b/c we control it
           if (!("result" in parsed)) return
