@@ -1,11 +1,7 @@
+import { chainHead } from "../methods"
 import type { Middleware } from "../types"
 
-const methods: Record<string, "follow" | "unfollow"> = {}
-;["v1", "unstable"].forEach((version) => {
-  methods[`chainHead_${version}_follow`] = "follow"
-  methods[`chainHead_${version}_unfollow`] = "unfollow"
-})
-
+const { follow, unfollow } = chainHead
 const resetStops = () => ({ latest: Date.now(), count: 0 })
 
 export const followEnhancer: Middleware = (base) => (onMsg, onHalt) => {
@@ -81,12 +77,9 @@ export const followEnhancer: Middleware = (base) => (onMsg, onHalt) => {
 
   return {
     send(parsed: any) {
-      const method = methods[parsed.method]
-      if (method === "follow") {
-        preOpId.set(parsed.id, parsed)
-      } else if (method === "unfollow") {
-        onGoing.delete(parsed.params[0])
-      }
+      const { method } = parsed
+      if (method === follow) preOpId.set(parsed.id, parsed)
+      else if (method === unfollow) onGoing.delete(parsed.params[0])
       send(parsed)
     },
     disconnect,

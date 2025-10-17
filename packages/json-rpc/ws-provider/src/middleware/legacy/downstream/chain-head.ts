@@ -4,20 +4,10 @@ import { createUpstream } from "../upstream/upstream"
 import { createOpaqueToken } from "../utils/create-opaque-token"
 import { areItemsValid, getStg$ } from "./storage"
 import { getMsgFromErr } from "../utils/message-from-error"
+import { chainHead } from "../../methods"
 
-export const chainHeadMethods = Object.fromEntries(
-  [
-    "body",
-    "call",
-    "continue",
-    "follow",
-    "header",
-    "stopOperation",
-    "storage",
-    "unfollow",
-    "unpin",
-  ].map((key) => [key, `chainHead_v1_${key}`] as const),
-)
+const { follow, header, storage, body, call, unfollow, stopOperation, unpin } =
+  chainHead
 
 export const createChainHead = (
   upstream: ReturnType<typeof createUpstream>,
@@ -33,11 +23,13 @@ export const createChainHead = (
   }
   const subscriptions = new Map<string, SubCtx>()
 
-  const follow = (rId: string) => {
+  const _follow = (rId: string) => {
     if (subscriptions.size === 2) {
       return err(rId, -32800, "Limit reached")
     }
     const token = createOpaqueToken()
+    const fNotification = (result: any) =>
+      notification("chainHead_v1_followEvent", token, result)
     const up = upstream.getBlocks(token)
     const operations = new Map<string, () => void>()
     subscriptions.set(token, {
@@ -65,22 +57,22 @@ export const createChainHead = (
 
     subscription = up.blocks$.subscribe({
       next(v) {
-        notification("chainHead_v1_followEvent", token, v)
+        fNotification(v)
       },
       error() {
         cleanUp()
-        notification("chainHead_v1_followEvent", token, { event: "stop" })
+        fNotification({ event: "stop" })
       },
     })
     if (subscription.closed) subscription = null
   }
 
-  const unfollow = (rId: string, followId: string) => {
+  const _unfollow = (rId: string, followId: string) => {
     subscriptions.get(followId)?.cleanUp()
     reply(rId, "null")
   }
 
-  const stopOperation = (
+  const _stopOperation = (
     rId: string,
     followId: string,
     operationId: string,
@@ -90,15 +82,13 @@ export const createChainHead = (
     reply(rId, "null")
   }
 
-  const header = (
+  const _header = (
     { up: { getHeader } }: SubCtx,
     reply: (x: any) => void,
     at: string,
-  ) => {
-    reply(getHeader(at))
-  }
+  ) => reply(getHeader(at))
 
-  const unpin = (
+  const _unpin = (
     { up: { unpin: innerUnpin } }: SubCtx,
     reply: (x: any) => void,
     hashOrHashes: string | string[],
@@ -109,7 +99,7 @@ export const createChainHead = (
     reply(null)
   }
 
-  const call = (
+  const _call = (
     { operations, id: followId }: SubCtx,
     reply: (x: any) => void,
     at: string,
@@ -118,22 +108,30 @@ export const createChainHead = (
   ) => {
     const operationId = createOpaqueToken()
     reply({ result: "started", operationId })
+    const cNotification = (output: any, isErr = false) =>
+      notification(
+        call,
+        followId,
+        isErr
+          ? {
+              operationId,
+              event: "operationError",
+              error: output,
+            }
+          : {
+              operationId,
+              event: "operationCallDone",
+              output,
+            },
+      )
     const subscription = upstream.runtimeCall(at, method, args).subscribe(
       (output) => {
         operations.delete(operationId)
-        notification("chainHead_v1_call", followId, {
-          event: "operationCallDone",
-          operationId,
-          output,
-        })
+        cNotification(output)
       },
       (e) => {
         operations.delete(operationId)
-        notification("chainHead_v1_call", followId, {
-          event: "operationError",
-          operationId,
-          error: getMsgFromErr(e),
-        })
+        cNotification(getMsgFromErr(e), true)
       },
     )
     if (!subscription.closed)
@@ -142,7 +140,8 @@ export const createChainHead = (
         operations.delete(operationId)
       })
   }
-  const body = (
+
+  const _body = (
     { operations, id: followId }: SubCtx,
     reply: (x: any) => void,
     at: string,
@@ -152,7 +151,7 @@ export const createChainHead = (
     const subscription = upstream.getBody(at).subscribe(
       ({ block: { extrinsics: value } }) => {
         operations.delete(operationId)
-        notification("chainHead_v1_body", followId, {
+        notification(body, followId, {
           event: "operationBodyDone",
           operationId,
           value,
@@ -160,7 +159,7 @@ export const createChainHead = (
       },
       (e) => {
         operations.delete(operationId)
-        notification("chainHead_v1_body", followId, {
+        notification(body, followId, {
           event: "operationError",
           operationId,
           error: getMsgFromErr(e),
@@ -175,7 +174,7 @@ export const createChainHead = (
       })
   }
 
-  const stg = (
+  const _stg = (
     { operations, id: followId }: SubCtx,
     reply: (x: any) => void,
     at: string,
@@ -192,7 +191,7 @@ export const createChainHead = (
     const operationId = createOpaqueToken()
     reply({ result: "started", operationId })
     const innerNotifiaction = (msg: any) => {
-      notification("chainHead_v1_storage", followId, msg)
+      notification(storage, followId, msg)
     }
     const subscription = getStg$(upstream, at, items)
       .pipe(
@@ -230,7 +229,7 @@ export const createChainHead = (
   }
 
   const result = (rId: string, method: string, params: Array<any>) => {
-    if (method === chainHeadMethods.follow) return follow(rId)
+    if (method === follow) return _follow(rId)
     const [followId, ...rest] = params as [string, ...any[]]
     const ctx = subscriptions.get(followId)
     if (!ctx) return err(rId, -32602, "Ivalid followSubscription")
@@ -240,11 +239,11 @@ export const createChainHead = (
     }
 
     switch (method) {
-      case chainHeadMethods.unfollow:
-        return unfollow(rId, followId)
-      case chainHeadMethods.stopOperation:
-        return stopOperation(rId, followId, rest[0])
-      case chainHeadMethods.unpin: {
+      case unfollow:
+        return _unfollow(rId, followId)
+      case stopOperation:
+        return _stopOperation(rId, followId, rest[0])
+      case unpin: {
         const [hashOrHashes] = rest
         if (
           (Array.isArray(hashOrHashes) ? hashOrHashes : [hashOrHashes]).some(
@@ -252,27 +251,27 @@ export const createChainHead = (
           )
         )
           return err(rId, -32602, "Invalid args")
-        return unpin(ctx, innerReply, hashOrHashes)
+        return _unpin(ctx, innerReply, hashOrHashes)
       }
       default: {
         const [at, ...other] = rest as [string, ...any[]]
         if (!ctx.up.isPinned(at)) return err(rId, -32801, "Block not pinned")
 
         switch (method) {
-          case chainHeadMethods.header:
-            return header(ctx, innerReply, at)
-          case chainHeadMethods.body:
-            return body(ctx, innerReply, at)
-          case chainHeadMethods.call: {
+          case header:
+            return _header(ctx, innerReply, at)
+          case body:
+            return _body(ctx, innerReply, at)
+          case call: {
             const [method, data] = other
             if (typeof method !== "string" || typeof data !== "string")
               return err(rId, -32602, "Invalid args")
-            return call(ctx, innerReply, at, method, data)
+            return _call(ctx, innerReply, at, method, data)
           }
-          case chainHeadMethods.storage: {
+          case storage: {
             const [items] = other
             return areItemsValid(items)
-              ? stg(ctx, innerReply, at, items)
+              ? _stg(ctx, innerReply, at, items)
               : err(rId, -32602, "Invalid args")
           }
         }

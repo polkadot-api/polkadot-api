@@ -1,11 +1,5 @@
 import { createUpstream } from "../upstream/upstream"
 
-export const chainSpecMethods = Object.fromEntries(
-  ["chainName", "genesisHash", "properties"].map(
-    (key) => [key, `chainSpec_v1_${key}`] as const,
-  ),
-)
-
 export const createChainSpec = (
   upstream: ReturnType<typeof createUpstream>,
   reply: (id: string, result: any) => void,

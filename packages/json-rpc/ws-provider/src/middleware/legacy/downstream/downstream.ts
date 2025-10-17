@@ -1,21 +1,19 @@
 import { noop } from "@polkadot-api/utils"
 import { createUpstream } from "../upstream"
-import { chainSpecMethods, createChainSpec } from "./chainspec"
-import { chainHeadMethods, createChainHead } from "./chain-head"
-import { createTransactionFns, transactionMethods } from "./transaction"
-import { archiveMethods, createArchive } from "./archive"
+import { createChainSpec } from "./chainspec"
+import { createChainHead } from "./chain-head"
+import { createTransactionFns } from "./transaction"
+import { createArchive } from "./archive"
 import { Middleware } from "../../../middleware/types"
 import { createClient } from "@polkadot-api/raw-client"
 import { JsonRpcMessage } from "@polkadot-api/json-rpc-provider"
+import { archive, chainHead, chainSpec, transaction } from "../../methods"
 
-const supportedMethods = [
-  chainSpecMethods,
-  archiveMethods,
-  chainHeadMethods,
-  transactionMethods,
-]
-  .map((methods) => Object.values(methods) as string[])
-  .flat()
+const supportedMethods = new Set(
+  [chainHead, chainSpec, archive, transaction]
+    .map((methods) => Object.values(methods) as string[])
+    .flat(),
+)
 
 export const getLegacy: Middleware = (base) => (onMessage, onHalt) => {
   let clean = noop
@@ -92,9 +90,7 @@ export const getLegacy: Middleware = (base) => (onMessage, onHalt) => {
             reply(id, {
               methods: [
                 ...supportedMethods,
-                ...methods.filter(
-                  (method) => !supportedMethods.includes(method),
-                ),
+                ...methods.filter((method) => !supportedMethods.has(method)),
               ],
             })
           },

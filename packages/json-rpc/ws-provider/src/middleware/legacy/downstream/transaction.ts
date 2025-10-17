@@ -8,23 +8,21 @@ import {
 } from "rxjs"
 import { createUpstream } from "../upstream/upstream"
 import { createOpaqueToken } from "../utils/create-opaque-token"
+import { transaction } from "../../methods"
 
-export const transactionMethods = Object.fromEntries(
-  ["broadcast", "stop"].map((key) => [key, `transaction_v1_${key}`] as const),
-)
-
+const { stop, broadcast } = transaction
 export const createTransactionFns = (
   upstream: ReturnType<typeof createUpstream>,
   reply: (id: string, result: any) => void,
 ) => {
   const ongoing = new Map<string, Subscription>()
   const result = (rId: string, method: string, args: any[]) => {
-    if (method === transactionMethods.stop) {
+    if (method === stop) {
       const [token] = args
       ongoing.get(token)?.unsubscribe()
       ongoing.delete(token)
       reply(rId, null)
-    } else if (method === transactionMethods.broadcast) {
+    } else if (method === broadcast) {
       const token = createOpaqueToken()
       ongoing.set(
         token,

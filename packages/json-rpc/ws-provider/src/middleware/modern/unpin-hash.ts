@@ -1,4 +1,4 @@
-import { chainHead } from "./methods"
+import { chainHead } from "../methods"
 import type { Middleware } from "../types"
 import { JsonRpcRequest } from "@polkadot-api/json-rpc-provider"
 

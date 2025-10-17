@@ -1,4 +1,3 @@
-import { Middleware } from "../types"
 import { followEnhancer } from "./fix-follow"
 import { fixDescendantValues } from "./fix-descendant-values"
 import { fixPrematureBlocks } from "./fix-premature-blocks"
@@ -6,8 +5,9 @@ import { fixUnorderedBlocks } from "./fix-unordered-blocks"
 import { fixUnorderedEvents } from "./fix-unordered-events"
 import { patchChainHeadEvents } from "./patch-chainhead-events"
 import { unpinHash } from "./unpin-hash"
+import { apply } from "../utils"
 
-const middlewares = [
+export const modern = apply(
   fixUnorderedEvents,
   unpinHash,
   patchChainHeadEvents,
@@ -15,7 +15,4 @@ const middlewares = [
   fixUnorderedBlocks,
   fixDescendantValues,
   followEnhancer,
-]
-
-export const modern: Middleware = (base) =>
-  middlewares.reduce((a, b) => b(a), base)
+)

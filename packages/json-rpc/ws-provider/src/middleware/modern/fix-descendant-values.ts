@@ -1,4 +1,4 @@
-import { chainHead } from "./methods"
+import { chainHead } from "../methods"
 import type { Middleware } from "../types"
 import {
   createDescendantValues,
@@ -7,6 +7,7 @@ import {
   operationNotification,
 } from "../utils"
 
+const { storage, stopOperation, unfollow } = chainHead
 const operationPrefix = "__INNER_OP_DesV"
 let nextOperationId = 0
 export const fixDescendantValues: Middleware = (base) => (onMsg, onHalt) => {
@@ -121,7 +122,7 @@ export const fixDescendantValues: Middleware = (base) => (onMsg, onHalt) => {
               // stop the outer
               originalSend(
                 jsonObj({
-                  method: "chainHead_v1_stopOperation",
+                  method: stopOperation,
                   params: [operationId],
                 }),
               )
@@ -164,7 +165,7 @@ export const fixDescendantValues: Middleware = (base) => (onMsg, onHalt) => {
 
   const send = (msg: any) => {
     switch (msg.method) {
-      case chainHead.storage: {
+      case storage: {
         const [followSub, blockHash, items] = msg.params as [
           string,
           string,
@@ -199,7 +200,7 @@ export const fixDescendantValues: Middleware = (base) => (onMsg, onHalt) => {
         msg.params[2] = actualItems
         break
       }
-      case chainHead.stopOperation: {
+      case stopOperation: {
         const [followSubscription, operationId] = msg.params as [string, string]
         const data = onGoing.get(followSubscription)?.get(operationId)
         if (data) {
@@ -208,7 +209,7 @@ export const fixDescendantValues: Middleware = (base) => (onMsg, onHalt) => {
         }
         break
       }
-      case chainHead.unfollow: {
+      case unfollow: {
         const [followSubscription] = msg.params as [string]
         onGoing.get(followSubscription)?.forEach((x) => x.cancel())
         onGoing.delete(followSubscription)

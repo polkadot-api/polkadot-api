@@ -2,6 +2,12 @@ import { JsonRpcMessage, JsonRpcRequest } from "@polkadot-api/json-rpc-provider"
 import { InnerJsonRpcProvider } from "@polkadot-api/json-rpc-provider-proxy"
 import { createClient } from "@polkadot-api/raw-client"
 import { noop } from "@polkadot-api/utils"
+import { Middleware } from "../types"
+
+export const apply =
+  (...middlewares: Middleware[]): Middleware =>
+  (base) =>
+    middlewares.reduce((a, b) => b(a), base)
 
 export const jsonObj = <T extends {}>(input: T) => ({
   jsonrpc: "2.0" as const,

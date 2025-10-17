@@ -1,4 +1,4 @@
-import { chainHead } from "./methods"
+import { chainHead } from "../methods"
 import type { Middleware } from "../types"
 import { JsonRpcMessage } from "@polkadot-api/json-rpc-provider"
 
@@ -35,6 +35,7 @@ type FollowEvent =
   | FinalizedRpc
   | StopRpc
 
+const { follow, unpin, unfollow } = chainHead
 export const fixPrematureBlocks: Middleware = (base) => (onMsg, onHalt) => {
   const pendingChainHeadSubs = new Set<string>()
   const pinnedBlocksInSub = new Map<string, Set<string>>()
@@ -117,11 +118,11 @@ export const fixPrematureBlocks: Middleware = (base) => (onMsg, onHalt) => {
   const send = (msg: any) => {
     const subId = msg.params[0]
     switch (msg.method) {
-      case chainHead.follow:
+      case follow:
         pendingChainHeadSubs.add(msg.id)
         break
 
-      case chainHead.unpin:
+      case unpin:
         const [subscription, blocks] = msg.params as [string, string[]]
         blocks.forEach((block) => {
           pinnedBlocksInSub.get(subscription)?.delete(block)
@@ -129,7 +130,7 @@ export const fixPrematureBlocks: Middleware = (base) => (onMsg, onHalt) => {
         })
         break
 
-      case chainHead.unfollow:
+      case unfollow:
         pinnedBlocksInSub.delete(subId)
         prematureBlocks.delete(subId)
         break

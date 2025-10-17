@@ -3,19 +3,18 @@ import { createUpstream } from "../upstream/upstream"
 import { createOpaqueToken } from "../utils/create-opaque-token"
 import { areItemsValid, getStg$ } from "./storage"
 import { getMsgFromErr } from "../utils/message-from-error"
+import { archive } from "../../methods"
 
-export const archiveMethods = Object.fromEntries(
-  [
-    "body",
-    "call",
-    "finalizedHeight",
-    "genesisHash",
-    "hashByHeight",
-    "header",
-    "stopStorage",
-    "storage",
-  ].map((key) => [key, `archive_v1_${key}`] as const),
-)
+const {
+  body,
+  call,
+  finalizedHeight,
+  genesisHash,
+  hashByHeight,
+  header,
+  stopStorage,
+  storage,
+} = archive
 
 export const createArchive = (
   upstream: ReturnType<typeof createUpstream>,
@@ -85,34 +84,34 @@ export const createArchive = (
 
     const [firstArg, secondArg, thirdArg] = params
     switch (name) {
-      case archiveMethods.body:
+      case body:
         return obsReply(upstream.getBody(firstArg))
-      case archiveMethods.call:
+      case call:
         return obsReply(
           upstream
             .runtimeCall(firstArg, secondArg, thirdArg)
             .pipe(map((value) => ({ success: true, value }))),
         )
-      case archiveMethods.finalizedHeight:
+      case finalizedHeight:
         return obsReply(
           upstream.finalized$.pipe(
             map((x) => x.number),
             take(1),
           ),
         )
-      case archiveMethods.genesisHash:
+      case genesisHash:
         return obsReply(upstream.genesisHash)
-      case archiveMethods.hashByHeight:
+      case hashByHeight:
         return obsReply(upstream.getBlockHash$(firstArg))
-      case archiveMethods.header:
+      case header:
         return obsReply(
           upstream.getHeader$(firstArg).pipe(map((h) => h.header)),
         )
-      case archiveMethods.stopStorage: {
+      case stopStorage: {
         const sub = stgSubscriptions.get(firstArg)
         return sub ? sub.unsubscribe() : err(rId, -32602, "Invalid args")
       }
-      case archiveMethods.storage:
+      case storage:
         return areItemsValid(secondArg)
           ? stg(innerReply, firstArg, secondArg)
           : err(rId, -32602, "Invalid args")

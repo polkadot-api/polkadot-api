@@ -1,6 +1,7 @@
 import type { Middleware } from "../types"
-import { chainHead } from "./methods"
+import { chainHead } from "../methods"
 
+const { follow, body, call, storage, unfollow, stopOperation } = chainHead
 const terminalOperationEvents = new Set(
   ["BodyDone", "CallDone", "StorageDone", "Inaccessible", "Error"].map(
     (x) => "operation" + x,
@@ -100,22 +101,22 @@ export const fixUnorderedEvents: Middleware = (base) => (onMsg, onHalt) => {
   const send = (msg: any) => {
     const subId = msg.params[0]
     switch (msg.method) {
-      case chainHead.follow:
+      case follow:
         pendingChainHeadSubs.add(msg.id)
         break
 
-      case chainHead.body:
-      case chainHead.call:
-      case chainHead.storage:
+      case body:
+      case call:
+      case storage:
         pendingOperationIds.set(msg.id, subId)
         break
 
-      case chainHead.unfollow:
+      case unfollow:
         activeOperationIds.delete(subId)
         uknownOperationNotifications.delete(subId)
         break
 
-      case chainHead.stopOperation:
+      case stopOperation:
         activeOperationIds.get(subId)?.delete(msg.params[1])
     }
     originalSend(msg)
