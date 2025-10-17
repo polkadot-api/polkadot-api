@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+
+- BREAKING: it exposes the new `JsonRpcProvider` v1 interface.
+- BREAKING: remove all the deprecated signatures and exports.
+- BREAKING: `innerEnhancer` option uses the the new `JsonRpcProvider` v1 interface
+- It automatically detects if the underlying endpoint is compliant with the JSON-RPC spec
+  and it applies the necessary middlewares to expose an API that's fully compliant with the modern JSON-RPC spec.
+
 ## 0.7.0 - 2025-10-09
 
 ### Added

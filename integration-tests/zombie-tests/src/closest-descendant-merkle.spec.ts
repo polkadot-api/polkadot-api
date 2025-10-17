@@ -1,13 +1,13 @@
-import { withLegacy } from "@polkadot-api/legacy-provider"
-import { createClient } from "@polkadot-api/substrate-client"
+import { createClient, JsonRpcProvider } from "@polkadot-api/substrate-client"
 import { HexString } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 import { getWsProvider } from "polkadot-api/ws-provider"
 import { noop } from "rxjs"
 import { it, describe, expect } from "vitest"
+import { withLogs } from "./with-logs"
 
-let { PROVIDER } = process.env
+const { PROVIDER, VERSION } = process.env
 const ZOMBIENET_URI = "ws://127.0.0.1:9934/"
 
 if (PROVIDER === "sm") {
@@ -25,12 +25,29 @@ if (PROVIDER === "sm") {
 
   const chainSpec = JSON.stringify(await getChainspec())
   rawClient.destroy()
-  const smClient = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
 
-  const legacyClient = createClient(
-    getWsProvider(ZOMBIENET_URI, {
-      innerEnhancer: withLegacy(),
-    }),
+  let outterIdx = 0
+  const outterLogs: (
+    provider: string,
+    input: JsonRpcProvider,
+  ) => JsonRpcProvider = (provider, input) =>
+    withLogs(`./${VERSION}_${provider}_CLOSEST_OUT${outterIdx}_JSON_RPC`, input)
+
+  const smClient = createClient(
+    outterLogs(
+      "SM",
+      getSmProvider(() => smoldot.addChain({ chainSpec })),
+    ),
+  )
+
+  const client = createClient(
+    outterLogs(
+      "WS",
+      getWsProvider(ZOMBIENET_URI, {
+        innerEnhancer: (x) =>
+          withLogs(`./${VERSION}_${PROVIDER}_CLOSEST_IN_JSON_RPC`, x),
+      }),
+    ),
   )
 
   let targetBlock: HexString = ""
@@ -70,7 +87,7 @@ if (PROVIDER === "sm") {
   )
 
   const lgcAddBlock = getAddBlock(legacyBlocks, smBlocks)
-  const lgcHead = legacyClient.chainHead(
+  const lgcHead = client.chainHead(
     true,
     (e) => {
       const newBlocks: string[] = []

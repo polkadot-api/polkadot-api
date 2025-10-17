@@ -21,7 +21,9 @@ const alice = derive("//Alice")
 const aliceSigner = getPolkadotSigner(alice.publicKey, "Sr25519", alice.sign)
 
 const smoldot = start()
-const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+const client = createClient(
+  getSmProvider(() => smoldot.addChain({ chainSpec })),
+)
 const api = client.getTypedApi(wnd)
 
 const multisigSigner = getMultisigSigner(

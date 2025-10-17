@@ -6,7 +6,9 @@ import { wnd } from "@polkadot-api/descriptors"
 
 const smoldot = start()
 
-const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+const client = createClient(
+  getSmProvider(() => smoldot.addChain({ chainSpec })),
+)
 const testApi = client.getTypedApi(wnd)
 
 const isCompatible = (level: CompatibilityLevel) =>

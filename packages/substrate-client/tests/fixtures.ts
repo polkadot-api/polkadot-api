@@ -4,7 +4,11 @@ import {
   IRpcError,
   createClient,
 } from "@/."
-import type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
+import type {
+  JsonRpcMessage,
+  JsonRpcProvider,
+  JsonRpcRequest,
+} from "@polkadot-api/json-rpc-provider"
 import * as vitest from "vitest"
 import * as allMethods from "@/methods"
 
@@ -44,7 +48,7 @@ export interface MockProvider extends JsonRpcProvider {
   isConnected: () => boolean
 }
 export const createMockProvider = (): MockProvider => {
-  let onMessage: (msg: string) => void
+  let onMessage: (msg: JsonRpcMessage) => void
   let isConnected = false
 
   const sendMessage = (msg: Record<string, any>) => {
@@ -52,10 +56,10 @@ export const createMockProvider = (): MockProvider => {
       // Not covering any test in particular, but this shouldn't really happen on any test.
       throw new Error("Provider can't send messages while disconnected")
     }
-    onMessage(JSON.stringify({ ...msg, jsonrpc: "2.0" }))
+    onMessage({ ...msg, jsonrpc: "2.0" } as JsonRpcMessage)
   }
 
-  const onMessageReceived = createSpy<[message: string]>()
+  const onMessageReceived = createSpy<[message: JsonRpcRequest]>()
   const pendingReplies: Record<string, Array<Record<string, any>>> = {}
   const provider: JsonRpcProvider = (_onMessage) => {
     if (isConnected) {
@@ -71,7 +75,7 @@ export const createMockProvider = (): MockProvider => {
             "Provider received a message while being disconnected",
           )
         }
-        const decoded = JSON.parse(message)
+        const decoded = message
         pendingReplies[decoded.method] = pendingReplies[decoded.method] ?? []
         pendingReplies[decoded.method].push(decoded)
         onMessageReceived(message)
@@ -82,10 +86,8 @@ export const createMockProvider = (): MockProvider => {
     }
   }
 
-  const getNewMessages = () =>
-    onMessageReceived.getNewCalls().map(([m]) => JSON.parse(m))
-  const getAllMessages = () =>
-    onMessageReceived.mock.calls.map(([m]) => JSON.parse(m))
+  const getNewMessages = () => onMessageReceived.getNewCalls().map(([m]) => m)
+  const getAllMessages = () => onMessageReceived.mock.calls.map(([m]) => m)
   const reply = (
     method: string,
     cb: (msg: Record<string, any>) => Record<string, any>,
@@ -94,16 +96,18 @@ export const createMockProvider = (): MockProvider => {
     if (!msg) {
       throw new Error("No message received for " + method)
     }
-    sendMessage({
+    const out = {
       id: msg.id,
       ...cb(msg),
-    })
+    }
+    delete (out as any).method
+    sendMessage(out)
   }
   const replyLast = (msg: Record<string, any>) => {
     if (!onMessageReceived.mock.lastCall) {
       throw new Error("No message received")
     }
-    const lastMsg = JSON.parse(onMessageReceived.mock.lastCall[0])
+    const lastMsg = onMessageReceived.mock.lastCall[0]
     reply(lastMsg.method, () => msg)
   }
 
@@ -114,7 +118,7 @@ export const createMockProvider = (): MockProvider => {
     reply,
     replyLast,
     isConnected: () => isConnected,
-  })
+  }) as MockProvider
 }
 
 export const createTestClient = () => {

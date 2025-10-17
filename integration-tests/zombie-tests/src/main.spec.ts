@@ -4,7 +4,6 @@ import {
   combineLatest,
   filter,
   firstValueFrom,
-  identity,
   lastValueFrom,
   map,
   mergeMap,
@@ -37,10 +36,8 @@ import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
-import { withLogsRecorder } from "polkadot-api/logs-provider"
 import { appendFileSync } from "fs"
-import { withLegacy } from "@polkadot-api/legacy-provider"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { withLogs } from "./with-logs"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -51,40 +48,18 @@ const fakeSigner = (from: Uint8Array) =>
 // request fails immediately after starting zombienet.
 let { PROVIDER, VERSION } = process.env
 
-let enhancer: (input: JsonRpcProvider) => JsonRpcProvider = identity
-let appendSmLog:
-  | ((level: number, target: string, message: string) => void)
-  | undefined = undefined
+let outterIdx = 0
+let outterLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
+  withLogs(`./${VERSION}_${PROVIDER}_MAIN_OUT${outterIdx}_JSON_RPC`, input)
 
-if (VERSION) {
-  const jsonRpcFileName = `./${VERSION}_${PROVIDER}_JSON_RPC`
-  enhancer = (input) =>
-    withLogsRecorder(
-      (log) => appendFileSync(jsonRpcFileName, log + "\n"),
-      input,
-    )
+let innerIdx = 0
+let innerLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
+  withLogs(`./${VERSION}_${PROVIDER}_MAIN_IN${innerIdx}_JSON_RPC`, input)
 
-  const smoldotFileName = `./${VERSION}_${PROVIDER}_SMOLDOT`
-  appendSmLog = (level: number, target: string, message: string) => {
-    const msg = `${tickDate} (${level})${target}\n${message}\n`
-    if (level <= 3) console.log(msg)
-    appendFileSync(smoldotFileName, msg)
-  }
-}
-
-let tickDate = ""
-const setTickDate = () => {
-  tickDate = new Date().toISOString()
-  setTimeout(setTickDate, 0)
-}
-setTickDate()
-
-if (PROVIDER !== "sm" && PROVIDER !== "ws" && PROVIDER !== "ws-legacy")
+if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
 let ARCHIVE = false
-const rawClient = createRawClient(
-  enhancer(getWsProvider("ws://127.0.0.1:9934/")),
-)
+const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
 const getChainspec = async (count = 1): Promise<{}> => {
   try {
     return await rawClient.request<{}>("sync_state_genSyncSpec", [false])
@@ -108,36 +83,30 @@ describe("E2E", async () => {
   let client: PolkadotClient
   console.log("starting the client")
   if (PROVIDER === "sm") {
+    let tickDate = ""
+    const setTickDate = () => {
+      tickDate = new Date().toISOString()
+      setTimeout(setTickDate, 0)
+    }
+    setTickDate()
+    const smoldotFileName = `./${VERSION}_${PROVIDER}_SMOLDOT`
+    const appendSmLog = (level: number, target: string, message: string) => {
+      const msg = `${tickDate} (${level})${target}\n${message}\n`
+      if (level < 4) console.log(msg)
+      appendFileSync(smoldotFileName, msg)
+    }
     const smoldot = start({
       logCallback: appendSmLog,
-      maxLogLevel: appendSmLog ? 7 : 3,
+      maxLogLevel: 7,
     })
     client = createClient(
-      enhancer(getSmProvider(smoldot.addChain({ chainSpec }))),
+      outterLogs(getSmProvider(() => smoldot.addChain({ chainSpec }))),
     )
   } else {
-    const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
-    const compatEnhancer = PROVIDER === "ws" ? withPolkadotSdkCompat : identity
-    client = createClient(
-      enhancer(
-        compatEnhancer(
-          getWsProvider("ws://127.0.0.1:9934", {
-            innerEnhancer: (base) =>
-              legacyEnhancer(
-                withLogsRecorder(
-                  (log) =>
-                    appendFileSync(
-                      `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
-                      log + "\n",
-                    ),
-                  base,
-                ),
-              ),
-          }),
-        ),
-      ),
-      { getMetadata },
-    )
+    const wsProvider = getWsProvider("ws://127.0.0.1:9934", {
+      innerEnhancer: innerLogs,
+    })
+    client = createClient(outterLogs(wsProvider), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
       "rpc_methods",
       [],
@@ -616,28 +585,13 @@ describe("E2E", async () => {
 
       beforeAll(async () => {
         do {
-          const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
-          const compatEnhancer =
-            PROVIDER === "ws" ? withPolkadotSdkCompat : identity
           newClient?.destroy()
           console.log("creating archive client")
           newClient = createClient(
-            enhancer(
-              compatEnhancer(
-                getWsProvider("ws://127.0.0.1:9934", {
-                  innerEnhancer: (base) =>
-                    legacyEnhancer(
-                      withLogsRecorder(
-                        (log) =>
-                          appendFileSync(
-                            `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
-                            log + "\n",
-                          ),
-                        base,
-                      ),
-                    ),
-                }),
-              ),
+            outterLogs(
+              getWsProvider("ws://127.0.0.1:9934", {
+                innerEnhancer: innerLogs,
+              }),
             ),
           )
         } while ((await newClient.getFinalizedBlock()).hash === oldBlock.hash)

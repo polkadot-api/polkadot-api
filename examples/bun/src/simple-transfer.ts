@@ -22,7 +22,9 @@ const alice = withMetadataHash(
 
 // create the client with smoldot
 const smoldot = start()
-const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+const client = createClient(
+  getSmProvider(() => smoldot.addChain({ chainSpec })),
+)
 
 // get the safely typed API
 const api = client.getTypedApi(wnd)
