@@ -6,9 +6,12 @@
 
 - BREAKING: it exposes the new `JsonRpcProvider` v1 interface.
 - BREAKING: remove all the deprecated signatures and exports.
-- BREAKING: `innerEnhancer` option uses the the new `JsonRpcProvider` v1 interface
-- It automatically detects if the underlying endpoint is compliant with the JSON-RPC spec
-  and it applies the necessary middlewares to expose an API that's fully compliant with the modern JSON-RPC spec.
+- BREAKING: `innerEnhancer` has been removed
+
+### Added
+
+- `middleware` option: it accepts any of the middlewares exposed from `@polkadot-api/ws-middleware`, or a custom one created from those (or not).
+- `logeger` option: it takes a strongly-typed logger callback.
 
 ## 0.7.0 - 2025-10-09
 
