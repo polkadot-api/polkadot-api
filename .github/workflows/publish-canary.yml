@@ -66,6 +66,7 @@ jobs:
             json-rpc/json-rpc-provider-proxy,
             json-rpc/logs-provider,
             json-rpc/sm-provider,
+            json-rpc/ws-middleware,
             json-rpc/ws-provider,
             known-chains,
             merkleize-metadata,
