@@ -19,6 +19,9 @@
 - **Logs Provider:**
   - BREAKING: it exposes the new `JsonRpcProvider` v1.
 
+- **Utils:**
+  - BREAKING: `mergeUint8` remove deprecated overload.
+
 ### Removed
 
 - **polkadot-sdk-compat**
