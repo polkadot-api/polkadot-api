@@ -1,4 +1,4 @@
-import { getLegacy } from "./legacy"
+import { withLegacy } from "./legacy"
 import { methodsRouter } from "./methods-router"
 import { modern } from "./modern"
 import { withNumericIds } from "./numeric-ids"
@@ -12,5 +12,5 @@ const isModern = (methods: string[]): boolean =>
 
 export const middleware = apply(
   withNumericIds,
-  methodsRouter((methods) => (isModern(methods) ? modern : getLegacy)),
+  methodsRouter((methods) => (isModern(methods) ? modern : withLegacy)),
 )

@@ -1,14 +1,29 @@
-import { getAsyncProvider } from "./middleware/utils/get-async-provider"
-import { WsEvent } from "./types-common"
+import { getAsyncProvider } from "./get-async-provider"
+import { SocketEvents, SocketLoggerFn, WsEvent } from "./types"
 import { noop } from "@polkadot-api/utils"
 
 export const withSocket = (
   getWebsocket: () => [WebSocket, () => void],
   heartbeatTimeout: number,
   connectionTimeout: number,
-) =>
-  getAsyncProvider((onReady) => {
+  logger?: SocketLoggerFn,
+) => {
+  const logType: (
+    type:
+      | SocketEvents.TIMEOUT
+      | SocketEvents.STALE
+      | SocketEvents.CONNECTED
+      | SocketEvents.DISCONNECT
+      | SocketEvents.CLOSE,
+  ) => void = logger ? (type) => logger({ type }) : noop
+  const logMsg: (
+    type: SocketEvents.IN | SocketEvents.OUT,
+    msg: string,
+  ) => void = logger ? (type, msg) => logger({ type, msg }) : noop
+
+  return getAsyncProvider((onReady) => {
     const [socket, onConnected] = getWebsocket()
+    logger?.({ type: SocketEvents.CONNECTING, url: socket.url })
 
     let suicide: (e?: any) => void = () => {
       suicide = noop
@@ -17,12 +32,15 @@ export const withSocket = (
     }
 
     let isFirst = true
-    let heartbeatToken: NodeJS.Timeout
+    let heartbeatToken: number
     const heartbeat = () => {
       clearTimeout(heartbeatToken)
-      const time = isFirst ? connectionTimeout : heartbeatTimeout
+      const [time, event] = isFirst
+        ? ([connectionTimeout, SocketEvents.TIMEOUT] as const)
+        : ([heartbeatTimeout, SocketEvents.STALE] as const)
       isFirst = false
       heartbeatToken = setTimeout(() => {
+        logType(event)
         suicide({
           type: WsEvent.ERROR,
           event: { type: "timeout" },
@@ -40,12 +58,14 @@ export const withSocket = (
     }
 
     const onError = (event: any) => {
+      logger?.({ type: SocketEvents.ERROR, error: event })
       suicide({
         type: WsEvent.ERROR,
         event,
       })
     }
     const onClose = (event: any) => {
+      logType(SocketEvents.CLOSE)
       suicide({
         type: WsEvent.CLOSE,
         event,
@@ -53,6 +73,7 @@ export const withSocket = (
     }
 
     const disconnect = () => {
+      logType(SocketEvents.DISCONNECT)
       cleanup()
       try {
         socket.addEventListener("error", noop, { once: true })
@@ -61,6 +82,7 @@ export const withSocket = (
     }
 
     const onOpen = () => {
+      logType(SocketEvents.CONNECTED)
       onConnected()
       heartbeat()
       socket.removeEventListener("open", onOpen)
@@ -82,7 +104,10 @@ export const withSocket = (
 
         const _onMessage = (e: MessageEvent) => {
           heartbeat()
-          if (typeof e.data === "string") onMsg(JSON.parse(e.data))
+          if (typeof e.data === "string") {
+            logMsg(SocketEvents.IN, e.data)
+            onMsg(JSON.parse(e.data))
+          }
         }
 
         socket.addEventListener("ping", heartbeat)
@@ -91,7 +116,9 @@ export const withSocket = (
         socket.addEventListener("close", onClose)
         return {
           send(m) {
-            socket.send(JSON.stringify(m))
+            const msg = JSON.stringify(m)
+            logMsg(SocketEvents.OUT, msg)
+            socket.send(msg)
           },
           disconnect,
         }
@@ -111,3 +138,4 @@ export const withSocket = (
 
     return disconnect
   })
+}

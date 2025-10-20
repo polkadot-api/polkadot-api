@@ -1,26 +1,15 @@
-import { createClient } from "polkadot-api"
-import { getWsProvider, WsEvent } from "polkadot-api/ws-provider"
 import { wnd } from "@polkadot-api/descriptors"
-import { withLogs } from "./with-logs"
-const wsEvents = {
-  [WsEvent.CLOSE]: "CLOSE",
-  [WsEvent.ERROR]: "ERROR",
-  [WsEvent.CONNECTED]: "CONNECTED",
-  [WsEvent.CONNECTING]: "CONNECTING",
-}
+import { createWsClient } from "polkadot-api/ws"
 
-const wsProvider = getWsProvider(
+const client = createWsClient(
   ["wss://api.interlay.io/parachain", "wss://rpc-interlay.luckyfriday.io/"],
   {
     onStatusChanged: (x) => {
-      console.log(wsEvents[x.type])
+      console.log(x.type)
       console.log(x)
     },
-    innerEnhancer: (x) => withLogs("some logs", x),
   },
 )
-
-const client = createClient(wsProvider)
 const testApi = client.getTypedApi(wnd)
 
 client.finalizedBlock$.subscribe(console.log, console.error)
@@ -29,7 +18,7 @@ testApi.query.System.Account.watchValue(
 ).subscribe(console.log, console.error)
 
 console.log("sync switch")
-wsProvider.switch()
+client.switch()
 
 let nTries = 1
 const switchWs = async () => {
@@ -39,7 +28,7 @@ const switchWs = async () => {
   }
   await new Promise((res) => setTimeout(res, 5_000))
   console.log("switching")
-  wsProvider.switch()
+  client.switch()
   switchWs()
 }
 

@@ -1,6 +1,6 @@
 {
-  "name": "@polkadot-api/ws-provider",
-  "version": "0.7.0",
+  "name": "@polkadot-api/ws-middleware",
+  "version": "0.1.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -48,6 +48,8 @@
   "dependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/raw-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {

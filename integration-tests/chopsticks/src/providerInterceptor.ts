@@ -3,7 +3,7 @@ import {
   JsonRpcMessage,
   JsonRpcId,
 } from "@polkadot-api/json-rpc-provider"
-import { JsonRpcProvider } from "polkadot-api/ws-provider"
+import { JsonRpcProvider } from "polkadot-api"
 
 export interface Interceptor {
   sending?: (ctx: InterceptorContext, msg: JsonRpcRequest) => void

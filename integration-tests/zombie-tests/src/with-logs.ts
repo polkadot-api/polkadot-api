@@ -1,5 +1,5 @@
 import { withLogsRecorder } from "polkadot-api/logs-provider"
-import { type JsonRpcProvider } from "polkadot-api/ws-provider"
+import { type JsonRpcProvider } from "polkadot-api"
 import { createWriteStream, unlinkSync } from "fs"
 
 export const withLogs = (

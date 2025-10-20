@@ -5,9 +5,8 @@ import {
   mnemonicToEntropy,
 } from "@polkadot-labs/hdkd-helpers"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { createClient } from "polkadot-api"
 import { MultiAddress, turing } from "@polkadot-api/descriptors"
-import { getWsProvider } from "polkadot-api/ws-provider"
+import { createWsClient } from "polkadot-api/ws"
 
 const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))
 const derive = sr25519CreateDerive(miniSecret)
@@ -18,7 +17,7 @@ const papiTestSigner = getPolkadotSigner(
   papiTest.sign,
 )
 
-const client = createClient(getWsProvider("wss://turing-rpc.avail.so/ws"))
+const client = createWsClient("wss://turing-rpc.avail.so/ws")
 
 const api = client.getTypedApi(turing)
 

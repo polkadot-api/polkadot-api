@@ -27,7 +27,7 @@ import {
   InvalidTxError,
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
-import { getWsProvider } from "polkadot-api/ws-provider"
+import { getWsProvider, SocketEvents, SocketLoggerFn } from "polkadot-api/ws"
 import {
   createClient as createRawClient,
   JsonRpcProvider,
@@ -36,7 +36,7 @@ import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
-import { appendFileSync } from "fs"
+import { appendFileSync, createWriteStream, unlinkSync, WriteStream } from "fs"
 import { withLogs } from "./with-logs"
 
 const fakeSignature = new Uint8Array(64)
@@ -53,8 +53,49 @@ let outterLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
   withLogs(`./${VERSION}_${PROVIDER}_MAIN_OUT${outterIdx}_JSON_RPC`, input)
 
 let innerIdx = 0
-let innerLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
-  withLogs(`./${VERSION}_${PROVIDER}_MAIN_IN${innerIdx}_JSON_RPC`, input)
+const getInnerLogs: () => SocketLoggerFn = () => {
+  const id = innerIdx++
+  const actualFileName = `./${VERSION}_${PROVIDER}_MAIN_IN${id}_JSON_RPC`
+  try {
+    unlinkSync(actualFileName)
+  } catch {}
+  let file: WriteStream
+
+  let tickDate = ""
+  let token: any
+  const setTickDate = () => {
+    tickDate = new Date().toISOString()
+    token = setTimeout(setTickDate, 0)
+  }
+
+  return (event) => {
+    const { type } = event
+    switch (type) {
+      case SocketEvents.CONNECTING: {
+        setTickDate()
+        file = createWriteStream(actualFileName, { flags: "a" })
+        break
+      }
+      case SocketEvents.IN:
+      case SocketEvents.OUT: {
+        const direction = type === SocketEvents.IN ? "<<" : ">>"
+        file.write(`${id}-${tickDate}-${direction}-${event.msg}\n`)
+        break
+      }
+
+      case SocketEvents.STALE:
+      case SocketEvents.ERROR:
+      case SocketEvents.CLOSE:
+      case SocketEvents.DISCONNECT: {
+        try {
+          file.write(`${type}\n`)
+          file.end()
+          clearTimeout(token)
+        } catch {}
+      }
+    }
+  }
+}
 
 if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
@@ -104,7 +145,7 @@ describe("E2E", async () => {
     )
   } else {
     const wsProvider = getWsProvider("ws://127.0.0.1:9934", {
-      innerEnhancer: innerLogs,
+      logger: getInnerLogs(),
     })
     client = createClient(outterLogs(wsProvider), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
@@ -590,7 +631,7 @@ describe("E2E", async () => {
           newClient = createClient(
             outterLogs(
               getWsProvider("ws://127.0.0.1:9934", {
-                innerEnhancer: innerLogs,
+                logger: getInnerLogs(),
               }),
             ),
           )

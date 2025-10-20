@@ -1,5 +1,5 @@
-import { getWsProvider } from "polkadot-api/ws-provider"
 import { createClient } from "@polkadot-api/substrate-client"
+import { getWsProvider } from "polkadot-api/ws"
 
 const client = createClient(getWsProvider("wss://rpc.ibp.network/polkadot"))
 

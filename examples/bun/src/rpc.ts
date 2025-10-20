@@ -1,12 +1,8 @@
-import { CompatibilityLevel, createClient } from "polkadot-api"
+import { CompatibilityLevel } from "polkadot-api"
 import { getMetadata, wnd } from "@polkadot-api/descriptors"
-import { withLogsRecorder } from "polkadot-api/logs-provider"
-import { getWsProvider } from "polkadot-api/ws-provider"
+import { createWsClient } from "polkadot-api/ws"
 
-const client = createClient(
-  withLogsRecorder(console.log, getWsProvider("wss://westend-rpc.polkadot.io")),
-  { getMetadata },
-)
+const client = createWsClient("wss://westend-rpc.polkadot.io", { getMetadata })
 const testApi = client.getTypedApi(wnd)
 
 const isCompatible = (level: CompatibilityLevel) =>

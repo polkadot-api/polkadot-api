@@ -405,6 +405,9 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+      '@polkadot-api/ws-middleware':
+        specifier: workspace:*
+        version: link:../json-rpc/ws-middleware
       '@polkadot-api/ws-provider':
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
@@ -523,7 +526,7 @@ importers:
         specifier: workspace:*
         version: link:../../smoldot
 
-  packages/json-rpc/ws-provider:
+  packages/json-rpc/ws-middleware:
     dependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
@@ -540,12 +543,22 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
-      ws:
-        specifier: ^8.18.3
-        version: 8.18.3
+    devDependencies:
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
+
+  packages/json-rpc/ws-provider:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
     devDependencies:
       rxjs:
         specifier: ^7.8.2
@@ -1830,9 +1843,6 @@ packages:
 
   '@types/w3c-web-usb@1.0.13':
     resolution: {integrity: sha512-N2nSl3Xsx8mRHZBvMSdNGtzMyeleTvtlEw+ujujgXalPqOjIA6UtrqcB6OzyUjkTbDm3J7P1RNK1lgoO7jxtsw==}
-
-  '@types/ws@8.18.1':
-    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@unique-nft/sr25519@0.0.2':
     resolution: {integrity: sha512-41DJwU8aX56MAlNgmhAOYaE3ie+7HoETsVhqv5d3Pk7dpr1Aezmzihl5fqfLDgx0XeD8Q1QHY9pYAmsNmgQd2A==}
@@ -5024,10 +5034,6 @@ snapshots:
   '@types/unist@3.0.3': {}
 
   '@types/w3c-web-usb@1.0.13': {}
-
-  '@types/ws@8.18.1':
-    dependencies:
-      '@types/node': 24.7.0
 
   '@unique-nft/sr25519@0.0.2':
     dependencies:

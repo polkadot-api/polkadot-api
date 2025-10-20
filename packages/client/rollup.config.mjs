@@ -7,9 +7,9 @@ import { readdir } from "node:fs/promises"
 import { chmodSync, statSync } from "node:fs"
 import resolve from "@rollup/plugin-node-resolve"
 
-const reexports = (await readdir("src/reexports"))
+const reexports = (await readdir("reexports"))
   .filter((v) => v.endsWith(".ts"))
-  .map((v) => `src/reexports/` + v)
+  .map((v) => `reexports/` + v)
 
 const commonOptions = {
   input: ["src/index.ts", ...reexports],
@@ -29,30 +29,6 @@ const absoluteAlias = alias({
   ],
 })
 
-const dtsReexportPaths = {
-  generateBundle: (v, b, i) => {
-    Object.values(b).forEach((v) => {
-      v.fileName = v.fileName.replace("src/", "")
-      v.preliminaryFileName = v.preliminaryFileName.replace("src/", "")
-    })
-  },
-}
-const cjsReexportPaths = {
-  generateBundle: (v, b, i) => {
-    Object.values(b).forEach((v) => {
-      if (
-        (v.facadeModuleId
-          ? v.facadeModuleId.includes("reexports")
-          : v.fileName.endsWith(".js.map") && v.fileName !== "index.js.map") &&
-        !v.fileName.includes("reexports")
-      ) {
-        v.fileName = "reexports/" + v.fileName
-        v.preliminaryFileName = "reexports/" + v.preliminaryFileName
-      }
-    })
-  },
-}
-
 const getUmdPackage = (input) => {
   if (input === "src/index.ts")
     return {
@@ -60,7 +36,7 @@ const getUmdPackage = (input) => {
       file: "dist/umd/index.min.js",
       format: "umd",
     }
-  const fixedInput = input.replace("src/reexports/", "").replace(".ts", "")
+  const fixedInput = input.replace("reexports/", "").replace(".ts", "")
   const name = fixedInput
     .replace(/[-_]./g, (match) => match[1].toUpperCase())
     .replace(/^./g, (match) => match.toUpperCase())
@@ -74,12 +50,13 @@ const getUmdPackage = (input) => {
 export default [
   {
     ...commonOptions,
-    plugins: [absoluteAlias, esbuild(), cjsReexportPaths],
+    plugins: [absoluteAlias, esbuild()],
     output: [
       {
         dir: `dist`,
         format: "cjs",
         sourcemap: true,
+        preserveModules: true,
       },
       {
         dir: `dist/esm`,
@@ -92,7 +69,7 @@ export default [
   },
   {
     ...commonOptions,
-    plugins: [absoluteAlias, dts(), dtsReexportPaths],
+    plugins: [absoluteAlias, dts()],
     output: {
       dir: `dist`,
       format: "es",
@@ -106,8 +83,7 @@ export default [
       (v) =>
         !v.includes("sm-provider") &&
         !v.includes("smoldot") &&
-        !v.includes("chains") &&
-        !v.includes("node"),
+        !v.includes("chains"),
     )
     .map((n) => ({
       input: n,
