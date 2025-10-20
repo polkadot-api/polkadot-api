@@ -314,6 +314,9 @@ importers:
       '@polkadot-api/wasm-executor':
         specifier: ^0.2.2
         version: 0.2.2
+      '@polkadot-api/ws-middleware':
+        specifier: workspace:*
+        version: link:../json-rpc/ws-middleware
       '@polkadot-api/ws-provider':
         specifier: workspace:*
         version: link:../json-rpc/ws-provider

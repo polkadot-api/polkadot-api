@@ -30,6 +30,7 @@ import * as knownChains from "@polkadot-api/known-chains"
 import { startFromWorker } from "@polkadot-api/smoldot/from-node-worker"
 import { Client as SmoldotClient } from "@polkadot-api/smoldot"
 import { getSmProvider } from "@polkadot-api/sm-provider"
+import { middleware } from "@polkadot-api/ws-middleware"
 
 const workerPath = fileURLToPath(
   import.meta.resolve("@polkadot-api/smoldot/node-worker"),
@@ -179,7 +180,7 @@ const getMetadataCallWithError = (
 
 const getMetadataFromWsURL = (wsURL: string, at?: string) =>
   firstValueFrom(
-    getMetadataCallWithError(getWsProvider(wsURL), at).pipe(
+    getMetadataCallWithError(getWsProvider(wsURL, { middleware }), at).pipe(
       map((x) => {
         if (x.success) return x.value
         throw x.error
