@@ -6,8 +6,7 @@
 
 - **polkadot-api/ws**
   - Exposes a new `createWsClient` function which is sugar for `createClient(getWsProvider(URI))`, while also exposing the `switch` and `getStatus` functions from the ws-provider into the client.
-  - Exposes a modern version of the `getWsProvider` function, which returns a `JsonRpcProvider` v1 interface. This Provider
-    automatically detects which middlewares should be applied against any given endpoints. It also accepts a new `logger` callback.
+  - Exposes a modern version of the `getWsProvider` function, which returns a `JsonRpcProvider` v1 interface. This Provider automatically detects which middlewares should be applied against any given endpoints. It also accepts a new `logger` callback.
   - Exposes a new `getWsRawProvider` which is identicaly to the previous one, but without using any middlewares. This provider should only be used if you are confident that all the endpoints are 100% compliant with the new JSON-RPC spec.
 
 ### Changed
