@@ -7,6 +7,7 @@
 - BREAKING: it exposes the new `JsonRpcProvider` v1 interface.
 - BREAKING: remove all the deprecated signatures and exports.
 - BREAKING: `innerEnhancer` has been removed
+- BREAKING: The `WsEvent` Enum is now a plain JS object for which its keys and its values are the same.
 
 ### Added
 
