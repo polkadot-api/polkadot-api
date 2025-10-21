@@ -30,6 +30,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
         run: pnpm install
@@ -112,6 +113,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
         if: steps.check.outputs.changed == 'true'
