@@ -1,5 +1,4 @@
 import { followEnhancer } from "./fix-follow"
-import { fixDescendantValues } from "./fix-descendant-values"
 import { fixPrematureBlocks } from "./fix-premature-blocks"
 import { fixUnorderedBlocks } from "./fix-unordered-blocks"
 import { fixUnorderedEvents } from "./fix-unordered-events"
@@ -13,6 +12,5 @@ export const modern = apply(
   patchChainHeadEvents,
   fixPrematureBlocks,
   fixUnorderedBlocks,
-  fixDescendantValues,
   followEnhancer,
 )
