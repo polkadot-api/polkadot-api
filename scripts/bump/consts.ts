@@ -9,6 +9,7 @@ export const PACKAGES: Record<string, string> = {
   "@polkadot-api/json-rpc-provider-proxy": "json-rpc/json-rpc-provider-proxy",
   "@polkadot-api/logs-provider": "json-rpc/logs-provider",
   "@polkadot-api/sm-provider": "json-rpc/sm-provider",
+  "@polkadot-api/ws-middleware": "json-rpc/ws-middleware",
   "@polkadot-api/ws-provider": "json-rpc/ws-provider",
   "@polkadot-api/known-chains": "known-chains",
   "@polkadot-api/merkleize-metadata": "merkleize-metadata",
