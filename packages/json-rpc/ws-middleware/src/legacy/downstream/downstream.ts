@@ -4,7 +4,7 @@ import { createChainSpec } from "./chainspec"
 import { createChainHead } from "./chain-head"
 import { createTransactionFns } from "./transaction"
 import { createArchive } from "./archive"
-import { Middleware } from "../../../middleware/types"
+import { Middleware } from "../../types"
 import { createClient } from "@polkadot-api/raw-client"
 import { JsonRpcMessage } from "@polkadot-api/json-rpc-provider"
 import { archive, chainHead, chainSpec, transaction } from "../../methods"
@@ -15,7 +15,7 @@ const supportedMethods = new Set(
     .flat(),
 )
 
-export const getLegacy: Middleware = (base) => (onMessage, onHalt) => {
+export const withLegacy: Middleware = (base) => (onMessage, onHalt) => {
   let clean = noop
   let onMsg: (msg: JsonRpcMessage) => void = noop
   const innerConnection = base(

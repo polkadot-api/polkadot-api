@@ -50,6 +50,7 @@
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/wasm-executor": "^0.2.2",
     "@polkadot-api/ws-provider": "workspace:*",
+    "@polkadot-api/ws-middleware": "workspace:*",
     "@types/node": "^24.7.0",
     "commander": "^14.0.1",
     "execa": "^9.6.0",

@@ -27,7 +27,7 @@ import {
   InvalidTxError,
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
-import { getWsProvider } from "polkadot-api/ws-provider"
+import { getWsProvider } from "polkadot-api/ws"
 import {
   createClient as createRawClient,
   JsonRpcProvider,
@@ -38,6 +38,7 @@ import { getPolkadotSigner } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { appendFileSync } from "fs"
 import { withLogs } from "./with-logs"
+import { getInnerLogs } from "./inner-logs"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -51,10 +52,6 @@ let { PROVIDER, VERSION } = process.env
 let outterIdx = 0
 let outterLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
   withLogs(`./${VERSION}_${PROVIDER}_MAIN_OUT${outterIdx}_JSON_RPC`, input)
-
-let innerIdx = 0
-let innerLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
-  withLogs(`./${VERSION}_${PROVIDER}_MAIN_IN${innerIdx}_JSON_RPC`, input)
 
 if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
@@ -104,7 +101,7 @@ describe("E2E", async () => {
     )
   } else {
     const wsProvider = getWsProvider("ws://127.0.0.1:9934", {
-      innerEnhancer: innerLogs,
+      logger: getInnerLogs(),
     })
     client = createClient(outterLogs(wsProvider), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
@@ -590,7 +587,7 @@ describe("E2E", async () => {
           newClient = createClient(
             outterLogs(
               getWsProvider("ws://127.0.0.1:9934", {
-                innerEnhancer: innerLogs,
+                logger: getInnerLogs(),
               }),
             ),
           )

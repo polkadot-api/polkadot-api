@@ -68,6 +68,7 @@ jobs:
             json-rpc/logs-provider,
             json-rpc/polkadot-sdk-compat,
             json-rpc/sm-provider,
+            json-rpc/ws-middleware,
             json-rpc/ws-provider,
             known-chains,
             merkleize-metadata,
