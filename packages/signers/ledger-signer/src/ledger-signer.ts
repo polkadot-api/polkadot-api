@@ -86,7 +86,10 @@ export class LedgerSigner {
           // from version 100 it is Polkadot Generic App
           version[0] < 100 ||
           // ecdsa was only released on 100.0.12
-          (version[0] === 100 && version[1] === 0 && version[2] < 12)
+          (this.#schema === "ecdsa" &&
+            version[0] === 100 &&
+            version[1] === 0 &&
+            version[2] < 12)
         )
           throw new Error(`Polkadot App version ${appVersion} not expected`)
       })
