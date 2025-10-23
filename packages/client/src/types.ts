@@ -286,7 +286,7 @@ export interface PolkadotClient {
    *              `"best"`
    * @returns Block hash.
    */
-  getBlockHeader: (hash?: string) => Promise<BlockHeader>
+  getBlockHeader: (hash: string) => Promise<BlockHeader>
 
   /**
    * Broadcasts a transaction (Promise-based). The promise will resolve when the

@@ -376,9 +376,7 @@ export function createClient(
 
     watchBlockBody: chainHead.body$,
     getBlockBody: (hash: string) => firstValueFrom(chainHead.body$(hash)),
-
-    getBlockHeader: (hash?: string) =>
-      firstValueFrom(chainHead.header$(hash ?? null)),
+    getBlockHeader: (hash: string) => firstValueFrom(chainHead.header$(hash)),
 
     submit: (...args) => submit(chainHead, broadcastTx$, ...args),
     submitAndWatch: (tx) => submit$(chainHead, broadcastTx$, tx),

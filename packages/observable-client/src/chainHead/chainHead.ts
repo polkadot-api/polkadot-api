@@ -345,15 +345,13 @@ export const getChainHead$ = (
     ),
   )
 
-  const header$ = withOptionalHash$(
-    withInMemory(
-      withStopRecovery(
-        pinnedBlocks$,
-        (hash: string) => defer(() => getHeader(hash)),
-        "header",
-      ),
+  const header$ = withInMemory(
+    withStopRecovery(
+      pinnedBlocks$,
+      (hash: string) => defer(() => getHeader(hash)),
       "header",
     ),
+    "header",
   )
 
   const eventsAt$ = (hash: string | null) =>
