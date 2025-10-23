@@ -99,9 +99,10 @@ export type TxOptions<Asset> = Partial<
   void extends Asset
     ? {
         /**
-         * Block to target the transaction against. Default: `"finalized"`
+         * Block to target the transaction against. Defaults to the currently
+         * finalized block.
          */
-        at: HexString | "best" | "finalized"
+        at: HexString
         /**
          * Tip in fundamental units. Default: `0`
          */
@@ -129,9 +130,10 @@ export type TxOptions<Asset> = Partial<
       }
     : {
         /**
-         * Block to target the transaction against. Default: `"finalized"`
+         * Block to target the transaction against. Defaults to the currently
+         * finalized block.
          */
-        at: HexString | "best" | "finalized"
+        at: HexString
         /**
          * Tip in fundamental units. Default: `0n`
          */
