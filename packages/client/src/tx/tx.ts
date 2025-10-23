@@ -20,6 +20,7 @@ import {
   firstValueFrom,
   map,
   mergeMap,
+  of,
   take,
   throwError,
 } from "rxjs"
@@ -166,25 +167,16 @@ export const createTxEntry = <
       from: PolkadotSigner,
       { at, ..._options }: TxOptions<{}> = {},
     ) => {
-      return (
-        !at || at === "finalized"
-          ? chainHead.finalized$
-          : at === "best"
-            ? chainHead.best$
-            : chainHead.bestBlocks$.pipe(
-                map((x) => x.find((b) => b.hash === at)),
-              )
-      ).pipe(
+      const atBlock = chainHead.pinnedBlocks$.state.blocks.get(at!)
+      if (at && !atBlock)
+        return throwError(() => new Error(`Uknown block ${at}`))
+
+      return (atBlock ? of(atBlock) : chainHead.finalized$).pipe(
         take(1),
-        mergeMap((atBlock) =>
-          atBlock
-            ? sign$(from, _options, atBlock).pipe(
-                map((signed) => ({
-                  tx: toHex(signed),
-                  block: atBlock,
-                })),
-              )
-            : throwError(() => new Error(`Uknown block ${at}`)),
+        mergeMap((block) =>
+          sign$(from, _options, block).pipe(
+            map((signed) => ({ tx: toHex(signed), block })),
+          ),
         ),
       )
     }
