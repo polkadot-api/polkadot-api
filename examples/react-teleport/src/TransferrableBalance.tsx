@@ -9,10 +9,9 @@ const useTranferrableBalance = (address: SS58String) => {
   useEffect(() => {
     setBalance(null)
 
-    const subscription = api.query.System.Account.watchValue(
-      address,
-      "best",
-    ).subscribe(({ data }) => {
+    const subscription = api.query.System.Account.watchValue(address, {
+      at: "best",
+    }).subscribe(({ data }) => {
       setBalance(data.free - data.frozen)
     })
 
