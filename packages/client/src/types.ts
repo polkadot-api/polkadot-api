@@ -274,19 +274,18 @@ export interface PolkadotClient {
   /**
    * Get Block Body (Promise-based)
    *
-   * @param hash  It can be a block hash, `"finalized"`, or `"best"`
+   * @param hash:  The block-hash of the target block.
    * @returns Block body.
    */
-  getBlockBody: (hash: string) => Promise<HexString[]>
+  getBlockBody: (hash: HexString) => Promise<HexString[]>
 
   /**
    * Get Block Header (Promise-based)
    *
-   * @param hash  It can be a block hash, `"finalized"` (default), or
-   *              `"best"`
+   * @param hash:  The block-hash of the target block.
    * @returns Block hash.
    */
-  getBlockHeader: (hash?: string) => Promise<BlockHeader>
+  getBlockHeader: (hash: HexString) => Promise<BlockHeader>
 
   /**
    * Broadcasts a transaction (Promise-based). The promise will resolve when the

@@ -14,6 +14,7 @@
 
 - BREAKING: `createClient` consumes the new `JsonRpcProvider` v1.
 - BREAKING: When creating transactions the optional `at` value only accepts specific block-hashes.
+- BREAKING: `getBody` and `getHeader` only accept block-hashes.
 
 - **WS-Provider:**
   - BREAKING: This export has been moved in favor of `polkadot-api/ws`
