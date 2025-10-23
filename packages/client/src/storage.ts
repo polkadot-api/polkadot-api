@@ -127,10 +127,12 @@ type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
   /**
    * Watch changes in `Payload` (observable-based) for the storage entry.
    *
-   * @param bestOrFinalized  Optionally choose which block to query and watch
-   *                         changes, `best` or `finalized` (default)
+   * @param options  Optionally pass a configuration object to signal that
+   *                 you wish to watch changes from the best-block,
+   *                 by default the changes are watched on the
+   *                 finalized-block.
    */
-  watchValue: (bestOrFinalized?: "best" | "finalized") => Observable<Payload>
+  watchValue: (options?: { at: "best" }) => Observable<Payload>
   getKey: GetKey<[], Unsafe>
 } & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
@@ -154,11 +156,12 @@ export type StorageEntryWithKeys<
    * Watch changes in `Payload` (observable-based) for the storage entry.
    *
    * @param args  All keys needed for that storage entry.
-   *              At the end, optionally choose which block to query and
-   *              watch changes, `best` or `finalized` (default)
+   *              At the end, optionally pass a configuration object to
+   *              signal that you wish to watch changes from the best-block,
+   *              by default the changes are watched on the finalized-block.
    */
   watchValue: (
-    ...args: [...Args, bestOrFinalized?: "best" | "finalized"]
+    ...args: [...Args, options?: { at: "best" }]
   ) => Observable<Payload>
   /**
    * Get an Array of `Payload` (Promise-based) for the storage entry with
@@ -205,7 +208,8 @@ export type StorageEntryWithKeys<
    *              - `block`: the block in where the `deltas` took place -
    *              `deltas`: `null` indicates that nothing has changed from
    *              the latest emission.
-   *              If the value is not `null` then the `deleted` and `upsrted`
+   *              If the value is not `null` then the `deleted` and
+   *              `upserted`
    *              properties indicate the entries that have changed.
    *              - `entries`: it's an immutable data-structure with the
    *              latest entries.
@@ -294,10 +298,12 @@ export const createStorageEntry = (
   }
 
   const watchValue = (...args: Array<any>) => {
-    const target = args[args.length - 1]
-    const isBest = target === "best"
-    const actualArgs =
-      isBest || target === "finalized" ? args.slice(0, -1) : args
+    const lastArg = args.at(-1)
+    const isLastArgOptional = isOptionalArg(lastArg)
+
+    const [actualArgs, isBest] = isLastArgOptional
+      ? ([args.slice(0, -1), args.at(-1).at === "best"] as const)
+      : ([args, false] as const)
 
     return chainHead[isBest ? "best$" : "finalized$"].pipe(
       lossLessExhaustMap(() =>
