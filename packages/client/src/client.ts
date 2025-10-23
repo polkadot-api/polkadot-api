@@ -358,6 +358,16 @@ export function createClient(
   const getMetadata$ = (at: HexString) =>
     chainHead.getRuntimeContext$(at).pipe(map((ctx) => ctx.metadataRaw))
 
+  const {
+    holdBlock,
+    finalized$,
+    bestBlocks$,
+    body$,
+    header$,
+    storage$,
+    unfollow,
+  } = chainHead
+
   const result: PolkadotClient = {
     getChainSpecData,
 
@@ -366,17 +376,17 @@ export function createClient(
       firstValueFromWithSignal(getMetadata$(atBlock), signal),
 
     blocks$: chainHead.newBlocks$,
-    hodlBlock: (block: HexString) => chainHead.holdBlock(block, true),
+    hodlBlock: (block: HexString) => holdBlock(block, true),
 
-    finalizedBlock$: chainHead.finalized$,
-    getFinalizedBlock: () => firstValueFrom(chainHead.finalized$),
+    finalizedBlock$: finalized$,
+    getFinalizedBlock: () => firstValueFrom(finalized$),
 
     bestBlocks$: chainHead.bestBlocks$,
-    getBestBlocks: () => firstValueFrom(chainHead.bestBlocks$),
+    getBestBlocks: () => firstValueFrom(bestBlocks$),
 
-    watchBlockBody: chainHead.body$,
-    getBlockBody: (hash: string) => firstValueFrom(chainHead.body$(hash)),
-    getBlockHeader: (hash: string) => firstValueFrom(chainHead.header$(hash)),
+    watchBlockBody: body$,
+    getBlockBody: (hash: HexString) => firstValueFrom(body$(hash)),
+    getBlockHeader: (hash: HexString) => firstValueFrom(header$(hash)),
 
     submit: (...args) => submit(chainHead, broadcastTx$, ...args),
     submitAndWatch: (tx) => submit$(chainHead, broadcastTx$, tx),
@@ -398,7 +408,7 @@ export function createClient(
 
     rawQuery: (key, { at, signal } = {}) =>
       firstValueFromWithSignal(
-        chainHead.storage$(at ?? null, "value", () => {
+        storage$(at ?? null, "value", () => {
           const hex = key.match(HEX_REGEX)?.[1]
           return hex ? `0x${hex}` : Binary.fromText(key).asHex()
         }),
@@ -406,7 +416,7 @@ export function createClient(
       ),
 
     destroy: () => {
-      chainHead.unfollow()
+      unfollow()
       client.destroy()
     },
 
