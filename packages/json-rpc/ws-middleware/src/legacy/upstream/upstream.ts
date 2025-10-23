@@ -1,8 +1,7 @@
 import { ClientRequest } from "@polkadot-api/raw-client"
 import { fromHex, toHex } from "@polkadot-api/utils"
-import { map, Observable } from "rxjs"
+import { catchError, EMPTY, map, merge, mergeMap, Observable, of } from "rxjs"
 import { getBlocks$ } from "./blocks"
-import { createDescendantValues } from "../../utils"
 import { withLatestFromBp } from "../utils/with-latest-from-bp"
 import { createClosestDescendantMerkleValue } from "./proofs"
 
@@ -47,23 +46,56 @@ export const createUpstream = (request: ClientRequest<any, any>) => {
       atBlock,
     ])
 
-  const innerStgDescendantVals = createDescendantValues(simpleRequest)
-  const stgDescendantValues = (at: string, rootKey: string) =>
-    new Observable<Array<[string, string]>>((observer) =>
-      innerStgDescendantVals(
-        rootKey,
-        at,
-        (values) => {
-          observer.next(values)
-        },
-        (e) => {
-          observer.error(e)
-        },
-        () => {
-          observer.complete()
-        },
-      ),
-    )
+  const stgDescendantValues = (
+    at: string,
+    rootKey: string,
+  ): Observable<Array<[string, string]>> => {
+    const PAGE_SIZE = 1000
+    const getKeys = (startAtKey?: string): Observable<string[]> => {
+      return obsRequest<[string, number, string | undefined, string], string[]>(
+        "state_getKeysPaged",
+        [rootKey, PAGE_SIZE, startAtKey || undefined, at],
+      ).pipe(
+        mergeMap((receivedKeys) => {
+          const keys =
+            receivedKeys[0] === startAtKey
+              ? receivedKeys.slice(1)
+              : receivedKeys
+
+          const continuation =
+            receivedKeys.length < PAGE_SIZE
+              ? EMPTY
+              : getKeys(receivedKeys.at(-1))
+
+          return merge(of(keys), continuation)
+        }),
+      )
+    }
+
+    const getValues = (
+      keys: string[],
+      nSplits = 0,
+    ): Observable<Array<[string, string]>> =>
+      keys.length
+        ? obsRequest<
+            [string[], string],
+            [{ block: string; changes: Array<[string, string]> }]
+          >("state_queryStorageAt", [keys, at]).pipe(
+            map(([{ changes }]) => changes),
+            catchError((e: any) => {
+              if (nSplits > 3) throw e
+
+              const midIdx = Math.floor(keys.length / 2)
+              return merge(
+                getValues(keys.slice(0, midIdx), ++nSplits),
+                getValues(keys.slice(midIdx), nSplits),
+              )
+            }),
+          )
+        : EMPTY
+
+    return getKeys().pipe(mergeMap((keys) => getValues(keys)))
+  }
 
   const stgDescendantHashes = (at: string, rootKey: string) =>
     stgDescendantValues(at, rootKey).pipe(
