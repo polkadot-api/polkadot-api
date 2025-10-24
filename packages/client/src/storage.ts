@@ -127,12 +127,10 @@ type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
   /**
    * Watch changes in `Payload` (observable-based) for the storage entry.
    *
-   * @param options  Optionally pass a configuration object to signal that
-   *                 you wish to watch changes from the best-block,
-   *                 by default the changes are watched on the
-   *                 finalized-block.
+   * @param options  Optionally choose which block to watch changes, `best`
+   *                 or `finalized` (default)
    */
-  watchValue: (options?: { at: "best" }) => Observable<Payload>
+  watchValue: (options?: { at: "best" | "finalized" }) => Observable<Payload>
   getKey: GetKey<[], Unsafe>
 } & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
 
@@ -156,12 +154,11 @@ export type StorageEntryWithKeys<
    * Watch changes in `Payload` (observable-based) for the storage entry.
    *
    * @param args  All keys needed for that storage entry.
-   *              At the end, optionally pass a configuration object to
-   *              signal that you wish to watch changes from the best-block,
-   *              by default the changes are watched on the finalized-block.
+   *              At the end, optionally choose which block to watch changes,
+   *              `best` or `finalized` (default).
    */
   watchValue: (
-    ...args: [...Args, options?: { at: "best" }]
+    ...args: [...Args, options?: { at: "best" | "finalized" }]
   ) => Observable<Payload>
   /**
    * Get an Array of `Payload` (Promise-based) for the storage entry with
@@ -198,8 +195,8 @@ export type StorageEntryWithKeys<
    * `Args`.
    *
    * @param args  Subset of keys needed for the storage entry.
-   *              At the end, optionally set whether to watch against the
-   *              `best` block.
+   *              At the end, optionally choose which block to watch changes,
+   *              `best` or `finalized` (default)
    *              By default watches changes against the finalized block.
    *              When watching changes against the "best" block, this API
    *              gratiously handles the re-orgs and provides the deltas
