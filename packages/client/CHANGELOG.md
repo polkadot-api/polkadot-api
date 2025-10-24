@@ -15,6 +15,7 @@
 - BREAKING: `createClient` consumes the new `JsonRpcProvider` v1.
 - BREAKING: When creating transactions the optional `at` value only accepts specific block-hashes.
 - BREAKING: `getBody` and `getHeader` only accept block-hashes.
+- BREAKING: `watchValue` options are now consistent with `watchEntries` options, and also with the rest of query options.
 
 - **WS-Provider:**
   - BREAKING: This export has been moved in favor of `polkadot-api/ws`

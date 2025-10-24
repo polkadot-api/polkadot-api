@@ -223,7 +223,7 @@ describe("E2E", async () => {
     await firstValueFrom(
       api.query.System.Account.watchValue(
         accountIdDec(unusedSigner.publicKey),
-        "best",
+        { at: "best" },
       ).pipe(
         map((x) => x.data.free),
         filter((balance) => balance >= ED * 2n),
