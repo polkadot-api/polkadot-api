@@ -43,7 +43,7 @@ export type PinnedBlocks = {
   runtimes: Record<string, Runtime>
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
-  recovering: boolean
+  recovering: null | { type: "init" } | { type: "fin"; target: number }
 }
 
 export const toBlockInfo = ({
@@ -100,9 +100,20 @@ export const getPinnedBlocks$ = (
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
 ) => {
+  const recover = (acc: PinnedBlocks) => {
+    for (const [hash, block] of acc.blocks) {
+      if (block.recovering) {
+        deleteBlock(acc.blocks, hash)
+        deleteFromCache(hash)
+      }
+    }
+    acc.recovering = null
+  }
+
   const onNewBlock = (block: PinnedBlock) => {
     newBlocks$.next(toBlockInfo(block))
   }
+
   const cleanup$ = new Subject<void>()
   const cleanupEvt$ = cleanup$.pipe(
     exhaustMap(() => timer(0)),
@@ -131,7 +142,7 @@ export const getPinnedBlocks$ = (
             acc.recovering &&
             !event.finalizedBlockHashes.some((hash) => acc.blocks.has(hash))
           ) {
-            acc = Object.assign(acc, getInitialPinnedBlocks())
+            Object.assign(acc, getInitialPinnedBlocks())
             newBlocks$.next(null)
           }
 
@@ -139,7 +150,13 @@ export const getPinnedBlocks$ = (
             acc.blocks.get(acc.finalized)?.number ?? -1
 
           const lastIdx = event.finalizedBlockHashes.length - 1
-          acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
+          // We must take into account that the new subscription could be behind the previous one
+          if (latestFinalizedHeight > event.number + lastIdx) {
+            acc.recovering = { type: "fin", target: latestFinalizedHeight }
+          } else {
+            acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
+          }
+
           let latestRuntime = acc.finalizedRuntime.at
 
           const newBlocks: Array<PinnedBlock> = []
@@ -191,7 +208,7 @@ export const getPinnedBlocks$ = (
           for (const block of acc.blocks.values()) {
             block.recovering = true
           }
-          acc.recovering = true
+          acc.recovering = { type: "init" }
 
           return acc
 
@@ -230,20 +247,21 @@ export const getPinnedBlocks$ = (
 
         case "bestBlockChanged": {
           if (acc.recovering) {
-            for (const [hash, block] of acc.blocks) {
-              if (block.recovering) {
-                deleteBlock(acc.blocks, hash)
-                deleteFromCache(hash)
-              }
-            }
-            acc.recovering = false
+            if (acc.recovering.type === "fin") return acc
+            recover(acc)
           }
           acc.best = event.bestBlockHash
           return acc
         }
 
         case "finalized": {
-          acc.finalized = event.finalizedBlockHashes.slice(-1)[0]
+          const finalized = event.finalizedBlockHashes.slice(-1)[0]
+          if (acc.recovering?.type === "fin") {
+            if (acc.blocks.get(finalized)!.number < acc.recovering.target)
+              return acc
+            recover(acc)
+          }
+          acc.finalized = finalized
           const { blocks } = acc
 
           // This logic is only needed because of a bug on some pretty old versions
@@ -317,5 +335,5 @@ const getInitialPinnedBlocks = (): PinnedBlocks => ({
   runtimes: {},
   blocks: new Map(),
   finalizedRuntime: {} as Runtime,
-  recovering: false,
+  recovering: null,
 })
