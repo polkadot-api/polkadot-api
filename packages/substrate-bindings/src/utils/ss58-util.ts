@@ -50,14 +50,13 @@ const withSs58Cache = (fn: (publicKey: Uint8Array) => SS58String) => {
   let cache: Record<number, any> = {}
   let token: any
   return (publicKey: Uint8Array): SS58String => {
-    if (publicKey.length !== 32) throw null
-
     clearTimeout(token)
     token = setTimeout(() => (cache = {}), 0)
 
     let entry = cache
-    for (let i = 0; i < 31; i++) entry = entry[publicKey[i]] ||= {}
-    return (entry[publicKey[31]] ||= fn(publicKey))
+    const lastIdx = publicKey.length - 1
+    for (let i = 0; i <= lastIdx; i++) entry = entry[publicKey[i]] ||= {}
+    return (entry[publicKey[lastIdx]] ||= fn(publicKey))
   }
 }
 
