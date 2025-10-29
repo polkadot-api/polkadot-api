@@ -132,18 +132,19 @@ describe("E2E", async () => {
     },
   )
 
-  console.log("waiting for compatibility token")
-  const token = await api.compatibilityToken
-  console.log("got the compatibility token")
+  console.log("waiting for static APIs")
+  const staticApis = await api.getStaticApis()
+  console.log("got the static APIs")
 
   it.concurrent("unsafe API", async () => {
-    const unsafe = client.getUnsafeApi<typeof roc>()
-    expect(unsafe.runtimeToken).toBeDefined()
-    const unsTok = await unsafe.runtimeToken
+    const {
+      const: {
+        Balances: { ExistentialDeposit: ed },
+      },
+    } = await client.getUnsafeApi<typeof roc>().getStaticApis()
 
-    // let's check the token indeed works
-    expect(typeof unsafe.constants.Balances.ExistentialDeposit()).toBe("object")
-    expect(unsafe.constants.Balances.ExistentialDeposit(unsTok)).toEqual(ED)
+    expect(typeof ed).toBe("bigint")
+    expect(ed).toEqual(ED)
   })
 
   it.concurrent("reads from storage", async () => {
@@ -159,10 +160,8 @@ describe("E2E", async () => {
     // some old polkadot-sdk versions don't include this pallet
     // ensure that some version tested include it
     if (
-      !api.query.CoretimeAssignmentProvider.CoreDescriptors.isCompatible(
-        CompatibilityLevel.Partial,
-        token,
-      )
+      staticApis.compat.query.CoretimeAssignmentProvider.CoreDescriptors.value
+        .level === CompatibilityLevel.Incompatible
     ) {
       return
     }
@@ -182,7 +181,7 @@ describe("E2E", async () => {
     )
 
     const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
-      api.apis.TransactionPaymentApi.query_info(
+      api.api.TransactionPaymentApi.query_info(
         binaryExtrinsic,
         binaryExtrinsic.asOpaqueBytes().length,
       ),
@@ -193,21 +192,20 @@ describe("E2E", async () => {
   })
 
   it.concurrent("evaluates constant values", () => {
-    const ss58Prefix = api.constants.System.SS58Prefix(token)
+    const ss58Prefix = staticApis.const.System.SS58Prefix
     expect(ss58Prefix).toEqual(42)
 
-    const ed = api.constants.Balances.ExistentialDeposit(token)
+    const ed = staticApis.const.Balances.ExistentialDeposit
     expect(ed).toEqual(ED)
   })
 
-  it.concurrent("generates correct storage keys", () => {
-    expect(api.query.System.Account.getKey(token)).toEqual(
+  it.concurrent("generates correct storage keys", async () => {
+    expect(await api.query.System.Account.getKey()).toEqual(
       "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9",
     )
     expect(
-      api.query.System.Account.getKey(
+      await api.query.System.Account.getKey(
         "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
-        token,
       ),
     ).toEqual(
       "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da91cdb29d91f7665b36dc5ec5903de32467628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
@@ -216,7 +214,7 @@ describe("E2E", async () => {
 
   // this test needs to run concurrently with "fund accounts" one
   it.concurrent("invalid tx on finalized, valid on best", async () => {
-    const previousNonceProm = api.apis.AccountNonceApi.account_nonce(
+    const previousNonceProm = api.api.AccountNonceApi.account_nonce(
       accountIdDec(unusedSigner.publicKey),
     )
     // let's wait until they have enough balance
@@ -235,7 +233,7 @@ describe("E2E", async () => {
 
     const [previousNonce, currentNonce] = await Promise.all([
       previousNonceProm,
-      api.apis.AccountNonceApi.account_nonce(
+      api.api.AccountNonceApi.account_nonce(
         accountIdDec(unusedSigner.publicKey),
       ),
     ])
@@ -272,7 +270,7 @@ describe("E2E", async () => {
 
     const [aliceInitialNonce, bobInitialNonce] = await Promise.all(
       [alice, bob].map((who) =>
-        api.apis.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
+        api.api.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
       ),
     )
 
@@ -318,7 +316,7 @@ describe("E2E", async () => {
     const [alicePostNonce, bobPostNonce, ...targetsPostFreeBalances] =
       await Promise.all([
         ...[alice, bob].map((who) =>
-          api.apis.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
+          api.api.AccountNonceApi.account_nonce(accountIdDec(who.publicKey)),
         ),
         ...targets.map((target) =>
           api.query.System.Account.getValue(target).then((x) => x.data.free),
@@ -332,9 +330,11 @@ describe("E2E", async () => {
     expect(bobPostNonce).toEqual(bobInitialNonce + 1)
 
     // txs from call data
-    const txCallData = aliceTransfer.getEncodedData(token)
-    const reEncodedTx = api.txFromCallData(txCallData, token)
-    expect(reEncodedTx.getEncodedData(token).asHex()).toBe(txCallData.asHex())
+    const txCallData = await aliceTransfer.getEncodedData()
+    const reEncodedTx = await api.txFromCallData(txCallData)
+    expect((await reEncodedTx.getEncodedData()).asHex()).toBe(
+      txCallData.asHex(),
+    )
   })
 
   it.concurrent.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(
@@ -431,7 +431,7 @@ describe("E2E", async () => {
     const bobAddress = accountIdDec(bob.publicKey)
 
     const [aliceInitialNonce, bobInitialBalance] = await Promise.all([
-      api.apis.AccountNonceApi.account_nonce(accountIdDec(alice.publicKey)),
+      api.api.AccountNonceApi.account_nonce(accountIdDec(alice.publicKey)),
       api.query.System.Account.getValue(bobAddress).then((x) => x.data.free),
     ])
 
@@ -448,7 +448,7 @@ describe("E2E", async () => {
       { mortal: true, period: 25 },
       {
         mortal: true,
-        period: api.constants.System.BlockHashCount(token),
+        period: staticApis.const.System.BlockHashCount,
       },
       { mortal: false },
     ]
@@ -464,7 +464,7 @@ describe("E2E", async () => {
     )
 
     const [aliceCurrentNonce, bobCurrentBalance] = await Promise.all([
-      api.apis.AccountNonceApi.account_nonce(accountIdDec(alice.publicKey)),
+      api.api.AccountNonceApi.account_nonce(accountIdDec(alice.publicKey)),
       api.query.System.Account.getValue(bobAddress).then((x) => x.data.free),
     ])
 
@@ -554,7 +554,7 @@ describe("E2E", async () => {
 
     it.concurrent("BlockNotPinnedError: apis", async () => {
       await expect(
-        api.apis.AccountNonceApi.account_nonce(aliceAddress, options),
+        api.api.AccountNonceApi.account_nonce(aliceAddress, options),
       ).rejects.toThrowError(BlockNotPinnedError)
     })
 
@@ -610,10 +610,7 @@ describe("E2E", async () => {
 
       it.concurrent("Archive: apis", async () => {
         expect(
-          await oldApi.apis.AccountNonceApi.account_nonce(
-            aliceAddress,
-            options,
-          ),
+          await oldApi.api.AccountNonceApi.account_nonce(aliceAddress, options),
         ).toEqual(0)
       })
 

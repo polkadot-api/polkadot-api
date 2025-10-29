@@ -17,12 +17,9 @@ export type {
   TxPromise,
   TxObservable,
   TxCall,
-  UnsafeTxCall,
   TxSignFn,
   Transaction,
-  UnsafeTransaction,
   TxEntry,
-  UnsafeTxEntry,
 } from "./tx"
 export type { EventPhase } from "./event"
 export type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
@@ -30,11 +27,9 @@ export type {
   PolkadotClient,
   TransactionValidityError,
   TypedApi,
-  UnsafeApi,
   FixedSizeArray,
   TxCallData,
 } from "./types"
-export type { CompatibilityToken, RuntimeToken } from "./compatibility"
 export * from "./offline"
 export { getTypedCodecs } from "./typed-codecs/typed-codecs"
 export type { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"

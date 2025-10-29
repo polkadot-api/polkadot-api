@@ -314,6 +314,7 @@ export const getPinnedBlocks$ = (
     }),
     shareLatest,
   )
+
   const getRuntime = getRuntimeCreator(
     withStopRecovery(pinnedBlocks$, call$, "pinned-blocks"),
     getCachedMetadata$,

@@ -15,6 +15,7 @@ import {
   type UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
+import { getMappedMetadata } from "./mapped-metadata"
 
 const CHECK_MORTALITY = "CheckMortality"
 
@@ -52,6 +53,7 @@ export const createRuntimeCtx = (
   }
 
   return {
+    mappedMeta: getMappedMetadata(metadata, lookup),
     assetId,
     metadataRaw,
     codeHash,

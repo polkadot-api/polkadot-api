@@ -8,8 +8,6 @@ describe("events", () => {
     const client = createClient(getChopsticksProvider())
     const api = client.getTypedApi(paseo)
 
-    await api.compatibilityToken
-
     const testFn = vi.fn()
     const completeFn = vi.fn()
     const errorFn = vi.fn()
@@ -21,9 +19,9 @@ describe("events", () => {
 
     await createBlock(client)
 
-    expect(testFn).toHaveBeenCalled()
-    expect(completeFn).not.toHaveBeenCalled()
     expect(errorFn).not.toHaveBeenCalled()
+    expect(completeFn).not.toHaveBeenCalled()
+    expect(testFn).toHaveBeenCalled()
 
     subscription.unsubscribe()
     client.destroy()

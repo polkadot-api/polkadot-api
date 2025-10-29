@@ -1,8 +1,4 @@
-import {
-  CompatibilityFunctions,
-  CompatibilityToken,
-  RuntimeToken,
-} from "@/compatibility"
+import { PullOptions } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
@@ -252,30 +248,6 @@ export interface TxCall {
    * @returns Promise resolving in the encoded data.
    */
   (): Promise<Binary>
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @param compatibilityToken  Token from got with `await
-   *                            typedApi.compatibilityToken`
-   * @returns Synchronously returns encoded data.
-   */
-  (compatibilityToken: CompatibilityToken): Binary
-}
-
-export interface UnsafeTxCall {
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @returns Promise resolving in the encoded data.
-   */
-  (): Promise<Binary>
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @param runtimeToken  Token from got with `await typedApi.runtimeToken`
-   * @returns Synchronously returns encoded data.
-   */
-  (runtimeToken: RuntimeToken): Binary
 }
 
 export type TxSignFn<Asset> = (
@@ -297,7 +269,6 @@ export type PaymentInfo = {
 }
 
 export type InnerTransaction<
-  Unsafe,
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
@@ -338,7 +309,7 @@ export type InnerTransaction<
   /**
    * SCALE-encoded callData of the transaction.
    */
-  getEncodedData: Unsafe extends true ? UnsafeTxCall : TxCall
+  getEncodedData: TxCall
   /**
    * Estimate fees against the latest known `finalizedBlock`
    *
@@ -375,47 +346,25 @@ export type Transaction<
   Pallet extends string,
   Name extends string,
   Asset,
-> = InnerTransaction<false, Arg, Pallet, Name, Asset>
-
-export type UnsafeTransaction<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-> = InnerTransaction<true, Arg, Pallet, Name, Asset>
+> = InnerTransaction<Arg, Pallet, Name, Asset>
 
 export type InnerTxEntry<
-  Unsafe,
-  D,
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
   Asset,
-> = Unsafe extends true
-  ? {
-      /**
-       * Synchronously create the transaction object ready to sign, submit,
-       * estimate fees, etc.
-       *
-       * @param args  All parameters required by the transaction.
-       * @returns Transaction object.
-       */
-      (
-        ...args: Arg extends undefined ? [] : [data: Arg]
-      ): UnsafeTransaction<Arg, Pallet, Name, Asset>
-    }
-  : {
-      /**
-       * Synchronously create the transaction object ready to sign, submit,
-       * estimate fees, etc.
-       *
-       * @param args  All parameters required by the transaction.
-       * @returns Transaction object.
-       */
-      (
-        ...args: Arg extends undefined ? [] : [data: Arg]
-      ): Transaction<Arg, Pallet, Name, Asset>
-    } & CompatibilityFunctions<D>
+> = {
+  /**
+   * Synchronously create the transaction object ready to sign, submit,
+   * estimate fees, etc.
+   *
+   * @param args  All parameters required by the transaction.
+   * @returns Transaction object.
+   */
+  (
+    ...args: Arg extends undefined ? [] : [data: Arg]
+  ): Transaction<Arg, Pallet, Name, Asset>
+}
 
 export type OfflineTxEntry<
   Arg extends {} | undefined,
@@ -450,65 +399,22 @@ export type OfflineTxEntry<
 }
 
 export type TxEntry<
-  D,
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
   Asset,
-> = InnerTxEntry<false, D, Arg, Pallet, Name, Asset>
+> = InnerTxEntry<Arg, Pallet, Name, Asset>
 
-export type UnsafeTxEntry<
-  D,
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-> = InnerTxEntry<true, D, Arg, Pallet, Name, Asset>
-
-export type TxFromBinary<Unsafe, Asset> = Unsafe extends true
-  ? {
-      /**
-       * Asynchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData  SCALE-encoded call data.
-       * @returns Transaction object.
-       */
-      (callData: Binary): Promise<UnsafeTransaction<any, string, string, Asset>>
-      /**
-       * Synchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData      SCALE-encoded call data.
-       * @param runtimeToken  Token from got with `await
-       *                      typedApi.runtimeToken`
-       * @returns Transaction object.
-       */
-      (
-        callData: Binary,
-        runtimeToken: RuntimeToken,
-      ): UnsafeTransaction<any, string, string, Asset>
-    }
-  : {
-      /**
-       * Asynchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData  SCALE-encoded call data.
-       * @returns Transaction object.
-       */
-      (callData: Binary): Promise<Transaction<any, string, string, Asset>>
-      /**
-       * Synchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData            SCALE-encoded call data.
-       * @param compatibilityToken  Token from got with `await
-       *                            typedApi.compatibilityToken`
-       * @returns Transaction object.
-       */
-      (
-        callData: Binary,
-        compatibilityToken: CompatibilityToken,
-      ): Transaction<any, string, string, Asset>
-    }
+export type TxFromBinary<Asset> = {
+  /**
+   * Asynchronously create the transaction object from a binary call data ready
+   * to sign, submit, estimate fees, etc.
+   *
+   * @param callData  SCALE-encoded call data.
+   * @returns Transaction object.
+   */
+  (
+    callData: Binary,
+    options?: PullOptions,
+  ): Promise<Transaction<any, string, string, Asset>>
+}

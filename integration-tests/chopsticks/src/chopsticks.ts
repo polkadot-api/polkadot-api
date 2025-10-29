@@ -33,7 +33,7 @@ export const startChopsticks = async () => {
   const client = createClient(getChopsticksProvider())
 
   console.log("Connecting to chopsticks… (takes ~3 seconds)")
-  await client.getUnsafeApi().runtimeToken
+  await client.getUnsafeApi().getStaticApis()
 
   // Create a new block to pre-initialize chopsticks and prevent tests from timing out.
   console.log("Generating the first block… (takes ~8 seconds)")

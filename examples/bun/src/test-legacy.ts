@@ -1,4 +1,3 @@
-import { createClient } from "polkadot-api"
 import { createWsClient } from "polkadot-api/ws"
 import { distinctUntilChanged, map } from "rxjs"
 

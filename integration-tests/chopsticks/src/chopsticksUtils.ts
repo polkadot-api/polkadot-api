@@ -5,7 +5,7 @@ import { getChopsticksProvider } from "./chopsticks"
 let client: PolkadotClient = null as any
 beforeAll(async () => {
   client = createClient(getChopsticksProvider())
-  await client.getUnsafeApi().runtimeToken
+  await client.getUnsafeApi().getStaticApis()
 })
 afterAll(() => {
   client.destroy()
@@ -27,5 +27,5 @@ export const jumpBlocks = async (height: number, count?: number) => {
   // otherwise the block height will be wrong on new tx
   client.destroy()
   client = createClient(getChopsticksProvider())
-  await client.getUnsafeApi().runtimeToken
+  await client.getUnsafeApi().getStaticApis()
 }

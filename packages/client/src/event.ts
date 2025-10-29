@@ -1,7 +1,7 @@
-import { Observable, firstValueFrom, map, mergeMap } from "rxjs"
+import { Observable, combineLatest, firstValueFrom, map, mergeMap } from "rxjs"
 import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
-import { CompatibilityFunctions, CompatibilityHelper } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
+import { ValueCompat } from "./compatibility"
 
 export type EventPhase =
   | { type: "ApplyExtrinsic"; value: number }
@@ -28,7 +28,7 @@ export type EvPull<T> = () => Promise<
 
 export type EvFilter<T> = (collection: SystemEvent["event"][]) => Array<T>
 
-export type EvClient<Unsafe, D, T> = {
+export type EvClient<T> = {
   /**
    * Multicast and stateful Observable watching for new events (matching the
    * event kind chosen) in the latest known `finalized` block.
@@ -49,7 +49,7 @@ export type EvClient<Unsafe, D, T> = {
    * @param collection  Array of `SystemEvent` to filter.
    */
   filter: EvFilter<T>
-} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
+}
 
 type SystemEvent = {
   phase: EventPhase
@@ -63,47 +63,29 @@ type SystemEvent = {
   topics: Array<any>
 }
 
-export const createEventEntry = <D, T>(
+export const createEventEntry = <T>(
   pallet: string,
   name: string,
   chainHead: ChainHead$,
-  {
-    isCompatible,
-    getCompatibilityLevel,
-    withCompatibleRuntime,
-    argsAreCompatible,
-    valuesAreCompatible,
-  }: CompatibilityHelper,
-): EvClient<any, D, T> => {
+  compatibility: ValueCompat,
+): EvClient<T> => {
   const compatibilityError = () =>
     new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
 
-  const shared$ = chainHead.finalized$.pipe(
-    withCompatibleRuntime(chainHead, (x) => x.hash),
-    map(([block, runtime, ctx]) => {
-      const eventsIdx = ctx.lookup.metadata.pallets.find(
-        (p) => p.name === pallet,
-      )?.events?.type
-      if (
-        eventsIdx == null ||
-        ctx.lookup.metadata.lookup[eventsIdx].def.tag !== "variant" ||
-        ctx.lookup.metadata.lookup[eventsIdx].def.value.find(
-          (ev) => ev.name === name,
-        ) == null
-      )
+  const shared$ = combineLatest([chainHead.finalized$, compatibility]).pipe(
+    chainHead.withRuntime(([x]) => x.hash),
+    concatMapEager(([[block, getCompat], ctx]) => {
+      if (!ctx.mappedMeta.pallets[pallet]?.event.has(name))
         throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
 
-      if (!argsAreCompatible(runtime, ctx, null)) throw compatibilityError()
-      return [block, runtime, ctx] as const
-    }),
-    concatMapEager(([block, runtime, ctx]) =>
-      chainHead.eventsAt$(block.hash).pipe(
+      const { isValueCompatible } = getCompat(ctx)
+      return chainHead.eventsAt$(block.hash).pipe(
         map((events) => {
           const winners = events.filter(
             (e) => e.event.type === pallet && e.event.value.type === name,
           )
           return winners.map((x) => {
-            if (!valuesAreCompatible(runtime, ctx, x.event.value.value))
+            if (!isValueCompatible(x.event.value.value))
               throw compatibilityError()
             return {
               meta: {
@@ -114,8 +96,8 @@ export const createEventEntry = <D, T>(
             }
           })
         }),
-      ),
-    ),
+      )
+    }),
     shareLatest,
   )
 
@@ -129,5 +111,5 @@ export const createEventEntry = <D, T>(
       .filter((e) => e.type === pallet && e.value.type === name)
       .map((x) => x.value.value)
 
-  return { watch, pull, filter, getCompatibilityLevel, isCompatible }
+  return { watch, pull, filter }
 }

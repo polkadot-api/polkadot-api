@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added `getStaticApis` which provides all sort of synchronous methods that are executed against the context of a particular runtime-code.
+
 - **polkadot-api/ws**
   - Exposes a new `createWsClient` function which is sugar for `createClient(getWsProvider(URI))`, while also exposing the `switch` and `getStatus` functions from the ws-provider into the client.
   - Exposes a modern version of the `getWsProvider` function, which returns a `JsonRpcProvider` v1 interface. This Provider automatically detects which middlewares should be applied against any given endpoints. It also accepts a new `logger` callback.
@@ -12,6 +14,8 @@
 
 ### Changed
 
+- TypedApi: constants can now be queried with standard `PullOptions`.
+- BREAKING: TypedApi entries have been renamed: `apis` -> `api` and `constants` -> `const`
 - BREAKING: `createClient` consumes the new `JsonRpcProvider` v1.
 - BREAKING: When creating transactions the optional `at` value only accepts specific block-hashes.
 - BREAKING: `getBody` and `getHeader` only accept block-hashes.
@@ -31,6 +35,7 @@
 
 ### Removed
 
+- BREAKING: Removed `RuntimeToken` and `CompatibilityToken`
 - **polkadot-sdk-compat**
 
 ## Unreleased

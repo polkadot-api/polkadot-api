@@ -10,6 +10,7 @@ export {
   type RuntimeContext,
   type SystemEvent,
 } from "./chainHead"
+export { type MetadataMaps, type EnumEntry } from "./utils/mapped-metadata"
 export type { Archive$ } from "./archive"
 export { concatMapEager } from "./utils/concatMapEager"
 export { withArchive } from "./utils/with-archive"
