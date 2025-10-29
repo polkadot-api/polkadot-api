@@ -7,14 +7,12 @@ import {
   StorageResult,
 } from "@polkadot-api/substrate-client"
 import {
-  EMPTY,
   MonoTypeOperatorFunction,
   Observable,
   ReplaySubject,
   Subject,
   defer,
   distinctUntilChanged,
-  endWith,
   filter,
   identity,
   map,
@@ -145,18 +143,10 @@ export const getChainHead$ = (
 
   const cache = new Map<string, Map<string, Observable<any>>>()
 
-  const stg = withRefcount(
-    withRecoveryFn(fromAbortControllerFn(lazyFollower("storage"))),
-  )
-  const getCodeHash = (blockHash: string): Observable<HexString> =>
-    // ":code" => "0x3a636f6465"
-    stg(blockHash, "hash", "0x3a636f6465", null).pipe(map((x) => x!))
-
   const newBlocks$ = new Subject<BlockInfo | null>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
-    getCodeHash,
     getCachedMetadata,
     setCachedMetadata,
     blockUsage$,
@@ -414,15 +404,7 @@ export const getChainHead$ = (
   })
 
   const getRuntime$ = (codeHash: string): Observable<RuntimeContext | null> =>
-    merge(
-      ...Object.values(pinnedBlocks$.state.runtimes).map((runtime) =>
-        runtime.codeHash$.pipe(
-          mergeMap((_codehash) =>
-            codeHash === _codehash ? runtime.runtime : EMPTY,
-          ),
-        ),
-      ),
-    ).pipe(endWith(null), take(1))
+    pinnedBlocks$.state.runtimes[codeHash].runtime ?? of(null)
 
   const holdBlock = (blockHash: string | null, shouldThrow = false) => {
     let hash = blockHash || "finalized"

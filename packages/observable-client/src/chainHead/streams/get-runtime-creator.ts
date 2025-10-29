@@ -63,10 +63,9 @@ export interface RuntimeContext {
 }
 
 export interface Runtime {
-  at: string
-  codeHash$: Observable<string>
+  codeHash: string
   runtime: Observable<RuntimeContext>
-  addBlock: (block: string) => Runtime
+  addBlock: (block: string) => void
   deleteBlocks: (blocks: string[]) => number
   usages: Set<string>
 }
@@ -94,48 +93,43 @@ const withRecovery =
 
 export const getRuntimeCreator = (
   call$: (hash: string, method: string, args: string) => Observable<string>,
-  getCodeHash$: (blockHash: string) => Observable<string>,
   getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {
   const getMetadata$ = (
-    codeHash$: Observable<string>,
+    codeHash: string,
     rawMetadata$: Observable<Uint8Array>,
   ): Observable<{
     metadataRaw: Uint8Array
     metadata: UnifiedMetadata
     codeHash: string
   }> =>
-    codeHash$.pipe(
-      mergeMap((codeHash) =>
-        getCachedMetadata(codeHash).pipe(
-          catchError(() => of(null)),
-          mergeMap((metadataRaw) =>
-            metadataRaw
-              ? of(metadataRaw)
-              : rawMetadata$.pipe(
-                  tap((raw) => {
-                    setCachedMetadata(codeHash, raw)
-                  }),
-                ),
-          ),
-          map((metadataRaw) => ({
-            codeHash,
-            metadataRaw,
-            metadata: unifyMetadata(metadataCodec.dec(metadataRaw)),
-          })),
-        ),
+    getCachedMetadata(codeHash).pipe(
+      catchError(() => of(null)),
+      mergeMap((metadataRaw) =>
+        metadataRaw
+          ? of(metadataRaw)
+          : rawMetadata$.pipe(
+              tap((raw) => {
+                setCachedMetadata(codeHash, raw)
+              }),
+            ),
       ),
+      map((metadataRaw) => ({
+        codeHash,
+        metadataRaw,
+        metadata: unifyMetadata(metadataCodec.dec(metadataRaw)),
+      })),
     )
 
-  return (getHash: () => string | null): Runtime => {
-    const enhancer = withRecovery(getHash)
-    const initialHash = getHash()!
-    const usages = new Set<string>([initialHash])
-    const codeHash$ = enhancer(getCodeHash$)().pipe(shareReplay(1))
+  return (codeHash: string, initialBlock: string): Runtime => {
+    const usages = new Set<string>([initialBlock])
+    const enhancer = withRecovery(() =>
+      usages.has(initialBlock) ? initialBlock : ([...usages].at(-1) ?? null),
+    )
 
     const runtimeContext$: Observable<RuntimeContext> = getMetadata$(
-      codeHash$,
+      codeHash,
       getRawMetadata$(enhancer(call$)),
     ).pipe(
       map(({ metadata, metadataRaw, codeHash }) =>
@@ -145,12 +139,10 @@ export const getRuntimeCreator = (
     )
 
     const result: Runtime = {
-      at: initialHash,
+      codeHash,
       runtime: runtimeContext$,
-      codeHash$,
       addBlock: (block: string) => {
         usages.add(block)
-        return result
       },
       deleteBlocks: (blocks) => {
         blocks.forEach((block) => {

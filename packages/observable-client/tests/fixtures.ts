@@ -116,8 +116,9 @@ export const initialize = async (
     initialHash,
     encodeHeader(header),
   )
+
+  await mockClient.chainHead.mock.storage.reply(initialHash, "0x010203")
   if (initialized.finalizedBlockHashes.length > 1) {
-    await mockClient.chainHead.mock.storage.reply(initialHash, "0x010203")
     await mockClient.chainHead.mock.storage.reply(
       initialized.finalizedBlockHashes.at(-1)!,
       "0x010203",

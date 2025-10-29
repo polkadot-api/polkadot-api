@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## V2
 
 ### Added
 
@@ -32,6 +32,12 @@
 ### Removed
 
 - **polkadot-sdk-compat**
+
+## Unreleased
+
+### Fixed
+
+- Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
 
 ## 1.20.0 - 2025-10-09
 

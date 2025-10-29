@@ -27,7 +27,7 @@ export function withStopRecovery<A extends Array<any>, T>(
         })
       }
 
-      let isRecovering = false
+      let isRecovering: PinnedBlocks["recovering"] = null
       const blockSub = blocks$.subscribe({
         next: (v) => {
           const block = v.blocks.get(hash)

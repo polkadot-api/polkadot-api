@@ -1,5 +1,4 @@
 import { shareLatest } from "@/utils"
-import { HexString } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   Observer,
@@ -43,7 +42,7 @@ export type PinnedBlocks = {
   runtimes: Record<string, Runtime>
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
-  recovering: boolean
+  recovering: null | { type: "init" } | { type: "fin"; target: number }
 }
 
 export const toBlockInfo = ({
@@ -57,15 +56,6 @@ export const toBlockInfo = ({
   parent,
   hasNewRuntime,
 })
-
-const createRuntimeGetter = (pinned: PinnedBlocks, startAt: HexString) => {
-  return () => {
-    const runtime = pinned.runtimes[startAt]
-    if (!runtime) return pinned.blocks.has(startAt) ? startAt : null
-    const winner = [...runtime.usages].at(-1)
-    return winner ?? null
-  }
-}
 
 const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
   blocks.get(blocks.get(blockHash)!.parent)?.children.delete(blockHash)
@@ -92,7 +82,6 @@ const deleteBlocks = (blocks: PinnedBlocks, toDelete: string[]) => {
 export const getPinnedBlocks$ = (
   follow$: Observable<FollowEvent>,
   call$: (hash: string, method: string, args: string) => Observable<string>,
-  getCodeHash$: (blockHash: string) => Observable<string>,
   getCachedMetadata$: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
   blockUsage$: Subject<BlockUsageEvent>,
@@ -100,9 +89,20 @@ export const getPinnedBlocks$ = (
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
 ) => {
+  const recover = (acc: PinnedBlocks) => {
+    for (const [hash, block] of acc.blocks) {
+      if (block.recovering) {
+        deleteBlock(acc.blocks, hash)
+        deleteFromCache(hash)
+      }
+    }
+    acc.recovering = null
+  }
+
   const onNewBlock = (block: PinnedBlock) => {
     newBlocks$.next(toBlockInfo(block))
   }
+
   const cleanup$ = new Subject<void>()
   const cleanupEvt$ = cleanup$.pipe(
     exhaustMap(() => timer(0)),
@@ -131,7 +131,7 @@ export const getPinnedBlocks$ = (
             acc.recovering &&
             !event.finalizedBlockHashes.some((hash) => acc.blocks.has(hash))
           ) {
-            acc = Object.assign(acc, getInitialPinnedBlocks())
+            Object.assign(acc, getInitialPinnedBlocks())
             newBlocks$.next(null)
           }
 
@@ -139,8 +139,14 @@ export const getPinnedBlocks$ = (
             acc.blocks.get(acc.finalized)?.number ?? -1
 
           const lastIdx = event.finalizedBlockHashes.length - 1
-          acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
-          let latestRuntime = acc.finalizedRuntime.at
+          // We must take into account that the new subscription could be behind the previous one
+          if (latestFinalizedHeight > event.number + lastIdx) {
+            acc.recovering = { type: "fin", target: latestFinalizedHeight }
+          } else {
+            acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
+          }
+
+          let latestRuntime = acc.finalizedRuntime.codeHash
 
           const newBlocks: Array<PinnedBlock> = []
           event.finalizedBlockHashes.forEach((hash, i) => {
@@ -153,9 +159,11 @@ export const getPinnedBlocks$ = (
             } else {
               const number = event.number + i
               const isNew = number > latestFinalizedHeight
+
+              const codeHash = event.runtimeChanges.get(hash)
               const requiresFromNewRuntime =
-                event.runtimeChanges.has(hash) && !acc.runtimes[hash] && isNew
-              if (requiresFromNewRuntime) latestRuntime = hash
+                codeHash && !acc.runtimes[codeHash] && isNew
+              if (requiresFromNewRuntime) latestRuntime = codeHash
               const parent =
                 i === 0 ? event.parentHash : event.finalizedBlockHashes[i - 1]
 
@@ -177,8 +185,9 @@ export const getPinnedBlocks$ = (
               acc.blocks.set(hash, block)
               // it must happen after setting the block
               if (requiresFromNewRuntime)
-                acc.finalizedRuntime = acc.runtimes[hash] = getRuntime(
-                  createRuntimeGetter(acc, hash),
+                acc.finalizedRuntime = acc.runtimes[codeHash] = getRuntime(
+                  codeHash,
+                  hash,
                 )
               acc.runtimes[latestRuntime].usages.add(hash)
               if (isNew) newBlocks.push(block)
@@ -191,7 +200,7 @@ export const getPinnedBlocks$ = (
           for (const block of acc.blocks.values()) {
             block.recovering = true
           }
-          acc.recovering = true
+          acc.recovering = { type: "init" }
 
           return acc
 
@@ -216,9 +225,8 @@ export const getPinnedBlocks$ = (
             }
             acc.blocks.set(hash, block)
             if (event.newRuntime) {
-              // getRuntime calls getHash immediately
-              // it assumes pinnedBlocks.runtimes[hash] is empty and pinnedBlocks.blocks.has(hash)
-              acc.runtimes[hash] = getRuntime(createRuntimeGetter(acc, hash))
+              const { codeHash } = event
+              acc.runtimes[codeHash!] = getRuntime(codeHash!, hash)
             }
 
             acc.runtimes[block.runtime].addBlock(hash)
@@ -230,20 +238,21 @@ export const getPinnedBlocks$ = (
 
         case "bestBlockChanged": {
           if (acc.recovering) {
-            for (const [hash, block] of acc.blocks) {
-              if (block.recovering) {
-                deleteBlock(acc.blocks, hash)
-                deleteFromCache(hash)
-              }
-            }
-            acc.recovering = false
+            if (acc.recovering.type === "fin") return acc
+            recover(acc)
           }
           acc.best = event.bestBlockHash
           return acc
         }
 
         case "finalized": {
-          acc.finalized = event.finalizedBlockHashes.slice(-1)[0]
+          const finalized = event.finalizedBlockHashes.slice(-1)[0]
+          if (acc.recovering?.type === "fin") {
+            if (acc.blocks.get(finalized)!.number < acc.recovering.target)
+              return acc
+            recover(acc)
+          }
+          acc.finalized = finalized
           const { blocks } = acc
 
           // This logic is only needed because of a bug on some pretty old versions
@@ -304,7 +313,6 @@ export const getPinnedBlocks$ = (
   )
   const getRuntime = getRuntimeCreator(
     withStopRecovery(pinnedBlocks$, call$, "pinned-blocks"),
-    withStopRecovery(pinnedBlocks$, getCodeHash$, "pinned-blocks"),
     getCachedMetadata$,
     setCachedMetadata,
   )
@@ -317,5 +325,5 @@ const getInitialPinnedBlocks = (): PinnedBlocks => ({
   runtimes: {},
   blocks: new Map(),
   finalizedRuntime: {} as Runtime,
-  recovering: false,
+  recovering: null,
 })

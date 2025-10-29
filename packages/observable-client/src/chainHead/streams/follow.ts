@@ -23,10 +23,10 @@ type EnhancedFollowEventWithRuntime =
   | (Initialized & {
       number: number
       parentHash: string
-      runtimeChanges: Set<string>
+      runtimeChanges: Map<string, string> // block-hash -> code-hash
       hasNewRuntime: boolean
     })
-  | NewBlockWithRuntime
+  | (NewBlockWithRuntime & { codeHash?: string })
   | BestBlockChanged
   | Finalized
 
@@ -37,10 +37,14 @@ const createGetRuntimeChanges = (
     blocks: Array<string>,
     firstId: { idx: number; id: string },
     lastId: { idx: number; id: string },
-  ): Promise<Array<string>> => {
+  ): Promise<Array<[string, string]>> => {
     const firstBlock = blocks[firstId.idx]
     const lastBlock = blocks[lastId.idx]
-    if (blocks.length === 2) return [firstBlock, lastBlock]
+    if (blocks.length === 2)
+      return [
+        [firstBlock, firstId.id],
+        [lastBlock, lastId.id],
+      ]
 
     const middleIdx = firstId.idx + Math.floor((lastId.idx - firstId.idx) / 2)
     const middle = {
@@ -61,17 +65,18 @@ const createGetRuntimeChanges = (
     return [...left, ...right]
   }
 
-  return async (blocks: Array<string>): Promise<Array<string>> => {
-    if (blocks.length < 2) return blocks
+  return async (blocks: Array<string>): Promise<Array<[string, string]>> => {
+    const [initialBlock] = blocks
+    if (blocks.length === 1)
+      return [[initialBlock, await getCodeHash(initialBlock)]]
 
     const lastIdx = blocks.length - 1
-    const [initialBlock] = blocks
     const lastBlock = blocks[lastIdx]
 
     const [firstId, lastId] = await Promise.all(
       [initialBlock, lastBlock].map(getCodeHash),
     )
-    if (firstId === lastId) return [blocks[0]]
+    if (firstId === lastId) return [[initialBlock, firstId]]
 
     return getRuntimeChanges(
       blocks,
@@ -81,7 +86,37 @@ const createGetRuntimeChanges = (
   }
 }
 
-const withInitializedNumber = (
+const withAwaited =
+  <I, O>(mapper: (input: I) => Promise<O> | null | undefined | void) =>
+  (base: Observable<I>) =>
+    new Observable<I | O>((observer) => {
+      let pending: Array<I> | null = null
+      const next = (v: I) => pending?.push(v) || evaluateValue(v)
+      const evaluateValue = (v: I) => {
+        const res = mapper(v)
+        if (res) {
+          pending = []
+          res.then(
+            (o) => {
+              const copy = [...pending!]
+              pending = null
+              if (!observer.closed) {
+                observer.next(o)
+                copy.forEach(next)
+              }
+            },
+            (e) => observer.closed || observer.error(e),
+          )
+        } else observer.next(v)
+      }
+      return base.subscribe({
+        next,
+        error: (e) => observer.error(e),
+        complete: () => observer.complete(),
+      })
+    })
+
+const withEnhancedFollow = (
   getFollower: () => FollowResponse,
   getCodeHash: (block: string) => Promise<string>,
 ) => {
@@ -89,55 +124,38 @@ const withInitializedNumber = (
   const getRawHeader = (blockHash: HexString) => getFollower().header(blockHash)
   const hasher$ = new ReplaySubject<Hasher>(1)
 
-  const operator = (source$: Observable<FollowEventWithRuntime>) =>
-    new Observable<EnhancedFollowEventWithRuntime>((observer) => {
-      let pending: Array<EnhancedFollowEventWithRuntime> | null = null
-      return source$.subscribe({
-        next(event) {
-          if (event.type === "initialized") {
-            pending = []
-            const [blockHash] = event.finalizedBlockHashes
-            Promise.all([
-              getRawHeader(blockHash),
-              getRuntimeChanges(event.finalizedBlockHashes),
-            ])
-              .then(([rawHeader, changes]) => {
-                if (!hasher$.closed) {
-                  hasher$.next(getHasherFromHeader(rawHeader, blockHash))
-                  hasher$.complete()
-                }
-                const header = blockHeader.dec(rawHeader)
-                if (!observer.closed) {
-                  observer.next({
-                    type: "initialized",
-                    finalizedBlockHashes: event.finalizedBlockHashes,
-                    runtimeChanges: new Set(changes),
-                    number: header.number,
-                    parentHash: header.parentHash,
-                    hasNewRuntime: header.digests.some(
-                      (d) => d.type === "runtimeUpdated",
-                    ),
-                  })
-                  pending!.forEach((e) => {
-                    observer.next(e)
-                  })
-                  pending = null
-                }
-              })
-              .catch((e) => {
-                if (!observer.closed) observer.error(e)
-              })
-          } else if (pending) pending.push(event)
-          else observer.next(event)
-        },
-        error(e) {
-          observer.error(e)
-        },
-        complete() {
-          observer.complete()
-        },
+  const operator = withAwaited((event: FollowEventWithRuntime) => {
+    if (event.type === "initialized") {
+      const [blockHash] = event.finalizedBlockHashes
+      return Promise.all([
+        getRawHeader(blockHash),
+        getRuntimeChanges(event.finalizedBlockHashes),
+      ]).then(([rawHeader, changes]) => {
+        if (!hasher$.closed) {
+          hasher$.next(getHasherFromHeader(rawHeader, blockHash))
+          hasher$.complete()
+        }
+        const { number, parentHash, digests } = blockHeader.dec(rawHeader)
+        return {
+          type: "initialized",
+          finalizedBlockHashes: event.finalizedBlockHashes,
+          runtimeChanges: new Map(changes),
+          number,
+          parentHash,
+          hasNewRuntime: digests.some((d) => d.type === "runtimeUpdated"),
+        }
       })
-    })
+    }
+
+    if (event.type === "newBlock" && event.newRuntime)
+      return getCodeHash(event.blockHash).then((codeHash) => ({
+        ...event,
+        codeHash,
+      }))
+    return
+  }) as (
+    b: Observable<FollowEventWithRuntime>,
+  ) => Observable<EnhancedFollowEventWithRuntime>
 
   return {
     getHeader: (blockHash: HexString) =>
@@ -165,7 +183,7 @@ export const getFollow$ = (chainHead: ChainHead) => {
       null,
     ) as Promise<string>
 
-  const { hasher$, operator, getHeader } = withInitializedNumber(
+  const { hasher$, operator, getHeader } = withEnhancedFollow(
     getFollower,
     getCodeHash,
   )
@@ -226,6 +244,6 @@ const retryChainHeadError =
 
 export type FollowEvent =
   | ObservedValueOf<
-      ReturnType<ReturnType<typeof withInitializedNumber>["operator"]>
+      ReturnType<ReturnType<typeof withEnhancedFollow>["operator"]>
     >
   | { type: "stop-error" }
