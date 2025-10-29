@@ -46,6 +46,21 @@ const prefixBytesToNumber = (bytes: Uint8Array) => {
   return dv.byteLength === 1 ? dv.getUint8(0) : dv.getUint16(0)
 }
 
+const withSs58Cache = (fn: (publicKey: Uint8Array) => SS58String) => {
+  let cache: Record<number, any> = {}
+  let token: any
+  return (publicKey: Uint8Array): SS58String => {
+    if (publicKey.length !== 32) throw null
+
+    clearTimeout(token)
+    token = setTimeout(() => (cache = {}), 0)
+
+    let entry = cache
+    for (let i = 0; i < 31; i++) entry = entry[publicKey[i]] ||= {}
+    return (entry[publicKey[31]] ||= fn(publicKey))
+  }
+}
+
 export const fromBufferToBase58 = (ss58Format: number) => {
   const prefixBytes =
     ss58Format < 64
@@ -55,7 +70,7 @@ export const fromBufferToBase58 = (ss58Format: number) => {
           (ss58Format >> 8) | ((ss58Format & 0b0000_0000_0000_0011) << 6),
         )
 
-  return (publicKey: Uint8Array): SS58String => {
+  return withSs58Cache((publicKey: Uint8Array): SS58String => {
     const checksum = blake2b(
       Uint8Array.of(...SS58_PREFIX, ...prefixBytes, ...publicKey),
       {
@@ -65,5 +80,5 @@ export const fromBufferToBase58 = (ss58Format: number) => {
     return base58.encode(
       Uint8Array.of(...prefixBytes, ...publicKey, ...checksum),
     )
-  }
+  })
 }
