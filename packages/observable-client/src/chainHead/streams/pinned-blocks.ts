@@ -151,9 +151,11 @@ export const getPinnedBlocks$ = (
 
           const lastIdx = event.finalizedBlockHashes.length - 1
           // We must take into account that the new subscription could be behind the previous one
-          if (latestFinalizedHeight < event.number + lastIdx)
+          if (latestFinalizedHeight > event.number + lastIdx) {
+            acc.recovering = { type: "fin", target: latestFinalizedHeight }
+          } else {
             acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
-          else acc.recovering = { type: "fin", target: latestFinalizedHeight }
+          }
 
           let latestRuntime = acc.finalizedRuntime.at
 
