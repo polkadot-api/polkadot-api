@@ -40,6 +40,10 @@ describe("observableClient chainHead", () => {
         initialized.finalizedBlockHashes[0],
         encodeHeader(header),
       )
+      await mockClient.chainHead.mock.storage.reply(
+        initialized.finalizedBlockHashes[0],
+        "0x010203",
+      )
 
       // finalized does some `.then()` to map values, so you won't get it immediately, but within the same macro task.
       await waitMicro()
@@ -234,7 +238,7 @@ describe("observableClient chainHead", () => {
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       const bodyObserver = observe(chainHead.body$(initialHash))
 
-      const initialCalls = 1
+      const initialCalls = 2
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
         initialHash,
@@ -288,7 +292,7 @@ describe("observableClient chainHead", () => {
       )
       observe(chainHead.body$(initialHash))
 
-      const initialCalls = 2
+      const initialCalls = 3
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
@@ -347,7 +351,7 @@ describe("observableClient chainHead", () => {
       observe(chainHead.body$(initialHash))
       observe(chainHead.call$(newBlocks[0].blockHash, "firstCall", ""))
 
-      const initialCalls = 1
+      const initialCalls = 2
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
@@ -394,7 +398,7 @@ describe("observableClient chainHead", () => {
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       observe(chainHead.body$(initialHash))
 
-      const initialCalls = 1
+      const initialCalls = 2
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         initialHash,
@@ -419,7 +423,7 @@ describe("observableClient chainHead", () => {
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       const bodyObserver = observe(chainHead.body$(initialHash))
 
-      const initialCalls = 1
+      const initialCalls = 2
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
       await mockClient.chainHead.mock.call.reply(
         initialHash,

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- The key of `PinnedBlocks.runtimes` is now the code-hash of the runtime.
+
 ### Fixed
 
 - Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.

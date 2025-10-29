@@ -231,7 +231,6 @@ describe("observableClient stopError recovery", () => {
 
     const { initialHash } = await initialize(mockClient)
     const runtimeObs = observe(chainHead.runtime$.pipe(filter(Boolean)))
-    await mockClient.chainHead.mock.storage.reply(initialHash, "0x000000")
     expect(mockClient.chainHead.mock.call).toHaveBeenCalledOnce()
 
     expect(runtimeObs.next).not.toHaveBeenCalled()
@@ -281,10 +280,7 @@ describe("observableClient stopError recovery", () => {
       bestBlockHash: newBlock.blockHash,
     })
 
-    await mockClient.chainHead.mock.call.reply(
-      newBlock.blockHash,
-      await metadataHex,
-    )
+    await mockClient.chainHead.mock.call.reply(initialHash, await metadataHex)
   })
 
   it("recovers after a stop error happens while recovering from another stop event", async () => {

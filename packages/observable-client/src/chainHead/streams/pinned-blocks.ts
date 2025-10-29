@@ -1,5 +1,4 @@
 import { shareLatest } from "@/utils"
-import { HexString } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   Observer,
@@ -58,15 +57,6 @@ export const toBlockInfo = ({
   hasNewRuntime,
 })
 
-const createRuntimeGetter = (pinned: PinnedBlocks, startAt: HexString) => {
-  return () => {
-    const runtime = pinned.runtimes[startAt]
-    if (!runtime) return pinned.blocks.has(startAt) ? startAt : null
-    const winner = [...runtime.usages].at(-1)
-    return winner ?? null
-  }
-}
-
 const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
   blocks.get(blocks.get(blockHash)!.parent)?.children.delete(blockHash)
   blocks.delete(blockHash)
@@ -92,7 +82,6 @@ const deleteBlocks = (blocks: PinnedBlocks, toDelete: string[]) => {
 export const getPinnedBlocks$ = (
   follow$: Observable<FollowEvent>,
   call$: (hash: string, method: string, args: string) => Observable<string>,
-  getCodeHash$: (blockHash: string) => Observable<string>,
   getCachedMetadata$: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
   blockUsage$: Subject<BlockUsageEvent>,
@@ -157,7 +146,7 @@ export const getPinnedBlocks$ = (
             acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
           }
 
-          let latestRuntime = acc.finalizedRuntime.at
+          let latestRuntime = acc.finalizedRuntime.codeHash
 
           const newBlocks: Array<PinnedBlock> = []
           event.finalizedBlockHashes.forEach((hash, i) => {
@@ -170,9 +159,11 @@ export const getPinnedBlocks$ = (
             } else {
               const number = event.number + i
               const isNew = number > latestFinalizedHeight
+
+              const codeHash = event.runtimeChanges.get(hash)
               const requiresFromNewRuntime =
-                event.runtimeChanges.has(hash) && !acc.runtimes[hash] && isNew
-              if (requiresFromNewRuntime) latestRuntime = hash
+                codeHash && !acc.runtimes[codeHash] && isNew
+              if (requiresFromNewRuntime) latestRuntime = codeHash
               const parent =
                 i === 0 ? event.parentHash : event.finalizedBlockHashes[i - 1]
 
@@ -194,8 +185,9 @@ export const getPinnedBlocks$ = (
               acc.blocks.set(hash, block)
               // it must happen after setting the block
               if (requiresFromNewRuntime)
-                acc.finalizedRuntime = acc.runtimes[hash] = getRuntime(
-                  createRuntimeGetter(acc, hash),
+                acc.finalizedRuntime = acc.runtimes[codeHash] = getRuntime(
+                  codeHash,
+                  hash,
                 )
               acc.runtimes[latestRuntime].usages.add(hash)
               if (isNew) newBlocks.push(block)
@@ -233,9 +225,8 @@ export const getPinnedBlocks$ = (
             }
             acc.blocks.set(hash, block)
             if (event.newRuntime) {
-              // getRuntime calls getHash immediately
-              // it assumes pinnedBlocks.runtimes[hash] is empty and pinnedBlocks.blocks.has(hash)
-              acc.runtimes[hash] = getRuntime(createRuntimeGetter(acc, hash))
+              const { codeHash } = event
+              acc.runtimes[codeHash!] = getRuntime(codeHash!, hash)
             }
 
             acc.runtimes[block.runtime].addBlock(hash)
@@ -322,7 +313,6 @@ export const getPinnedBlocks$ = (
   )
   const getRuntime = getRuntimeCreator(
     withStopRecovery(pinnedBlocks$, call$, "pinned-blocks"),
-    withStopRecovery(pinnedBlocks$, getCodeHash$, "pinned-blocks"),
     getCachedMetadata$,
     setCachedMetadata,
   )
