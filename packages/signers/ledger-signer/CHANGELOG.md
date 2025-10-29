@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.12 - 2025-10-23
+
+### Fixed
+
+- Support Polkadot app 100.0.0 to 100.0.11 for ed25519 schema
+
 ## 0.2.1 to 0.2.11 - 2025-10-09
 
 ### Fixed

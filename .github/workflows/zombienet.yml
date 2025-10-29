@@ -36,9 +36,10 @@ jobs:
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v4
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+          cache: pnpm
       - name: Install deps
         run: pnpm install
       - name: Build core
@@ -69,7 +70,7 @@ jobs:
         working-directory: integration-tests/zombie-tests
       - name: Store logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Logs
           path: integration-tests/zombie-tests/${{matrix.version}}*
