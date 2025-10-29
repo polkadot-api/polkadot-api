@@ -48,10 +48,20 @@ const prefixBytesToNumber = (bytes: Uint8Array) => {
 
 const withSs58Cache = (fn: (publicKey: Uint8Array) => SS58String) => {
   let cache: Record<number, any> = {}
-  let token: any
+  let activityCount = 0
+  let latestCount = 0
+  const checkActivity = () => {
+    if (activityCount === latestCount) {
+      cache = {}
+      activityCount = latestCount = 0
+    } else {
+      latestCount = activityCount
+      setTimeout(checkActivity, 0)
+    }
+  }
+
   return (publicKey: Uint8Array): SS58String => {
-    clearTimeout(token)
-    token = setTimeout(() => (cache = {}), 0)
+    if (++activityCount === 1) checkActivity()
 
     let entry = cache
     const lastIdx = publicKey.length - 1
