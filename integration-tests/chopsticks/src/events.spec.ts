@@ -5,7 +5,7 @@ import { createBlock, getChopsticksProvider } from "./chopsticks"
 
 describe("events", () => {
   it(".watch() reports events after awaiting for the initial block", async () => {
-    const client = createClient(getChopsticksProvider())
+    const client = createClient(getChopsticksProvider("events"))
     const api = client.getTypedApi(paseo)
 
     const testFn = vi.fn()

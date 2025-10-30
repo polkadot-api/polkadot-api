@@ -5,7 +5,7 @@ import { getChopsticksProvider } from "./chopsticks"
 
 describe("compatibility API", () => {
   it("allows checking for non-existing entries", async () => {
-    const client = createClient(getChopsticksProvider())
+    const client = createClient(getChopsticksProvider("compatibility_api"))
     const api = await client.getTypedApi(paseo).getStaticApis()
 
     // Use case is when you have a union of different `typedApi`, you might want to check which one is compatible with a specific case
