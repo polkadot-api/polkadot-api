@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `isStorageKeyCompatible` to check for compatibility on storage keys.
+
 ## 0.3.1 to 0.3.7 - 2025-10-09
 
 ### Fixed
