@@ -7,6 +7,7 @@ import {
   TypedefCodec,
   TypedefNode,
   entryPointsAreCompatible,
+  isStorageKeyCompatible,
   mapLookupToTypedef,
   valueIsCompatibleWithDest,
 } from "@polkadot-api/metadata-compatibility"
@@ -256,6 +257,18 @@ export const compatibilityHelper = (
       values,
     )
   }
+  const storageKeysAreCompatible = (ctx: RuntimeContext, keys: unknown[]) => {
+    const entryPoint = getRuntimeEntryPoint(ctx)
+    if (entryPoint == null) return false
+
+    const getNode = (id: number) => getRuntimeTypedef(ctx, id)
+    const destNode =
+      entryPoint.args.type === "lookup"
+        ? getNode(entryPoint.args.value)
+        : entryPoint.args.value
+
+    return isStorageKeyCompatible(keys, destNode, getNode)
+  }
 
   return {
     isCompatible,
@@ -267,6 +280,7 @@ export const compatibilityHelper = (
     argsAreCompatible,
     valuesAreCompatible,
     getRuntimeTypedef,
+    storageKeysAreCompatible,
   }
 }
 export type CompatibilityHelper = ReturnType<typeof compatibilityHelper>

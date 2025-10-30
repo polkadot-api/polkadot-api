@@ -258,6 +258,7 @@ export const createStorageEntry = (
     getCompatibilityLevels,
     descriptors: descriptorsPromise,
     argsAreCompatible,
+    storageKeysAreCompatible,
     valuesAreCompatible,
   }: CompatibilityHelper,
 ): StorageEntry<any, any, any, any, any> => {
@@ -327,7 +328,7 @@ export const createStorageEntry = (
               args.length === codecs.len ? args : args.slice(0, -1)
             if (args !== actualArgs && !isLastArgOptional)
               throw invalidArgs(args)
-            if (!argsAreCompatible(descriptors, ctx, actualArgs))
+            if (!storageKeysAreCompatible(ctx, actualArgs))
               throw incompatibleError()
             return codecs.keys.enc(...actualArgs)
           },
@@ -336,7 +337,7 @@ export const createStorageEntry = (
             const codecs = getCodec(ctx)
             const mapped =
               data === null ? codecs.fallback : codecs.value.dec(data)
-            if (!valuesAreCompatible(descriptors, ctx, mapped))
+            if (data !== null && !valuesAreCompatible(descriptors, ctx, mapped))
               throw incompatibleError()
             return { raw: data, mapped }
           },
