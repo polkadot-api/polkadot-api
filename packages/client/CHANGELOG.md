@@ -5,6 +5,7 @@
 ### Fixed
 
 - Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
+- Compatibility check on non-existent runtime APIs and view functions.
 
 ## 1.20.0 - 2025-10-09
 

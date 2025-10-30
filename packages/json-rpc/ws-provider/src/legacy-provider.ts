@@ -53,6 +53,7 @@ export const getLegacyWsProvider = (
         onStatusChanged,
         timeout,
         innerEnhancer,
+        heartbeatTimeout,
       },
     )
   }
