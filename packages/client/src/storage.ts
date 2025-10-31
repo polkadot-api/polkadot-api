@@ -16,9 +16,11 @@ import {
   Observable,
   OperatorFunction,
   catchError,
+  combineLatest,
   combineLatestWith,
   distinctUntilChanged,
   filter,
+  firstValueFrom,
   from,
   identity,
   map,
@@ -27,16 +29,10 @@ import {
   shareReplay,
   take,
 } from "rxjs"
-import {
-  CompatibilityFunctions,
-  CompatibilityHelper,
-  CompatibilityToken,
-  getCompatibilityApi,
-  minCompatLevel,
-  RuntimeToken,
-} from "./compatibility"
 import { createWatchEntries } from "./watch-entries"
 import { PullOptions } from "./types"
+import { InOutCompat } from "./compatibility"
+import { stgGetKey } from "./utils/stg-get-key"
 
 type WithCallOptions<Args extends Array<any>> = [
   ...args: Args,
@@ -67,56 +63,18 @@ type ArrayPossibleParents<
       : ArrayPossibleParents<A, [...Count, T], R | Count>
   : never
 
-type GetKey<Args extends Array<any>, Unsafe> = Unsafe extends true
-  ? {
-      /**
-       * Get the storage-key for this storage entry.
-       *
-       * @param args  All keys needed for that storage entry.
-       * @returns Promise that will resolve the hexadecimal value of the
-       *          storage key.
-       */
-      (...args: AllPermutations<Args>): Promise<HexString>
-      /**
-       * Get the storage-key for this storage entry.
-       *
-       * @param ...args       All keys needed for that storage entry.
-       * @param runtimeToken  Token from got with `await
-       *                      typedApi.runtimeToken`
-       * @returns Synchronously returns the hexadecimal value of the
-       *          storage key.
-       */
-      (
-        ...args: [...AllPermutations<Args>, runtimeToken: RuntimeToken]
-      ): HexString
-    }
-  : {
-      /**
-       * Get the storage-key for this storage entry.
-       *
-       * @param args  All keys needed for that storage entry.
-       * @returns Promise that will resolve the hexadecimal value of the
-       *          storage key.
-       */
-      (...args: AllPermutations<Args>): Promise<HexString>
-      /**
-       * Get the storage-key for this storage entry.
-       *
-       * @param ...args             All keys needed for that storage entry.
-       * @param compatibilityToken  Token from got with `await
-       *                            typedApi.compatibilityToken`
-       * @returns Synchronously returns the hexadecimal value of the
-       *          storage key.
-       */
-      (
-        ...args: [
-          ...AllPermutations<Args>,
-          compatibilityToken: CompatibilityToken,
-        ]
-      ): HexString
-    }
+type GetKey<Args extends Array<any>> = {
+  /**
+   * Get the storage-key for this storage entry.
+   *
+   * @param args  All keys needed for that storage entry.
+   * @returns Promise that will resolve the hexadecimal value of the
+   *          storage key.
+   */
+  (...args: AllPermutations<Args>): Promise<HexString>
+}
 
-type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
+type StorageEntryWithoutKeys<Payload> = {
   /**
    * Get `Payload` (Promise-based) for the storage entry.
    *
@@ -131,12 +89,10 @@ type StorageEntryWithoutKeys<Unsafe, D, Payload> = {
    *                 or `finalized` (default)
    */
   watchValue: (options?: { at: "best" | "finalized" }) => Observable<Payload>
-  getKey: GetKey<[], Unsafe>
-} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
+  getKey: GetKey<[]>
+}
 
 export type StorageEntryWithKeys<
-  Unsafe,
-  D,
   Args extends Array<any>,
   Payload,
   ArgsOut extends Array<any>,
@@ -227,18 +183,16 @@ export type StorageEntryWithKeys<
     entries: Array<{ args: ArgsOut; value: NonNullable<Payload> }>
   }>
 
-  getKey: GetKey<Args, Unsafe>
-} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
+  getKey: GetKey<Args>
+}
 
 export type StorageEntry<
-  Unsafe,
-  D,
   Args extends Array<any>,
   ArgsOut extends Array<any>,
   Payload,
 > = Args extends []
-  ? StorageEntryWithoutKeys<Unsafe, D, Payload>
-  : StorageEntryWithKeys<Unsafe, D, Args, Payload, ArgsOut>
+  ? StorageEntryWithoutKeys<Payload>
+  : StorageEntryWithKeys<Args, Payload, ArgsOut>
 
 export type Storage$ = <Type extends StorageItemInput["type"]>(
   hash: string | null,
@@ -253,16 +207,8 @@ export const createStorageEntry = (
   name: string,
   chainHead: ChainHead$,
   getWatchEntries: ReturnType<typeof createWatchEntries>,
-  {
-    isCompatible,
-    getCompatibilityLevel,
-    getCompatibilityLevels,
-    descriptors: descriptorsPromise,
-    argsAreCompatible,
-    storageKeysAreCompatible,
-    valuesAreCompatible,
-  }: CompatibilityHelper,
-): StorageEntry<any, any, any, any, any> => {
+  compatibility: InOutCompat,
+): StorageEntry<any, any, any> => {
   const isSystemNumber = pallet === "System" && name === "Number"
   const isBlockHash = pallet === "System" && name === "BlockHash"
   const sysNumberMapper$ = chainHead.runtime$.pipe(
@@ -320,28 +266,33 @@ export const createStorageEntry = (
     const { at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const result$ = from(descriptorsPromise).pipe(
-      mergeMap((descriptors) =>
+    const result$ = from(compatibility).pipe(
+      mergeMap((getCompatibility) =>
         chainHead.storage$(
           at,
           "value",
           (ctx) => {
             const codecs = getCodec(ctx)
+            const compat = getCompatibility(ctx)
             const actualArgs =
               args.length === codecs.len ? args : args.slice(0, -1)
             if (args !== actualArgs && !isLastArgOptional)
               throw invalidArgs(args)
-            if (!storageKeysAreCompatible(ctx, actualArgs))
+
+            if (!compat.args.isValueCompatible(actualArgs))
               throw incompatibleError()
+
             return codecs.keys.enc(...actualArgs)
           },
           null,
           (data, ctx) => {
             const codecs = getCodec(ctx)
+            const {
+              value: { isValueCompatible: isCompat },
+            } = getCompatibility(ctx)
             const mapped =
               data === null ? codecs.fallback : codecs.value.dec(data)
-            if (data !== null && !valuesAreCompatible(descriptors, ctx, mapped))
-              throw incompatibleError()
+            if (!isCompat(mapped)) throw incompatibleError()
             return { raw: data, mapped }
           },
         ),
@@ -397,18 +348,15 @@ export const createStorageEntry = (
     const { signal, at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const result$ = from(descriptorsPromise).pipe(
-      mergeMap((descriptors) =>
+    const result$ = from(compatibility).pipe(
+      mergeMap((getCompatibility) =>
         chainHead.storage$(
           at,
           "descendantsValues",
           (ctx) => {
+            const compat = getCompatibility(ctx)
             const codecs = getCodec(ctx)
-            // TODO partial compatibility check for args that become optional
-            if (
-              minCompatLevel(getCompatibilityLevels(descriptors, ctx)) ===
-              CompatibilityLevel.Incompatible
-            )
+            if (!compat.isCompatible(CompatibilityLevel.Partial))
               throw incompatibleError()
 
             if (args.length > codecs.len) throw invalidArgs(args)
@@ -416,18 +364,25 @@ export const createStorageEntry = (
               args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
             if (args.length === codecs.len && actualArgs === args)
               throw invalidArgs(args)
+
+            // TODO: check for partial args
+            // if (!compat.args.isValueCompatible(args)) throw incompatibleError
+
             return codecs.keys.enc(...actualArgs)
           },
           null,
           (values, ctx) => {
             const codecs = getCodec(ctx)
+            const compat = getCompatibility(ctx)
             const decodedValues = values.map(({ key, value }) => ({
               keyArgs: codecs.keys.dec(key),
               value: codecs.value.dec(value),
             }))
+            // TODO: check args compatibility with user
             if (
+              compat.value.level === CompatibilityLevel.Partial &&
               decodedValues.some(
-                ({ value }) => !valuesAreCompatible(descriptors, ctx, value),
+                ({ value }) => !compat.value.isValueCompatible(value),
               )
             )
               throw incompatibleError()
@@ -457,21 +412,22 @@ export const createStorageEntry = (
     )
   }
 
-  const getKey = (...args: Array<any>): Promise<string> | string => {
-    const token = args.at(-1)
-    if (token instanceof CompatibilityToken || token instanceof RuntimeToken) {
-      const actualArgs = args.slice(0, -1)
-      const ctx = getCompatibilityApi(token).runtime()
-      if (!argsAreCompatible(token, ctx, actualArgs)) throw incompatibleError()
-      return getCodec(ctx).keys.enc(...actualArgs)
-    }
-    return descriptorsPromise.then((x) => getKey(...args, x))
-  }
+  const getKey = (...args: Array<any>): Promise<string> =>
+    firstValueFrom(
+      combineLatest([chainHead.getRuntimeContext$(null), compatibility]).pipe(
+        map(([ctx, getCompat]) =>
+          stgGetKey(
+            ctx,
+            pallet,
+            name,
+            getCompat(ctx).args.isValueCompatible,
+          )(...args),
+        ),
+      ),
+    )
 
   return {
-    isCompatible,
-    getCompatibilityLevel,
-    getKey: getKey as GetKey<any, any>,
+    getKey: getKey as GetKey<any>,
     getValue,
     getValues,
     getEntries,

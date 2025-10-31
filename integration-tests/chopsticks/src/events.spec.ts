@@ -5,10 +5,10 @@ import { createBlock, getChopsticksProvider } from "./chopsticks"
 
 describe("events", () => {
   it(".watch() reports events after awaiting for the initial block", async () => {
-    const client = createClient(getChopsticksProvider())
+    const client = createClient(getChopsticksProvider("events"))
     const api = client.getTypedApi(paseo)
 
-    await api.compatibilityToken
+    await api.getStaticApis()
 
     const testFn = vi.fn()
     const completeFn = vi.fn()
@@ -21,9 +21,9 @@ describe("events", () => {
 
     await createBlock(client)
 
-    expect(testFn).toHaveBeenCalled()
-    expect(completeFn).not.toHaveBeenCalled()
     expect(errorFn).not.toHaveBeenCalled()
+    expect(completeFn).not.toHaveBeenCalled()
+    expect(testFn).toHaveBeenCalled()
 
     subscription.unsubscribe()
     client.destroy()

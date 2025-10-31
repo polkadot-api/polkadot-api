@@ -26,7 +26,7 @@ const client = createClient(
 const api = client.getTypedApi(wnd)
 
 const extrinsicDecoder$ = defer(() =>
-  api.apis.Metadata.metadata_at_version(15),
+  api.api.Metadata.metadata_at_version(15),
 ).pipe(map((metadata) => getExtrinsicDecoder(metadata!.asBytes())))
 
 client.finalizedBlock$

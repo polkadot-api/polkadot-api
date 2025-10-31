@@ -26,6 +26,7 @@ import {
 import { BlockNotPinnedError } from "../errors"
 import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
 import { createRuntimeCtx, getRawMetadata$ } from "@/utils"
+import { MetadataMaps } from "@/utils/mapped-metadata"
 
 export type SystemEvent = {
   phase:
@@ -50,6 +51,7 @@ export type Mortality =
 
 export interface RuntimeContext {
   metadataRaw: Uint8Array
+  mappedMeta: MetadataMaps
   lookup: MetadataLookup
   codeHash: HexString
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>

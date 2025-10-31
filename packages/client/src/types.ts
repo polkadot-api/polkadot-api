@@ -1,8 +1,11 @@
 import { BlockInfo } from "@polkadot-api/observable-client"
-import { BlockHeader, HexString } from "@polkadot-api/substrate-bindings"
+import {
+  Binary,
+  BlockHeader,
+  HexString,
+} from "@polkadot-api/substrate-bindings"
 import { ChainSpecData } from "@polkadot-api/substrate-client"
 import { Observable } from "rxjs"
-import { CompatibilityToken, RuntimeToken } from "./compatibility"
 import { ConstantEntry } from "./constants"
 import {
   ApisFromDef,
@@ -15,22 +18,20 @@ import {
 } from "./descriptors"
 import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
-import { StorageEntry, StorageEntryWithKeys } from "./storage"
+import { StorageEntry } from "./storage"
 import type {
   InnerTxEntry,
   OfflineTxEntry,
   TxBroadcastEvent,
   TxFinalizedPayload,
   TxFromBinary,
-  UnsafeTxEntry,
 } from "./tx"
 import { ViewFn } from "./viewFns"
+import { ArgsValueCompatHelper, CompatHelper } from "./compatibility"
 
 export type { ChainSpecData }
 
 export type StorageApi<
-  Unsafe,
-  D,
   A extends Record<
     string,
     Record<
@@ -53,8 +54,6 @@ export type StorageApi<
       IsOptional: false | true
     }
       ? StorageEntry<
-          Unsafe,
-          D,
           A[K][KK]["KeyArgs"],
           A[K][KK]["KeyArgsOut"],
           A[K][KK]["IsOptional"] extends true
@@ -65,39 +64,26 @@ export type StorageApi<
   }
 }
 
-export type RuntimeCallsApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-> = {
+export type RuntimeCallsApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
-      ? RuntimeCall<Unsafe, D, A[K][KK]["Args"], A[K][KK]["Value"]>
+      ? RuntimeCall<A[K][KK]["Args"], A[K][KK]["Value"]>
       : unknown
   }
 }
 
-export type ViewFnApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-> = {
+export type ViewFnApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
-      ? ViewFn<Unsafe, D, A[K][KK]["Args"], A[K][KK]["Value"]>
+      ? ViewFn<A[K][KK]["Args"], A[K][KK]["Value"]>
       : unknown
   }
 }
 
-export type TxApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-  Asset,
-> = {
+export type TxApi<A extends Record<string, Record<string, any>>, Asset> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? InnerTxEntry<Unsafe, D, A[K][KK], K & string, KK & string, Asset>
+      ? InnerTxEntry<A[K][KK], K & string, KK & string, Asset>
       : unknown
   }
 }
@@ -113,19 +99,15 @@ export type OfflineTxApi<
   }
 }
 
-export type EvApi<Unsafe, D, A extends Record<string, Record<string, any>>> = {
+export type EvApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: EvClient<Unsafe, D, A[K][KK]>
+    [KK in keyof A[K]]: EvClient<A[K][KK]>
   }
 }
 
-export type ConstApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-> = {
+export type ConstApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: ConstantEntry<Unsafe, D, A[K][KK]>
+    [KK in keyof A[K]]: ConstantEntry<A[K][KK]>
   }
 }
 
@@ -137,47 +119,87 @@ export type OfflineConstApi<A extends Record<string, Record<string, any>>> = {
 
 export type UnsafeElement<E> = Record<string, Record<string, E>>
 
-type UnsafeEntry<T> = Record<string, Record<string, T>>
+export type { CompatHelper, ArgsValueCompatHelper }
+export type CompatHelperApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends {} | undefined
+      ? CompatHelper<A[K][KK]>
+      : unknown
+  }
+}
 
-export type AnyApi<Unsafe extends true | false, D> = D extends ChainDefinition
-  ? {
-      query: StorageApi<
-        Unsafe,
-        D,
-        QueryFromPalletsDef<D["descriptors"]["pallets"]>
-      >
-      tx: TxApi<
-        Unsafe,
-        D,
-        TxFromPalletsDef<D["descriptors"]["pallets"]>,
-        D["asset"]["_type"]
-      >
-      txFromCallData: TxFromBinary<Unsafe, D["asset"]["_type"]>
-      event: EvApi<Unsafe, D, EventsFromPalletsDef<D["descriptors"]["pallets"]>>
-      apis: RuntimeCallsApi<Unsafe, D, ApisFromDef<D["descriptors"]["apis"]>>
-      constants: ConstApi<
-        Unsafe,
-        D,
-        ConstFromPalletsDef<D["descriptors"]["pallets"]>
-      >
-      view: ViewFnApi<
-        Unsafe,
-        D,
-        ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>
-      >
-    }
-  : {
-      query: UnsafeEntry<StorageEntryWithKeys<true, D, any, any, any>>
-      tx: UnsafeEntry<UnsafeTxEntry<D, any, string, string, any>>
-      txFromCallData: TxFromBinary<Unsafe, any>
-      event: UnsafeEntry<EvClient<true, D, any>>
-      apis: UnsafeEntry<RuntimeCall<true, D, any, any>>
-      constants: UnsafeEntry<ConstantEntry<true, D, any>>
-      view: UnsafeEntry<ViewFn<true, D, any, any>>
-    }
+export type InOutCompatHelperApi<
+  A extends Record<string, Record<string, any>>,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
+      ? ArgsValueCompatHelper<A[K][KK]["Args"], A[K][KK]["Value"]>
+      : unknown
+  }
+}
 
-export type TypedApi<D extends ChainDefinition> = AnyApi<false, D> & {
-  compatibilityToken: Promise<CompatibilityToken<D>>
+export type QueryCompatHelperApi<
+  A extends Record<string, Record<string, any>>,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends { KeyArgs: Array<any>; Value: any }
+      ? ArgsValueCompatHelper<A[K][KK]["KeyArgs"], A[K][KK]["Value"]>
+      : unknown
+  }
+}
+
+export type SyncTxApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends {} | undefined
+      ? { getCallData: (args: A[K][KK]) => Binary }
+      : unknown
+  }
+}
+
+export type SyncQueryApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends { KeyArgs: Array<any>; Value: any }
+      ? { getKey: (...args: A[K][KK]["Args"]) => HexString }
+      : unknown
+  }
+}
+
+export type StaticApis<D extends ChainDefinition, Safe> = {
+  id: HexString
+  decodeCallData: (callData: Binary) => {
+    pallet: string
+    name: string
+    input: any
+  }
+  const: ConstFromPalletsDef<D["descriptors"]["pallets"]>
+  tx: SyncTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
+  compat: Safe extends true
+    ? {
+        tx: CompatHelperApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
+        const: CompatHelperApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
+        api: InOutCompatHelperApi<ApisFromDef<D["descriptors"]["apis"]>>
+        view: InOutCompatHelperApi<
+          ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+        query: QueryCompatHelperApi<
+          QueryFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+        event: CompatHelperApi<
+          EventsFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+      }
+    : unknown
+}
+
+export type TypedApi<D extends ChainDefinition, Safe = true> = {
+  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>, D["asset"]["_type"]>
+  const: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
+  api: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
+  view: ViewFnApi<ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>>
+  query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
+  event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
+  txFromCallData: TxFromBinary<D["asset"]["_type"]>
+  getStaticApis: (options?: PullOptions) => Promise<StaticApis<D, Safe>>
 }
 
 export type OfflineApi<D extends ChainDefinition> = {
@@ -188,9 +210,6 @@ export type OfflineApi<D extends ChainDefinition> = {
   >
 }
 
-export type UnsafeApi<D> = AnyApi<true, D> & {
-  runtimeToken: Promise<RuntimeToken<D>>
-}
 export type TransactionValidityError<D extends ChainDefinition> =
   (D["descriptors"]["apis"]["TaggedTransactionQueue"]["validate_transaction"][1] & {
     success: false
@@ -333,7 +352,7 @@ export interface PolkadotClient {
    * what are they doing. This API does not provide any runtime compatibility
    * checks protection and the consumer should implement them on their own.
    */
-  getUnsafeApi: <D>() => UnsafeApi<D>
+  getUnsafeApi: <D extends ChainDefinition>() => TypedApi<D, false>
 
   /**
    * Returns a Promise that resolves into the encoded value of a storage entry

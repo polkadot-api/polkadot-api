@@ -4,11 +4,9 @@ import {
   entropyToMiniSecret,
   mnemonicToEntropy,
 } from "@polkadot-labs/hdkd-helpers"
-import { createClient } from "polkadot-api"
 import { getInkClient } from "polkadot-api/ink"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { createWsClient } from "polkadot-api/ws"
 
 const alice_mnemonic =
   "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
@@ -24,11 +22,7 @@ const ADDRESS = {
   psp22: "5F69jP7VwzCp6pGZ93mv9FkAhwnwz4scR4J9asNeSgFPUGLq",
 }
 
-const client = createClient(
-  withPolkadotSdkCompat(
-    getWsProvider("wss://aleph-zero-testnet-rpc.dwellir.com"),
-  ),
-)
+const client = createWsClient("wss://aleph-zero-testnet-rpc.dwellir.com")
 
 const typedApi = client.getTypedApi(testAzero)
 
@@ -38,7 +32,7 @@ const psp22 = getInkClient(contracts.psp22)
 // Storage query
 {
   console.log("Query storage of contract")
-  const storage = await typedApi.apis.ContractsApi.get_storage(
+  const storage = await typedApi.api.ContractsApi.get_storage(
     ADDRESS.escrow,
     escrow.storage().encode(),
   )
@@ -60,7 +54,7 @@ const psp22 = getInkClient(contracts.psp22)
   console.log("Query psp22 storage")
 
   const rootCodecs = psp22.storage()
-  let result = await typedApi.apis.ContractsApi.get_storage(
+  let result = await typedApi.api.ContractsApi.get_storage(
     ADDRESS.psp22,
     rootCodecs.encode(),
   )
@@ -70,7 +64,7 @@ const psp22 = getInkClient(contracts.psp22)
   )
 
   const lazyCodecs = psp22.storage("lazy")
-  result = await typedApi.apis.ContractsApi.get_storage(
+  result = await typedApi.api.ContractsApi.get_storage(
     ADDRESS.psp22,
     lazyCodecs.encode(),
   )
@@ -80,7 +74,7 @@ const psp22 = getInkClient(contracts.psp22)
   )
 
   const balancesCodecs = psp22.storage("data.balances")
-  result = await typedApi.apis.ContractsApi.get_storage(
+  result = await typedApi.api.ContractsApi.get_storage(
     ADDRESS.psp22,
     balancesCodecs.encode(ADDRESS.alice),
   )
@@ -90,7 +84,7 @@ const psp22 = getInkClient(contracts.psp22)
   )
 
   const vecLenCodecs = psp22.storage("vec.len")
-  result = await typedApi.apis.ContractsApi.get_storage(
+  result = await typedApi.api.ContractsApi.get_storage(
     ADDRESS.psp22,
     vecLenCodecs.encode(),
   )
@@ -100,7 +94,7 @@ const psp22 = getInkClient(contracts.psp22)
   )
 
   const vecCodecs = psp22.storage("vec")
-  result = await typedApi.apis.ContractsApi.get_storage(
+  result = await typedApi.api.ContractsApi.get_storage(
     ADDRESS.psp22,
     vecCodecs.encode(0),
   )
@@ -110,7 +104,7 @@ const psp22 = getInkClient(contracts.psp22)
   )
 
   const allowancesCodecs = psp22.storage("data.allowances")
-  result = await typedApi.apis.ContractsApi.get_storage(
+  result = await typedApi.api.ContractsApi.get_storage(
     ADDRESS.psp22,
     allowancesCodecs.encode([ADDRESS.alice, ADDRESS.alice]),
   )
@@ -129,7 +123,7 @@ const psp22 = getInkClient(contracts.psp22)
     spender: ADDRESS.psp22,
     delta_value: 1n,
   })
-  const response = await typedApi.apis.ContractsApi.call(
+  const response = await typedApi.api.ContractsApi.call(
     ADDRESS.alice,
     ADDRESS.psp22,
     0n,
@@ -166,7 +160,7 @@ const psp22 = getInkClient(contracts.psp22)
   console.log("Deposit 100 funds")
   const depositFunds = escrow.message("deposit_funds")
 
-  const result = await typedApi.apis.ContractsApi.call(
+  const result = await typedApi.api.ContractsApi.call(
     ADDRESS.alice,
     ADDRESS.escrow,
     100_000_000_000_000n,

@@ -36,7 +36,7 @@ const multisigSigner = getMultisigSigner(
     ],
   },
   api.query.Multisig.Multisigs.getValue,
-  api.apis.TransactionPaymentApi.query_info,
+  api.api.TransactionPaymentApi.query_info,
   aliceSigner,
 )
 
