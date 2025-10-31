@@ -176,12 +176,12 @@ const createApi = <Unsafe extends true | false, D>(
       compatibilityHelper(
         compatibilityToken,
         (r) => r.getEntryPoint(OpType.Api, api, method),
-        (ctx) =>
-          runtimeCallEntryPoint(
-            ctx.lookup.metadata.apis
-              .find((a) => a.name === api)!
-              .methods.find((m) => m.name === method)!,
-          ),
+        (ctx) => {
+          const item = ctx.lookup.metadata.apis
+            .find((a) => a.name === api)
+            ?.methods.find((m) => m.name === method)
+          return item == null ? null : runtimeCallEntryPoint(item)
+        },
       ),
     ),
   )
@@ -193,12 +193,12 @@ const createApi = <Unsafe extends true | false, D>(
       compatibilityHelper(
         compatibilityToken,
         (r) => r.getEntryPoint(OpType.ViewFns, pallet, entry),
-        (ctx) =>
-          runtimeCallEntryPoint(
-            ctx.lookup.metadata.pallets
-              .find((a) => a.name === pallet)!
-              .viewFns.find((m) => m.name === entry)!,
-          ),
+        (ctx) => {
+          const item = ctx.lookup.metadata.pallets
+            .find((a) => a.name === pallet)
+            ?.viewFns.find((m) => m.name === entry)
+          return item == null ? null : runtimeCallEntryPoint(item)
+        },
       ),
     ),
   )

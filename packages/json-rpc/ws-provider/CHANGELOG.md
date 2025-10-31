@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## V2
 
 ### Changed
 
@@ -13,6 +13,12 @@
 
 - `middleware` option: it accepts any of the middlewares exposed from `@polkadot-api/ws-middleware`, or a custom one created from those (or not).
 - `logeger` option: it takes a strongly-typed logger callback.
+
+## Unreleased
+
+### Fixed
+
+- `heartbeatTimeout` option was not respected for `getLegacyWsProvider`
 
 ## 0.7.0 - 2025-10-09
 
