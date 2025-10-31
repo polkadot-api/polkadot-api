@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.5 - 2025-10-31
+
 ### Fixed
 
 - Perf improvement for AccountId decoder

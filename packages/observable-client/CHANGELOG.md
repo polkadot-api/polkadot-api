@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.0 - 2025-10-31
+
 ### Changed
 
 - The key of `PinnedBlocks.runtimes` is now the code-hash of the runtime.
