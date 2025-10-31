@@ -257,7 +257,12 @@ export const compatibilityHelper = (
       values,
     )
   }
-  const storageKeysAreCompatible = (ctx: RuntimeContext, keys: unknown[]) => {
+
+  const storageKeysAreCompatible = (
+    ctx: RuntimeContext,
+    keys: unknown[],
+    nKeysDest: number,
+  ) => {
     const entryPoint = getRuntimeEntryPoint(ctx)
     if (entryPoint == null) return false
 
@@ -267,7 +272,7 @@ export const compatibilityHelper = (
         ? getNode(entryPoint.args.value)
         : entryPoint.args.value
 
-    return isStorageKeyCompatible(keys, destNode, getNode)
+    return isStorageKeyCompatible(keys, nKeysDest, destNode, getNode)
   }
 
   return {
