@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.1 - 2025-10-31
+
 ### Fixed
 
 - `heartbeatTimeout` option was not respected for `getLegacyWsProvider`

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.20.1 - 2025-10-31
+
 ### Fixed
 
 - Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
