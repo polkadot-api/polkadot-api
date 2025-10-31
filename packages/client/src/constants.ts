@@ -11,7 +11,7 @@ export type ConstantEntry<T> = {
    *
    * @returns Promise that will resolve in the value of the constant.
    */
-  (ooptions?: PullOptions): Promise<T>
+  (options?: PullOptions): Promise<T>
 }
 
 export const createConstantEntry =

@@ -356,7 +356,7 @@ export const createStorageEntry = (
           (ctx) => {
             const compat = getCompatibility(ctx)
             const codecs = getCodec(ctx)
-            if (!compat.isApiCompatible(CompatibilityLevel.Partial))
+            if (!compat.isCompatible(CompatibilityLevel.Partial))
               throw incompatibleError()
 
             if (args.length > codecs.len) throw invalidArgs(args)

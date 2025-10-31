@@ -137,14 +137,10 @@ describe("E2E", async () => {
   console.log("got the static APIs")
 
   it.concurrent("unsafe API", async () => {
-    const {
-      const: {
-        Balances: { ExistentialDeposit: ed },
-      },
-    } = await client.getUnsafeApi<typeof roc>().getStaticApis()
+    const staticApi = await client.getUnsafeApi<typeof roc>().getStaticApis()
 
-    expect(typeof ed).toBe("bigint")
-    expect(ed).toEqual(ED)
+    expect(await api.const.Balances.ExistentialDeposit()).toEqual(ED)
+    expect(staticApi.const.Balances.ExistentialDeposit).toEqual(ED)
   })
 
   it.concurrent("reads from storage", async () => {

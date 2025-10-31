@@ -2,15 +2,15 @@
 
 ## V2
 
-### Fixed
-
-- # Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
-
 ### Added
 
 - Added new `mappedMeta` property into `RuntimeContext`
 
 ## Unreleased
+
+### Fixed
+
+- # Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
 
 ### Changed
 

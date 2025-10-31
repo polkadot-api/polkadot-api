@@ -21,13 +21,13 @@ import { withWeakCache } from "@/utils/with-weak-cache"
 export type CompatApi<T> = Promise<(ctx: RuntimeContext) => T>
 export type CompatHelper<T = any> = {
   level: CompatibilityLevel
-  isApiCompatible: (from?: CompatibilityLevel) => boolean
+  isCompatible: (from?: CompatibilityLevel) => boolean
   isValueCompatible: (dest: T) => boolean
 }
 export type ArgsValueCompatHelper<Args = any, Value = any> = {
   args: CompatHelper<Args>
   value: CompatHelper<Value>
-  isApiCompatible: (from?: CompatibilityLevel) => boolean
+  isCompatible: (from?: CompatibilityLevel) => boolean
 }
 export type ValueCompat = CompatApi<CompatHelper>
 export type InOutCompat = CompatApi<ArgsValueCompatHelper>
@@ -35,18 +35,18 @@ export type ConstCompat = Promise<(dest: any) => boolean>
 
 const incompatible: CompatHelper = {
   level: CompatibilityLevel.Incompatible,
-  isApiCompatible: () => false,
+  isCompatible: () => false,
   isValueCompatible: () => false,
 }
 const inOutIncompat: ArgsValueCompatHelper = {
   args: incompatible,
   value: incompatible,
-  isApiCompatible: () => false,
+  isCompatible: () => false,
 }
 
 const identical: CompatHelper = {
   level: CompatibilityLevel.Identical,
-  isApiCompatible: () => true,
+  isCompatible: () => true,
   isValueCompatible: () => true,
 }
 
@@ -88,7 +88,7 @@ const getCompatibilityHelper = <K extends OpType>(
         args: {
           level,
           isValueCompatible,
-          isApiCompatible: getIsApiCompatible(level),
+          isCompatible: getIsApiCompatible(level),
         },
         value: user ? incompatible : identical,
       }
@@ -107,7 +107,7 @@ const getCompatibilityHelper = <K extends OpType>(
         args: {
           level: args.level,
           isValueCompatible,
-          isApiCompatible: getIsApiCompatible(args.level),
+          isCompatible: getIsApiCompatible(args.level),
         },
         value:
           values.level === CompatibilityLevel.Incompatible
@@ -119,7 +119,7 @@ const getCompatibilityHelper = <K extends OpType>(
                     ? () => true
                     : (val) =>
                         valueIsCompatibleWithDest(userValues, user.getter, val),
-                isApiCompatible: getIsApiCompatible(values.level),
+                isCompatible: getIsApiCompatible(values.level),
               },
       }
     }
@@ -127,7 +127,7 @@ const getCompatibilityHelper = <K extends OpType>(
 
   if (kind === OpType.Storage || kind === OpType.Api || kind === OpType.ViewFns)
     return Object.assign(result, {
-      isApiCompatible: getIsApiCompatible(
+      isCompatible: getIsApiCompatible(
         Math.min(result.args.level, result.value.level),
       ),
     }) as any

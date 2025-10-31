@@ -10,8 +10,8 @@ describe("compatibility API", () => {
 
     // Use case is when you have a union of different `typedApi`, you might want to check which one is compatible with a specific case
     const entry = (api.compat.query.Balances as any).NonExistingThing
-    expect(await entry.isApiCompatible()).toBe(false)
-    expect(await entry.isApiCompatible(CompatibilityLevel.Partial)).toBe(false)
+    expect(await entry.isCompatible()).toBe(false)
+    expect(await entry.isCompatible(CompatibilityLevel.Partial)).toBe(false)
 
     client.destroy()
   })

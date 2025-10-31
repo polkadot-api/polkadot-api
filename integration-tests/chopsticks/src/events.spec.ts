@@ -8,6 +8,8 @@ describe("events", () => {
     const client = createClient(getChopsticksProvider("events"))
     const api = client.getTypedApi(paseo)
 
+    await api.getStaticApis()
+
     const testFn = vi.fn()
     const completeFn = vi.fn()
     const errorFn = vi.fn()

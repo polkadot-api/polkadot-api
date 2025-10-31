@@ -14,12 +14,12 @@ const testApi = client.getTypedApi(wnd)
 async function run() {
   const { compat, const: cnst } = await testApi.getStaticApis()
   const nominationsQuotaIsCompatible =
-    compat.api.StakingApi.nominations_quota.isApiCompatible()
+    compat.api.StakingApi.nominations_quota.isCompatible()
 
   console.log({ nominationsQuotaIsCompatible })
 
   const auctionEndingIsCompatible =
-    compat.const.Auctions.EndingPeriod.isApiCompatible()
+    compat.const.Auctions.EndingPeriod.isCompatible()
 
   console.log({ auctionEndingIsCompatible })
 
