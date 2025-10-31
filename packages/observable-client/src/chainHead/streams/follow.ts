@@ -16,7 +16,7 @@ import {
   ReplaySubject,
   Subscription,
   combineLatest,
-  from,
+  defer,
   map,
   mergeMap,
   noop,
@@ -96,7 +96,7 @@ const withEnhancedFollow = (
 ) => {
   const getRuntimeChanges = createGetRuntimeChanges(getCodeHash)
   const getRawHeader = (blockHash: HexString) =>
-    from(getFollower().header(blockHash))
+    defer(() => getFollower().header(blockHash))
   const hasher$ = new ReplaySubject<Hasher>(1)
 
   const getInnerObservables = (
