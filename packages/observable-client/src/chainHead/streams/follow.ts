@@ -16,7 +16,6 @@ import {
   ReplaySubject,
   Subscription,
   combineLatest,
-  firstValueFrom,
   from,
   map,
   mergeMap,
@@ -177,7 +176,7 @@ const withEnhancedFollow = (
 
   return {
     getHeader: (blockHash: HexString) =>
-      firstValueFrom(getRawHeader(blockHash)).then(blockHeader[1]),
+      getRawHeader(blockHash).pipe(map(blockHeader[1])),
     hasher$: hasher$.asObservable(),
     enhancer,
   }

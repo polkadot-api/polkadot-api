@@ -11,7 +11,6 @@ import {
   Observable,
   ReplaySubject,
   Subject,
-  defer,
   distinctUntilChanged,
   filter,
   identity,
@@ -339,11 +338,7 @@ export const getChainHead$ = (
 
   const header$ = withOptionalHash$(
     withInMemory(
-      withStopRecovery(
-        pinnedBlocks$,
-        (hash: string) => defer(() => getHeader(hash)),
-        "header",
-      ),
+      withStopRecovery(pinnedBlocks$, getHeader, "header"),
       "header",
     ),
   )
