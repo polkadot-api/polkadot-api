@@ -11,7 +11,6 @@ import {
   Observable,
   ReplaySubject,
   Subject,
-  defer,
   distinctUntilChanged,
   filter,
   identity,
@@ -73,10 +72,12 @@ export const getChainHead$ = (
   getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {
-  const { getFollower, unfollow, follow$, getHeader, hasher$ } =
-    getFollow$(chainHead)
-  const lazyFollower = withLazyFollower(getFollower)
   const { withRecovery, withRecoveryFn } = getWithRecovery()
+  const { getFollower, unfollow, follow$, getHeader, hasher$ } = getFollow$(
+    chainHead,
+    withRecoveryFn,
+  )
+  const lazyFollower = withLazyFollower(getFollower)
 
   const blockUsage$ = new Subject<BlockUsageEvent>()
 
@@ -337,11 +338,7 @@ export const getChainHead$ = (
 
   const header$ = withOptionalHash$(
     withInMemory(
-      withStopRecovery(
-        pinnedBlocks$,
-        (hash: string) => defer(() => getHeader(hash)),
-        "header",
-      ),
+      withStopRecovery(pinnedBlocks$, getHeader, "header"),
       "header",
     ),
   )

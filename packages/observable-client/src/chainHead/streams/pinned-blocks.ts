@@ -197,6 +197,9 @@ export const getPinnedBlocks$ = (
           return acc
 
         case "stop-error":
+          // if the stop-error happened during the initialization process
+          if (!acc.best) return acc
+
           for (const block of acc.blocks.values()) {
             block.recovering = true
           }
