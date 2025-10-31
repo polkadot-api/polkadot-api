@@ -328,7 +328,7 @@ export const createStorageEntry = (
               args.length === codecs.len ? args : args.slice(0, -1)
             if (args !== actualArgs && !isLastArgOptional)
               throw invalidArgs(args)
-            if (!storageKeysAreCompatible(ctx, actualArgs))
+            if (!storageKeysAreCompatible(ctx, actualArgs, codecs.len))
               throw incompatibleError()
             return codecs.keys.enc(...actualArgs)
           },
