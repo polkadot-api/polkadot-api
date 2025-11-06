@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **WS Provider:**
+  - Immediate heartbeat disconnections if `heartbeatTimeout` is too large
+
 ## 1.20.1 - 2025-10-31
 
 ### Fixed
