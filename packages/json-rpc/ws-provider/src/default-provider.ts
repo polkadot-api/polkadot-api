@@ -145,6 +145,7 @@ export const getWsProvider = (
       return (onMessage, onHalt) => {
         let heartbeatToken: NodeJS.Timeout
         const heartbeat = () => {
+          if (heartbeatTimeout > MAX_HB_TIMEOUT) return
           clearTimeout(heartbeatToken)
 
           heartbeatToken = setTimeout(() => {
@@ -209,3 +210,5 @@ export const getWsProvider = (
 
   return Object.assign(result, { switch: switchFn, getStatus: () => status })
 }
+
+const MAX_HB_TIMEOUT = 2147483647
