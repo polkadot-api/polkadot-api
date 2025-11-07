@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Align compact type generation with PJS metadata
+
 ## 0.4.1 to 0.4.2 - 2025-10-31
 
 ### Fixed
