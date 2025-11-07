@@ -6,6 +6,8 @@
 
 - **WS Provider:**
   - Immediate heartbeat disconnections if `heartbeatTimeout` is too large
+- **Ink!:**
+  - Align compact type generation with PJS metadata
 
 ## 1.20.1 - 2025-10-31
 
