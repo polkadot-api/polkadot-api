@@ -11,6 +11,9 @@
   - Immediate heartbeat disconnections if `heartbeatTimeout` is too large
 - **Ink!:**
   - Align compact type generation with PJS metadata
+- **Chains:**:
+  - Update `lightSyncState`
+  - Remove faulty bootnodes
 
 ## 1.20.1 - 2025-10-31
 
