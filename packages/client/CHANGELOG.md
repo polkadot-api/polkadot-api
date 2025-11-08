@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Archive requests not resolving
 - **WS Provider:**
   - Immediate heartbeat disconnections if `heartbeatTimeout` is too large
 - **Ink!:**

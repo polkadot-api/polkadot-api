@@ -403,7 +403,7 @@ export const getChainHead$ = (
   })
 
   const getRuntime$ = (codeHash: string): Observable<RuntimeContext | null> =>
-    pinnedBlocks$.state.runtimes[codeHash].runtime ?? of(null)
+    pinnedBlocks$.state.runtimes[codeHash]?.runtime ?? of(null)
 
   const holdBlock = (blockHash: string | null, shouldThrow = false) => {
     let hash = blockHash || "finalized"
