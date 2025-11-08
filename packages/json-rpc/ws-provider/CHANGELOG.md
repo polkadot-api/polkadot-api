@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.2 - 2025-11-08
+
 ### Fixed
 
 - Immediate heartbeat disconnections if `heartbeatTimeout` is too large
