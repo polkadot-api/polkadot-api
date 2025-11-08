@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- `getRuntime$` throws an exception if the codehash isn't present
+
 ## 0.16.0 - 2025-10-31
 
 ### Changed
