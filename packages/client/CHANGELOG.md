@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.20.4 - 2025-11-11
+
+### Fixed
+
+- False incompatible storage entries with compound keys of the same type.
+
 ## 1.20.3 - 2025-11-11
 
 ### Fixed
