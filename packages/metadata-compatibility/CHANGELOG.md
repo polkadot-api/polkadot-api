@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.4.1 - 2025-11-11
+
+### Fixed
+
+- `isStorageKeyCompatible` returns incompatible with compound keys of the same type.
+
 ## 0.4.0 - 2025-10-31
 
 ### Added
