@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Handle re-entry issue on synchronous `onHalt` (and improve retry waiting time).
+
 ## 0.2.5 - 2025-10-09
 
 ### Fixed
