@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.7.3 - 2025-11-11
+
+### Fixed
+
+- Update dependencies
+
 ## 0.7.2 - 2025-11-08
 
 ### Fixed

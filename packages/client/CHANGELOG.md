@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.20.3 - 2025-11-11
+
+### Fixed
+
+- Fix edge-case issue that happens when a WebSocket connection fails synchronously.
+
 ## 1.20.2 - 2025-11-08
 
 ### Fixed
