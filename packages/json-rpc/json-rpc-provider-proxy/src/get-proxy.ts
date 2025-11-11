@@ -250,12 +250,13 @@ export const getProxy: ReconnectableJsonRpcConnection = (
       }
       state = {
         type: State.Connected,
-        connection: cb(onMsgFromProvider, onHalt),
+        connection: null as any,
         activeBroadcasts,
         pendingBroadcasts: new Map(),
         onGoingRequests,
         activeChainHeads,
       }
+      state.connection = cb(onMsgFromProvider, onHalt)
       activeBroadcasts.forEach((broadcast) => {
         if (state.type === State.Connected) {
           const id = getInternalId()
