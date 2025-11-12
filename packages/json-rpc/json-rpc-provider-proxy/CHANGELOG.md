@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.7 - 2025-11-12
+
 ### Fixed
 
 - Allow the consumer to call `onHalt` multiple times during its teardown logic.
