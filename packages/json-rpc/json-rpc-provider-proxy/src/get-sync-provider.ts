@@ -24,16 +24,20 @@ export const getSyncProvider =
             ).disconnect()
           } catch (_) {}
         } else
-          proxy.connect((onMsg, onHalt) =>
-            cb(onMsg, () => {
-              const diff = lastHalt - Date.now()
-              consecutiveHalts +=
-                diff > WAIT_BASE + getWaitTime() ? -consecutiveHalts : 1
-              lastHalt += diff
-              onHalt()
-              start()
-            }),
-          )
+          proxy.connect((onMsg, onHalt) => {
+            let isOn = true
+            return cb(onMsg, () => {
+              if (isOn) {
+                isOn = false
+                const diff = lastHalt - Date.now()
+                consecutiveHalts +=
+                  diff > WAIT_BASE + getWaitTime() ? -consecutiveHalts : 1
+                lastHalt += diff
+                onHalt()
+                start()
+              }
+            })
+          })
       }, start)
 
     const start = () => {
@@ -47,8 +51,9 @@ export const getSyncProvider =
       },
       disconnect: () => {
         clearTimeout(token)
-        proxy?.disconnect()
+        const disconnect = proxy?.disconnect || (() => {})
         proxy = null
+        disconnect()
       },
     }
   }

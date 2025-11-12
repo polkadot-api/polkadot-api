@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix teardown logic of ws and sm providers.
+
 ## 1.20.4 - 2025-11-11
 
 ### Fixed
