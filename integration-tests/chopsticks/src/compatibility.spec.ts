@@ -1,7 +1,7 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { CompatibilityLevel, createClient } from "polkadot-api"
 import { describe, expect, it } from "vitest"
-import { getChopsticksProvider } from "./chopsticks"
+import { getChopsticksProvider } from "./provider"
 
 describe("compatibility API", () => {
   it("allows checking for non-existing entries", async () => {

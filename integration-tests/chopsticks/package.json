@@ -10,11 +10,11 @@
     "build": "pnpm build-external",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "test": "vitest",
-    "server": "chopsticks --endpoint=wss://rpc.ibp.network/paseo --port=8132"
+    "test": "vitest"
   },
   "dependencies": {
-    "@acala-network/chopsticks": "^1.2.4",
+    "@acala-network/chopsticks-core": "^1.2.4",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "polkadot-api": "workspace:*",

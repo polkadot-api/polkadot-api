@@ -1,7 +1,8 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
 import { describe, expect, it, vi } from "vitest"
-import { createBlock, getChopsticksProvider } from "./chopsticks"
+import { createBlock } from "./chopsticks"
+import { getChopsticksProvider } from "./provider"
 
 describe("events", () => {
   it(".watch() reports events after awaiting for the initial block", async () => {

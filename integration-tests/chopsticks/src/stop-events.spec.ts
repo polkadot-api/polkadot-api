@@ -10,7 +10,7 @@ import {
 } from "rxjs"
 import { describe, expect, it, vitest } from "vitest"
 import "./chopsticks"
-import { ALICE, BOB, createBlock, getChopsticksProvider } from "./chopsticks"
+import { ALICE, BOB, createBlock } from "./chopsticks"
 import { newBlock } from "./chopsticksUtils"
 import {
   combineInterceptors,
@@ -20,6 +20,7 @@ import {
   providerInterceptor,
 } from "./providerInterceptor"
 import { wait } from "./utils"
+import { getChopsticksProvider } from "./provider"
 
 describe("Stop events", () => {
   it("reconnects after a stop event recovery fails", async () => {

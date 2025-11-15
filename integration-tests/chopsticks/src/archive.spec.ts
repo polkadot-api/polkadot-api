@@ -1,7 +1,8 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { createClient, HexString } from "polkadot-api"
 import { describe, expect, it } from "vitest"
-import { ALICE, getChopsticksProvider } from "./chopsticks"
+import { ALICE } from "./chopsticks"
+import { getChopsticksProvider } from "./provider"
 
 describe("archive", () => {
   it("loads information from past blocks", async () => {
