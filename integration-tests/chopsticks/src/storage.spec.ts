@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { ALICE, getChopsticksProvider } from "./chopsticks"
+import { ALICE } from "./chopsticks"
 import { createClient } from "polkadot-api"
 import { paseo } from "@polkadot-api/descriptors"
+import { getChopsticksProvider } from "./provider"
 
 describe("storage", () => {
   it("subscribes and decodes storage values", async () => {

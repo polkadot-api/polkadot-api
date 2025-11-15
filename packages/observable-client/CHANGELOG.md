@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Handle stop events that come prior to the first `bestBlockChanged` event.
+- Ensure that we don't emit block/best/finalized events before the stream is ready.
+
 ## 0.16.1 - 2025-11-08
 
 ### Fixed

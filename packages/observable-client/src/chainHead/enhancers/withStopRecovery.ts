@@ -1,56 +1,54 @@
-import { Observable, ObservedValueOf, Subscription } from "rxjs"
+import {
+  concat,
+  distinctUntilChanged,
+  endWith,
+  ignoreElements,
+  map,
+  NEVER,
+  Observable,
+  switchMap,
+  takeWhile,
+  throwError,
+} from "rxjs"
+import { PinnedBlocks, PinnedBlockState } from "../streams"
 import { BlockNotPinnedError } from "../errors"
-import { PinnedBlocks } from "../streams"
+import { BlockInfo } from "../chainHead"
 
 export function withStopRecovery<A extends Array<any>, T>(
-  blocks$: Observable<PinnedBlocks>,
+  pinned$: Observable<PinnedBlocks> & { state: PinnedBlocks },
   fn: (hash: string, ...args: A) => Observable<T>,
   label: string,
 ) {
   return (hash: string, ...args: A) => {
-    const source$ = fn(hash, ...args)
+    let block: BlockInfo | undefined
+    const getNonPinnedError = () => new BlockNotPinnedError(hash, label)
 
-    return new Observable<ObservedValueOf<typeof source$>>((observer) => {
-      let sourceSub: Subscription | null = null
-      let isSubscribed = false
-      const performSourceSub = () => {
-        isSubscribed = true
-        sourceSub = source$.subscribe({
-          next: (v) => observer.next(v),
-          error: (e) => observer.error(e),
-          complete: () => observer.complete(),
-        })
-        sourceSub.add(() => {
-          isSubscribed = false
-          sourceSub = null
-        })
-      }
+    const inner$ = fn(hash, ...args).pipe(
+      map((value) => ({ type: "val" as "val", value })),
+      endWith({ type: "end" as "end" }),
+    )
 
-      let isRecovering: PinnedBlocks["recovering"] = null
-      const blockSub = blocks$.subscribe({
-        next: (v) => {
-          const block = v.blocks.get(hash)
-          if (!block) {
-            // This branch used to conflict with BlockPrunedError, as the block might disappear when it gets pruned
-            // We can avoid this conflict by checking that we're actually recovering.
-            if (isRecovering) {
-              observer.error(new BlockNotPinnedError(hash, label))
-            }
-          } else if (block.recovering) {
-            // Pause while it's recovering, as we don't know if the block is there
-            sourceSub?.unsubscribe()
-          } else if (!isSubscribed) {
-            performSourceSub()
-          }
-          isRecovering = v.recovering
-        },
-        error: (e) => observer.error(e),
-      })
+    const waitForIt$ = pinned$.pipe(
+      takeWhile((x) => !x.blocks.has(hash)),
+      map((x) => {
+        if (x.blocks.get(x.finalized)!.number >= block!.number)
+          throw getNonPinnedError()
+      }),
+      ignoreElements(),
+    )
 
-      return () => {
-        blockSub.unsubscribe()
-        sourceSub?.unsubscribe()
-      }
-    })
+    return pinned$.pipe(
+      map((x) => x.state.type === PinnedBlockState.Ready),
+      distinctUntilChanged(),
+      switchMap((isReady) => {
+        if (!isReady) return NEVER
+        block ||= pinned$.state.blocks.get(hash)
+        return block
+          ? concat(waitForIt$, inner$)
+          : throwError(getNonPinnedError)
+      }),
+      takeWhile((x) => x.type === "val"),
+      map((x) => x.value),
+    )
   }
 }
