@@ -105,23 +105,27 @@ export const waitMicro = async (amount = 1) => {
 export const initialize = async (
   mockClient: MockSubstrateClient,
   overrides: Partial<InitializedWithRuntime> = newInitialized(),
+  height?: number,
+  codeHash?: string,
 ) => {
   const initialized = sendInitialized(mockClient, overrides)
-  const initialHash = initialized.finalizedBlockHashes.at(0)!
+  const [initialHash] = initialized.finalizedBlockHashes
+  codeHash ||= "0x010203"
 
-  const header = createHeader({
-    parentHash: newHash(),
-  })
+  const parentHash = newHash()
+  const header = createHeader(
+    Object.assign({ parentHash }, height ? { number: height } : {}),
+  )
   await mockClient.chainHead.mock.header.reply(
     initialHash,
     encodeHeader(header),
   )
 
-  await mockClient.chainHead.mock.storage.reply(initialHash, "0x010203")
+  await mockClient.chainHead.mock.storage.reply(initialHash, codeHash)
   if (initialized.finalizedBlockHashes.length > 1) {
     await mockClient.chainHead.mock.storage.reply(
       initialized.finalizedBlockHashes.at(-1)!,
-      "0x010203",
+      codeHash,
     )
   }
   // Wait a microtask, internally the code is mapping values through .then(), but it's guaranteed the result will come in the same macro task
@@ -131,6 +135,7 @@ export const initialize = async (
     initialHash,
     initialNumber: header.number,
     initialized,
+    parentHash,
     header,
   }
 }
@@ -149,30 +154,25 @@ export const metadataHex = metadataValue
 
 export const metadataVersions = toHex(Vector(u32).enc([14, 15]))
 
-export const initializeWithMetadata = async (
+export const setReady = async (
   mockClient: MockSubstrateClient,
-  overrides?: Partial<InitializedWithRuntime>,
+  bestBlockHash: string,
+  runtimeBlockHash?: string,
 ) => {
-  const result = await initialize(mockClient, overrides)
+  mockClient.chainHead.mock.call.mockRestore()
+  sendBestBlockChanged(mockClient, { bestBlockHash })
 
-  if (mockClient.chainHead.mock.storage.mock.lastCall)
-    await mockClient.chainHead.mock.storage.reply(
-      mockClient.chainHead.mock.storage.mock.lastCall[0],
-      "0x0000000",
-    )
-  mockClient.chainHead.mock.storage.mockClear()
+  runtimeBlockHash ||= bestBlockHash
+
+  await mockClient.chainHead.mock.call.reply(runtimeBlockHash, metadataVersions)
 
   await mockClient.chainHead.mock.call.reply(
-    result.initialHash,
-    metadataVersions,
-  )
-
-  await mockClient.chainHead.mock.call.reply(
-    result.initialHash,
+    runtimeBlockHash,
     await metadataHex,
   )
+  mockClient.chainHead.mock.call.mockRestore()
 
-  return { ...result, metadata: await metadataValue }
+  return { metadata: await metadataValue }
 }
 
 export const sendNewBlockBranch = (

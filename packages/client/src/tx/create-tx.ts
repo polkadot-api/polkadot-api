@@ -7,7 +7,6 @@ import {
   catchError,
   combineLatest,
   distinctUntilChanged,
-  filter,
   map,
   mergeMap,
   of,
@@ -139,7 +138,6 @@ const getNonce$ = (chainHead: ChainHead$, from: HexString) => {
     ).pipe(take(1))
 
   return chainHead.pinnedBlocks$.pipe(
-    filter((v) => !v.recovering && v.blocks.size > 0),
     take(1),
     map(({ blocks, best }) => {
       // Grab only the heads: those blocks above the best that don't have children and are not getting pruned

@@ -79,6 +79,7 @@ const createApi = <Unsafe extends true | false, D>(
     chainHead.storage$,
     chainHead.withRuntime,
   )
+
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,

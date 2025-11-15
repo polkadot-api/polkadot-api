@@ -48,7 +48,12 @@ import type {
   RuntimeContext,
   SystemEvent,
 } from "./streams"
-import { getFollow$, getPinnedBlocks$, toBlockInfo } from "./streams"
+import {
+  getFollow$,
+  getPinnedBlocks$,
+  PinnedBlockState,
+  toBlockInfo,
+} from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
 
@@ -211,8 +216,12 @@ export const getChainHead$ = (
     return result
   }
 
-  const finalized$ = pinnedBlocks$.pipe(
-    filter((x) => !x.recovering),
+  const readyBlocks$ = pinnedBlocks$.pipe(
+    filter((x) => x.state.type === PinnedBlockState.Ready),
+    shareLatest,
+  )
+
+  const finalized$ = readyBlocks$.pipe(
     distinctUntilChanged((a, b) => a.finalized === b.finalized),
     scan((acc, value) => {
       let current = value.blocks.get(value.finalized)!
@@ -233,14 +242,13 @@ export const getChainHead$ = (
     shareLatest,
   )
 
-  const best$ = pinnedBlocks$.pipe(
+  const best$ = readyBlocks$.pipe(
     distinctUntilChanged((a, b) => a.best === b.best),
     map((pinned) => toBlockInfo(pinned.blocks.get(pinned.best)!)),
     shareLatest,
   )
 
-  const bestBlocks$ = pinnedBlocks$.pipe(
-    filter((x) => !x.recovering),
+  const bestBlocks$ = readyBlocks$.pipe(
     distinctUntilChanged(
       (prev, current) =>
         prev.finalized === current.finalized && prev.best === current.best,
@@ -265,7 +273,7 @@ export const getChainHead$ = (
     shareLatest,
   )
 
-  const runtime$ = pinnedBlocks$.pipe(
+  const runtime$ = readyBlocks$.pipe(
     distinctUntilChanged((a, b) => a.finalizedRuntime === b.finalizedRuntime),
     switchMap(({ finalizedRuntime: { runtime } }) =>
       runtime.pipe(withDefaultValue(null)),
@@ -330,7 +338,7 @@ export const getChainHead$ = (
         pinnedBlocks$,
         (hash: string, queries: Array<StorageItemInput>, childTrie?: string) =>
           recoveralStorage$(hash, queries, childTrie ?? null, false),
-        `storageQueries`,
+        "storageQueries",
       ),
       "storageQueries",
     ),
@@ -471,7 +479,7 @@ export const getChainHead$ = (
     trackTx$,
     trackTxWithoutEvents$,
     validateTx$,
-    pinnedBlocks$,
+    pinnedBlocks$: Object.assign(readyBlocks$, { state: pinnedBlocks$.state }),
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
   }
