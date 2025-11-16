@@ -8,7 +8,7 @@ import {
   take,
   takeUntil,
 } from "rxjs"
-import { PinnedBlocks, PinnedBlockState } from "./streams"
+import { PinnedBlocks } from "./streams"
 import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
 
 export type AnalyzedBlock = {
@@ -26,7 +26,7 @@ export type AnalyzedBlock = {
 }
 
 export const getTrackTx = (
-  blocks$: Observable<PinnedBlocks>,
+  blocks$: Observable<PinnedBlocks> & { state: PinnedBlocks },
   getBody: (block: string) => Observable<string[]>, // Returns an observable that should emit just once and complete
   getIsValid: (
     block: string,
@@ -37,14 +37,7 @@ export const getTrackTx = (
   const whileBlockPresent = <TT>(
     hash: string,
   ): (<T = TT>(base: Observable<T>) => Observable<T>) =>
-    takeUntil(
-      blocks$.pipe(
-        filter(
-          ({ state, blocks }) =>
-            state.type === PinnedBlockState.Ready && !blocks.has(hash),
-        ),
-      ),
-    )
+    takeUntil(blocks$.pipe(filter(({ blocks }) => !blocks.has(hash))))
 
   const analyzeBlock = (
     hash: string,
@@ -101,7 +94,6 @@ export const getTrackTx = (
 
   return (tx: string): Observable<AnalyzedBlock> =>
     blocks$.pipe(
-      filter((x) => x.state.type === PinnedBlockState.Ready),
       take(1),
       mergeMap((x) => findInBranch(x.finalized, tx, new Set(x.blocks.keys()))),
     )
