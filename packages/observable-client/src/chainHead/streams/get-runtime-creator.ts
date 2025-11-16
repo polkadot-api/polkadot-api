@@ -21,6 +21,7 @@ import {
   of,
   shareReplay,
   tap,
+  throwError,
   timer,
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
@@ -78,7 +79,12 @@ const withRecovery =
     fn: (hash: string, ...args: Args) => Observable<T>,
   ): ((...args: Args) => Observable<T>) => {
     const result: (...args: Args) => Observable<T> = (...args) => {
-      const hash = getHash()
+      let hash: string | null
+      try {
+        hash = getHash()
+      } catch (e) {
+        return throwError(e)
+      }
       return hash
         ? fn(hash, ...args).pipe(
             catchError((e) => {
@@ -126,13 +132,17 @@ export const getRuntimeCreator = (
 
   return (codeHash: string, initialBlock: string): Runtime => {
     const usages = new Set<string>([initialBlock])
-    const enhancer = withRecovery(() =>
-      usages.has(initialBlock) ? initialBlock : ([...usages].at(-1) ?? null),
-    )
+    const done = {}
+    const enhancer = withRecovery(() => {
+      if (!usages.size) throw done
+      return usages.has(initialBlock) ? initialBlock : [...usages].at(-1)!
+    })
 
     const runtimeContext$: Observable<RuntimeContext> = getMetadata$(
       codeHash,
-      getRawMetadata$(enhancer(call$)),
+      getRawMetadata$(enhancer(call$)).pipe(
+        catchError((err) => (err === done ? EMPTY : throwError(() => err))),
+      ),
     ).pipe(
       map(({ metadata, metadataRaw, codeHash }) =>
         createRuntimeCtx(metadata, metadataRaw, codeHash),
@@ -154,6 +164,7 @@ export const getRuntimeCreator = (
       },
       usages,
     }
+
     runtimeContext$.subscribe({
       error() {},
     })

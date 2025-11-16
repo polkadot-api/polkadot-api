@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/json-rpc-provider-proxy",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -37,7 +37,7 @@
   "scripts": {
     "build-core": "tsc --noEmit && rollup -c ../../../rollup.config.js",
     "build": "pnpm build-core",
-    "test": "echo 'no tests'",
+    "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"

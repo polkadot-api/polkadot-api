@@ -2,57 +2,37 @@ import { BlockInfo, getObservableClient } from "@/index"
 import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {
-  createHeader,
-  encodeHeader,
   initialize,
-  initializeWithMetadata,
   newHash,
   sendBestBlockChanged,
   sendFinalized,
-  sendInitialized,
   sendNewBlock,
   sendNewBlockBranch,
+  setReady,
   wait,
-  waitMicro,
 } from "./fixtures"
 import { createMockSubstrateClient } from "./mockSubstrateClient"
 import { observe } from "./observe"
 
 describe("observableClient chainHead", () => {
   describe("finalized$", () => {
-    it("emits the latest finalized block after initialized", async () => {
+    it("emits the latest finalized block after initialization", async () => {
       const mockClient = createMockSubstrateClient()
       const client = getObservableClient(mockClient)
       const { next, error, complete } = observe(client.chainHead$().finalized$)
 
-      const initialized = sendInitialized(mockClient)
+      const { initialHash, initialNumber, parentHash } =
+        await initialize(mockClient)
 
-      // initialized event is missing some parameters before `finalized$` can emit
       expect(next).not.toHaveBeenCalled()
-      expect(mockClient.chainHead.mock.header).toHaveBeenCalledWith(
-        initialized.finalizedBlockHashes[0],
-      )
 
-      const header = createHeader({
-        parentHash: newHash(),
-      })
-      await mockClient.chainHead.mock.header.reply(
-        initialized.finalizedBlockHashes[0],
-        encodeHeader(header),
-      )
-      await mockClient.chainHead.mock.storage.reply(
-        initialized.finalizedBlockHashes[0],
-        "0x010203",
-      )
-
-      // finalized does some `.then()` to map values, so you won't get it immediately, but within the same macro task.
-      await waitMicro()
+      await setReady(mockClient, initialHash)
 
       expect(next).toHaveBeenCalledOnce()
       expect(next).toHaveBeenLastCalledWith({
-        hash: initialized.finalizedBlockHashes[0],
-        number: header.number,
-        parent: header.parentHash,
+        hash: initialHash,
+        number: initialNumber,
+        parent: parentHash,
         hasNewRuntime: false,
       } satisfies BlockInfo)
       expect(error).not.toHaveBeenCalled()
@@ -65,6 +45,7 @@ describe("observableClient chainHead", () => {
       const { next, error, complete } = observe(client.chainHead$().finalized$)
 
       const { initialHash, initialNumber } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const newBlock = sendNewBlock(mockClient, {
         blockHash: newHash(),
@@ -130,23 +111,22 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
-      await wait(0)
+      const { initialHash } = await initialize(mockClient)
 
-      const firstChain = sendNewBlockBranch(mockClient, initialHash, 3)
+      const firstChain = sendNewBlockBranch(mockClient, initialHash, 2)
       const followingChain = sendNewBlockBranch(
         mockClient,
         firstChain.at(-1)!.blockHash,
         2,
       )
 
-      // Mark all as best block
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: followingChain.at(-1)!.blockHash,
-      })
+      await setReady(mockClient, followingChain.at(-1)!.blockHash, initialHash)
 
       expect(mockClient.chainHead.mock.unpin).not.toHaveBeenCalled()
 
+      sendBestBlockChanged(mockClient, {
+        bestBlockHash: firstChain.at(-1)?.blockHash,
+      })
       sendFinalized(mockClient, {
         finalizedBlockHashes: firstChain.map((v) => v.blockHash),
       })
@@ -181,7 +161,8 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
       await wait(0)
 
       const bestChain = sendNewBlockBranch(mockClient, initialHash, 5)
@@ -234,12 +215,12 @@ describe("observableClient chainHead", () => {
       const chainHead = client.chainHead$()
 
       const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       const bodyObserver = observe(chainHead.body$(initialHash))
 
-      const initialCalls = 2
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(1)
       expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
         initialHash,
         "myFn",
@@ -254,15 +235,13 @@ describe("observableClient chainHead", () => {
       expect(callObserver.next).not.toHaveBeenCalled()
       expect(callObserver.error).not.toHaveBeenCalled()
       expect(callObserver.complete).not.toHaveBeenCalled()
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(1)
 
       expect(bodyObserver.next).not.toHaveBeenCalled()
       await mockClient.chainHead.mock.body.reply(initialHash, [])
       expect(bodyObserver.next).toHaveBeenCalledWith([])
 
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
-        initialCalls + 1,
-      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
 
       await mockClient.chainHead.mock.call.reply(initialHash, "")
 
@@ -280,9 +259,7 @@ describe("observableClient chainHead", () => {
 
       const { initialHash } = await initialize(mockClient)
       const newBlocks = sendNewBlockBranch(mockClient, initialHash, 2)
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: newBlocks.at(-1)!.blockHash,
-      })
+      await setReady(mockClient, newBlocks.at(-1)!.blockHash, initialHash)
 
       const firstCallObserver = observe(
         chainHead.call$(newBlocks[0].blockHash, "firstCall", ""),
@@ -292,8 +269,7 @@ describe("observableClient chainHead", () => {
       )
       observe(chainHead.body$(initialHash))
 
-      const initialCalls = 3
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
         Promise.reject(new OperationLimitError()),
@@ -304,9 +280,7 @@ describe("observableClient chainHead", () => {
       )
 
       await mockClient.chainHead.mock.body.reply(initialHash, [])
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
-        initialCalls + 1,
-      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
       expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
         newBlocks[1].blockHash,
         "secondCall",
@@ -319,9 +293,7 @@ describe("observableClient chainHead", () => {
       )
       expect(secondCallObserver.next).toHaveBeenCalledWith("secondResponse")
 
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
-        initialCalls + 2,
-      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(4)
       expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
         newBlocks[0].blockHash,
         "firstCall",
@@ -344,15 +316,12 @@ describe("observableClient chainHead", () => {
 
       const { initialHash } = await initialize(mockClient)
       const newBlocks = sendNewBlockBranch(mockClient, initialHash, 2)
-      sendBestBlockChanged(mockClient, {
-        bestBlockHash: newBlocks.at(-1)!.blockHash,
-      })
+      await setReady(mockClient, newBlocks.at(-1)!.blockHash, initialHash)
 
       observe(chainHead.body$(initialHash))
       observe(chainHead.call$(newBlocks[0].blockHash, "firstCall", ""))
 
-      const initialCalls = 2
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(1)
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
         Promise.reject(new OperationLimitError()),
@@ -362,22 +331,18 @@ describe("observableClient chainHead", () => {
         chainHead.call$(newBlocks[1].blockHash, "secondCall", ""),
       )
 
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(1)
 
       await mockClient.chainHead.mock.body.reply(initialHash, [])
 
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
-        initialCalls + 1,
-      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
 
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
         "firstResponse",
       )
 
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
-        initialCalls + 2,
-      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
 
       await mockClient.chainHead.mock.call.reply(
         newBlocks[1].blockHash,
@@ -394,12 +359,12 @@ describe("observableClient chainHead", () => {
       const chainHead = client.chainHead$()
 
       const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       observe(chainHead.body$(initialHash))
 
-      const initialCalls = 2
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(1)
       await mockClient.chainHead.mock.call.reply(
         initialHash,
         Promise.reject(new OperationLimitError()),
@@ -408,7 +373,7 @@ describe("observableClient chainHead", () => {
       callObserver.unsubscribe()
 
       await mockClient.chainHead.mock.body.reply(initialHash, [])
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(1)
 
       cleanup(chainHead.unfollow)
     })
@@ -419,12 +384,12 @@ describe("observableClient chainHead", () => {
       const chainHead = client.chainHead$()
 
       const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const callObserver = observe(chainHead.call$(initialHash, "myFn", ""))
       const bodyObserver = observe(chainHead.body$(initialHash))
 
-      const initialCalls = 2
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(initialCalls)
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(1)
       await mockClient.chainHead.mock.call.reply(
         initialHash,
         Promise.reject(new OperationLimitError()),
@@ -437,9 +402,7 @@ describe("observableClient chainHead", () => {
       )
       expect(bodyObserver.error).toHaveBeenCalledWith(error)
 
-      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(
-        initialCalls + 1,
-      )
+      expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
       await mockClient.chainHead.mock.call.reply(initialHash, "")
 
       expect(callObserver.next).toHaveBeenCalledWith("")
@@ -457,6 +420,7 @@ describe("observableClient chainHead", () => {
       const chainHead = client.chainHead$()
 
       const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const [forkA] = sendNewBlockBranch(mockClient, initialHash, 1)
       const [forkB] = sendNewBlockBranch(mockClient, initialHash, 1)
@@ -489,6 +453,7 @@ describe("observableClient chainHead", () => {
       const chainHead = client.chainHead$()
 
       const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const [forkA] = sendNewBlockBranch(mockClient, initialHash, 1)
       const [forkB] = sendNewBlockBranch(mockClient, initialHash, 1)

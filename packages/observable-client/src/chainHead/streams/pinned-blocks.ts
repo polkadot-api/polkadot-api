@@ -4,7 +4,6 @@ import {
   Observer,
   Subject,
   exhaustMap,
-  filter,
   map,
   merge,
   scan,
@@ -36,13 +35,36 @@ interface CleanupEvent {
   type: "cleanup"
 }
 
+export const enum PinnedBlockState {
+  Initializing, // We are waiting to get ready on the "first" best-block event of the current or next chainHead follow subscription.
+  Ready, // Downstream events can be derived only when the PinnedBlockState is in this state
+  RecoveringInit, // There has been a stop-event and we are hopping that the first initialized event has an overlap with the previous blocks.
+  RecoveringFin, // We were not able to fully recover from the stop-even after the initialize event (the most recent block on init was behind the previous finalized one). So, we are waiting for a finalized event to be able to recover
+}
+
+type RecoveringInitState = { type: PinnedBlockState.RecoveringInit }
+type ReadyState = { type: PinnedBlockState.Ready }
+type InitializingState = {
+  type: PinnedBlockState.Initializing
+  pendingBlocks: Array<PinnedBlock>
+}
+type RecoveringFinState = {
+  type: PinnedBlockState.RecoveringFin
+  target: number
+  pendingBlocks: Array<PinnedBlock>
+}
+
 export type PinnedBlocks = {
   best: string
   finalized: string
   runtimes: Record<string, Runtime>
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
-  recovering: null | { type: "init" } | { type: "fin"; target: number }
+  state:
+    | RecoveringInitState
+    | RecoveringFinState
+    | ReadyState
+    | InitializingState
 }
 
 export const toBlockInfo = ({
@@ -57,28 +79,6 @@ export const toBlockInfo = ({
   hasNewRuntime,
 })
 
-const deleteBlock = (blocks: PinnedBlocks["blocks"], blockHash: string) => {
-  blocks.get(blocks.get(blockHash)!.parent)?.children.delete(blockHash)
-  blocks.delete(blockHash)
-}
-
-const deleteBlocks = (blocks: PinnedBlocks, toDelete: string[]) => {
-  toDelete.forEach((hash) => {
-    deleteBlock(blocks.blocks, hash)
-  })
-
-  Object.entries(blocks.runtimes)
-    .map(([key, value]) => ({
-      key,
-      usages: value.deleteBlocks(toDelete),
-    }))
-    .filter((x) => x.usages === 0)
-    .map((x) => x.key)
-    .forEach((unusedRuntime) => {
-      delete blocks.runtimes[unusedRuntime]
-    })
-}
-
 export const getPinnedBlocks$ = (
   follow$: Observable<FollowEvent>,
   call$: (hash: string, method: string, args: string) => Observable<string>,
@@ -89,18 +89,42 @@ export const getPinnedBlocks$ = (
   onUnpin: (blocks: string[]) => void,
   deleteFromCache: (block: string) => void,
 ) => {
-  const recover = (acc: PinnedBlocks) => {
-    for (const [hash, block] of acc.blocks) {
-      if (block.recovering) {
-        deleteBlock(acc.blocks, hash)
-        deleteFromCache(hash)
-      }
-    }
-    acc.recovering = null
+  const deleteBlocks = (
+    { blocks, runtimes }: PinnedBlocks,
+    toDelete: string[],
+  ) => {
+    toDelete.forEach((blockHash) => {
+      blocks.get(blocks.get(blockHash)!.parent)?.children.delete(blockHash)
+      blocks.delete(blockHash)
+      deleteFromCache(blockHash)
+    })
+
+    Object.entries(runtimes)
+      .map(([key, value]) => ({
+        key,
+        usages: value.deleteBlocks(toDelete),
+      }))
+      .filter((x) => x.usages === 0)
+      .map((x) => x.key)
+      .forEach((unusedRuntime) => {
+        delete runtimes[unusedRuntime]
+      })
   }
 
   const onNewBlock = (block: PinnedBlock) => {
     newBlocks$.next(toBlockInfo(block))
+  }
+
+  const setToReady = (acc: PinnedBlocks) => {
+    deleteBlocks(
+      acc,
+      [...acc.blocks.values()].filter((b) => b.recovering).map((b) => b.hash),
+    )
+
+    const pendingBlocks =
+      "pendingBlocks" in acc.state ? acc.state.pendingBlocks : []
+    acc.state = { type: PinnedBlockState.Ready }
+    pendingBlocks.forEach(onNewBlock)
   }
 
   const cleanup$ = new Subject<void>()
@@ -114,7 +138,14 @@ export const getPinnedBlocks$ = (
   )
 
   const state: PinnedBlocks = getInitialPinnedBlocks()
-  const pinnedBlocks$: Observable<PinnedBlocks> = merge(
+  const resetState = () => {
+    deleteBlocks(
+      state,
+      [...state.blocks.values()].map((b) => b.hash),
+    )
+    return Object.assign(state, getInitialPinnedBlocks())
+  }
+  const _pinnedBlocks$: Observable<PinnedBlocks> = merge(
     blockUsage$,
     cleanupEvt$,
     follow$,
@@ -128,10 +159,16 @@ export const getPinnedBlocks$ = (
       switch (event.type) {
         case "initialized":
           if (
-            acc.recovering &&
+            acc.state.type !== PinnedBlockState.Initializing &&
+            acc.state.type !== PinnedBlockState.RecoveringInit
+          )
+            throw new Error("Initialized event out of order")
+
+          if (
+            acc.state.type === PinnedBlockState.RecoveringInit &&
             !event.finalizedBlockHashes.some((hash) => acc.blocks.has(hash))
           ) {
-            Object.assign(acc, getInitialPinnedBlocks())
+            resetState()
             newBlocks$.next(null)
           }
 
@@ -139,16 +176,25 @@ export const getPinnedBlocks$ = (
             acc.blocks.get(acc.finalized)?.number ?? -1
 
           const lastIdx = event.finalizedBlockHashes.length - 1
+
           // We must take into account that the new subscription could be behind the previous one
+          const pendingBlocks: Array<PinnedBlock> = []
           if (latestFinalizedHeight > event.number + lastIdx) {
-            acc.recovering = { type: "fin", target: latestFinalizedHeight }
+            acc.state = {
+              type: PinnedBlockState.RecoveringFin,
+              target: latestFinalizedHeight,
+              pendingBlocks,
+            }
           } else {
-            acc.finalized = acc.best = event.finalizedBlockHashes[lastIdx]
+            acc.state = {
+              type: PinnedBlockState.Initializing,
+              pendingBlocks,
+            }
+            acc.finalized = event.finalizedBlockHashes[lastIdx]
           }
 
           let latestRuntime = acc.finalizedRuntime.codeHash
 
-          const newBlocks: Array<PinnedBlock> = []
           event.finalizedBlockHashes.forEach((hash, i) => {
             const unpinnable = i !== lastIdx
             const preexistingBlock = acc.blocks.get(hash)
@@ -190,20 +236,19 @@ export const getPinnedBlocks$ = (
                   hash,
                 )
               acc.runtimes[latestRuntime].usages.add(hash)
-              if (isNew) newBlocks.push(block)
+              if (isNew) pendingBlocks.push(block)
             }
           })
-          newBlocks.forEach(onNewBlock)
           return acc
 
         case "stop-error":
-          // if the stop-error happened during the initialization process
-          if (!acc.best) return acc
+          if (acc.state.type === PinnedBlockState.Initializing)
+            return resetState()
 
           for (const block of acc.blocks.values()) {
             block.recovering = true
           }
-          acc.recovering = { type: "init" }
+          acc.state = { type: PinnedBlockState.RecoveringInit }
 
           return acc
 
@@ -233,27 +278,27 @@ export const getPinnedBlocks$ = (
             }
 
             acc.runtimes[block.runtime].addBlock(hash)
-            onNewBlock(block)
+            if ("pendingBlocks" in acc.state)
+              acc.state.pendingBlocks.push(block)
+            else onNewBlock(block)
           }
 
           return acc
         }
 
         case "bestBlockChanged": {
-          if (acc.recovering) {
-            if (acc.recovering.type === "fin") return acc
-            recover(acc)
-          }
+          if (acc.state.type === PinnedBlockState.RecoveringFin) return acc
           acc.best = event.bestBlockHash
+          if (acc.state.type === PinnedBlockState.Initializing) setToReady(acc)
           return acc
         }
 
         case "finalized": {
           const finalized = event.finalizedBlockHashes.slice(-1)[0]
-          if (acc.recovering?.type === "fin") {
-            if (acc.blocks.get(finalized)!.number < acc.recovering.target)
-              return acc
-            recover(acc)
+          let shouldBeSetToReady = false
+          if (acc.state.type === PinnedBlockState.RecoveringFin) {
+            if (acc.blocks.get(finalized)!.number < acc.state.target) return acc
+            shouldBeSetToReady = true
           }
           acc.finalized = finalized
           const { blocks } = acc
@@ -280,7 +325,9 @@ export const getPinnedBlocks$ = (
             current = blocks.get(current.parent)
           }
 
-          cleanup$.next()
+          if (shouldBeSetToReady) setToReady(acc)
+
+          if (acc.state.type === PinnedBlockState.Ready) cleanup$.next()
 
           return acc
         }
@@ -305,7 +352,6 @@ export const getPinnedBlocks$ = (
         }
       }
     }, state),
-    filter((x) => !!x.finalizedRuntime.runtime),
     map((x) => ({ ...x })),
     tap({
       error(e) {
@@ -315,12 +361,15 @@ export const getPinnedBlocks$ = (
     shareLatest,
   )
 
+  const pinnedBlocks$ = Object.assign(_pinnedBlocks$, { state })
+
   const getRuntime = getRuntimeCreator(
     withStopRecovery(pinnedBlocks$, call$, "pinned-blocks"),
     getCachedMetadata$,
     setCachedMetadata,
   )
-  return Object.assign(pinnedBlocks$, { state })
+
+  return pinnedBlocks$
 }
 
 const getInitialPinnedBlocks = (): PinnedBlocks => ({
@@ -329,5 +378,5 @@ const getInitialPinnedBlocks = (): PinnedBlocks => ({
   runtimes: {},
   blocks: new Map(),
   finalizedRuntime: {} as Runtime,
-  recovering: null,
+  state: { type: PinnedBlockState.Initializing, pendingBlocks: [] },
 })

@@ -51,6 +51,7 @@ const createApi = <D extends ChainDefinition>(
     chainHead.storage$,
     chainHead.withRuntime,
   )
+
   const query = createProxyPath((pallet, name) =>
     createStorageEntry(
       pallet,
