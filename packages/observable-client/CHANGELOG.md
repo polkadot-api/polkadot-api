@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.2 - 2025-11-16
+
 ### Fixed
 
 - Handle stop events that come prior to the first `bestBlockChanged` event.
