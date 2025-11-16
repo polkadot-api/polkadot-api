@@ -216,9 +216,12 @@ export const getChainHead$ = (
     return result
   }
 
-  const readyBlocks$ = pinnedBlocks$.pipe(
-    filter((x) => x.state.type === PinnedBlockState.Ready),
-    shareLatest,
+  const readyBlocks$ = Object.assign(
+    pinnedBlocks$.pipe(
+      filter((x) => x.state.type === PinnedBlockState.Ready),
+      shareLatest,
+    ),
+    { state: pinnedBlocks$.state },
   )
 
   const finalized$ = readyBlocks$.pipe(
@@ -367,13 +370,10 @@ export const getChainHead$ = (
 
   const validateTx$ = getValidateTx(call$, getRuntimeContext$)
 
-  const innerBody$ = (hash: string) =>
-    upsertCachedStream(hash, "body", _body$(hash))
-
-  const trackTx$ = getTrackTx(pinnedBlocks$, innerBody$, validateTx$, eventsAt$)
+  const trackTx$ = getTrackTx(readyBlocks$, body$, validateTx$, eventsAt$)
   const trackTxWithoutEvents$ = getTrackTx(
     pinnedBlocks$,
-    innerBody$,
+    body$,
     validateTx$,
     () => of(),
   )
@@ -479,7 +479,7 @@ export const getChainHead$ = (
     trackTx$,
     trackTxWithoutEvents$,
     validateTx$,
-    pinnedBlocks$: Object.assign(readyBlocks$, { state: pinnedBlocks$.state }),
+    pinnedBlocks$: readyBlocks$,
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
   }
