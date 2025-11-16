@@ -5,13 +5,12 @@ import {
   StorageItemInput,
 } from "@polkadot-api/substrate-client"
 import { filter } from "rxjs"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vitest } from "vitest"
 import {
   createHeader,
   createNewBlock,
   encodeHeader,
   initialize,
-  initializeWithMetadata,
   metadataHex,
   metadataVersions,
   newHash,
@@ -19,6 +18,7 @@ import {
   sendBestBlockChanged,
   sendNewBlock,
   sendNewBlockBranch,
+  setReady,
   wait,
   waitMicro,
 } from "./fixtures"
@@ -31,7 +31,8 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
+    await setReady(mockClient, initialHash)
 
     const newBlocks = sendNewBlockBranch(mockClient, initialHash, 3)
     sendBestBlockChanged(mockClient, {
@@ -52,12 +53,11 @@ describe("observableClient stopError recovery", () => {
 
     expect(body.error).not.toHaveBeenCalled()
 
-    await initialize(
-      mockClient,
-      newInitialized({
-        finalizedBlockHashes: newBlocks.map((block) => block.blockHash),
-      }),
-    )
+    const finalizedBlockHashes = newBlocks.map((block) => block.blockHash)
+    await initialize(mockClient, newInitialized({ finalizedBlockHashes }))
+    sendBestBlockChanged(mockClient, {
+      bestBlockHash: finalizedBlockHashes.at(-1),
+    })
 
     expect(mockClient.chainHead.mock.body).toHaveBeenCalledTimes(2)
 
@@ -74,7 +74,8 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
+    setReady(mockClient, initialHash)
 
     const newBlocks = sendNewBlockBranch(mockClient, initialHash, 3)
     sendBestBlockChanged(mockClient, {
@@ -93,14 +94,19 @@ describe("observableClient stopError recovery", () => {
       Promise.reject(new DisjointError()),
     )
 
+    const finalizedBlockHashes = newBlocks
+      .slice(0, 1)
+      .map((block) => block.blockHash)
+
     await initialize(
       mockClient,
       newInitialized({
-        finalizedBlockHashes: newBlocks
-          .slice(0, 1)
-          .map((block) => block.blockHash),
+        finalizedBlockHashes,
       }),
     )
+    sendBestBlockChanged(mockClient, {
+      bestBlockHash: finalizedBlockHashes.at(-1),
+    })
 
     // unpinning happened after releasing a refcount, which is done in a macrotask
     await wait()
@@ -115,12 +121,10 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
 
     const newBlocks = sendNewBlockBranch(mockClient, initialHash, 3)
-    sendBestBlockChanged(mockClient, {
-      bestBlockHash: newBlocks.at(-1)!.blockHash,
-    })
+    setReady(mockClient, newBlocks.at(-1)!.blockHash, initialHash)
 
     const requestedBodyHash = newBlocks[1].blockHash
     const body = observe(chainHead.body$(requestedBodyHash))
@@ -132,6 +136,7 @@ describe("observableClient stopError recovery", () => {
         finalizedBlockHashes: [newBlocks[0].blockHash],
       }),
     )
+    sendBestBlockChanged(mockClient, { bestBlockHash: newBlocks[0].blockHash })
 
     expect(mockClient.chainHead.mock.body).toHaveBeenCalledOnce()
 
@@ -161,37 +166,27 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
 
     const newBlocks = sendNewBlockBranch(mockClient, initialHash, 3)
     const initialBest = newBlocks.at(-1)!.blockHash
-    sendBestBlockChanged(mockClient, {
-      bestBlockHash: initialBest,
-    })
+    await setReady(mockClient, initialBest, initialHash)
 
-    const body = observe(chainHead.body$(initialBest))
+    const body = observe(chainHead.body$(initialHash))
 
     mockClient.chainHead.mock.sendError(new StopError())
     await initialize(
       mockClient,
       newInitialized({
-        finalizedBlockHashes: [newBlocks[0].blockHash],
+        finalizedBlockHashes: newBlocks.map((x) => x.blockHash),
       }),
     )
+    sendBestBlockChanged(mockClient, { bestBlockHash: initialBest })
 
     expect(mockClient.chainHead.mock.body).toHaveBeenCalledOnce()
 
-    const lastIsGone = newBlocks.slice(0, -1)
-    lastIsGone.forEach((block) => {
-      mockClient.chainHead.mock.send(block)
-    })
-
-    sendBestBlockChanged(mockClient, {
-      bestBlockHash: lastIsGone.at(-1)!.blockHash,
-    })
-
     expect(body.error).toHaveBeenCalledWith(
-      new BlockNotPinnedError(initialBest, "stop-body"),
+      new BlockNotPinnedError(initialHash, "stop-body"),
     )
 
     cleanup(chainHead.unfollow)
@@ -202,20 +197,19 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
 
     const newBlocks = sendNewBlockBranch(mockClient, initialHash, 3)
     const initialBest = newBlocks.at(-1)!.blockHash
-    sendBestBlockChanged(mockClient, {
-      bestBlockHash: initialBest,
-    })
+    await setReady(mockClient, initialBest, initialHash)
 
     const body = observe(chainHead.body$(initialBest))
+    expect(mockClient.chainHead.mock.body).toHaveBeenCalledOnce()
 
     mockClient.chainHead.mock.sendError(new StopError())
-    await initializeWithMetadata(mockClient, {
-      finalizedBlockHashes: [newHash()],
-    })
+    const finalizedBlockHashes = [newHash()]
+    await initialize(mockClient, { finalizedBlockHashes }, 100)
+    await setReady(mockClient, finalizedBlockHashes[0])
 
     expect(body.error).toHaveBeenCalledWith(
       new BlockNotPinnedError(initialBest, "stop-body"),
@@ -230,6 +224,7 @@ describe("observableClient stopError recovery", () => {
     const chainHead = client.chainHead$()
 
     const { initialHash } = await initialize(mockClient)
+    sendBestBlockChanged(mockClient, { bestBlockHash: initialHash })
     const runtimeObs = observe(chainHead.runtime$.pipe(filter(Boolean)))
     expect(mockClient.chainHead.mock.call).toHaveBeenCalledOnce()
 
@@ -245,8 +240,8 @@ describe("observableClient stopError recovery", () => {
     expect(runtimeObs.next).not.toHaveBeenCalled()
     expect(runtimeObs.error).not.toHaveBeenCalled()
 
-    await initializeWithMetadata(mockClient)
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
+    await initialize(mockClient)
+    await setReady(mockClient, initialHash)
 
     expect(runtimeObs.error).not.toHaveBeenCalled()
     expect(runtimeObs.next).toHaveBeenCalled()
@@ -260,14 +255,10 @@ describe("observableClient stopError recovery", () => {
     client.chainHead$()
 
     const { initialHash } = await initialize(mockClient)
-    await mockClient.chainHead.mock.storage.reply(initialHash, "0x000000")
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledOnce()
-
     const newBlock = sendNewBlock(mockClient, {
       parentBlockHash: initialHash,
     })
     sendBestBlockChanged(mockClient, { bestBlockHash: newBlock.blockHash })
-
     await mockClient.chainHead.mock.call.reply(initialHash, metadataVersions)
 
     mockClient.chainHead.mock.sendError(new StopError())
@@ -275,12 +266,49 @@ describe("observableClient stopError recovery", () => {
     await initialize(mockClient, {
       finalizedBlockHashes: [newBlock.blockHash],
     })
+    mockClient.chainHead.mock.call.mockRestore()
+    sendBestBlockChanged(mockClient, { bestBlockHash: newBlock.blockHash })
 
-    sendBestBlockChanged(mockClient, {
-      bestBlockHash: newBlock.blockHash,
+    await mockClient.chainHead.mock.call.reply(
+      newBlock.blockHash,
+      await metadataHex,
+    )
+  })
+
+  it("disreggards old runtimes", async () => {
+    const mockClient = createMockSubstrateClient()
+    const client = getObservableClient(mockClient)
+    const chainHead = client.chainHead$()
+
+    const initialCodeHash = "0x000001"
+    const { initialHash } = await initialize(
+      mockClient,
+      undefined,
+      1,
+      initialCodeHash,
+    )
+    sendBestBlockChanged(mockClient, { bestBlockHash: initialHash })
+    await mockClient.chainHead.mock.call.reply(initialHash, metadataVersions)
+
+    const complete = vitest.fn()
+    const next = vitest.fn()
+    chainHead.pinnedBlocks$.state.runtimes[initialCodeHash].runtime.subscribe({
+      next,
+      complete,
     })
+    mockClient.chainHead.mock.sendError(new StopError())
 
-    await mockClient.chainHead.mock.call.reply(initialHash, await metadataHex)
+    const newBlock = createNewBlock()
+    expect(complete).not.toHaveBeenCalled()
+    await initialize(
+      mockClient,
+      { finalizedBlockHashes: [newBlock.blockHash] },
+      100,
+      "0x010204",
+    )
+    await setReady(mockClient, newBlock.blockHash)
+    expect(complete).toHaveBeenCalled()
+    expect(next).not.toHaveBeenCalled()
   })
 
   it("recovers after a stop error happens while recovering from another stop event", async () => {
@@ -288,13 +316,11 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
     const newBlock = sendNewBlock(mockClient, {
       parentBlockHash: initialHash,
     })
-    sendBestBlockChanged(mockClient, {
-      bestBlockHash: newBlock.blockHash,
-    })
+    await setReady(mockClient, newBlock.blockHash, initialHash)
 
     const runtimeObs = observe(chainHead.runtime$.pipe(filter(Boolean)))
     const body = observe(chainHead.body$(newBlock.blockHash))
@@ -321,24 +347,23 @@ describe("observableClient stopError recovery", () => {
       ],
     })
 
-    await mockClient.chainHead.mock.storage.reply(
-      newFinalized.blockHash,
-      "0x11000000",
-    )
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
+    sendBestBlockChanged(mockClient, { bestBlockHash: newFinalized.blockHash })
+    await wait(100) // setReady(mockClient, newFinalized.blockHash, initialHash)
 
     // We haven't received a new runtime yet
     expect(runtimeObs.next).toHaveBeenCalledOnce()
 
     mockClient.chainHead.mock.sendError(new StopError())
-    await initializeWithMetadata(mockClient, {
+    await initialize(mockClient, {
       finalizedBlockHashes: [
         initialHash,
         newBlock.blockHash,
         newFinalized.blockHash,
       ],
     })
-    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
+    sendBestBlockChanged(mockClient, { bestBlockHash: newFinalized.blockHash })
+    await waitMicro()
+    expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(0)
 
     expect(runtimeObs.error).not.toHaveBeenCalled()
     expect(runtimeObs.next).toHaveBeenCalledTimes(1)
@@ -355,8 +380,13 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
-    const header = observe(chainHead.header$(initialHash))
+    const { initialHash } = await initialize(mockClient)
+    const newBlock = sendNewBlock(mockClient, {
+      parentBlockHash: initialHash,
+    })
+    await setReady(mockClient, newBlock.blockHash, initialHash)
+
+    const header = observe(chainHead.header$(newBlock.blockHash))
 
     expect(header.next).not.toHaveBeenCalled()
     expect(header.error).not.toHaveBeenCalled()
@@ -364,7 +394,7 @@ describe("observableClient stopError recovery", () => {
 
     mockClient.chainHead.mock.sendError(new StopError())
     await mockClient.chainHead.mock.header.reply(
-      initialHash,
+      newBlock.blockHash,
       Promise.reject(new DisjointError()),
     )
 
@@ -372,11 +402,14 @@ describe("observableClient stopError recovery", () => {
     expect(header.error).not.toHaveBeenCalled()
     expect(mockClient.chainHead.mock.header).toHaveBeenCalledTimes(2)
 
-    await initializeWithMetadata(mockClient)
+    await initialize(mockClient, {
+      finalizedBlockHashes: [initialHash, newBlock.blockHash],
+    })
+    sendBestBlockChanged(mockClient, { bestBlockHash: newBlock.blockHash })
 
     const headerResponse = createHeader()
     await mockClient.chainHead.mock.header.reply(
-      initialHash,
+      newBlock.blockHash,
       encodeHeader(headerResponse),
     )
     await waitMicro()
@@ -392,7 +425,8 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
+    await setReady(mockClient, initialHash)
     const queries: StorageItemInput[] = [
       {
         key: "mykey",
@@ -409,7 +443,8 @@ describe("observableClient stopError recovery", () => {
     expect(storage.next).not.toHaveBeenCalled()
     expect(storage.error).not.toHaveBeenCalled()
 
-    await initializeWithMetadata(mockClient)
+    await initialize(mockClient)
+    sendBestBlockChanged(mockClient, { bestBlockHash: initialHash })
 
     const responses = queries.map(({ key }) => ({
       key,
@@ -433,7 +468,8 @@ describe("observableClient stopError recovery", () => {
     const client = getObservableClient(mockClient)
     const chainHead = client.chainHead$()
 
-    const { initialHash } = await initializeWithMetadata(mockClient)
+    const { initialHash } = await initialize(mockClient)
+    await setReady(mockClient, initialHash)
     const queries: StorageItemInput[] = [
       {
         key: "A",
@@ -463,7 +499,8 @@ describe("observableClient stopError recovery", () => {
     expect(storage.next).toHaveBeenCalledWith(responses[0])
     expect(storage.error).not.toHaveBeenCalled()
 
-    await initializeWithMetadata(mockClient)
+    await initialize(mockClient)
+    sendBestBlockChanged(mockClient, { bestBlockHash: initialHash })
 
     mockClient.chainHead.mock.storageSubscription
       .getLastCall(initialHash)

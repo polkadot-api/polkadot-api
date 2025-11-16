@@ -220,8 +220,8 @@ importers:
   integration-tests/chopsticks:
     dependencies:
       '@acala-network/chopsticks':
-        specifier: ^1.2.2
-        version: 1.2.2(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))
+        specifier: ^1.2.4
+        version: 1.2.4(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../../packages/cli
@@ -910,19 +910,19 @@ importers:
 
 packages:
 
-  '@acala-network/chopsticks-core@1.2.2':
-    resolution: {integrity: sha512-hOGaFU6jz2Z7QeQhn4JjnemFvqv8qmOrAZBzHYqESd8saf+Vya6K4sBVrFBz3+f5T7NLjMB2XzbrvPCkwPKlxw==}
+  '@acala-network/chopsticks-core@1.2.4':
+    resolution: {integrity: sha512-lP0I/mqPrYRFDGTTO97Cl7aVEEyGvxN5Bm817hSReBMJXU3WlkpqOMOykY8sNojAXsu3ZVOeZ3BVvwtg7wuS6Q==}
     engines: {node: '>=v22'}
 
-  '@acala-network/chopsticks-db@1.2.2':
-    resolution: {integrity: sha512-ciDUxr0wofZ7tprZ7YIVtfbX53v8RNfgBax6jLwxGsf19jCDvppRqVKIIMABXuyfTfjsA1CdHTucLz0+/li+Tg==}
+  '@acala-network/chopsticks-db@1.2.4':
+    resolution: {integrity: sha512-3Cjs8tAwXyrfHIHCvJlAcm269Ms1Vmfro+2YM3HcW2BjNPkb5PpexePolF2Wj9uz3bIVMMww04rz/ZpWnQEFuA==}
     engines: {node: '>=v22'}
 
-  '@acala-network/chopsticks-executor@1.2.2':
-    resolution: {integrity: sha512-py+0rOYz+kAs6RGVRwu+mDX89x2CYv27oMy6/anh2wrfo88xPHjr1y8hOapDpRU5ynBW8Klx+z6rA3c2PrgB8g==}
+  '@acala-network/chopsticks-executor@1.2.4':
+    resolution: {integrity: sha512-S6TNcvR2hBDgQNPnyQkN0/7YwarQ3CLwrO8ARQYiykqaPD5Rpugk6xST+uQgnm+Pfk5d5GaT6wMuB97oOXINxg==}
 
-  '@acala-network/chopsticks@1.2.2':
-    resolution: {integrity: sha512-LIzzyErMW+nf5oD64ST4rvK5DVLV99umy3Xr7pkU3KkdHjklF1bkuj3u6nqC7I4qna7/PukDcV02xcoqThjSPw==}
+  '@acala-network/chopsticks@1.2.4':
+    resolution: {integrity: sha512-A9sxurpNmSXjV4jTIbCOUAiCK+FJje4NJyzq7F+CxK4y/LhHQ0aq/rcwYFUe1BxyC65wQljf62WfYd8RYBzCLw==}
     engines: {node: '>=v22'}
     hasBin: true
 
@@ -3948,9 +3948,9 @@ packages:
 
 snapshots:
 
-  '@acala-network/chopsticks-core@1.2.2':
+  '@acala-network/chopsticks-core@1.2.4':
     dependencies:
-      '@acala-network/chopsticks-executor': 1.2.2
+      '@acala-network/chopsticks-executor': 1.2.4
       '@polkadot/rpc-provider': 16.4.8
       '@polkadot/types': 16.4.8
       '@polkadot/types-codec': 16.4.8
@@ -3970,9 +3970,9 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@acala-network/chopsticks-db@1.2.2(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))':
+  '@acala-network/chopsticks-db@1.2.4(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))':
     dependencies:
-      '@acala-network/chopsticks-core': 1.2.2
+      '@acala-network/chopsticks-core': 1.2.4
       '@polkadot/util': 13.5.6
       idb: 8.0.3
       reflect-metadata: 0.2.2
@@ -4000,15 +4000,15 @@ snapshots:
       - typeorm-aurora-data-api-driver
       - utf-8-validate
 
-  '@acala-network/chopsticks-executor@1.2.2':
+  '@acala-network/chopsticks-executor@1.2.4':
     dependencies:
       '@polkadot/util': 13.5.6
       '@polkadot/wasm-util': 7.5.1(@polkadot/util@13.5.6)
 
-  '@acala-network/chopsticks@1.2.2(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))':
+  '@acala-network/chopsticks@1.2.4(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))':
     dependencies:
-      '@acala-network/chopsticks-core': 1.2.2
-      '@acala-network/chopsticks-db': 1.2.2(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))
+      '@acala-network/chopsticks-core': 1.2.4
+      '@acala-network/chopsticks-db': 1.2.4(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@24.7.0)(typescript@5.9.3))
       '@pnpm/npm-conf': 3.0.0
       '@polkadot/api': 16.4.8
       '@polkadot/api-augment': 16.4.8
