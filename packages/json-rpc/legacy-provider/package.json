@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/legacy-provider",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
