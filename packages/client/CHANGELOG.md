@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+## 1.20.7 - 2025-11-19
+
 ### Fixed
 
 - Tracking transactions resilient to `OperationInaccessible` errors.
+- **Chains:**:
+  - Update `lightSyncState`
+  - Remove faulty bootnodes
 
 ## 1.20.6 - 2025-11-16
 

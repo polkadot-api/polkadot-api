@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.9.14 - 2025-11-19
+
+### Fixed
+
+- Update `lightSyncState`
+- Remove faulty bootnodes
+
 ## 0.9.13 - 2025-11-08
 
 ### Fixed

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.6 - 2025-11-19
+
 ### Fixed
 
 - `archive_v1_body` and `archive_v1_hashByHeight` return values.
