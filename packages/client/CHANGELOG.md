@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.20.7 - 2025-11-19
+
 ### Fixed
 
 - Tracking transactions resilient to `OperationInaccessible` errors.

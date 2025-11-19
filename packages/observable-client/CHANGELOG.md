@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.3 - 2025-11-19
+
 ### Fixed
 
 - `trackTx` recovers from `OperationInacessible`
