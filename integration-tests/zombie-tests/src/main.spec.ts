@@ -252,7 +252,7 @@ describe("E2E", async () => {
     await expect(async () =>
       api.tx.System.remark_with_event({
         remark: Binary.fromText("test"),
-      }).signAndSubmit(unusedSigner, {
+      }).sign(unusedSigner, {
         customSignedExtensions: {
           CheckNonce: {
             value: "patata",
