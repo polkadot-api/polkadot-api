@@ -1,5 +1,5 @@
 import { Observable, distinctUntilChanged, map, takeWhile } from "rxjs"
-import { PinnedBlocks } from "./pinned-blocks"
+import { PinnedBlocks } from "./pinned-blocks-types"
 
 export const isBestOrFinalizedBlock = (
   blocks$: Observable<PinnedBlocks>,

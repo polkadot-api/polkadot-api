@@ -10,7 +10,7 @@ import {
   takeWhile,
   throwError,
 } from "rxjs"
-import { PinnedBlocks, PinnedBlockState } from "../streams"
+import { PinnedBlocks, PinnedBlockState } from "../streams/pinned-blocks-types"
 import { BlockNotPinnedError } from "../errors"
 import { BlockInfo } from "../chainHead"
 
