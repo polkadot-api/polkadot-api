@@ -494,12 +494,12 @@ function getExtensionsType(
   lookup.metadata.extrinsic.signedExtensions.forEach((ext) => {
     if (knownSignedExtensions.has(ext.identifier)) return
     const hasValue = lookup(ext.type).type !== "void"
-    const hasExtra = lookup(ext.additionalSigned).type !== "void"
+    const hasAdditional = lookup(ext.additionalSigned).type !== "void"
 
     const props = []
     if (hasValue)
       props.push(`value: ${typesBuilder.buildTypeDefinition(ext.type)}`)
-    if (hasExtra)
+    if (hasAdditional)
       props.push(
         `additionalSigned: ${typesBuilder.buildTypeDefinition(ext.additionalSigned)}`,
       )
