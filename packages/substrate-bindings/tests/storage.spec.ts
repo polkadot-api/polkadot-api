@@ -17,7 +17,9 @@ describe("storage", () => {
         Twox256: (_: Uint8Array) => hash,
       }))
 
-      const { Storage } = await import(`@/storage?${Date.now()}`)
+      const { Storage } = await import(
+        /* @vite-ignore */ `../src/storage?${Date.now()}`
+      )
 
       const FooStorage = Storage(pallet)
       const FooBarStorage = FooStorage(name)
@@ -42,7 +44,9 @@ describe("storage", () => {
       Twox256: (_: Uint8Array) => hash,
     }))
 
-    const { Storage } = await import(`@/storage?${Date.now()}`)
+    const { Storage } = await import(
+      /* @vite-ignore */ `../src/storage?${Date.now()}`
+    )
 
     const FooStorage = Storage("foo")
     const barArgs: [EncoderWithHash<string>, EncoderWithHash<number>] = [

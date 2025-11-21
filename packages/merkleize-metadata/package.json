@@ -46,5 +46,8 @@
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1"
   }
 }
