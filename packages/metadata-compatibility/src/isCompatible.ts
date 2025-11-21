@@ -101,14 +101,22 @@ export function isCompatible(
 
 export function isStorageKeyCompatible(
   keys: any[],
+  destArgsLen: number,
   destNode: TypedefNode,
   getNode: (id: number) => TypedefNode,
 ): boolean {
-  const keyNodes =
-    destNode.type === "tuple" ? destNode.value.map(getNode) : [destNode]
+  if (keys.length > destArgsLen) return false
 
-  // Assuming that extra keys are considered compatible
-  return keys
-    .slice(0, keyNodes.length)
-    .every((key, i) => isCompatible(key, keyNodes[i], getNode))
+  let keyNodes = [destNode]
+  if (destArgsLen > 1) {
+    if (destNode.type === "tuple") {
+      keyNodes = destNode.value.map(getNode)
+    } else if (destNode.type === "array" && destNode.value.length) {
+      keyNodes = new Array(destNode.value.length).fill(
+        getNode(destNode.value.typeRef),
+      )
+    }
+  }
+
+  return keys.every((key, i) => isCompatible(key, keyNodes[i], getNode))
 }

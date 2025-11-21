@@ -16,6 +16,20 @@
 
 ## Unreleased
 
+## 0.7.3 to 0.7.4 - 2025-11-12
+
+### Fixed
+
+- Update dependencies
+
+## 0.7.2 - 2025-11-08
+
+### Fixed
+
+- Immediate heartbeat disconnections if `heartbeatTimeout` is too large
+
+## 0.7.1 - 2025-10-31
+
 ### Fixed
 
 - `heartbeatTimeout` option was not respected for `getLegacyWsProvider`

@@ -113,7 +113,9 @@ const def = Variant({
   array: arr,
   tuple: Vector(compactNumber),
   primitive,
-  compact: compactNumber,
+  compact: Struct({
+    type: compactNumber,
+  }),
   bitSequence,
 })
 

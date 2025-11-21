@@ -8,13 +8,28 @@
 
 ## Unreleased
 
+## 0.16.2 - 2025-11-16
+
 ### Fixed
 
-- # Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
+- Handle stop events that come prior to the first `bestBlockChanged` event.
+- Ensure that we don't emit block/best/finalized events before the stream is ready.
+
+## 0.16.1 - 2025-11-08
+
+### Fixed
+
+- `getRuntime$` throws an exception if the codehash isn't present
+
+## 0.16.0 - 2025-10-31
 
 ### Changed
 
 - The key of `PinnedBlocks.runtimes` is now the code-hash of the runtime.
+
+### Fixed
+
+- # Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
 
 ## 0.15.1 to 0.15.2 - 2025-10-09
 

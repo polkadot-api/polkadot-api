@@ -40,6 +40,46 @@
 
 ## Unreleased
 
+## 1.20.6 - 2025-11-16
+
+### Fixed
+
+- Handle stop events that come prior to the first `bestBlockChanged` event.
+- Ensure that we don't emit block/best/finalized events before the stream is ready.
+
+## 1.20.5 - 2025-11-12
+
+### Fixed
+
+- Fix teardown logic of ws and sm providers.
+
+## 1.20.4 - 2025-11-11
+
+### Fixed
+
+- False incompatible storage entries with compound keys of the same type.
+
+## 1.20.3 - 2025-11-11
+
+### Fixed
+
+- Fix edge-case issue that happens when a WebSocket connection fails synchronously.
+
+## 1.20.2 - 2025-11-08
+
+### Fixed
+
+- Archive requests not resolving
+- **WS Provider:**
+  - Immediate heartbeat disconnections if `heartbeatTimeout` is too large
+- **Ink!:**
+  - Align compact type generation with PJS metadata
+- **Chains:**:
+  - Update `lightSyncState`
+  - Remove faulty bootnodes
+
+## 1.20.1 - 2025-10-31
+
 ### Fixed
 
 - Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.

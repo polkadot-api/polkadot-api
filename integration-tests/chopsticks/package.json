@@ -14,7 +14,7 @@
     "server": "chopsticks --endpoint=wss://rpc.ibp.network/paseo --port=8132"
   },
   "dependencies": {
-    "@acala-network/chopsticks": "^1.2.2",
+    "@acala-network/chopsticks": "^1.2.4",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",

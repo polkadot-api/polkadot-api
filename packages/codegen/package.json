@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/codegen",
-  "version": "0.19.2",
+  "version": "0.19.5",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",

@@ -189,7 +189,10 @@ export const getFollow$ = (
   ) => (...args: A) => Observable<T>,
 ) => {
   let follower: FollowResponse | null = null
-  let unfollow: () => void = noop
+  let isDone = false
+  let unfollow: () => void = () => {
+    isDone = true
+  }
 
   const getFollower = () => {
     if (!follower) throw new Error("Missing chainHead subscription")
@@ -217,32 +220,50 @@ export const getFollow$ = (
     () => reset(),
   )
 
-  const follow$ = new Observable<FollowEventWithRuntime>((observer) => {
+  const follow$ = new Observable<
+    | FollowEventWithRuntime
+    | {
+        type: "stop-error"
+      }
+  >((observer) => {
+    if (isDone) return observer.complete()
+    let token: any
+
     const setFollower = () => {
       follower = chainHead(
         true,
-        (e) => {
-          observer.next(e)
-        },
+        (msg) => observer.next(msg),
         (e) => {
           follower = null
-          observer.error(e)
+          if (isDone) return
+
+          if (e instanceof StopError) {
+            setFollower()
+            observer.next({ type: "stop-error" })
+          } else {
+            console.warn("ChainHead follow request failed, retrying…", e)
+            token = setTimeout(setFollower, 250)
+          }
         },
       )
     }
+
     reset = () => {
       // This causes all the ongoing operations to unsubscribe
       // so that they won't error when we trigger `unfollow`
       observer.next({ type: "stop-error" } as any)
+      clearTimeout(token)
       follower?.unfollow()
       setFollower()
     }
     setFollower()
     unfollow = () => {
+      isDone = true
+      clearTimeout(token)
       observer.complete()
       follower?.unfollow()
     }
-  }).pipe(retryChainHeadError(), enhancer, share())
+  }).pipe(enhancer, share())
 
   return {
     getHeader,
@@ -254,36 +275,6 @@ export const getFollow$ = (
     },
   }
 }
-
-const retryChainHeadError =
-  <T extends { type: string }>() =>
-  (source$: Observable<T>) =>
-    new Observable<
-      | T
-      | {
-          type: "stop-error"
-        }
-    >((observer) => {
-      const subscription = new Subscription()
-      const reSubscribe = () => subscription.add(subscribe())
-      const subscribe = () =>
-        source$.subscribe({
-          next: (v) => observer.next(v),
-          error: (e) => {
-            if (e instanceof StopError) {
-              reSubscribe()
-              observer.next({ type: "stop-error" })
-            } else {
-              console.warn("ChainHead follow request failed, retrying…", e)
-              const token = setTimeout(reSubscribe, 250)
-              subscription.add(() => clearTimeout(token))
-            }
-          },
-          complete: () => observer.complete(),
-        })
-      subscription.add(subscribe())
-      return subscription
-    })
 
 export type FollowEvent =
   | ObservedValueOf<

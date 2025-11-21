@@ -6,5 +6,8 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "scripts": {
+    "release": "bun run ./propagate-update.ts && bun run ./release.ts && bun run ./merge-update-dependencies.ts"
   }
 }
