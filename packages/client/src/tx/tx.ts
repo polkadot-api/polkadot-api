@@ -33,6 +33,7 @@ import {
 import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
 import {
+  Extensions,
   PaymentInfo,
   TxCall,
   TxEntry,
@@ -87,6 +88,8 @@ export const createTxEntry = <
   }: CompatibilityHelper,
   checkCompatibility: boolean,
 ): TxEntry<D, Arg, Pallet, Name, Asset> => {
+  type Ext = Extensions<D>
+
   const fn = (arg?: Arg): any => {
     const getCallDataWithContext = (
       runtime: CompatibilityToken | RuntimeToken,
@@ -146,7 +149,7 @@ export const createTxEntry = <
 
     const sign$ = (
       from: PolkadotSigner,
-      { ..._options }: Omit<TxOptions<{}>, "at">,
+      { ..._options }: Omit<TxOptions<{}, Ext>, "at">,
       atBlock: BlockInfo,
     ) =>
       getCallData$(arg, _options).pipe(
@@ -164,7 +167,7 @@ export const createTxEntry = <
 
     const _sign = (
       from: PolkadotSigner,
-      { at, ..._options }: TxOptions<{}> = {},
+      { at, ..._options }: TxOptions<{}, Ext> = {},
     ) => {
       return (
         !at || at === "finalized"
@@ -189,15 +192,15 @@ export const createTxEntry = <
       )
     }
 
-    const sign: TxSignFn<Asset> = (from, options) =>
+    const sign: TxSignFn<Asset, Ext> = (from, options) =>
       firstValueFrom(_sign(from, options)).then((x) => x.tx)
 
-    const signAndSubmit: TxPromise<Asset> = (from, _options) =>
+    const signAndSubmit: TxPromise<Asset, Ext> = (from, _options) =>
       firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
         submit(chainHead, broadcast, tx, block.hash),
       )
 
-    const signSubmitAndWatch: TxObservable<Asset> = (from, _options) =>
+    const signSubmitAndWatch: TxObservable<Asset, Ext> = (from, _options) =>
       _sign(from, _options).pipe(
         mergeMap(({ tx }) => submit$(chainHead, broadcast, tx, true)),
       )

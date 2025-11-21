@@ -345,6 +345,8 @@ export const generateDescriptors = (
   const assetType =
     assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
 
+  const extensionsType = getExtensionsType(lookupFn, typesBuilder)
+
   const dispatchErrorId = getDispatchErrorId(lookupFn)
   const dispatchErrorType =
     dispatchErrorId == null
@@ -381,9 +383,11 @@ type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IViewFns = ${customStringifyObject(iViewFns)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-type IAsset = PlainDescriptor<${assetType}>
 export type ${prefix}DispatchError = ${dispatchErrorType}
+type IAsset = PlainDescriptor<${assetType}>
 const asset: IAsset = {} as IAsset
+export type ${prefix}Extensions = ${extensionsType}
+const extensions = {} as ${prefix}Extensions
 const getMetadata: () => Promise<Uint8Array> = () => import("./${key}_metadata").then(
   module => toBinary('default' in module ? module.default : module)
 )
@@ -405,10 +409,11 @@ export type ${prefix} = {
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
   asset: IAsset
+  extensions: ${prefix}Extensions
   getMetadata: () => Promise<Uint8Array>
   genesis: string | undefined
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata, genesis } as any as ${prefix};
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, extensions, getMetadata, genesis } as any as ${prefix};
 export default _allDescriptors;
 
 export type ${prefix}Apis = ApisFromDef<IRuntimeCalls>
@@ -468,6 +473,46 @@ export function getAssetId(lookup: MetadataLookup) {
     }
   }
   return
+}
+
+const knownSignedExtensions = new Set<string>([
+  "CheckNonce",
+  "CheckMortality",
+  "ChargeTransactionPayment",
+  "ChargeAssetTxPayment",
+  "CheckGenesis",
+  "CheckMetadataHash",
+  "CheckSpecVersion",
+  "CheckTxVersion",
+])
+function getExtensionsType(
+  lookup: MetadataLookup,
+  typesBuilder: ReturnType<typeof getTypesBuilder>,
+) {
+  const result: Record<string, string> = {}
+
+  lookup.metadata.extrinsic.signedExtensions.forEach((ext) => {
+    if (knownSignedExtensions.has(ext.identifier)) return
+    const hasValue = lookup(ext.type).type !== "void"
+    const hasAdditional = lookup(ext.additionalSigned).type !== "void"
+
+    const props = []
+    if (hasValue)
+      props.push(`value: ${typesBuilder.buildTypeDefinition(ext.type)}`)
+    if (hasAdditional)
+      props.push(
+        `additionalSigned: ${typesBuilder.buildTypeDefinition(ext.additionalSigned)}`,
+      )
+    if (!props.length) return
+
+    result[ext.identifier] = `{${props.join(", ")}}`
+  })
+
+  return `{
+  ${Object.entries(result)
+    .map(([id, type]) => `"${id}": ${type}`)
+    .join(",\n")}
+  }`
 }
 
 export function getDispatchErrorId(lookup: MetadataLookup) {

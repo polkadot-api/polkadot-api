@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Bump `polkadot-api` peer dependency on generated descriptors package.
+
 ## 0.15.1 to 0.15.10 - 2025-11-19
 
 ### Fixed
