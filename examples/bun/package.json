@@ -14,13 +14,13 @@
     "compile:ledger": "bun build ./src/ledger.ts --compile --outfile ./dist/ledger"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.23"
+    "@types/bun": "^1.3.3"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@ledgerhq/hw-transport-node-hid": "^6.29.13",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.14",
     "@noble/curves": "^2.0.1",
     "@noble/hashes": "^2.0.1",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
