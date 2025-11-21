@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "lib": ["DOM", "DOM.Iterable", "ES2023", "ESNext.Disposable"],
     "importHelpers": true,
     "declaration": false,
     "sourceMap": false,
