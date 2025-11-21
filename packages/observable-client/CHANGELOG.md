@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid circular dependency between files
+
 ## 0.16.3 - 2025-11-19
 
 ### Fixed
