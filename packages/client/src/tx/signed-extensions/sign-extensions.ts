@@ -71,6 +71,7 @@ export const getSignExtensionsCreator = (
         )
       } catch {
         // this means that a non optional custom signed-extension has not received its value
+        if (customEntry) throw new Error(`Wrong input received for ${key}`)
         invalidKeys.push(key)
         return null
       }

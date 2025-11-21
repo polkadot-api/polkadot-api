@@ -248,6 +248,21 @@ describe("E2E", async () => {
     )
   })
 
+  it.concurrent("throws on invalid custom signed-extensions", async () => {
+    await expect(async () =>
+      api.tx.System.remark_with_event({
+        remark: Binary.fromText("test"),
+      }).sign(unusedSigner, {
+        customSignedExtensions: {
+          CheckNonce: {
+            value: "patata",
+            additionalSigned: "blah",
+          },
+        },
+      }),
+    ).rejects.toThrowError()
+  })
+
   // this test needs to run concurrently with "fund accounts" one
   it.concurrent("invalid tx on finalized, valid on best", async () => {
     const previousNonceProm = api.apis.AccountNonceApi.account_nonce(
