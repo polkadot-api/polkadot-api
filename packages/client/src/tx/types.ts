@@ -95,7 +95,8 @@ export type CustomSignedExtensionValues =
       additionalSigned: any
     }
 
-export type TxOptions<Asset> = Partial<
+//  = CustomSignedExtensionValues
+export type TxOptions<Asset, Ext> = Partial<
   void extends Asset
     ? {
         /**
@@ -125,7 +126,7 @@ export type TxOptions<Asset> = Partial<
          * its dynamic codecs. At least one of the 2 values must be included
          * into the signed-extension Object.
          */
-        customSignedExtensions: Record<string, CustomSignedExtensionValues>
+        customSignedExtensions: Ext
       }
     : {
         /**
@@ -155,7 +156,7 @@ export type TxOptions<Asset> = Partial<
          * its dynamic codecs. At least one of the 2 values must be included
          * into the signed-extension Object.
          */
-        customSignedExtensions: Record<string, CustomSignedExtensionValues>
+        customSignedExtensions: Ext
         /**
          * Asset information to pay fees, tip, etc. By default it'll use the
          * native token of the chain.
@@ -233,14 +234,14 @@ export type OfflineTxExtensions<Asset> = void extends Asset
       asset?: Asset
     }
 
-export type TxPromise<Asset> = (
+export type TxPromise<Asset, Ext> = (
   from: PolkadotSigner,
-  txOptions?: TxOptions<Asset>,
+  txOptions?: TxOptions<Asset, Ext>,
 ) => Promise<TxFinalizedPayload>
 
-export type TxObservable<Asset> = (
+export type TxObservable<Asset, Ext> = (
   from: PolkadotSigner,
-  txOptions?: TxOptions<Asset>,
+  txOptions?: TxOptions<Asset, Ext>,
 ) => Observable<TxEvent>
 
 export interface TxCall {
@@ -276,9 +277,9 @@ export interface UnsafeTxCall {
   (runtimeToken: RuntimeToken): Binary
 }
 
-export type TxSignFn<Asset> = (
+export type TxSignFn<Asset, Ext> = (
   from: PolkadotSigner,
-  txOptions?: TxOptions<Asset>,
+  txOptions?: TxOptions<Asset, Ext>,
 ) => Promise<HexString>
 
 export type PaymentInfo = {
@@ -300,6 +301,7 @@ export type InnerTransaction<
   Pallet extends string,
   Name extends string,
   Asset,
+  Ext,
 > = {
   /**
    * Pack the transaction, sends it to the signer, and return the signature
@@ -310,7 +312,7 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  sign: TxSignFn<Asset>
+  sign: TxSignFn<Asset, Ext>
   /**
    * Observable-based all-in-one transaction submitting. It will sign,
    * broadcast, and track the transaction. The observable is singlecast, i.e.
@@ -321,7 +323,7 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Observable to the transaction.
    */
-  signSubmitAndWatch: TxObservable<Asset>
+  signSubmitAndWatch: TxObservable<Asset, Ext>
   /**
    * Pack the transaction, sends it to the signer, broadcast, and track the
    * transaction. The promise will resolve as soon as the transaction in found
@@ -332,7 +334,7 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Finalized transaction information.
    */
-  signAndSubmit: TxPromise<Asset>
+  signAndSubmit: TxPromise<Asset, Ext>
   /**
    * SCALE-encoded callData of the transaction.
    */
@@ -346,7 +348,7 @@ export type InnerTransaction<
    */
   getEstimatedFees: (
     from: Uint8Array | SS58String,
-    txOptions?: TxOptions<Asset>,
+    txOptions?: TxOptions<Asset, Ext>,
   ) => Promise<bigint>
   /**
    * Payment info against the latest known `finalizedBlock`
@@ -358,7 +360,7 @@ export type InnerTransaction<
    */
   getPaymentInfo: (
     from: Uint8Array | SS58String,
-    txOptions?: TxOptions<Asset>,
+    txOptions?: TxOptions<Asset, Ext>,
   ) => Promise<PaymentInfo>
 
   /**
@@ -369,18 +371,26 @@ export type InnerTransaction<
 }
 
 export type Transaction<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-> = InnerTransaction<false, Arg, Pallet, Name, Asset>
+  Arg extends {} | undefined = any,
+  Pallet extends string = string,
+  Name extends string = string,
+  Asset = any,
+  Ext = Record<string, CustomSignedExtensionValues>,
+> = InnerTransaction<false, Arg, Pallet, Name, Asset, Ext>
 
 export type UnsafeTransaction<
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
   Asset,
-> = InnerTransaction<true, Arg, Pallet, Name, Asset>
+  Ext = Record<string, CustomSignedExtensionValues>,
+> = InnerTransaction<true, Arg, Pallet, Name, Asset, Ext>
+
+export type Extensions<D> = D extends {
+  extensions: infer Ext extends Record<string, any>
+}
+  ? Partial<Ext>
+  : Record<string, CustomSignedExtensionValues>
 
 export type InnerTxEntry<
   Unsafe,
@@ -400,7 +410,7 @@ export type InnerTxEntry<
        */
       (
         ...args: Arg extends undefined ? [] : [data: Arg]
-      ): UnsafeTransaction<Arg, Pallet, Name, Asset>
+      ): UnsafeTransaction<Arg, Pallet, Name, Asset, Extensions<D>>
     }
   : {
       /**
@@ -412,7 +422,7 @@ export type InnerTxEntry<
        */
       (
         ...args: Arg extends undefined ? [] : [data: Arg]
-      ): Transaction<Arg, Pallet, Name, Asset>
+      ): Transaction<Arg, Pallet, Name, Asset, Extensions<D>>
     } & CompatibilityFunctions<D>
 
 export type OfflineTxEntry<

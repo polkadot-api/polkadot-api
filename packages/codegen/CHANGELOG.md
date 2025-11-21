@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Descriptors with signed extension types
+
 ## 0.19.2 to 0.19.5 - 2025-11-11
 
 ### Fixed
