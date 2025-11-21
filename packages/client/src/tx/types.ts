@@ -379,10 +379,10 @@ export type Transaction<
 > = InnerTransaction<false, Arg, Pallet, Name, Asset, Ext>
 
 export type UnsafeTransaction<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
+  Arg extends {} | undefined = any,
+  Pallet extends string = string,
+  Name extends string = string,
+  Asset = any,
   Ext = Record<string, CustomSignedExtensionValues>,
 > = InnerTransaction<true, Arg, Pallet, Name, Asset, Ext>
 

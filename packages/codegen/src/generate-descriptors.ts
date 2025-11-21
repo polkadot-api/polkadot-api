@@ -476,14 +476,14 @@ export function getAssetId(lookup: MetadataLookup) {
 }
 
 const knownSignedExtensions = new Set<string>([
-  // "CheckNonce",
-  // "CheckMortality",
-  // "ChargeTransactionPayment",
-  // "ChargeAssetTxPayment",
-  // "CheckGenesis",
-  // "CheckMetadataHash",
-  // "CheckSpecVersion",
-  // "CheckTxVersion",
+  "CheckNonce",
+  "CheckMortality",
+  "ChargeTransactionPayment",
+  "ChargeAssetTxPayment",
+  "CheckGenesis",
+  "CheckMetadataHash",
+  "CheckSpecVersion",
+  "CheckTxVersion",
 ])
 function getExtensionsType(
   lookup: MetadataLookup,
