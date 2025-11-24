@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.4 - 2025-11-24
+
 ### Fixed
 
 - Avoid circular dependency between files

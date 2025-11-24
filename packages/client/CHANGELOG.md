@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.21.0 - 2025-11-24
+
 ### Added
 
 - Typed `customSignedExtensions` in transactions
