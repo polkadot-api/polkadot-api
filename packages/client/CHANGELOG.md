@@ -9,6 +9,8 @@
 ### Fixed
 
 - Throw an error if the user provides an invalid custom signed-extension.
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.20.7 - 2025-11-19
 
