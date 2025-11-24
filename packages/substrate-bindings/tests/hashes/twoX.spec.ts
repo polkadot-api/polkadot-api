@@ -21,7 +21,9 @@ test.prop([fc.uint8Array(), fc.tuple(bigU64(), bigU64())])(
       h64: (_: Uint8Array) => bytes[count++],
     }))
 
-    const { Twox128 } = await import(`@/hashes/twoX?${Date.now()}`)
+    const { Twox128 } = await import(
+      /* @vite-ignore */ `../../src/hashes/twoX?${Date.now()}`
+    )
 
     const expected = new Uint8Array(16)
     setBytes(bytes, expected)
@@ -38,7 +40,9 @@ test.prop([fc.uint8Array(), fc.tuple(bigU64(), bigU64(), bigU64(), bigU64())])(
       h64: (_: Uint8Array) => bytes[count++],
     }))
 
-    const { Twox256 } = await import(`@/hashes/twoX?${Date.now()}`)
+    const { Twox256 } = await import(
+      /* @vite-ignore */ `../../src/hashes/twoX?${Date.now()}`
+    )
 
     const expected = new Uint8Array(32)
     setBytes(bytes, expected)
@@ -52,7 +56,9 @@ test.prop([fc.uint8Array(), bigU64()])("Twox64Concat", async (input, hash) => {
     h64: (_: Uint8Array) => hash,
   }))
 
-  const { Twox64Concat } = await import(`@/hashes/twoX?${Date.now()}`)
+  const { Twox64Concat } = await import(
+    /* @vite-ignore */ `../../src/hashes/twoX?${Date.now()}`
+  )
 
   const expected = mergeUint8([u64.enc(hash), input])
 
