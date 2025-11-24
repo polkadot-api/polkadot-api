@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix crash on new-block carrying a runtime-upgrade.
+
 ## 1.21.0 - 2025-11-24
 
 ### Added

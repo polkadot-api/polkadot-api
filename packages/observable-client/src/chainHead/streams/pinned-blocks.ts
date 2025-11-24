@@ -224,9 +224,9 @@ export const getPinnedBlocks$ = (
             const block = {
               hash,
               number,
-              parent: parent,
+              parent,
               children: new Set<string>(),
-              runtime: event.newRuntime ? hash : parentNode.runtime,
+              runtime: parentNode.runtime,
               unpinnable: false,
               refCount: 0,
               recovering: false,
@@ -235,6 +235,7 @@ export const getPinnedBlocks$ = (
             acc.blocks.set(hash, block)
             if (event.newRuntime) {
               const { codeHash } = event
+              block.runtime = codeHash!
               acc.runtimes[codeHash!] = getRuntime(codeHash!, hash)
             }
 

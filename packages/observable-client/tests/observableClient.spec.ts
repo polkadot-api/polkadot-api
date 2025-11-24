@@ -3,6 +3,8 @@ import { OperationLimitError } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
 import {
   initialize,
+  metadataHex,
+  metadataVersions,
   newHash,
   sendBestBlockChanged,
   sendFinalized,
@@ -10,9 +12,11 @@ import {
   sendNewBlockBranch,
   setReady,
   wait,
+  waitMicro,
 } from "./fixtures"
 import { createMockSubstrateClient } from "./mockSubstrateClient"
 import { observe } from "./observe"
+import { filter, map, skip } from "rxjs"
 
 describe("observableClient chainHead", () => {
   describe("finalized$", () => {
@@ -472,6 +476,67 @@ describe("observableClient chainHead", () => {
       expect(next).toHaveBeenCalledWith(body)
       expect(error).not.toHaveBeenCalled()
       expect(complete).toHaveBeenCalled()
+
+      cleanup(chainHead.unfollow)
+    })
+  })
+
+  describe("runtime upgrade", () => {
+    it("loads the new runtime", async () => {
+      const mockClient = createMockSubstrateClient()
+      const client = getObservableClient(mockClient)
+      const chainHead = client.chainHead$()
+      const { next, error, complete } = observe(
+        chainHead.newBlocks$.pipe(
+          skip(1),
+          filter((b) => b.hasNewRuntime),
+          map((b) => b.hash),
+        ),
+      )
+
+      const { initialHash } = await initialize(mockClient, undefined, 10)
+      setReady(mockClient, initialHash)
+
+      const newBlock = sendNewBlock(mockClient, {
+        blockHash: newHash(),
+        newRuntime: {
+          apis: {},
+          implName: "",
+          specName: "",
+          implVersion: 12,
+          specVersion: 5,
+          transactionVersion: 4,
+        },
+        parentBlockHash: initialHash,
+      })
+
+      expect(next).not.toHaveBeenCalled()
+      expect(error).not.toHaveBeenCalled()
+      expect(complete).not.toHaveBeenCalled()
+
+      await waitMicro()
+
+      const newCodeHash = "0x010245"
+      await mockClient.chainHead.mock.storage.reply(
+        newBlock.blockHash,
+        newCodeHash,
+      )
+
+      expect(next).toHaveBeenCalledWith(newBlock.blockHash)
+      expect(error).not.toHaveBeenCalled()
+      expect(complete).not.toHaveBeenCalled()
+
+      await waitMicro()
+
+      await mockClient.chainHead.mock.call.reply(
+        newBlock.blockHash,
+        metadataVersions,
+      )
+
+      await mockClient.chainHead.mock.call.reply(
+        newBlock.blockHash,
+        await metadataHex,
+      )
 
       cleanup(chainHead.unfollow)
     })
