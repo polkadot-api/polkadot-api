@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.5 - 2025-11-25
+
 ### Fixed
 
 - Fix crash on new-block carrying a runtime-upgrade.
