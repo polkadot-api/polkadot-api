@@ -117,6 +117,17 @@ export const getPinnedBlocks$ = (
         onUnpin(toUnpin)
       }
 
+      const tryToUnpin = (...target: PinnedBlock[]) => {
+        const finHeight = acc.blocks.get(acc.finalized)?.number ?? -1
+        const toRemove = target
+          .filter(
+            ({ refCount, recovering, number, pruned }) =>
+              !refCount && !recovering && (pruned || number < finHeight),
+          )
+          .map(({ hash }) => hash)
+        toRemove.length && unpinAndDelete(toRemove)
+      }
+
       switch (event.type) {
         case "initialized":
           if (
@@ -157,12 +168,10 @@ export const getPinnedBlocks$ = (
           let latestRuntime = acc.finalizedRuntime.codeHash
 
           event.finalizedBlockHashes.forEach((hash, i) => {
-            const unpinnable = i !== lastIdx
             const preexistingBlock = acc.blocks.get(hash)
 
             if (preexistingBlock) {
               preexistingBlock.recovering = false
-              preexistingBlock.unpinnable = unpinnable
             } else {
               const number = event.number + i
               const isNew = number > latestFinalizedHeight
@@ -183,7 +192,7 @@ export const getPinnedBlocks$ = (
                 children: new Set(
                   i === lastIdx ? [] : [event.finalizedBlockHashes[i + 1]],
                 ),
-                unpinnable,
+                pruned: false,
                 runtime: latestRuntime,
                 refCount: 0,
                 number,
@@ -227,7 +236,7 @@ export const getPinnedBlocks$ = (
               parent,
               children: new Set<string>(),
               runtime: parentNode.runtime,
-              unpinnable: false,
+              pruned: false,
               refCount: 0,
               recovering: false,
               hasNewRuntime: !!event.newRuntime,
@@ -276,40 +285,23 @@ export const getPinnedBlocks$ = (
 
           event.prunedBlockHashes.forEach((hash) => {
             const block = acc.blocks.get(hash)
-            if (block) {
-              block.unpinnable = true
-            }
+            if (block) block.pruned = true
           })
 
-          let current = blocks.get(blocks.get(acc.finalized)!.parent)
-          while (current && !current.unpinnable) {
-            current.unpinnable = true
-            current = blocks.get(current.parent)
-          }
-
           if (shouldBeSetToReady) setToReady(acc)
-
           if (acc.state.type === PinnedBlockState.Ready) cleanup$.next()
 
           return acc
         }
         case "cleanup": {
-          const toUnpin = [...acc.blocks.values()]
-            .filter(({ unpinnable, refCount }) => unpinnable && !refCount)
-            .map(({ hash }) => hash)
-
-          unpinAndDelete(toUnpin)
+          tryToUnpin(...acc.blocks.values())
           return acc
         }
         case "blockUsage": {
-          if (!acc.blocks.has(event.value.hash)) return acc
-
-          const block = acc.blocks.get(event.value.hash)!
+          const block = acc.blocks.get(event.value.hash)
+          if (!block) return acc
           block.refCount += event.value.type === "hold" ? 1 : -1
-          if (block.refCount === 0 && !block.recovering && block.unpinnable) {
-            const toUnpin = [block.hash]
-            unpinAndDelete(toUnpin)
-          }
+          tryToUnpin(block)
           return acc
         }
       }

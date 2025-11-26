@@ -6,7 +6,7 @@ export interface PinnedBlock {
   parent: string
   children: Set<string>
   runtime: string
-  unpinnable: boolean
+  pruned: boolean
   refCount: number
   recovering: boolean
   hasNewRuntime: boolean
