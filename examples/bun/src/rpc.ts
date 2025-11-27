@@ -1,4 +1,4 @@
-import { CompatibilityLevel, createClient } from "polkadot-api"
+import { CompatibilityLevel, createClient, type TxCallData } from "polkadot-api"
 import { getMetadata, wnd } from "@polkadot-api/descriptors"
 import { withLogsRecorder } from "polkadot-api/logs-provider"
 import { getWsProvider } from "polkadot-api/ws-provider"

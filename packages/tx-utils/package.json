@@ -43,6 +43,8 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@polkadot-api/merkleize-metadata": "workspace:*",
+    "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*"

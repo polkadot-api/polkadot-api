@@ -7,7 +7,7 @@ export interface SignerPayloadJSON {
   /**
    * The id of the asset used to pay fees, in hex.
    */
-  assetId?: number | object
+  assetId?: number | object | HexString
   /**
    * The checkpoint hash of the block, in hex.
    */
@@ -84,4 +84,31 @@ export type TxData = {
   mortality: Mortality
   genesisHash: HexString
   nonce: number
+}
+
+export type TxInputsRaw = {
+  callData: Uint8Array
+  extensions: Array<{
+    id: string
+    extra: Uint8Array
+    additionalSigned: Uint8Array
+  }>
+}
+
+export type TxCallData = {
+  type: string
+  value: {
+    type: string
+    value: any
+  }
+}
+
+export type TxInputDecoded = {
+  genesisHash: string
+  method: TxCallData
+  nonce: number
+  mortality: null | { from: { hash: string; height: number }; to: number }
+  tip: bigint
+  asset?: any
+  others: Record<string, any>
 }
