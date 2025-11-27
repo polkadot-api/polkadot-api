@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Update dependencies
+- Properly track transactions on super-fast chains
 
 ## 1.21.1 - 2025-11-25
 

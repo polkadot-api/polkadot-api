@@ -149,14 +149,14 @@ export const getChainHead$ = (
 
   const cache = new Map<string, Map<string, Observable<any>>>()
 
-  const newBlocks$ = new Subject<BlockInfo | null>()
+  const _newBlocks$ = new Subject<BlockInfo | null>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
     getCachedMetadata,
     setCachedMetadata,
     blockUsage$,
-    newBlocks$,
+    _newBlocks$,
     (blocks) => {
       unpin(blocks).catch((err) => {
         console.error("unpin", err)
@@ -370,14 +370,6 @@ export const getChainHead$ = (
 
   const validateTx$ = getValidateTx(call$, getRuntimeContext$)
 
-  const trackTx$ = getTrackTx(readyBlocks$, body$, validateTx$, eventsAt$)
-  const trackTxWithoutEvents$ = getTrackTx(
-    pinnedBlocks$,
-    body$,
-    validateTx$,
-    () => of(),
-  )
-
   const genesis$ = runtime$.pipe(
     filter(Boolean),
     take(1),
@@ -454,13 +446,31 @@ export const getChainHead$ = (
         return subscription
       })
 
+  const newBlocks$ = _newBlocks$.pipe(takeWhile(Boolean))
+  const trackTx$ = getTrackTx(
+    readyBlocks$,
+    newBlocks$,
+    body$,
+    validateTx$,
+    eventsAt$,
+    holdBlock,
+  )
+  const trackTxWithoutEvents$ = getTrackTx(
+    pinnedBlocks$,
+    newBlocks$,
+    body$,
+    validateTx$,
+    () => of(),
+    holdBlock,
+  )
+
   return {
     follow$,
     unfollow,
     finalized$,
     best$,
     bestBlocks$,
-    newBlocks$: newBlocks$.pipe(takeWhile(Boolean)),
+    newBlocks$,
     runtime$,
     metadata$,
     genesis$,
