@@ -91,7 +91,7 @@ type DecodedExtrinsic = {
 )
 
 const mortalDecoder = enhanceDecoder(u16[1], (input) => {
-  const period = 2 << input % (1 << 4)
+  const period = 2 << (input % (1 << 4))
   const factor = Math.max(period >> 12, 1)
   const phase = (input >> 4) * factor
   return { mortal: true as const, period, phase }

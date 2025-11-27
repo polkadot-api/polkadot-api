@@ -55,7 +55,7 @@ const $mortal = enhanceCodec(
   },
   (value) => {
     const enc = u16.dec(value)
-    const period = 2 << enc % (1 << 4)
+    const period = 2 << (enc % (1 << 4))
     const factor = Math.max(period >> 12, 1)
     const phase = (enc >> 4) * factor
     return { type: "mortal", period, phase }
