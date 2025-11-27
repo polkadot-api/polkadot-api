@@ -46,10 +46,16 @@ export const getTrackTx = (
     heldBlocks.delete(hash)
   }
 
-  const hodl$ = new Observable<never>(() => {
+  const hodl$ = new Observable<never>((observer) => {
     // As new blocks arrive we keep them around
-    const sub = newBlocks$.subscribe(({ hash }) => {
-      heldBlocks.set(hash, hodl(hash))
+    const sub = newBlocks$.subscribe({
+      next: ({ hash }) => {
+        heldBlocks.set(hash, hodl(hash))
+      },
+      complete() {
+        // If we haven't fully recovered from a stop event we must error
+        observer.error(new Error("Tracking stopped"))
+      },
     })
 
     // We make sure to release pruned blocks
