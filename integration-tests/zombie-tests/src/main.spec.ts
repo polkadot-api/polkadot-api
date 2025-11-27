@@ -180,7 +180,7 @@ describe("E2E", async () => {
     const extDec = getExtrinsicDecoder(
       await client.getMetadata((await client.getFinalizedBlock()).hash),
     )
-    const decoded = extDec(bare.asBytes())
+    const decoded = extDec(bare)
 
     expect(decoded.type).toBe("bare")
     expect(decoded.call.type).toEqual("System")

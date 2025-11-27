@@ -130,7 +130,7 @@ export const createTxEntry = <
       const callData = mergeUint8([new Uint8Array(location), codec.enc(arg)])
       return {
         callData: Binary.fromBytes(callData),
-        bare: Binary.fromBytes(
+        bare: toHex(
           mergeUint8(
             compact.enc(callData.length + 1),
             new Uint8Array(extVersions.slice(-1)),

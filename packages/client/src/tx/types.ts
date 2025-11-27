@@ -268,14 +268,14 @@ export interface TxBare {
    * @returns Promise resolving in a Bare transaction (it fallsback to an
    *          unsiged-transaction if only v4 is available)
    */
-  (): Promise<Binary>
+  (): Promise<HexString>
   /**
    * @param compatibilityToken  Token from got with `await
    *                            typedApi.compatibilityToken`
    * @returns Synchronously returns a Bare transaction (it fallsback to an
    *          unsiged-transaction if only v4 is available)
    */
-  (compatibilityToken: CompatibilityToken): Binary
+  (compatibilityToken: CompatibilityToken): HexString
 }
 
 export interface UnsafeTxBare {
@@ -285,13 +285,13 @@ export interface UnsafeTxBare {
    * @returns Promise resolving in a Bare transaction (it fallsback to an
    *          unsiged-transaction if only v4 is available)
    */
-  (): Promise<Binary>
+  (): Promise<HexString>
   /**
    * @param runtimeToken  Token from got with `await typedApi.runtimeToken`
    * @returns Synchronously returns a Bare transaction (it fallsback to an
    *          unsiged-transaction if only v4 is available)
    */
-  (runtimeToken: RuntimeToken): Binary
+  (runtimeToken: RuntimeToken): HexString
 }
 
 export interface UnsafeTxCall {
