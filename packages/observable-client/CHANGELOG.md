@@ -5,6 +5,7 @@
 ### Fixed
 
 - Refactor: remove `unpinnable` and add `prunned`
+- Properly track transactions on super-fast chains
 
 ## 0.16.5 - 2025-11-25
 
