@@ -288,8 +288,8 @@ export interface UnsafeTxBare {
   (): Promise<HexString>
   /**
    * @param runtimeToken  Token from got with `await typedApi.runtimeToken`
-   * @returns Synchronously returns a Bare transaction (it fallsback to an
-   *          unsiged-transaction if only v4 is available)
+   * @returns Synchronously returns a Bare transaction (it falls back to an
+   *          unsigned transaction if only v4 is available)
    */
   (runtimeToken: RuntimeToken): HexString
 }
