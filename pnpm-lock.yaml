@@ -878,9 +878,15 @@ importers:
 
   packages/tx-utils:
     dependencies:
+      '@polkadot-api/merkleize-metadata':
+        specifier: workspace:*
+        version: link:../merkleize-metadata
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../metadata-builders
+      '@polkadot-api/signers-common':
+        specifier: workspace:*
+        version: link:../signers/signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../substrate-bindings

@@ -71,7 +71,7 @@ export const getSignedExtensionParts = (
     if (!signedExtension)
       throw new Error(`Missing ${identifier} signed extension`)
     extraParts.push(signedExtension.value)
-    additionalSignedParts.push(signedExtension.value)
+    additionalSignedParts.push(signedExtension.additionalSigned)
   })
 
   const extra = mergeUint8(extraParts)
