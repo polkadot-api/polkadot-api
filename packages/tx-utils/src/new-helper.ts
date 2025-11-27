@@ -42,7 +42,7 @@ const mortalityDec = createDecoder((value) => {
   if (!firstByte) return null
   const secondByte = u8.dec(value)
   const enc = u16.dec(Uint8Array.from([firstByte, secondByte]))
-  const period = 2 << enc % (1 << 4)
+  const period = 2 << (enc % (1 << 4))
   const factor = Math.max(period >> 12, 1)
   const phase = (enc >> 4) * factor
   return { period, phase }
