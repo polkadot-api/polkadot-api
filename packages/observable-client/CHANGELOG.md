@@ -2,18 +2,20 @@
 
 ## Unreleased
 
+## 0.17.0 - 2025-11-27
+
 ### Added
 
 - Export the supported extrinsic versions on the runtime-context
+
+### Changed
+
+- Emit current finalized and descendants when subscribing to `newBlocks$`
 
 ### Fixed
 
 - Error when unable to track a transaction because we haven't fully recovered from a `stop` event
 - Fix `readyBlocks$` stream
-
-### Added
-
-- Emit current finalized and descendants when subscribing to `newBlocks$`
 
 ## 0.16.6 - 2025-11-27
 

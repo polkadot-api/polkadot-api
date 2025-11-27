@@ -2,14 +2,19 @@
 
 ## Unreleased
 
-### Fixed
-
-- Error when unable to track a transaction because we haven't fully recovered from a `stop` event
+## 1.22.0 - 2025-11-27
 
 ### Added
 
 - New `getBareTx` API on the `Transaction` interface.
+
+### Changed
+
 - Emit current finalized and descendants when subscribing to `blocks$`
+
+### Fixed
+
+- Error when unable to track a transaction because we haven't fully recovered from a `stop` event
 
 ## 1.21.2 - 2025-11-27
 
