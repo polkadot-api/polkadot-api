@@ -145,9 +145,7 @@ const getNonce$ = (chainHead: ChainHead$, from: HexString) => {
       return [...blocks.values()]
         .filter(
           (v) =>
-            !v.unpinnable &&
-            v.children.size === 0 &&
-            v.number >= bestBlock.number,
+            !v.pruned && v.children.size === 0 && v.number >= bestBlock.number,
         )
         .map((v) => v.hash)
     }),

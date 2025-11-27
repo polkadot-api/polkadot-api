@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Refactor: remove `unpinnable` and add `prunned`
+
 ## 0.16.5 - 2025-11-25
 
 ### Fixed

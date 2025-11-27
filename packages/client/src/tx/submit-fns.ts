@@ -244,7 +244,7 @@ export const submit$ = (
 
       const getTipsFromHeight = (height: number): BlockInfo[] => {
         let tips: BlockInfo[] = [...pinnedBlocks.blocks.values()].filter(
-          (block) => !block.unpinnable && !block.children.size,
+          (block) => !block.pruned && !block.children.size,
         )
         const higherTip = Math.max(...tips.map(({ number }) => number))
         // take only tips "with chance to become canonical"
