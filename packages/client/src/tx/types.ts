@@ -261,6 +261,39 @@ export interface TxCall {
   (compatibilityToken: CompatibilityToken): Binary
 }
 
+export interface TxBare {
+  /**
+   * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
+   *
+   * @returns Promise resolving in a Bare transaction (it fallsback to an
+   *          unsiged-transaction if only v4 is available)
+   */
+  (): Promise<Binary>
+  /**
+   * @param compatibilityToken  Token from got with `await
+   *                            typedApi.compatibilityToken`
+   * @returns Synchronously returns a Bare transaction (it fallsback to an
+   *          unsiged-transaction if only v4 is available)
+   */
+  (compatibilityToken: CompatibilityToken): Binary
+}
+
+export interface UnsafeTxBare {
+  /**
+   * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
+   *
+   * @returns Promise resolving in a Bare transaction (it fallsback to an
+   *          unsiged-transaction if only v4 is available)
+   */
+  (): Promise<Binary>
+  /**
+   * @param runtimeToken  Token from got with `await typedApi.runtimeToken`
+   * @returns Synchronously returns a Bare transaction (it fallsback to an
+   *          unsiged-transaction if only v4 is available)
+   */
+  (runtimeToken: RuntimeToken): Binary
+}
+
 export interface UnsafeTxCall {
   /**
    * SCALE-encoded callData of the transaction.
@@ -339,6 +372,11 @@ export type InnerTransaction<
    * SCALE-encoded callData of the transaction.
    */
   getEncodedData: Unsafe extends true ? UnsafeTxCall : TxCall
+  /**
+   * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
+   */
+  getBareTx: Unsafe extends true ? UnsafeTxBare : TxBare
+
   /**
    * Estimate fees against the latest known `finalizedBlock`
    *

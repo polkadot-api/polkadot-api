@@ -5,6 +5,7 @@ import {
   _void,
   AccountId,
   Binary,
+  compact,
   compactBn,
   Decoder,
   Enum,
@@ -35,6 +36,7 @@ import { InvalidTxError, submit, submit$ } from "./submit-fns"
 import {
   Extensions,
   PaymentInfo,
+  TxBare,
   TxCall,
   TxEntry,
   TxObservable,
@@ -97,7 +99,7 @@ export const createTxEntry = <
       txOptions: Partial<{ asset: any }> = {},
     ) => {
       const ctx = getCompatibilityApi(runtime).runtime()
-      const { dynamicBuilder, assetId, lookup } = ctx
+      const { dynamicBuilder, assetId, lookup, extVersions } = ctx
       let codecs
       try {
         codecs = dynamicBuilder.buildCall(pallet, name)
@@ -125,9 +127,15 @@ export const createTxEntry = <
       }
 
       const { location, codec } = codecs
+      const callData = mergeUint8([new Uint8Array(location), codec.enc(arg)])
       return {
-        callData: Binary.fromBytes(
-          mergeUint8([new Uint8Array(location), codec.enc(arg)]),
+        callData: Binary.fromBytes(callData),
+        bare: Binary.fromBytes(
+          mergeUint8(
+            compact.enc(callData.length + 1),
+            new Uint8Array(extVersions.slice(-1)),
+            callData,
+          ),
         ),
         options: returnOptions,
       }
@@ -145,6 +153,15 @@ export const createTxEntry = <
         return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
 
       return getCallDataWithContext(token, arg).callData
+    }
+
+    const getBareTx: TxBare = (
+      token?: CompatibilityToken | RuntimeToken,
+    ): any => {
+      if (!token)
+        return firstValueFrom(getCallData$(arg).pipe(map((x) => x.bare)))
+
+      return getCallDataWithContext(token, arg).bare
     }
 
     const sign$ = (
@@ -261,6 +278,7 @@ export const createTxEntry = <
         value: Enum(name, arg as any),
       },
       getEncodedData,
+      getBareTx,
       sign,
       signSubmitAndWatch,
       signAndSubmit,

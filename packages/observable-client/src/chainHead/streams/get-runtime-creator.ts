@@ -61,6 +61,7 @@ export interface RuntimeContext {
   accountId: Codec<SS58String>
   assetId: number | null
   getMortalityFromTx: Decoder<Mortality>
+  extVersions: Array<number>
 }
 
 export interface Runtime {

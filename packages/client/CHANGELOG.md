@@ -8,6 +8,7 @@
 
 ### Added
 
+- New `getBareTx` API on the `Transaction` interface.
 - Emit current finalized and descendants when subscribing to `blocks$`
 
 ## 1.21.2 - 2025-11-27
