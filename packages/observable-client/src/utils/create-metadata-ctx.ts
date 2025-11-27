@@ -63,6 +63,7 @@ export const createRuntimeCtx = (
     },
     accountId: AccountId(dynamicBuilder.ss58Prefix),
     getMortalityFromTx,
+    extVersions: metadata.extrinsic.version,
   }
 }
 

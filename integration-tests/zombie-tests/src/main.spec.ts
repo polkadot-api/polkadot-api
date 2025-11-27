@@ -41,6 +41,7 @@ import { withLogsRecorder } from "polkadot-api/logs-provider"
 import { appendFileSync } from "fs"
 import { withLegacy } from "@polkadot-api/legacy-provider"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { getExtrinsicDecoder } from "@polkadot-api/tx-utils"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -169,6 +170,23 @@ describe("E2E", async () => {
   console.log("waiting for compatibility token")
   const token = await api.compatibilityToken
   console.log("got the compatibility token")
+
+  it.concurrent("creates Bare transactions", async () => {
+    const content = "Foo bar baz"
+    const bare = api.tx.System.remark({
+      remark: Binary.fromText(content),
+    }).getBareTx(token)
+
+    const extDec = getExtrinsicDecoder(
+      await client.getMetadata((await client.getFinalizedBlock()).hash),
+    )
+    const decoded = extDec(bare)
+
+    expect(decoded.type).toBe("bare")
+    expect(decoded.call.type).toEqual("System")
+    expect(decoded.call.value.type).toEqual("remark")
+    expect(decoded.call.value.value.remark.asText()).toEqual(content)
+  })
 
   it.concurrent("unsafe API", async () => {
     const unsafe = client.getUnsafeApi<typeof roc>()

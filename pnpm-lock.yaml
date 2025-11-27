@@ -259,6 +259,9 @@ importers:
       '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../../packages/substrate-client
+      '@polkadot-api/tx-utils':
+        specifier: workspace:*
+        version: link:../../packages/tx-utils
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../packages/utils
