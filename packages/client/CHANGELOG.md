@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.21.2 - 2025-11-27
+
 ### Fixed
 
 - Properly track transactions on super-fast chains

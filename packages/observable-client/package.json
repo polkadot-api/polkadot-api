@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/observable-client",
-  "version": "0.16.5",
+  "version": "0.16.6",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
