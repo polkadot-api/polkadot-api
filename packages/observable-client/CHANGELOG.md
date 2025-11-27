@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Emit current finalized and descendants when subscribing to `newBlocks$`
+
 ## 0.16.6 - 2025-11-27
 
 ### Fixed
