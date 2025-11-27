@@ -282,8 +282,8 @@ export interface UnsafeTxBare {
   /**
    * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
    *
-   * @returns Promise resolving in a Bare transaction (it fallsback to an
-   *          unsiged-transaction if only v4 is available)
+   * @returns Promise resolving in a Bare transaction (it falls back to an
+   *          unsigned transaction if only v4 is available)
    */
   (): Promise<HexString>
   /**
