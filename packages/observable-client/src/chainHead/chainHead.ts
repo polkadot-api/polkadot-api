@@ -476,15 +476,13 @@ export const getChainHead$ = (
         filter((x) => x.state.type === PinnedBlockState.Ready),
         take(1),
         mergeMap(({ blocks, finalized }) => {
-          const getChildren = (block: string) => {
-            const children: BlockInfo[] = []
-            blocks.get(block)?.children.forEach((c) => {
-              children.push(blocks.get(c)!)
-              children.push(...getChildren(c))
-            })
-            return children
+          const blockAndChildren = (hash: string): BlockInfo[] => {
+            const block = blocks.get(hash)
+            return block
+              ? [block, ...Array.from(block.children).flatMap(blockAndChildren)]
+              : []
           }
-          return [blocks.get(finalized)!, ...getChildren(finalized)]
+          return blockAndChildren(finalized)
         }),
       ),
       newBlocks$,
