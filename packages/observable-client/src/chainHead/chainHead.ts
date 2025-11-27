@@ -218,10 +218,7 @@ export const getChainHead$ = (
   }
 
   const readyBlocks$ = Object.assign(
-    pinnedBlocks$.pipe(
-      filter((x) => x.state.type === PinnedBlockState.Ready),
-      shareLatest,
-    ),
+    pinnedBlocks$.pipe(filter((x) => x.state.type === PinnedBlockState.Ready)),
     { state: pinnedBlocks$.state },
   )
 
@@ -472,8 +469,7 @@ export const getChainHead$ = (
     best$,
     bestBlocks$,
     newBlocks$: concat(
-      pinnedBlocks$.pipe(
-        filter((x) => x.state.type === PinnedBlockState.Ready),
+      readyBlocks$.pipe(
         take(1),
         mergeMap(({ blocks, finalized }) => {
           const blockAndChildren = (hash: string): BlockInfo[] => {
