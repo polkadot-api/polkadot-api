@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+
+- Error when unable to track a transaction because we haven't fully recovered from a `stop` event
 - Fix `readyBlocks$` stream
 
 ### Added
