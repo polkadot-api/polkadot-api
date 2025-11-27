@@ -252,6 +252,13 @@ export interface PolkadotClient {
 
   /**
    * Observable of new blocks that have been discovered by the client.
+   * The emissions follow no particular order, except for the guarantee that for
+   * every block emitted its parent has been emitted already in the subscription
+   * (except the first block).
+   * After subscription, the latest finalized block and all of its known
+   * descendants will be emitted synchronously.
+   * The Observable will complete if the continuity of the blocks cannot be
+   * guaranteed.
    */
   blocks$: Observable<BlockInfo>
 

@@ -66,10 +66,25 @@ export type {
   SystemEvent,
 }
 
-export type BlockInfo = {
+// DO NOT REMOVE JSDOCS!
+// They impact top-level client
+export interface BlockInfo {
+  /**
+   * 0x-prefixed hash of the block.
+   */
   hash: string
+  /**
+   * Block height.
+   */
   number: number
+  /**
+   * 0x-prefixed hash of the block parent.
+   */
   parent: string
+  /**
+   * `true` if block carries a runtime update,
+   * `false` otherwise.
+   */
   hasNewRuntime: boolean
 }
 
