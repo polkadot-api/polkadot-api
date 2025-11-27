@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix `readyBlocks$` stream
+
 ### Added
 
 - Emit current finalized and descendants when subscribing to `newBlocks$`
