@@ -11,6 +11,7 @@ import {
   Observable,
   ReplaySubject,
   Subject,
+  concat,
   distinctUntilChanged,
   filter,
   identity,
@@ -470,7 +471,22 @@ export const getChainHead$ = (
     finalized$,
     best$,
     bestBlocks$,
-    newBlocks$,
+    newBlocks$: concat(
+      pinnedBlocks$.pipe(
+        filter((x) => x.state.type === PinnedBlockState.Ready),
+        take(1),
+        mergeMap(({ blocks, finalized }) => {
+          const blockAndChildren = (hash: string): BlockInfo[] => {
+            const block = blocks.get(hash)
+            return block
+              ? [block, ...Array.from(block.children).flatMap(blockAndChildren)]
+              : []
+          }
+          return blockAndChildren(finalized)
+        }),
+      ),
+      newBlocks$,
+    ),
     runtime$,
     metadata$,
     genesis$,
