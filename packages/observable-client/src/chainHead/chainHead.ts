@@ -141,7 +141,7 @@ export const getChainHead$ = (
     getFollower()
       .unpin(hashes)
       .catch((e) => {
-        if (e instanceof DisjointError) return
+        if (e instanceof Error && e.name === DisjointError.errorName) return
         throw e
       })
 

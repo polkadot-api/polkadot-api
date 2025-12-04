@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Binary compatibility check when substrate-client is nested in other packages.
+- Errors not being properly identified when substrate-client is nested in other packages.
+
 ## 1.22.0 - 2025-11-27
 
 ### Added

@@ -237,7 +237,7 @@ export const getFollow$ = (
           follower = null
           if (isDone) return
 
-          if (e instanceof StopError) {
+          if (e instanceof Error && e.name === StopError.errorName) {
             setFollower()
             observer.next({ type: "stop-error" })
           } else {
