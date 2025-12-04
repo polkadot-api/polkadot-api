@@ -41,9 +41,8 @@ export function isCompatible(
       return checkTerminal(destNode)
     case "binary":
       return (
-        typeof value === "object" &&
-        value &&
-        "asBytes" in value &&
+        value != null &&
+        typeof value.asBytes === "function" &&
         (destNode.value == null || value.asBytes().length >= destNode.value)
       )
     case "array":
