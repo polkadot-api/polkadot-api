@@ -4,7 +4,7 @@ import { catchError, concatMap, Observable, throwError, timer } from "rxjs"
 export const withOperationInaccessibleRetry = <T>(source$: Observable<T>) => {
   const result: Observable<T> = source$.pipe(
     catchError((e) =>
-      e instanceof OperationInaccessibleError
+      e instanceof Error && e.name === OperationInaccessibleError.errorName
         ? timer(750).pipe(concatMap(() => result))
         : throwError(() => e),
     ),

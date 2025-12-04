@@ -259,7 +259,7 @@ const buildEventV5 = <E extends Event>(
   }
   const filter: InkEventInterface<E>["filter"] = (address, events = []) => {
     const addrEq = (a: string | Binary) =>
-      (a instanceof Binary ? a.asHex() : a) === address
+      (typeof a === "string" ? a : a.asHex()) === address
 
     const contractEvents = events
       .map((v) => ("event" in v ? v : { event: v, topics: v.topics }))

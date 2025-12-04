@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add `errorName` static to exported errors.
+
 ## 0.4.7 - 2025-09-18
 
 ### Fixed
