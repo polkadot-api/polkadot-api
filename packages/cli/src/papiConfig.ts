@@ -32,6 +32,7 @@ export type EntryConfig =
 type Entries = Record<string, EntryConfig>
 export interface PapiConfigOptions {
   noDescriptorsPackage?: boolean
+  whitelist?: string
 }
 export type PapiConfig = {
   version: 0

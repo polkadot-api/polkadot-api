@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- **CLI**:
+  - `options.whitelist` in PapiConfig to globally set the whitelist path.
+  - `--skip-whitelist` CLI option to skip using a whitelist.
+- **Codegen**:
+  - Whitelist accepts an object of `chain key` -> `chain whitelist`.
+
 ### Fixed
 
 - Binary compatibility check when substrate-client is nested in other packages.
