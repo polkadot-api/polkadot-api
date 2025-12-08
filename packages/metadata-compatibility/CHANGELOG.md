@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.2 - 2025-12-08
+
 ### Fixed
 
 - Binary compatibility check when substrate-client is nested in other packages.
