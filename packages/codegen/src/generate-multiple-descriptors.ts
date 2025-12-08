@@ -42,12 +42,22 @@ export const generateMultipleDescriptors = (
     whitelist?: string[] | Record<string, string[]>
   } = {},
 ) => {
+  const globalWhitelist = options.whitelist
+    ? Array.isArray(options.whitelist)
+      ? options.whitelist
+      : (options.whitelist["*"] ?? [])
+    : null
+
   const chainData = chains.map((chain) => {
-    const whitelist = options.whitelist
-      ? Array.isArray(options.whitelist)
-        ? options.whitelist
-        : (options.whitelist[chain.key] ?? null)
-      : null
+    const chainWhitelist =
+      options.whitelist && !Array.isArray(options.whitelist)
+        ? (options.whitelist[chain.key] ?? null)
+        : null
+
+    const whitelist =
+      globalWhitelist || chainWhitelist
+        ? [...(globalWhitelist ?? []), ...(chainWhitelist ?? [])]
+        : null
     const metadata = options.whitelist
       ? applyWhitelist(chain.metadata, whitelist)
       : chain.metadata

@@ -381,7 +381,8 @@ const generateIndex = async (
       .map(([codeHash, key]) => `["${codeHash}"]: ${key}`)
       .join(",\n")}}`,
     cacheMetadataStr,
-    `export type WhitelistEntriesByChain = Partial<{${keys.map((key) => `${key}: ${capitalize(key)}WhitelistEntry[]`).join(",\n")}}>`,
+    `export type WhitelistEntry = ${keys.map((key) => `${capitalize(key)}WhitelistEntry`).join(" | ")};`,
+    `export type WhitelistEntriesByChain = Partial<{"*": WhitelistEntry[], ${keys.map((key) => `${key}: WhitelistEntry[]`).join(",\n")}}>`,
   ].join("\n")
   await fs.writeFile(join(path, "index.ts"), indexTs)
 }
