@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.17.0 - 2025-12-08
+
 ### Added
 
 - `options.whitelist` in PapiConfig to globally set the whitelist path.

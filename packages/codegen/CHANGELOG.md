@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.21.0 - 2025-12-08
+
 ### Added
 
 - Whitelist by chain key

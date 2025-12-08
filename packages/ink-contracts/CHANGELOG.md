@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.4 - 2025-12-08
+
 ### Fixed
 
 - Revive event filtering when substrate-client is nested in other packages.

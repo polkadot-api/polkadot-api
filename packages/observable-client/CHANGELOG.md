@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.17.1 - 2025-12-08
+
 ### Fixed
 
 - Errors not being properly identified when substrate-client is nested in other packages.

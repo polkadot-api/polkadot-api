@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.15 - 2025-12-08
+
 ### Fixed
 
 - Update smoldot to `2.0.40`
