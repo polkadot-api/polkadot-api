@@ -21,6 +21,8 @@
   - WhitelistEntries type helper is effected by the whitelist setting.
 - **Smoldot:**
   - Update smoldot to `2.0.40`
+- **Chains:**:
+  - Update `lightSyncState`
 
 ## 1.22.0 - 2025-11-27
 
