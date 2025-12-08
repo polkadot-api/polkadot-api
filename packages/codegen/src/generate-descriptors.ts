@@ -353,6 +353,23 @@ export const generateDescriptors = (
       ? "unknown"
       : typesBuilder.buildTypeDefinition(dispatchErrorId)
 
+  const mapInteractions = (
+    descriptor: Record<string, Record<string, unknown>>,
+  ) =>
+    filterObject(
+      mapObject(descriptor, (v) => Object.keys(v).map((v) => `'${v}'`)),
+      (v) => v.length > 0,
+    )
+  const allInteractions = {
+    storage: mapInteractions(storage),
+    tx: mapInteractions(calls),
+    events: mapInteractions(events),
+    errors: mapInteractions(errors),
+    constants: mapInteractions(constants),
+    viewFns: mapInteractions(viewFns),
+    apis: mapInteractions(mapObject(runtimeCalls, (v) => v.methods)),
+  }
+
   const commonTypeImports = typesBuilder.getTypeFileImports()
 
   const exports = [
@@ -425,35 +442,27 @@ export type ${prefix}Constants = ConstFromPalletsDef<PalletsTypedef>
 export type ${prefix}ViewFns = ViewFnsFromPalletsDef<PalletsTypedef>
 ${chainCallType}
 
+type AllInteractions = ${customStringifyObject(allInteractions)};
+
 export type ${prefix}WhitelistEntry =
   | PalletKey
-  | ApiKey<IRuntimeCalls>
-  | \`query.\${NestedKey<PalletsTypedef['__storage']>}\`
-  | \`tx.\${NestedKey<PalletsTypedef['__tx']>}\`
-  | \`event.\${NestedKey<PalletsTypedef['__event']>}\`
-  | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
-  | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
-  | \`view.\${NestedKey<PalletsTypedef['__view']>}\`
+  | \`query.\${NestedKey<AllInteractions['storage']>}\`
+  | \`tx.\${NestedKey<AllInteractions['tx']>}\`
+  | \`event.\${NestedKey<AllInteractions['events']>}\`
+  | \`error.\${NestedKey<AllInteractions['errors']>}\`
+  | \`const.\${NestedKey<AllInteractions['constants']>}\`
+  | \`view.\${NestedKey<AllInteractions['viewFns']>}\`
+  | \`api.\${NestedKey<AllInteractions['apis']>}\`
 
-type PalletKey = \`*.\${keyof (IStorage & ICalls & IEvent & IError & IConstants & IRuntimeCalls & IViewFns)}\`
-type NestedKey<D extends Record<string, Record<string, any>>> =
+type PalletKey = \`*.\${({
+  [K in keyof AllInteractions]: K extends 'apis' ? never : keyof AllInteractions[K]
+})[keyof AllInteractions]}\`
+type NestedKey<D extends Record<string, string[]>> =
   | "*"
   | {
       [P in keyof D & string]:
         | \`\${P}.*\`
-        | {
-            [N in keyof D[P] & string]: \`\${P}.\${N}\`
-          }[keyof D[P] & string]
-    }[keyof D & string]
-
-type ApiKey<D extends Record<string, Record<string, any>>> =
-  | "api.*"
-  | {
-      [P in keyof D & string]:
-        | \`api.\${P}.*\`
-        | {
-            [N in keyof D[P] & string]: \`api.\${P}.\${N}\`
-          }[keyof D[P] & string]
+        | \`\${P}.\${D[P][number]}\`
     }[keyof D & string]
 `
 

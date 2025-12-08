@@ -12,8 +12,11 @@
 
 ### Fixed
 
-- Binary compatibility check when substrate-client is nested in other packages.
-- Errors not being properly identified when substrate-client is nested in other packages.
+- **Compatibility**:
+  - Binary compatibility check when substrate-client is nested in other packages.
+  - Errors not being properly identified when substrate-client is nested in other packages.
+- **Codegen**:
+  - WhitelistEntries type helper is effected by the whitelist setting.
 
 ## 1.22.0 - 2025-11-27
 

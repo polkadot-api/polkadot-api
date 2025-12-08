@@ -6,6 +6,10 @@
 
 - Whitelist by chain key
 
+### Fixed
+
+- WhitelistEntries type helper is effected by the whitelist setting.
+
 ## 0.20.0 - 2025-11-24
 
 ### Added
