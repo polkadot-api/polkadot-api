@@ -76,9 +76,7 @@ export async function generate(opts: GenerateOptions) {
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
-  const whitelistPath = opts.skipWhitelist
-    ? null
-    : (opts.whitelist ?? config.options?.whitelist)
+  const whitelistPath = opts.whitelist ?? config.options?.whitelist
   const whitelist = whitelistPath ? await readWhitelist(whitelistPath) : null
   const descriptorSrcDir = join(descriptorsDir, "src")
   const hash = await outputCodegen(

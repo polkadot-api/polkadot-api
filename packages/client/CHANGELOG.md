@@ -6,7 +6,6 @@
 
 - **CLI**:
   - `options.whitelist` in PapiConfig to globally set the whitelist path.
-  - `--skip-whitelist` CLI option to skip using a whitelist.
   - Export `WhitelistEntriesByChain` type from descriptors to help build a chain-based whitelist.
 - **Codegen**:
   - Whitelist accepts an object of `chain key` -> `chain whitelist`.
