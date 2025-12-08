@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- `options.whitelist` in PapiConfig to globally set the whitelist path.
+- Export `WhitelistEntriesByChain` type from descriptors to help build a chain-based whitelist.
+
 ## 0.16.1 to 0.16.3 - 2025-11-27
 
 ### Fixed

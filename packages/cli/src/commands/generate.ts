@@ -1,6 +1,7 @@
 import { getMetadata } from "@/metadata"
 import { readPapiConfig } from "@/papiConfig"
 import {
+  capitalize,
   generateInkTypes,
   generateMultipleDescriptors,
   generateSolTypes,
@@ -75,7 +76,8 @@ export async function generate(opts: GenerateOptions) {
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
-  const whitelist = opts.whitelist ? await readWhitelist(opts.whitelist) : null
+  const whitelistPath = opts.whitelist ?? config.options?.whitelist
+  const whitelist = whitelistPath ? await readWhitelist(whitelistPath) : null
   const descriptorSrcDir = join(descriptorsDir, "src")
   const hash = await outputCodegen(
     chains,
@@ -173,7 +175,7 @@ async function outputCodegen(
   }>,
   outputFolder: string,
   clientPath: string,
-  whitelist: string[] | null,
+  whitelist: string[] | Record<string, string[]> | null,
 ) {
   const {
     commonFileContent,
@@ -366,7 +368,7 @@ const generateIndex = async (
 ) => {
   const indexTs = [
     ...keys.flatMap((key) => [
-      `import { default as ${key} } from "./${key}";`,
+      `import { default as ${key}, type ${capitalize(key)}WhitelistEntry } from "./${key}";`,
       `export { ${key} }`,
       `export type * from "./${key}";`,
     ]),
@@ -377,6 +379,8 @@ const generateIndex = async (
       .map(([codeHash, key]) => `["${codeHash}"]: ${key}`)
       .join(",\n")}}`,
     cacheMetadataStr,
+    `export type WhitelistEntry = ${keys.map((key) => `${capitalize(key)}WhitelistEntry`).join(" | ")};`,
+    `export type WhitelistEntriesByChain = Partial<{"*": WhitelistEntry[], ${keys.map((key) => `${key}: WhitelistEntry[]`).join(",\n")}}>`,
   ].join("\n")
   await fs.writeFile(join(path, "index.ts"), indexTs)
 }

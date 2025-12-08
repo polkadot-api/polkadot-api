@@ -4,13 +4,21 @@
 
 ### Added
 
+- **CLI**:
+  - `options.whitelist` in PapiConfig to globally set the whitelist path.
+  - Export `WhitelistEntriesByChain` type from descriptors to help build a chain-based whitelist.
+- **Codegen**:
+  - Whitelist accepts an object of `chain key` -> `chain whitelist`.
 - **PolkadotSDKCompat**
   - Add `fixMissingInitialBest` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/pull/10525) on the PolkadotSDK node.
 
 ### Fixed
 
-- Binary compatibility check when substrate-client is nested in other packages.
-- Errors not being properly identified when substrate-client is nested in other packages.
+- **Compatibility**:
+  - Binary compatibility check when substrate-client is nested in other packages.
+  - Errors not being properly identified when substrate-client is nested in other packages.
+- **Codegen**:
+  - WhitelistEntries type helper is effected by the whitelist setting.
 
 ## 1.22.0 - 2025-11-27
 
