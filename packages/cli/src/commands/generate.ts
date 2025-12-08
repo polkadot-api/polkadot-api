@@ -1,6 +1,7 @@
 import { getMetadata } from "@/metadata"
 import { readPapiConfig } from "@/papiConfig"
 import {
+  capitalize,
   generateInkTypes,
   generateMultipleDescriptors,
   generateSolTypes,
@@ -369,7 +370,7 @@ const generateIndex = async (
 ) => {
   const indexTs = [
     ...keys.flatMap((key) => [
-      `import { default as ${key} } from "./${key}";`,
+      `import { default as ${key}, type ${capitalize(key)}WhitelistEntry } from "./${key}";`,
       `export { ${key} }`,
       `export type * from "./${key}";`,
     ]),
@@ -380,6 +381,7 @@ const generateIndex = async (
       .map(([codeHash, key]) => `["${codeHash}"]: ${key}`)
       .join(",\n")}}`,
     cacheMetadataStr,
+    `export type WhitelistEntriesByChain = Partial<{${keys.map((key) => `${key}: ${capitalize(key)}WhitelistEntry[]`).join(",\n")}}>`,
   ].join("\n")
   await fs.writeFile(join(path, "index.ts"), indexTs)
 }
