@@ -19,6 +19,8 @@
   - Errors not being properly identified when substrate-client is nested in other packages.
 - **Codegen**:
   - WhitelistEntries type helper is effected by the whitelist setting.
+- **Smoldot:**
+  - Update smoldot to `2.0.40`
 
 ## 1.22.0 - 2025-11-27
 
