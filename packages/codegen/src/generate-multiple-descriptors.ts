@@ -46,7 +46,7 @@ export const generateMultipleDescriptors = (
     const whitelist = options.whitelist
       ? Array.isArray(options.whitelist)
         ? options.whitelist
-        : (options.whitelist[chain.key] ?? [])
+        : (options.whitelist[chain.key] ?? null)
       : null
     const metadata = options.whitelist
       ? applyWhitelist(chain.metadata, whitelist)
