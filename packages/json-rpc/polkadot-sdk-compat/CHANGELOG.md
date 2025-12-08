@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Add `fixMissingInitialBest` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/pull/10525) on the PolkadotSDK node.
+
 ## 2.3.3 - 2025-08-21
 
 ### Fixed

@@ -9,6 +9,7 @@ import {
   fixDescendantValues,
   fixPrematureBlocks,
   withNumericIds,
+  fixMissingInitialBest,
 } from "./parsed-enhancers"
 import * as methods from "./methods"
 export { methods }
@@ -21,6 +22,7 @@ const withPolkadotSdkCompat = parsed(
   patchChainHeadEvents,
   fixPrematureBlocks,
   fixUnorderedBlocks,
+  fixMissingInitialBest,
   fixChainSpec,
   fixDescendantValues,
 )
@@ -36,4 +38,5 @@ export {
   fixDescendantValues,
   fixPrematureBlocks,
   withNumericIds,
+  fixMissingInitialBest,
 }
