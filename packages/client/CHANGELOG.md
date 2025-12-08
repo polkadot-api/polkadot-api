@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- **PolkadotSDKCompat**
+  - Add `fixMissingInitialBest` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/pull/10525) on the PolkadotSDK node.
+
 ### Fixed
 
 - Binary compatibility check when substrate-client is nested in other packages.
