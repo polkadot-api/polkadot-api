@@ -1,5 +1,6 @@
 import { chainHead } from "@/methods"
 import type { ParsedJsonRpcEnhancer } from "@/parsed"
+import { operationNotification } from "@/utils"
 
 interface InitializedRpc {
   event: "initialized"
@@ -33,6 +34,8 @@ type FollowEvent =
   | BestBlockChangedRpc
   | FinalizedRpc
   | StopRpc
+
+const cancelEvents = new Set(["newBlock", "bestBlockChanged", "stop"])
 
 export const fixMissingInitialBest: ParsedJsonRpcEnhancer =
   (base) => (onMsg) => {
@@ -68,17 +71,21 @@ export const fixMissingInitialBest: ParsedJsonRpcEnhancer =
             // Sw we will "manually" trigger the `bestBlockChanged` event.
             const token = setTimeout(() => {
               pendingChainHeads.delete(subscription)
-              onMsg({
-                event: "bestBlockChanged",
-                bestBlockHash: result.finalizedBlockHashes.at(-1),
-              })
+              onMsg(
+                operationNotification(
+                  subscription,
+                  "bestBlockChanged",
+                  undefined,
+                  { bestBlockHash: result.finalizedBlockHashes.at(-1) },
+                ),
+              )
             }, 500)
 
             pendingChainHeads.set(subscription, () => {
               pendingChainHeads.delete(subscription)
               clearTimeout(token)
             })
-          } else cancel()
+          } else if (cancelEvents.has(event)) cancel()
         }
       }
 

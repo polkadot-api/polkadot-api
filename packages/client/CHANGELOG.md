@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **PolkadotSDKCompat**
+  - Fix `fixMissingInitialBest` enhancer.
+
 ## 1.23.0 - 2025-12-08
 
 ### Added

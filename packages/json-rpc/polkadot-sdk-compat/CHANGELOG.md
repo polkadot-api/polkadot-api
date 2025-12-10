@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix `fixMissingInitialBest` enhancer.
+
 ## 2.4.0 - 2025-12-08
 
 ### Added
