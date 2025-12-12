@@ -4,7 +4,7 @@ import { blake2b } from "@noble/hashes/blake2.js"
 const SS58_PREFIX = new TextEncoder().encode("SS58PRE")
 const CHECKSUM_LENGTH = 2
 
-export type SS58String = string & { __SS58String?: unknown }
+export type SS58String = string & { readonly __SS58String?: never }
 export type SS58AddressInfo =
   | { isValid: false }
   | { isValid: true; ss58Format: number; publicKey: Uint8Array }

@@ -27,7 +27,7 @@ const hashers: Map<(input: Uint8Array) => Uint8Array, number> = new Map([
   [Twox256, -32],
 ])
 
-export type OpaqueKeyHash = string & { __opaqueKeyHash?: unknown }
+export type OpaqueKeyHash = string & { readonly __opaqueKeyHash?: never }
 
 export const Storage = (pallet: string) => {
   const palledEncoded = Twox128(textEncoder.encode(pallet))
