@@ -4,7 +4,7 @@ import {
   StorageItemInput,
 } from "@polkadot-api/substrate-client"
 import { describe, expect, it } from "vitest"
-import { initializeWithMetadata, wait } from "./fixtures"
+import { initialize, setReady, wait } from "./fixtures"
 import { createMockSubstrateClient } from "./mockSubstrateClient"
 import { observe } from "./observe"
 
@@ -15,7 +15,8 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const key = "foo"
       const observer = observe(
@@ -44,7 +45,9 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
+      mockClient.chainHead.mock.storage.mockRestore()
 
       const key = "foo"
       const observer = observe(
@@ -84,9 +87,12 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const key = "foo"
+
+      mockClient.chainHead.mock.storage.mockRestore()
       const observer = observe(
         chainHead.storage$(initialHash, "value", () => key),
       )
@@ -125,7 +131,8 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash, metadata } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      const { metadata } = await setReady(mockClient, initialHash)
 
       const key = "foo"
       const observer = observe(
@@ -161,7 +168,8 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      setReady(mockClient, initialHash)
 
       const queries: StorageItemInput[] = [
         {
@@ -212,7 +220,8 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       const queries: StorageItemInput[] = [
         {
@@ -287,7 +296,8 @@ describe("observableClient chainHead", () => {
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initializeWithMetadata(mockClient)
+      const { initialHash } = await initialize(mockClient)
+      await setReady(mockClient, initialHash)
 
       observe(chainHead.body$(initialHash))
 

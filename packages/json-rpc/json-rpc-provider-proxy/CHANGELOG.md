@@ -7,6 +7,18 @@
 - BREAKING: the input of `getSyncProvider` is now a callback to be resolved when it's ready, and it returns an unsubscription function that should abort the inner async task.
 - BREAKING: uses `JsonRpcProvider` v1.
 
+## 0.2.7 - 2025-11-12
+
+### Fixed
+
+- Allow the consumer to call `onHalt` multiple times during its teardown logic.
+
+## 0.2.6 - 2025-11-11
+
+### Fixed
+
+- Handle re-entry issue on synchronous `onHalt` (and improve retry waiting time).
+
 ## 0.2.5 - 2025-10-09
 
 ### Fixed
