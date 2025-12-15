@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- [performance] Cache `getInkClient` result.
+
 ## 0.4.4 - 2025-12-08
 
 ### Fixed
