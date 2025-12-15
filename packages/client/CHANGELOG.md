@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Ink contracts**
+  - [performance] Cache `getInkClient` result.
+
 ## 1.23.1 - 2025-12-10
 
 ### Fixed
