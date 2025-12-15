@@ -102,7 +102,7 @@ export interface InkClient<
   event: InkEventInterface<D["__types"]["event"]>
 }
 
-export const getInkClient = <
+const createInkClient = <
   D extends InkDescriptors<
     InkStorageDescriptor,
     InkCallableDescriptor,
@@ -163,6 +163,28 @@ export const getInkClient = <
         ? buildEventV4(builder.buildEvents)
         : buildEventV5(lookup, builder.buildEvent),
   }
+}
+
+const inkClientCache = new WeakMap<
+  InkDescriptors<any, any, any, any>,
+  InkClient<any>
+>()
+export const getInkClient = <
+  D extends InkDescriptors<
+    InkStorageDescriptor,
+    InkCallableDescriptor,
+    InkCallableDescriptor,
+    Event
+  >,
+>(
+  inkContract: D,
+): InkClient<D> => {
+  const cached = inkClientCache.get(inkContract)
+  if (cached) return cached
+
+  const client = createInkClient(inkContract)
+  inkClientCache.set(inkContract, client)
+  return client
 }
 
 const getAttributes = (spec: ConstructorSpec | MessageSpec) => ({
@@ -259,7 +281,7 @@ const buildEventV5 = <E extends Event>(
   }
   const filter: InkEventInterface<E>["filter"] = (address, events = []) => {
     const addrEq = (a: string | Binary) =>
-      (a instanceof Binary ? a.asHex() : a) === address
+      (typeof a === "string" ? a : a.asHex()) === address
 
     const contractEvents = events
       .map((v) => ("event" in v ? v : { event: v, topics: v.topics }))

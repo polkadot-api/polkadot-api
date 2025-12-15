@@ -1,4 +1,3 @@
-import { Binary } from "@polkadot-api/substrate-bindings"
 import { Primitive, type TerminalNode, type TypedefNode } from "./typedef"
 
 // Descriptors: pallet + name => index (this._descriptors[opType][pallet][name])
@@ -42,7 +41,8 @@ export function isCompatible(
       return checkTerminal(destNode)
     case "binary":
       return (
-        value instanceof Binary &&
+        value != null &&
+        typeof value.asBytes === "function" &&
         (destNode.value == null || value.asBytes().length >= destNode.value)
       )
     case "array":

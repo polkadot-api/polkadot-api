@@ -8,6 +8,52 @@
 
 ## Unreleased
 
+## 0.17.1 - 2025-12-08
+
+### Fixed
+
+- Errors not being properly identified when substrate-client is nested in other packages.
+
+## 0.17.0 - 2025-11-27
+
+### Added
+
+- Export the supported extrinsic versions on the runtime-context
+
+### Changed
+
+- Emit current finalized and descendants when subscribing to `newBlocks$`
+
+### Fixed
+
+- Error when unable to track a transaction because we haven't fully recovered from a `stop` event
+- Fix `readyBlocks$` stream
+
+## 0.16.6 - 2025-11-27
+
+### Fixed
+
+- Refactor: remove `unpinnable` and add `prunned`
+- Properly track transactions on super-fast chains
+
+## 0.16.5 - 2025-11-25
+
+### Fixed
+
+- Fix crash on new-block carrying a runtime-upgrade.
+
+## 0.16.4 - 2025-11-24
+
+### Fixed
+
+- Avoid circular dependency between files
+
+## 0.16.3 - 2025-11-19
+
+### Fixed
+
+- `trackTx` recovers from `OperationInacessible`
+
 ## 0.16.2 - 2025-11-16
 
 ### Fixed

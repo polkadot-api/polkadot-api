@@ -5,6 +5,7 @@ import { fixUnorderedEvents } from "./fix-unordered-events"
 import { patchChainHeadEvents } from "./patch-chainhead-events"
 import { unpinHash } from "./unpin-hash"
 import { apply } from "../utils"
+import { fixMissingInitialBest } from "./fix-missing-initial-best"
 
 export const modern = apply(
   fixUnorderedEvents,
@@ -12,5 +13,6 @@ export const modern = apply(
   patchChainHeadEvents,
   fixPrematureBlocks,
   fixUnorderedBlocks,
+  fixMissingInitialBest,
   followEnhancer,
 )

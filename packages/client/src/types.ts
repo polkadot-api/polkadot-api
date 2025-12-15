@@ -20,7 +20,7 @@ import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
 import type {
-  InnerTxEntry,
+  TxEntry,
   OfflineTxEntry,
   TxBroadcastEvent,
   TxFinalizedPayload,
@@ -80,10 +80,10 @@ export type ViewFnApi<A extends Record<string, Record<string, any>>> = {
   }
 }
 
-export type TxApi<A extends Record<string, Record<string, any>>, Asset> = {
+export type TxApi<A extends Record<string, Record<string, any>>, Ext, Asset> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? InnerTxEntry<A[K][KK], K & string, KK & string, Asset>
+      ? TxEntry<A[K][KK], K & string, KK & string, Ext, Asset>
       : unknown
   }
 }
@@ -192,7 +192,11 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
 }
 
 export type TypedApi<D extends ChainDefinition, Safe = true> = {
-  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>, D["asset"]["_type"]>
+  tx: TxApi<
+    TxFromPalletsDef<D["descriptors"]["pallets"]>,
+    D["extensions"],
+    D["asset"]["_type"]
+  >
   const: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   api: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
   view: ViewFnApi<ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>>
@@ -271,6 +275,12 @@ export interface PolkadotClient {
 
   /**
    * Observable of new blocks that have been discovered by the client.
+   * There is the strong guarantee that for every block emitted its parent has
+   * been emitted already in the subscription (except the first block).
+   * After subscription, the latest finalized block and all of its known
+   * descendants will be emitted synchronously.
+   * The Observable will complete if the continuity of the blocks cannot be
+   * guaranteed.
    */
   blocks$: Observable<BlockInfo>
 

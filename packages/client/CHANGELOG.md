@@ -40,6 +40,89 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Ink contracts**
+  - [performance] Cache `getInkClient` result.
+
+## 1.23.1 - 2025-12-10
+
+### Fixed
+
+- **PolkadotSDKCompat**
+  - Fix `fixMissingInitialBest` enhancer.
+
+## 1.23.0 - 2025-12-08
+
+### Added
+
+- **CLI**:
+  - `options.whitelist` in PapiConfig to globally set the whitelist path.
+  - Export `WhitelistEntriesByChain` type from descriptors to help build a chain-based whitelist.
+- **Codegen**:
+  - Whitelist accepts an object of `chain key` -> `chain whitelist`.
+- **PolkadotSDKCompat**
+  - Add `fixMissingInitialBest` enhancer which addresses [the following issue](https://github.com/paritytech/polkadot-sdk/pull/10525) on the PolkadotSDK node.
+
+### Fixed
+
+- **Compatibility**:
+  - Binary compatibility check when substrate-client is nested in other packages.
+  - Errors not being properly identified when substrate-client is nested in other packages.
+- **Codegen**:
+  - WhitelistEntries type helper is effected by the whitelist setting.
+- **Smoldot:**
+  - Update smoldot to `2.0.40`
+- **Chains:**:
+  - Update `lightSyncState`
+
+## 1.22.0 - 2025-11-27
+
+### Added
+
+- New `getBareTx` API on the `Transaction` interface.
+
+### Changed
+
+- Emit current finalized and descendants when subscribing to `blocks$`
+
+### Fixed
+
+- Error when unable to track a transaction because we haven't fully recovered from a `stop` event
+
+## 1.21.2 - 2025-11-27
+
+### Fixed
+
+- Properly track transactions on super-fast chains
+
+## 1.21.1 - 2025-11-25
+
+### Fixed
+
+- Fix crash on new-block carrying a runtime-upgrade.
+
+## 1.21.0 - 2025-11-24
+
+### Added
+
+- Typed `customSignedExtensions` in transactions
+
+### Fixed
+
+- Throw an error if the user provides an invalid custom signed-extension.
+- **Chains:**:
+  - Update `lightSyncState`
+
+## 1.20.7 - 2025-11-19
+
+### Fixed
+
+- Tracking transactions resilient to `OperationInaccessible` errors.
+- **Chains:**:
+  - Update `lightSyncState`
+  - Remove faulty bootnodes
+
 ## 1.20.6 - 2025-11-16
 
 ### Fixed

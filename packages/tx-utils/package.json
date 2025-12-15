@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/tx-utils",
-  "version": "0.1.8",
+  "version": "0.2.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -43,6 +43,8 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@polkadot-api/merkleize-metadata": "workspace:*",
+    "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*"

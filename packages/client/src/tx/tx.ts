@@ -9,6 +9,7 @@ import {
   _void,
   AccountId,
   Binary,
+  compact,
   compactBn,
   Decoder,
   Enum,
@@ -33,6 +34,7 @@ import { PlainDescriptor } from "@/descriptors"
 import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
 import {
+  Extensions,
   PaymentInfo,
   Transaction,
   TxEntry,
@@ -70,6 +72,7 @@ export const createTxEntry = <
   Pallet extends string,
   Name extends string,
   Asset extends PlainDescriptor<any>,
+  E,
 >(
   pallet: Pallet,
   name: Name,
@@ -77,7 +80,9 @@ export const createTxEntry = <
   broadcast: (tx: string) => Observable<never>,
   compatibility: ValueCompat,
   getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
-): TxEntry<Arg, Pallet, Name, Asset> => {
+): TxEntry<Arg, Pallet, Name, E, Asset> => {
+  type Ext = Extensions<E>
+
   const getCompatCtx$ = (at: HexString | null) =>
     combineLatest([chainHead.getRuntimeContext$(at), compatibility]).pipe(
       map(([ctx, getCompat]) => ({
@@ -87,13 +92,31 @@ export const createTxEntry = <
       })),
     )
 
-  const getCallData$ = (
-    arg: any,
-    at: HexString | null,
-  ): Observable<Uint8Array> =>
+  const getCallData$ = (arg: any, at: HexString | null) =>
     getCompatCtx$(at).pipe(
-      map(({ ctx: { dynamicBuilder }, isValueCompatible: isCompat }) =>
-        getCallData(dynamicBuilder, isCompat, pallet, name, arg),
+      map(
+        ({
+          ctx: { dynamicBuilder, extVersions },
+          isValueCompatible: isCompat,
+        }) => {
+          const callData = getCallData(
+            dynamicBuilder,
+            isCompat,
+            pallet,
+            name,
+            arg,
+          )
+          return {
+            callData,
+            bare: toHex(
+              mergeUint8([
+                compact.enc(callData.length + 1),
+                new Uint8Array(extVersions.slice(-1)),
+                callData,
+              ]),
+            ),
+          }
+        },
       ),
     )
 
@@ -114,10 +137,10 @@ export const createTxEntry = <
           }),
         )
 
-  return (arg?: Arg): Transaction<Arg, Pallet, Name, Asset> => {
+  return ((arg?: Arg): Transaction<Arg, Pallet, Name, Asset, Ext> => {
     const sign$ = (
       from: PolkadotSigner,
-      { ..._options }: Omit<TxOptions<{}>, "at">,
+      { ..._options }: Omit<TxOptions<{}, Ext>, "at">,
       atBlock: BlockInfo,
     ) =>
       combineLatest([
@@ -128,9 +151,9 @@ export const createTxEntry = <
           createTx(
             chainHead,
             from,
-            callData,
+            callData.callData,
             atBlock,
-            _options.customSignedExtensions || {},
+            (_options.customSignedExtensions as any) || {},
             { ..._options, asset },
           ),
         ),
@@ -138,7 +161,7 @@ export const createTxEntry = <
 
     const _sign = (
       from: PolkadotSigner,
-      { at, ..._options }: TxOptions<{}> = {},
+      { at, ..._options }: TxOptions<{}, Ext> = {},
     ) => {
       const atBlock = chainHead.pinnedBlocks$.state.blocks.get(at!)
       if (at && !atBlock)
@@ -154,15 +177,15 @@ export const createTxEntry = <
       )
     }
 
-    const sign: TxSignFn<Asset> = (from, options) =>
+    const sign: TxSignFn<Asset, Ext> = (from, options) =>
       firstValueFrom(_sign(from, options)).then((x) => x.tx)
 
-    const signAndSubmit: TxPromise<Asset> = (from, _options) =>
+    const signAndSubmit: TxPromise<Asset, Ext> = (from, _options) =>
       firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
         submit(chainHead, broadcast, tx, block.hash),
       )
 
-    const signSubmitAndWatch: TxObservable<Asset> = (from, _options) =>
+    const signSubmitAndWatch: TxObservable<Asset, Ext> = (from, _options) =>
       _sign(from, _options).pipe(
         mergeMap(({ tx }) => submit$(chainHead, broadcast, tx, true)),
       )
@@ -212,7 +235,9 @@ export const createTxEntry = <
 
     const getEncodedData = () =>
       firstValueFrom(
-        getCallData$(arg, null).pipe(map((bytes) => Binary.fromBytes(bytes))),
+        getCallData$(arg, null).pipe(
+          map(({ callData }) => Binary.fromBytes(callData)),
+        ),
       )
 
     const getEstimatedFees = async (
@@ -228,9 +253,11 @@ export const createTxEntry = <
         value: Enum(name, arg as any),
       },
       getEncodedData,
+      getBareTx: () =>
+        firstValueFrom(getCallData$(arg, null).pipe(map(({ bare }) => bare))),
       sign,
       signSubmitAndWatch,
       signAndSubmit,
     }
-  }
+  }) as any
 }

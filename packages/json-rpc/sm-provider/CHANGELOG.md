@@ -6,7 +6,7 @@
 
 - BREAKING: it exposes the new `JsonRpcProvider` v1.
 
-## 0.1.7 to 0.1.14 - 2025-11-12
+## 0.1.7 to 0.1.15 - 2025-12-08
 
 ### Fixed
 

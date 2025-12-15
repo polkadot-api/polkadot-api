@@ -6,6 +6,12 @@
 
 - BREAKING: it exposes the new `JsonRpcProvider` v1.
 
+## 0.5.0 - 2025-12-08
+
+### Added
+
+- Add `errorName` static to exported errors.
+
 ## 0.4.7 - 2025-09-18
 
 ### Fixed

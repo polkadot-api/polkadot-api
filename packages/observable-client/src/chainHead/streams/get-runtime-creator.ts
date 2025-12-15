@@ -63,6 +63,7 @@ export interface RuntimeContext {
   accountId: Codec<SS58String>
   assetId: number | null
   getMortalityFromTx: Decoder<Mortality>
+  extVersions: Array<number>
 }
 
 export interface Runtime {
@@ -89,7 +90,10 @@ const withRecovery =
         ? fn(hash, ...args).pipe(
             catchError((e) => {
               if (e instanceof BlockNotPinnedError) return result(...args)
-              if (e instanceof OperationInaccessibleError)
+              if (
+                e instanceof Error &&
+                e.name === OperationInaccessibleError.errorName
+              )
                 return timer(750).pipe(mergeMap(() => result(...args)))
               throw e
             }),

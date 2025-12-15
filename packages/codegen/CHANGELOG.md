@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.21.0 - 2025-12-08
+
+### Added
+
+- Whitelist by chain key
+
+### Fixed
+
+- WhitelistEntries type helper is effected by the whitelist setting.
+
+## 0.20.0 - 2025-11-24
+
+### Added
+
+- Descriptors with signed extension types
+
 ## 0.19.2 to 0.19.5 - 2025-11-11
 
 ### Fixed

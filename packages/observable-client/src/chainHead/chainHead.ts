@@ -11,6 +11,7 @@ import {
   Observable,
   ReplaySubject,
   Subject,
+  concat,
   distinctUntilChanged,
   filter,
   identity,
@@ -65,10 +66,25 @@ export type {
   SystemEvent,
 }
 
-export type BlockInfo = {
+// DO NOT REMOVE JSDOCS!
+// They impact top-level client
+export interface BlockInfo {
+  /**
+   * 0x-prefixed hash of the block.
+   */
   hash: string
+  /**
+   * Block height.
+   */
   number: number
+  /**
+   * 0x-prefixed hash of the block parent.
+   */
   parent: string
+  /**
+   * `true` if block carries a runtime update,
+   * `false` otherwise.
+   */
   hasNewRuntime: boolean
 }
 
@@ -125,7 +141,7 @@ export const getChainHead$ = (
     getFollower()
       .unpin(hashes)
       .catch((e) => {
-        if (e instanceof DisjointError) return
+        if (e instanceof Error && e.name === DisjointError.errorName) return
         throw e
       })
 
@@ -149,14 +165,14 @@ export const getChainHead$ = (
 
   const cache = new Map<string, Map<string, Observable<any>>>()
 
-  const newBlocks$ = new Subject<BlockInfo | null>()
+  const _newBlocks$ = new Subject<BlockInfo | null>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
     withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
     getCachedMetadata,
     setCachedMetadata,
     blockUsage$,
-    newBlocks$,
+    _newBlocks$,
     (blocks) => {
       unpin(blocks).catch((err) => {
         console.error("unpin", err)
@@ -216,9 +232,9 @@ export const getChainHead$ = (
     return result
   }
 
-  const readyBlocks$ = pinnedBlocks$.pipe(
-    filter((x) => x.state.type === PinnedBlockState.Ready),
-    shareLatest,
+  const readyBlocks$ = Object.assign(
+    pinnedBlocks$.pipe(filter((x) => x.state.type === PinnedBlockState.Ready)),
+    { state: pinnedBlocks$.state },
   )
 
   const finalized$ = readyBlocks$.pipe(
@@ -365,17 +381,6 @@ export const getChainHead$ = (
 
   const validateTx$ = getValidateTx(call$, getRuntimeContext$)
 
-  const innerBody$ = (hash: string) =>
-    upsertCachedStream(hash, "body", _body$(hash))
-
-  const trackTx$ = getTrackTx(pinnedBlocks$, innerBody$, validateTx$, eventsAt$)
-  const trackTxWithoutEvents$ = getTrackTx(
-    pinnedBlocks$,
-    innerBody$,
-    validateTx$,
-    () => of(),
-  )
-
   const genesis$ = runtime$.pipe(
     filter(Boolean),
     take(1),
@@ -452,13 +457,45 @@ export const getChainHead$ = (
         return subscription
       })
 
+  const newBlocks$ = _newBlocks$.pipe(takeWhile(Boolean))
+  const trackTx$ = getTrackTx(
+    readyBlocks$,
+    newBlocks$,
+    body$,
+    validateTx$,
+    eventsAt$,
+    holdBlock,
+  )
+  const trackTxWithoutEvents$ = getTrackTx(
+    pinnedBlocks$,
+    newBlocks$,
+    body$,
+    validateTx$,
+    () => of(),
+    holdBlock,
+  )
+
   return {
     follow$,
     unfollow,
     finalized$,
     best$,
     bestBlocks$,
-    newBlocks$: newBlocks$.pipe(takeWhile(Boolean)),
+    newBlocks$: concat(
+      readyBlocks$.pipe(
+        take(1),
+        mergeMap(({ blocks, finalized }) => {
+          const blockAndChildren = (hash: string): BlockInfo[] => {
+            const block = blocks.get(hash)
+            return block
+              ? [block, ...Array.from(block.children).flatMap(blockAndChildren)]
+              : []
+          }
+          return blockAndChildren(finalized)
+        }),
+      ),
+      newBlocks$,
+    ),
     runtime$,
     metadata$,
     genesis$,
@@ -477,7 +514,7 @@ export const getChainHead$ = (
     trackTx$,
     trackTxWithoutEvents$,
     validateTx$,
-    pinnedBlocks$: Object.assign(readyBlocks$, { state: pinnedBlocks$.state }),
+    pinnedBlocks$: readyBlocks$,
     withRuntime,
     getRuntimeContext$: withOptionalHash$(getRuntimeContext$),
   }

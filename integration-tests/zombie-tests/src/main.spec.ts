@@ -39,6 +39,7 @@ import { fromHex } from "@polkadot-api/utils"
 import { appendFileSync } from "fs"
 import { withLogs } from "./with-logs"
 import { getInnerLogs } from "./inner-logs"
+import { getExtrinsicDecoder } from "@polkadot-api/tx-utils"
 
 const fakeSignature = new Uint8Array(64)
 const getFakeSignature = () => fakeSignature
@@ -136,6 +137,23 @@ describe("E2E", async () => {
   const staticApis = await api.getStaticApis()
   console.log("got the static APIs")
 
+  it.concurrent("creates Bare transactions", async () => {
+    const content = "Foo bar baz"
+    const bare = await api.tx.System.remark({
+      remark: Binary.fromText(content),
+    }).getBareTx()
+
+    const extDec = getExtrinsicDecoder(
+      await client.getMetadata((await client.getFinalizedBlock()).hash),
+    )
+    const decoded = extDec(bare)
+
+    expect(decoded.type).toBe("bare")
+    expect(decoded.call.type).toEqual("System")
+    expect(decoded.call.value.type).toEqual("remark")
+    expect(decoded.call.value.value.remark.asText()).toEqual(content)
+  })
+
   it.concurrent("unsafe API", async () => {
     const staticApi = await client.getUnsafeApi<typeof roc>().getStaticApis()
 
@@ -206,6 +224,21 @@ describe("E2E", async () => {
     ).toEqual(
       "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da91cdb29d91f7665b36dc5ec5903de32467628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
     )
+  })
+
+  it.concurrent("throws on invalid custom signed-extensions", async () => {
+    await expect(async () =>
+      api.tx.System.remark_with_event({
+        remark: Binary.fromText("test"),
+      }).sign(unusedSigner, {
+        customSignedExtensions: {
+          CheckNonce: {
+            value: "patata",
+            additionalSigned: "blah",
+          },
+        },
+      }),
+    ).rejects.toThrowError()
   })
 
   // this test needs to run concurrently with "fund accounts" one

@@ -127,7 +127,8 @@ export const getWithRecovery = () => {
         observer.next(x)
       },
       error(e) {
-        ;(isOperationLimit = e instanceof OperationLimitError)
+        ;(isOperationLimit =
+          e instanceof Error && e.name === OperationLimitError.errorName)
           ? addTask(data, true)
           : observer.error(e)
       },

@@ -85,7 +85,9 @@ export const createArchive = (
     const [firstArg, secondArg, thirdArg] = params
     switch (name) {
       case body:
-        return obsReply(upstream.getBody(firstArg))
+        return obsReply(
+          upstream.getBody(firstArg).pipe(map(({ block }) => block.extrinsics)),
+        )
       case call:
         return obsReply(
           upstream
@@ -102,7 +104,7 @@ export const createArchive = (
       case genesisHash:
         return obsReply(upstream.genesisHash)
       case hashByHeight:
-        return obsReply(upstream.getBlockHash$(firstArg))
+        return obsReply(upstream.getBlockHash$(firstArg).pipe(map((x) => [x])))
       case header:
         return obsReply(
           upstream.getHeader$(firstArg).pipe(map((h) => h.header)),

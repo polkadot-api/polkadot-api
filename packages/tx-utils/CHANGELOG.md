@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.2.0 - 2025-11-27
+
+### Added
+
+- New `getTxHelper` API
+
 ## 0.1.1 to 0.1.8 - 2025-10-31
 
 ### Fixed

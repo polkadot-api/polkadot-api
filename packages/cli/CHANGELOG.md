@@ -2,7 +2,32 @@
 
 ## Unreleased
 
-## 0.15.1 to 0.15.9 - 2025-11-16
+## 0.17.1 - 2025-12-10
+
+### Fixed
+
+- Update dependencies
+
+## 0.17.0 - 2025-12-08
+
+### Added
+
+- `options.whitelist` in PapiConfig to globally set the whitelist path.
+- Export `WhitelistEntriesByChain` type from descriptors to help build a chain-based whitelist.
+
+## 0.16.1 to 0.16.3 - 2025-11-27
+
+### Fixed
+
+- Update dependencies
+
+## 0.16.0 - 2025-11-24
+
+### Changed
+
+- Bump `polkadot-api` peer dependency on generated descriptors package.
+
+## 0.15.1 to 0.15.10 - 2025-11-19
 
 ### Fixed
 

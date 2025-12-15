@@ -17,7 +17,7 @@ export const jsonObj = <T extends {}>(input: T) => ({
 export const operationNotification = <T extends {}>(
   subscription: string,
   event: string,
-  operationId: string,
+  operationId?: string,
   innerResult: T = {} as T,
 ) =>
   jsonObj({

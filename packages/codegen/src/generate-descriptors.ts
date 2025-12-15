@@ -345,11 +345,30 @@ export const generateDescriptors = (
   const assetType =
     assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
 
+  const extensionsType = getExtensionsType(lookupFn, typesBuilder)
+
   const dispatchErrorId = getDispatchErrorId(lookupFn)
   const dispatchErrorType =
     dispatchErrorId == null
       ? "unknown"
       : typesBuilder.buildTypeDefinition(dispatchErrorId)
+
+  const mapInteractions = (
+    descriptor: Record<string, Record<string, unknown>>,
+  ) =>
+    filterObject(
+      mapObject(descriptor, (v) => Object.keys(v).map((v) => `'${v}'`)),
+      (v) => v.length > 0,
+    )
+  const allInteractions = {
+    storage: mapInteractions(storage),
+    tx: mapInteractions(calls),
+    events: mapInteractions(events),
+    errors: mapInteractions(errors),
+    constants: mapInteractions(constants),
+    viewFns: mapInteractions(viewFns),
+    apis: mapInteractions(mapObject(runtimeCalls, (v) => v.methods)),
+  }
 
   const commonTypeImports = typesBuilder.getTypeFileImports()
 
@@ -381,9 +400,11 @@ type IError = ${customStringifyObject(iErrors)};
 type IConstants = ${customStringifyObject(iConstants)};
 type IViewFns = ${customStringifyObject(iViewFns)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
-type IAsset = PlainDescriptor<${assetType}>
 export type ${prefix}DispatchError = ${dispatchErrorType}
+type IAsset = PlainDescriptor<${assetType}>
 const asset: IAsset = {} as IAsset
+export type ${prefix}Extensions = ${extensionsType}
+const extensions = {} as ${prefix}Extensions
 const getMetadata: () => Promise<Uint8Array> = () => import("./${key}_metadata").then(
   module => toBinary('default' in module ? module.default : module)
 )
@@ -405,10 +426,11 @@ export type ${prefix} = {
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
   asset: IAsset
+  extensions: ${prefix}Extensions
   getMetadata: () => Promise<Uint8Array>
   genesis: string | undefined
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, getMetadata, genesis } as any as ${prefix};
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, extensions, getMetadata, genesis } as any as ${prefix};
 export default _allDescriptors;
 
 export type ${prefix}Apis = ApisFromDef<IRuntimeCalls>
@@ -420,35 +442,27 @@ export type ${prefix}Constants = ConstFromPalletsDef<PalletsTypedef>
 export type ${prefix}ViewFns = ViewFnsFromPalletsDef<PalletsTypedef>
 ${chainCallType}
 
+type AllInteractions = ${customStringifyObject(allInteractions)};
+
 export type ${prefix}WhitelistEntry =
   | PalletKey
-  | ApiKey<IRuntimeCalls>
-  | \`query.\${NestedKey<PalletsTypedef['__storage']>}\`
-  | \`tx.\${NestedKey<PalletsTypedef['__tx']>}\`
-  | \`event.\${NestedKey<PalletsTypedef['__event']>}\`
-  | \`error.\${NestedKey<PalletsTypedef['__error']>}\`
-  | \`const.\${NestedKey<PalletsTypedef['__const']>}\`
-  | \`view.\${NestedKey<PalletsTypedef['__view']>}\`
+  | \`query.\${NestedKey<AllInteractions['storage']>}\`
+  | \`tx.\${NestedKey<AllInteractions['tx']>}\`
+  | \`event.\${NestedKey<AllInteractions['events']>}\`
+  | \`error.\${NestedKey<AllInteractions['errors']>}\`
+  | \`const.\${NestedKey<AllInteractions['constants']>}\`
+  | \`view.\${NestedKey<AllInteractions['viewFns']>}\`
+  | \`api.\${NestedKey<AllInteractions['apis']>}\`
 
-type PalletKey = \`*.\${keyof (IStorage & ICalls & IEvent & IError & IConstants & IRuntimeCalls & IViewFns)}\`
-type NestedKey<D extends Record<string, Record<string, any>>> =
+type PalletKey = \`*.\${({
+  [K in keyof AllInteractions]: K extends 'apis' ? never : keyof AllInteractions[K]
+})[keyof AllInteractions]}\`
+type NestedKey<D extends Record<string, string[]>> =
   | "*"
   | {
       [P in keyof D & string]:
         | \`\${P}.*\`
-        | {
-            [N in keyof D[P] & string]: \`\${P}.\${N}\`
-          }[keyof D[P] & string]
-    }[keyof D & string]
-
-type ApiKey<D extends Record<string, Record<string, any>>> =
-  | "api.*"
-  | {
-      [P in keyof D & string]:
-        | \`api.\${P}.*\`
-        | {
-            [N in keyof D[P] & string]: \`api.\${P}.\${N}\`
-          }[keyof D[P] & string]
+        | \`\${P}.\${D[P][number]}\`
     }[keyof D & string]
 `
 
@@ -468,6 +482,46 @@ export function getAssetId(lookup: MetadataLookup) {
     }
   }
   return
+}
+
+const knownSignedExtensions = new Set<string>([
+  "CheckNonce",
+  "CheckMortality",
+  "ChargeTransactionPayment",
+  "ChargeAssetTxPayment",
+  "CheckGenesis",
+  "CheckMetadataHash",
+  "CheckSpecVersion",
+  "CheckTxVersion",
+])
+function getExtensionsType(
+  lookup: MetadataLookup,
+  typesBuilder: ReturnType<typeof getTypesBuilder>,
+) {
+  const result: Record<string, string> = {}
+
+  lookup.metadata.extrinsic.signedExtensions.forEach((ext) => {
+    if (knownSignedExtensions.has(ext.identifier)) return
+    const hasValue = lookup(ext.type).type !== "void"
+    const hasAdditional = lookup(ext.additionalSigned).type !== "void"
+
+    const props = []
+    if (hasValue)
+      props.push(`value: ${typesBuilder.buildTypeDefinition(ext.type)}`)
+    if (hasAdditional)
+      props.push(
+        `additionalSigned: ${typesBuilder.buildTypeDefinition(ext.additionalSigned)}`,
+      )
+    if (!props.length) return
+
+    result[ext.identifier] = `{${props.join(", ")}}`
+  })
+
+  return `{
+  ${Object.entries(result)
+    .map(([id, type]) => `"${id}": ${type}`)
+    .join(",\n")}
+  }`
 }
 
 export function getDispatchErrorId(lookup: MetadataLookup) {
