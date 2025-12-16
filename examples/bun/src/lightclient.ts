@@ -12,19 +12,19 @@ const client = createClient(
 const testApi = client.getTypedApi(wnd)
 
 async function run() {
-  const { compat, const: cnst } = await testApi.getStaticApis()
+  const { compat, constants } = await testApi.getStaticApis()
   const nominationsQuotaIsCompatible =
-    compat.api.StakingApi.nominations_quota.isCompatible()
+    compat.apis.StakingApi.nominations_quota.isCompatible()
 
   console.log({ nominationsQuotaIsCompatible })
 
   const auctionEndingIsCompatible =
-    compat.const.Auctions.EndingPeriod.isCompatible()
+    compat.constants.Auctions.EndingPeriod.isCompatible()
 
   console.log({ auctionEndingIsCompatible })
 
   if (auctionEndingIsCompatible) {
-    console.log(cnst.Auctions.EndingPeriod)
+    console.log(constants.Auctions.EndingPeriod)
   }
 
   client.destroy()

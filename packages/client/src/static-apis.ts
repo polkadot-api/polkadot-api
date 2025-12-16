@@ -38,7 +38,7 @@ export const createStaticApis =
             return {
               id: ctx.codeHash,
               decodeCallData: decodeCallData(ctx),
-              const: createProxyPath((pallet, name) =>
+              constants: createProxyPath((pallet, name) =>
                 constFromCtx(ctx, pallet, name),
               ),
               query: createProxyPath((pallet, name) => ({

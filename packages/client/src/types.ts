@@ -171,13 +171,15 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
     name: string
     input: any
   }
-  const: ConstFromPalletsDef<D["descriptors"]["pallets"]>
+  constants: ConstFromPalletsDef<D["descriptors"]["pallets"]>
   tx: SyncTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
   compat: Safe extends true
     ? {
         tx: CompatHelperApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
-        const: CompatHelperApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
-        api: InOutCompatHelperApi<ApisFromDef<D["descriptors"]["apis"]>>
+        constants: CompatHelperApi<
+          ConstFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+        apis: InOutCompatHelperApi<ApisFromDef<D["descriptors"]["apis"]>>
         view: InOutCompatHelperApi<
           ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>
         >
@@ -197,8 +199,8 @@ export type TypedApi<D extends ChainDefinition, Safe = true> = {
     D["extensions"],
     D["asset"]["_type"]
   >
-  const: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
-  api: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
+  constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
+  apis: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
   view: ViewFnApi<ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>>
   query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
   event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
