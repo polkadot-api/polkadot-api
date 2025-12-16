@@ -164,8 +164,8 @@ export const createCompatHelpers = withWeakCache(
 
       return {
         tx: getCompat(OpType.Tx),
-        const: getCompat(OpType.Const),
-        api: getCompat(OpType.Api),
+        constants: getCompat(OpType.Const),
+        apis: getCompat(OpType.Api),
         view: getCompat(OpType.ViewFns),
         query: getCompat(OpType.Storage),
         event: getCompat(OpType.Event),
@@ -173,13 +173,15 @@ export const createCompatHelpers = withWeakCache(
     })
 
     const getClientCompat = async <
-      K extends "tx" | "const" | "api" | "view" | "query" | "event",
+      K extends "tx" | "constants" | "apis" | "view" | "query" | "event",
     >(
       kind: K,
       group: string,
       name: string,
     ): CompatApi<
-      K extends "tx" | "event" | "const" ? CompatHelper : ArgsValueCompatHelper
+      K extends "tx" | "event" | "constants"
+        ? CompatHelper
+        : ArgsValueCompatHelper
     > => {
       await awaitedUserCtx
       return (ctx: RuntimeContext) => getHelpers(ctx)[kind][group][name] as any

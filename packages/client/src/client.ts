@@ -87,16 +87,16 @@ const createApi = <D extends ChainDefinition>(
       pallet,
       name,
       chainHead,
-      getClientCompat("const", pallet, name),
+      getClientCompat("constants", pallet, name),
     ),
   )
 
-  const api = createProxyPath((api, method) =>
+  const apis = createProxyPath((api, method) =>
     createRuntimeCallEntry(
       api,
       method,
       chainHead,
-      getClientCompat("api", api, method),
+      getClientCompat("apis", api, method),
     ),
   )
 
@@ -142,8 +142,8 @@ const createApi = <D extends ChainDefinition>(
 
   return {
     tx,
-    const: constants,
-    api,
+    constants,
+    apis,
     view,
     query,
     event,
