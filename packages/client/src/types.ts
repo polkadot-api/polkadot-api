@@ -240,6 +240,7 @@ export interface PolkadotClient {
    * Retrieves the most modern stable version of the metadata for a given block.
    *
    * @param atBlock  The block-hash of the block.
+   * @param signal   Signal to abort promise.
    * @returns An abortable Promise that resolves into the most modern
    *          stable version of the metadata.
    */
@@ -295,28 +296,41 @@ export interface PolkadotClient {
   hodlBlock: (blockHash: HexString) => () => void
 
   /**
-   * Observable to watch Block Body.
+   * Get Block Body (Observable-based)
    *
-   * @param hash  It can be a block hash, `"finalized"`, or `"best"`
-   * @returns Observable to watch a block body. There'll be just one event
+   * @param hash  Block Hash of the target block.
+   * @returns Observable to get a block body. There'll be just one event
    *          with the payload and the observable will complete.
    */
-  watchBlockBody: (hash: string) => Observable<HexString[]>
+  getBlockBody$: (hash: HexString) => Observable<HexString[]>
   /**
    * Get Block Body (Promise-based)
    *
-   * @param hash:  The block-hash of the target block.
+   * @param hash:   The block-hash of the target block.
+   * @param signal  Signal to abort promise.
    * @returns Block body.
    */
-  getBlockBody: (hash: HexString) => Promise<HexString[]>
+  getBlockBody: (hash: HexString, signal?: AbortSignal) => Promise<HexString[]>
 
+  /**
+   * Get Block Header (Observable-based)
+   *
+   * @param hash  Block Hash of the target block.
+   * @returns Observable to get a block header. There'll be just one event
+   *          with the payload and the observable will complete.
+   */
+  getBlockHeader$: (hash: HexString) => Observable<BlockHeader>
   /**
    * Get Block Header (Promise-based)
    *
-   * @param hash:  The block-hash of the target block.
-   * @returns Block hash.
+   * @param hash    Block hash of the target block.
+   * @param signal  Signal to abort promise.
+   * @returns Block header.
    */
-  getBlockHeader: (hash: HexString) => Promise<BlockHeader>
+  getBlockHeader: (
+    hash: HexString,
+    signal?: AbortSignal,
+  ) => Promise<BlockHeader>
 
   /**
    * Broadcasts a transaction (Promise-based). The promise will resolve when the
