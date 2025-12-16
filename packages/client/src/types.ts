@@ -231,20 +231,20 @@ export interface PolkadotClient {
   /**
    * Retrieves the most modern stable version of the metadata for a given block.
    *
-   * @param atBlock  The block-hash of the block.
+   * @param hash  Block hash of the target block.
    * @returns Observable that emits the most modern stable version of the
    *          metadata, and immediately completes.
    */
-  getMetadata$: (atBlock: HexString) => Observable<Uint8Array>
+  getMetadata$: (hash: HexString) => Observable<Uint8Array>
   /**
    * Retrieves the most modern stable version of the metadata for a given block.
    *
-   * @param atBlock  The block-hash of the block.
-   * @param signal   Signal to abort promise.
+   * @param hash    Block hash of the target block.
+   * @param signal  Signal to abort promise.
    * @returns An abortable Promise that resolves into the most modern
    *          stable version of the metadata.
    */
-  getMetadata: (atBlock: HexString, signal?: AbortSignal) => Promise<Uint8Array>
+  getMetadata: (hash: HexString, signal?: AbortSignal) => Promise<Uint8Array>
 
   /**
    * Observable that emits `BlockInfo` for every new finalized block. It's a
@@ -298,7 +298,7 @@ export interface PolkadotClient {
   /**
    * Get Block Body (Observable-based)
    *
-   * @param hash  Block Hash of the target block.
+   * @param hash  Block hash of the target block.
    * @returns Observable to get a block body. There'll be just one event
    *          with the payload and the observable will complete.
    */
@@ -306,7 +306,7 @@ export interface PolkadotClient {
   /**
    * Get Block Body (Promise-based)
    *
-   * @param hash:   The block-hash of the target block.
+   * @param hash    Block hash of the target block.
    * @param signal  Signal to abort promise.
    * @returns Block body.
    */
@@ -315,7 +315,7 @@ export interface PolkadotClient {
   /**
    * Get Block Header (Observable-based)
    *
-   * @param hash  Block Hash of the target block.
+   * @param hash  Block hash of the target block.
    * @returns Observable to get a block header. There'll be just one event
    *          with the payload and the observable will complete.
    */
