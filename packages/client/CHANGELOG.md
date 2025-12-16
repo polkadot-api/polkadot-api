@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- **CLI**
+  - Skip re-generating descriptors if nothing has changed.
+
 ### Fixed
 
 - **Ink contracts**
