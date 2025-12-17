@@ -13,6 +13,9 @@
   - Exposes a new `getWsRawProvider` which is identicaly to the previous one, but without using any middlewares. This provider should only be used if you are confident that all the endpoints are 100% compliant with the new JSON-RPC spec.
   - BREAKING: The `WsEvent` Enum exposed from the ws-provider is now a plain JS object for which its keys and its values are the same.
 
+- **polkadot-api/utils**:
+  - Add `jsonSerialize` and `jsonDeserialize` as JSON.stringify/parse replacement fns.
+
 ### Changed
 
 - TypedApi: constants can now be queried with standard `PullOptions`.
@@ -38,8 +41,11 @@
 ### Removed
 
 - BREAKING: Removed `RuntimeToken` and `CompatibilityToken`
+- BREAKING: polkadot-sdk-compat
 - BREAKING: Rococo chainspecs
-- **polkadot-sdk-compat**
+
+- **polkadot-api/utils**:
+  - `jsonPrint` export
 
 ## Unreleased
 
