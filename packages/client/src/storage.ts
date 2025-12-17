@@ -14,7 +14,6 @@ import { FixedSizeBinary, HexString } from "@polkadot-api/substrate-bindings"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
-  OperatorFunction,
   catchError,
   combineLatest,
   combineLatestWith,
@@ -25,14 +24,13 @@ import {
   identity,
   map,
   mergeMap,
-  pipe,
   shareReplay,
   take,
 } from "rxjs"
-import { createWatchEntries } from "./watch-entries"
-import { PullOptions } from "./types"
 import { InOutCompat } from "./compatibility"
+import { PullOptions } from "./types"
 import { stgGetKey } from "./utils/stg-get-key"
+import { createWatchEntries } from "./watch-entries"
 
 type WithCallOptions<Args extends Array<any>> = [
   ...args: Args,
@@ -209,7 +207,6 @@ export type Storage$ = <Type extends StorageItemInput["type"]>(
   childTrie: string | null,
 ) => Observable<StorageResult<Type>>
 
-const toMapped = map(<T>(x: { mapped: T }) => x.mapped)
 export const createStorageEntry = (
   pallet: string,
   name: string,
@@ -230,10 +227,6 @@ export const createStorageEntry = (
         : identity,
     ),
     shareReplay(),
-  )
-  const bigIntOrNumber: OperatorFunction<number, number | bigint> = pipe(
-    combineLatestWith(sysNumberMapper$),
-    map(([input, mapper]) => mapper(input)),
   )
 
   const incompatibleError = () =>
@@ -259,10 +252,8 @@ export const createStorageEntry = (
 
     const value$ = (source$: Observable<BlockInfo>) =>
       source$.pipe(
-        lossLessExhaustMap((block) =>
-          getRawValue$(...actualArgs, isBest ? { at: "best" } : {}).pipe(
-            map((value) => ({ block, value })),
-          ),
+        lossLessExhaustMap(() =>
+          getRawValue$(...actualArgs, isBest ? { at: "best" } : {}),
         ),
         distinctUntilChanged((a, b) => a.value.raw === b.value.raw),
       )
@@ -303,7 +294,10 @@ export const createStorageEntry = (
 
   const getRawValue$ = (
     ...args: Array<any>
-  ): Observable<{ raw: string | null; mapped: any }> => {
+  ): Observable<{
+    value: { raw: string | null; mapped: any }
+    block: BlockInfo
+  }> => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
@@ -356,11 +350,14 @@ export const createStorageEntry = (
           if (!block) {
             throw new BlockNotPinnedError(hash, "System.Number")
           }
-          return block.number
+          return block
         }),
-        distinctUntilChanged(),
-        bigIntOrNumber,
-        map((mapped) => ({ raw: mapped.toString(), mapped })),
+        distinctUntilChanged((a, b) => a.number === b.number),
+        combineLatestWith(sysNumberMapper$),
+        map(([block, mapper]) => ({
+          block,
+          value: { raw: block.number.toString(), mapped: mapper(block.number) },
+        })),
         catchError((e) => {
           if (e instanceof BlockNotPinnedError) return result$
           throw e
@@ -369,7 +366,15 @@ export const createStorageEntry = (
 
     return isBlockHash && Number(args[0]) === 0
       ? chainHead.genesis$.pipe(
-          map((raw) => ({ raw, mapped: FixedSizeBinary.fromHex(raw) })),
+          map((raw) => ({
+            block: {
+              hash: raw,
+              parent: "0x" + new Array(raw.length - 2).fill(0).join(""),
+              hasNewRuntime: true,
+              number: 0,
+            },
+            value: { raw, mapped: FixedSizeBinary.fromHex(raw) },
+          })),
         )
       : result$
   }
@@ -380,7 +385,7 @@ export const createStorageEntry = (
     const { signal }: PullOptions = isLastArgOptional ? lastArg : {}
 
     return firstValueFromWithSignal(
-      getRawValue$(...args).pipe(toMapped),
+      getRawValue$(...args).pipe(map((v) => v.value.mapped)),
       signal,
     )
   }
@@ -433,6 +438,7 @@ export const createStorageEntry = (
           },
         ),
       ),
+      map((v) => v.value),
       chainHead.withHodl(at),
     )
     return firstValueFromWithSignal(result$, signal)
