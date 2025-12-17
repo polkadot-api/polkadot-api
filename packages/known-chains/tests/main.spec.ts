@@ -18,8 +18,8 @@ const SKIPPED_CHAINS: string[] = []
 describe("chain specs", () => {
   const RELAYS: Array<keyof typeof chains> = [
     "polkadot",
-    "ksmcc3",
-    "westend2",
+    "kusama",
+    "westend",
     "paseo",
   ]
   const waitForRuntime = async (chain: Chain | Promise<Chain>) => {

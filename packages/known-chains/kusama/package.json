@@ -1,0 +1,9 @@
+{
+  "name": "@polkadot-api/known-chains-kusama",
+  "types": "../dist/specs/kusama.d.ts",
+  "module": "../dist/specs/kusama.mjs",
+  "import": "../dist/specs/kusama.mjs",
+  "browser": "../dist/specs/kusama.mjs",
+  "require": "../dist/specs/kusama.js",
+  "default": "../dist/specs/kusama.js"
+}

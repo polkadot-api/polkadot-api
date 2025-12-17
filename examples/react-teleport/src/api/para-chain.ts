@@ -6,7 +6,7 @@ import { smoldot } from "./smoldot"
 
 const smoldotParaChain = Promise.all([
   smoldotRelayChain,
-  import("polkadot-api/chains/westend2_asset_hub"),
+  import("polkadot-api/chains/westend_asset_hub"),
 ]).then(([relayChain, { chainSpec }]) =>
   smoldot.addChain({ chainSpec, potentialRelayChains: [relayChain] }),
 )

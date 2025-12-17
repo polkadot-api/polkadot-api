@@ -1,7 +1,7 @@
 import { createClient } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
-import { chainSpec } from "polkadot-api/chains/westend2"
+import { chainSpec } from "polkadot-api/chains/westend"
 import { wnd } from "@polkadot-api/descriptors"
 
 const smoldot = start()

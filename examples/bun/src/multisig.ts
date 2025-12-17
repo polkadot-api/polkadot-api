@@ -6,7 +6,7 @@ import {
   mnemonicToEntropy,
 } from "@polkadot-labs/hdkd-helpers"
 import { Binary, createClient } from "polkadot-api"
-import { chainSpec } from "polkadot-api/chains/westend2"
+import { chainSpec } from "polkadot-api/chains/westend"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
