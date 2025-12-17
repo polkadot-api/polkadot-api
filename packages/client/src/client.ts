@@ -266,9 +266,13 @@ export function createClient(
     bestBlocks$: chainHead.bestBlocks$,
     getBestBlocks: () => firstValueFrom(bestBlocks$),
 
-    watchBlockBody: body$,
-    getBlockBody: (hash: HexString) => firstValueFrom(body$(hash)),
-    getBlockHeader: (hash: HexString) => firstValueFrom(header$(hash)),
+    getBlockBody$: body$,
+    getBlockBody: (hash: HexString, signal?: AbortSignal) =>
+      firstValueFromWithSignal(body$(hash), signal),
+
+    getBlockHeader$: header$,
+    getBlockHeader: (hash: HexString, signal?: AbortSignal) =>
+      firstValueFromWithSignal(header$(hash), signal),
 
     submit: (...args) => submit(chainHead, broadcastTx$, ...args),
     submitAndWatch: (tx) => submit$(chainHead, broadcastTx$, tx),

@@ -34,7 +34,7 @@ client.finalizedBlock$
     take(10),
     mergeMap((blockInfo) =>
       client
-        .watchBlockBody(blockInfo.hash)
+        .getBlockBody$(blockInfo.hash)
         .pipe(map((txs) => ({ txs, blockInfo }))),
     ),
     withLatestFrom(extrinsicDecoder$),
