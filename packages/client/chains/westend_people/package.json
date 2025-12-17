@@ -1,0 +1,9 @@
+{
+  "name": "polkadot-api_chains_westend_people",
+  "types": "../../dist/reexports/chains_westend_people.d.ts",
+  "module": "../../dist/esm/reexports/chains_westend_people.mjs",
+  "import": "../../dist/esm/reexports/chains_westend_people.mjs",
+  "browser": "../../dist/esm/reexports/chains_westend_people.mjs",
+  "require": "../../dist/reexports/chains_westend_people.js",
+  "default": "../../dist/reexports/chains_westend_people.js"
+}

@@ -3,7 +3,7 @@ import { wnd } from "@polkadot-api/descriptors"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { smoldot } from "./smoldot"
 
-export const smoldotRelayChain = import("polkadot-api/chains/westend2").then(
+export const smoldotRelayChain = import("polkadot-api/chains/westend").then(
   ({ chainSpec }) => smoldot.addChain({ chainSpec }),
 )
 
