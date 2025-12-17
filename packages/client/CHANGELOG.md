@@ -37,6 +37,7 @@
 ### Removed
 
 - BREAKING: Removed `RuntimeToken` and `CompatibilityToken`
+- BREAKING: Rococo chainspecs
 - **polkadot-sdk-compat**
 
 ## Unreleased
