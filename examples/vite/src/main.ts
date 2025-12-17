@@ -12,7 +12,7 @@ import { startFromWorker } from "polkadot-api/smoldot/from-worker"
 
 const smoldot = startFromWorker(new SmWorker())
 const getWndChain = () =>
-  import("polkadot-api/chains/westend2").then(({ chainSpec }) =>
+  import("polkadot-api/chains/westend").then(({ chainSpec }) =>
     smoldot.addChain({ chainSpec }),
   )
 const jsonRpcProvider = getSmProvider(getWndChain)

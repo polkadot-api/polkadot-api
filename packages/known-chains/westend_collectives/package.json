@@ -1,0 +1,9 @@
+{
+  "name": "@polkadot-api/known-chains-westend_collectives",
+  "types": "../dist/specs/westend_collectives.d.ts",
+  "module": "../dist/specs/westend_collectives.mjs",
+  "import": "../dist/specs/westend_collectives.mjs",
+  "browser": "../dist/specs/westend_collectives.mjs",
+  "require": "../dist/specs/westend_collectives.js",
+  "default": "../dist/specs/westend_collectives.js"
+}

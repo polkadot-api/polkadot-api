@@ -1,7 +1,7 @@
 import * as chains from "./dist/index.mjs"
 import { start } from "@polkadot-api/smoldot"
 
-const RELAYS = ["polkadot", "ksmcc3", "westend2", "paseo"]
+const RELAYS = ["polkadot", "kusama", "westend", "paseo"]
 
 const smoldot = start()
 async function main() {

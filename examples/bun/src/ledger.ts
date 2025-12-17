@@ -2,7 +2,7 @@ import TransportNodeHid from "@ledgerhq/hw-transport-node-hid"
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
 import { LedgerSigner } from "@polkadot-api/ledger-signer"
 import { AccountId, createClient } from "polkadot-api"
-import { chainSpec } from "polkadot-api/chains/westend2"
+import { chainSpec } from "polkadot-api/chains/westend"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 

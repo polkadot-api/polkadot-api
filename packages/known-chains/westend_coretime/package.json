@@ -1,0 +1,9 @@
+{
+  "name": "@polkadot-api/known-chains-westend_coretime",
+  "types": "../dist/specs/westend_coretime.d.ts",
+  "module": "../dist/specs/westend_coretime.mjs",
+  "import": "../dist/specs/westend_coretime.mjs",
+  "browser": "../dist/specs/westend_coretime.mjs",
+  "require": "../dist/specs/westend_coretime.js",
+  "default": "../dist/specs/westend_coretime.js"
+}
