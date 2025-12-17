@@ -6,6 +6,10 @@
 
 - `mergeUint8` now **only** takes an `Array<Uint8Array>`.
 
+### Removed
+
+- `jsonPrint` export
+
 ## 0.2.0 - 2025-05-30
 
 ### Added
