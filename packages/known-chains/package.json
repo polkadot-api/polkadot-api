@@ -100,26 +100,6 @@
       "import": "./dist/specs/polkadot_people.mjs",
       "require": "./dist/specs/polkadot_people.js"
     },
-    "./rococo_v2_2": {
-      "module": "./dist/specs/rococo_v2_2.mjs",
-      "import": "./dist/specs/rococo_v2_2.mjs",
-      "require": "./dist/specs/rococo_v2_2.js"
-    },
-    "./rococo_v2_2_asset_hub": {
-      "module": "./dist/specs/rococo_v2_2_asset_hub.mjs",
-      "import": "./dist/specs/rococo_v2_2_asset_hub.mjs",
-      "require": "./dist/specs/rococo_v2_2_asset_hub.js"
-    },
-    "./rococo_v2_2_bridge_hub": {
-      "module": "./dist/specs/rococo_v2_2_bridge_hub.mjs",
-      "import": "./dist/specs/rococo_v2_2_bridge_hub.mjs",
-      "require": "./dist/specs/rococo_v2_2_bridge_hub.js"
-    },
-    "./rococo_v2_2_people": {
-      "module": "./dist/specs/rococo_v2_2_people.mjs",
-      "import": "./dist/specs/rococo_v2_2_people.mjs",
-      "require": "./dist/specs/rococo_v2_2_people.js"
-    },
     "./westend2": {
       "module": "./dist/specs/westend2.mjs",
       "import": "./dist/specs/westend2.mjs",
@@ -174,10 +154,6 @@
     "polkadot_collectives",
     "polkadot_coretime",
     "polkadot_people",
-    "rococo_v2_2",
-    "rococo_v2_2_asset_hub",
-    "rococo_v2_2_bridge_hub",
-    "rococo_v2_2_people",
     "westend2",
     "westend2_asset_hub",
     "westend2_bridge_hub",
