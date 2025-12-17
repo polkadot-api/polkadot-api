@@ -23,8 +23,8 @@
 - BREAKING: When creating transactions the optional `at` value only accepts specific block-hashes.
 - BREAKING: `getBody` and `getHeader` only accept block-hashes.
 - BREAKING: renamed `watchBlockBody` to `getBlockBody$`
-- BREAKING: `watchValue` options are now consistent with `watchEntries` options, and also with the rest of query options.
-- BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
+- BREAKING: `watchValue` emits the block the value was found in, and whether the value is finalized.
+- BREAKING: `watchValue` options are now consistent with `watchEntries` options, and also with the - BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
 
 - **WS-Provider:**
   - BREAKING: This export has been moved in favor of `polkadot-api/ws`

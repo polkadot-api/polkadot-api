@@ -252,7 +252,7 @@ describe("E2E", async () => {
         accountIdDec(unusedSigner.publicKey),
         { at: "best" },
       ).pipe(
-        map((x) => x.data.free),
+        map((x) => x.value.data.free),
         filter((balance) => balance >= ED * 2n),
       ),
     )
@@ -378,7 +378,7 @@ describe("E2E", async () => {
           [alice, bob].map((from) =>
             api.query.System.Account.watchValue(
               accountIdDec(from.publicKey),
-            ).pipe(map((x) => x.data.free)),
+            ).pipe(map((x) => x.value.data.free)),
           ),
         ).pipe(
           filter((balances) => balances.every((balance) => balance >= ED * 2n)),

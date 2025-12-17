@@ -88,7 +88,11 @@ type StorageEntryWithoutKeys<Payload> = {
    * @param options  Optionally choose which block to watch changes, `best`
    *                 or `finalized` (default)
    */
-  watchValue: (options?: { at: "best" | "finalized" }) => Observable<Payload>
+  watchValue: (options?: { at: "best" | "finalized" }) => Observable<{
+    block: BlockInfo
+    finalized: boolean
+    value: Payload
+  }>
   getKey: GetKey<[]>
 }
 
@@ -115,7 +119,11 @@ export type StorageEntryWithKeys<
    */
   watchValue: (
     ...args: [...Args, options?: { at: "best" | "finalized" }]
-  ) => Observable<Payload>
+  ) => Observable<{
+    block: BlockInfo
+    finalized: boolean
+    value: Payload
+  }>
   /**
    * Get an Array of `Payload` (Promise-based) for the storage entry with
    * several sets of `Args`.
@@ -249,12 +257,47 @@ export const createStorageEntry = (
       ? ([args.slice(0, -1), args.at(-1).at === "best"] as const)
       : ([args, false] as const)
 
-    return chainHead[isBest ? "best$" : "finalized$"].pipe(
-      lossLessExhaustMap(() =>
-        getRawValue$(...actualArgs, isBest ? { at: "best" } : {}),
+    const value$ = (source$: Observable<BlockInfo>) =>
+      source$.pipe(
+        lossLessExhaustMap((block) =>
+          getRawValue$(...actualArgs, isBest ? { at: "best" } : {}).pipe(
+            map((value) => ({ block, value })),
+          ),
+        ),
+        distinctUntilChanged((a, b) => a.value.raw === b.value.raw),
+      )
+
+    if (!isBest)
+      return value$(chainHead.finalized$).pipe(
+        map(({ block, value }) => ({
+          block,
+          finalized: true,
+          value: value.mapped,
+        })),
+      )
+
+    return combineLatest([
+      value$(chainHead.best$),
+      value$(chainHead.finalized$),
+    ]).pipe(
+      map(([best, finalized]) =>
+        finalized.value.raw === best.value.raw
+          ? {
+              block: finalized.block,
+              finalized: true,
+              value: finalized.value,
+            }
+          : {
+              block: best.block,
+              finalized: false,
+              value: best.value,
+            },
       ),
-      distinctUntilChanged((a, b) => a.raw === b.raw),
-      toMapped,
+      // Anytime that finalized has a different value than best, we'll be receiving `best` branch
+      distinctUntilChanged(
+        (a, b) => a.finalized === b.finalized && a.value.raw === b.value.raw,
+      ),
+      map((v) => ({ ...v, value: v.value.mapped })),
     )
   }
 
