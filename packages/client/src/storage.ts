@@ -248,40 +248,12 @@ export const createStorageEntry = (
       ? ([args.slice(0, -1), args.at(-1).at === "best"] as const)
       : ([args, false] as const)
 
-    const value$ = (source$: Observable<BlockInfo>) =>
-      source$.pipe(
-        lossLessExhaustMap(() =>
-          getRawValue$(...actualArgs, isBest ? { at: "best" } : {}),
-        ),
-        distinctUntilChanged((a, b) => a.value.raw === b.value.raw),
-      )
-
-    if (!isBest)
-      return value$(chainHead.finalized$).pipe(
-        map(({ block, value }) => ({
-          block,
-          value: value.mapped,
-        })),
-      )
-
-    return combineLatest([
-      value$(chainHead.best$),
-      value$(chainHead.finalized$),
-    ]).pipe(
-      map(([best, finalized]) =>
-        finalized.value.raw === best.value.raw
-          ? {
-              block: finalized.block,
-              value: finalized.value,
-            }
-          : {
-              block: best.block,
-              value: best.value,
-            },
+    return chainHead[isBest ? "best$" : "finalized$"].pipe(
+      lossLessExhaustMap(() =>
+        getRawValue$(...actualArgs, isBest ? { at: "best" } : {}),
       ),
-      // Anytime that finalized has a different value than best, we'll be receiving `best` branch
       distinctUntilChanged((a, b) => a.value.raw === b.value.raw),
-      map((v) => ({ ...v, value: v.value.mapped })),
+      map(({ block, value }) => ({ block, value: value.mapped })),
     )
   }
 
