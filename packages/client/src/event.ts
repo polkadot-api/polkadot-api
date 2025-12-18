@@ -81,7 +81,7 @@ export const createEventEntry = <T>(
       const { isValueCompatible } = getCompat(ctx)
       return chainHead.eventsAt$(block.hash).pipe(
         map((events) => {
-          const winners = events.value.filter(
+          const winners = events.filter(
             (e) => e.event.type === pallet && e.event.value.type === name,
           )
           return winners.map((x) => {

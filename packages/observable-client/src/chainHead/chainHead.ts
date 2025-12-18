@@ -380,7 +380,7 @@ export const getChainHead$ = (
       (ctx) => ctx.events.key,
       null,
       (x, ctx) => ctx.events.dec(x!),
-    )
+    ).pipe(map((v) => v.value))
 
   const __call$ = commonEnhancer(lazyFollower("call"), "call")
   const call$ = withOptionalHash$((hash: string, fn: string, args: string) =>

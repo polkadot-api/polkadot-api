@@ -245,10 +245,7 @@ export function createClient(
     body$: withArchive(_chainHead.body$, archive.body$),
     call$: withArchive(_chainHead.call$, archive.call$),
     header$: withArchive(_chainHead.header$, archive.header$),
-    eventsAt$: withArchive(
-      _chainHead.eventsAt$,
-      withArchiveBlock(archive.eventsAt$),
-    ),
+    eventsAt$: withArchive(_chainHead.eventsAt$, archive.eventsAt$),
     storageQueries$: withArchive(
       _chainHead.storageQueries$,
       archive.storageQueries$,
