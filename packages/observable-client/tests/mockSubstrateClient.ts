@@ -1,4 +1,3 @@
-import { BlockInfo } from "@/chainHead"
 import {
   ChainHead,
   FollowEventWithRuntime,

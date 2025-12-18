@@ -88,7 +88,6 @@ type StorageEntryWithoutKeys<Payload> = {
    */
   watchValue: (options?: { at: "best" | "finalized" }) => Observable<{
     block: BlockInfo
-    finalized: boolean
     value: Payload
   }>
   getKey: GetKey<[]>
@@ -119,7 +118,6 @@ export type StorageEntryWithKeys<
     ...args: [...Args, options?: { at: "best" | "finalized" }]
   ) => Observable<{
     block: BlockInfo
-    finalized: boolean
     value: Payload
   }>
   /**
@@ -262,7 +260,6 @@ export const createStorageEntry = (
       return value$(chainHead.finalized$).pipe(
         map(({ block, value }) => ({
           block,
-          finalized: true,
           value: value.mapped,
         })),
       )
@@ -275,19 +272,15 @@ export const createStorageEntry = (
         finalized.value.raw === best.value.raw
           ? {
               block: finalized.block,
-              finalized: true,
               value: finalized.value,
             }
           : {
               block: best.block,
-              finalized: false,
               value: best.value,
             },
       ),
       // Anytime that finalized has a different value than best, we'll be receiving `best` branch
-      distinctUntilChanged(
-        (a, b) => a.finalized === b.finalized && a.value.raw === b.value.raw,
-      ),
+      distinctUntilChanged((a, b) => a.value.raw === b.value.raw),
       map((v) => ({ ...v, value: v.value.mapped })),
     )
   }
