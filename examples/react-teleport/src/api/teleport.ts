@@ -1,4 +1,5 @@
-import { SS58String, Binary, AccountId, Enum } from "polkadot-api"
+import { SS58String, AccountId, Enum } from "polkadot-api"
+import { toHex } from "polkadot-api/utils"
 import {
   XcmV3Junctions,
   XcmV3MultiassetAssetId,
@@ -18,7 +19,7 @@ const getBeneficiary = (address: SS58String) =>
     interior: XcmV3Junctions.X1(
       XcmV3Junction.AccountId32({
         network: undefined,
-        id: Binary.fromBytes(encodeAccount(address)),
+        id: toHex(encodeAccount(address)),
       }),
     ),
   })

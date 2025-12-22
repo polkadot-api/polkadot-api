@@ -3,6 +3,10 @@ import { Bytes, Codec, Decoder, Encoder, createCodec } from "scale-ts"
 
 export type HexString = string & { __hexString?: unknown }
 
+export type SizedHex<T extends number> = string & {
+  __hexString?: T | unknown
+}
+
 const enc = (nBytes?: number): Encoder<HexString> => {
   const _enc = Bytes.enc(nBytes)
   return (value: string) => _enc(fromHex(value))

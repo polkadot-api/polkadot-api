@@ -127,8 +127,8 @@ export function processPapiPrimitives(
 
   if (node.type === "fixedSizeBinary") {
     return {
-      code: `FixedSizeBinary<${node.value}>`,
-      imports: clientImport("FixedSizeBinary"),
+      code: `SizedHex<${node.value}>`,
+      imports: clientImport("SizedHex"),
     }
   }
 
