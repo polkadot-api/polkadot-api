@@ -1,3 +1,4 @@
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   Bytes,
   Codec,
@@ -7,10 +8,7 @@ import {
   compact,
   createCodec,
 } from "scale-ts"
-import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import type { HexString } from "./Hex"
-import { SS58String } from "@/utils"
-import { AccountId } from "./AccountId"
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
@@ -69,25 +67,6 @@ export class Binary {
   }
 }
 
-const [accountIdEncoder] = AccountId()
-export class FixedSizeBinary<_L extends number> extends Binary {
-  constructor(data: Uint8Array) {
-    super(data)
-  }
-
-  static fromArray<L extends number, I extends Array<number> & { length: L }>(
-    input: I,
-  ) {
-    return new this<L>(new Uint8Array(input))
-  }
-
-  static fromAccountId32<L extends number>(
-    input: L extends 32 ? SS58String : never,
-  ) {
-    return new this<L>(accountIdEncoder(input))
-  }
-}
-
 const enc = (nBytes?: number): Encoder<Binary> => {
   const _enc = Bytes.enc(nBytes)
   return (value) => _enc(value.asBytes())
@@ -95,8 +74,7 @@ const enc = (nBytes?: number): Encoder<Binary> => {
 
 const dec = (nBytes?: number): Decoder<Binary> => {
   const _dec = Bytes.dec(nBytes)
-  const Bin = nBytes == null ? Binary : FixedSizeBinary
-  return (value) => Bin.fromBytes(_dec(value))
+  return (value) => Binary.fromBytes(_dec(value))
 }
 
 export const Bin = (nBytes?: number): Codec<Binary> =>

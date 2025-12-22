@@ -3,7 +3,6 @@ import {
   AccountId,
   Binary,
   Blake2256,
-  FixedSizeBinary,
   getMultisigAccountId,
   getSs58AddressInfo,
   HexString,
@@ -32,7 +31,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
   },
   getMultisigInfo: (
     multisig: Address,
-    callHash: FixedSizeBinary<32>,
+    callHash: HexString,
   ) => Promise<
     | {
         when: {
@@ -122,7 +121,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
 
       const unsignedExtrinsic = mergeUint8([new Uint8Array([4]), callData])
       const [multisigInfo, weightInfo] = await Promise.all([
-        getMultisigInfo(toAddress(multisigId), Binary.fromBytes(callHash)),
+        getMultisigInfo(toAddress(multisigId), toHex(callHash)),
         txPaymentInfo(
           Binary.fromBytes(unsignedExtrinsic),
           unsignedExtrinsic.length,

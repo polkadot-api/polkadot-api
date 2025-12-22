@@ -243,7 +243,7 @@ describe("docs-types-builder", () => {
         "mmr_root",
         {
           args: "[]",
-          value: "ResultPayload<FixedSizeBinary<32>, MmrPrimitivesError>",
+          value: "ResultPayload<SizedHex<32>, MmrPrimitivesError>",
         },
       ] as const,
     ]) {
