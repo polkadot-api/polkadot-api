@@ -25,6 +25,8 @@
 - BREAKING: renamed `watchBlockBody` to `getBlockBody$`
 - BREAKING: `watchValue` options are now consistent with `watchEntries` options, and also with the rest of query options.
 - BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
+- BREAKING: flattened Event interface in TypedAPI event `watch`.
+- BREAKING: `filter()` method in TypedAPI event entry returns an object `{ original: SystemEvent, payload: T }` instead of just the payload.
 
 - **WS-Provider:**
   - BREAKING: This export has been moved in favor of `polkadot-api/ws`
@@ -43,6 +45,8 @@
 - BREAKING: Removed `RuntimeToken` and `CompatibilityToken`
 - BREAKING: polkadot-sdk-compat
 - BREAKING: Rococo chainspecs
+- BREAKING: Removed `.pull()` from event entries in TypedAPI.
+- BREAKING: Removed the filter parameter from `.watch()` method in TypedAPI event entries.
 
 - **polkadot-api/utils**:
   - `jsonPrint` export

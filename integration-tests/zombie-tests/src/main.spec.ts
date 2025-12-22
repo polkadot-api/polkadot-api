@@ -329,8 +329,13 @@ describe("E2E", async () => {
     const [aliceActualFee, bobActualFee] = await Promise.all(
       [aliceTransfer, bobTransfer].map(async (call, idx) => {
         const result = await call.signAndSubmit(idx === 0 ? alice : bob)
-        const [{ actual_fee }] =
-          api.event.TransactionPayment.TransactionFeePaid.filter(result.events)
+        const [
+          {
+            payload: { actual_fee },
+          },
+        ] = api.event.TransactionPayment.TransactionFeePaid.filter(
+          result.events,
+        )
         return actual_fee
       }),
     )

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## V2
+
+### Changed
+
+- Updated generated docs to match v2
+
 ## 0.21.0 - 2025-12-08
 
 ### Added
