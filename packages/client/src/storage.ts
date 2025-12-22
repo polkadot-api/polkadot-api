@@ -330,14 +330,27 @@ export const createStorageEntry = (
       )
 
     return isBlockHash && Number(args[0]) === 0
-      ? chainHead.genesis$.pipe(
-          map((raw) => ({
-            block: {
-              hash: raw,
-              parent: "0x" + new Array(raw.length - 2).fill(0).join(""),
-              hasNewRuntime: true,
-              number: 0,
-            },
+      ? combineLatest([
+          chainHead.genesis$,
+          chainHead.pinnedBlocks$.pipe(
+            map((blocks) => {
+              const hash =
+                at === "finalized" || !at
+                  ? blocks.finalized
+                  : at === "best"
+                    ? blocks.best
+                    : at
+              const block = blocks.blocks.get(hash)
+              if (!block) {
+                throw new BlockNotPinnedError(hash, "System.BlockHash")
+              }
+              return block
+            }),
+            take(1),
+          ),
+        ]).pipe(
+          map(([raw, block]) => ({
+            block,
             value: { raw, mapped: FixedSizeBinary.fromHex(raw) },
           })),
         )
