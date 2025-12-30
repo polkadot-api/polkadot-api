@@ -2,7 +2,7 @@ import { mergeUint8 } from "@polkadot-api/utils"
 import { Binary, compact, u16 } from "../codecs"
 import { Blake2256 } from "../hashes"
 
-const PREFIX = Binary.fromText("modlpy/utilisuba").asBytes()
+const PREFIX = Binary.fromText("modlpy/utilisuba")
 export const getMultisigAccountId = ({
   threshold,
   signatories,

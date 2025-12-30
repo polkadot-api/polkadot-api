@@ -1,7 +1,6 @@
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
   AccountId,
-  Binary,
   Blake2256,
   getMultisigAccountId,
   getSs58AddressInfo,
@@ -44,7 +43,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
     | undefined
   >,
   txPaymentInfo: (
-    uxt: Binary,
+    uxt: Uint8Array,
     len: number,
   ) => Promise<{
     weight: {
@@ -123,10 +122,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
       const unsignedExtrinsic = mergeUint8([new Uint8Array([4]), callData])
       const [multisigInfo, weightInfo] = await Promise.all([
         getMultisigInfo(toAddress(multisigId), toHex(callHash)),
-        txPaymentInfo(
-          Binary.fromBytes(unsignedExtrinsic),
-          unsignedExtrinsic.length,
-        ),
+        txPaymentInfo(unsignedExtrinsic, unsignedExtrinsic.length),
       ])
 
       if (
@@ -155,7 +151,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
                 call: callCodec.dec(callData),
               }
             : {
-                call_hash: Binary.fromBytes(callHash),
+                call_hash: callHash,
               }),
         })
         wrappedCallData = mergeUint8([new Uint8Array(location), payload])

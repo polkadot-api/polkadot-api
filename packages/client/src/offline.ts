@@ -1,15 +1,14 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import { ChainDefinition, PlainDescriptor } from "./descriptors"
-import { OfflineTxEntry } from "./tx"
 import {
-  Binary,
   Enum,
   metadata as metadataCodec,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
-import { OfflineApi } from "./types"
+import { ChainDefinition, PlainDescriptor } from "./descriptors"
+import { OfflineTxEntry } from "./tx"
 import { getSignExtensionsCreator } from "./tx/signed-extensions"
+import { OfflineApi } from "./types"
 
 const createOfflineTxEntry = <
   Arg extends {} | undefined,
@@ -33,9 +32,7 @@ const createOfflineTxEntry = <
   const locationBytes = new Uint8Array(location)
 
   return (arg: Arg) => {
-    const encodedData = Binary.fromBytes(
-      mergeUint8([locationBytes, codec.enc(arg)]),
-    )
+    const encodedData = mergeUint8([locationBytes, codec.enc(arg)])
 
     return {
       encodedData,
@@ -43,7 +40,7 @@ const createOfflineTxEntry = <
       sign: async (from, extensions) =>
         toHex(
           await from.signTx(
-            encodedData.asBytes(),
+            encodedData,
             signExtensionCreator(extensions),
             metadataRaw,
             extensions.mortality.mortal

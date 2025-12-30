@@ -6,6 +6,7 @@ import {
 } from "@polkadot-labs/hdkd-helpers"
 import { getInkClient } from "polkadot-api/ink"
 import { getPolkadotSigner } from "polkadot-api/signer"
+import { toHex } from "polkadot-api/utils"
 import { createWsClient } from "polkadot-api/ws"
 
 const alice_mnemonic =
@@ -39,7 +40,11 @@ const psp22 = getInkClient(contracts.psp22)
 
   console.log(
     "storage",
-    storage.success ? storage.value?.asHex() : storage.value,
+    storage.success
+      ? storage.value
+        ? toHex(storage.value)
+        : undefined
+      : storage.value,
   )
 
   if (storage.success && storage.value) {

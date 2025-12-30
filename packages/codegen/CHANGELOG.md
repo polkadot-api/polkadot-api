@@ -1,5 +1,11 @@
 # Changelog
 
+## V2
+
+### Changed
+
+- Codegen exposes and expects `Vec<u8>` as `Uint8Array` instead of `Binary`.
+
 ## Unreleased
 
 ## V2

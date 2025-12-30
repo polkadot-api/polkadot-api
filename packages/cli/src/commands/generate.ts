@@ -199,9 +199,7 @@ async function outputCodegen(
   )
 
   const hash = h64(
-    Binary.fromText(
-      Array.from(metadataTypes.checksumToIdx.keys()).join(""),
-    ).asBytes(),
+    Binary.fromText(Array.from(metadataTypes.checksumToIdx.keys()).join("")),
   )
 
   const EntryPointsCodec = Vector(EntryPointCodec)

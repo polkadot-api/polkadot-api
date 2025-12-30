@@ -34,7 +34,6 @@ export async function generateDocsDescriptors(
     "RuntimeDescriptor",
     "Enum",
     "_Enum",
-    "Binary",
     "SizedHex",
     "FixedSizeArray",
     "QueryFromPalletsDef",
@@ -678,12 +677,12 @@ ${
  * 
  * For example, \`Metadata.metadata_at_version\` is of type
  * \`\`\`ts
- * metadata_at_version: RuntimeDescriptor<[version: number], Binary | undefined>
+ * metadata_at_version: RuntimeDescriptor<[version: number], Uint8Array | undefined>
  * \`\`\`
  * and can be called like this:
  * \`\`\`ts
  *  const metadata = await api.apis.Metadata.metadata_at_version(15)
- *  console.log(metadata?.asHex())
+ *  console.log(Binary.toHex(metadata!))
  * })
  * \`\`\`
  * 
