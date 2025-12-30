@@ -1,7 +1,8 @@
 import { denormalizeLookup, LookupEntry } from "@polkadot-api/metadata-builders"
 import { Binary, V14Lookup, v14Lookup } from "@polkadot-api/substrate-bindings"
-import { InkMetadata, Layout } from "./metadata-types"
+import { toHex } from "@polkadot-api/utils"
 import { pjsTypes } from "./metadata-pjs-types"
+import { InkMetadata, Layout } from "./metadata-types"
 
 export interface InkMetadataLookup {
   (id: number): LookupEntry
@@ -63,9 +64,7 @@ function getStorageLayout(metadata: InkMetadata, lookup: V14Lookup) {
       // https://github.com/use-ink/ink/pull/2048
       const keyPrefix =
         Number(metadata.version) === 4
-          ? Binary.fromBytes(
-              Binary.fromHex(node.root.root_key).asBytes().reverse(),
-            ).asHex()
+          ? toHex(Binary.fromHex(node.root.root_key).reverse())
           : node.root.root_key
 
       const typeId = readLayout(node.root.layout, path)!

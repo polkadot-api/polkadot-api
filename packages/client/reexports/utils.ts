@@ -16,8 +16,8 @@ export const jsonSerialize: (this: any, key: string, value: any) => any = (
 ) =>
   typeof v === "bigint"
     ? `${v}n`
-    : v != null && typeof v.asHex === "function"
-      ? v.asHex()
+    : v != null && v instanceof Uint8Array
+      ? Binary.toHex(v)
       : v
 
 /**
@@ -37,9 +37,6 @@ export const jsonDeserialize: (this: any, key: string, value: any) => any = (
   if (typeof v === "string") {
     // this has no conflicts in papi objects.
     if (/^[0-9]+n$/.test(v)) v = BigInt(v.slice(0, -1))
-    // only lowercase and with 0x, as it comes from `toHex`
-    // this has a corner-case conflict with an AccountId20 with all lowercase checksum
-    if (/^0x([0-9a-f][0-9a-f])+$/.test(v)) v = Binary.fromHex(v)
   }
   return v
 }

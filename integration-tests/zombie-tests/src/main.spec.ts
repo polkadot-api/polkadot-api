@@ -35,7 +35,7 @@ import {
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { fromHex } from "@polkadot-api/utils"
+import { fromHex, toHex } from "@polkadot-api/utils"
 import { appendFileSync } from "fs"
 import { withLogs } from "./with-logs"
 import { getInnerLogs } from "./inner-logs"
@@ -190,14 +190,14 @@ describe("E2E", async () => {
     const tx = api.tx.System.remark({
       remark: Binary.fromText("hello world!"),
     })
-    const binaryExtrinsic = Binary.fromOpaqueHex(
+    const binaryExtrinsic = Binary.fromOpaque(
       await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
     )
 
     const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
       api.apis.TransactionPaymentApi.query_info(
         binaryExtrinsic,
-        binaryExtrinsic.asOpaqueBytes().length,
+        Binary.toOpaque(binaryExtrinsic).length,
       ),
       tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey),
     ])
@@ -366,9 +366,7 @@ describe("E2E", async () => {
     // txs from call data
     const txCallData = await aliceTransfer.getEncodedData()
     const reEncodedTx = await api.txFromCallData(txCallData)
-    expect((await reEncodedTx.getEncodedData()).asHex()).toBe(
-      txCallData.asHex(),
-    )
+    expect(toHex(await reEncodedTx.getEncodedData())).toBe(toHex(txCallData))
   })
 
   it.concurrent.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(

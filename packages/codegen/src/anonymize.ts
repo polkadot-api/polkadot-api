@@ -1,4 +1,4 @@
-export const anonymizeImports = ["Binary", "Enum", "FixedSizeArray"]
+export const anonymizeImports = ["Enum", "FixedSizeArray"]
 
 export const anonymizeType = `type AnonymousEnum<T extends {}> = T & {
   __anonymous: true
@@ -21,7 +21,6 @@ type Anonymize<T> = SeparateUndefined<
     | null
     | symbol
     | Uint8Array
-    | Binary
     | Enum<any>
   ? T
   : T extends AnonymousEnum<infer V>

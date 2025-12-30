@@ -1,5 +1,15 @@
 # Changelog
 
+## V2
+
+### Changed
+
+- `Binary` is now a set of utilities for Uint8Array.
+
+### Removed
+
+- `Bin` codec
+
 ## Unreleased
 
 ### Changed

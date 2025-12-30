@@ -1,6 +1,5 @@
 import {
-  Bin,
-  Binary,
+  Bytes,
   compactNumber,
   createDecoder,
   Decoder,
@@ -14,11 +13,11 @@ import {
 import { getMetadata } from "./get-metadata"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 
-const allBytesDec = Bin(Infinity).dec
+const allBytesDec = Bytes(Infinity).dec
 
 export type DecodedExtrinsic = {
   len: number
-  callData: Binary
+  callData: Uint8Array
   call: Enum<Enum<any>>
 } & (
   | { version: 4 | 5; type: "bare" }
@@ -125,7 +124,7 @@ export const getExtrinsicDecoder = (
     (v) =>
       ({
         ...v,
-        call: call(v.callData.asBytes()),
+        call: call(v.callData),
       }) as any,
   )
 }

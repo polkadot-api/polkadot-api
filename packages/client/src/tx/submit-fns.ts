@@ -1,8 +1,13 @@
+import { continueWith } from "@/utils"
 import {
-  Binary,
-  HexString,
-  ResultPayload,
-} from "@polkadot-api/substrate-bindings"
+  AnalyzedBlock,
+  BlockInfo,
+  ChainHead$,
+  PinnedBlocks,
+  SystemEvent,
+} from "@polkadot-api/observable-client"
+import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
+import { fromHex, toHex } from "@polkadot-api/utils"
 import {
   EMPTY,
   Observable,
@@ -21,16 +26,7 @@ import {
   take,
   takeWhile,
 } from "rxjs"
-import {
-  BlockInfo,
-  ChainHead$,
-  PinnedBlocks,
-  SystemEvent,
-} from "@polkadot-api/observable-client"
-import { AnalyzedBlock } from "@polkadot-api/observable-client"
 import { TxEvent, TxEventsPayload, TxFinalizedPayload } from "./types"
-import { continueWith } from "@/utils"
-import { fromHex, toHex } from "@polkadot-api/utils"
 
 const computeState = (
   analized$: Observable<AnalyzedBlock>,
@@ -189,7 +185,7 @@ export class InvalidTxError extends Error {
         e,
         (_, value) => {
           if (typeof value === "bigint") return value.toString()
-          return value instanceof Binary ? value.asHex() : value
+          return value instanceof Uint8Array ? toHex(value) : value
         },
         2,
       ),

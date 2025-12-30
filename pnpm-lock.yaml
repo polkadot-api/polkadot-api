@@ -1449,7 +1449,7 @@ packages:
   '@polkadot-api/descriptors@file:examples/ink/.papi/descriptors':
     resolution: {directory: examples/ink/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.11.2'
+      polkadot-api: '>=1.21.0'
 
   '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors':
     resolution: {directory: examples/react-teleport/.papi/descriptors, type: directory}

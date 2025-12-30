@@ -66,13 +66,13 @@ function generatePrimitiveType(primitive: AbiPrimitive) {
     case "function":
       return "FunctionRef"
     case "bytes":
-      return "Binary"
+      return "Uint8Array"
     case "string":
       return "string"
   }
 
   if (primitive.startsWith("bytes")) {
-    return "Binary"
+    return "Uint8Array"
   }
 
   const intMatch = intRegex.exec(primitive)
@@ -188,7 +188,7 @@ export function generateSolTypes(abi: Abi) {
 
   const result = `
     import type { InkDescriptors } from 'polkadot-api/ink';
-    import type { HexString, Enum, Binary } from 'polkadot-api';
+    import type { HexString, Enum } from 'polkadot-api';
 
     type Address = HexString
     type Decimal<T extends number> = { value: bigint, decimals: T }

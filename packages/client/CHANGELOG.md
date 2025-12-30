@@ -27,6 +27,8 @@
 - BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
 - BREAKING: flattened Event interface in TypedAPI event `watch`.
 - BREAKING: `filter()` method in TypedAPI event entry returns an object `{ original: SystemEvent, payload: T }` instead of just the payload.
+- BREAKING: Codegen exposes and expects `Vec<u8>` as `Uint8Array` instead of `Binary`.
+- BREAKING: Remove `Binary` class. Replaced by a set of utilities to deal with `Uint8Array`s.
 
 - **WS-Provider:**
   - BREAKING: This export has been moved in favor of `polkadot-api/ws`

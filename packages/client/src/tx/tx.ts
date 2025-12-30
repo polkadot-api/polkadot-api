@@ -8,7 +8,6 @@ import { getPolkadotSigner } from "@polkadot-api/signer"
 import {
   _void,
   AccountId,
-  Binary,
   compact,
   compactBn,
   Decoder,
@@ -235,9 +234,7 @@ export const createTxEntry = <
 
     const getEncodedData = () =>
       firstValueFrom(
-        getCallData$(arg, null).pipe(
-          map(({ callData }) => Binary.fromBytes(callData)),
-        ),
+        getCallData$(arg, null).pipe(map(({ callData }) => callData)),
       )
 
     const getEstimatedFees = async (
