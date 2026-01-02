@@ -2,6 +2,7 @@ import { Observable, combineLatest, firstValueFrom, map, mergeMap } from "rxjs"
 import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
 import { concatMapEager, shareLatest } from "./utils"
 import { ValueCompat } from "./compatibility"
+import { SizedHex } from "@polkadot-api/substrate-bindings"
 
 export type EventPhase =
   | { type: "ApplyExtrinsic"; value: number }
@@ -60,7 +61,7 @@ type SystemEvent = {
       value: any
     }
   }
-  topics: Array<any>
+  topics: Array<SizedHex<32>>
 }
 
 export const createEventEntry = <T>(
