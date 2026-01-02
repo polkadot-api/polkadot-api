@@ -1,17 +1,16 @@
 import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
+import { FixedSizeBinary, HexString } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   combineLatest,
   firstValueFrom,
   map,
-  mergeAll,
   switchMap,
   take,
 } from "rxjs"
 import { ValueCompat } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
 import { mapByKey } from "./utils/map-by-key"
-import { HexString, FixedSizeBinary } from "@polkadot-api/substrate-bindings"
 
 export type EventPhase =
   | { type: "ApplyExtrinsic"; value: number }
@@ -31,7 +30,6 @@ export type SystemEvent = {
 }
 
 export type PalletEvent<T> = {
-  block: BlockInfo
   original: SystemEvent
   payload: T
 }
@@ -43,24 +41,28 @@ export type EvClient<T> = {
    *
    * @param blockHash  Block hash to get the events from.
    */
-  get: (blockHash: HexString) => Promise<
-    Array<{
-      original: SystemEvent
-      payload: T
-    }>
+  get: (blockHash: HexString) => Promise<Array<PalletEvent<T>>>
+
+  /**
+   * Multicast and stateful Observable watching for new events (matching the
+   * event kind chosen) in the `finalized` blocks.
+   */
+  watch: () => Observable<{
+    block: BlockInfo
+    events: PalletEvent<T>[]
+  }>
+
+  /**
+   * Multicast and stateful Observable watching for new events (matching the
+   * event kind chosen) in any block of the `bestBlock` chain.
+   */
+  watchBest: () => Observable<
+    Array<
+      PalletEvent<T> & {
+        block: BlockInfo
+      }
+    >
   >
-
-  /**
-   * Multicast and stateful Observable watching for new events (matching the
-   * event kind chosen) in the latest known `finalized` block.
-   */
-  watch: () => Observable<PalletEvent<T>>
-
-  /**
-   * Multicast and stateful Observable watching for new events (matching the
-   * event kind chosen) in any block in the `bestBlock` chain.
-   */
-  watchBest: () => Observable<PalletEvent<T>[]>
 
   /**
    * Filter a bunch of `SystemEvent` and return the decoded `payload` of every
@@ -112,16 +114,10 @@ export const createEventEntry = <T>(
 
       const { isValueCompatible } = getCompat(ctx)
       return getEventsAtBlock$(block.hash, isValueCompatible).pipe(
-        map((r) =>
-          r.map((v) => ({
-            block,
-            ...v,
-          })),
-        ),
+        map((events) => ({ block, events })),
       )
     }),
     shareLatest,
-    mergeAll(),
   )
 
   const best$ = mapByKey(
