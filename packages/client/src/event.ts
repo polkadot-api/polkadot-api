@@ -11,7 +11,7 @@ import {
 import { ValueCompat } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
 import { mapByKey } from "./utils/map-by-key"
-import { HexString } from "@polkadot-api/substrate-bindings"
+import { HexString, FixedSizeBinary } from "@polkadot-api/substrate-bindings"
 
 export type EventPhase =
   | { type: "ApplyExtrinsic"; value: number }
@@ -27,7 +27,7 @@ export type SystemEvent = {
       value: any
     }
   }
-  topics: Array<any>
+  topics: Array<FixedSizeBinary<32>>
 }
 
 export type PalletEvent<T> = {
