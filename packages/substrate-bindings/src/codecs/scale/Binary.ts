@@ -41,13 +41,13 @@ export class Binary {
 
   asHex = () => (this.#hex ??= toHex(this.#bytes)) as `0x${string}`
   asOpaqueHex = () =>
-    (this.#opaqueHex ??= toHex(this.asBytes())) as `0x${string}`
+    (this.#opaqueHex ??= toHex(this.asOpaqueBytes())) as `0x${string}`
 
   asBytes = () => this.#bytes
   asOpaqueBytes = () =>
     (this.#opaqueBytes ??= mergeUint8([
-      this.#bytes,
       compact[0](this.#bytes.length),
+      this.#bytes,
     ]))
 
   static fromText(input: string): Binary {
