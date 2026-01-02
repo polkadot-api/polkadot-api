@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Binary: opaque representation
+
 ## 0.16.5 - 2025-10-31
 
 ### Fixed

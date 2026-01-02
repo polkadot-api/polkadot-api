@@ -9,6 +9,8 @@
 
 ### Fixed
 
+- Binary: opaque representation
+
 - **Ink contracts**
   - [performance] Cache `getInkClient` result.
 
