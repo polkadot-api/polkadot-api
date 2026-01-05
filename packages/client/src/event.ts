@@ -10,7 +10,6 @@ import {
 } from "rxjs"
 import { ValueCompat } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
-import { mapByKey } from "./utils/map-by-key"
 
 export type EventPhase =
   | { type: "ApplyExtrinsic"; value: number }
@@ -53,29 +52,12 @@ export type EvClient<T> = {
   }>
 
   /**
-   * Multicast and stateful Observable watching for new events (matching the
-   * event kind chosen) in any block of the `bestBlock` chain.
-   */
-  watchBest: () => Observable<
-    Array<
-      PalletEvent<T> & {
-        block: BlockInfo
-      }
-    >
-  >
-
-  /**
    * Filter a bunch of `SystemEvent` and return the decoded `payload` of every
    * of them.
    *
    * @param collection  Array of `SystemEvent` to filter.
    */
-  filter: <O extends SystemEvent | SystemEvent["event"]>(
-    collection: O[],
-  ) => Array<{
-    original: O
-    payload: T
-  }>
+  filter: (collection: SystemEvent[]) => Array<PalletEvent<T>>
 }
 
 export const createEventEntry = <T>(
@@ -120,39 +102,12 @@ export const createEventEntry = <T>(
     shareLatest,
   )
 
-  const best$ = mapByKey(
-    chainHead.bestBlocks$.pipe(map((v) => v.slice(0, -1))),
-    (block) => block.hash,
-    (block) =>
-      combineLatest([
-        compatibility,
-        chainHead.getRuntimeContext$(block.hash),
-      ]).pipe(
-        take(1),
-        switchMap(([getCompat, ctx]) => {
-          const { isValueCompatible } = getCompat(ctx)
-          return getEventsAtBlock$(block.hash, isValueCompatible).pipe(
-            map((r) => r.map((v) => ({ ...v, block }))),
-          )
-        }),
-      ),
-  ).pipe(
-    map((blocks) => Array.from(blocks.values()).flat()),
-    shareLatest,
-  )
-
-  const getEvent = (e: SystemEvent | SystemEvent["event"]) =>
-    "event" in e ? e.event : e
-
   const filter: EvClient<T>["filter"] = (events) =>
     events
-      .filter((e) => {
-        const event = getEvent(e)
-        return event.type === pallet && event.value.type === name
-      })
+      .filter(({ event }) => event.type === pallet && event.value.type === name)
       .map((original) => ({
         original,
-        payload: getEvent(original).value.value,
+        payload: original.event.value.value,
       }))
 
   const get: EvClient<T>["get"] = (blockHash) =>
@@ -168,5 +123,5 @@ export const createEventEntry = <T>(
       ),
     )
 
-  return { watch: () => finalized$, watchBest: () => best$, get, filter }
+  return { watch: () => finalized$, get, filter }
 }
