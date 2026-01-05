@@ -13,7 +13,7 @@
 
 - **Ink contracts**
   - [performance] Cache `getInkClient` result.
-- **Chains:**:
+- **Chains:**
   - Update `lightSyncState`
 
 ## 1.23.1 - 2025-12-10
