@@ -2,17 +2,14 @@
 
 ## Unreleased
 
-## 1.24.0 - 2026-01-05
-
-### Added
-
-- **CLI**
-  - Skip re-generating descriptors if nothing has changed.
+## 1.23.2 - 2026-01-05
 
 ### Fixed
 
 - Binary: opaque representation
 
+- **CLI**
+  - Skip re-generating descriptors if nothing has changed.
 - **Ink contracts**
   - [performance] Cache `getInkClient` result.
 - **Chains:**
