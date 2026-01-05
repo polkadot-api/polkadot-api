@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.0 - 2026-01-05
+
 ### Added
 
 - Skip codegen when detecting descriptors won't change
