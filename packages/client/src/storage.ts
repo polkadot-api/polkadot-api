@@ -24,6 +24,7 @@ import {
   identity,
   map,
   mergeMap,
+  scan,
   shareReplay,
   take,
 } from "rxjs"
@@ -252,8 +253,23 @@ export const createStorageEntry = (
       lossLessExhaustMap(() =>
         getRawValue$(...actualArgs, isBest ? { at: "best" } : {}),
       ),
-      distinctUntilChanged((a, b) => a.value.raw === b.value.raw),
-      map(({ block, value }) => ({ block, value: value.mapped })),
+      scan(
+        (
+          acc: {
+            block: BlockInfo
+            value: { raw: HexString | null; mapped: unknown }
+          } | null,
+          { value, block },
+        ) =>
+          acc
+            ? {
+                block,
+                value: acc.value.raw === value.raw ? acc.value : value,
+              }
+            : { block, value },
+        null,
+      ),
+      map((evt) => ({ block: evt!.block, value: evt!.value.mapped })),
     )
   }
 
