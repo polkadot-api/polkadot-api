@@ -673,7 +673,7 @@ exports[`types-builder > imports > collects imports from both common types and p
 exports[`types-builder > imports > collects imports from both common types and papi itself 2`] = `
 [
   "SS58String",
-  "FixedSizeBinary",
+  "SizedHex",
   "Binary",
 ]
 `;
