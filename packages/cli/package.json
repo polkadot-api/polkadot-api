@@ -66,6 +66,6 @@
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@swc/core": "^1.15.3"
+    "@swc/core": "^1.15.8"
   }
 }
