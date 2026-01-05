@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.16.6 - 2026-01-05
+
 ### Fixed
 
 - Binary: opaque representation

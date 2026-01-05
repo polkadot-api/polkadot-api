@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.5 - 2026-01-05
+
 ### Fixed
 
 - [performance] Cache `getInkClient` result.
