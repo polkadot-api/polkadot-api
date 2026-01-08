@@ -1,5 +1,11 @@
 # Changelog
 
+## V2
+
+## Changed
+
+- Change `topics` type from `Binary` to `HexString`
+
 ## Unreleased
 
 ### Fixed

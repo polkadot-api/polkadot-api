@@ -1,4 +1,4 @@
-import { Binary } from "@polkadot-api/substrate-bindings"
+import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import { getInkDynamicBuilder, InkDynamicBuilder } from "./dynamic-builders"
 import { getInkLookup, InkMetadataLookup } from "./get-lookup"
 import {
@@ -62,8 +62,8 @@ export interface InkEventInterface<E> {
   filter: (
     address: string,
     events?: Array<
-      | { event: GenericEvent; topics: Binary[] }
-      | (GenericEvent & { topics: Binary[] })
+      | { event: GenericEvent; topics: HexString[] }
+      | (GenericEvent & { topics: HexString[] })
     >,
   ) => E[]
 }
@@ -296,8 +296,8 @@ const buildEventV5 = <E extends Event>(
       .map((v) => {
         const eventTopics = [
           ...v.topics,
-          ...((v.event.value as any)?.value?.topics ?? []),
-        ].map((evt) => evt.asHex())
+          ...(((v.event.value as any)?.value?.topics ?? []) as HexString[]),
+        ]
         const suitableTopic = eventTopics.find((topic) =>
           metadataEventTopics.has(topic),
         )
