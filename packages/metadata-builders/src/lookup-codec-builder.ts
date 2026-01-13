@@ -74,6 +74,8 @@ const _buildCodec = (
         return buildNextCodec(v.value)
       case "tuple":
         return buildTuple(v.value)
+      case "namedTuple":
+        return buildTuple(Object.values(v.value))
       case "struct":
         return buildStruct(v.value)
       case "array":

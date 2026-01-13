@@ -54,6 +54,7 @@ export function buildLookupGraph(
               break
             case "struct":
             case "tuple":
+            case "namedTuple":
               Object.values(enumEntry.value).forEach((v) =>
                 addEdge(entry.id, v.id),
               )
