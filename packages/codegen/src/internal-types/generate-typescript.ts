@@ -51,6 +51,17 @@ export const nativeNodeCodegen = (
       imports: mergeImports(tupleResults.map(({ imports }) => imports)),
     }
   }
+  if (node.type === "namedTuple") {
+    const tupleResults = node.value.map(({ label, value }) => ({
+      ...next(value),
+      label,
+    }))
+    return {
+      code: `[${tupleResults.map(({ code, label }) => `${label}: ${code}`).join(", ")}]`,
+      imports: mergeImports(tupleResults.map(({ imports }) => imports)),
+    }
+  }
+
   if (node.type === "union") {
     if (node.value.length === 1) return next(node.value[0])
 

@@ -2,6 +2,7 @@ import {
   ArrayVar,
   getChecksumBuilder,
   MetadataLookup,
+  NamedTupleVar,
   StructVar,
   TupleVar,
 } from "@polkadot-api/metadata-builders"
@@ -59,7 +60,9 @@ export const getTypesBuilder = (
   const typeFileImports = new Set<string>()
   const clientFileImports = new Set<string>()
 
-  const getChecksum = (id: number | StructVar | TupleVar | ArrayVar): string =>
+  const getChecksum = (
+    id: number | StructVar | TupleVar | ArrayVar | NamedTupleVar,
+  ): string =>
     typeof id === "number"
       ? checksumBuilder.buildDefinition(id)!
       : checksumBuilder.buildComposite(id)!
@@ -283,7 +286,9 @@ export const getDocsTypesBuilder = (
 
   const declarations = defaultDeclarations()
 
-  const getChecksum = (id: number | StructVar | TupleVar | ArrayVar): string =>
+  const getChecksum = (
+    id: number | StructVar | TupleVar | NamedTupleVar | ArrayVar,
+  ): string =>
     typeof id === "number"
       ? checksumBuilder.buildDefinition(id)!
       : checksumBuilder.buildComposite(id)!

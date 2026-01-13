@@ -1,4 +1,12 @@
-import type { MetadataPrimitives, Var } from "@polkadot-api/metadata-builders"
+import type {
+  ArrayVar,
+  MetadataPrimitives,
+  NamedTupleVar,
+  StructVar,
+  TupleVar,
+  Var,
+  VoidVar,
+} from "@polkadot-api/metadata-builders"
 import {
   Codec,
   Enum,
@@ -141,6 +149,18 @@ const terminal = (type: PRIMITIVES): TerminalNode => ({
   type: "terminal",
   value: { type },
 })
+
+export const removeNameTuple = (
+  input: VoidVar | TupleVar | StructVar | NamedTupleVar | ArrayVar,
+): VoidVar | TupleVar | StructVar | ArrayVar =>
+  input.type === "namedTuple"
+    ? {
+        type: "tuple",
+        value: Object.values(input.value),
+        innerDocs: Object.values(input.innerDocs),
+      }
+    : input
+
 export function mapLookupToTypedef(
   entry: Var,
   resolve: (id: number) => void = () => {},
@@ -173,7 +193,10 @@ export function mapLookupToTypedef(
             if (params.type !== "lookupEntry")
               return [
                 key,
-                { type: "inline", value: mapLookupToTypedef(params, resolve) },
+                {
+                  type: "inline",
+                  value: mapLookupToTypedef(removeNameTuple(params)),
+                },
               ]
 
             resolve(params.value.id)

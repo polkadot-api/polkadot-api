@@ -3,6 +3,7 @@ import {
   EnumVar,
   LookupEntry,
   MetadataPrimitives,
+  NamedTupleVar,
   StructVar,
   TupleVar,
 } from "@polkadot-api/metadata-builders"
@@ -11,6 +12,7 @@ import {
   EnumVariant,
   FixedSizeBinary,
   LookupTypeNode,
+  NamedTupleType,
   NativeType,
   StructType,
   TupleType,
@@ -120,6 +122,19 @@ const buildType = withCache(
       }
     }
 
+    const buildNamedTuple = (original: NamedTupleVar): NamedTupleType => {
+      const { value, innerDocs } = original
+      return {
+        type: "namedTuple",
+        value: Object.entries(value).map(([label, value]) => ({
+          label,
+          docs: innerDocs[label] ?? [],
+          value: buildNextType(value),
+        })),
+        original,
+      }
+    }
+
     if (input.type === "array") return { id: input.id, ...buildArray(input) }
     if (input.type === "sequence")
       return ltn("array", { value: buildNextType(input.value) })
@@ -142,6 +157,7 @@ const buildType = withCache(
       | LookupTypeNode
       | TupleType
       | StructType
+      | NamedTupleType
       | ArrayType
       | FixedSizeBinary
       | undefined => {
@@ -156,6 +172,8 @@ const buildType = withCache(
           return buildStruct(value)
         case "tuple":
           return buildTuple(value)
+        case "namedTuple":
+          return buildNamedTuple(value)
       }
     }
 

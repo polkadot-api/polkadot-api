@@ -16,6 +16,7 @@ import {
   mapLookupToTypedef,
   mapReferences,
   Primitive,
+  removeNameTuple,
   TypedefCodec,
   type TypedefNode,
 } from "./typedef"
@@ -92,7 +93,7 @@ export function enumValueEntryPointNode(
 ): EntryPointNode {
   return entry.type === "lookupEntry"
     ? lookupNode(entry.value.id)
-    : typedefNode(mapLookupToTypedef(entry))
+    : typedefNode(mapLookupToTypedef(removeNameTuple(entry)))
 }
 
 export function singleValueEntryPoint(value: number): EntryPoint {

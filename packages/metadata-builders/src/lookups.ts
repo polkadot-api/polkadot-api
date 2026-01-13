@@ -53,6 +53,11 @@ export type StructVar = {
   value: StringRecord<LookupEntry>
   innerDocs: StringRecord<string[]>
 }
+export type NamedTupleVar = {
+  type: "namedTuple"
+  value: StringRecord<LookupEntry>
+  innerDocs: StringRecord<string[]>
+}
 export type EnumVar = {
   type: "enum"
   value: StringRecord<
@@ -61,6 +66,7 @@ export type EnumVar = {
       | VoidVar
       | TupleVar
       | StructVar
+      | NamedTupleVar
       | ArrayVar
     ) & { idx: number }
   >

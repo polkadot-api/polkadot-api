@@ -65,6 +65,7 @@ function getEdges(node: TypeNode): LookupTypeNode[] {
       return [node.value.ok, node.value.ko]
     case "struct":
     case "tuple":
+    case "namedTuple":
       return unique(node.value.flatMap((v) => lookupEdge(v.value)))
     case "union":
       return unique(node.value.flatMap(lookupEdge))

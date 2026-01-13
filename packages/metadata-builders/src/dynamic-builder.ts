@@ -111,6 +111,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       case "lookupEntry":
         return buildDefinition(entry.value.id)
       case "tuple":
+      case "namedTuple":
         return scale.Tuple(
           ...Object.values(entry.value).map((l) => buildDefinition(l.id)),
         )

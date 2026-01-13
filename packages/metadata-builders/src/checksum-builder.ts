@@ -12,6 +12,7 @@ import {
   LookupEntry,
   MetadataLookup,
   MetadataPrimitives,
+  NamedTupleVar,
   StructVar,
   TupleVar,
   VoidVar,
@@ -166,8 +167,10 @@ const _buildChecksum = (
   const buildTuple = (entries: LookupEntry[]) =>
     getChecksum([shapeIds.tuple, ...entries.map(buildNextChecksum)])
 
-  const buildStruct = (entries: StringRecord<LookupEntry>) =>
-    structLikeBuilder(shapeIds.struct, entries, buildNextChecksum)
+  const buildStruct = (
+    entries: StringRecord<LookupEntry>,
+    shapeId: bigint = shapeIds.struct,
+  ) => structLikeBuilder(shapeId, entries, buildNextChecksum)
 
   if (input.type === "tuple") return buildTuple(input.value)
 
@@ -194,6 +197,8 @@ const _buildChecksum = (
         return buildStruct(entry.value)
       case "array":
         return buildVector(entry.value, entry.len)
+      case "namedTuple":
+        return buildStruct(entry.value, shapeIds.tuple)
     }
   })
 }
@@ -434,7 +439,7 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
   }
 
   const buildComposite = (
-    input: TupleVar | StructVar | VoidVar | ArrayVar,
+    input: TupleVar | NamedTupleVar | StructVar | VoidVar | ArrayVar,
   ): bigint => {
     if (input.type === "void") return getChecksum([0n])
 
@@ -455,12 +460,14 @@ export const getChecksumBuilder = (getLookupEntryDef: MetadataLookup) => {
     }
 
     // Otherwise struct
-    return structLikeBuilder(shapeIds.struct, input.value, (entry) =>
-      buildDefinition(entry.id),
+    return structLikeBuilder(
+      input.type === "namedTuple" ? shapeIds.tuple : shapeIds.struct,
+      input.value,
+      (entry) => buildDefinition(entry.id),
     )
   }
 
-  const buildNamedTuple = (input: StructVar): bigint => {
+  const buildNamedTuple = (input: StructVar | NamedTupleVar): bigint => {
     return structLikeBuilder(shapeIds.tuple, input.value, (entry) =>
       buildDefinition(entry.id),
     )

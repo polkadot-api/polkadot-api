@@ -79,12 +79,14 @@ export async function generate(opts: GenerateOptions) {
   const whitelistPath = opts.whitelist ?? config.options?.whitelist
   const whitelist = whitelistPath ? await readWhitelist(whitelistPath) : null
   const descriptorSrcDir = join(descriptorsDir, "src")
+  console.log("here we go!")
   const hash = await outputCodegen(
     chains,
     descriptorSrcDir,
     clientPath,
     whitelist,
   )
+  console.log("hell yeah")
 
   if (config.ink || config.sol) {
     outputContractCodegen(config, descriptorSrcDir)
