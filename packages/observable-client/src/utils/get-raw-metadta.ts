@@ -8,7 +8,7 @@ const optionalOpaqueBytes = Option(opaqueBytes)
 const u32ListDecoder = Vector(u32).dec
 
 export const getRawMetadata$ = (
-  call$: (method: string, args: string) => Observable<string>,
+  call$: (method: string, args: string) => Observable<Uint8Array>,
 ): Observable<Uint8Array> => {
   const versions$ = call$("Metadata_metadata_versions", "").pipe(
     map(u32ListDecoder),

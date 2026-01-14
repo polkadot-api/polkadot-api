@@ -57,6 +57,7 @@ import {
 } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
+import { fromHex } from "@polkadot-api/utils"
 
 export type {
   FollowEventWithRuntime,
@@ -168,7 +169,10 @@ export const getChainHead$ = (
   const _newBlocks$ = new Subject<BlockInfo | null>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
-    withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
+    (...args) =>
+      withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call"))))(
+        ...args,
+      ).pipe(map(fromHex)),
     getCachedMetadata,
     setCachedMetadata,
     blockUsage$,
@@ -309,7 +313,7 @@ export const getChainHead$ = (
   const body$ = (hash: string) =>
     withOperationInaccessibleRetry(
       upsertCachedStream(hash, "body", _body$(hash)),
-    )
+    ).pipe(map((v) => v.map(fromHex)))
 
   const _storage$ = commonEnhancer(lazyFollower("storage"), "storage")
 
@@ -376,7 +380,11 @@ export const getChainHead$ = (
 
   const __call$ = commonEnhancer(lazyFollower("call"), "call")
   const call$ = withOptionalHash$((hash: string, fn: string, args: string) =>
-    upsertCachedStream(hash, `call-${fn}-${args}`, __call$(hash, fn, args)),
+    upsertCachedStream(
+      hash,
+      `call-${fn}-${args}`,
+      __call$(hash, fn, args).pipe(map(fromHex)),
+    ),
   )
 
   const validateTx$ = getValidateTx(call$, getRuntimeContext$)

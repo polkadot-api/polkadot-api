@@ -62,7 +62,7 @@ export const getValidateTx =
       hash: string | null,
       fnName: string,
       parameters: string,
-    ) => Observable<string>,
+    ) => Observable<Uint8Array>,
     getRuntimeContext: (hash: string) => Observable<RuntimeContext>,
   ) =>
   (blockHash: string, tx: string): Observable<ResultPayload<any, any>> => {

@@ -298,7 +298,7 @@ export interface PolkadotClient {
    * @returns Observable to get a block body. There'll be just one event
    *          with the payload and the observable will complete.
    */
-  getBlockBody$: (hash: HexString) => Observable<HexString[]>
+  getBlockBody$: (hash: HexString) => Observable<Uint8Array[]>
   /**
    * Get Block Body (Promise-based)
    *
@@ -306,7 +306,7 @@ export interface PolkadotClient {
    * @param signal  Signal to abort promise.
    * @returns Block body.
    */
-  getBlockBody: (hash: HexString, signal?: AbortSignal) => Promise<HexString[]>
+  getBlockBody: (hash: HexString, signal?: AbortSignal) => Promise<Uint8Array[]>
 
   /**
    * Get Block Header (Observable-based)

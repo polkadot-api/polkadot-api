@@ -39,8 +39,7 @@ const getNonceAtBlock$ = (
   at: string,
 ) =>
   call$(at, NONCE_RUNTIME_CALL, from).pipe(
-    map((result) => {
-      const bytes = fromHex(result)
+    map((bytes) => {
       const decoder = lenToDecoder[bytes.length as 2 | 4 | 8]
       if (!decoder)
         throw new Error(`${NONCE_RUNTIME_CALL} retrieved wrong data`)
