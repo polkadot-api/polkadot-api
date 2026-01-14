@@ -42,7 +42,7 @@ export const toBlockInfo = ({
 
 export const getPinnedBlocks$ = (
   follow$: Observable<FollowEvent>,
-  call$: (hash: string, method: string, args: string) => Observable<string>,
+  call$: (hash: string, method: string, args: string) => Observable<Uint8Array>,
   getCachedMetadata$: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
   blockUsage$: Subject<BlockUsageEvent>,

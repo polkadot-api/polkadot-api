@@ -1,4 +1,5 @@
 import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
 import {
   Observable,
   distinct,
@@ -32,7 +33,7 @@ export type AnalyzedBlock = {
 export const getTrackTx = (
   blocks$: Observable<PinnedBlocks> & { state: PinnedBlocks },
   newBlocks$: Observable<BlockInfo>,
-  getBody: (block: string) => Observable<string[]>, // Returns an observable that should emit just once and complete
+  getBody: (block: string) => Observable<Uint8Array[]>, // Returns an observable that should emit just once and complete
   getIsValid: (
     block: string,
     tx: string,
@@ -95,7 +96,7 @@ export const getTrackTx = (
     const whilePresent = whileBlockActive(hash)
     return getBody(hash).pipe(
       mergeMap((txs) => {
-        const index = txs.indexOf(tx)
+        const index = txs.findIndex((t) => toHex(t) === tx)
         return index > -1
           ? whilePresent(getEvents(hash)).pipe(
               map((events) => ({

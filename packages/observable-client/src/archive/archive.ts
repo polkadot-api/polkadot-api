@@ -2,10 +2,10 @@ import { RuntimeContext } from "@/chainHead"
 import { fromAbortControllerFn } from "@/chainHead/enhancers"
 import { createRuntimeCtx, getRawMetadata$ } from "@/utils"
 import {
-  HexString,
-  unifyMetadata,
-  metadata as metadataCodec,
   blockHeader,
+  HexString,
+  metadata as metadataCodec,
+  unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import {
   Archive,
@@ -13,6 +13,7 @@ import {
   StorageItemResponse,
   StorageResult,
 } from "@polkadot-api/substrate-client"
+import { fromHex } from "@polkadot-api/utils"
 import { catchError, map, mergeMap, Observable, of, tap } from "rxjs"
 
 export const getArchive =
@@ -20,9 +21,13 @@ export const getArchive =
   (getRuntime: (codeHash: string) => Observable<RuntimeContext | null>) => {
     const runtimes: Record<string, RuntimeContext> = {}
     const rawStorage$ = fromAbortControllerFn(archive.storage)
-    const call$ = fromAbortControllerFn(archive.call)
+    const call$ = (hash: string, fnName: string, callParameters: string) =>
+      fromAbortControllerFn(archive.call)(hash, fnName, callParameters).pipe(
+        map(fromHex),
+      )
     const rawHeader$ = fromAbortControllerFn(archive.header)
-    const body$ = fromAbortControllerFn(archive.body)
+    const body$ = (hash: string) =>
+      fromAbortControllerFn(archive.body)(hash).pipe(map((v) => v.map(fromHex)))
 
     const header$ = (blockHash: string) =>
       rawHeader$(blockHash).pipe(map(blockHeader[1]))
