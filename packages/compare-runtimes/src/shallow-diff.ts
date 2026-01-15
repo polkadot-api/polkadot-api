@@ -42,12 +42,12 @@ export const shallowDiff = (
     })
   })
 
-  Object.keys(next.extensions).forEach((name) => {
-    const isInPrev = !!prev.extensions[name]
+  Object.keys(next.extensions).forEach((version) => {
+    const isInPrev = !!prev.extensions[Number(version)]
     if (type === "added" ? !isInPrev : isInPrev) {
       result.push({
         kind: "extension",
-        name,
+        version: Number(version),
       })
     }
   })

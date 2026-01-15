@@ -13,9 +13,10 @@ export type Change =
     }
   | {
       kind: "extension"
-      name: string
+      version: number
     }
 
+// TODO: having fine-grained compatibility checks would be desirable
 export type ComparedChange =
   | {
       kind: "call" | "event" | "error" | "const"
@@ -43,11 +44,8 @@ export type ComparedChange =
     }
   | {
       kind: "extension"
-      name: string
-      compat: {
-        type: CompatibilityLevel
-        additionalSigned: CompatibilityLevel
-      }
+      version: number
+      compat: CompatibilityLevel
     }
 
 export type Output = {

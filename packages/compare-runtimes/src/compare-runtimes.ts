@@ -1,5 +1,6 @@
 import { getLookupFn } from "@polkadot-api/metadata-builders"
 import {
+  CompatibilityLevel,
   CompatibilityResult,
   entryPointsAreCompatible,
   enumValueEntryPointNode,
@@ -103,24 +104,40 @@ export const compareRuntimes = (
     }
   }
 
-  const compareExtension = (name: string): ComparedChange => {
-    const prevExtensions = prev.metadataMaps.extensions[name]
-    const newExtensions = next.metadataMaps.extensions[name]
+  const compareExtension = (version: number): ComparedChange => {
+    const prevExtensions = prev.metadataMaps.extensions[version]
+    const newExtensions = next.metadataMaps.extensions[version]
 
     return {
       kind: "extension",
-      name,
-      compat: mapObject(prevExtensions, (type, key) =>
-        minCompatLevel(
-          entryPointsAreCompatible(
-            singleValueEntryPoint(type),
-            prev.getTypeDefNode,
-            singleValueEntryPoint(newExtensions[key]),
-            next.getTypeDefNode,
-            cache,
-          ),
-        ),
-      ),
+      version,
+      compat:
+        prevExtensions.length >= newExtensions.length
+          ? Math.min(
+              prevExtensions.length === newExtensions.length
+                ? CompatibilityLevel.Identical
+                : CompatibilityLevel.BackwardsCompatible,
+              ...newExtensions.map(({ identifier, ...rest }, idx) => {
+                if (identifier !== prevExtensions[idx].identifier)
+                  return CompatibilityLevel.Incompatible
+                return Math.min(
+                  ...Object.values(
+                    mapObject(rest, (type, key) =>
+                      minCompatLevel(
+                        entryPointsAreCompatible(
+                          singleValueEntryPoint(prevExtensions[idx][key]),
+                          prev.getTypeDefNode,
+                          singleValueEntryPoint(type),
+                          next.getTypeDefNode,
+                          cache,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              }),
+            )
+          : CompatibilityLevel.Incompatible,
     }
   }
 
@@ -199,7 +216,7 @@ export const compareRuntimes = (
       case "api":
         return compareRuntimeApi(x.group, x.name)
       case "extension":
-        return compareExtension(x.name)
+        return compareExtension(x.version)
       default:
         return compareEnumEntries(x as any)
     }

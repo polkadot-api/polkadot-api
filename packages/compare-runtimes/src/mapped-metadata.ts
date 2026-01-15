@@ -48,7 +48,10 @@ export type MetadataMaps = {
     string,
     Map<string, NonNullable<UnifiedMetadata["apis"][number]["methods"][number]>>
   >
-  extensions: Record<string, { type: number; additionalSigned: number }>
+  extensions: Record<
+    number,
+    Array<{ identifier: string; type: number; additionalSigned: number }>
+  >
 }
 
 const buildVariants = (
@@ -115,11 +118,6 @@ export const getMappedMetadata = (
   return {
     pallets,
     api,
-    extensions: Object.fromEntries(
-      metadata.extrinsic.signedExtensions.map(({ identifier, ...rest }) => [
-        identifier,
-        rest,
-      ]),
-    ),
+    extensions: metadata.extrinsic.signedExtensions,
   }
 }

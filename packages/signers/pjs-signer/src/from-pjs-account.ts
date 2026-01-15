@@ -48,7 +48,7 @@ export function getPolkadotSignerFromPjs(
     const { version } = decMeta.extrinsic
     const extra: Array<Uint8Array> = []
 
-    decMeta.extrinsic.signedExtensions.map(({ identifier }) => {
+    decMeta.extrinsic.signedExtensions[0].map(({ identifier }) => {
       const signedExtension = signedExtensions[identifier]
       if (!signedExtension)
         throw new Error(`Missing ${identifier} signed-extension`)

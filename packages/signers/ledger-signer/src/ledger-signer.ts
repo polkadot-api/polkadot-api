@@ -310,14 +310,14 @@ export class LedgerSigner {
       const digest = merkleizer.digest()
       const meta = getMetadata(metadata)
       if (
-        meta.extrinsic.signedExtensions.find(
+        meta.extrinsic.signedExtensions[0].find(
           ({ identifier }) => identifier === METADATA_IDENTIFIER,
         ) == null
       )
         throw new Error("No `CheckMetadataHash` sigExt found")
       const extra: Array<Uint8Array> = []
       const additionalSigned: Array<Uint8Array> = []
-      meta.extrinsic.signedExtensions.map(({ identifier }) => {
+      meta.extrinsic.signedExtensions[0].map(({ identifier }) => {
         if (identifier === METADATA_IDENTIFIER) {
           extra.push(Uint8Array.from([1]))
           additionalSigned.push(mergeUint8([Uint8Array.from([1]), digest]))

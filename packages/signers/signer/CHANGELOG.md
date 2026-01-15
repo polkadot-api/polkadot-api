@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use right signed extensions for transaction building
+
 ## 0.2.1 to 0.2.12 - 2026-01-05
 
 ### Fixed
