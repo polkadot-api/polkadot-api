@@ -34,9 +34,8 @@ export type TxInBestBlocksFound = {
   found: true
 } & TxEventsPayload
 
-export type EventWithTopics = SystemEvent["event"] & {
-  topics: SystemEvent["topics"]
-}
+export type FlattenedEvent = SystemEvent & SystemEvent["event"]
+
 export type TxEventsPayload = {
   /**
    * Verify if extrinsic was successful, i.e. check if `System.ExtrinsicSuccess`
@@ -47,7 +46,7 @@ export type TxEventsPayload = {
    * Array of all events emitted by the tx. Ordered as they are emitted
    * on-chain.
    */
-  events: Array<EventWithTopics>
+  events: Array<FlattenedEvent>
   /**
    * Block information where the tx is found. `hash` of the block, `number` of
    * the block, `index` of the tx in the block.

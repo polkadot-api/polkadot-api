@@ -624,7 +624,7 @@ ${
  * \`\`\`
  * and can be queried via
  * \`\`\`ts
- * const newAccountEvents = await api.event.System.NewAccount.pull()
+ * const newAccountEvents = await api.event.System.NewAccount.get(blockHash)
  * newAccountEvents.forEach(newAccount => {
  *  const address: SS58String = newAccount.payload.account
  *  console.log(address)
