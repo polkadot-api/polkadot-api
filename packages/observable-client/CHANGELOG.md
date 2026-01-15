@@ -6,6 +6,10 @@
 
 - Added new `mappedMeta` property into `RuntimeContext`
 
+### Changed
+
+- `storage$` returns `Observable<{ block: BlockInfo, value: T }>` instead of `Observable<T>`
+
 ## Unreleased
 
 ## 0.17.1 - 2025-12-08
