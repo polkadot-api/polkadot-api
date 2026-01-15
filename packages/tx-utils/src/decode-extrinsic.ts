@@ -101,7 +101,7 @@ export const getExtrinsicDecoder = (
         if (!extensionsToApply) throw new Error("Unexpected extension version")
         extraDec = Struct.dec(
           Object.fromEntries(
-            metadata.extrinsic.signedExtensions[0].map(
+            extensionsToApply.map(
               (x) =>
                 [x.identifier, dynamicBuilder.buildDefinition(x.type)[1]] as [
                   string,
