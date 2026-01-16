@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-### Changed
-
-- Extensions are now compared by `ExtVersion` instead of individually
-
 ## 0.2.3 to 0.2.13 - 2026-01-05
 
 ### Fixed
