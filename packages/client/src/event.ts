@@ -1,5 +1,5 @@
 import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
-import { FixedSizeBinary, HexString } from "@polkadot-api/substrate-bindings"
+import { HexString, SizedHex } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   combineLatest,
@@ -25,7 +25,7 @@ export type SystemEvent = {
       value: any
     }
   }
-  topics: Array<FixedSizeBinary<32>>
+  topics: Array<SizedHex<32>>
 }
 
 export type PalletEvent<T> = {
