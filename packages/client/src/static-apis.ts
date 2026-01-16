@@ -5,18 +5,17 @@ import { constFromCtx } from "@/utils/const-from-ctx"
 import { getCallData } from "@/utils/get-call-data"
 import { stgGetKey } from "@/utils/stg-get-key"
 import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
-import { Binary } from "@polkadot-api/substrate-bindings"
 import { mergeMap } from "rxjs"
 import { withWeakCache } from "./utils/with-weak-cache"
 
 const decodeCallData =
   ({ dynamicBuilder, lookup }: RuntimeContext) =>
-  (callData: Binary): { pallet: string; name: string; input: any } => {
+  (callData: Uint8Array): { pallet: string; name: string; input: any } => {
     try {
       const {
         type: pallet,
         value: { type: name, value: input },
-      } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData.asBytes())
+      } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData)
 
       return { pallet, name, input }
     } catch {
@@ -51,14 +50,12 @@ export const createStaticApis =
               })),
               tx: createProxyPath((pallet, name) => ({
                 getCallData: (arg: any) =>
-                  Binary.fromBytes(
-                    getCallData(
-                      ctx.dynamicBuilder,
-                      compat.tx[pallet][name].isValueCompatible,
-                      pallet,
-                      name,
-                      arg,
-                    ),
+                  getCallData(
+                    ctx.dynamicBuilder,
+                    compat.tx[pallet][name].isValueCompatible,
+                    pallet,
+                    name,
+                    arg,
                   ),
               })),
               compat,

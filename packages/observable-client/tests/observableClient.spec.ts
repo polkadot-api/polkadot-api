@@ -1,5 +1,7 @@
 import { BlockInfo, getObservableClient } from "@/index"
 import { OperationLimitError } from "@polkadot-api/substrate-client"
+import { toHex } from "@polkadot-api/utils"
+import { filter, map, skip } from "rxjs"
 import { describe, expect, it } from "vitest"
 import {
   initialize,
@@ -16,7 +18,7 @@ import {
 } from "./fixtures"
 import { createMockSubstrateClient } from "./mockSubstrateClient"
 import { observe } from "./observe"
-import { filter, map, skip } from "rxjs"
+import { Binary } from "@polkadot-api/substrate-bindings"
 
 describe("observableClient chainHead", () => {
   describe("finalized$", () => {
@@ -249,7 +251,7 @@ describe("observableClient chainHead", () => {
 
       await mockClient.chainHead.mock.call.reply(initialHash, "")
 
-      expect(callObserver.next).toHaveBeenCalledWith("")
+      expect(callObserver.next).toHaveBeenCalledWith(new Uint8Array())
       expect(callObserver.error).not.toHaveBeenCalled()
       expect(callObserver.complete).toHaveBeenCalled()
 
@@ -291,11 +293,12 @@ describe("observableClient chainHead", () => {
         "",
         expect.objectContaining({}),
       )
+      const secondResponse = Binary.fromText("secondResponse")
       await mockClient.chainHead.mock.call.reply(
         newBlocks[1].blockHash,
-        "secondResponse",
+        Binary.toHex(secondResponse),
       )
-      expect(secondCallObserver.next).toHaveBeenCalledWith("secondResponse")
+      expect(secondCallObserver.next).toHaveBeenCalledWith(secondResponse)
 
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(4)
       expect(mockClient.chainHead.mock.call).toHaveBeenLastCalledWith(
@@ -304,11 +307,12 @@ describe("observableClient chainHead", () => {
         "",
         expect.objectContaining({}),
       )
+      const firstResponse = Binary.fromText("firstResponse")
       await mockClient.chainHead.mock.call.reply(
         newBlocks[0].blockHash,
-        "firstResponse",
+        Binary.toHex(firstResponse),
       )
-      expect(firstCallObserver.next).toHaveBeenCalledWith("firstResponse")
+      expect(firstCallObserver.next).toHaveBeenCalledWith(firstResponse)
 
       cleanup(chainHead.unfollow)
     })
@@ -348,11 +352,12 @@ describe("observableClient chainHead", () => {
 
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(3)
 
+      const secondResponse = Binary.fromText("secondResponse")
       await mockClient.chainHead.mock.call.reply(
         newBlocks[1].blockHash,
-        "secondResponse",
+        Binary.toHex(secondResponse),
       )
-      expect(callObserver.next).toHaveBeenCalledWith("secondResponse")
+      expect(callObserver.next).toHaveBeenCalledWith(secondResponse)
 
       cleanup(chainHead.unfollow)
     })
@@ -409,7 +414,7 @@ describe("observableClient chainHead", () => {
       expect(mockClient.chainHead.mock.call).toHaveBeenCalledTimes(2)
       await mockClient.chainHead.mock.call.reply(initialHash, "")
 
-      expect(callObserver.next).toHaveBeenCalledWith("")
+      expect(callObserver.next).toHaveBeenCalledWith(new Uint8Array())
       expect(callObserver.error).not.toHaveBeenCalled()
       expect(callObserver.complete).toHaveBeenCalled()
 
@@ -434,14 +439,14 @@ describe("observableClient chainHead", () => {
       })
 
       const { next, error, complete } = observe(
-        chainHead.body$(forkA.blockHash),
+        chainHead.body$(forkA.blockHash).pipe(map((v) => v.map(toHex))),
       )
 
       sendBestBlockChanged(mockClient, {
         bestBlockHash: forkB.blockHash,
       })
 
-      const body = ["foo"]
+      const body = ["0x0f00"]
       await mockClient.chainHead.mock.body.reply(forkA.blockHash, body)
 
       expect(next).toHaveBeenCalledWith(body)
@@ -467,10 +472,10 @@ describe("observableClient chainHead", () => {
       })
 
       const { next, error, complete } = observe(
-        chainHead.body$(forkA.blockHash),
+        chainHead.body$(forkA.blockHash).pipe(map((v) => v.map(toHex))),
       )
 
-      const body = ["foo"]
+      const body = ["0x0f00"]
       await mockClient.chainHead.mock.body.reply(forkA.blockHash, body)
 
       expect(next).toHaveBeenCalledWith(body)

@@ -7,11 +7,7 @@ import type {
   StructVar,
   TupleVar,
 } from "@polkadot-api/metadata-builders"
-import type {
-  Binary,
-  HexString,
-  SS58String,
-} from "@polkadot-api/substrate-bindings"
+import type { HexString, SS58String } from "@polkadot-api/substrate-bindings"
 import type { ReactNode, FC } from "react"
 
 export const NOTIN = Symbol("Notin")
@@ -61,7 +57,7 @@ export type EditStr = FC<EditStrInterface>
 export type EditBitSeqInterface = EditPrimitiveComponentProps<Array<0 | 1>>
 export type EditBitSeq = FC<EditBitSeqInterface>
 
-export type EditBytesInterface = EditPrimitiveComponentProps<Binary> & {
+export type EditBytesInterface = EditPrimitiveComponentProps<Uint8Array> & {
   len?: number
 }
 export type EditBytes = FC<EditBytesInterface>

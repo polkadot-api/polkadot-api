@@ -16,8 +16,8 @@ const signer = getPolkadotSigner(
 
 describe("signBytes", () => {
   it("provides the same signature for padded/unpadded", async () => {
-    const unpadded = Binary.fromText("hello world").asBytes()
-    const padded = Binary.fromText("<Bytes>hello world</Bytes>").asBytes()
+    const unpadded = Binary.fromText("hello world")
+    const padded = Binary.fromText("<Bytes>hello world</Bytes>")
 
     expect(toHex(await signer.signBytes(unpadded))).toBe(
       toHex(await signer.signBytes(padded)),
@@ -25,8 +25,8 @@ describe("signBytes", () => {
   })
 
   it("provides the same signature for empty padded/unpadded", async () => {
-    const unpadded = Binary.fromText("").asBytes()
-    const padded = Binary.fromText("<Bytes></Bytes>").asBytes()
+    const unpadded = Binary.fromText("")
+    const padded = Binary.fromText("<Bytes></Bytes>")
 
     expect(toHex(await signer.signBytes(unpadded))).toBe(
       toHex(await signer.signBytes(padded)),

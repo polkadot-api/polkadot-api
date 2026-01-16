@@ -674,6 +674,5 @@ exports[`types-builder > imports > collects imports from both common types and p
 [
   "SS58String",
   "SizedHex",
-  "Binary",
 ]
 `;

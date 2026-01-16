@@ -2,7 +2,7 @@ import { Binary } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
 
 const [preBytes, postBytes] = ["<Bytes>", "</Bytes>"].map((str) =>
-  Binary.fromText(str).asBytes(),
+  Binary.fromText(str),
 )
 
 export const getSignBytes =

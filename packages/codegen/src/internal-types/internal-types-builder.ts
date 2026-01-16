@@ -82,7 +82,7 @@ const buildType = withCache(
       input.value.type === "primitive" &&
       input.value.value === "u8"
     )
-      return ltn("chainPrimitive", "Binary")
+      return ltn("primitive", "Uint8Array")
 
     const buildArray = (array: ArrayVar): ArrayType | FixedSizeBinary => {
       const { value, len } = array

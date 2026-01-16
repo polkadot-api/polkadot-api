@@ -6,6 +6,10 @@
 
 - Added new `mappedMeta` property into `RuntimeContext`
 
+### Changed
+
+- `body$` and `call$` return `Uint8Array` instead of HexString.
+
 ## Unreleased
 
 ## 0.17.1 - 2025-12-08

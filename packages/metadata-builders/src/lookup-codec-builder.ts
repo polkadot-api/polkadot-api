@@ -3,7 +3,7 @@ import * as scale from "@polkadot-api/substrate-bindings"
 import type { LookupEntry } from "./lookups"
 import { withCache } from "./with-cache"
 
-const _bytes = scale.Bin()
+const _bytes = scale.Bytes()
 
 const _buildCodec = (
   input: LookupEntry,
@@ -48,7 +48,7 @@ const _buildCodec = (
   if (input.type === "array") {
     // Bytes case
     if (input.value.type === "primitive" && input.value.value === "u8")
-      return scale.Bin(input.len)
+      return scale.Bytes(input.len)
 
     return buildVector(input.value, input.len)
   }
