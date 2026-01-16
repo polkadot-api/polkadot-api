@@ -26,7 +26,7 @@ export const getSignedExtensionParts = (
   data: TxData,
 ) => {
   const { tip, mortality, genesisHash, nonce, asset, metadataHash } = data
-  const signedExtensions = lookup.metadata.extrinsic.signedExtensions.map(
+  const signedExtensions = lookup.metadata.extrinsic.signedExtensions[0].map(
     ({ identifier, type, additionalSigned }): SignedExtension => {
       switch (identifier) {
         case "CheckGenesis":
@@ -58,7 +58,7 @@ export const getSignedExtensionParts = (
   )
 
   const signedExtensionsRecord = Object.fromEntries(
-    lookup.metadata.extrinsic.signedExtensions.map(({ identifier }, idx) => [
+    lookup.metadata.extrinsic.signedExtensions[0].map(({ identifier }, idx) => [
       identifier,
       { identifier, ...signedExtensions[idx] },
     ]),
@@ -66,7 +66,7 @@ export const getSignedExtensionParts = (
 
   let extraParts: Uint8Array[] = []
   let additionalSignedParts: Uint8Array[] = []
-  lookup.metadata.extrinsic.signedExtensions.map(({ identifier }) => {
+  lookup.metadata.extrinsic.signedExtensions[0].map(({ identifier }) => {
     const signedExtension = signedExtensionsRecord[identifier]
     if (!signedExtension)
       throw new Error(`Missing ${identifier} signed extension`)

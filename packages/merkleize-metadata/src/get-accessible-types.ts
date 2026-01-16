@@ -50,10 +50,12 @@ export const getAccessibleTypes = (
   collectTypesFromId(metadata.extrinsic.call)
   collectTypesFromId(metadata.extrinsic.address)
   collectTypesFromId(metadata.extrinsic.signature)
-  metadata.extrinsic.signedExtensions.forEach(({ type, additionalSigned }) => {
-    collectTypesFromId(type)
-    collectTypesFromId(additionalSigned)
-  })
+  metadata.extrinsic.signedExtensions[0].forEach(
+    ({ type, additionalSigned }) => {
+      collectTypesFromId(type)
+      collectTypesFromId(additionalSigned)
+    },
+  )
 
   const sortedTypes = [...types].sort((a, b) => a - b)
   return new Map(sortedTypes.map((value, idx) => [value, idx]))

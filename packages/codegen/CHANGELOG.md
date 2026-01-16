@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Find first-class signed extensions only in `ExtVersion` 0
+
 ## 0.21.1 - 2026-01-05
 
 ### Fixed

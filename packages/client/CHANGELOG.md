@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **Signers**:
+  - Use right signed extensions for transaction building
+
 ## 1.23.2 - 2026-01-05
 
 ### Fixed

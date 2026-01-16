@@ -162,7 +162,7 @@ export const merkleizeMetadata = (
     addressTy: getTypeRef(metadata.extrinsic.address),
     callTy: getTypeRef(metadata.extrinsic.call),
     signatureTy: getTypeRef(metadata.extrinsic.signature),
-    signedExtensions: metadata.extrinsic.signedExtensions.map((se) => ({
+    signedExtensions: metadata.extrinsic.signedExtensions[0].map((se) => ({
       identifier: se.identifier,
       includedInExtrinsic: getTypeRef(se.type),
       includedInSignedData: getTypeRef(se.additionalSigned),
