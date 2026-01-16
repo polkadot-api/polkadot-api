@@ -6,6 +6,7 @@ import {
   getMultisigAccountId,
   getSs58AddressInfo,
   HexString,
+  SizedHex,
   sortMultisigSignatories,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
@@ -31,7 +32,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
   },
   getMultisigInfo: (
     multisig: Address,
-    callHash: HexString,
+    callHash: SizedHex<32>,
   ) => Promise<
     | {
         when: {
