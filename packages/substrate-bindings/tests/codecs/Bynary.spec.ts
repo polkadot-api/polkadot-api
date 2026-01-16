@@ -43,7 +43,7 @@ describe("Bin", () => {
     const encoded = codec.enc(input)
     const decoded = codec.dec(encodedText)
 
-    expect(decoded).instanceOf(Binary)
+    expect(decoded).instanceOf(Uint8Array)
     expect(encoded).toEqual(codec.enc(decoded))
     expect(input).toEqual(decoded)
     expect(Binary.toText(input)).toEqual(Binary.toText(decoded))
@@ -57,7 +57,7 @@ describe("Bin", () => {
     const encoded = codec.enc(input)
     const decoded = codec.dec("0x6124c2a2e0a4b9e282aced959cf0908d88f09f9883")
 
-    expect(decoded).instanceOf(Binary)
+    expect(decoded).instanceOf(Uint8Array)
     expect(encoded).toEqual(codec.enc(decoded))
     expect(input).toEqual(decoded)
     expect(Binary.toText(input)).toEqual(Binary.toText(decoded))
