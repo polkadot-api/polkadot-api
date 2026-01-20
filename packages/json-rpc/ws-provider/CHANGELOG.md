@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Ensure `switch` works for single-endpoint provider
+
 ## 0.7.3 to 0.7.4 - 2025-11-12
 
 ### Fixed
