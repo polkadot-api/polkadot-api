@@ -3,7 +3,7 @@
   "descriptorPath": ".papi/descriptors",
   "entries": {
     "wnd": {
-      "chain": "westend2",
+      "chain": "westend",
       "metadata": ".papi/metadata/wnd-metadata.scale",
       "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
       "codeHash": "0x8579da39311d91d4fd5586caee968fa2f2de07db6f715126cc438c79c2f18c3d"

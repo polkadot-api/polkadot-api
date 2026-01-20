@@ -90,17 +90,48 @@ async function readFromFile(file: string) {
   const fileExists = await fsExists(file)
   if (!fileExists) return null
 
-  return migrate(JSON.parse(await readFile(file, "utf8")))
+  return migrate(JSON.parse(await readFile(file, "utf8")), file)
 }
 
-function migrate(content: Entries | PapiConfig): PapiConfig {
-  if (typeof content.version === "number") {
-    return content as any
+const MIGRATION_CHAINS: Record<string, string> = {
+  ksmcc3: "kusama",
+  westend2: "westend",
+}
+async function migrate(content: Entries | PapiConfig, file: string) {
+  if (typeof content.version !== "number") {
+    content = { ...defaultConfig, entries: content as Entries }
   }
-  return {
-    ...defaultConfig,
-    entries: content as Entries,
+  const migrationMsgs: string[] = []
+  ;(content as PapiConfig).entries = Object.fromEntries(
+    Object.entries((content as PapiConfig).entries).flatMap(([k, entry]) => {
+      if ("chain" in entry) {
+        if (entry.chain.startsWith("rococo_v2_2")) {
+          migrationMsgs.push(
+            `Rococo has been sunset. Removing ${entry.chain} descriptors.`,
+          )
+          return []
+        }
+        const oldKey = Object.keys(MIGRATION_CHAINS).find((k) =>
+          entry.chain.startsWith(k),
+        )
+        if (oldKey) {
+          const newChain = entry.chain.replace(oldKey, MIGRATION_CHAINS[oldKey])
+          migrationMsgs.push(`Migrating ${entry.chain} to ${newChain}`)
+          entry.chain = newChain
+        }
+      }
+      return [[k, entry]]
+    }),
+  )
+  if (migrationMsgs.length) {
+    try {
+      await writeToFile(file, content as PapiConfig)
+      migrationMsgs.forEach((msg) => console.warn(msg))
+    } catch {
+      console.warn("Unable to migrate polkadot-api.json")
+    }
   }
+  return content as PapiConfig
 }
 
 async function writeToFile(file: string, config: PapiConfig) {
