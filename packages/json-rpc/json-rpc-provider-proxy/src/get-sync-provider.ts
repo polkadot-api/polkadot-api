@@ -31,7 +31,7 @@ export const getSyncProvider =
                 isOn = false
                 const diff = lastHalt - Date.now()
                 consecutiveHalts +=
-                  diff > WAIT_BASE + getWaitTime() ? -consecutiveHalts : 1
+                  -diff > WAIT_BASE + getWaitTime() ? -consecutiveHalts : 1
                 lastHalt += diff
                 onHalt()
                 start()

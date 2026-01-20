@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Reset wait time between reconnections
+
 ## 0.2.7 - 2025-11-12
 
 ### Fixed
