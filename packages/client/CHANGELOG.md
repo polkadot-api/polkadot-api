@@ -6,6 +6,8 @@
 
 - **Signers**:
   - Use right signed extensions for transaction building
+- **WS Provider**:
+  - Ensure `switch` works for single-endpoint provider
 
 ## 1.23.2 - 2026-01-05
 

@@ -59,7 +59,7 @@ export const getWsProvider = (
   const result = followEnhancer(
     getSyncProvider(async () => {
       const [uri, protocols] =
-        switchTo || actualEndpoints[idx++ % endpoints.length]
+        switchTo ?? actualEndpoints[idx++ % actualEndpoints.length]
       switchTo = null
       const socket = new WebsocketClass(uri, protocols)
       const forceSocketClose = () => {
