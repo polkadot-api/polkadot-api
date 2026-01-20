@@ -6,6 +6,8 @@
 
 - **Signers**:
   - Use right signed extensions for transaction building
+- **Providers**:
+  - Reset wait time between reconnections
 - **WS Provider**:
   - Ensure `switch` works for single-endpoint provider
 

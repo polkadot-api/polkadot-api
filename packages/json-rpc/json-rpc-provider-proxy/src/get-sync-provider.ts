@@ -29,7 +29,7 @@ export const getSyncProvider =
             return cb(onMsg, () => {
               if (isOn) {
                 isOn = false
-                const diff = lastHalt - Date.now()
+                const diff = Date.now() - lastHalt
                 consecutiveHalts +=
                   diff > WAIT_BASE + getWaitTime() ? -consecutiveHalts : 1
                 lastHalt += diff
