@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Removed
+
+- Remove support for `package.json`-based config
+
 ## 0.17.1 - 2025-12-10
 
 ### Fixed
