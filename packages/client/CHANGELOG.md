@@ -47,6 +47,7 @@
 - BREAKING: Rococo chainspecs
 - BREAKING: Removed `.pull()` from event entries in TypedAPI.
 - BREAKING: Removed the filter parameter from `.watch()` method in TypedAPI event entries.
+- BREAKING: Remove support for `package.json`-based CLI config
 
 - **polkadot-api/utils**:
   - `jsonPrint` export
