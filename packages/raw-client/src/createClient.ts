@@ -30,19 +30,16 @@ export type ClientRequest<T, TT> = (
 export interface Client {
   disconnect: () => void
   request: ClientRequest<any, any>
-  onNotification: (cb: (req: JsonRpcRequest) => void) => () => void
 }
 
 let nextClientId = 1
-export const createClient = (gProvider: JsonRpcProvider): Client => {
+export const createClient = (
+  gProvider: JsonRpcProvider,
+  onNotification?: (req: JsonRpcRequest) => void,
+): Client => {
   let clientId = nextClientId++
   const responses = new Map<JsonRpcId, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
-  const notificationObservers = new Set<(req: JsonRpcRequest) => void>()
-  const onNotification = (cb: (req: JsonRpcRequest) => void) => {
-    notificationObservers.add(cb)
-    return () => notificationObservers.delete(cb)
-  }
 
   let connection: JsonRpcConnection | null = null
   const send = (
@@ -89,7 +86,7 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
         if (error) subscriptions.error(subscriptionId, new RpcError(error!))
         else subscriptions.next(subscriptionId, result)
       } else {
-        notificationObservers.forEach((cb) => cb(parsed))
+        onNotification?.(parsed)
       }
     } else
       console.warn("Error parsing incomming message: " + JSON.stringify(parsed))
@@ -125,6 +122,5 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
   return {
     request,
     disconnect,
-    onNotification,
   }
 }
