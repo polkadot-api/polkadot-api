@@ -69,11 +69,17 @@ export async function generate(opts: GenerateOptions) {
     await Promise.all(
       (["ink", "sol"] as const).map(async (kind) => [
         kind,
-        await Promise.all(
-          Object.entries(config[kind] ?? {}).map(async ([key, v]) => ({
-            key,
-            metadata: Binary.fromText(await fs.readFile(v, "utf-8")).asBytes(),
-          })),
+        Object.fromEntries(
+          await Promise.all(
+            Object.entries(config[kind] ?? {}).map(async ([key, v]) => [
+              key,
+              toHex(
+                Blake2128(
+                  Binary.fromText(await fs.readFile(v, "utf-8")).asBytes(),
+                ),
+              ),
+            ]),
+          ),
         ),
       ]),
     ),
@@ -131,13 +137,7 @@ async function tagGenerated(
     key: string
     metadataRaw: Uint8Array
   }[],
-  contracts: Record<
-    "ink" | "sol",
-    Array<{
-      key: string
-      metadata: Uint8Array
-    }>
-  >,
+  contracts: Record<"ink" | "sol", Record<string, HexString>>,
   whitelist: string[] | null,
 ) {
   const filePath = join(descriptorsDir, "generated.json")
@@ -153,17 +153,7 @@ async function tagGenerated(
           toHex(Blake2128(metadataRaw)),
         ]),
       ),
-      contracts: Object.fromEntries(
-        Object.entries(contracts).map(([kind, contracts]) => [
-          kind,
-          Object.fromEntries(
-            contracts.map(({ key, metadata }) => [
-              key,
-              toHex(Blake2128(metadata)),
-            ]),
-          ),
-        ]),
-      ),
+      contracts,
     }),
   )
 }
@@ -173,13 +163,7 @@ async function alreadyGenerated(
     key: string
     metadataRaw: Uint8Array
   }[],
-  contracts: Record<
-    "ink" | "sol",
-    Array<{
-      key: string
-      metadata: Uint8Array
-    }>
-  >,
+  contracts: Record<"ink" | "sol", Record<string, HexString>>,
   whitelist: string[] | null,
 ) {
   const generatedJsôn = join(descriptorsDir, "generated.json")
@@ -206,12 +190,11 @@ async function alreadyGenerated(
       }) &&
       (["ink", "sol"] as const).every(
         (kind) =>
-          contracts[kind].length ===
+          Object.entries(contracts[kind]).length ===
             Object.entries(generated.contracts[kind]).length &&
-          contracts[kind].every(({ key, metadata }) => {
-            const hash = toHex(Blake2128(metadata))
-            return hash === generated.contracts[kind][key]
-          }),
+          Object.entries(contracts[kind]).every(
+            ([k, hash]) => hash === generated.contracts[kind][k],
+          ),
       )
     )
   } catch {
