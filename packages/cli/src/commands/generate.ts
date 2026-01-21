@@ -65,6 +65,20 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
+  const contracts = Object.fromEntries(
+    await Promise.all(
+      (["ink", "sol"] as const).map(async (kind) => [
+        kind,
+        await Promise.all(
+          Object.entries(config[kind] ?? {}).map(async ([key, v]) => ({
+            key,
+            metadata: Binary.fromText(await fs.readFile(v, "utf-8")).asBytes(),
+          })),
+        ),
+      ]),
+    ),
+  )
+
   if (chains.length === 0) {
     console.log("No entries in polkadot-api.json. Nothing to generate.")
     return
@@ -74,7 +88,7 @@ export async function generate(opts: GenerateOptions) {
   const whitelist = whitelistPath ? await readWhitelist(whitelistPath) : null
 
   const descriptorsDir = join(process.cwd(), config.descriptorPath)
-  if (await alreadyGenerated(descriptorsDir, chains, whitelist)) {
+  if (await alreadyGenerated(descriptorsDir, chains, contracts, whitelist)) {
     console.log("Detected previous descriptors with no changes needed.")
     return
   }
@@ -102,7 +116,7 @@ export async function generate(opts: GenerateOptions) {
   await replacePackageJson(descriptorsDir, hash)
   const cleanCodegen = await compileCodegen(descriptorsDir)
   if (cleanCodegen) {
-    await tagGenerated(descriptorsDir, chains, whitelist)
+    await tagGenerated(descriptorsDir, chains, contracts, whitelist)
   }
   await fs.rm(descriptorSrcDir, { recursive: true })
   if (!config.options?.noDescriptorsPackage) {
@@ -117,6 +131,13 @@ async function tagGenerated(
     key: string
     metadataRaw: Uint8Array
   }[],
+  contracts: Record<
+    "ink" | "sol",
+    Array<{
+      key: string
+      metadata: Uint8Array
+    }>
+  >,
   whitelist: string[] | null,
 ) {
   const filePath = join(descriptorsDir, "generated.json")
@@ -132,6 +153,17 @@ async function tagGenerated(
           toHex(Blake2128(metadataRaw)),
         ]),
       ),
+      contracts: Object.fromEntries(
+        Object.entries(contracts).map(([kind, contracts]) => [
+          kind,
+          Object.fromEntries(
+            contracts.map(({ key, metadata }) => [
+              key,
+              toHex(Blake2128(metadata)),
+            ]),
+          ),
+        ]),
+      ),
     }),
   )
 }
@@ -141,6 +173,13 @@ async function alreadyGenerated(
     key: string
     metadataRaw: Uint8Array
   }[],
+  contracts: Record<
+    "ink" | "sol",
+    Array<{
+      key: string
+      metadata: Uint8Array
+    }>
+  >,
   whitelist: string[] | null,
 ) {
   const generatedJsôn = join(descriptorsDir, "generated.json")
@@ -164,7 +203,16 @@ async function alreadyGenerated(
       chains.every(({ key, metadataRaw }) => {
         const hash = toHex(Blake2128(metadataRaw))
         return hash === generated.chains[key]
-      })
+      }) &&
+      (["ink", "sol"] as const).every(
+        (kind) =>
+          contracts[kind].length ===
+            Object.entries(generated.contracts[kind]).length &&
+          contracts[kind].every(({ key, metadata }) => {
+            const hash = toHex(Blake2128(metadata))
+            return hash === generated.contracts[kind][key]
+          }),
+      )
     )
   } catch {
     return false
