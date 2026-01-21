@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Fixed unexpected `BlockNotPinnedError` on `watchEntries`
+
 - **Signers**:
   - Use right signed extensions for transaction building
 - **Providers**:
