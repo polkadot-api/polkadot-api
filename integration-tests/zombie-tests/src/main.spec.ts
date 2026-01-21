@@ -151,7 +151,7 @@ describe("E2E", async () => {
     expect(decoded.type).toBe("bare")
     expect(decoded.call.type).toEqual("System")
     expect(decoded.call.value.type).toEqual("remark")
-    expect(decoded.call.value.value.remark.asText()).toEqual(content)
+    expect(Binary.toText(decoded.call.value.value.remark)).toEqual(content)
   })
 
   it.concurrent("unsafe API", async () => {
