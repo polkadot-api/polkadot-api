@@ -10,6 +10,8 @@
   - Reset wait time between reconnections
 - **WS Provider**:
   - Ensure `switch` works for single-endpoint provider
+- **CLI**:
+  - Take into account contracts while skipping codegen
 
 ## 1.23.2 - 2026-01-05
 

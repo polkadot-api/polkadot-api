@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Take into account contracts while skipping codegen
+
 ## 0.18.0 - 2026-01-05
 
 ### Added
