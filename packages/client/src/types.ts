@@ -405,17 +405,32 @@ export interface PolkadotClient {
    *
    * @example
    *
-   *   const systemVersion = await client._request<string>("system_version", [])
+   * const systemVersion = await client._request<string>("system_version", [])
    *   const myFancyThhing = await client._request<
    *     { value: string },
    *     [id: number]
    *   >("very_fancy", [1714])
+   *
+   * Unstable: The stability of this API is not guaranteed across minor versions.
    *
    */
   _request: <Reply = any, Params extends Array<any> = any[]>(
     method: string,
     params: Params,
   ) => Promise<Reply>
+
+  /**
+   * This API is meant as an "escape hatch" to allow access to subscription
+   * endpoints
+   *
+   * Unstable: The stability of this API is not guaranteed across minor
+   * versions.
+   */
+  _subscribe: <Reply = any, Params extends Array<any> = any[]>(
+    method: string,
+    unsubscribeMethod: string,
+    params: Params,
+  ) => Observable<Reply>
 }
 
 export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }

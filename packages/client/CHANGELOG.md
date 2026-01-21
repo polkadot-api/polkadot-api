@@ -6,6 +6,7 @@
 
 - Added `getStaticApis` which provides all sort of synchronous methods that are executed against the context of a particular runtime-code.
 - Add abort signal to block methods
+- `_subscribe` method to perform non JSON-RPC spec subscriptions.
 
 - **polkadot-api/ws**
   - Exposes a new `createWsClient` function which is sugar for `createClient(getWsProvider(URI))`, while also exposing the `switch` and `getStatus` functions from the ws-provider into the client.

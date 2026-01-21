@@ -27,10 +27,11 @@ export const withLegacy: Middleware = (base) => (onMessage, onHalt) => {
       onHalt(e)
     },
   )
-  const { disconnect, request } = createClient((_onMsg) => {
+  const { disconnect, request, onNotification } = createClient((_onMsg) => {
     onMsg = _onMsg
     return innerConnection
   })
+  const unsubNotification = onNotification(onMessage)
   const upstream = createUpstream(request)
 
   const jsonRpc = (
@@ -71,6 +72,7 @@ export const withLegacy: Middleware = (base) => (onMessage, onHalt) => {
     groups.archive.stop()
     groups.transaction.stop()
     upstream.clean()
+    unsubNotification()
   }
 
   return {

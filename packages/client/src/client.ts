@@ -7,6 +7,7 @@ import {
 import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import {
   SubstrateClient,
+  UnsubscribeFn,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
 import {
@@ -235,6 +236,44 @@ export function createClient(
     params: Params,
   ) => Promise<Reply> = rawClient.request
 
+  const _subscribe: PolkadotClient["_subscribe"] = (
+    method,
+    unsubscribeMethod,
+    params,
+  ) =>
+    new Observable((obs) => {
+      let unsubInner: UnsubscribeFn | null = null
+      let subId: string | null = null
+
+      const sendUnsubscribe = () => {
+        // Fire-and-forget
+        subId != null && rawClient.request(unsubscribeMethod, [subId])
+      }
+
+      const unsubTopLevel = rawClient._request(method, params, {
+        onSuccess: (res: string, follow) => {
+          subId = res
+          if (obs.closed) {
+            sendUnsubscribe()
+            return
+          }
+          unsubInner = follow(subId, {
+            next: (data: any) => obs.next(data),
+            error: (e) => obs.error(e),
+          })
+        },
+        onError(e) {
+          obs.error(e)
+        },
+      })
+
+      return () => {
+        sendUnsubscribe()
+        unsubTopLevel()
+        unsubInner?.()
+      }
+    })
+
   const { broadcastTx$ } = client
 
   const getMetadata$ = (at: HexString) =>
@@ -297,6 +336,7 @@ export function createClient(
     },
 
     _request,
+    _subscribe,
   }
 
   ;(result as any).___INTERNAL_DO_NOT_USE = chainHead
