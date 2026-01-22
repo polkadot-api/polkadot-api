@@ -26,6 +26,8 @@
 - BREAKING: `watchValue` emits an object that contains the value and the block the value was found in.
 - BREAKING: `watchValue` emits every time it queries the value. The value keeps the same reference if it didn't change.
 - BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
+- BREAKING: flattened Event interface in TypedAPI event `watch`.
+- BREAKING: `filter()` method in TypedAPI event entry returns an object `{ original: SystemEvent, payload: T }` instead of just the payload.
 
 - **WS-Provider:**
   - BREAKING: This export has been moved in favor of `polkadot-api/ws`
@@ -44,6 +46,9 @@
 - BREAKING: Removed `RuntimeToken` and `CompatibilityToken`
 - BREAKING: polkadot-sdk-compat
 - BREAKING: Rococo chainspecs
+- BREAKING: Removed `.pull()` from event entries in TypedAPI.
+- BREAKING: Removed the filter parameter from `.watch()` method in TypedAPI event entries.
+- BREAKING: Remove support for `package.json`-based CLI config
 
 - **polkadot-api/utils**:
   - `jsonPrint` export
@@ -52,8 +57,29 @@
 
 ### Fixed
 
+- Fixed unexpected `BlockNotPinnedError` on `watchEntries`
+
+- **Signers**:
+  - Use right signed extensions for transaction building
+- **Providers**:
+  - Reset wait time between reconnections
+- **WS Provider**:
+  - Ensure `switch` works for single-endpoint provider
+- **CLI**:
+  - Take into account contracts while skipping codegen
+
+## 1.23.2 - 2026-01-05
+
+### Fixed
+
+- Binary: opaque representation
+
+- **CLI**
+  - Skip re-generating descriptors if nothing has changed.
 - **Ink contracts**
   - [performance] Cache `getInkClient` result.
+- **Chains:**
+  - Update `lightSyncState`
 
 ## 1.23.1 - 2025-12-10
 

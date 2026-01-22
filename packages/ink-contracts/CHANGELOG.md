@@ -1,6 +1,14 @@
 # Changelog
 
+## V2
+
+## Changed
+
+- Change `topics` type from `Binary` to `HexString`
+
 ## Unreleased
+
+## 0.4.5 - 2026-01-05
 
 ### Fixed
 

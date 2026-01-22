@@ -12,7 +12,6 @@ import {
 import {
   catchError,
   combineLatest,
-  delay,
   distinctUntilChanged,
   EMPTY,
   filter,
@@ -51,6 +50,7 @@ interface MemoryBlock {
   rootHash: string
   entries: Array<StorageEntry>
   deltas: Deltas | null
+  patcher: (input: StorageEntry) => StorageEntry
 }
 
 type MemoryBlocks = {
@@ -168,6 +168,7 @@ export const createWatchEntries = (
                   prev: prev && prev.block.hash,
                   rootHash,
                   block,
+                  patcher,
                   ...getDiff(
                     prev?.entries ?? [],
                     entries as StorageEntry[],
@@ -200,6 +201,7 @@ export const createWatchEntries = (
 
       const [_memoryBlocks$, connectMemoryBlocks] =
         selfDependent<MemoryBlocks>()
+
       const updates$ = blocks$.pipe(
         distinctUntilChanged((a, b) => a.best === b.best),
         withLatestFrom(_memoryBlocks$),
@@ -247,35 +249,26 @@ export const createWatchEntries = (
     (isFinalized: boolean) =>
     (pallet: string, entry: string, storageKey: string) => {
       const memoryBlocks$ = getMemoryBlocks$(pallet, entry, storageKey)
-      const getPatcher = getPatcherFromRuntime(pallet, entry)
 
       const prop = isFinalized ? "finalized" : "best"
 
       return combineLatest([
-        memoryBlocks$.pipe(delay(0)),
+        memoryBlocks$,
         blocks$.pipe(distinctUntilChanged((a, b) => a[prop] === b[prop])),
       ]).pipe(
-        map(([state, blocks]) =>
-          findPrevious(blocks[prop], state.blocks, blocks, true),
-        ),
+        map(([state, blocks]) => {
+          const update = findPrevious(blocks[prop], state.blocks, blocks, true)
+          return update && { update, state }
+        }),
         filter(Boolean),
-        distinctUntilChanged(),
+        distinctUntilChanged((a, b) => a.update === b.update),
         startWith(null),
         pairwise(),
-        withLatestFrom(memoryBlocks$),
-        withRuntime(([[, _latest]]) => _latest!.block.hash),
-        map(
-          ([[[prevUpdate, latest], memoryBlocks], runtimeCtx]) =>
-            [
-              prevUpdate,
-              latest!,
-              memoryBlocks,
-              getPatcher(runtimeCtx),
-            ] as const,
-        ),
-        mergeMap(([prevUpdate, latest, memoryBlocks, patcher]) => {
-          if (!prevUpdate) return [latest]
+        mergeMap(([prev, next]) => {
+          if (!prev) return [next!.update]
+          const { update: prevUpdate } = prev
 
+          const { state: memoryBlocks, update: latest } = next!
           let ancestor: MemoryBlock | null = latest
           const updates: Array<MemoryBlock> = []
           while (ancestor && ancestor.block.number > prevUpdate.block.number) {
@@ -305,7 +298,7 @@ export const createWatchEntries = (
                     entries: prevUpdate.entries,
                     deltas: null,
                   }
-                : getDiff(prevUpdate.entries, latest.entries, patcher)),
+                : getDiff(prevUpdate.entries, latest.entries, latest.patcher)),
             },
           ]
         }),

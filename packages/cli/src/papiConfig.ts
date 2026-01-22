@@ -1,5 +1,4 @@
 import fsExists from "fs.promises.exists"
-import { readPackage } from "read-pkg"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { existsSync } from "node:fs"
@@ -45,7 +44,6 @@ export type PapiConfig = {
 
 export const papiFolder = ".papi"
 const papiCfgDefaultFile = "polkadot-api.json"
-const packageJsonKey = "polkadot-api"
 
 export const defaultConfig: PapiConfig = {
   version: 0,
@@ -61,10 +59,9 @@ export async function readPapiConfig(
   const currentVersionLocation = join(papiFolder, papiCfgDefaultFile)
   const currentVersionLocationExists = await fsExists(currentVersionLocation)
 
-  const readConfig =
-    (await (currentVersionLocationExists
-      ? readFromFile(currentVersionLocation)
-      : readFromFile(papiCfgDefaultFile))) ?? (await readFromPackageJson())
+  const readConfig = await (currentVersionLocationExists
+    ? readFromFile(currentVersionLocation)
+    : readFromFile(papiCfgDefaultFile))
 
   // Store into current version location if it wasn't there
   if (readConfig && !currentVersionLocationExists) {
@@ -75,11 +72,7 @@ export async function readPapiConfig(
 
 /**
  * Writes config to configFile. If configFile is not specified, it writes to the
- * default path, by this priority order:
- *
- * 1. Default config file (polkadot-api.json)
- * 2. Package.json If no pre-existing config exists, then it creates a
- * polkadot-api.json file.
+ * default path (.papi/polkadot-api.json).
  */
 export async function writePapiConfig(
   configFile: string | undefined,
@@ -97,28 +90,50 @@ async function readFromFile(file: string) {
   const fileExists = await fsExists(file)
   if (!fileExists) return null
 
-  return migrate(JSON.parse(await readFile(file, "utf8")))
-}
-async function readFromPackageJson() {
-  const packageJson = await readPackage()
-  if (!(packageJsonKey in packageJson)) return null
-  console.warn("Papi config in package.json is deprecated")
-  return migrate(packageJson[packageJsonKey])
+  return migrate(JSON.parse(await readFile(file, "utf8")), file)
 }
 
-function migrate(content: Entries | PapiConfig): PapiConfig {
-  if (typeof content.version === "number") {
-    return content as any
+const MIGRATION_CHAINS: Record<string, string> = {
+  ksmcc3: "kusama",
+  westend2: "westend",
+}
+async function migrate(content: Entries | PapiConfig, file: string) {
+  if (typeof content.version !== "number") {
+    content = { ...defaultConfig, entries: content as Entries }
   }
-  return {
-    ...defaultConfig,
-    entries: content as Entries,
+  const migrationMsgs: string[] = []
+  ;(content as PapiConfig).entries = Object.fromEntries(
+    Object.entries((content as PapiConfig).entries).flatMap(([k, entry]) => {
+      if ("chain" in entry) {
+        if (entry.chain.startsWith("rococo_v2_2")) {
+          migrationMsgs.push(
+            `Rococo has been sunset. Removing ${entry.chain} descriptors.`,
+          )
+          return []
+        }
+        const oldKey = Object.keys(MIGRATION_CHAINS).find((k) =>
+          entry.chain.startsWith(k),
+        )
+        if (oldKey) {
+          const newChain = entry.chain.replace(oldKey, MIGRATION_CHAINS[oldKey])
+          migrationMsgs.push(`Migrating ${entry.chain} to ${newChain}`)
+          entry.chain = newChain
+        }
+      }
+      return [[k, entry]]
+    }),
+  )
+  if (migrationMsgs.length) {
+    try {
+      await writeToFile(file, content as PapiConfig)
+      migrationMsgs.forEach((msg) => console.warn(msg))
+    } catch {
+      console.warn("Unable to migrate polkadot-api.json")
+    }
   }
+  return content as PapiConfig
 }
 
 async function writeToFile(file: string, config: PapiConfig) {
-  if (file === "package.json") {
-    throw new Error("Papi config in package.json is deprecated")
-  }
   return writeFile(file, JSON.stringify(config, null, 2) + "\n")
 }

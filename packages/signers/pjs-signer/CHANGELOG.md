@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-## 0.6.1 to 0.6.17 - 2025-10-31
+### Fixed
+
+- Use right signed extensions for transaction building
+
+## 0.6.1 to 0.6.18 - 2026-01-05
 
 ### Fixed
 

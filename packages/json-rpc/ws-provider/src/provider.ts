@@ -64,7 +64,7 @@ export const getWsProvider = (
     withSocket(
       () => {
         prevUri = latestSocket?.url
-        const uri = switchTo || actualEndpoints[idx++ % actualEndpoints.length]
+        const uri = switchTo ?? actualEndpoints[idx++ % actualEndpoints.length]
         switchTo = undefined
         onStatusChanged({
           type: WsEvent.CONNECTING,

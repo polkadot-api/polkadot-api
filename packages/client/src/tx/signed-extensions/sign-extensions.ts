@@ -33,7 +33,8 @@ export const getSignExtensionsCreator = (
 ) => {
   const signedExtensionsEncoders: Record<string, [Encoder<any>, Encoder<any>]> =
     {}
-  lookupFn.metadata.extrinsic.signedExtensions.forEach(
+  // TODO: we need to adapt to multiple extension versions at some point
+  lookupFn.metadata.extrinsic.signedExtensions[0].forEach(
     ({ identifier, type, additionalSigned }) => {
       signedExtensionsEncoders[identifier] = [type, additionalSigned].map(
         (x) => dynamicBuilder.buildDefinition(x)[0],

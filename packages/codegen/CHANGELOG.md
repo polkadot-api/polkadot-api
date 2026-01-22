@@ -1,6 +1,22 @@
 # Changelog
 
+## V2
+
+### Changed
+
+- Updated generated docs to match v2
+
 ## Unreleased
+
+### Fixed
+
+- Find first-class signed extensions only in `ExtVersion` 0
+
+## 0.21.1 - 2026-01-05
+
+### Fixed
+
+- Update dependencies
 
 ## 0.21.0 - 2025-12-08
 

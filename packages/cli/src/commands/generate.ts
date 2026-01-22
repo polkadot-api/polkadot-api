@@ -1,5 +1,6 @@
 import { getMetadata } from "@/metadata"
 import { readPapiConfig } from "@/papiConfig"
+import { cliVersion } from "@/version"
 import {
   capitalize,
   generateInkTypes,
@@ -14,12 +15,14 @@ import {
 } from "@polkadot-api/metadata-compatibility"
 import {
   Binary,
+  Blake2128,
   h64,
   HexString,
-  UnifiedMetadata,
   Tuple,
+  UnifiedMetadata,
   Vector,
 } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
 import { spawn } from "child_process"
 import { existsSync } from "fs"
 import fsExists from "fs.promises.exists"
@@ -62,8 +65,37 @@ export async function generate(opts: GenerateOptions) {
     })),
   )
 
+  const contracts = Object.fromEntries(
+    await Promise.all(
+      (["ink", "sol"] as const).map(async (kind) => [
+        kind,
+        Object.fromEntries(
+          await Promise.all(
+            Object.entries(config[kind] ?? {}).map(async ([key, v]) => [
+              key,
+              toHex(
+                Blake2128(
+                  Binary.fromText(await fs.readFile(v, "utf-8")).asBytes(),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ]),
+    ),
+  )
+
   if (chains.length === 0) {
     console.log("No entries in polkadot-api.json. Nothing to generate.")
+    return
+  }
+
+  const whitelistPath = opts.whitelist ?? config.options?.whitelist
+  const whitelist = whitelistPath ? await readWhitelist(whitelistPath) : null
+
+  const descriptorsDir = join(process.cwd(), config.descriptorPath)
+  if (await alreadyGenerated(descriptorsDir, chains, contracts, whitelist)) {
+    console.log("Detected previous descriptors with no changes needed.")
     return
   }
 
@@ -72,12 +104,9 @@ export async function generate(opts: GenerateOptions) {
   if (!config.options?.noDescriptorsPackage) {
     await addDescriptorsToPackageJson(config.descriptorPath)
   }
-  const descriptorsDir = join(process.cwd(), config.descriptorPath)
 
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
-  const whitelistPath = opts.whitelist ?? config.options?.whitelist
-  const whitelist = whitelistPath ? await readWhitelist(whitelistPath) : null
   const descriptorSrcDir = join(descriptorsDir, "src")
   const hash = await outputCodegen(
     chains,
@@ -91,11 +120,85 @@ export async function generate(opts: GenerateOptions) {
   }
 
   await replacePackageJson(descriptorsDir, hash)
-  await compileCodegen(descriptorsDir)
+  const cleanCodegen = await compileCodegen(descriptorsDir)
+  if (cleanCodegen) {
+    await tagGenerated(descriptorsDir, chains, contracts, whitelist)
+  }
   await fs.rm(descriptorSrcDir, { recursive: true })
   if (!config.options?.noDescriptorsPackage) {
     await runInstall()
     await flushBundlerCache()
+  }
+}
+
+async function tagGenerated(
+  descriptorsDir: string,
+  chains: {
+    key: string
+    metadataRaw: Uint8Array
+  }[],
+  contracts: Record<"ink" | "sol", Record<string, HexString>>,
+  whitelist: string[] | null,
+) {
+  const filePath = join(descriptorsDir, "generated.json")
+
+  await fs.writeFile(
+    filePath,
+    JSON.stringify({
+      cliVersion,
+      whitelist,
+      chains: Object.fromEntries(
+        chains.map(({ key, metadataRaw }) => [
+          key,
+          toHex(Blake2128(metadataRaw)),
+        ]),
+      ),
+      contracts,
+    }),
+  )
+}
+async function alreadyGenerated(
+  descriptorsDir: string,
+  chains: {
+    key: string
+    metadataRaw: Uint8Array
+  }[],
+  contracts: Record<"ink" | "sol", Record<string, HexString>>,
+  whitelist: string[] | null,
+) {
+  const generatedJsôn = join(descriptorsDir, "generated.json")
+  if (!existsSync(generatedJsôn)) return false
+
+  try {
+    const generated = JSON.parse(
+      await fs.readFile(generatedJsôn, {
+        encoding: "utf-8",
+      }),
+    )
+    if (
+      (generated.whitelist ?? ["*"]).join(",") !=
+        (whitelist ?? ["*"]).join(",") ||
+      generated.cliVersion !== cliVersion
+    )
+      return false
+
+    return (
+      chains.length === Object.entries(generated.chains).length &&
+      chains.every(({ key, metadataRaw }) => {
+        const hash = toHex(Blake2128(metadataRaw))
+        return hash === generated.chains[key]
+      }) &&
+      (["ink", "sol"] as const).every(
+        (kind) =>
+          Object.entries(contracts[kind]).length ===
+            Object.entries(generated.contracts[kind]).length &&
+          Object.entries(contracts[kind]).every(
+            ([k, hash]) => hash === generated.contracts[kind][k],
+          ),
+      )
+    )
+  } catch {
+    return false
   }
 }
 
@@ -320,6 +423,7 @@ async function compileCodegen(packageDir: string) {
     await fs.rm(outDir, { recursive: true })
   }
 
+  // tsup only builds cjs+esm outputs, skipping all typechecks.
   await tsup.build({
     target: "es2022",
     format: ["cjs", "esm"],
@@ -334,7 +438,8 @@ async function compileCodegen(packageDir: string) {
     }),
   })
 
-  tsc.build({
+  // We need tsc to actually build the definitions file, and also perform the typecheck
+  const program = tsc.createProgramFromConfig({
     basePath: srcDir,
     compilerOptions: {
       skipLibCheck: true,
@@ -348,6 +453,18 @@ async function compileCodegen(packageDir: string) {
       outDir,
     },
   })
+  tsc.emit(program)
+
+  const errors = [
+    program.getGlobalDiagnostics(),
+    program.getOptionsDiagnostics(),
+    program.getSemanticDiagnostics(),
+    program.getSyntacticDiagnostics(),
+    program.getDeclarationDiagnostics(),
+    program.getConfigFileParsingDiagnostics(),
+  ].flat()
+
+  return errors.length === 0
 }
 
 const cacheMetadataStr = `

@@ -42,7 +42,7 @@ const computeState = (
         hash: string
         number: number
         index: number
-        events: any
+        events: SystemEvent[]
       }
     | { found: false; validity: ResultPayload<any, any> | null }
   >((observer) => {
@@ -54,7 +54,7 @@ const computeState = (
           hash: string
           number: number
           index: number
-          events: any
+          events: SystemEvent[]
         }
       | { found: false; validity: ResultPayload<any, any> | null }
 
@@ -142,7 +142,7 @@ const getTxSuccessFromSystemEvents = (
 ): Omit<TxEventsPayload, "block"> => {
   const events = systemEvents
     .filter((x) => x.phase.type === "ApplyExtrinsic" && x.phase.value === txIdx)
-    .map((x) => ({ ...x.event, topics: x.topics }))
+    .map((x) => ({ ...x, ...x.event }))
 
   const lastEvent = events[events.length - 1]
   if (
@@ -174,7 +174,7 @@ type TransactionValidityError = Enum<{
     MandatoryValidation: undefined
     BadSigner: undefined
   }>
-  Unknown: Enum<{
+  Uknown: Enum<{
     CannotLookup: undefined
     NoUnsignedValidator: undefined
     Custom: number

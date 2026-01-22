@@ -10,7 +10,7 @@ import {
   ChainHead$,
   RuntimeContext,
 } from "@polkadot-api/observable-client"
-import { FixedSizeBinary, HexString } from "@polkadot-api/substrate-bindings"
+import { HexString } from "@polkadot-api/substrate-bindings"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
@@ -367,7 +367,7 @@ export const createStorageEntry = (
         ]).pipe(
           map(([raw, block]) => ({
             block,
-            value: { raw, mapped: FixedSizeBinary.fromHex(raw) },
+            value: { raw, mapped: raw },
           })),
         )
       : result$

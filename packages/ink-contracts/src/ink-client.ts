@@ -1,4 +1,4 @@
-import { Binary } from "@polkadot-api/substrate-bindings"
+import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import { getInkDynamicBuilder, InkDynamicBuilder } from "./dynamic-builders"
 import { getInkLookup, InkMetadataLookup } from "./get-lookup"
 import {
@@ -61,10 +61,7 @@ export interface InkEventInterface<E> {
   decode: (value: { data: Binary }, signatureTopic?: string) => E
   filter: (
     address: string,
-    events?: Array<
-      | { event: GenericEvent; topics: Binary[] }
-      | (GenericEvent & { topics: Binary[] })
-    >,
+    events?: Array<{ event: GenericEvent; topics: HexString[] }>,
   ) => E[]
 }
 
@@ -283,21 +280,19 @@ const buildEventV5 = <E extends Event>(
     const addrEq = (a: string | Binary) =>
       (typeof a === "string" ? a : a.asHex()) === address
 
-    const contractEvents = events
-      .map((v) => ("event" in v ? v : { event: v, topics: v.topics }))
-      .filter(
-        (v) =>
-          (v.event.type === "Contracts" || v.event.type === "Revive") &&
-          (v.event.value as any).type === "ContractEmitted" &&
-          addrEq((v.event.value as any).value.contract),
-      )
+    const contractEvents = events.filter(
+      (v) =>
+        (v.event.type === "Contracts" || v.event.type === "Revive") &&
+        (v.event.value as any).type === "ContractEmitted" &&
+        addrEq((v.event.value as any).value.contract),
+    )
 
     return contractEvents
       .map((v) => {
         const eventTopics = [
           ...v.topics,
-          ...((v.event.value as any)?.value?.topics ?? []),
-        ].map((evt) => evt.asHex())
+          ...(((v.event.value as any)?.value?.topics ?? []) as HexString[]),
+        ]
         const suitableTopic = eventTopics.find((topic) =>
           metadataEventTopics.has(topic),
         )

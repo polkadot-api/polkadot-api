@@ -1,3 +1,4 @@
+import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   distinct,
@@ -11,9 +12,8 @@ import {
   take,
   takeUntil,
 } from "rxjs"
-import { PinnedBlocks } from "./streams"
-import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
 import { BlockInfo } from "./chainHead"
+import { PinnedBlocks, SystemEvent } from "./streams"
 
 export type AnalyzedBlock = {
   hash: HexString
@@ -21,7 +21,7 @@ export type AnalyzedBlock = {
     | {
         type: true
         index: number
-        events: any
+        events: SystemEvent[]
       }
     | {
         type: false
@@ -37,7 +37,7 @@ export const getTrackTx = (
     block: string,
     tx: string,
   ) => Observable<ResultPayload<any, any>>, // Returns an observable that should emit just once and complete
-  getEvents: (block: string) => Observable<any>, // Returns an observable that should emit just once and complete
+  getEvents: (block: string) => Observable<SystemEvent[]>, // Returns an observable that should emit just once and complete
   hodl: (block: string) => () => void,
 ) => {
   const heldBlocks = new Map<string, () => void>()

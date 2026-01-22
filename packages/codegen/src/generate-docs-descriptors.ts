@@ -35,7 +35,7 @@ export async function generateDocsDescriptors(
     "Enum",
     "_Enum",
     "Binary",
-    "FixedSizeBinary",
+    "SizedHex",
     "FixedSizeArray",
     "QueryFromPalletsDef",
     "TxFromPalletsDef",
@@ -534,7 +534,7 @@ ${
  * For example, \`System.Version\` is of type
  * \`\`\`ts
  * Version: PlainDescriptor<{
- *     apis: [FixedSizeBinary<8>, number][];
+ *     apis: [SizedHex<8>, number][];
  *     authoring_version: number;
  *     impl_name: string;
  *     impl_version: number;
@@ -624,7 +624,7 @@ ${
  * \`\`\`
  * and can be queried via
  * \`\`\`ts
- * const newAccountEvents = await api.event.System.NewAccount.pull()
+ * const newAccountEvents = await api.event.System.NewAccount.get(blockHash)
  * newAccountEvents.forEach(newAccount => {
  *  const address: SS58String = newAccount.payload.account
  *  console.log(address)

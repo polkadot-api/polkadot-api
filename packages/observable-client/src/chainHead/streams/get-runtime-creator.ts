@@ -1,17 +1,20 @@
+import { createRuntimeCtx, getRawMetadata$ } from "@/utils"
+import { MetadataMaps } from "@/utils/mapped-metadata"
 import {
   getDynamicBuilder,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import {
-  Binary,
   Codec,
   Decoder,
   HexString,
   metadata as metadataCodec,
+  SizedHex,
   SS58String,
   UnifiedMetadata,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
+import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
 import {
   catchError,
   EMPTY,
@@ -25,9 +28,6 @@ import {
   timer,
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
-import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
-import { createRuntimeCtx, getRawMetadata$ } from "@/utils"
-import { MetadataMaps } from "@/utils/mapped-metadata"
 
 export type SystemEvent = {
   phase:
@@ -41,7 +41,7 @@ export type SystemEvent = {
       value: any
     }
   }
-  topics: Array<Binary>
+  topics: Array<SizedHex<32>>
 }
 
 export type Mortality =
