@@ -170,6 +170,15 @@ describe("E2E", async () => {
     expect(number).toEqual(finalized.number)
   })
 
+  it.concurrent("reads from a view function", async () => {
+    if (!staticApis.compat.view.VoterList.scores.isCompatible()) return
+
+    const [current, realScore] = await api.view.VoterList.scores(
+      "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
+    )
+    expect(current).toEqual(realScore)
+  })
+
   it.concurrent("queries opaque storage entries", async () => {
     // some old polkadot-sdk versions don't include this pallet
     // ensure that some version tested include it
