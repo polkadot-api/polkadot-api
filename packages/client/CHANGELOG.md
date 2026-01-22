@@ -5,6 +5,7 @@
 ### Fixed
 
 - Fixed unexpected `BlockNotPinnedError` on `watchEntries`
+- Ensure `getTypedApi` returns same instance for same descriptors
 
 - **Signers**:
   - Use right signed extensions for transaction building
