@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.1 - 2026-01-22
+
 ### Fixed
 
 - Take into account contracts while skipping codegen

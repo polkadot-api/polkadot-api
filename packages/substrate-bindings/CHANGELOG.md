@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.17.0 - 2026-01-22
+
 ### Changed
 
 - `UnifiedMetadata` now exposes signedExtensions by `ExtVersion`
