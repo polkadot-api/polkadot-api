@@ -73,11 +73,7 @@ export async function generate(opts: GenerateOptions) {
           await Promise.all(
             Object.entries(config[kind] ?? {}).map(async ([key, v]) => [
               key,
-              toHex(
-                Blake2128(
-                  Binary.fromText(await fs.readFile(v, "utf-8")).asBytes(),
-                ),
-              ),
+              toHex(Blake2128(Binary.fromText(await fs.readFile(v, "utf-8")))),
             ]),
           ),
         ),
