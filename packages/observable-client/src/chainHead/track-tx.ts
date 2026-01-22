@@ -158,4 +158,5 @@ export const getTrackTx = (
     )
 }
 
-const u8eq = (a: Uint8Array, b: Uint8Array) => a.every((v, i) => b[i] === v)
+const u8eq = (a: Uint8Array, b: Uint8Array) =>
+  a.length === b.length && a.every((v, i) => b[i] === v)
