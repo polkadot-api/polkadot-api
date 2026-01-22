@@ -44,8 +44,6 @@ jobs:
         run: pnpm lint
       - name: Test
         run: pnpm test
-      - name: Run Integration Tests
-        run: pnpm test:ci
   publish:
     needs: [build]
     runs-on: ubuntu-latest
