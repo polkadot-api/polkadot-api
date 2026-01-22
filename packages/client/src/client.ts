@@ -1,5 +1,6 @@
 import { JsonRpcProvider } from "@polkadot-api/json-rpc-provider"
 import {
+  BlockInfo,
   ChainHead$,
   getObservableClient,
   withArchive,
@@ -13,6 +14,7 @@ import { toHex } from "@polkadot-api/utils"
 import {
   Observable,
   catchError,
+  combineLatest,
   defer,
   firstValueFrom,
   from,
@@ -205,6 +207,27 @@ export function createClient(
   })
   const { getChainSpecData } = rawClient
 
+  const withArchiveBlock =
+    <T extends any[], R>(
+      fn: (blockHash: string, ...args: T) => Observable<R>,
+    ) =>
+    (
+      blockHash: string,
+      ...args: T
+    ): Observable<{ value: R; block: BlockInfo }> =>
+      combineLatest([
+        fn(blockHash, ...args),
+        archive.header$(blockHash).pipe(
+          map(({ number, parentHash }) => ({
+            hash: blockHash,
+            number,
+            parent: parentHash,
+            // Not correct, but it would be overkill to fix. Only relevant on chainHead, not on archive.
+            hasNewRuntime: false,
+          })),
+        ),
+      ]).pipe(map(([value, block]) => ({ value, block })))
+
   const { genesis$, ..._chainHead } = client.chainHead$()
   const archive = client.archive(_chainHead.getRuntime$)
   const chainHead: ChainHead$ = {
@@ -214,7 +237,10 @@ export function createClient(
       catchError(() => genesis$),
       shareReplay(1),
     ),
-    storage$: withArchive(_chainHead.storage$, archive.storage$),
+    storage$: withArchive(
+      _chainHead.storage$,
+      withArchiveBlock(archive.storage$),
+    ),
     body$: withArchive(_chainHead.body$, archive.body$),
     call$: withArchive(_chainHead.call$, archive.call$),
     header$: withArchive(_chainHead.header$, archive.header$),
@@ -286,7 +312,7 @@ export function createClient(
         storage$(at ?? null, "value", () => {
           const hex = key.match(HEX_REGEX)?.[1]
           return hex ? `0x${hex}` : toHex(Binary.fromText(key))
-        }),
+        }).pipe(map((v) => v.value)),
         signal,
       ),
 

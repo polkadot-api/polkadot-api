@@ -7,10 +7,6 @@ import {
   StorageResult,
 } from "@polkadot-api/substrate-client"
 import {
-  MonoTypeOperatorFunction,
-  Observable,
-  ReplaySubject,
-  Subject,
   concat,
   distinctUntilChanged,
   filter,
@@ -19,11 +15,15 @@ import {
   merge,
   mergeAll,
   mergeMap,
+  MonoTypeOperatorFunction,
   noop,
+  Observable,
   of,
+  ReplaySubject,
   scan,
   share,
   shareReplay,
+  Subject,
   switchMap,
   take,
   takeWhile,
@@ -330,23 +330,31 @@ export const getChainHead$ = (
         keyMapper: (ctx: RuntimeContext) => string,
         childTrie: string | null = null,
         mapper?: M,
-      ): Observable<
-        undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
-      > =>
-        pinnedBlocks$.state.runtimes[
-          pinnedBlocks$.state.blocks.get(hash)!.runtime
-        ].runtime.pipe(
+      ): Observable<{
+        block: BlockInfo
+        value: undefined extends M
+          ? StorageResult<Type>
+          : ReturnType<NonNullable<M>>
+      }> => {
+        const block = pinnedBlocks$.state.blocks.get(hash)!
+        return pinnedBlocks$.state.runtimes[block.runtime].runtime.pipe(
           mergeMap((ctx) => {
             const key = keyMapper(ctx)
             return upsertCachedStream(
               hash,
               `storage-${type}-${key}-${childTrie ?? ""}`,
               _storage$(hash, type, key, childTrie),
-            ).pipe(mapper ? map((raw) => mapper(raw, ctx)) : identity)
+            ).pipe(
+              mapper ? map((raw) => mapper(raw, ctx)) : identity,
+            ) as Observable<
+              undefined extends M
+                ? StorageResult<Type>
+                : ReturnType<NonNullable<M>>
+            >
           }),
-        ) as Observable<
-          undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
-        >,
+          map((value) => ({ block: toBlockInfo(block), value })),
+        )
+      },
       "storage",
     ),
   )
@@ -376,7 +384,7 @@ export const getChainHead$ = (
       (ctx) => ctx.events.key,
       null,
       (x, ctx) => ctx.events.dec(x!),
-    )
+    ).pipe(map((v) => v.value))
 
   const __call$ = commonEnhancer(lazyFollower("call"), "call")
   const call$ = withOptionalHash$((hash: string, fn: string, args: string) =>
@@ -410,7 +418,9 @@ export const getChainHead$ = (
         key = enc(0n)
       }
 
-      return storage$(null, "value", () => key, null) as Observable<HexString>
+      return storage$(null, "value", () => key, null).pipe(
+        map((v) => v.value as HexString),
+      )
     }),
     shareReplay(1),
   )

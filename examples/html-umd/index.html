@@ -43,7 +43,7 @@
   const ACCOUNT = "5GzvA6VdjabsiKehmWGNkfhaZ6bhsqNSgrUTQS3G87zJi6m3"
   api.query.System.Account.watchValue(ACCOUNT).subscribe((ev) => {
     document.getElementById("freeBalance").innerText =
-      `${ACCOUNT} free balance: ${ev.data.free}`
+      `${ACCOUNT} free balance: ${ev.value.data.free}`
   }, printError)
 </script>
 
