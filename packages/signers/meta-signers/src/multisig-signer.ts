@@ -151,7 +151,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
                 call: callCodec.dec(callData),
               }
             : {
-                call_hash: callHash,
+                call_hash: toHex(callHash),
               }),
         })
         wrappedCallData = mergeUint8([new Uint8Array(location), payload])
