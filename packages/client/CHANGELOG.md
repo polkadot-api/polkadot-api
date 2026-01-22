@@ -23,7 +23,8 @@
 - BREAKING: When creating transactions the optional `at` value only accepts specific block-hashes.
 - BREAKING: `getBody` and `getHeader` only accept block-hashes.
 - BREAKING: renamed `watchBlockBody` to `getBlockBody$`
-- BREAKING: `watchValue` options are now consistent with `watchEntries` options, and also with the rest of query options.
+- BREAKING: `watchValue` emits an object that contains the value and the block the value was found in.
+- BREAKING: `watchValue` emits every time it queries the value. The value keeps the same reference if it didn't change.
 - BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
 - BREAKING: flattened Event interface in TypedAPI event `watch`.
 - BREAKING: `filter()` method in TypedAPI event entry returns an object `{ original: SystemEvent, payload: T }` instead of just the payload.

@@ -11,7 +11,7 @@ const useTranferrableBalance = (address: SS58String) => {
 
     const subscription = api.query.System.Account.watchValue(address, {
       at: "best",
-    }).subscribe(({ data }) => {
+    }).subscribe(({ value: { data } }) => {
       setBalance(data.free - data.frozen)
     })
 
