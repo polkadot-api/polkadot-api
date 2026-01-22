@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/tx-utils",
-  "version": "0.2.2",
+  "version": "0.2.1",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",

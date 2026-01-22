@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-## 0.2.8 - 2026-01-22
-
 ### Fixed
 
 - Reset wait time between reconnections
