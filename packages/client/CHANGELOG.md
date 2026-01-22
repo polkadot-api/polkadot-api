@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.23.3 - 2026-01-22
+
 ### Fixed
 
 - Fixed unexpected `BlockNotPinnedError` on `watchEntries`
