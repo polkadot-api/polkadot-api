@@ -41,7 +41,7 @@ import { createEventEntry } from "./event"
 import { createRuntimeCallEntry } from "./runtime-call"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
-import type { AnyApi, PolkadotClient } from "./types"
+import type { AnyApi, PolkadotClient, TypedApi, UnsafeApi } from "./types"
 import { createWatchEntries } from "./watch-entries"
 import { createViewFnEntry } from "./viewFns"
 import { firstValueFromWithSignal } from "./utils"
@@ -340,20 +340,9 @@ export function createClient(
     params: Params,
   ) => Promise<Reply> = rawClient.request
 
-  let runtimeToken: Promise<RuntimeToken>
-  const compatibilityToken = new WeakMap<
-    ChainDefinition,
-    Promise<CompatibilityToken<any>>
-  >()
-  const getChainToken = (chainDefinition: ChainDefinition) => {
-    const result =
-      compatibilityToken.get(chainDefinition) ||
-      createCompatibilityToken(chainDefinition, chainHead)
-    compatibilityToken.set(chainDefinition, result)
-    return result
-  }
-  const getRuntimeToken = <D>(): Promise<RuntimeToken<D>> =>
-    (runtimeToken ??= createRuntimeToken(chainHead))
+  let unsafeApi: UnsafeApi<any>
+  const typedApis = new WeakMap<ChainDefinition, TypedApi<any>>()
+
   const { broadcastTx$ } = client
 
   const getMetadata$ = (at: HexString) =>
@@ -385,18 +374,27 @@ export function createClient(
     submitAndWatch: (tx) => submit$(chainHead, broadcastTx$, tx),
 
     getTypedApi: <D extends ChainDefinition>(chainDefinition: D) => {
-      const token = getChainToken(chainDefinition)
-      return Object.assign(
-        createApi<false, D>(token, chainHead, broadcastTx$),
-        { compatibilityToken: token },
+      if (typedApis.has(chainDefinition)) return typedApis.get(chainDefinition)!
+      const compatibilityToken = createCompatibilityToken(
+        chainDefinition,
+        chainHead,
       )
+      const api = Object.assign(
+        createApi<false, D>(compatibilityToken, chainHead, broadcastTx$),
+        { compatibilityToken },
+      )
+      typedApis.set(chainDefinition, api)
+      return api as any
     },
 
     getUnsafeApi: <D>() => {
-      const token = getRuntimeToken()
-      return Object.assign(createApi<true, D>(token, chainHead, broadcastTx$), {
-        runtimeToken: token,
-      })
+      if (unsafeApi) return unsafeApi
+      const runtimeToken = createRuntimeToken(chainHead)
+      unsafeApi = Object.assign(
+        createApi<true, D>(runtimeToken, chainHead, broadcastTx$),
+        { runtimeToken },
+      )
+      return unsafeApi as any
     },
 
     rawQuery: (key, { at, signal } = {}) =>
