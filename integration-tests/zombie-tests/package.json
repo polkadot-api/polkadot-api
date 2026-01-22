@@ -16,8 +16,8 @@
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/tx-utils": "workspace:*",
+    "@polkadot-api/utils": "workspace:*",
     "@unique-nft/sr25519": "^0.0.2",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.2"

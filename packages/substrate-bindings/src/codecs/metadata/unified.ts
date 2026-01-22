@@ -66,19 +66,19 @@ export type UnifiedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
   >
   extrinsic: {
     version: number[]
-    signedExtensions: Array<{
-      identifier: string
-      type: number
-      additionalSigned: number
-    }>
+    signedExtensions: Record<
+      number,
+      Array<{
+        identifier: string
+        type: number
+        additionalSigned: number
+      }>
+    >
   } & (T extends 14
     ? {
         type: number
       }
-    : { address: number; call: number; signature: number }) &
-    (T extends 16
-      ? { signedExtensionsByVersion: Array<[number, number[]]> }
-      : {})
+    : { address: number; call: number; signature: number })
   apis: Array<
     {
       name: string
@@ -118,7 +118,30 @@ export const unifyMetadata = (
 
   // v16
   if ("signedExtensionsByVersion" in metadata.extrinsic) {
-    return { version: 16, ...(metadata as V16) }
+    const {
+      extrinsic: {
+        signedExtensions,
+        signedExtensionsByVersion,
+        ...restExtrinsic
+      },
+      ...rest
+    } = metadata as V16
+    if (!signedExtensionsByVersion.some(([v]) => v === 0)) {
+      throw new Error("Extension version 0 not found")
+    }
+    return {
+      version: 16,
+      extrinsic: {
+        ...restExtrinsic,
+        signedExtensions: Object.fromEntries(
+          signedExtensionsByVersion.map(([v, idxs]) => [
+            v,
+            idxs.map((extIdx) => signedExtensions[extIdx]),
+          ]),
+        ),
+      },
+      ...rest,
+    }
   }
   // v15
   if ("custom" in metadata) {
@@ -136,7 +159,11 @@ export const unifyMetadata = (
         viewFns: [],
         associatedTypes: [],
       })),
-      extrinsic: { ...extrinsic, version: [extrinsic.version] },
+      extrinsic: {
+        ...extrinsic,
+        signedExtensions: { 0: extrinsic.signedExtensions },
+        version: [extrinsic.version],
+      },
       apis,
       outerEnums,
       custom,
@@ -155,7 +182,11 @@ export const unifyMetadata = (
       viewFns: [],
       associatedTypes: [],
     })),
-    extrinsic: { ...extrinsic, version: [extrinsic.version] },
+    extrinsic: {
+      ...extrinsic,
+      signedExtensions: { 0: extrinsic.signedExtensions },
+      version: [extrinsic.version],
+    },
     apis: [],
   }
 }

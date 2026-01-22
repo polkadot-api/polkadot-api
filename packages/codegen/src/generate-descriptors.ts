@@ -470,7 +470,7 @@ type NestedKey<D extends Record<string, string[]>> =
 }
 
 export function getAssetId(lookup: MetadataLookup) {
-  const assetPayment = lookup.metadata.extrinsic.signedExtensions.find(
+  const assetPayment = lookup.metadata.extrinsic.signedExtensions[0].find(
     (x) => x.identifier === "ChargeAssetTxPayment",
   )
 
@@ -500,7 +500,7 @@ function getExtensionsType(
 ) {
   const result: Record<string, string> = {}
 
-  lookup.metadata.extrinsic.signedExtensions.forEach((ext) => {
+  lookup.metadata.extrinsic.signedExtensions[0].forEach((ext) => {
     if (knownSignedExtensions.has(ext.identifier)) return
     const hasValue = lookup(ext.type).type !== "void"
     const hasAdditional = lookup(ext.additionalSigned).type !== "void"

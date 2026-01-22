@@ -1,10 +1,22 @@
 # Changelog
 
-## Unreleased
+## V2
 
 ### Removed
 
 - Remove support for `package.json`-based config
+
+## Unreleased
+
+### Fixed
+
+- Take into account contracts while skipping codegen
+
+## 0.18.0 - 2026-01-05
+
+### Added
+
+- Skip codegen when detecting descriptors won't change
 
 ## 0.17.1 - 2025-12-10
 

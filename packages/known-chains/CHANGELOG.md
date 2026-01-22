@@ -1,10 +1,18 @@
 # Changelog
 
-## Unreleased
+## V2
 
 ### Removed
 
 - Remove Rococo chainspecs
+
+## Unreleased
+
+## 0.9.17 - 2026-01-05
+
+### Fixed
+
+- Update `lightSyncState`
 
 ## 0.9.16 - 2025-12-08
 

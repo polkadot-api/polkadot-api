@@ -28,7 +28,8 @@ export const createRuntimeCtx = (
   const dynamicBuilder = getDynamicBuilder(lookup)
   const events = dynamicBuilder.buildStorage("System", "Events")
 
-  const assetPayment = metadata.extrinsic.signedExtensions.find(
+  // TODO: we might want to check on other extension versions in the future
+  const assetPayment = metadata.extrinsic.signedExtensions[0].find(
     (x) => x.identifier === "ChargeAssetTxPayment",
   )
 
@@ -110,17 +111,19 @@ const getExtrinsicDecoder = (
   metadata: UnifiedMetadata,
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
 ): Decoder<DecodedExtrinsic> => {
-  const innerExtra = Object.fromEntries(
-    metadata.extrinsic.signedExtensions.map(
-      (x) =>
-        [
-          x.identifier,
-          x.identifier === CHECK_MORTALITY
-            ? mortalityDecoder
-            : dynamicBuilder.buildDefinition(x.type)[1],
-        ] as [string, Decoder<any>],
-    ),
-  ) as StringRecord<Decoder<any>>
+  const v0Extra = Struct.dec(
+    Object.fromEntries(
+      metadata.extrinsic.signedExtensions[0].map(
+        (x) =>
+          [
+            x.identifier,
+            x.identifier === CHECK_MORTALITY
+              ? mortalityDecoder
+              : dynamicBuilder.buildDefinition(x.type)[1],
+          ] as [string, Decoder<any>],
+      ),
+    ) as StringRecord<Decoder<any>>,
+  )
 
   let address: Decoder<any>
   let signature: Decoder<any>
@@ -144,7 +147,7 @@ const getExtrinsicDecoder = (
   const v4Body = Struct.dec({
     address,
     signature,
-    extra: Struct.dec(innerExtra),
+    extra: v0Extra,
     callData: allBytesDec,
   })
 
@@ -158,20 +161,24 @@ const getExtrinsicDecoder = (
     const extensionVersion = u8.dec(data)
     let extraDec: Decoder<StringRecord<any>>
     if (metadata.version === 16) {
-      const extensionsToApply = (
-        metadata as UnifiedMetadata<16>
-      ).extrinsic.signedExtensionsByVersion.find(
-        ([x]) => x === extensionVersion,
-      )
+      const extensionsToApply =
+        metadata.extrinsic.signedExtensions[extensionVersion]
+
       if (!extensionsToApply) throw new Error("Unexpected extension version")
       extraDec = Struct.dec(
         Object.fromEntries(
-          Object.entries(innerExtra).filter((_, idx) =>
-            extensionsToApply[1].includes(idx),
+          extensionsToApply.map(
+            (x) =>
+              [
+                x.identifier,
+                x.identifier === CHECK_MORTALITY
+                  ? mortalityDecoder
+                  : dynamicBuilder.buildDefinition(x.type)[1],
+              ] as [string, Decoder<any>],
           ),
         ) as StringRecord<Decoder<any>>,
       )
-    } else extraDec = Struct.dec(innerExtra)
+    } else extraDec = v0Extra
     const extra = extraDec(data)
 
     return {

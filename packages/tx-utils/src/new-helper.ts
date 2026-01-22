@@ -74,7 +74,7 @@ export const getTxHelper = (
   }
 
   const extensionsDec = Object.fromEntries(
-    metadata.extrinsic.signedExtensions.map(
+    metadata.extrinsic.signedExtensions[0].map(
       (x) =>
         [
           x.identifier,
@@ -96,7 +96,7 @@ export const getTxHelper = (
       pjsPayload,
     )
 
-    const signedExtensions = lookup.metadata.extrinsic.signedExtensions.map(
+    const signedExtensions = lookup.metadata.extrinsic.signedExtensions[0].map(
       ({ identifier, type, additionalSigned }): SignedExtension => {
         switch (identifier) {
           case "CheckGenesis":
@@ -131,7 +131,7 @@ export const getTxHelper = (
         callData: fromHex(pjsPayload.method),
         extensions: signedExtensions.map(
           ({ value: extra, additionalSigned }, idx) => ({
-            id: lookup.metadata.extrinsic.signedExtensions[idx].identifier,
+            id: lookup.metadata.extrinsic.signedExtensions[0][idx].identifier,
             extra,
             additionalSigned,
           }),
