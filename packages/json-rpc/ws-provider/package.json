@@ -55,6 +55,6 @@
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
     "@types/ws": "^8.18.1",
-    "ws": "^8.18.3"
+    "ws": "^8.19.0"
   }
 }
