@@ -4,7 +4,7 @@ import {
   metadata as metadataCodec,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
-import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { fromHex, mergeUint8 } from "@polkadot-api/utils"
 import { ChainDefinition, PlainDescriptor } from "./descriptors"
 import { OfflineTxEntry } from "./tx"
 import { getSignExtensionsCreator } from "./tx/signed-extensions"
@@ -38,15 +38,13 @@ const createOfflineTxEntry = <
       encodedData,
       decodedCall: Enum(pallet, Enum(name, arg as any) as any),
       sign: async (from, extensions) =>
-        toHex(
-          await from.signTx(
-            encodedData,
-            signExtensionCreator(extensions),
-            metadataRaw,
-            extensions.mortality.mortal
-              ? extensions.mortality.startAtBlock.height
-              : 0,
-          ),
+        await from.signTx(
+          encodedData,
+          signExtensionCreator(extensions),
+          metadataRaw,
+          extensions.mortality.mortal
+            ? extensions.mortality.startAtBlock.height
+            : 0,
         ),
     }
   }

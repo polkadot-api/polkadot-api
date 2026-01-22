@@ -24,6 +24,7 @@
 - BREAKING: `getBody` and `getHeader` only accept block-hashes.
 - BREAKING: renamed `watchBlockBody` to `getBlockBody$`
 - BREAKING: `getBody` and `getBlockBody$` return `Uint8Array`s instead of `HexString`
+- BREAKING: `sign` and `getBareTx` return `Uint8Array`s instead of `HexString`
 - BREAKING: `watchValue` options are now consistent with `watchEntries` options, and also with the rest of query options.
 - BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
 - BREAKING: flattened Event interface in TypedAPI event `watch`.

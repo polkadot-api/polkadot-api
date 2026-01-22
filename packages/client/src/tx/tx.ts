@@ -1,3 +1,6 @@
+import { ValueCompat } from "@/compatibility"
+import { PlainDescriptor } from "@/descriptors"
+import { getCallData } from "@/utils/get-call-data"
 import type {
   BlockInfo,
   ChainHead$,
@@ -20,16 +23,15 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
-  Observable,
   combineLatest,
   firstValueFrom,
   map,
   mergeMap,
+  Observable,
   of,
   take,
   throwError,
 } from "rxjs"
-import { PlainDescriptor } from "@/descriptors"
 import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
 import {
@@ -42,10 +44,8 @@ import {
   TxPromise,
   TxSignFn,
 } from "./types"
-import { ValueCompat } from "@/compatibility"
-import { getCallData } from "@/utils/get-call-data"
 
-export { submit, submit$, InvalidTxError }
+export { InvalidTxError, submit, submit$ }
 
 const accountIdEnc = AccountId().enc
 const fakeSignature = new Uint8Array(64)
@@ -76,7 +76,7 @@ export const createTxEntry = <
   pallet: Pallet,
   name: Name,
   chainHead: ChainHead$,
-  broadcast: (tx: string) => Observable<never>,
+  broadcast: (tx: Uint8Array) => Observable<never>,
   compatibility: ValueCompat,
   getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
 ): TxEntry<Arg, Pallet, Name, E, Asset> => {
@@ -107,13 +107,11 @@ export const createTxEntry = <
           )
           return {
             callData,
-            bare: toHex(
-              mergeUint8([
-                compact.enc(callData.length + 1),
-                new Uint8Array(extVersions.slice(-1)),
-                callData,
-              ]),
-            ),
+            bare: mergeUint8([
+              compact.enc(callData.length + 1),
+              new Uint8Array(extVersions.slice(-1)),
+              callData,
+            ]),
           }
         },
       ),
@@ -169,9 +167,7 @@ export const createTxEntry = <
       return (atBlock ? of(atBlock) : chainHead.finalized$).pipe(
         take(1),
         mergeMap((block) =>
-          sign$(from, _options, block).pipe(
-            map((signed) => ({ tx: toHex(signed), block })),
-          ),
+          sign$(from, _options, block).pipe(map((tx) => ({ tx, block }))),
         ),
       )
     }
@@ -201,7 +197,7 @@ export const createTxEntry = <
         isEth ? "Ecdsa" : "Sr25519",
         getFakeSignature(isEth),
       )
-      const encoded = fromHex(await sign(fakeSigner, _options))
+      const encoded = await sign(fakeSigner, _options)
       const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
 
       const decoder$: Observable<Decoder<PaymentInfo>> = chainHead

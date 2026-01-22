@@ -1,5 +1,4 @@
 import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
-import { toHex } from "@polkadot-api/utils"
 import {
   Observable,
   distinct,
@@ -36,7 +35,7 @@ export const getTrackTx = (
   getBody: (block: string) => Observable<Uint8Array[]>, // Returns an observable that should emit just once and complete
   getIsValid: (
     block: string,
-    tx: string,
+    tx: Uint8Array,
   ) => Observable<ResultPayload<any, any>>, // Returns an observable that should emit just once and complete
   getEvents: (block: string) => Observable<SystemEvent[]>, // Returns an observable that should emit just once and complete
   hodl: (block: string) => () => void,
@@ -87,7 +86,7 @@ export const getTrackTx = (
 
   const analyzeBlock = (
     hash: string,
-    tx: string,
+    tx: Uint8Array,
     alreadyPresent: boolean,
   ): Observable<AnalyzedBlock> => {
     if (alreadyPresent)
@@ -96,7 +95,7 @@ export const getTrackTx = (
     const whilePresent = whileBlockActive(hash)
     return getBody(hash).pipe(
       mergeMap((txs) => {
-        const index = txs.findIndex((t) => toHex(t) === tx)
+        const index = txs.findIndex((t) => u8eq(t, tx))
         return index > -1
           ? whilePresent(getEvents(hash)).pipe(
               map((events) => ({
@@ -127,9 +126,9 @@ export const getTrackTx = (
   }
 
   const findInBranch = (
-    hash: string,
-    tx: string,
-    alreadyPresent: Set<string>,
+    hash: HexString,
+    tx: Uint8Array,
+    alreadyPresent: Set<HexString>,
   ): Observable<AnalyzedBlock> =>
     analyzeBlock(hash, tx, alreadyPresent.has(hash)).pipe(
       mergeMap((analyzed) => {
@@ -147,7 +146,7 @@ export const getTrackTx = (
       }),
     )
 
-  return (tx: string): Observable<AnalyzedBlock> =>
+  return (tx: Uint8Array): Observable<AnalyzedBlock> =>
     merge(
       hodl$,
       blocks$.pipe(
@@ -158,3 +157,5 @@ export const getTrackTx = (
       ),
     )
 }
+
+const u8eq = (a: Uint8Array, b: Uint8Array) => a.every((v, i) => b[i] === v)

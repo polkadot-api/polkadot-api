@@ -7,7 +7,7 @@ import {
   SystemEvent,
 } from "@polkadot-api/observable-client"
 import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
-import { fromHex, toHex } from "@polkadot-api/utils"
+import { toHex } from "@polkadot-api/utils"
 import {
   EMPTY,
   Observable,
@@ -197,13 +197,13 @@ export class InvalidTxError extends Error {
 
 export const submit$ = (
   chainHead: ChainHead$,
-  broadcastTx$: (tx: string) => Observable<never>,
-  tx: HexString,
+  broadcastTx$: (tx: Uint8Array) => Observable<never>,
+  tx: Uint8Array,
   emitSign = false,
 ): Observable<TxEvent> =>
   chainHead.hasher$.pipe(
     mergeMap((hasher) => {
-      const txHash = toHex(hasher(fromHex(tx)))
+      const txHash = toHex(hasher(tx))
       const getTxEvent = <
         Type extends TxEvent["type"],
         Rest extends Omit<TxEvent & { type: Type }, "type" | "txHash">,
@@ -347,8 +347,8 @@ export const submit$ = (
 
 export const submit = async (
   chainHead: ChainHead$,
-  broadcastTx$: (tx: string) => Observable<never>,
-  transaction: HexString,
+  broadcastTx$: (tx: Uint8Array) => Observable<never>,
+  transaction: Uint8Array,
   _at?: HexString,
 ): Promise<TxFinalizedPayload> =>
   lastValueFrom(submit$(chainHead, broadcastTx$, transaction)).then((x) => {

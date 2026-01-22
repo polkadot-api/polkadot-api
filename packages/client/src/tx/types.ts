@@ -252,13 +252,13 @@ export interface TxBare {
    * @returns Promise resolving in a Bare transaction (it falls back to an
    *          unsigned transaction if only v4 is available)
    */
-  (): Promise<HexString>
+  (): Promise<Uint8Array>
 }
 
 export type TxSignFn<Asset, Ext> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset, Ext>,
-) => Promise<HexString>
+) => Promise<Uint8Array>
 
 export type PaymentInfo = {
   weight: {
@@ -403,7 +403,7 @@ export type OfflineTxEntry<
   sign: (
     from: PolkadotSigner,
     extensions: OfflineTxExtensions<Asset>,
-  ) => Promise<HexString>
+  ) => Promise<Uint8Array>
 
   /**
    * SCALE-encoded callData of the transaction.

@@ -36,7 +36,7 @@ const HEX_REGEX = /^(?:0x)?((?:[0-9a-fA-F][0-9a-fA-F])+)$/
 
 const createApi = <D extends ChainDefinition>(
   chainHead: ChainHead$,
-  broadcast$: (tx: string) => Observable<never>,
+  broadcast$: (tx: Uint8Array) => Observable<never>,
   chainDefinition?: ChainDefinition,
 ): TypedApi<D> => {
   const { getClientCompat, getIsAsssetCompat, getSyncHelpers } =

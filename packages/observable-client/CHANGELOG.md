@@ -9,6 +9,7 @@
 ### Changed
 
 - `body$` and `call$` return `Uint8Array` instead of HexString.
+- `broadcastTx$` takes a `Uint8Array` as a parameter instead of HexString.
 
 ## Unreleased
 
