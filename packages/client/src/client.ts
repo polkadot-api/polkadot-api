@@ -250,7 +250,7 @@ export function createClient(
         subId != null && rawClient.request(unsubscribeMethod, [subId])
       }
 
-      const unsubTopLevel = rawClient._request(method, params, {
+      rawClient._request(method, params, {
         onSuccess: (res: string, follow) => {
           subId = res
           if (obs.closed) {
@@ -269,7 +269,6 @@ export function createClient(
 
       return () => {
         sendUnsubscribe()
-        unsubTopLevel()
         unsubInner?.()
       }
     })
