@@ -10,6 +10,7 @@ import {
   SubstrateClient,
   createClient as createRawClient,
 } from "@polkadot-api/substrate-client"
+import { toHex } from "@polkadot-api/utils"
 import {
   Observable,
   catchError,
@@ -20,24 +21,24 @@ import {
   map,
   shareReplay,
 } from "rxjs"
+import { createCompatHelpers } from "./compatibility"
 import { createConstantEntry } from "./constants"
 import { ChainDefinition } from "./descriptors"
 import { createEventEntry } from "./event"
 import { createRuntimeCallEntry } from "./runtime-call"
+import { createStaticApis } from "./static-apis"
 import { createStorageEntry } from "./storage"
 import { createTxEntry, submit, submit$ } from "./tx"
 import type { PolkadotClient, TypedApi } from "./types"
-import { createWatchEntries } from "./watch-entries"
+import { createProxyPath, firstValueFromWithSignal } from "./utils"
 import { createViewFnEntry } from "./viewFns"
-import { firstValueFromWithSignal, createProxyPath } from "./utils"
-import { createCompatHelpers } from "./compatibility"
-import { createStaticApis } from "./static-apis"
+import { createWatchEntries } from "./watch-entries"
 
 const HEX_REGEX = /^(?:0x)?((?:[0-9a-fA-F][0-9a-fA-F])+)$/
 
 const createApi = <D extends ChainDefinition>(
   chainHead: ChainHead$,
-  broadcast$: (tx: string) => Observable<never>,
+  broadcast$: (tx: Uint8Array) => Observable<never>,
   chainDefinition?: ChainDefinition,
 ): TypedApi<D> => {
   const { getClientCompat, getIsAsssetCompat, getSyncHelpers } =
@@ -112,7 +113,7 @@ const createApi = <D extends ChainDefinition>(
   )
 
   const txFromCallData = (
-    callData: Binary,
+    callData: Uint8Array,
     { at, signal }: Partial<{ at: string; signal: AbortSignal }> = {},
   ) =>
     firstValueFromWithSignal(
@@ -122,9 +123,7 @@ const createApi = <D extends ChainDefinition>(
             const {
               type: pallet,
               value: { type: name, value: args },
-            } = dynamicBuilder
-              .buildDefinition(lookup.call!)
-              .dec(callData.asBytes())
+            } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData)
 
             return createTxEntry(
               pallet,
@@ -312,7 +311,7 @@ export function createClient(
       firstValueFromWithSignal(
         storage$(at ?? null, "value", () => {
           const hex = key.match(HEX_REGEX)?.[1]
-          return hex ? `0x${hex}` : Binary.fromText(key).asHex()
+          return hex ? `0x${hex}` : toHex(Binary.fromText(key))
         }).pipe(map((v) => v.value)),
         signal,
       ),

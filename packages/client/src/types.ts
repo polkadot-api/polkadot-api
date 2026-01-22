@@ -1,11 +1,8 @@
 import { BlockInfo } from "@polkadot-api/observable-client"
-import {
-  Binary,
-  BlockHeader,
-  HexString,
-} from "@polkadot-api/substrate-bindings"
+import { BlockHeader, HexString } from "@polkadot-api/substrate-bindings"
 import { ChainSpecData } from "@polkadot-api/substrate-client"
 import { Observable } from "rxjs"
+import { ArgsValueCompatHelper, CompatHelper } from "./compatibility"
 import { ConstantEntry } from "./constants"
 import {
   ApisFromDef,
@@ -20,14 +17,13 @@ import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
 import { StorageEntry } from "./storage"
 import type {
-  TxEntry,
   OfflineTxEntry,
   TxBroadcastEvent,
+  TxEntry,
   TxFinalizedPayload,
   TxFromBinary,
 } from "./tx"
 import { ViewFn } from "./viewFns"
-import { ArgsValueCompatHelper, CompatHelper } from "./compatibility"
 
 export type { ChainSpecData }
 
@@ -119,7 +115,7 @@ export type OfflineConstApi<A extends Record<string, Record<string, any>>> = {
 
 export type UnsafeElement<E> = Record<string, Record<string, E>>
 
-export type { CompatHelper, ArgsValueCompatHelper }
+export type { ArgsValueCompatHelper, CompatHelper }
 export type CompatHelperApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
@@ -151,7 +147,7 @@ export type QueryCompatHelperApi<
 export type SyncTxApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? { getCallData: (args: A[K][KK]) => Binary }
+      ? { getCallData: (args: A[K][KK]) => Uint8Array }
       : unknown
   }
 }
@@ -166,7 +162,7 @@ export type SyncQueryApi<A extends Record<string, Record<string, any>>> = {
 
 export type StaticApis<D extends ChainDefinition, Safe> = {
   id: HexString
-  decodeCallData: (callData: Binary) => {
+  decodeCallData: (callData: Uint8Array) => {
     pallet: string
     name: string
     input: any
@@ -302,7 +298,7 @@ export interface PolkadotClient {
    * @returns Observable to get a block body. There'll be just one event
    *          with the payload and the observable will complete.
    */
-  getBlockBody$: (hash: HexString) => Observable<HexString[]>
+  getBlockBody$: (hash: HexString) => Observable<Uint8Array[]>
   /**
    * Get Block Body (Promise-based)
    *
@@ -310,7 +306,7 @@ export interface PolkadotClient {
    * @param signal  Signal to abort promise.
    * @returns Block body.
    */
-  getBlockBody: (hash: HexString, signal?: AbortSignal) => Promise<HexString[]>
+  getBlockBody: (hash: HexString, signal?: AbortSignal) => Promise<Uint8Array[]>
 
   /**
    * Get Block Header (Observable-based)
@@ -344,7 +340,7 @@ export interface PolkadotClient {
    *                     the tx.
    */
   submit: (
-    transaction: HexString,
+    transaction: Uint8Array,
     at?: HexString,
   ) => Promise<TxFinalizedPayload>
   /**
@@ -359,7 +355,7 @@ export interface PolkadotClient {
    *                     the tx.
    */
   submitAndWatch: (
-    transaction: HexString,
+    transaction: Uint8Array,
     at?: HexString,
   ) => Observable<TxBroadcastEvent>
 

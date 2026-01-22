@@ -1,10 +1,11 @@
-import { Binary, createClient } from "polkadot-api"
-import { getSmProvider } from "polkadot-api/sm-provider"
-import { start } from "polkadot-api/smoldot"
-import { chainSpec } from "polkadot-api/chains/polkadot"
-import { defer, map, mergeMap, take, withLatestFrom } from "rxjs"
 import { wnd } from "@polkadot-api/descriptors"
 import { getExtrinsicDecoder } from "@polkadot-api/tx-utils"
+import { createClient } from "polkadot-api"
+import { chainSpec } from "polkadot-api/chains/polkadot"
+import { getSmProvider } from "polkadot-api/sm-provider"
+import { start } from "polkadot-api/smoldot"
+import { toHex } from "polkadot-api/utils"
+import { defer, map, mergeMap, take, withLatestFrom } from "rxjs"
 
 export const JSONprint = (e: unknown) =>
   JSON.stringify(
@@ -12,8 +13,8 @@ export const JSONprint = (e: unknown) =>
     (_, v) =>
       typeof v === "bigint"
         ? v.toString()
-        : v instanceof Binary
-          ? v.asHex()
+        : v instanceof Uint8Array
+          ? toHex(v)
           : v,
     2,
   )
@@ -27,7 +28,7 @@ const api = client.getTypedApi(wnd)
 
 const extrinsicDecoder$ = defer(() =>
   api.apis.Metadata.metadata_at_version(15),
-).pipe(map((metadata) => getExtrinsicDecoder(metadata!.asBytes())))
+).pipe(map((metadata) => getExtrinsicDecoder(metadata!)))
 
 client.finalizedBlock$
   .pipe(

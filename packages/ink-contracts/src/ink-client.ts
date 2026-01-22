@@ -1,4 +1,5 @@
-import { Binary, HexString } from "@polkadot-api/substrate-bindings"
+import { HexString } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
 import { getInkDynamicBuilder, InkDynamicBuilder } from "./dynamic-builders"
 import { getInkLookup, InkMetadataLookup } from "./get-lookup"
 import {
@@ -15,9 +16,9 @@ export type InkCallableInterface<T extends InkCallableDescriptor> = <
   label: L,
 ) => {
   encode: {} extends T[L]["message"]
-    ? (value?: T[L]["message"]) => Binary
-    : (value: T[L]["message"]) => Binary
-  decode: (value: { data: Binary }) => T[L]["response"]
+    ? (value?: T[L]["message"]) => Uint8Array
+    : (value: T[L]["message"]) => Uint8Array
+  decode: (value: { data: Uint8Array }) => T[L]["response"]
   attributes: {
     payable: boolean
     default: boolean
@@ -29,18 +30,18 @@ export type InkStorageInterface<S extends InkStorageDescriptor> =
   ("" extends keyof S
     ? () => {
         encode: S[""]["key"] extends undefined
-          ? (key?: undefined) => Binary
-          : (key: S[""]["key"]) => Binary
-        decode: (data: Binary) => S[""]["value"]
+          ? (key?: undefined) => Uint8Array
+          : (key: S[""]["key"]) => Uint8Array
+        decode: (data: Uint8Array) => S[""]["value"]
       }
     : unknown) &
     (<L extends string & keyof S>(
       label: L,
     ) => {
       encode: S[L]["key"] extends undefined
-        ? (key?: undefined) => Binary
-        : (key: S[L]["key"]) => Binary
-      decode: (data: Binary) => S[L]["value"]
+        ? (key?: undefined) => Uint8Array
+        : (key: S[L]["key"]) => Uint8Array
+      decode: (data: Uint8Array) => S[L]["value"]
     })
 
 export type GenericEvent =
@@ -51,14 +52,14 @@ export type GenericEvent =
             type: "ContractEmitted"
             value: {
               contract: string
-              data: Binary
+              data: Uint8Array
             }
           }
         | { type: string; value: unknown }
     }
   | { type: string; value: unknown }
 export interface InkEventInterface<E> {
-  decode: (value: { data: Binary }, signatureTopic?: string) => E
+  decode: (value: { data: Uint8Array }, signatureTopic?: string) => E
   filter: (
     address: string,
     events?: Array<{ event: GenericEvent; topics: HexString[] }>,
@@ -200,10 +201,9 @@ const buildCallable =
     const codecs = builder(label)
 
     return {
-      encode: (value?: T[L]["message"]) =>
-        Binary.fromBytes(codecs.call.enc(value || {})),
-      decode: (response: { data: Binary }) =>
-        codecs.value.dec(response.data.asBytes()),
+      encode: (value?: T[L]["message"]) => codecs.call.enc(value || {}),
+      decode: (response: { data: Uint8Array }) =>
+        codecs.value.dec(response.data),
     }
   }
 
@@ -215,9 +215,8 @@ const buildStorage =
     const codecs = builder(label)
 
     return {
-      encode: (key?: S[L]["key"]) =>
-        Binary.fromBytes(codecs.key.enc(key as any)),
-      decode: (response: Binary) => codecs.value.dec(response.asBytes()),
+      encode: (key?: S[L]["key"]) => codecs.key.enc(key as any),
+      decode: (response: Uint8Array) => codecs.value.dec(response),
     }
   }
 
@@ -225,7 +224,7 @@ const buildEventV4 = <E extends Event>(
   eventsDecoder: InkDynamicBuilder["buildEvents"],
 ): InkEventInterface<E> => {
   const decode: InkEventInterface<E>["decode"] = (value) => {
-    return eventsDecoder().dec(value.data.asBytes()) as E
+    return eventsDecoder().dec(value.data) as E
   }
   const filter: InkEventInterface<E>["filter"] = (address, events = []) => {
     const contractEvents = events
@@ -269,16 +268,16 @@ const buildEventV5 = <E extends Event>(
       if (!metadataEventTopics.has(signatureTopic)) {
         throw new Error(`Event with signature topic ${value} not found`)
       }
-      return eventDecoder(signatureTopic)!.dec(value.data.asBytes()) as E
+      return eventDecoder(signatureTopic)!.dec(value.data) as E
     }
     if (!hasAnonymousEvents) {
       throw new Error("Event signature topic required")
     }
-    return eventDecoder(undefined)!.dec(value.data.asBytes()) as E
+    return eventDecoder(undefined)!.dec(value.data) as E
   }
   const filter: InkEventInterface<E>["filter"] = (address, events = []) => {
-    const addrEq = (a: string | Binary) =>
-      (typeof a === "string" ? a : a.asHex()) === address
+    const addrEq = (a: string | Uint8Array) =>
+      (typeof a === "string" ? a : toHex(a)) === address
 
     const contractEvents = events.filter(
       (v) =>

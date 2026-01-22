@@ -1,10 +1,11 @@
 import type { SubstrateClient } from "@polkadot-api/substrate-client"
+import { toHex } from "@polkadot-api/utils"
 import { Observable } from "rxjs"
 
 export default (baseTransaction: SubstrateClient["transaction"]) =>
-  (transaction: string) =>
+  (transaction: Uint8Array) =>
     new Observable<never>((observer) =>
-      baseTransaction(transaction, (e) => {
+      baseTransaction(toHex(transaction), (e) => {
         observer.error(e)
       }),
     )

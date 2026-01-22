@@ -35,7 +35,7 @@ import {
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { fromHex } from "@polkadot-api/utils"
+import { fromHex, toHex } from "@polkadot-api/utils"
 import { appendFileSync } from "fs"
 import { withLogs } from "./with-logs"
 import { getInnerLogs } from "./inner-logs"
@@ -151,7 +151,7 @@ describe("E2E", async () => {
     expect(decoded.type).toBe("bare")
     expect(decoded.call.type).toEqual("System")
     expect(decoded.call.value.type).toEqual("remark")
-    expect(decoded.call.value.value.remark.asText()).toEqual(content)
+    expect(Binary.toText(decoded.call.value.value.remark)).toEqual(content)
   })
 
   it.concurrent("unsafe API", async () => {
@@ -168,6 +168,15 @@ describe("E2E", async () => {
     })
 
     expect(number).toEqual(finalized.number)
+  })
+
+  it.concurrent("reads from a view function", async () => {
+    if (!staticApis.compat.view.VoterList.scores.isCompatible()) return
+
+    const [current, realScore] = await api.view.VoterList.scores(
+      "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
+    )
+    expect(current).toEqual(realScore)
   })
 
   it.concurrent("queries opaque storage entries", async () => {
@@ -190,14 +199,14 @@ describe("E2E", async () => {
     const tx = api.tx.System.remark({
       remark: Binary.fromText("hello world!"),
     })
-    const binaryExtrinsic = Binary.fromOpaqueHex(
+    const binaryExtrinsic = Binary.fromOpaque(
       await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
     )
 
     const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
       api.apis.TransactionPaymentApi.query_info(
         binaryExtrinsic,
-        binaryExtrinsic.asOpaqueBytes().length,
+        Binary.toOpaque(binaryExtrinsic).length,
       ),
       tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey),
     ])
@@ -366,9 +375,7 @@ describe("E2E", async () => {
     // txs from call data
     const txCallData = await aliceTransfer.getEncodedData()
     const reEncodedTx = await api.txFromCallData(txCallData)
-    expect((await reEncodedTx.getEncodedData()).asHex()).toBe(
-      txCallData.asHex(),
-    )
+    expect(toHex(await reEncodedTx.getEncodedData())).toBe(toHex(txCallData))
   })
 
   it.concurrent.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(

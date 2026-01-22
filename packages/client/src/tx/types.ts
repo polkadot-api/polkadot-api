@@ -1,12 +1,7 @@
 import { PullOptions } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import {
-  Binary,
-  Enum,
-  HexString,
-  SS58String,
-} from "@polkadot-api/substrate-bindings"
+import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
 export type TxEvent = TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
@@ -247,7 +242,7 @@ export interface TxCall {
    *
    * @returns Promise resolving in the encoded data.
    */
-  (): Promise<Binary>
+  (): Promise<Uint8Array>
 }
 
 export interface TxBare {
@@ -257,13 +252,13 @@ export interface TxBare {
    * @returns Promise resolving in a Bare transaction (it falls back to an
    *          unsigned transaction if only v4 is available)
    */
-  (): Promise<HexString>
+  (): Promise<Uint8Array>
 }
 
 export type TxSignFn<Asset, Ext> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset, Ext>,
-) => Promise<HexString>
+) => Promise<Uint8Array>
 
 export type PaymentInfo = {
   weight: {
@@ -408,12 +403,12 @@ export type OfflineTxEntry<
   sign: (
     from: PolkadotSigner,
     extensions: OfflineTxExtensions<Asset>,
-  ) => Promise<HexString>
+  ) => Promise<Uint8Array>
 
   /**
    * SCALE-encoded callData of the transaction.
    */
-  encodedData: Binary
+  encodedData: Uint8Array
   /**
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
@@ -430,7 +425,7 @@ export type TxFromBinary<Asset> = {
    * @returns Transaction object.
    */
   (
-    callData: Binary,
+    callData: Uint8Array,
     options?: PullOptions,
   ): Promise<Transaction<any, string, string, Asset>>
 }

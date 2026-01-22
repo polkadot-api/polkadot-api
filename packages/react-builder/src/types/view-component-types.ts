@@ -7,11 +7,7 @@ import type {
   StructVar,
   TupleVar,
 } from "@polkadot-api/metadata-builders"
-import type {
-  Binary,
-  HexString,
-  SS58String,
-} from "@polkadot-api/substrate-bindings"
+import type { HexString, SS58String } from "@polkadot-api/substrate-bindings"
 import type { ReactNode, FC } from "react"
 
 export type ViewCodecComponentProps<T = any> = {
@@ -47,7 +43,7 @@ export type ViewStr = FC<ViewStrInterface>
 export type ViewBitSeqInterface = ViewPrimitiveComponentProps<Array<0 | 1>>
 export type ViewBitSeq = FC<ViewBitSeqInterface>
 
-export type ViewBytesInterface = ViewPrimitiveComponentProps<Binary> & {
+export type ViewBytesInterface = ViewPrimitiveComponentProps<Uint8Array> & {
   len?: number
 }
 export type ViewBytes = FC<ViewBytesInterface>

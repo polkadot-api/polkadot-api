@@ -40,11 +40,8 @@ export function isCompatible(
     case "terminal":
       return checkTerminal(destNode)
     case "binary":
-      return (
-        value != null &&
-        typeof value.asBytes === "function" &&
-        (destNode.value == null || value.asBytes().length >= destNode.value)
-      )
+      if (destNode.value == undefined) return value instanceof Uint8Array
+      return typeof value === "string" && value.startsWith("0x")
     case "array":
       if (!Array.isArray(value)) return false
       const valueArr = value as Array<any>

@@ -1,8 +1,13 @@
+import { continueWith } from "@/utils"
 import {
-  Binary,
-  HexString,
-  ResultPayload,
-} from "@polkadot-api/substrate-bindings"
+  AnalyzedBlock,
+  BlockInfo,
+  ChainHead$,
+  PinnedBlocks,
+  SystemEvent,
+} from "@polkadot-api/observable-client"
+import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
 import {
   EMPTY,
   Observable,
@@ -21,16 +26,7 @@ import {
   take,
   takeWhile,
 } from "rxjs"
-import {
-  BlockInfo,
-  ChainHead$,
-  PinnedBlocks,
-  SystemEvent,
-} from "@polkadot-api/observable-client"
-import { AnalyzedBlock } from "@polkadot-api/observable-client"
 import { TxEvent, TxEventsPayload, TxFinalizedPayload } from "./types"
-import { continueWith } from "@/utils"
-import { fromHex, toHex } from "@polkadot-api/utils"
 
 const computeState = (
   analized$: Observable<AnalyzedBlock>,
@@ -189,7 +185,7 @@ export class InvalidTxError extends Error {
         e,
         (_, value) => {
           if (typeof value === "bigint") return value.toString()
-          return value instanceof Binary ? value.asHex() : value
+          return value instanceof Uint8Array ? toHex(value) : value
         },
         2,
       ),
@@ -201,13 +197,13 @@ export class InvalidTxError extends Error {
 
 export const submit$ = (
   chainHead: ChainHead$,
-  broadcastTx$: (tx: string) => Observable<never>,
-  tx: HexString,
+  broadcastTx$: (tx: Uint8Array) => Observable<never>,
+  tx: Uint8Array,
   emitSign = false,
 ): Observable<TxEvent> =>
   chainHead.hasher$.pipe(
     mergeMap((hasher) => {
-      const txHash = toHex(hasher(fromHex(tx)))
+      const txHash = toHex(hasher(tx))
       const getTxEvent = <
         Type extends TxEvent["type"],
         Rest extends Omit<TxEvent & { type: Type }, "type" | "txHash">,
@@ -351,8 +347,8 @@ export const submit$ = (
 
 export const submit = async (
   chainHead: ChainHead$,
-  broadcastTx$: (tx: string) => Observable<never>,
-  transaction: HexString,
+  broadcastTx$: (tx: Uint8Array) => Observable<never>,
+  transaction: Uint8Array,
   _at?: HexString,
 ): Promise<TxFinalizedPayload> =>
   lastValueFrom(submit$(chainHead, broadcastTx$, transaction)).then((x) => {

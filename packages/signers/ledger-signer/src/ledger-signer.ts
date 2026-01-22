@@ -114,10 +114,10 @@ export class LedgerSigner {
     if (!this.#appInfo)
       this.#appInfo = this.#send(0xb0, 1, 0, 0).then((v) => {
         const res = Uint8Array.from(v)
-        const appName = Binary.fromBytes(res.slice(2, 2 + res[1])).asText()
-        const appVersion = Binary.fromBytes(
+        const appName = Binary.toText(res.slice(2, 2 + res[1]))
+        const appVersion = Binary.toText(
           res.slice(2 + res[1] + 1, 2 + res[1] + 1 + res[2 + res[1]]),
-        ).asText()
+        )
         return { appName, appVersion }
       })
     return this.#appInfo

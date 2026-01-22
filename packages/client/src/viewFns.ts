@@ -2,7 +2,7 @@ import { firstValueFromWithSignal, isOptionalArg } from "@/utils"
 import { ChainHead$ } from "@polkadot-api/observable-client"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { combineLatest, map, mergeMap } from "rxjs"
-import { compactNumber, _void } from "@polkadot-api/substrate-bindings"
+import { compactNumber, _void, Enum } from "@polkadot-api/substrate-bindings"
 import { PullOptions } from "./types"
 import { InOutCompat } from "./compatibility"
 
@@ -77,10 +77,13 @@ export const createViewFnEntry = (
               const decoded = apiCodec.value.dec(v)
               if (
                 !("success" in decoded && "value" in decoded) ||
-                (!("type" in decoded.value) && !("asBytes" in decoded.value))
+                (!("type" in decoded.value) &&
+                  !(decoded.value instanceof Uint8Array))
               )
                 throw null
-              return decoded
+              return decoded as
+                | { success: true; value: Uint8Array }
+                | { success: false; value: Enum<any> }
             } catch {
               throw new Error(
                 `Unexpected RuntimeCall(${RUNTIME_CALL_NAME}) type`,
@@ -89,7 +92,7 @@ export const createViewFnEntry = (
           }),
           map(({ success, value }) => {
             if (!success) throw new Error(`ViewFn API Error: ${value.type}`)
-            const decoded = viewCodec.value.dec(value.asBytes())
+            const decoded = viewCodec.value.dec(value)
             if (!compat.value.isValueCompatible(decoded))
               throw compatibilityError()
             return decoded
