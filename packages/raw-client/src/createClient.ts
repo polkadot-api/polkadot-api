@@ -1,5 +1,6 @@
 import {
   isResponse,
+  JsonRpcRequest,
   type JsonRpcConnection,
   type JsonRpcId,
   type JsonRpcMessage,
@@ -32,7 +33,10 @@ export interface Client {
 }
 
 let nextClientId = 1
-export const createClient = (gProvider: JsonRpcProvider): Client => {
+export const createClient = (
+  gProvider: JsonRpcProvider,
+  onNotification?: (req: JsonRpcRequest) => void,
+): Client => {
   let clientId = nextClientId++
   const responses = new Map<JsonRpcId, ClientRequestCb<any, any>>()
   const subscriptions = getSubscriptionsManager()
@@ -74,9 +78,15 @@ export const createClient = (gProvider: JsonRpcProvider): Client => {
       // at this point, it means that it should be a notification
       const { params } = parsed
       const { subscription: subscriptionId, result, error } = params
-      if (subscriptionId && ("result" in params || error)) {
+      if (
+        subscriptionId &&
+        subscriptions.has(subscriptionId) &&
+        ("result" in params || error)
+      ) {
         if (error) subscriptions.error(subscriptionId, new RpcError(error!))
         else subscriptions.next(subscriptionId, result)
+      } else {
+        onNotification?.(parsed)
       }
     } else
       console.warn("Error parsing incomming message: " + JSON.stringify(parsed))

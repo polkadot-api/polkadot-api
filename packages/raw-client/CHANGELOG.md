@@ -6,6 +6,10 @@
 
 - BREAKING: it consumes the new `JsonRpcProvider` v1.
 
+### Added
+
+- `onNotification` method to receive notifications not belonging to subscriptions.
+
 ## 0.1.1 - 2025-08-08
 
 ### Fixed

@@ -30,7 +30,7 @@ export const withLegacy: Middleware = (base) => (onMessage, onHalt) => {
   const { disconnect, request } = createClient((_onMsg) => {
     onMsg = _onMsg
     return innerConnection
-  })
+  }, onMessage)
   const upstream = createUpstream(request)
 
   const jsonRpc = (
