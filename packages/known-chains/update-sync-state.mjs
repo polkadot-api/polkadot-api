@@ -3,8 +3,8 @@ import { getWsProvider } from "@polkadot-api/ws-provider/node"
 import { readFile, writeFile } from "node:fs/promises"
 
 const CHAINS = {
-  polkadot: "wss://polkadot-rpc-tn.dwellir.com",
-  kusama: "wss://rpc-kusama.luckyfriday.io",
+  polkadot: "wss://rpc.polkadot.io",
+  kusama: "wss://kusama-rpc.polkadot.io",
   westend: "wss://westend-rpc.polkadot.io",
   paseo: "wss://paseo.rpc.amforc.com",
 }

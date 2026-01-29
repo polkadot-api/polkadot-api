@@ -1,12 +1,14 @@
 # Changelog
 
-## Unreleased
+## V2
 
 ### Changed
 
 - BREAKING: it exposes the new `JsonRpcProvider` v1.
 
-## 0.1.7 to 0.1.15 - 2025-12-08
+## Unreleased
+
+## 0.1.7 to 0.1.16 - 2026-01-22
 
 ### Fixed
 
