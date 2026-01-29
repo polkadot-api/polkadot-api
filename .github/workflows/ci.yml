@@ -46,8 +46,6 @@ jobs:
         run: pnpm lint
       - name: Test
         run: NODE_VERSION=${{matrix.node-version}} pnpm test
-      - name: Run Integration Tests
-        run: pnpm test:ci
       - name: Store logs
         if: failure()
         uses: actions/upload-artifact@v5

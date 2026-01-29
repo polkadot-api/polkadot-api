@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/ledger-signer",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "author": "Carlo Sala (https://github.com/carlosala)",
   "repository": {
     "type": "git",

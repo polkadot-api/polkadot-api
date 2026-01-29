@@ -298,6 +298,9 @@ export function createClient(
       }
     })
 
+  let unsafeApi: TypedApi<any, false>
+  const typedApis = new WeakMap<ChainDefinition, TypedApi<any, true>>()
+
   const { broadcastTx$ } = client
 
   const getMetadata$ = (at: HexString) =>
@@ -340,10 +343,18 @@ export function createClient(
     submit: (...args) => submit(chainHead, broadcastTx$, ...args),
     submitAndWatch: (tx) => submit$(chainHead, broadcastTx$, tx),
 
-    getTypedApi: <D extends ChainDefinition>(chainDefinition: D) =>
-      createApi(chainHead, broadcastTx$, chainDefinition),
-    getUnsafeApi: <D extends ChainDefinition = any>() =>
-      createApi<D>(chainHead, broadcastTx$),
+    getTypedApi: <D extends ChainDefinition>(chainDefinition: D) => {
+      if (typedApis.has(chainDefinition)) return typedApis.get(chainDefinition)!
+      const api = createApi<D>(chainHead, broadcastTx$)
+
+      typedApis.set(chainDefinition, api)
+      return api
+    },
+
+    getUnsafeApi: <D extends ChainDefinition>() => {
+      unsafeApi ??= createApi<D>(chainHead, broadcastTx$)
+      return unsafeApi
+    },
 
     rawQuery: (key, { at, signal } = {}) =>
       firstValueFromWithSignal(

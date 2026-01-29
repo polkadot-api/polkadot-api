@@ -11,3 +11,6 @@ onlyBuiltDependencies:
   - node-hid
   - sqlite3
   - usb
+
+overrides:
+  comment-parser: 1.4.1
