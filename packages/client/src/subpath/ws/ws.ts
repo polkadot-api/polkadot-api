@@ -7,7 +7,6 @@ import {
   type SocketLoggerFn,
 } from "@polkadot-api/ws-provider"
 export type {
-  WsEvent,
   WsConnecting,
   WsConnected,
   WsError,
@@ -15,7 +14,7 @@ export type {
   WsJsonRpcProvider,
 } from "@polkadot-api/ws-provider"
 export type { StatusChange, WebSocketClass, SocketLoggerFn }
-export { SocketEvents } from "@polkadot-api/ws-provider"
+export { SocketEvents, WsEvent } from "@polkadot-api/ws-provider"
 
 export const getWsRawProvider = (
   endpoint: string | string[],
