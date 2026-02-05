@@ -56,7 +56,7 @@ export type StorageApi<
             ? A[K][KK]["Value"] | undefined
             : A[K][KK]["Value"]
         >
-      : unknown
+      : StorageEntry<Array<unknown>, Array<unknown>, unknown>
   }
 }
 
@@ -64,7 +64,7 @@ export type RuntimeCallsApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
       ? RuntimeCall<A[K][KK]["Args"], A[K][KK]["Value"]>
-      : unknown
+      : RuntimeCall<any, unknown>
   }
 }
 
@@ -72,7 +72,7 @@ export type ViewFnApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
       ? ViewFn<A[K][KK]["Args"], A[K][KK]["Value"]>
-      : unknown
+      : ViewFn<any, unknown>
   }
 }
 
@@ -80,7 +80,7 @@ export type TxApi<A extends Record<string, Record<string, any>>, Ext, Asset> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
       ? TxEntry<A[K][KK], K & string, KK & string, Ext, Asset>
-      : unknown
+      : TxEntry<any, K & string, KK & string, Ext, Asset>
   }
 }
 
