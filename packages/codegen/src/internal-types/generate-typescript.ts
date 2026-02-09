@@ -57,7 +57,12 @@ export const nativeNodeCodegen = (
       label,
     }))
     return {
-      code: `[${tupleResults.map(({ code, label }) => `${label}: ${code}`).join(", ")}]`,
+      code: `[${tupleResults
+        .map(({ code, label }) => {
+          const key = reservedJS.includes(label) ? `${label}_` : label
+          return `${key}: ${code}`
+        })
+        .join(", ")}]`,
       imports: mergeImports(tupleResults.map(({ imports }) => imports)),
     }
   }
@@ -79,6 +84,36 @@ export const nativeNodeCodegen = (
     imports: optionResult.imports,
   }
 }
+
+const reservedJS = [
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "enum",
+  "export",
+  "extends",
+  "finally",
+  "for",
+  "if",
+  "in",
+  "instanceof",
+  "return",
+  "super",
+  "switch",
+  "throw",
+  "try",
+  "var",
+  "while",
+  "with",
+]
 
 export function generateTypescript(
   node: TypeNode,

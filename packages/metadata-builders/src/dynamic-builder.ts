@@ -150,7 +150,7 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
 
       return {
         location: [palletEntry.index, entry.idx],
-        codec: buildEnumEntry(lookup.value[name]),
+        codec: buildEnumEntry(entry),
       }
     }
 

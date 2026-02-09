@@ -3,6 +3,7 @@ import type {
   UnifiedMetadata,
   V14Lookup,
 } from "@polkadot-api/substrate-bindings"
+import { mapObject } from "@polkadot-api/utils"
 
 export type SignedPrimitive = "i8" | "i16" | "i32" | "i64" | "i128" | "i256"
 export type UnsignedPrimitive = "u8" | "u16" | "u32" | "u64" | "u128" | "u256"
@@ -122,7 +123,10 @@ export interface MetadataLookup {
 
 const _denormalizeLookup = (
   lookupData: V14Lookup,
-  customMap: (value: V14Lookup[number]) => Var | null = () => null,
+  customMap: (
+    value: V14Lookup[number],
+    getInner: (id: number) => LookupEntry,
+  ) => Var | null = () => null,
 ): ((id: number) => LookupEntry) => {
   const lookups = new Map<number, LookupEntry>()
   const from = new Set<number>()
@@ -165,7 +169,7 @@ const _denormalizeLookup = (
   let isAccountId32SearchOn = true
   let isAccountId20SearchOn = true
   const getLookupEntryDef = withCache((id): Var => {
-    const custom = customMap(lookupData[id])
+    const custom = customMap(lookupData[id], getLookupEntryDef)
     if (custom) return custom
 
     const { def, path, params } = lookupData[id]
@@ -198,7 +202,7 @@ const _denormalizeLookup = (
         return inner
       }
 
-      return getComplexVar(def.value)
+      return getComplexVar(def.value, getLookupEntryDef)
     }
 
     if (def.tag === "variant") {
@@ -236,36 +240,7 @@ const _denormalizeLookup = (
       }
       if (def.value.length === 0) return _void
 
-      const enumValue: StringRecord<EnumVar["value"][keyof EnumVar["value"]]> =
-        {}
-      const enumDocs: StringRecord<string[]> = {}
-
-      def.value.forEach((x) => {
-        const key = x.name
-        enumDocs[key] = x.docs
-
-        if (x.fields.length === 0) {
-          enumValue[key] = { ..._void, idx: x.index }
-          return
-        }
-
-        if (x.fields.length === 1 && !x.fields[0].name) {
-          enumValue[key] = {
-            type: "lookupEntry",
-            value: getLookupEntryDef(x.fields[0].type),
-            idx: x.index,
-          }
-          return
-        }
-
-        enumValue[key] = { ...getComplexVar(x.fields), idx: x.index }
-      })
-
-      return {
-        type: "enum",
-        value: enumValue,
-        innerDocs: enumDocs,
-      }
+      return getEnum(def, getLookupEntryDef)
     }
 
     if (def.tag === "sequence")
@@ -329,56 +304,6 @@ const _denormalizeLookup = (
     }
   })
 
-  const getComplexVar = (
-    input: Array<{ type: number; name?: string; docs: string[] }>,
-  ): TupleVar | StructVar | ArrayVar | VoidVar => {
-    let allKey = true
-
-    const values: Record<string | number, LookupEntry> = {}
-    const innerDocs: Record<string | number, string[]> = {}
-
-    input.forEach((x, idx) => {
-      allKey = allKey && !!x.name
-      const key = x.name || idx
-      const value = getLookupEntryDef(x.type as number)
-      if (value.type !== "void") {
-        values[key] = value
-        innerDocs[key] = x.docs
-      }
-    })
-    return allKey
-      ? {
-          type: "struct",
-          value: values as StringRecord<LookupEntry>,
-          innerDocs: innerDocs as StringRecord<string[]>,
-        }
-      : getArrayOrTuple(Object.values(values), Object.values(innerDocs))
-  }
-
-  const getArrayOrTuple = (
-    values: Array<LookupEntry>,
-    innerDocs: Array<string[]>,
-  ): TupleVar | ArrayVar | VoidVar => {
-    if (
-      values.every((v) => v.id === values[0].id) &&
-      innerDocs.every((doc) => !doc.length)
-    ) {
-      const [value] = values
-      return value.type === "void"
-        ? _void
-        : {
-            type: "array",
-            value: values[0],
-            len: values.length,
-          }
-    }
-    return {
-      type: "tuple",
-      value: values,
-      innerDocs: innerDocs,
-    }
-  }
-
   return getLookupEntryDef
 }
 
@@ -386,39 +311,70 @@ export const denormalizeLookup = (lookupData: V14Lookup) =>
   _denormalizeLookup(lookupData)
 
 export const getLookupFn = (metadata: UnifiedMetadata): MetadataLookup => {
-  const getLookupEntryDef = _denormalizeLookup(metadata.lookup, ({ def }) => {
-    if (def.tag === "composite") {
-      const moduleErrorLength = getModuleErrorLength(def)
-      if (moduleErrorLength) {
+  const callIds = new Set(
+    metadata.pallets.map((v) => v.calls?.type).filter((v) => v != null),
+  )
+
+  const getLookupEntryDef = _denormalizeLookup(
+    metadata.lookup,
+    ({ def, id }, getInner) => {
+      if (callIds.has(id)) {
+        if (def.tag !== "variant") throw new Error("Unreachable")
+        const defaultEnum = getEnum(def, getInner)
         return {
-          type: "enum",
-          innerDocs: {},
-          value: Object.fromEntries(
-            metadata.pallets.map((p) => [
-              p.name,
-              p.errors == null
-                ? { ..._void, idx: p.index }
-                : {
-                    type: "lookupEntry" as const,
-                    value: getLookupEntryDef(p.errors.type),
-                    idx: p.index,
-                  },
-            ]),
-          ) as StringRecord<
-            (
-              | VoidVar
-              | {
-                  type: "lookupEntry"
-                  value: LookupEntry
-                }
-            ) & { idx: number }
-          >,
-          byteLength: moduleErrorLength,
+          ...defaultEnum,
+          value: mapObject(defaultEnum.value, (value) => {
+            if (value.type === "void") {
+              return {
+                idx: value.idx,
+                type: "namedTuple",
+                value: {},
+                innerDocs: [],
+              }
+            }
+            if (value.type === "struct") {
+              return {
+                ...value,
+                type: "namedTuple",
+              }
+            }
+            throw new Error("Unreachable")
+          }) as EnumVar["value"],
         }
       }
-    }
-    return null
-  })
+      if (def.tag === "composite") {
+        const moduleErrorLength = getModuleErrorLength(def)
+        if (moduleErrorLength) {
+          return {
+            type: "enum",
+            innerDocs: {},
+            value: Object.fromEntries(
+              metadata.pallets.map((p) => [
+                p.name,
+                p.errors == null
+                  ? { ..._void, idx: p.index }
+                  : {
+                      type: "lookupEntry" as const,
+                      value: getLookupEntryDef(p.errors.type),
+                      idx: p.index,
+                    },
+              ]),
+            ) as StringRecord<
+              (
+                | VoidVar
+                | {
+                    type: "lookupEntry"
+                    value: LookupEntry
+                  }
+              ) & { idx: number }
+            >,
+            byteLength: moduleErrorLength,
+          }
+        }
+      }
+      return null
+    },
+  )
 
   function getModuleErrorLength(def: {
     tag: "composite"
@@ -459,4 +415,90 @@ export const getLookupFn = (metadata: UnifiedMetadata): MetadataLookup => {
   }
 
   return Object.assign(getLookupEntryDef, { metadata, call: getCall() })
+}
+
+const getComplexVar = (
+  input: Array<{ type: number; name?: string; docs: string[] }>,
+  getInner: (id: number) => LookupEntry,
+): TupleVar | StructVar | ArrayVar | VoidVar => {
+  let allKey = true
+
+  const values: Record<string | number, LookupEntry> = {}
+  const innerDocs: Record<string | number, string[]> = {}
+
+  input.forEach((x, idx) => {
+    allKey = allKey && !!x.name
+    const key = x.name || idx
+    const value = getInner(x.type as number)
+    if (value.type !== "void") {
+      values[key] = value
+      innerDocs[key] = x.docs
+    }
+  })
+  return allKey
+    ? {
+        type: "struct",
+        value: values as StringRecord<LookupEntry>,
+        innerDocs: innerDocs as StringRecord<string[]>,
+      }
+    : getArrayOrTuple(Object.values(values), Object.values(innerDocs))
+}
+
+const getArrayOrTuple = (
+  values: Array<LookupEntry>,
+  innerDocs: Array<string[]>,
+): TupleVar | ArrayVar | VoidVar => {
+  if (
+    values.every((v) => v.id === values[0].id) &&
+    innerDocs.every((doc) => !doc.length)
+  ) {
+    const [value] = values
+    return value.type === "void"
+      ? _void
+      : {
+          type: "array",
+          value: values[0],
+          len: values.length,
+        }
+  }
+  return {
+    type: "tuple",
+    value: values,
+    innerDocs: innerDocs,
+  }
+}
+
+const getEnum = (
+  def: V14Lookup[number]["def"] & { tag: "variant" },
+  getInner: (id: number) => LookupEntry,
+): EnumVar => {
+  const enumValue: StringRecord<EnumVar["value"][keyof EnumVar["value"]]> = {}
+  const enumDocs: StringRecord<string[]> = {}
+
+  def.value.forEach((x) => {
+    const key = x.name
+    enumDocs[key] = x.docs
+
+    if (x.fields.length === 0) {
+      enumValue[key] = { ..._void, idx: x.index }
+      return
+    }
+
+    if (x.fields.length === 1 && !x.fields[0].name) {
+      enumValue[key] = {
+        type: "lookupEntry",
+        value: getInner(x.fields[0].type),
+        idx: x.index,
+      }
+      return
+    }
+
+    enumValue[key] = { ...getComplexVar(x.fields, getInner), idx: x.index }
+  })
+
+  return {
+    type: "enum",
+    value: enumValue,
+    innerDocs: enumDocs,
+  }
 }
