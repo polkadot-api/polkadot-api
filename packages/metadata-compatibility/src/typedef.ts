@@ -195,7 +195,7 @@ export function mapLookupToTypedef(
                 key,
                 {
                   type: "inline",
-                  value: mapLookupToTypedef(removeNameTuple(params)),
+                  value: mapLookupToTypedef(removeNameTuple(params), resolve),
                 },
               ]
 

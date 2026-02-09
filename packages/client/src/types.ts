@@ -78,9 +78,7 @@ export type ViewFnApi<A extends Record<string, Record<string, any>>> = {
 
 export type TxApi<A extends Record<string, Record<string, any>>, Ext, Asset> = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? TxEntry<A[K][KK], K & string, KK & string, Ext, Asset>
-      : TxEntry<any, K & string, KK & string, Ext, Asset>
+    [KK in keyof A[K]]: TxEntry<A[K][KK], K & string, KK & string, Ext, Asset>
   }
 }
 

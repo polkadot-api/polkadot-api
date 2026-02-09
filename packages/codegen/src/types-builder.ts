@@ -237,6 +237,24 @@ export const getTypesBuilder = (
         return buildTypeDefinition(innerLookup.value.id)
       } else if (innerLookup.type === "void") {
         return "undefined"
+      } else if (type === "calls") {
+        if (innerLookup.type !== "struct") {
+          console.log(innerLookup)
+          throw new Error("Unexpected innerLookup")
+        }
+        return `[${Object.entries(innerLookup.value)
+          .map(([key, value]) => {
+            const def = buildDefinition(value.id)
+            const variable = declarations.variables.get(
+              getChecksum(value.id),
+            )?.name
+            if (variable) {
+              typeFileImports.add(variable)
+            }
+            const sanitisedKey = reservedJS.includes(key) ? `${key}_` : key
+            return `${sanitisedKey}: ${variable ? `Anonymize<${variable}>` : def.code}`
+          })
+          .join(", ")}]`
       } else {
         const result = declarations.variables.get(
           getChecksum(innerLookup),
@@ -270,6 +288,36 @@ export const getTypesBuilder = (
     getClientFileImports: () => Array.from(clientFileImports),
   }
 }
+
+const reservedJS = [
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "enum",
+  "export",
+  "extends",
+  "finally",
+  "for",
+  "if",
+  "in",
+  "instanceof",
+  "return",
+  "super",
+  "switch",
+  "throw",
+  "try",
+  "var",
+  "while",
+  "with",
+]
 
 export const getDocsTypesBuilder = (
   getLookupEntryDef: MetadataLookup,

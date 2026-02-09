@@ -104,14 +104,12 @@ export async function generate(opts: GenerateOptions) {
   const clientPath = opts.clientLibrary ?? "polkadot-api"
 
   const descriptorSrcDir = join(descriptorsDir, "src")
-  console.log("here we go!")
   const hash = await outputCodegen(
     chains,
     descriptorSrcDir,
     clientPath,
     whitelist,
   )
-  console.log("hell yeah")
 
   if (config.ink || config.sol) {
     outputContractCodegen(config, descriptorSrcDir)
