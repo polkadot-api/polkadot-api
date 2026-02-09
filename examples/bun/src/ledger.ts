@@ -47,11 +47,11 @@ const signer = await ledgerSigner.getPolkadotSigner(
   },
   0,
 )
-api.tx.Balances.transfer_keep_alive({
-  dest: MultiAddress.Id(dest),
+api.tx.Balances.transfer_keep_alive(
+  MultiAddress.Id(dest),
   // 1 WND -> 12 decimals
-  value: 10n ** 12n,
-})
+  10n ** 12n,
+)
   .signSubmitAndWatch(signer)
   .subscribe({
     next(value) {

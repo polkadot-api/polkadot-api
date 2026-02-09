@@ -139,9 +139,9 @@ describe("E2E", async () => {
 
   it.concurrent("creates Bare transactions", async () => {
     const content = "Foo bar baz"
-    const bare = await api.tx.System.remark({
-      remark: Binary.fromText(content),
-    }).getBareTx()
+    const bare = await api.tx.System.remark(
+      Binary.fromText(content),
+    ).getBareTx()
 
     const extDec = getExtrinsicDecoder(
       await client.getMetadata((await client.getFinalizedBlock()).hash),
@@ -196,9 +196,7 @@ describe("E2E", async () => {
   })
 
   it.concurrent("runtime call with extrinsic as input", async () => {
-    const tx = api.tx.System.remark({
-      remark: Binary.fromText("hello world!"),
-    })
+    const tx = api.tx.System.remark(Binary.fromText("hello world!"))
     const binaryExtrinsic = Binary.fromOpaque(
       await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
     )
@@ -237,16 +235,17 @@ describe("E2E", async () => {
 
   it.concurrent("throws on invalid custom signed-extensions", async () => {
     await expect(async () =>
-      api.tx.System.remark_with_event({
-        remark: Binary.fromText("test"),
-      }).sign(unusedSigner, {
-        customSignedExtensions: {
-          CheckNonce: {
-            value: "patata",
-            additionalSigned: "blah",
+      api.tx.System.remark_with_event(Binary.fromText("test")).sign(
+        unusedSigner,
+        {
+          customSignedExtensions: {
+            CheckNonce: {
+              value: "patata",
+              additionalSigned: "blah",
+            },
           },
         },
-      }),
+      ),
     ).rejects.toThrowError()
   })
 
@@ -265,9 +264,9 @@ describe("E2E", async () => {
         filter((balance) => balance >= ED * 2n),
       ),
     )
-    await api.tx.System.remark_with_event({
-      remark: Binary.fromText("NEW ACCOUNT"),
-    }).signAndSubmit(unusedSigner)
+    await api.tx.System.remark_with_event(
+      Binary.fromText("NEW ACCOUNT"),
+    ).signAndSubmit(unusedSigner)
 
     const [previousNonce, currentNonce] = await Promise.all([
       previousNonceProm,
@@ -282,7 +281,7 @@ describe("E2E", async () => {
   it.concurrent("invalid transaction", async () => {
     const fake = fakeSigner(accounts.alice.sr25519.publicKey)
     const err = await lastValueFrom(
-      api.tx.System.remark({ remark: Binary.fromText("TEST") })
+      api.tx.System.remark(Binary.fromText("TEST"))
         .signSubmitAndWatch(fake)
         .pipe(catchError((err) => of(err))),
     )
@@ -320,14 +319,12 @@ describe("E2E", async () => {
 
     const calls = targets.map(
       (to) =>
-        api.tx.Balances.transfer_allow_death({
-          dest: MultiAddress.Id(to),
-          value: amount,
-        }).decodedCall,
+        api.tx.Balances.transfer_allow_death(MultiAddress.Id(to), amount)
+          .decodedCall,
     )
 
-    const aliceTransfer = api.tx.Utility.batch_all({ calls: calls.slice(0, 2) })
-    const bobTransfer = api.tx.Utility.batch_all({ calls: calls.slice(2) })
+    const aliceTransfer = api.tx.Utility.batch_all(calls.slice(0, 2))
+    const bobTransfer = api.tx.Utility.batch_all(calls.slice(2))
 
     const [aliceEstimatedFee, bobEstimatedFee] = await Promise.all(
       [aliceTransfer, bobTransfer].map((call, idx) =>
@@ -411,10 +408,10 @@ describe("E2E", async () => {
 
       await Promise.all(
         [alice, bob].map((from, idx) =>
-          api.tx.Balances.transfer_allow_death({
-            dest: MultiAddress.Id(to[idx]),
-            value: ED,
-          }).signAndSubmit(from, {
+          api.tx.Balances.transfer_allow_death(
+            MultiAddress.Id(to[idx]),
+            ED,
+          ).signAndSubmit(from, {
             mortality: { mortal: true, period: 64 },
             tip: 5n,
           }),
@@ -438,10 +435,10 @@ describe("E2E", async () => {
     const target = AccountId().dec(randomBytes(32))
 
     const alice = accounts["alice"]["sr25519"]
-    const transfer = api.tx.Balances.transfer_allow_death({
-      dest: MultiAddress.Id(target),
-      value: amount,
-    })
+    const transfer = api.tx.Balances.transfer_allow_death(
+      MultiAddress.Id(target),
+      amount,
+    )
 
     const targetPreFreeBalance = await api.query.System.Account.getValue(
       target,
@@ -476,10 +473,10 @@ describe("E2E", async () => {
       api.query.System.Account.getValue(bobAddress).then((x) => x.data.free),
     ])
 
-    const transsferTx = api.tx.Balances.transfer_allow_death({
-      dest: MultiAddress.Id(bobAddress),
-      value: ED,
-    })
+    const transsferTx = api.tx.Balances.transfer_allow_death(
+      MultiAddress.Id(bobAddress),
+      ED,
+    )
 
     const N_PARALLEL_TRANSACTIONS = 4
     const mortalities: Array<
@@ -526,10 +523,10 @@ describe("E2E", async () => {
       bobAddress,
     ).then((x) => x.data.free)
 
-    const transsferTx = api.tx.Balances.transfer_allow_death({
-      dest: MultiAddress.Id(bobAddress),
-      value: ED,
-    })
+    const transsferTx = api.tx.Balances.transfer_allow_death(
+      MultiAddress.Id(bobAddress),
+      ED,
+    )
 
     let nBroadcasted = 0
     let nError = 0

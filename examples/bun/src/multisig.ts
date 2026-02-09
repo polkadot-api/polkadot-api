@@ -42,9 +42,7 @@ const multisigSigner = getMultisigSigner(
 
 client.finalizedBlock$.pipe(take(1)).subscribe(() => console.log("connected"))
 
-const tx = api.tx.System.remark({
-  remark: Binary.fromText("We are very good friends!"),
-})
+const tx = api.tx.System.remark(Binary.fromText("We are very good friends!"))
 
 tx.signSubmitAndWatch(multisigSigner).subscribe({
   next(value) {
