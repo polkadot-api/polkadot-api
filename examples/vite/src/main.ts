@@ -56,10 +56,10 @@ function transfer(
   billy: InjectedPolkadotAccount,
   amount: bigint,
 ) {
-  testApi.tx.Balances.transfer_keep_alive({
-    dest: MultiAddress.Id(billy.address),
-    value: amount,
-  })
+  testApi.tx.Balances.transfer_keep_alive(
+    MultiAddress.Id(billy.address),
+    amount,
+  )
     .signSubmitAndWatch(alexa.polkadotSigner)
     .subscribe({
       next: (event) => {

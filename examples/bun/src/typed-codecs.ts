@@ -4,7 +4,7 @@ import { toHex } from "polkadot-api/utils"
 
 const dotCodecs = await getTypedCodecs(wnd)
 
-const encoded = dotCodecs.tx.XcmPallet.execute.inner.message.inner.V4.enc([
+const encoded = dotCodecs.tx.XcmPallet.execute.inner[0].inner.V4.enc([
   XcmV4Instruction.Trap(30n),
 ])
 

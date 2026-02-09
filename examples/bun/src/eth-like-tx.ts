@@ -31,11 +31,11 @@ const signer = getEvmPolkadotSigner(yourSeedPhrase)
 const client = createWsClient("wss://moonbase-rpc.dwellir.com")
 const api = client.getTypedApi(myth)
 
-const tx = api.tx.System.remark({
-  remark: Binary.fromText(
+const tx = api.tx.System.remark(
+  Binary.fromText(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas laoreet velit eu sollicitudin scelerisque. Quisque non bibendum odio. Donec vehicula tortor eget ornare tincidunt. Nulla hendrerit, risus tempor accumsan placerat, dui justo vestibulum augue, ut euismod nibh sem ut arcu viverra fusce.",
   ),
-})
+)
 
 console.log(await tx.getEstimatedFees(signer.publicKey))
 tx.signSubmitAndWatch(signer).subscribe(console.log, console.error)

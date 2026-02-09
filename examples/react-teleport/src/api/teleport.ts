@@ -36,25 +36,25 @@ const getNativeAsset = (amount: bigint, parents: 1 | 0) =>
   ])
 
 export const teleportToParaChain = (address: SS58String, amount: bigint) =>
-  relayChainApi.tx.XcmPallet.limited_teleport_assets({
-    dest: Enum("V3", {
+  relayChainApi.tx.XcmPallet.limited_teleport_assets(
+    Enum("V3", {
       parents: 0,
       interior: XcmV3Junctions.X1(XcmV3Junction.Parachain(PARACHAIN_ID)),
     }),
-    beneficiary: getBeneficiary(address),
-    assets: getNativeAsset(amount, 0),
-    fee_asset_item: 0,
-    weight_limit: XcmV3WeightLimit.Unlimited(),
-  })
+    getBeneficiary(address),
+    getNativeAsset(amount, 0),
+    0,
+    XcmV3WeightLimit.Unlimited(),
+  )
 
 export const teleportToRelayChain = (address: SS58String, amount: bigint) =>
-  paraChainApi.tx.PolkadotXcm.limited_teleport_assets({
-    dest: Enum("V3", {
+  paraChainApi.tx.PolkadotXcm.limited_teleport_assets(
+    Enum("V3", {
       parents: 1,
       interior: XcmV3Junctions.Here(),
     }),
-    beneficiary: getBeneficiary(address),
-    assets: getNativeAsset(amount, 1),
-    fee_asset_item: 0,
-    weight_limit: XcmV3WeightLimit.Unlimited(),
-  })
+    getBeneficiary(address),
+    getNativeAsset(amount, 1),
+    0,
+    XcmV3WeightLimit.Unlimited(),
+  )

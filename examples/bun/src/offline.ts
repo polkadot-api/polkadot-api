@@ -22,10 +22,10 @@ const api = await getOfflineApi(wnd)
 
 // create the transaction sending Bob some assets
 const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
-const transfer = api.tx.Balances.transfer_allow_death({
-  dest: MultiAddress.Id(BOB),
-  value: 12345n,
-})
+const transfer = api.tx.Balances.transfer_allow_death(
+  MultiAddress.Id(BOB),
+  12345n,
+)
 
 // read some constant values
 console.log(api.constants.Staking.HistoryDepth)

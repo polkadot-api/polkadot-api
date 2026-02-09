@@ -11,7 +11,7 @@ import { getSignExtensionsCreator } from "./tx/signed-extensions"
 import { OfflineApi } from "./types"
 
 const createOfflineTxEntry = <
-  Arg extends {} | undefined,
+  Arg extends any[],
   Pallet extends string,
   Name extends string,
   Asset extends PlainDescriptor<any>,
@@ -31,7 +31,7 @@ const createOfflineTxEntry = <
   const { location, codec } = codecs
   const locationBytes = new Uint8Array(location)
 
-  return (arg: Arg) => {
+  return (...arg: Arg) => {
     const encodedData = mergeUint8([locationBytes, codec.enc(arg)])
 
     return {

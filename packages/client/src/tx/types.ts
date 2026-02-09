@@ -383,11 +383,11 @@ export type TxEntry<
 }
 
 export type OfflineTxEntry<
-  Arg extends {} | undefined,
+  Arg extends any[],
   Pallet extends string,
   Name extends string,
   Asset,
-> = (input: Arg) => {
+> = (...input: Arg) => {
   /**
    * Pack the transaction, sends it to the signer, and return the signature
    * asynchronously. If the signer fails (or the user cancels the signature)
