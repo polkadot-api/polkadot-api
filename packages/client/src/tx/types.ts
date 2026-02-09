@@ -274,7 +274,7 @@ export type PaymentInfo = {
 }
 
 export type InnerTransaction<
-  Arg extends {} | undefined,
+  Arg extends any[],
   Pallet extends string,
   Name extends string,
   Asset,
@@ -353,7 +353,7 @@ export type InnerTransaction<
 }
 
 export type Transaction<
-  Arg extends {} | undefined = any,
+  Arg extends any[] = any[],
   Pallet extends string = string,
   Name extends string = string,
   Asset = any,
@@ -366,7 +366,7 @@ export type Extensions<Ext> =
     : Record<string, CustomSignedExtensionValues>
 
 export type TxEntry<
-  Arg extends {} | undefined,
+  Arg extends any[],
   Pallet extends string,
   Name extends string,
   Ext,
@@ -379,9 +379,7 @@ export type TxEntry<
    * @param args  All parameters required by the transaction.
    * @returns Transaction object.
    */
-  (
-    ...args: Arg extends undefined ? [] : [data: Arg]
-  ): Transaction<Arg, Pallet, Name, Asset, Extensions<Ext>>
+  (...args: Arg): Transaction<Arg, Pallet, Name, Asset, Extensions<Ext>>
 }
 
 export type OfflineTxEntry<

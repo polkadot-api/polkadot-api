@@ -67,7 +67,7 @@ const [, queryInfoDecFallback] = Struct({
 })
 
 export const createTxEntry = <
-  Arg extends {} | undefined,
+  Arg extends any[],
   Pallet extends string,
   Name extends string,
   Asset extends PlainDescriptor<any>,
@@ -134,7 +134,7 @@ export const createTxEntry = <
           }),
         )
 
-  return ((arg?: Arg): Transaction<Arg, Pallet, Name, Asset, Ext> => {
+  return ((...arg: Arg): Transaction<Arg, Pallet, Name, Asset, Ext> => {
     const sign$ = (
       from: PolkadotSigner,
       { ..._options }: Omit<TxOptions<{}, Ext>, "at">,

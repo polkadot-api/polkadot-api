@@ -119,6 +119,14 @@ export const toBinary = (base64: string) => {
   return bytes;
 }`
 
+  const typesFileContent = generateTypes(
+    declarations,
+    paths,
+    new Set(chainFiles.map((x) => x.commonTypeImports).flat()),
+  )
+
+  const publicTypes = getPublicTypes(declarations.variables)
+
   return {
     commonFileContent,
     descriptorsFileContent,
@@ -127,12 +135,8 @@ export const toBinary = (base64: string) => {
       content: file.descriptorTypes,
       exports: file.exports,
     })),
-    typesFileContent: generateTypes(
-      declarations,
-      paths,
-      new Set(chainFiles.map((x) => x.commonTypeImports).flat()),
-    ),
-    publicTypes: getPublicTypes(declarations.variables),
+    typesFileContent,
+    publicTypes,
   }
 }
 

@@ -31,10 +31,10 @@ const api = client.getTypedApi(wnd)
 
 // create the transaction sending Bob some assets
 const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
-const transfer = api.tx.Balances.transfer_allow_death({
-  dest: MultiAddress.Id(BOB),
-  value: 12345n,
-})
+const transfer = api.tx.Balances.transfer_allow_death(
+  MultiAddress.Id(BOB),
+  12345n,
+)
 
 // sign and submit the transaction while looking at the
 // different events that will be emitted
