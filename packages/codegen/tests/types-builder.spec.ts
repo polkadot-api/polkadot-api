@@ -87,8 +87,8 @@ describe("types-builder", () => {
 
   describe("buildCall", () => {
     for (const [pallet, entry, expected] of [
-      ["System", "authorize_upgrade", "Anonymize<Ib51vk42m1po4n>"],
-      ["Society", "resign_candidacy", "undefined"],
+      ["System", "authorize_upgrade", "Anonymize<I8pmpa1ov17q96>"],
+      ["Society", "resign_candidacy", "Anonymize<Icqii68r3dqqnp>"],
     ]) {
       it(`generates ${expected} for ${pallet}::${entry}`, () => {
         const typesBuilder = getBuilder()
@@ -219,12 +219,12 @@ describe("docs-types-builder", () => {
       [
         "XcmPallet",
         "send",
-        '{"dest": XcmVersionedLocation, "message": XcmVersionedXcm}',
+        "[dest: XcmVersionedLocation, message: XcmVersionedXcm]",
       ],
       [
         "Multisig",
         "as_multi_threshold_1",
-        '{"other_signatories": Array<SS58String>, "call": TxCallData}',
+        "[other_signatories: Array<SS58String>, call: TxCallData]",
       ],
     ]) {
       it(`generates expected payload for ${pallet}::${entry}`, () => {
@@ -316,7 +316,7 @@ describe("docs-types-builder", () => {
       // failure would look like this:
       // `'{"other_signatories": SS58String, "call": __Circular...`
       expect(result).toEqual(
-        '{"other_signatories": Array<SS58String>, "call": TxCallData}',
+        "[other_signatories: Array<SS58String>, call: TxCallData]",
       )
     })
   })

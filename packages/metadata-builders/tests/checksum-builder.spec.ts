@@ -522,7 +522,8 @@ const lookup: V14Lookup = [
     value: { tag: "u64", value: undefined },
   }),
 ]
-const metadataLookup = () => getLookupFn({ lookup, extrinsic: {} } as any)
+const metadataLookup = () =>
+  getLookupFn({ lookup, extrinsic: {}, pallets: [] } as any)
 
 const createCompositeEntry = <
   T extends Partial<{

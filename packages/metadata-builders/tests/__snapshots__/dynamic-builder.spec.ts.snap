@@ -1,46 +1,49 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`getDynamicBuilder > batched call 1`] = `
-{
-  "calls": [
+[
+  [
     {
       "type": "Balances",
       "value": {
         "type": "transfer",
-        "value": {
-          "dest": {
+        "value": [
+          {
             "type": "Id",
             "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
           },
-          "value": 4000000000000n,
-        },
+          4000000000000n,
+        ],
       },
     },
     {
       "type": "Staking",
       "value": {
         "type": "nominate",
-        "value": {
-          "targets": [
+        "value": [
+          [
             {
               "type": "Id",
               "value": "HZZ7X3nzKuYpdrT7wSDBb8HqB7cc8z77C8oVi2MACzfAhh4",
             },
           ],
-        },
+        ],
       },
     },
   ],
-}
+]
 `;
 
 exports[`getDynamicBuilder > felloship referenda submit 1`] = `
-{
-  "enactment_moment": {
-    "type": "After",
-    "value": 1,
+[
+  {
+    "type": "Origins",
+    "value": {
+      "type": "Fellows",
+      "value": undefined,
+    },
   },
-  "proposal": {
+  {
     "type": "Inline",
     "value": Uint8Array [
       0,
@@ -131,12 +134,9 @@ exports[`getDynamicBuilder > felloship referenda submit 1`] = `
       41,
     ],
   },
-  "proposal_origin": {
-    "type": "Origins",
-    "value": {
-      "type": "Fellows",
-      "value": undefined,
-    },
+  {
+    "type": "After",
+    "value": 1,
   },
-}
+]
 `;
