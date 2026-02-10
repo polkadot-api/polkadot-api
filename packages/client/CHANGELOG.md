@@ -20,6 +20,7 @@
 ### Changed
 
 - TypedApi: constants can now be queried with standard `PullOptions`.
+- BREAKING: Transactions now take arguments instead of an object with parameters.
 - BREAKING: `createClient` consumes the new `JsonRpcProvider` v1.
 - BREAKING: When creating transactions the optional `at` value only accepts specific block-hashes.
 - BREAKING: `getBody` and `getHeader` only accept block-hashes.

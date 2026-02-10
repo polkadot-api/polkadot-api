@@ -5,6 +5,7 @@
 ### Changed
 
 - Compatibility check for binaries uses `HexString` for fixed-size and `Uint8Array` for variable-sized
+- Support `namedTuple`s.
 
 ## Unreleased
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## V2
+
+### Changed
+
+- Make call enums take a `namedTuple` instead of a `struct` as parameters.
+
 ## Unreleased
 
 ## 0.13.1 to 0.13.9 - 2026-01-22
