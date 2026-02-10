@@ -80,7 +80,18 @@ const getCompatibilityHelper = <K extends OpType>(
     const isValueCompatible =
       kind === OpType.Storage
         ? (value: any[]) => _isCompat(value.length === 1 ? value[0] : value)
-        : _isCompat
+        : kind === OpType.Tx
+          ? (value: any[]) => {
+              if (args.type !== "typedef" || args.value.type !== "struct") {
+                throw new Error("Unexpected inner type")
+              }
+              return _isCompat(
+                Object.fromEntries(
+                  args.value.value.map(([key], i) => [key, value[i]]),
+                ),
+              )
+            }
+          : _isCompat
 
     if (!user?.entry) {
       const level = CompatibilityLevel.Partial

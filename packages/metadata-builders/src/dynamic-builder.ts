@@ -147,9 +147,25 @@ export const getDynamicBuilder = (getLookupEntryDef: MetadataLookup) => {
       if (lookup.type !== "enum") throw null
       const entry = lookup.value[name]
 
+      const location: [number, number] = [palletEntry.index, entry.idx]
+      const innerType = lookup.value[name]
+      if (type === "calls") {
+        if (innerType.type !== "struct")
+          throw new Error("Unexpected innerLookup")
+        return {
+          location,
+          codec: buildEnumEntry({
+            ...innerType,
+            type: "tuple",
+            value: Object.values(innerType.value),
+            innerDocs: [],
+          }),
+        }
+      }
+
       return {
-        location: [palletEntry.index, entry.idx],
-        codec: buildEnumEntry(lookup.value[name]),
+        location,
+        codec: buildEnumEntry(innerType),
       }
     }
 
