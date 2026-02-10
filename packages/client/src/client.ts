@@ -133,7 +133,7 @@ const createApi = <D extends ChainDefinition>(
               broadcast$,
               getClientCompat("tx", pallet, name),
               getIsAsssetCompat,
-            )(args)
+            )(...Object.values(args))
           } catch {
             throw new Error("createTx: invalid call data")
           }
