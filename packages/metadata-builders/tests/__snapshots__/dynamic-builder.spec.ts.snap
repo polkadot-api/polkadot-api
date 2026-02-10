@@ -1,8 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`getDynamicBuilder > batched call 1`] = `
-{
-  "calls": [
+[
+  [
     {
       "type": "Balances",
       "value": {
@@ -31,16 +31,19 @@ exports[`getDynamicBuilder > batched call 1`] = `
       },
     },
   ],
-}
+]
 `;
 
 exports[`getDynamicBuilder > felloship referenda submit 1`] = `
-{
-  "enactment_moment": {
-    "type": "After",
-    "value": 1,
+[
+  {
+    "type": "Origins",
+    "value": {
+      "type": "Fellows",
+      "value": undefined,
+    },
   },
-  "proposal": {
+  {
     "type": "Inline",
     "value": Uint8Array [
       0,
@@ -131,12 +134,9 @@ exports[`getDynamicBuilder > felloship referenda submit 1`] = `
       41,
     ],
   },
-  "proposal_origin": {
-    "type": "Origins",
-    "value": {
-      "type": "Fellows",
-      "value": undefined,
-    },
+  {
+    "type": "After",
+    "value": 1,
   },
-}
+]
 `;

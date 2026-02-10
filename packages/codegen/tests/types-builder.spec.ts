@@ -87,7 +87,7 @@ describe("types-builder", () => {
 
   describe("buildCall", () => {
     for (const [pallet, entry, expected] of [
-      ["System", "authorize_upgrade", "Anonymize<Ib51vk42m1po4n>"],
+      ["System", "authorize_upgrade", "[code_hash: SizedHex<32>]"],
       ["Society", "resign_candidacy", "undefined"],
     ]) {
       it(`generates ${expected} for ${pallet}::${entry}`, () => {
