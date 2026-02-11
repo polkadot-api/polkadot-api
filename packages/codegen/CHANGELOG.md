@@ -6,6 +6,7 @@
 
 - Updated generated docs to match v2
 - Codegen exposes and expects `Vec<u8>` as `Uint8Array` instead of `Binary`.
+- Change tx call signature to named tuple
 
 ## Unreleased
 

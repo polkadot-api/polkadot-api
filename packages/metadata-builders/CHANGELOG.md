@@ -1,5 +1,11 @@
 # Changelog
 
+## V2
+
+### Changed
+
+- Dynamic builder's `buildCall` now takes tuples instead of structs for arguments.
+
 ## Unreleased
 
 ## 0.13.1 to 0.13.9 - 2026-01-22
