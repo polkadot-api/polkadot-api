@@ -317,10 +317,12 @@ describe("E2E", async () => {
       ),
     )
 
-    const calls = targets.map(
-      (to) =>
-        api.tx.Balances.transfer_allow_death(MultiAddress.Id(to), amount)
-          .decodedCall,
+    const calls = await Promise.all(
+      targets.map(
+        (to) =>
+          api.tx.Balances.transfer_allow_death(MultiAddress.Id(to), amount)
+            .decodedCall,
+      ),
     )
 
     const aliceTransfer = api.tx.Utility.batch_all(calls.slice(0, 2))

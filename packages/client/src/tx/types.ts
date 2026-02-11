@@ -349,7 +349,7 @@ export type InnerTransaction<
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
    */
-  decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
+  decodedCall: Promise<Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>>
 }
 
 export type Transaction<

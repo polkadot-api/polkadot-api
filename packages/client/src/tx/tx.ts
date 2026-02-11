@@ -238,13 +238,36 @@ export const createTxEntry = <
       _options?: any,
     ) => (await getPaymentInfo(from, _options)).partial_fee
 
+    const decodedCall$ = chainHead.getRuntimeContext$(null).pipe(
+      map((ctx) => {
+        const metaPallet = ctx.lookup.metadata.pallets.find(
+          (p) => p.name === pallet,
+        )
+        const palletCall = metaPallet?.calls
+          ? ctx.lookup(metaPallet.calls.type)
+          : null
+        if (palletCall?.type !== "enum" || !palletCall.value[name])
+          throw new Error("Tx not found in runtime")
+
+        const entry = palletCall.value[name]
+        if (entry.type !== "struct") throw new Error("Unexpected inner type")
+
+        return {
+          type: pallet,
+          value: Enum(
+            name,
+            Object.fromEntries(
+              Object.keys(entry.value).map((key, i) => [key, arg[i]]),
+            ),
+          ),
+        }
+      }),
+    )
+
     return {
       getPaymentInfo,
       getEstimatedFees,
-      decodedCall: {
-        type: pallet,
-        value: Enum(name, arg as any),
-      },
+      decodedCall: firstValueFrom(decodedCall$),
       getEncodedData,
       getBareTx: () =>
         firstValueFrom(getCallData$(arg, null).pipe(map(({ bare }) => bare))),
