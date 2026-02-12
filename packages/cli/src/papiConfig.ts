@@ -1,5 +1,5 @@
 import fsExists from "fs.promises.exists"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile, writeFile, rename } from "node:fs/promises"
 import { join } from "node:path"
 import { existsSync } from "node:fs"
 
@@ -31,7 +31,7 @@ export type EntryConfig =
 type Entries = Record<string, EntryConfig>
 export interface PapiConfigOptions {
   noDescriptorsPackage?: boolean
-  whitelist?: string
+  whitelist?: string // Deprecated
 }
 export type PapiConfig = {
   version: 0
@@ -90,20 +90,44 @@ async function readFromFile(file: string) {
   const fileExists = await fsExists(file)
   if (!fileExists) return null
 
-  return migrate(JSON.parse(await readFile(file, "utf8")), file)
+  const content = JSON.parse(await readFile(file, "utf8"))
+  const config = migrateOldConfig(content)
+
+  const migrations = [migrateOldChains, migrateWhitelistPath]
+  let migrationMsgs: string[] = []
+  for (const migration of migrations) {
+    migrationMsgs = [...migrationMsgs, ...(await migration(config))]
+  }
+
+  if (migrationMsgs.length) {
+    try {
+      await writeToFile(file, config as PapiConfig)
+      migrationMsgs.forEach((msg) => console.warn(msg))
+    } catch {
+      console.warn("Unable to migrate polkadot-api.json")
+    }
+  }
+  return config
 }
 
 const MIGRATION_CHAINS: Record<string, string> = {
   ksmcc3: "kusama",
   westend2: "westend",
 }
-async function migrate(content: Entries | PapiConfig, file: string) {
-  if (typeof content.version !== "number") {
-    content = { ...defaultConfig, entries: content as Entries }
+
+function migrateOldConfig(content: Entries | PapiConfig): PapiConfig {
+  if (typeof content.version === "number") {
+    return content as any
   }
+  return {
+    ...defaultConfig,
+    entries: content as Entries,
+  }
+}
+function migrateOldChains(config: PapiConfig) {
   const migrationMsgs: string[] = []
-  ;(content as PapiConfig).entries = Object.fromEntries(
-    Object.entries((content as PapiConfig).entries).flatMap(([k, entry]) => {
+  config.entries = Object.fromEntries(
+    Object.entries(config.entries).flatMap(([k, entry]) => {
       if ("chain" in entry) {
         if (entry.chain.startsWith("rococo_v2_2")) {
           migrationMsgs.push(
@@ -123,15 +147,18 @@ async function migrate(content: Entries | PapiConfig, file: string) {
       return [[k, entry]]
     }),
   )
-  if (migrationMsgs.length) {
-    try {
-      await writeToFile(file, content as PapiConfig)
-      migrationMsgs.forEach((msg) => console.warn(msg))
-    } catch {
-      console.warn("Unable to migrate polkadot-api.json")
-    }
+  return migrationMsgs
+}
+async function migrateWhitelistPath(config: PapiConfig) {
+  const whitelist = config.options?.whitelist
+  if (!whitelist) return []
+
+  delete config.options!.whitelist
+  if (whitelist === ".papi/whitelist.ts") {
+    return ["Removed redundant `whitelist` option from config file"]
   }
-  return content as PapiConfig
+  await rename(whitelist, ".papi/whitelist.ts")
+  return [`Moved whitelist file from ${whitelist} to .papi/whitelist.ts`]
 }
 
 async function writeToFile(file: string, config: PapiConfig) {
