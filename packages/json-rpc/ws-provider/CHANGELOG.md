@@ -1,6 +1,8 @@
 # Changelog
 
-## V2
+## Unreleased
+
+## 0.8.0 - 2026-02-12
 
 ### Changed
 
@@ -13,8 +15,6 @@
 
 - `middleware` option: it accepts any of the middlewares exposed from `@polkadot-api/ws-middleware`, or a custom one created from those (or not).
 - `logeger` option: it takes a strongly-typed logger callback.
-
-## Unreleased
 
 ## 0.7.5 - 2026-01-22
 

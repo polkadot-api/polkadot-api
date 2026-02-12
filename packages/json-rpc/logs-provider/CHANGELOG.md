@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-02-12
+
 ### Changed
 
 - BREAKING: The enhancer is now compliant with the new `JsonRpcProvider` interface.

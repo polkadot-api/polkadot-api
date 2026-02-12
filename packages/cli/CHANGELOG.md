@@ -1,6 +1,8 @@
 # Changelog
 
-## V2
+## Unreleased
+
+## 0.19.0 - 2026-02-12
 
 ### Changed
 
@@ -9,8 +11,6 @@
 ### Removed
 
 - Remove support for `package.json`-based config
-
-## Unreleased
 
 ## 0.18.1 - 2026-01-22
 

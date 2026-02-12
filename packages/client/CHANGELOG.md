@@ -1,6 +1,8 @@
 # Changelog
 
-## V2
+## Unreleased
+
+## 2.0.0 - 2026-02-12
 
 ### Added
 
@@ -58,8 +60,6 @@
 
 - **polkadot-api/utils**:
   - `jsonPrint` export
-
-## Unreleased
 
 ## 1.23.3 - 2026-01-22
 

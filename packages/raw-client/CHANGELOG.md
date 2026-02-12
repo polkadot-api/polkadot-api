@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-02-12
+
 ### Changed
 
 - BREAKING: it consumes the new `JsonRpcProvider` v1.

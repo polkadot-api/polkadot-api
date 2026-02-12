@@ -1,6 +1,8 @@
 # Changelog
 
-## V2
+## Unreleased
+
+## 0.18.0 - 2026-02-12
 
 ### Added
 
@@ -11,8 +13,6 @@
 - `body$` and `call$` return `Uint8Array` instead of HexString.
 - `broadcastTx$` takes a `Uint8Array` as a parameter instead of HexString.
 - `storage$` returns `Observable<{ block: BlockInfo, value: T }>` instead of `Observable<T>`
-
-## Unreleased
 
 ## 0.17.2 to 0.17.3 - 2026-01-22
 

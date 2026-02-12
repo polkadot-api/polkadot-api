@@ -1,6 +1,8 @@
 # Changelog
 
-## V2
+## Unreleased
+
+## 0.18.0 - 2026-02-12
 
 ### Changed
 
@@ -9,8 +11,6 @@
 ### Removed
 
 - `Bin` codec
-
-## Unreleased
 
 ## 0.17.0 - 2026-01-22
 

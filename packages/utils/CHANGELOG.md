@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-02-12
+
 ### Changed
 
 - `mergeUint8` now **only** takes an `Array<Uint8Array>`.

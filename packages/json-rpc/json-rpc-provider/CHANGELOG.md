@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-02-12
+
 ### Changed
 
 - BREAKING: `JsonRpcProvider` interface uses fully typed and parsed messages, rather than using `string`s.
