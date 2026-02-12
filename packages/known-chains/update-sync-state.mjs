@@ -1,5 +1,5 @@
 import { createClient } from "@polkadot-api/substrate-client"
-import { getWsProvider } from "@polkadot-api/ws-provider/node"
+import { getWsProvider } from "@polkadot-api/ws-provider"
 import { readFile, writeFile } from "node:fs/promises"
 
 const CHAINS = {
