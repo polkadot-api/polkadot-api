@@ -3,7 +3,7 @@ name: Publish Canary
 on:
   push:
     branches:
-      - v2
+      - main
   workflow_dispatch:
 
 permissions:
@@ -16,10 +16,10 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - "22"
+          - "24"
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v6
+      - uses: actions/cache@v5
         with:
           path: .turbo
           key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
@@ -27,9 +27,10 @@ jobs:
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v4
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
         run: pnpm install
@@ -52,44 +53,10 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - "22"
-        value:
-          [
-            cli,
-            client,
-            codegen,
-            docgen,
-            ink-contracts,
-            json-rpc/json-rpc-provider,
-            json-rpc/json-rpc-provider-proxy,
-            json-rpc/logs-provider,
-            json-rpc/sm-provider,
-            json-rpc/ws-middleware,
-            json-rpc/ws-provider,
-            known-chains,
-            merkleize-metadata,
-            metadata-builders,
-            metadata-compatibility,
-            compare-runtimes,
-            observable-client,
-            raw-client,
-            react-builder,
-            signers/signers-common,
-            signers/ledger-signer,
-            signers/pjs-signer,
-            signers/polkadot-signer,
-            signers/signer,
-            signers/meta-signers,
-            smoldot,
-            substrate-bindings,
-            substrate-client,
-            tx-utils,
-            utils,
-            view-builder,
-          ]
+          - "24"
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v6
+      - uses: actions/cache@v5
         with:
           path: .turbo
           key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
@@ -97,9 +64,10 @@ jobs:
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v4
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
         run: pnpm install
@@ -112,9 +80,7 @@ jobs:
         run: |
           bun run scripts/bump/prerelease.ts
       - name: Publish
-        working-directory: packages/${{ matrix.value }}
-        run: |
-          pnpm publish --no-git-checks --access=public --tag canary
+        run: pnpm -r publish --ignore-scripts --no-git-checks --access=public --tag canary
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"

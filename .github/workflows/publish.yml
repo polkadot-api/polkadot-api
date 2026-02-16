@@ -2,7 +2,8 @@ name: Publish
 
 on:
   release:
-    types: [published]
+    types:
+      - published
   workflow_dispatch:
 
 permissions:
@@ -15,7 +16,7 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - "22"
+          - "24"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
@@ -49,19 +50,23 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    strategy:
+      matrix:
+        node-version:
+          - "24"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
         with:
           path: .turbo
-          key: ${{ runner.os }}-22-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-22-turbo-
+            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v4
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
         with:
-          node-version: 22.x
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
@@ -69,7 +74,7 @@ jobs:
       - name: Build
         run: pnpm turbo build-core --cache-dir=.turbo
       - name: Publish
-        run: pnpm -r publish --no-git-checks --access=public --tag rc
+        run: pnpm -r publish --ignore-scripts --no-git-checks --access=public --tag rc
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
