@@ -39,8 +39,7 @@
     "build": "pnpm build-core",
     "test": "vitest",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "pnpm run build"
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
     "@polkadot-api/metadata-builders": "workspace:*",

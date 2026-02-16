@@ -80,7 +80,7 @@ jobs:
         run: |
           bun run scripts/bump/prerelease.ts
       - name: Publish
-        run: pnpm -r publish --ignore-scripts --no-git-checks --access=public --tag canary
+        run: pnpm -r publish --no-git-checks --access=public --tag canary
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
