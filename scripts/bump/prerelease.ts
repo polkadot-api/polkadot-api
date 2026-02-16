@@ -11,7 +11,10 @@ const commitHash = (await $`git rev-parse --short=7 HEAD`.quiet().text()).trim()
 Object.values(PACKAGES).forEach(async (pkgPath) => {
   const pkgJsonFile = Bun.file(`packages/${pkgPath}/package.json`)
   const pkgJson = await pkgJsonFile.text().then((v) => JSON.parse(v))
-  const nextMajor = parseInt(pkgJson.version.split(".")[0]) + 1
-  pkgJson.version = `${nextMajor}.0.0-canary.${commitHash}`
+  const [major, minor, patch] = (pkgJson.version as string)
+    .split(".")
+    .slice(0, 3)
+    .map((x) => parseInt(x)) // this works also with 2.0.0-rc.1 and things like that
+  pkgJson.version = `${major!}.${minor!}.${patch! + 1}-canary.${commitHash}`
   pkgJsonFile.write(JSON.stringify(pkgJson, null, 2) + "\n")
 })
