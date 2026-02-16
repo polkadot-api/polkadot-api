@@ -27,7 +27,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v4
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
@@ -97,7 +97,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v4
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
