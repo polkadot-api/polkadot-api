@@ -1447,7 +1447,7 @@ packages:
   '@polkadot-api/descriptors@file:examples/bun/.papi/descriptors':
     resolution: {directory: examples/bun/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:examples/ink/.papi/descriptors':
     resolution: {directory: examples/ink/.papi/descriptors, type: directory}
@@ -1457,22 +1457,22 @@ packages:
   '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors':
     resolution: {directory: examples/react-teleport/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:examples/vite/.papi/descriptors':
     resolution: {directory: examples/vite/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:integration-tests/chopsticks/.papi/descriptors':
     resolution: {directory: integration-tests/chopsticks/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:integration-tests/zombie-tests/.papi/descriptors':
     resolution: {directory: integration-tests/zombie-tests/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/json-rpc-provider-proxy@0.1.0':
     resolution: {integrity: sha512-8GSFE5+EF73MCuLQm8tjrbCqlgclcHBSRaswvXziJ0ZW7iw3UEMsKkkKvELayWyBuOPa2T5i1nj6gFOeIsqvrg==}
