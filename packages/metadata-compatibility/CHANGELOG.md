@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-02-12
+
+### Changed
+
+- Compatibility check for binaries uses `HexString` for fixed-size and `Uint8Array` for variable-sized
+
 ## 0.4.3 to 0.4.4 - 2026-01-22
 
 ### Fixed

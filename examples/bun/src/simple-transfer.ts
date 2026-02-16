@@ -7,7 +7,7 @@ import {
 import { getPolkadotSigner, withMetadataHash } from "polkadot-api/signer"
 import { createClient } from "polkadot-api"
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
-import { chainSpec } from "polkadot-api/chains/westend2"
+import { chainSpec } from "polkadot-api/chains/westend"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 
@@ -22,7 +22,9 @@ const alice = withMetadataHash(
 
 // create the client with smoldot
 const smoldot = start()
-const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+const client = createClient(
+  getSmProvider(() => smoldot.addChain({ chainSpec })),
+)
 
 // get the safely typed API
 const api = client.getTypedApi(wnd)

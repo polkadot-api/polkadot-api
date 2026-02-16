@@ -1,3 +1,4 @@
+import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   distinct,
@@ -11,9 +12,8 @@ import {
   take,
   takeUntil,
 } from "rxjs"
-import { PinnedBlocks } from "./streams"
-import { HexString, ResultPayload } from "@polkadot-api/substrate-bindings"
 import { BlockInfo } from "./chainHead"
+import { PinnedBlocks, SystemEvent } from "./streams"
 
 export type AnalyzedBlock = {
   hash: HexString
@@ -21,7 +21,7 @@ export type AnalyzedBlock = {
     | {
         type: true
         index: number
-        events: any
+        events: SystemEvent[]
       }
     | {
         type: false
@@ -32,12 +32,12 @@ export type AnalyzedBlock = {
 export const getTrackTx = (
   blocks$: Observable<PinnedBlocks> & { state: PinnedBlocks },
   newBlocks$: Observable<BlockInfo>,
-  getBody: (block: string) => Observable<string[]>, // Returns an observable that should emit just once and complete
+  getBody: (block: string) => Observable<Uint8Array[]>, // Returns an observable that should emit just once and complete
   getIsValid: (
     block: string,
-    tx: string,
+    tx: Uint8Array,
   ) => Observable<ResultPayload<any, any>>, // Returns an observable that should emit just once and complete
-  getEvents: (block: string) => Observable<any>, // Returns an observable that should emit just once and complete
+  getEvents: (block: string) => Observable<SystemEvent[]>, // Returns an observable that should emit just once and complete
   hodl: (block: string) => () => void,
 ) => {
   const heldBlocks = new Map<string, () => void>()
@@ -86,7 +86,7 @@ export const getTrackTx = (
 
   const analyzeBlock = (
     hash: string,
-    tx: string,
+    tx: Uint8Array,
     alreadyPresent: boolean,
   ): Observable<AnalyzedBlock> => {
     if (alreadyPresent)
@@ -95,7 +95,7 @@ export const getTrackTx = (
     const whilePresent = whileBlockActive(hash)
     return getBody(hash).pipe(
       mergeMap((txs) => {
-        const index = txs.indexOf(tx)
+        const index = txs.findIndex((t) => u8eq(t, tx))
         return index > -1
           ? whilePresent(getEvents(hash)).pipe(
               map((events) => ({
@@ -126,9 +126,9 @@ export const getTrackTx = (
   }
 
   const findInBranch = (
-    hash: string,
-    tx: string,
-    alreadyPresent: Set<string>,
+    hash: HexString,
+    tx: Uint8Array,
+    alreadyPresent: Set<HexString>,
   ): Observable<AnalyzedBlock> =>
     analyzeBlock(hash, tx, alreadyPresent.has(hash)).pipe(
       mergeMap((analyzed) => {
@@ -146,7 +146,7 @@ export const getTrackTx = (
       }),
     )
 
-  return (tx: string): Observable<AnalyzedBlock> =>
+  return (tx: Uint8Array): Observable<AnalyzedBlock> =>
     merge(
       hodl$,
       blocks$.pipe(
@@ -157,3 +157,6 @@ export const getTrackTx = (
       ),
     )
 }
+
+const u8eq = (a: Uint8Array, b: Uint8Array) =>
+  a.length === b.length && a.every((v, i) => b[i] === v)

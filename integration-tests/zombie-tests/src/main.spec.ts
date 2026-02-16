@@ -4,7 +4,6 @@ import {
   combineLatest,
   filter,
   firstValueFrom,
-  identity,
   lastValueFrom,
   map,
   mergeMap,
@@ -28,7 +27,7 @@ import {
   InvalidTxError,
 } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
-import { getWsProvider } from "polkadot-api/ws-provider"
+import { getWsProvider } from "polkadot-api/ws"
 import {
   createClient as createRawClient,
   JsonRpcProvider,
@@ -36,11 +35,10 @@ import {
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { fromHex } from "@polkadot-api/utils"
-import { withLogsRecorder } from "polkadot-api/logs-provider"
+import { fromHex, toHex } from "@polkadot-api/utils"
 import { appendFileSync } from "fs"
-import { withLegacy } from "@polkadot-api/legacy-provider"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { withLogs } from "./with-logs"
+import { getInnerLogs } from "./inner-logs"
 import { getExtrinsicDecoder } from "@polkadot-api/tx-utils"
 
 const fakeSignature = new Uint8Array(64)
@@ -52,40 +50,14 @@ const fakeSigner = (from: Uint8Array) =>
 // request fails immediately after starting zombienet.
 let { PROVIDER, VERSION } = process.env
 
-let enhancer: (input: JsonRpcProvider) => JsonRpcProvider = identity
-let appendSmLog:
-  | ((level: number, target: string, message: string) => void)
-  | undefined = undefined
+let outterIdx = 0
+let outterLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
+  withLogs(`./${VERSION}_${PROVIDER}_MAIN_OUT${outterIdx}_JSON_RPC`, input)
 
-if (VERSION) {
-  const jsonRpcFileName = `./${VERSION}_${PROVIDER}_JSON_RPC`
-  enhancer = (input) =>
-    withLogsRecorder(
-      (log) => appendFileSync(jsonRpcFileName, log + "\n"),
-      input,
-    )
-
-  const smoldotFileName = `./${VERSION}_${PROVIDER}_SMOLDOT`
-  appendSmLog = (level: number, target: string, message: string) => {
-    const msg = `${tickDate} (${level})${target}\n${message}\n`
-    if (level <= 3) console.log(msg)
-    appendFileSync(smoldotFileName, msg)
-  }
-}
-
-let tickDate = ""
-const setTickDate = () => {
-  tickDate = new Date().toISOString()
-  setTimeout(setTickDate, 0)
-}
-setTickDate()
-
-if (PROVIDER !== "sm" && PROVIDER !== "ws" && PROVIDER !== "ws-legacy")
+if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
 let ARCHIVE = false
-const rawClient = createRawClient(
-  enhancer(getWsProvider("ws://127.0.0.1:9934/")),
-)
+const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
 const getChainspec = async (count = 1): Promise<{}> => {
   try {
     return await rawClient.request<{}>("sync_state_genSyncSpec", [false])
@@ -109,36 +81,30 @@ describe("E2E", async () => {
   let client: PolkadotClient
   console.log("starting the client")
   if (PROVIDER === "sm") {
+    let tickDate = ""
+    const setTickDate = () => {
+      tickDate = new Date().toISOString()
+      setTimeout(setTickDate, 0)
+    }
+    setTickDate()
+    const smoldotFileName = `./${VERSION}_${PROVIDER}_SMOLDOT`
+    const appendSmLog = (level: number, target: string, message: string) => {
+      const msg = `${tickDate} (${level})${target}\n${message}\n`
+      if (level < 4) console.log(msg)
+      appendFileSync(smoldotFileName, msg)
+    }
     const smoldot = start({
       logCallback: appendSmLog,
-      maxLogLevel: appendSmLog ? 7 : 3,
+      maxLogLevel: 7,
     })
     client = createClient(
-      enhancer(getSmProvider(smoldot.addChain({ chainSpec }))),
+      outterLogs(getSmProvider(() => smoldot.addChain({ chainSpec }))),
     )
   } else {
-    const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
-    const compatEnhancer = PROVIDER === "ws" ? withPolkadotSdkCompat : identity
-    client = createClient(
-      enhancer(
-        compatEnhancer(
-          getWsProvider("ws://127.0.0.1:9934", {
-            innerEnhancer: (base) =>
-              legacyEnhancer(
-                withLogsRecorder(
-                  (log) =>
-                    appendFileSync(
-                      `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
-                      log + "\n",
-                    ),
-                  base,
-                ),
-              ),
-          }),
-        ),
-      ),
-      { getMetadata },
-    )
+    const wsProvider = getWsProvider("ws://127.0.0.1:9934", {
+      logger: getInnerLogs(),
+    })
+    client = createClient(outterLogs(wsProvider), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
       "rpc_methods",
       [],
@@ -167,15 +133,15 @@ describe("E2E", async () => {
     },
   )
 
-  console.log("waiting for compatibility token")
-  const token = await api.compatibilityToken
-  console.log("got the compatibility token")
+  console.log("waiting for static APIs")
+  const staticApis = await api.getStaticApis()
+  console.log("got the static APIs")
 
   it.concurrent("creates Bare transactions", async () => {
     const content = "Foo bar baz"
-    const bare = api.tx.System.remark({
+    const bare = await api.tx.System.remark({
       remark: Binary.fromText(content),
-    }).getBareTx(token)
+    }).getBareTx()
 
     const extDec = getExtrinsicDecoder(
       await client.getMetadata((await client.getFinalizedBlock()).hash),
@@ -185,17 +151,14 @@ describe("E2E", async () => {
     expect(decoded.type).toBe("bare")
     expect(decoded.call.type).toEqual("System")
     expect(decoded.call.value.type).toEqual("remark")
-    expect(decoded.call.value.value.remark.asText()).toEqual(content)
+    expect(Binary.toText(decoded.call.value.value.remark)).toEqual(content)
   })
 
   it.concurrent("unsafe API", async () => {
-    const unsafe = client.getUnsafeApi<typeof roc>()
-    expect(unsafe.runtimeToken).toBeDefined()
-    const unsTok = await unsafe.runtimeToken
+    const staticApi = await client.getUnsafeApi<typeof roc>().getStaticApis()
 
-    // let's check the token indeed works
-    expect(typeof unsafe.constants.Balances.ExistentialDeposit()).toBe("object")
-    expect(unsafe.constants.Balances.ExistentialDeposit(unsTok)).toEqual(ED)
+    expect(await api.constants.Balances.ExistentialDeposit()).toEqual(ED)
+    expect(staticApi.constants.Balances.ExistentialDeposit).toEqual(ED)
   })
 
   it.concurrent("reads from storage", async () => {
@@ -207,14 +170,21 @@ describe("E2E", async () => {
     expect(number).toEqual(finalized.number)
   })
 
+  it.concurrent("reads from a view function", async () => {
+    if (!staticApis.compat.view.VoterList.scores.isCompatible()) return
+
+    const [current, realScore] = await api.view.VoterList.scores(
+      "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
+    )
+    expect(current).toEqual(realScore)
+  })
+
   it.concurrent("queries opaque storage entries", async () => {
     // some old polkadot-sdk versions don't include this pallet
     // ensure that some version tested include it
     if (
-      !api.query.CoretimeAssignmentProvider.CoreDescriptors.isCompatible(
-        CompatibilityLevel.Partial,
-        token,
-      )
+      staticApis.compat.query.CoretimeAssignmentProvider.CoreDescriptors.value
+        .level === CompatibilityLevel.Incompatible
     ) {
       return
     }
@@ -229,14 +199,14 @@ describe("E2E", async () => {
     const tx = api.tx.System.remark({
       remark: Binary.fromText("hello world!"),
     })
-    const binaryExtrinsic = Binary.fromOpaqueHex(
+    const binaryExtrinsic = Binary.fromOpaque(
       await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
     )
 
     const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
       api.apis.TransactionPaymentApi.query_info(
         binaryExtrinsic,
-        binaryExtrinsic.asOpaqueBytes().length,
+        Binary.toOpaque(binaryExtrinsic).length,
       ),
       tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey),
     ])
@@ -245,21 +215,20 @@ describe("E2E", async () => {
   })
 
   it.concurrent("evaluates constant values", () => {
-    const ss58Prefix = api.constants.System.SS58Prefix(token)
+    const ss58Prefix = staticApis.constants.System.SS58Prefix
     expect(ss58Prefix).toEqual(42)
 
-    const ed = api.constants.Balances.ExistentialDeposit(token)
+    const ed = staticApis.constants.Balances.ExistentialDeposit
     expect(ed).toEqual(ED)
   })
 
-  it.concurrent("generates correct storage keys", () => {
-    expect(api.query.System.Account.getKey(token)).toEqual(
+  it.concurrent("generates correct storage keys", async () => {
+    expect(await api.query.System.Account.getKey()).toEqual(
       "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9",
     )
     expect(
-      api.query.System.Account.getKey(
+      await api.query.System.Account.getKey(
         "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
-        token,
       ),
     ).toEqual(
       "0x26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da91cdb29d91f7665b36dc5ec5903de32467628a5be63c4d3c8dbb96c2904b1a9682e02831a1af836c7efc808020b92fa63",
@@ -290,9 +259,9 @@ describe("E2E", async () => {
     await firstValueFrom(
       api.query.System.Account.watchValue(
         accountIdDec(unusedSigner.publicKey),
-        "best",
+        { at: "best" },
       ).pipe(
-        map((x) => x.data.free),
+        map((x) => x.value.data.free),
         filter((balance) => balance >= ED * 2n),
       ),
     )
@@ -369,8 +338,13 @@ describe("E2E", async () => {
     const [aliceActualFee, bobActualFee] = await Promise.all(
       [aliceTransfer, bobTransfer].map(async (call, idx) => {
         const result = await call.signAndSubmit(idx === 0 ? alice : bob)
-        const [{ actual_fee }] =
-          api.event.TransactionPayment.TransactionFeePaid.filter(result.events)
+        const [
+          {
+            payload: { actual_fee },
+          },
+        ] = api.event.TransactionPayment.TransactionFeePaid.filter(
+          result.events,
+        )
         return actual_fee
       }),
     )
@@ -399,9 +373,9 @@ describe("E2E", async () => {
     expect(bobPostNonce).toEqual(bobInitialNonce + 1)
 
     // txs from call data
-    const txCallData = aliceTransfer.getEncodedData(token)
-    const reEncodedTx = api.txFromCallData(txCallData, token)
-    expect(reEncodedTx.getEncodedData(token).asHex()).toBe(txCallData.asHex())
+    const txCallData = await aliceTransfer.getEncodedData()
+    const reEncodedTx = await api.txFromCallData(txCallData)
+    expect(toHex(await reEncodedTx.getEncodedData())).toBe(toHex(txCallData))
   })
 
   it.concurrent.each(["ecdsa", "ed25519"] satisfies Array<"ecdsa" | "ed25519">)(
@@ -416,7 +390,7 @@ describe("E2E", async () => {
           [alice, bob].map((from) =>
             api.query.System.Account.watchValue(
               accountIdDec(from.publicKey),
-            ).pipe(map((x) => x.data.free)),
+            ).pipe(map((x) => x.value.data.free)),
           ),
         ).pipe(
           filter((balances) => balances.every((balance) => balance >= ED * 2n)),
@@ -515,7 +489,7 @@ describe("E2E", async () => {
       { mortal: true, period: 25 },
       {
         mortal: true,
-        period: api.constants.System.BlockHashCount(token),
+        period: staticApis.constants.System.BlockHashCount,
       },
       { mortal: false },
     ]
@@ -649,28 +623,13 @@ describe("E2E", async () => {
 
       beforeAll(async () => {
         do {
-          const legacyEnhancer = PROVIDER === "ws" ? identity : withLegacy()
-          const compatEnhancer =
-            PROVIDER === "ws" ? withPolkadotSdkCompat : identity
           newClient?.destroy()
           console.log("creating archive client")
           newClient = createClient(
-            enhancer(
-              compatEnhancer(
-                getWsProvider("ws://127.0.0.1:9934", {
-                  innerEnhancer: (base) =>
-                    legacyEnhancer(
-                      withLogsRecorder(
-                        (log) =>
-                          appendFileSync(
-                            `./${VERSION}_${PROVIDER}_JSON_RPC_INNER`,
-                            log + "\n",
-                          ),
-                        base,
-                      ),
-                    ),
-                }),
-              ),
+            outterLogs(
+              getWsProvider("ws://127.0.0.1:9934", {
+                logger: getInnerLogs(),
+              }),
             ),
           )
         } while ((await newClient.getFinalizedBlock()).hash === oldBlock.hash)

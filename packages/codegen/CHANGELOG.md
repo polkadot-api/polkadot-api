@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.22.0 - 2026-02-12
+
+### Changed
+
+- Updated generated docs to match v2
+- Codegen exposes and expects `Vec<u8>` as `Uint8Array` instead of `Binary`.
+
 ## 0.21.2 - 2026-01-22
 
 ### Fixed

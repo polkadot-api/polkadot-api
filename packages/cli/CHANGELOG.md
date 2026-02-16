@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.19.0 - 2026-02-12
+
+### Changed
+
+- Whitelist should now be placed in `.papi/whitelist.ts`. The `--whitelist` option and `whitelist` config have been removed.
+
+### Removed
+
+- Remove support for `package.json`-based config
+
 ## 0.18.1 - 2026-01-22
 
 ### Fixed

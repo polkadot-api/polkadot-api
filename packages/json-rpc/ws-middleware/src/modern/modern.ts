@@ -1,0 +1,18 @@
+import { followEnhancer } from "./fix-follow"
+import { fixPrematureBlocks } from "./fix-premature-blocks"
+import { fixUnorderedBlocks } from "./fix-unordered-blocks"
+import { fixUnorderedEvents } from "./fix-unordered-events"
+import { patchChainHeadEvents } from "./patch-chainhead-events"
+import { unpinHash } from "./unpin-hash"
+import { apply } from "../utils"
+import { fixMissingInitialBest } from "./fix-missing-initial-best"
+
+export const modern = apply(
+  fixUnorderedEvents,
+  unpinHash,
+  patchChainHeadEvents,
+  fixPrematureBlocks,
+  fixUnorderedBlocks,
+  fixMissingInitialBest,
+  followEnhancer,
+)

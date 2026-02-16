@@ -14,9 +14,12 @@ function getMultisigSigner(
   },
   getMultisigInfo: (
     multisig: SS58String,
-    callHash: Binary,
+    callHash: Uint8Array,
   ) => Promise<MultisigInfo | undefined>,
-  txPaymentInfo: (uxt: Binary, len: number) => Promise<PaymentInfo | undefined>,
+  txPaymentInfo: (
+    uxt: Uint8Array,
+    len: number,
+  ) => Promise<PaymentInfo | undefined>,
   signer: PolkadotSigner,
   options?: {
     method: (

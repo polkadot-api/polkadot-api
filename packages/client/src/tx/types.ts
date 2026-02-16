@@ -1,16 +1,7 @@
-import {
-  CompatibilityFunctions,
-  CompatibilityToken,
-  RuntimeToken,
-} from "@/compatibility"
+import { PullOptions } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import {
-  Binary,
-  Enum,
-  HexString,
-  SS58String,
-} from "@polkadot-api/substrate-bindings"
+import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
 export type TxEvent = TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
@@ -38,9 +29,8 @@ export type TxInBestBlocksFound = {
   found: true
 } & TxEventsPayload
 
-export type EventWithTopics = SystemEvent["event"] & {
-  topics: SystemEvent["topics"]
-}
+export type FlattenedEvent = SystemEvent & SystemEvent["event"]
+
 export type TxEventsPayload = {
   /**
    * Verify if extrinsic was successful, i.e. check if `System.ExtrinsicSuccess`
@@ -51,7 +41,7 @@ export type TxEventsPayload = {
    * Array of all events emitted by the tx. Ordered as they are emitted
    * on-chain.
    */
-  events: Array<EventWithTopics>
+  events: Array<FlattenedEvent>
   /**
    * Block information where the tx is found. `hash` of the block, `number` of
    * the block, `index` of the tx in the block.
@@ -100,9 +90,10 @@ export type TxOptions<Asset, Ext> = Partial<
   void extends Asset
     ? {
         /**
-         * Block to target the transaction against. Default: `"finalized"`
+         * Block to target the transaction against. Defaults to the currently
+         * finalized block.
          */
-        at: HexString | "best" | "finalized"
+        at: HexString
         /**
          * Tip in fundamental units. Default: `0`
          */
@@ -130,9 +121,10 @@ export type TxOptions<Asset, Ext> = Partial<
       }
     : {
         /**
-         * Block to target the transaction against. Default: `"finalized"`
+         * Block to target the transaction against. Defaults to the currently
+         * finalized block.
          */
-        at: HexString | "best" | "finalized"
+        at: HexString
         /**
          * Tip in fundamental units. Default: `0n`
          */
@@ -250,15 +242,7 @@ export interface TxCall {
    *
    * @returns Promise resolving in the encoded data.
    */
-  (): Promise<Binary>
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @param compatibilityToken  Token from got with `await
-   *                            typedApi.compatibilityToken`
-   * @returns Synchronously returns encoded data.
-   */
-  (compatibilityToken: CompatibilityToken): Binary
+  (): Promise<Uint8Array>
 }
 
 export interface TxBare {
@@ -268,52 +252,13 @@ export interface TxBare {
    * @returns Promise resolving in a Bare transaction (it falls back to an
    *          unsigned transaction if only v4 is available)
    */
-  (): Promise<HexString>
-  /**
-   * @param compatibilityToken  Token from got with `await
-   *                            typedApi.compatibilityToken`
-   * @returns Synchronously returns a Bare transaction (it falls back to an
-   *          unsigned transaction if only v4 is available)
-   */
-  (compatibilityToken: CompatibilityToken): HexString
-}
-
-export interface UnsafeTxBare {
-  /**
-   * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
-   *
-   * @returns Promise resolving in a Bare transaction (it falls back to an
-   *          unsigned transaction if only v4 is available)
-   */
-  (): Promise<HexString>
-  /**
-   * @param runtimeToken  Token from got with `await typedApi.runtimeToken`
-   * @returns Synchronously returns a Bare transaction (it falls back to an
-   *          unsigned transaction if only v4 is available)
-   */
-  (runtimeToken: RuntimeToken): HexString
-}
-
-export interface UnsafeTxCall {
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @returns Promise resolving in the encoded data.
-   */
-  (): Promise<Binary>
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @param runtimeToken  Token from got with `await typedApi.runtimeToken`
-   * @returns Synchronously returns encoded data.
-   */
-  (runtimeToken: RuntimeToken): Binary
+  (): Promise<Uint8Array>
 }
 
 export type TxSignFn<Asset, Ext> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset, Ext>,
-) => Promise<HexString>
+) => Promise<Uint8Array>
 
 export type PaymentInfo = {
   weight: {
@@ -329,7 +274,6 @@ export type PaymentInfo = {
 }
 
 export type InnerTransaction<
-  Unsafe,
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
@@ -371,11 +315,11 @@ export type InnerTransaction<
   /**
    * SCALE-encoded callData of the transaction.
    */
-  getEncodedData: Unsafe extends true ? UnsafeTxCall : TxCall
+  getEncodedData: TxCall
   /**
    * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
    */
-  getBareTx: Unsafe extends true ? UnsafeTxBare : TxBare
+  getBareTx: TxBare
 
   /**
    * Estimate fees against the latest known `finalizedBlock`
@@ -414,54 +358,31 @@ export type Transaction<
   Name extends string = string,
   Asset = any,
   Ext = Record<string, CustomSignedExtensionValues>,
-> = InnerTransaction<false, Arg, Pallet, Name, Asset, Ext>
+> = InnerTransaction<Arg, Pallet, Name, Asset, Ext>
 
-export type UnsafeTransaction<
-  Arg extends {} | undefined = any,
-  Pallet extends string = string,
-  Name extends string = string,
-  Asset = any,
-  Ext = Record<string, CustomSignedExtensionValues>,
-> = InnerTransaction<true, Arg, Pallet, Name, Asset, Ext>
+export type Extensions<Ext> =
+  Ext extends Record<string, any>
+    ? Partial<Ext>
+    : Record<string, CustomSignedExtensionValues>
 
-export type Extensions<D> = D extends {
-  extensions: infer Ext extends Record<string, any>
-}
-  ? Partial<Ext>
-  : Record<string, CustomSignedExtensionValues>
-
-export type InnerTxEntry<
-  Unsafe,
-  D,
+export type TxEntry<
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
+  Ext,
   Asset,
-> = Unsafe extends true
-  ? {
-      /**
-       * Synchronously create the transaction object ready to sign, submit,
-       * estimate fees, etc.
-       *
-       * @param args  All parameters required by the transaction.
-       * @returns Transaction object.
-       */
-      (
-        ...args: Arg extends undefined ? [] : [data: Arg]
-      ): UnsafeTransaction<Arg, Pallet, Name, Asset, Extensions<D>>
-    }
-  : {
-      /**
-       * Synchronously create the transaction object ready to sign, submit,
-       * estimate fees, etc.
-       *
-       * @param args  All parameters required by the transaction.
-       * @returns Transaction object.
-       */
-      (
-        ...args: Arg extends undefined ? [] : [data: Arg]
-      ): Transaction<Arg, Pallet, Name, Asset, Extensions<D>>
-    } & CompatibilityFunctions<D>
+> = {
+  /**
+   * Synchronously create the transaction object ready to sign, submit,
+   * estimate fees, etc.
+   *
+   * @param args  All parameters required by the transaction.
+   * @returns Transaction object.
+   */
+  (
+    ...args: Arg extends undefined ? [] : [data: Arg]
+  ): Transaction<Arg, Pallet, Name, Asset, Extensions<Ext>>
+}
 
 export type OfflineTxEntry<
   Arg extends {} | undefined,
@@ -482,12 +403,12 @@ export type OfflineTxEntry<
   sign: (
     from: PolkadotSigner,
     extensions: OfflineTxExtensions<Asset>,
-  ) => Promise<HexString>
+  ) => Promise<Uint8Array>
 
   /**
    * SCALE-encoded callData of the transaction.
    */
-  encodedData: Binary
+  encodedData: Uint8Array
   /**
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
@@ -495,66 +416,16 @@ export type OfflineTxEntry<
   decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
 }
 
-export type TxEntry<
-  D,
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-> = InnerTxEntry<false, D, Arg, Pallet, Name, Asset>
-
-export type UnsafeTxEntry<
-  D,
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-> = InnerTxEntry<true, D, Arg, Pallet, Name, Asset>
-
-export type TxFromBinary<Unsafe, Asset> = Unsafe extends true
-  ? {
-      /**
-       * Asynchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData  SCALE-encoded call data.
-       * @returns Transaction object.
-       */
-      (callData: Binary): Promise<UnsafeTransaction<any, string, string, Asset>>
-      /**
-       * Synchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData      SCALE-encoded call data.
-       * @param runtimeToken  Token from got with `await
-       *                      typedApi.runtimeToken`
-       * @returns Transaction object.
-       */
-      (
-        callData: Binary,
-        runtimeToken: RuntimeToken,
-      ): UnsafeTransaction<any, string, string, Asset>
-    }
-  : {
-      /**
-       * Asynchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData  SCALE-encoded call data.
-       * @returns Transaction object.
-       */
-      (callData: Binary): Promise<Transaction<any, string, string, Asset>>
-      /**
-       * Synchronously create the transaction object from a binary call data
-       * ready to sign, submit, estimate fees, etc.
-       *
-       * @param callData            SCALE-encoded call data.
-       * @param compatibilityToken  Token from got with `await
-       *                            typedApi.compatibilityToken`
-       * @returns Transaction object.
-       */
-      (
-        callData: Binary,
-        compatibilityToken: CompatibilityToken,
-      ): Transaction<any, string, string, Asset>
-    }
+export type TxFromBinary<Asset> = {
+  /**
+   * Asynchronously create the transaction object from a binary call data ready
+   * to sign, submit, estimate fees, etc.
+   *
+   * @param callData  SCALE-encoded call data.
+   * @returns Transaction object.
+   */
+  (
+    callData: Uint8Array,
+    options?: PullOptions,
+  ): Promise<Transaction<any, string, string, Asset>>
+}

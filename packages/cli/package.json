@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/cli",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
@@ -41,10 +41,8 @@
     "@polkadot-api/ink-contracts": "workspace:*",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/known-chains": "workspace:*",
-    "@polkadot-api/legacy-provider": "workspace:*",
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
-    "@polkadot-api/polkadot-sdk-compat": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/smoldot": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
@@ -52,6 +50,7 @@
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/wasm-executor": "^0.2.3",
     "@polkadot-api/ws-provider": "workspace:*",
+    "@polkadot-api/ws-middleware": "workspace:*",
     "@types/node": "^25.0.10",
     "commander": "^14.0.2",
     "execa": "^9.6.1",

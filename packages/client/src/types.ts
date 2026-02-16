@@ -2,7 +2,7 @@ import { BlockInfo } from "@polkadot-api/observable-client"
 import { BlockHeader, HexString } from "@polkadot-api/substrate-bindings"
 import { ChainSpecData } from "@polkadot-api/substrate-client"
 import { Observable } from "rxjs"
-import { CompatibilityToken, RuntimeToken } from "./compatibility"
+import { ArgsValueCompatHelper, CompatHelper } from "./compatibility"
 import { ConstantEntry } from "./constants"
 import {
   ApisFromDef,
@@ -15,22 +15,19 @@ import {
 } from "./descriptors"
 import { EvClient } from "./event"
 import { RuntimeCall } from "./runtime-call"
-import { StorageEntry, StorageEntryWithKeys } from "./storage"
+import { StorageEntry } from "./storage"
 import type {
-  InnerTxEntry,
   OfflineTxEntry,
   TxBroadcastEvent,
+  TxEntry,
   TxFinalizedPayload,
   TxFromBinary,
-  UnsafeTxEntry,
 } from "./tx"
 import { ViewFn } from "./viewFns"
 
 export type { ChainSpecData }
 
 export type StorageApi<
-  Unsafe,
-  D,
   A extends Record<
     string,
     Record<
@@ -53,52 +50,37 @@ export type StorageApi<
       IsOptional: false | true
     }
       ? StorageEntry<
-          Unsafe,
-          D,
           A[K][KK]["KeyArgs"],
           A[K][KK]["KeyArgsOut"],
           A[K][KK]["IsOptional"] extends true
             ? A[K][KK]["Value"] | undefined
             : A[K][KK]["Value"]
         >
-      : unknown
+      : StorageEntry<Array<unknown>, Array<unknown>, unknown>
   }
 }
 
-export type RuntimeCallsApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-> = {
+export type RuntimeCallsApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
-      ? RuntimeCall<Unsafe, D, A[K][KK]["Args"], A[K][KK]["Value"]>
-      : unknown
+      ? RuntimeCall<A[K][KK]["Args"], A[K][KK]["Value"]>
+      : RuntimeCall<any, unknown>
   }
 }
 
-export type ViewFnApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-> = {
+export type ViewFnApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
-      ? ViewFn<Unsafe, D, A[K][KK]["Args"], A[K][KK]["Value"]>
-      : unknown
+      ? ViewFn<A[K][KK]["Args"], A[K][KK]["Value"]>
+      : ViewFn<any, unknown>
   }
 }
 
-export type TxApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-  Asset,
-> = {
+export type TxApi<A extends Record<string, Record<string, any>>, Ext, Asset> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? InnerTxEntry<Unsafe, D, A[K][KK], K & string, KK & string, Asset>
-      : unknown
+      ? TxEntry<A[K][KK], K & string, KK & string, Ext, Asset>
+      : TxEntry<any, K & string, KK & string, Ext, Asset>
   }
 }
 
@@ -113,19 +95,15 @@ export type OfflineTxApi<
   }
 }
 
-export type EvApi<Unsafe, D, A extends Record<string, Record<string, any>>> = {
+export type EvApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: EvClient<Unsafe, D, A[K][KK]>
+    [KK in keyof A[K]]: EvClient<A[K][KK]>
   }
 }
 
-export type ConstApi<
-  Unsafe,
-  D,
-  A extends Record<string, Record<string, any>>,
-> = {
+export type ConstApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
-    [KK in keyof A[K]]: ConstantEntry<Unsafe, D, A[K][KK]>
+    [KK in keyof A[K]]: ConstantEntry<A[K][KK]>
   }
 }
 
@@ -137,47 +115,93 @@ export type OfflineConstApi<A extends Record<string, Record<string, any>>> = {
 
 export type UnsafeElement<E> = Record<string, Record<string, E>>
 
-type UnsafeEntry<T> = Record<string, Record<string, T>>
+export type { ArgsValueCompatHelper, CompatHelper }
+export type CompatHelperApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends {} | undefined
+      ? CompatHelper<A[K][KK]>
+      : unknown
+  }
+}
 
-export type AnyApi<Unsafe extends true | false, D> = D extends ChainDefinition
-  ? {
-      query: StorageApi<
-        Unsafe,
-        D,
-        QueryFromPalletsDef<D["descriptors"]["pallets"]>
-      >
-      tx: TxApi<
-        Unsafe,
-        D,
-        TxFromPalletsDef<D["descriptors"]["pallets"]>,
-        D["asset"]["_type"]
-      >
-      txFromCallData: TxFromBinary<Unsafe, D["asset"]["_type"]>
-      event: EvApi<Unsafe, D, EventsFromPalletsDef<D["descriptors"]["pallets"]>>
-      apis: RuntimeCallsApi<Unsafe, D, ApisFromDef<D["descriptors"]["apis"]>>
-      constants: ConstApi<
-        Unsafe,
-        D,
-        ConstFromPalletsDef<D["descriptors"]["pallets"]>
-      >
-      view: ViewFnApi<
-        Unsafe,
-        D,
-        ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>
-      >
-    }
-  : {
-      query: UnsafeEntry<StorageEntryWithKeys<true, D, any, any, any>>
-      tx: UnsafeEntry<UnsafeTxEntry<D, any, string, string, any>>
-      txFromCallData: TxFromBinary<Unsafe, any>
-      event: UnsafeEntry<EvClient<true, D, any>>
-      apis: UnsafeEntry<RuntimeCall<true, D, any, any>>
-      constants: UnsafeEntry<ConstantEntry<true, D, any>>
-      view: UnsafeEntry<ViewFn<true, D, any, any>>
-    }
+export type InOutCompatHelperApi<
+  A extends Record<string, Record<string, any>>,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends { Args: Array<any>; Value: any }
+      ? ArgsValueCompatHelper<A[K][KK]["Args"], A[K][KK]["Value"]>
+      : unknown
+  }
+}
 
-export type TypedApi<D extends ChainDefinition> = AnyApi<false, D> & {
-  compatibilityToken: Promise<CompatibilityToken<D>>
+export type QueryCompatHelperApi<
+  A extends Record<string, Record<string, any>>,
+> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends { KeyArgs: Array<any>; Value: any }
+      ? ArgsValueCompatHelper<A[K][KK]["KeyArgs"], A[K][KK]["Value"]>
+      : unknown
+  }
+}
+
+export type SyncTxApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends {} | undefined
+      ? { getCallData: (args: A[K][KK]) => Uint8Array }
+      : unknown
+  }
+}
+
+export type SyncQueryApi<A extends Record<string, Record<string, any>>> = {
+  [K in keyof A]: {
+    [KK in keyof A[K]]: A[K][KK] extends { KeyArgs: Array<any>; Value: any }
+      ? { getKey: (...args: A[K][KK]["Args"]) => HexString }
+      : unknown
+  }
+}
+
+export type StaticApis<D extends ChainDefinition, Safe> = {
+  id: HexString
+  decodeCallData: (callData: Uint8Array) => {
+    pallet: string
+    name: string
+    input: any
+  }
+  constants: ConstFromPalletsDef<D["descriptors"]["pallets"]>
+  tx: SyncTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
+  compat: Safe extends true
+    ? {
+        tx: CompatHelperApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
+        constants: CompatHelperApi<
+          ConstFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+        apis: InOutCompatHelperApi<ApisFromDef<D["descriptors"]["apis"]>>
+        view: InOutCompatHelperApi<
+          ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+        query: QueryCompatHelperApi<
+          QueryFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+        event: CompatHelperApi<
+          EventsFromPalletsDef<D["descriptors"]["pallets"]>
+        >
+      }
+    : unknown
+}
+
+export type TypedApi<D extends ChainDefinition, Safe = true> = {
+  tx: TxApi<
+    TxFromPalletsDef<D["descriptors"]["pallets"]>,
+    D["extensions"],
+    D["asset"]["_type"]
+  >
+  constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
+  apis: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
+  view: ViewFnApi<ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>>
+  query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
+  event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
+  txFromCallData: TxFromBinary<D["asset"]["_type"]>
+  getStaticApis: (options?: PullOptions) => Promise<StaticApis<D, Safe>>
 }
 
 export type OfflineApi<D extends ChainDefinition> = {
@@ -188,9 +212,6 @@ export type OfflineApi<D extends ChainDefinition> = {
   >
 }
 
-export type UnsafeApi<D> = AnyApi<true, D> & {
-  runtimeToken: Promise<RuntimeToken<D>>
-}
 export type TransactionValidityError<D extends ChainDefinition> =
   (D["descriptors"]["apis"]["TaggedTransactionQueue"]["validate_transaction"][1] & {
     success: false
@@ -206,19 +227,20 @@ export interface PolkadotClient {
   /**
    * Retrieves the most modern stable version of the metadata for a given block.
    *
-   * @param atBlock  The block-hash of the block.
+   * @param hash  Block hash of the target block.
    * @returns Observable that emits the most modern stable version of the
    *          metadata, and immediately completes.
    */
-  getMetadata$: (atBlock: HexString) => Observable<Uint8Array>
+  getMetadata$: (hash: HexString) => Observable<Uint8Array>
   /**
    * Retrieves the most modern stable version of the metadata for a given block.
    *
-   * @param atBlock  The block-hash of the block.
+   * @param hash    Block hash of the target block.
+   * @param signal  Signal to abort promise.
    * @returns An abortable Promise that resolves into the most modern
    *          stable version of the metadata.
    */
-  getMetadata: (atBlock: HexString, signal?: AbortSignal) => Promise<Uint8Array>
+  getMetadata: (hash: HexString, signal?: AbortSignal) => Promise<Uint8Array>
 
   /**
    * Observable that emits `BlockInfo` for every new finalized block. It's a
@@ -270,29 +292,41 @@ export interface PolkadotClient {
   hodlBlock: (blockHash: HexString) => () => void
 
   /**
-   * Observable to watch Block Body.
+   * Get Block Body (Observable-based)
    *
-   * @param hash  It can be a block hash, `"finalized"`, or `"best"`
-   * @returns Observable to watch a block body. There'll be just one event
+   * @param hash  Block hash of the target block.
+   * @returns Observable to get a block body. There'll be just one event
    *          with the payload and the observable will complete.
    */
-  watchBlockBody: (hash: string) => Observable<HexString[]>
+  getBlockBody$: (hash: HexString) => Observable<Uint8Array[]>
   /**
    * Get Block Body (Promise-based)
    *
-   * @param hash  It can be a block hash, `"finalized"`, or `"best"`
+   * @param hash    Block hash of the target block.
+   * @param signal  Signal to abort promise.
    * @returns Block body.
    */
-  getBlockBody: (hash: string) => Promise<HexString[]>
+  getBlockBody: (hash: HexString, signal?: AbortSignal) => Promise<Uint8Array[]>
 
+  /**
+   * Get Block Header (Observable-based)
+   *
+   * @param hash  Block hash of the target block.
+   * @returns Observable to get a block header. There'll be just one event
+   *          with the payload and the observable will complete.
+   */
+  getBlockHeader$: (hash: HexString) => Observable<BlockHeader>
   /**
    * Get Block Header (Promise-based)
    *
-   * @param hash  It can be a block hash, `"finalized"` (default), or
-   *              `"best"`
-   * @returns Block hash.
+   * @param hash    Block hash of the target block.
+   * @param signal  Signal to abort promise.
+   * @returns Block header.
    */
-  getBlockHeader: (hash?: string) => Promise<BlockHeader>
+  getBlockHeader: (
+    hash: HexString,
+    signal?: AbortSignal,
+  ) => Promise<BlockHeader>
 
   /**
    * Broadcasts a transaction (Promise-based). The promise will resolve when the
@@ -306,7 +340,7 @@ export interface PolkadotClient {
    *                     the tx.
    */
   submit: (
-    transaction: HexString,
+    transaction: Uint8Array,
     at?: HexString,
   ) => Promise<TxFinalizedPayload>
   /**
@@ -321,7 +355,7 @@ export interface PolkadotClient {
    *                     the tx.
    */
   submitAndWatch: (
-    transaction: HexString,
+    transaction: Uint8Array,
     at?: HexString,
   ) => Observable<TxBroadcastEvent>
 
@@ -340,7 +374,7 @@ export interface PolkadotClient {
    * what are they doing. This API does not provide any runtime compatibility
    * checks protection and the consumer should implement them on their own.
    */
-  getUnsafeApi: <D>() => UnsafeApi<D>
+  getUnsafeApi: <D extends ChainDefinition>() => TypedApi<D, false>
 
   /**
    * Returns a Promise that resolves into the encoded value of a storage entry
@@ -367,17 +401,32 @@ export interface PolkadotClient {
    *
    * @example
    *
-   *   const systemVersion = await client._request<string>("system_version", [])
+   * const systemVersion = await client._request<string>("system_version", [])
    *   const myFancyThhing = await client._request<
    *     { value: string },
    *     [id: number]
    *   >("very_fancy", [1714])
+   *
+   * Unstable: The stability of this API is not guaranteed across minor versions.
    *
    */
   _request: <Reply = any, Params extends Array<any> = any[]>(
     method: string,
     params: Params,
   ) => Promise<Reply>
+
+  /**
+   * This API is meant as an "escape hatch" to allow access to subscription
+   * endpoints
+   *
+   * Unstable: The stability of this API is not guaranteed across minor
+   * versions.
+   */
+  _subscribe: <Reply = any, Params extends Array<any> = any[]>(
+    method: string,
+    unsubscribeMethod: string,
+    params: Params,
+  ) => Observable<Reply>
 }
 
 export type FixedSizeArray<L extends number, T> = Array<T> & { length: L }

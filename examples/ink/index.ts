@@ -4,11 +4,10 @@ import {
   entropyToMiniSecret,
   mnemonicToEntropy,
 } from "@polkadot-labs/hdkd-helpers"
-import { createClient } from "polkadot-api"
 import { getInkClient } from "polkadot-api/ink"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { toHex } from "polkadot-api/utils"
+import { createWsClient } from "polkadot-api/ws"
 
 const alice_mnemonic =
   "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
@@ -24,11 +23,7 @@ const ADDRESS = {
   psp22: "5F69jP7VwzCp6pGZ93mv9FkAhwnwz4scR4J9asNeSgFPUGLq",
 }
 
-const client = createClient(
-  withPolkadotSdkCompat(
-    getWsProvider("wss://aleph-zero-testnet-rpc.dwellir.com"),
-  ),
-)
+const client = createWsClient("wss://aleph-zero-testnet-rpc.dwellir.com")
 
 const typedApi = client.getTypedApi(testAzero)
 
@@ -45,7 +40,11 @@ const psp22 = getInkClient(contracts.psp22)
 
   console.log(
     "storage",
-    storage.success ? storage.value?.asHex() : storage.value,
+    storage.success
+      ? storage.value
+        ? toHex(storage.value)
+        : undefined
+      : storage.value,
   )
 
   if (storage.success && storage.value) {

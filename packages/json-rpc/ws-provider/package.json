@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/ws-provider",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -10,51 +10,47 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index/index.d.ts",
       "node": {
-        "import": "./dist/index/esm/index.mjs",
-        "require": "./dist/index/index.js",
-        "default": "./dist/index/index.js"
+        "production": {
+          "import": "./dist/esm/index.mjs",
+          "require": "./dist/min/index.js",
+          "default": "./dist/index.js"
+        },
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
       },
-      "module": "./dist/index/esm/index.mjs",
-      "import": "./dist/index/esm/index.mjs",
-      "require": "./dist/index/index.js",
-      "default": "./dist/index/index.js"
-    },
-    "./node": {
-      "types": "./dist/node/node.d.ts",
-      "module": "./dist/node/esm/node.mjs",
-      "import": "./dist/node/esm/node.mjs",
-      "require": "./dist/node/node.js",
-      "default": "./dist/node/node.js"
-    },
-    "./web": {
-      "types": "./dist/web/web.d.ts",
-      "module": "./dist/web/esm/web.mjs",
-      "import": "./dist/web/esm/web.mjs",
-      "require": "./dist/web/web.js",
-      "default": "./dist/web/web.js"
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "types": "./dist/index/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
+  "browser": "./dist/esm/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
-    "dist",
-    "web",
-    "node"
+    "dist"
   ],
   "scripts": {
-    "build-core": "tsc --noEmit && rollup -c",
+    "build-core": "tsc --noEmit && rollup -c ../../../rollup.config.js",
     "build": "pnpm build-core",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build"
   },
+  "peerDependencies": {
+    "rxjs": ">=7.8.0"
+  },
   "dependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
-    "@types/ws": "^8.18.1",
-    "ws": "^8.19.0"
+    "@polkadot-api/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "rxjs": "^7.8.2"
   }
 }

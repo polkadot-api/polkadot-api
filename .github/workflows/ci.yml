@@ -4,6 +4,9 @@ on:
   pull_request:
   merge_group:
   workflow_dispatch:
+  push:
+    branches:
+      - v2
 
 permissions:
   contents: read
@@ -15,8 +18,8 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - "20"
           - "22"
+          - "24"
     steps:
       - uses: actions/checkout@v6
       - uses: actions/cache@v5
@@ -42,7 +45,13 @@ jobs:
       - name: Lint
         run: pnpm lint
       - name: Test
-        run: pnpm test
+        run: NODE_VERSION=${{matrix.node-version}} pnpm test
+      - name: Store logs
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: Logs
+          path: integration-tests/chopsticks/LOGS_${{matrix.node-version}}*
 
   # this allows our branch protection mechanism to work with matrix-based runs
   build-status:

@@ -38,11 +38,7 @@ export type PrimitiveType = {
   value: NativeType
 }
 
-export type ChainPrimitive =
-  | "HexString"
-  | "SS58String"
-  | "Binary"
-  | "BitSequence"
+export type ChainPrimitive = "HexString" | "SS58String" | "BitSequence"
 export type ChainPrimitiveType = {
   type: "chainPrimitive"
   value: ChainPrimitive

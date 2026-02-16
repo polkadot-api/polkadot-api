@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 0.8.0 - 2026-02-12
+
+### Changed
+
+- BREAKING: it exposes the new `JsonRpcProvider` v1 interface.
+- BREAKING: remove all the deprecated signatures and exports.
+- BREAKING: `innerEnhancer` has been removed
+- BREAKING: The `WsEvent` Enum is now a plain JS object for which its keys and its values are the same.
+
+### Added
+
+- `middleware` option: it accepts any of the middlewares exposed from `@polkadot-api/ws-middleware`, or a custom one created from those (or not).
+- `logeger` option: it takes a strongly-typed logger callback.
+
 ## 0.7.5 - 2026-01-22
 
 ### Fixed

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-02-12
+
+### Changed
+
+- Change `topics` type from `Binary` to `HexString`
+
 ## 0.4.6 - 2026-01-22
 
 ### Fixed

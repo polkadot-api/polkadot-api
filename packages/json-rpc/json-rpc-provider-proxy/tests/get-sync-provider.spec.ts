@@ -4,14 +4,21 @@ import { describe, expect, it } from "vitest"
 describe("getSyncProvider", () => {
   it("should not trhow on sync onHalt", async () => {
     let nAttempts = 0
-    const provider = getSyncProvider(async () => {
-      return (_, onHalt) => {
-        nAttempts++
-        onHalt()
-        return {
-          send() {},
-          disconnect() {},
-        }
+    const provider = getSyncProvider((onResult) => {
+      let isDone = false
+      Promise.resolve().then(() => {
+        if (isDone) return
+        onResult((_, onHalt) => {
+          nAttempts++
+          onHalt()
+          return {
+            send() {},
+            disconnect() {},
+          }
+        })
+      })
+      return () => {
+        isDone = true
       }
     })(() => {})
 
@@ -23,20 +30,27 @@ describe("getSyncProvider", () => {
 
   it("should not throw on repeated halts", async () => {
     let nAttempts = 0
-    const provider = getSyncProvider(async () => {
-      return (_, onHalt) => {
-        nAttempts++
-        const token = setTimeout(() => {
-          onHalt()
-          onHalt()
-          onHalt()
-        }, 0)
-        return {
-          send() {},
-          disconnect() {
-            clearTimeout(token)
-          },
-        }
+    const provider = getSyncProvider((onResult) => {
+      let isDone = false
+      Promise.resolve().then(() => {
+        if (isDone) return
+        onResult((_, onHalt) => {
+          nAttempts++
+          const token = setTimeout(() => {
+            onHalt()
+            onHalt()
+            onHalt()
+          }, 0)
+          return {
+            send() {},
+            disconnect() {
+              clearTimeout(token)
+            },
+          }
+        })
+      })
+      return () => {
+        isDone = true
       }
     })(() => {})
 

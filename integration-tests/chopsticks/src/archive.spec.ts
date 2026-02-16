@@ -5,7 +5,7 @@ import { ALICE, getChopsticksProvider } from "./chopsticks"
 
 describe("archive", () => {
   it("loads information from past blocks", async () => {
-    const client = createClient(getChopsticksProvider())
+    const client = createClient(getChopsticksProvider("archive"))
     const api = client.getTypedApi(paseo)
 
     const finalized = await client.getFinalizedBlock()

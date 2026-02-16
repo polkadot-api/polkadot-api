@@ -18,13 +18,13 @@ const SKIPPED_CHAINS: string[] = []
 describe("chain specs", () => {
   const RELAYS: Array<keyof typeof chains> = [
     "polkadot",
-    "ksmcc3",
-    "westend2",
+    "kusama",
+    "westend",
     "paseo",
   ]
   const waitForRuntime = async (chain: Chain | Promise<Chain>) => {
     return new Promise<() => void>((res, rej) => {
-      const client = createClient(getSmProvider(chain))
+      const client = createClient(getSmProvider(() => chain))
       const token = setTimeout(rej, 60_000)
       const { unfollow } = client.chainHead(
         true,

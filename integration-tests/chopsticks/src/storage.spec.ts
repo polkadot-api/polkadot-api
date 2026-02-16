@@ -5,7 +5,7 @@ import { paseo } from "@polkadot-api/descriptors"
 
 describe("storage", () => {
   it("subscribes and decodes storage values", async () => {
-    const client = createClient(getChopsticksProvider())
+    const client = createClient(getChopsticksProvider("storage_sub"))
     const api = client.getTypedApi(paseo)
 
     const result = await api.query.System.Account.getValue(ALICE)
@@ -15,7 +15,7 @@ describe("storage", () => {
   })
 
   it("entries decodes storage keys", async () => {
-    const client = createClient(getChopsticksProvider())
+    const client = createClient(getChopsticksProvider("storage_ent"))
     const api = client.getTypedApi(paseo)
 
     const entries = await api.query.Referenda.ReferendumInfoFor.getEntries()
@@ -26,7 +26,7 @@ describe("storage", () => {
   })
 
   it("returns the raw key if the hasher is opaque", async () => {
-    const client = createClient(getChopsticksProvider())
+    const client = createClient(getChopsticksProvider("storage_raw"))
     const api = client.getTypedApi(paseo)
 
     const entries =

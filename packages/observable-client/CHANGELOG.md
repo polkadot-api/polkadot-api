@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.18.0 - 2026-02-12
+
+### Added
+
+- Added new `mappedMeta` property into `RuntimeContext`
+
+### Changed
+
+- `body$` and `call$` return `Uint8Array` instead of HexString.
+- `broadcastTx$` takes a `Uint8Array` as a parameter instead of HexString.
+- `storage$` returns `Observable<{ block: BlockInfo, value: T }>` instead of `Observable<T>`
+
 ## 0.17.2 to 0.17.3 - 2026-01-22
 
 ### Fixed
@@ -75,7 +87,7 @@
 
 ### Fixed
 
-- Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
+- # Stop-recovery edge-case: taking into account the fact that the new chainHead subscription could be behind the previous one.
 
 ## 0.15.1 to 0.15.2 - 2025-10-09
 

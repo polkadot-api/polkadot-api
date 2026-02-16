@@ -1,10 +1,7 @@
-import { getWsProvider } from "polkadot-api/ws-provider"
 import { createClient } from "@polkadot-api/substrate-client"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { getWsProvider } from "polkadot-api/ws"
 
-const client = createClient(
-  withPolkadotSdkCompat(getWsProvider("wss://rpc.ibp.network/polkadot")),
-)
+const client = createClient(getWsProvider("wss://rpc.ibp.network/polkadot"))
 
 console.log("requesting height")
 const height = await client.archive.finalizedHeight()

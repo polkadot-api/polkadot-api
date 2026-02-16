@@ -143,7 +143,8 @@ export const createWatchEntries = (
           "closestDescendantMerkleValue",
           () => storageKey,
         ).pipe(
-          mergeMap((rootHash) => {
+          mergeMap((merkleValueResult) => {
+            const rootHash = merkleValueResult.value!
             if (rootHash === prev?.rootHash)
               return of({
                 ...prev,
@@ -159,13 +160,13 @@ export const createWatchEntries = (
             ).pipe(
               withRuntime(() => block.hash),
               map(
-                ([entries, runtimeCtx]) =>
-                  [entries, getPatcher(runtimeCtx)] as const,
+                ([entriesResult, runtimeCtx]) =>
+                  [entriesResult.value, getPatcher(runtimeCtx)] as const,
               ),
               map(
                 ([entries, patcher]): MemoryBlock => ({
                   prev: prev && prev.block.hash,
-                  rootHash: rootHash!,
+                  rootHash,
                   block,
                   patcher,
                   ...getDiff(

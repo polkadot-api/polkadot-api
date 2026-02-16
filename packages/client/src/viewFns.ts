@@ -1,16 +1,16 @@
 import { firstValueFromWithSignal, isOptionalArg } from "@/utils"
 import { ChainHead$ } from "@polkadot-api/observable-client"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
-import { map, mergeMap } from "rxjs"
-import { CompatibilityFunctions, CompatibilityHelper } from "./compatibility"
-import { compactNumber, _void } from "@polkadot-api/substrate-bindings"
+import { combineLatest, map, mergeMap } from "rxjs"
+import { compactNumber, _void, Enum } from "@polkadot-api/substrate-bindings"
 import { PullOptions } from "./types"
+import { InOutCompat } from "./compatibility"
 
 type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   ? [options?: PullOptions]
   : [...args: Args, options?: PullOptions]
 
-export type ViewFn<Unsafe, D, Args extends Array<any>, Payload> = {
+export type ViewFn<Args extends Array<any>, Payload> = {
   /**
    * Get `Payload` (Promise-based) for the view function.
    *
@@ -19,7 +19,7 @@ export type ViewFn<Unsafe, D, Args extends Array<any>, Payload> = {
    *              known finalized is the default) and an AbortSignal.
    */
   (...args: WithCallOptions<Args>): Promise<Payload>
-} & (Unsafe extends true ? {} : CompatibilityFunctions<D>)
+}
 
 const RUNTIME_NAMESPACE = "RuntimeViewFunction"
 const RUNTIME_METHOD = "execute_view_function"
@@ -29,25 +29,22 @@ export const createViewFnEntry = (
   pallet: string,
   entry: string,
   chainHead: ChainHead$,
-  {
-    isCompatible,
-    getCompatibilityLevel,
-    compatibleRuntime$,
-    argsAreCompatible,
-    valuesAreCompatible,
-  }: CompatibilityHelper,
-): ViewFn<any, any, any, any> => {
+  compatibility: InOutCompat,
+): ViewFn<any, any> => {
   const compatibilityError = () =>
     new Error(`Incompatible runtime entry ViewFn(${pallet}.${entry})`)
 
-  const fn = (...args: Array<any>) => {
+  return (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
     const isLastArgOptional = isOptionalArg(lastArg)
     const { signal, at: _at }: PullOptions = isLastArgOptional ? lastArg : {}
     const at = _at ?? null
 
-    const result$ = compatibleRuntime$(chainHead, at).pipe(
-      mergeMap(([runtime, ctx]) => {
+    const result$ = combineLatest([
+      chainHead.getRuntimeContext$(at),
+      compatibility,
+    ]).pipe(
+      mergeMap(([ctx, getCompat]) => {
         let apiCodec
         try {
           apiCodec = ctx.dynamicBuilder.buildRuntimeCall(
@@ -65,14 +62,11 @@ export const createViewFnEntry = (
         } catch {
           throw new Error(`Runtime entry ViewFn(${pallet}.${entry}) not found`)
         }
-        if (!argsAreCompatible(runtime, ctx, args)) throw compatibilityError()
+        const compat = getCompat(ctx)
+        if (!compat.args.isValueCompatible(args)) throw compatibilityError()
         const viewArgs = viewCodec.args.enc(args)
         const arg = mergeUint8([
-          fromHex(
-            ctx.lookup.metadata.pallets
-              .find(({ name }) => name === pallet)!
-              .viewFns.find(({ name }) => name === entry)!.id,
-          ),
+          fromHex(ctx.mappedMeta.pallets[pallet].view.get(entry)!.id),
           compactNumber.enc(viewArgs.length),
           viewArgs,
         ])
@@ -83,10 +77,13 @@ export const createViewFnEntry = (
               const decoded = apiCodec.value.dec(v)
               if (
                 !("success" in decoded && "value" in decoded) ||
-                (!("type" in decoded.value) && !("asBytes" in decoded.value))
+                (!("type" in decoded.value) &&
+                  !(decoded.value instanceof Uint8Array))
               )
                 throw null
-              return decoded
+              return decoded as
+                | { success: true; value: Uint8Array }
+                | { success: false; value: Enum<any> }
             } catch {
               throw new Error(
                 `Unexpected RuntimeCall(${RUNTIME_CALL_NAME}) type`,
@@ -95,8 +92,8 @@ export const createViewFnEntry = (
           }),
           map(({ success, value }) => {
             if (!success) throw new Error(`ViewFn API Error: ${value.type}`)
-            const decoded = viewCodec.value.dec(value.asBytes())
-            if (!valuesAreCompatible(runtime, ctx, decoded))
+            const decoded = viewCodec.value.dec(value)
+            if (!compat.value.isValueCompatible(decoded))
               throw compatibilityError()
             return decoded
           }),
@@ -107,6 +104,4 @@ export const createViewFnEntry = (
 
     return firstValueFromWithSignal(result$, signal)
   }
-
-  return Object.assign(fn, { getCompatibilityLevel, isCompatible })
 }

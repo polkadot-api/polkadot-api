@@ -1,11 +1,11 @@
 import { createClient } from "@polkadot-api/substrate-client"
-import { getWsProvider } from "@polkadot-api/ws-provider/node"
+import { getWsProvider } from "@polkadot-api/ws-provider"
 import { readFile, writeFile } from "node:fs/promises"
 
 const CHAINS = {
   polkadot: "wss://rpc.polkadot.io",
-  ksmcc3: "wss://kusama-rpc.polkadot.io",
-  westend2: "wss://westend-rpc.polkadot.io",
+  kusama: "wss://kusama-rpc.polkadot.io",
+  westend: "wss://westend-rpc.polkadot.io",
   paseo: "wss://paseo.rpc.amforc.com",
 }
 

@@ -83,9 +83,6 @@ importers:
       '@polkadot-api/ledger-signer':
         specifier: workspace:*
         version: link:../../packages/signers/ledger-signer
-      '@polkadot-api/legacy-provider':
-        specifier: workspace:*
-        version: link:../../packages/json-rpc/legacy-provider
       '@polkadot-api/meta-signers':
         specifier: workspace:*
         version: link:../../packages/signers/meta-signers
@@ -123,15 +120,6 @@ importers:
       '@types/bun':
         specifier: ^1.3.6
         version: 1.3.6
-
-  examples/commonjs:
-    dependencies:
-      '@polkadot-api/descriptors':
-        specifier: file:.papi/descriptors
-        version: file:examples/commonjs/.papi/descriptors(polkadot-api@packages+client)
-      polkadot-api:
-        specifier: workspace:*
-        version: link:../../packages/client
 
   examples/ink:
     dependencies:
@@ -231,6 +219,9 @@ importers:
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:integration-tests/chopsticks/.papi/descriptors(polkadot-api@packages+client)
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/json-rpc-provider
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -253,9 +244,6 @@ importers:
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
         version: file:integration-tests/zombie-tests/.papi/descriptors(polkadot-api@packages+client)
-      '@polkadot-api/legacy-provider':
-        specifier: workspace:*
-        version: link:../../packages/json-rpc/legacy-provider
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../packages/substrate-bindings
@@ -299,18 +287,12 @@ importers:
       '@polkadot-api/known-chains':
         specifier: workspace:*
         version: link:../known-chains
-      '@polkadot-api/legacy-provider':
-        specifier: workspace:*
-        version: link:../json-rpc/legacy-provider
       '@polkadot-api/metadata-compatibility':
         specifier: workspace:*
         version: link:../metadata-compatibility
       '@polkadot-api/observable-client':
         specifier: workspace:*
         version: link:../observable-client
-      '@polkadot-api/polkadot-sdk-compat':
-        specifier: workspace:*
-        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/sm-provider':
         specifier: workspace:*
         version: link:../json-rpc/sm-provider
@@ -329,6 +311,9 @@ importers:
       '@polkadot-api/wasm-executor':
         specifier: ^0.2.3
         version: 0.2.3
+      '@polkadot-api/ws-middleware':
+        specifier: workspace:*
+        version: link:../json-rpc/ws-middleware
       '@polkadot-api/ws-provider':
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
@@ -399,9 +384,6 @@ importers:
       '@polkadot-api/pjs-signer':
         specifier: workspace:*
         version: link:../signers/pjs-signer
-      '@polkadot-api/polkadot-sdk-compat':
-        specifier: workspace:*
-        version: link:../json-rpc/polkadot-sdk-compat
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../signers/polkadot-signer
@@ -423,6 +405,9 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+      '@polkadot-api/ws-middleware':
+        specifier: workspace:*
+        version: link:../json-rpc/ws-middleware
       '@polkadot-api/ws-provider':
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
@@ -526,32 +511,7 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc-provider
 
-  packages/json-rpc/legacy-provider:
-    dependencies:
-      '@polkadot-api/json-rpc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc-provider
-      '@polkadot-api/raw-client':
-        specifier: workspace:*
-        version: link:../../raw-client
-      '@polkadot-api/substrate-bindings':
-        specifier: workspace:*
-        version: link:../../substrate-bindings
-      '@polkadot-api/utils':
-        specifier: workspace:*
-        version: link:../../utils
-    devDependencies:
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
-
   packages/json-rpc/logs-provider:
-    dependencies:
-      '@polkadot-api/json-rpc-provider':
-        specifier: workspace:*
-        version: link:../json-rpc-provider
-
-  packages/json-rpc/polkadot-sdk-compat:
     dependencies:
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
@@ -570,6 +530,28 @@ importers:
         specifier: workspace:*
         version: link:../../smoldot
 
+  packages/json-rpc/ws-middleware:
+    dependencies:
+      '@polkadot-api/json-rpc-provider':
+        specifier: workspace:*
+        version: link:../json-rpc-provider
+      '@polkadot-api/json-rpc-provider-proxy':
+        specifier: workspace:*
+        version: link:../json-rpc-provider-proxy
+      '@polkadot-api/raw-client':
+        specifier: workspace:*
+        version: link:../../raw-client
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../substrate-bindings
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
+    devDependencies:
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
+
   packages/json-rpc/ws-provider:
     dependencies:
       '@polkadot-api/json-rpc-provider':
@@ -578,12 +560,13 @@ importers:
       '@polkadot-api/json-rpc-provider-proxy':
         specifier: workspace:*
         version: link:../json-rpc-provider-proxy
-      '@types/ws':
-        specifier: ^8.18.1
-        version: 8.18.1
-      ws:
-        specifier: ^8.19.0
-        version: 8.19.0
+      '@polkadot-api/utils':
+        specifier: workspace:*
+        version: link:../../utils
+    devDependencies:
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/known-chains:
     devDependencies:
@@ -1464,37 +1447,32 @@ packages:
   '@polkadot-api/descriptors@file:examples/bun/.papi/descriptors':
     resolution: {directory: examples/bun/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
-
-  '@polkadot-api/descriptors@file:examples/commonjs/.papi/descriptors':
-    resolution: {directory: examples/commonjs/.papi/descriptors, type: directory}
-    peerDependencies:
-      polkadot-api: '>=1.11.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:examples/ink/.papi/descriptors':
     resolution: {directory: examples/ink/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '*'
+      polkadot-api: '>=1.21.0'
 
   '@polkadot-api/descriptors@file:examples/react-teleport/.papi/descriptors':
     resolution: {directory: examples/react-teleport/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:examples/vite/.papi/descriptors':
     resolution: {directory: examples/vite/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:integration-tests/chopsticks/.papi/descriptors':
     resolution: {directory: integration-tests/chopsticks/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/descriptors@file:integration-tests/zombie-tests/.papi/descriptors':
     resolution: {directory: integration-tests/zombie-tests/.papi/descriptors, type: directory}
     peerDependencies:
-      polkadot-api: '>=1.21.0'
+      polkadot-api: '>=2.0.0-rc.1'
 
   '@polkadot-api/json-rpc-provider-proxy@0.1.0':
     resolution: {integrity: sha512-8GSFE5+EF73MCuLQm8tjrbCqlgclcHBSRaswvXziJ0ZW7iw3UEMsKkkKvELayWyBuOPa2T5i1nj6gFOeIsqvrg==}
@@ -2089,9 +2067,6 @@ packages:
 
   '@types/w3c-web-usb@1.0.13':
     resolution: {integrity: sha512-N2nSl3Xsx8mRHZBvMSdNGtzMyeleTvtlEw+ujujgXalPqOjIA6UtrqcB6OzyUjkTbDm3J7P1RNK1lgoO7jxtsw==}
-
-  '@types/ws@8.18.1':
-    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@unique-nft/sr25519@0.0.2':
     resolution: {integrity: sha512-41DJwU8aX56MAlNgmhAOYaE3ie+7HoETsVhqv5d3Pk7dpr1Aezmzihl5fqfLDgx0XeD8Q1QHY9pYAmsNmgQd2A==}
@@ -4716,10 +4691,6 @@ snapshots:
     dependencies:
       polkadot-api: link:packages/client
 
-  '@polkadot-api/descriptors@file:examples/commonjs/.papi/descriptors(polkadot-api@packages+client)':
-    dependencies:
-      polkadot-api: link:packages/client
-
   '@polkadot-api/descriptors@file:examples/ink/.papi/descriptors(polkadot-api@packages+client)':
     dependencies:
       polkadot-api: link:packages/client
@@ -5490,10 +5461,6 @@ snapshots:
   '@types/unist@3.0.3': {}
 
   '@types/w3c-web-usb@1.0.13': {}
-
-  '@types/ws@8.18.1':
-    dependencies:
-      '@types/node': 25.0.10
 
   '@unique-nft/sr25519@0.0.2':
     dependencies:

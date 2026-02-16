@@ -1,9 +1,4 @@
-import {
-  Binary,
-  Codec,
-  FixedSizeBinary,
-  ResultPayload,
-} from "@polkadot-api/substrate-bindings"
+import { Codec, ResultPayload } from "@polkadot-api/substrate-bindings"
 
 type Tuple<T> = [T, ...T[]]
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
@@ -35,8 +30,6 @@ type _Inner<T> = T extends void
           | null
           | symbol
           | Uint8Array
-          | Binary
-          | FixedSizeBinary<any>
       ? {}
       : T extends Tuple<any>
         ? {

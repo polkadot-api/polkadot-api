@@ -1,17 +1,20 @@
+import { createRuntimeCtx, getRawMetadata$ } from "@/utils"
+import { MetadataMaps } from "@/utils/mapped-metadata"
 import {
   getDynamicBuilder,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import {
-  Binary,
   Codec,
   Decoder,
   HexString,
   metadata as metadataCodec,
+  SizedHex,
   SS58String,
   UnifiedMetadata,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
+import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
 import {
   catchError,
   EMPTY,
@@ -25,8 +28,6 @@ import {
   timer,
 } from "rxjs"
 import { BlockNotPinnedError } from "../errors"
-import { OperationInaccessibleError } from "@polkadot-api/substrate-client"
-import { createRuntimeCtx, getRawMetadata$ } from "@/utils"
 
 export type SystemEvent = {
   phase:
@@ -40,7 +41,7 @@ export type SystemEvent = {
       value: any
     }
   }
-  topics: Array<Binary>
+  topics: Array<SizedHex<32>>
 }
 
 export type Mortality =
@@ -51,6 +52,7 @@ export type Mortality =
 
 export interface RuntimeContext {
   metadataRaw: Uint8Array
+  mappedMeta: MetadataMaps
   lookup: MetadataLookup
   codeHash: HexString
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>
@@ -102,7 +104,7 @@ const withRecovery =
   }
 
 export const getRuntimeCreator = (
-  call$: (hash: string, method: string, args: string) => Observable<string>,
+  call$: (hash: string, method: string, args: string) => Observable<Uint8Array>,
   getCachedMetadata: (codeHash: string) => Observable<Uint8Array | null>,
   setCachedMetadata: (codeHash: string, metadataRaw: Uint8Array) => void,
 ) => {

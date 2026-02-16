@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.18.0 - 2026-02-12
+
+### Changed
+
+- `Binary` is now a set of utilities for Uint8Array.
+
+### Removed
+
+- `Bin` codec
+
 ## 0.17.0 - 2026-01-22
 
 ### Changed

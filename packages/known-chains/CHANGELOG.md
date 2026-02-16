@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.10.0 - 2026-02-12
+
+### Removed
+
+- Remove Rococo chainspecs
+
 ## 0.9.18 - 2026-01-22
 
 ### Fixed

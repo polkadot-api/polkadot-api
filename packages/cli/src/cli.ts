@@ -29,8 +29,8 @@ export function getCli({
   )
   const whitelist = new Option(
     "--whitelist <filename>",
-    "Use whitelist file to reduce descriptor size",
-  )
+    "Removed. The whitelist path is now .papi/whitelist.ts",
+  ).hideHelp()
 
   program
     .command("generate", {

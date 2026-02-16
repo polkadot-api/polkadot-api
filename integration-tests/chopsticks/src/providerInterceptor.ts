@@ -1,13 +1,18 @@
-import { JsonRpcProvider } from "polkadot-api/ws-provider/web"
+import {
+  JsonRpcRequest,
+  JsonRpcMessage,
+  JsonRpcId,
+} from "@polkadot-api/json-rpc-provider"
+import { JsonRpcProvider } from "polkadot-api"
 
 export interface Interceptor {
-  sending?: (ctx: InterceptorContext, msg: string) => void
-  receiving?: (ctx: InterceptorContext, msg: string) => void
+  sending?: (ctx: InterceptorContext, msg: JsonRpcRequest) => void
+  receiving?: (ctx: InterceptorContext, msg: JsonRpcMessage) => void
 }
 
 export type InterceptorContext = {
-  send: (msg: string) => void
-  receive: (msg: string) => void
+  send: (msg: JsonRpcRequest) => void
+  receive: (msg: JsonRpcMessage) => void
 }
 
 export const providerInterceptor = <T>(
@@ -42,35 +47,42 @@ export const providerInterceptor = <T>(
 
 export const createStopInterceptor = (ctx: InterceptorContext) => {
   let subscription = ""
-  let followingId = ""
+  let followingId: JsonRpcId = ""
 
   const interceptor: Interceptor = {
-    sending(ctx, msgStr) {
-      const msg = JSON.parse(msgStr)
-      if (msg.method === "chainHead_v1_follow") {
+    sending(ctx, msg) {
+      if (
+        "method" in msg &&
+        msg.id !== undefined &&
+        msg.method === "chainHead_v1_follow"
+      ) {
         followingId = msg.id
       }
-      ctx.send(msgStr)
+      ctx.send(msg)
     },
-    receiving(ctx, msgStr) {
-      const msg = JSON.parse(msgStr)
-      if (msg.id === followingId) {
+    receiving(ctx, msg) {
+      if (msg.id === followingId && "result" in msg) {
         subscription = msg.result
       }
-      ctx.receive(msgStr)
+      ctx.receive(msg)
     },
   }
 
   const controller = {
     sendUnfollow: () => {
-      ctx.send(
-        `{"jsonrpc":"2.0","id":"unfollow-${subscription}","method":"chainHead_v1_unfollow","params":["${subscription}"]}`,
-      )
+      ctx.send({
+        jsonrpc: "2.0",
+        id: `unfollow-${subscription}`,
+        method: "chainHead_v1_unfollow",
+        params: [subscription],
+      })
     },
     sendStop: () => {
-      ctx.receive(
-        `{"jsonrpc":"2.0","method":"chainHead_v1_followEvent","params":{"subscription":"${subscription}","result":{"event":"stop"}}}`,
-      )
+      ctx.receive({
+        jsonrpc: "2.0",
+        method: "chainHead_v1_followEvent",
+        params: { subscription, result: { event: "stop" } },
+      })
     },
     stop: () => {
       controller.sendUnfollow()
@@ -84,7 +96,11 @@ export const createStopInterceptor = (ctx: InterceptorContext) => {
 export const combineInterceptors = (
   ...interceptors: Interceptor[]
 ): Interceptor => {
-  const sending = (ctx: InterceptorContext, msg: string, idx: number) => {
+  const sending = (
+    ctx: InterceptorContext,
+    msg: JsonRpcRequest,
+    idx: number,
+  ) => {
     if (idx >= interceptors.length) {
       return ctx.send(msg)
     }
@@ -100,7 +116,11 @@ export const combineInterceptors = (
       sending(ctx, msg, idx + 1)
     }
   }
-  const receiving = (ctx: InterceptorContext, msg: string, idx: number) => {
+  const receiving = (
+    ctx: InterceptorContext,
+    msg: JsonRpcMessage,
+    idx: number,
+  ) => {
     if (idx < 0) {
       return ctx.receive(msg)
     }

@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/known-chains",
-  "version": "0.9.18",
+  "version": "0.10.0",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
@@ -20,35 +20,35 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./ksmcc3": {
-      "module": "./dist/specs/ksmcc3.mjs",
-      "import": "./dist/specs/ksmcc3.mjs",
-      "require": "./dist/specs/ksmcc3.js"
+    "./kusama": {
+      "module": "./dist/specs/kusama.mjs",
+      "import": "./dist/specs/kusama.mjs",
+      "require": "./dist/specs/kusama.js"
     },
-    "./ksmcc3_asset_hub": {
-      "module": "./dist/specs/ksmcc3_asset_hub.mjs",
-      "import": "./dist/specs/ksmcc3_asset_hub.mjs",
-      "require": "./dist/specs/ksmcc3_asset_hub.js"
+    "./kusama_asset_hub": {
+      "module": "./dist/specs/kusama_asset_hub.mjs",
+      "import": "./dist/specs/kusama_asset_hub.mjs",
+      "require": "./dist/specs/kusama_asset_hub.js"
     },
-    "./ksmcc3_bridge_hub": {
-      "module": "./dist/specs/ksmcc3_bridge_hub.mjs",
-      "import": "./dist/specs/ksmcc3_bridge_hub.mjs",
-      "require": "./dist/specs/ksmcc3_bridge_hub.js"
+    "./kusama_bridge_hub": {
+      "module": "./dist/specs/kusama_bridge_hub.mjs",
+      "import": "./dist/specs/kusama_bridge_hub.mjs",
+      "require": "./dist/specs/kusama_bridge_hub.js"
     },
-    "./ksmcc3_coretime": {
-      "module": "./dist/specs/ksmcc3_coretime.mjs",
-      "import": "./dist/specs/ksmcc3_coretime.mjs",
-      "require": "./dist/specs/ksmcc3_coretime.js"
+    "./kusama_coretime": {
+      "module": "./dist/specs/kusama_coretime.mjs",
+      "import": "./dist/specs/kusama_coretime.mjs",
+      "require": "./dist/specs/kusama_coretime.js"
     },
-    "./ksmcc3_encointer": {
-      "module": "./dist/specs/ksmcc3_encointer.mjs",
-      "import": "./dist/specs/ksmcc3_encointer.mjs",
-      "require": "./dist/specs/ksmcc3_encointer.js"
+    "./kusama_encointer": {
+      "module": "./dist/specs/kusama_encointer.mjs",
+      "import": "./dist/specs/kusama_encointer.mjs",
+      "require": "./dist/specs/kusama_encointer.js"
     },
-    "./ksmcc3_people": {
-      "module": "./dist/specs/ksmcc3_people.mjs",
-      "import": "./dist/specs/ksmcc3_people.mjs",
-      "require": "./dist/specs/ksmcc3_people.js"
+    "./kusama_people": {
+      "module": "./dist/specs/kusama_people.mjs",
+      "import": "./dist/specs/kusama_people.mjs",
+      "require": "./dist/specs/kusama_people.js"
     },
     "./paseo": {
       "module": "./dist/specs/paseo.mjs",
@@ -100,55 +100,35 @@
       "import": "./dist/specs/polkadot_people.mjs",
       "require": "./dist/specs/polkadot_people.js"
     },
-    "./rococo_v2_2": {
-      "module": "./dist/specs/rococo_v2_2.mjs",
-      "import": "./dist/specs/rococo_v2_2.mjs",
-      "require": "./dist/specs/rococo_v2_2.js"
+    "./westend": {
+      "module": "./dist/specs/westend.mjs",
+      "import": "./dist/specs/westend.mjs",
+      "require": "./dist/specs/westend.js"
     },
-    "./rococo_v2_2_asset_hub": {
-      "module": "./dist/specs/rococo_v2_2_asset_hub.mjs",
-      "import": "./dist/specs/rococo_v2_2_asset_hub.mjs",
-      "require": "./dist/specs/rococo_v2_2_asset_hub.js"
+    "./westend_asset_hub": {
+      "module": "./dist/specs/westend_asset_hub.mjs",
+      "import": "./dist/specs/westend_asset_hub.mjs",
+      "require": "./dist/specs/westend_asset_hub.js"
     },
-    "./rococo_v2_2_bridge_hub": {
-      "module": "./dist/specs/rococo_v2_2_bridge_hub.mjs",
-      "import": "./dist/specs/rococo_v2_2_bridge_hub.mjs",
-      "require": "./dist/specs/rococo_v2_2_bridge_hub.js"
+    "./westend_bridge_hub": {
+      "module": "./dist/specs/westend_bridge_hub.mjs",
+      "import": "./dist/specs/westend_bridge_hub.mjs",
+      "require": "./dist/specs/westend_bridge_hub.js"
     },
-    "./rococo_v2_2_people": {
-      "module": "./dist/specs/rococo_v2_2_people.mjs",
-      "import": "./dist/specs/rococo_v2_2_people.mjs",
-      "require": "./dist/specs/rococo_v2_2_people.js"
+    "./westend_collectives": {
+      "module": "./dist/specs/westend_collectives.mjs",
+      "import": "./dist/specs/westend_collectives.mjs",
+      "require": "./dist/specs/westend_collectives.js"
     },
-    "./westend2": {
-      "module": "./dist/specs/westend2.mjs",
-      "import": "./dist/specs/westend2.mjs",
-      "require": "./dist/specs/westend2.js"
+    "./westend_coretime": {
+      "module": "./dist/specs/westend_coretime.mjs",
+      "import": "./dist/specs/westend_coretime.mjs",
+      "require": "./dist/specs/westend_coretime.js"
     },
-    "./westend2_asset_hub": {
-      "module": "./dist/specs/westend2_asset_hub.mjs",
-      "import": "./dist/specs/westend2_asset_hub.mjs",
-      "require": "./dist/specs/westend2_asset_hub.js"
-    },
-    "./westend2_bridge_hub": {
-      "module": "./dist/specs/westend2_bridge_hub.mjs",
-      "import": "./dist/specs/westend2_bridge_hub.mjs",
-      "require": "./dist/specs/westend2_bridge_hub.js"
-    },
-    "./westend2_collectives": {
-      "module": "./dist/specs/westend2_collectives.mjs",
-      "import": "./dist/specs/westend2_collectives.mjs",
-      "require": "./dist/specs/westend2_collectives.js"
-    },
-    "./westend2_coretime": {
-      "module": "./dist/specs/westend2_coretime.mjs",
-      "import": "./dist/specs/westend2_coretime.mjs",
-      "require": "./dist/specs/westend2_coretime.js"
-    },
-    "./westend2_people": {
-      "module": "./dist/specs/westend2_people.mjs",
-      "import": "./dist/specs/westend2_people.mjs",
-      "require": "./dist/specs/westend2_people.js"
+    "./westend_people": {
+      "module": "./dist/specs/westend_people.mjs",
+      "import": "./dist/specs/westend_people.mjs",
+      "require": "./dist/specs/westend_people.js"
     }
   },
   "main": "./dist/index.js",
@@ -158,12 +138,12 @@
   "sideEffects": false,
   "files": [
     "dist",
-    "ksmcc3",
-    "ksmcc3_asset_hub",
-    "ksmcc3_bridge_hub",
-    "ksmcc3_coretime",
-    "ksmcc3_encointer",
-    "ksmcc3_people",
+    "kusama",
+    "kusama_asset_hub",
+    "kusama_bridge_hub",
+    "kusama_coretime",
+    "kusama_encointer",
+    "kusama_people",
     "paseo",
     "paseo_asset_hub",
     "paseo_coretime",
@@ -174,16 +154,12 @@
     "polkadot_collectives",
     "polkadot_coretime",
     "polkadot_people",
-    "rococo_v2_2",
-    "rococo_v2_2_asset_hub",
-    "rococo_v2_2_bridge_hub",
-    "rococo_v2_2_people",
-    "westend2",
-    "westend2_asset_hub",
-    "westend2_bridge_hub",
-    "westend2_collectives",
-    "westend2_coretime",
-    "westend2_people"
+    "westend",
+    "westend_asset_hub",
+    "westend_bridge_hub",
+    "westend_collectives",
+    "westend_coretime",
+    "westend_people"
   ],
   "scripts": {
     "build-core": "node prepare-specs.mjs && bash build.sh",

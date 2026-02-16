@@ -1,3 +1,2 @@
-export * from "./types-common"
-export * from "./types-new"
-export { getWsProvider } from "./default-provider"
+export * from "./types"
+export { getWsProvider } from "./provider"

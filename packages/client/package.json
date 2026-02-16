@@ -1,6 +1,6 @@
 {
   "name": "polkadot-api",
-  "version": "1.23.3",
+  "version": "2.0.0-rc.1",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -15,14 +15,14 @@
   "exports": {
     ".": {
       "node": {
-        "import": "./dist/esm/index.mjs",
-        "require": "./dist/index.js",
-        "default": "./dist/index.js"
+        "import": "./dist/esm/src/index.mjs",
+        "require": "./dist/src/index.js",
+        "default": "./dist/src/index.js"
       },
-      "module": "./dist/esm/index.mjs",
-      "import": "./dist/esm/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "module": "./dist/esm/src/index.mjs",
+      "import": "./dist/esm/src/index.mjs",
+      "require": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
     },
     "./logs-provider": {
       "types": "./dist/reexports/logs-provider.d.ts",
@@ -35,18 +35,6 @@
       "import": "./dist/esm/reexports/logs-provider.mjs",
       "require": "./dist/reexports/logs-provider.js",
       "default": "./dist/reexports/logs-provider.js"
-    },
-    "./polkadot-sdk-compat": {
-      "types": "./dist/reexports/polkadot-sdk-compat.d.ts",
-      "node": {
-        "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
-        "require": "./dist/reexports/polkadot-sdk-compat.js",
-        "default": "./dist/reexports/polkadot-sdk-compat.js"
-      },
-      "module": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
-      "import": "./dist/esm/reexports/polkadot-sdk-compat.mjs",
-      "require": "./dist/reexports/polkadot-sdk-compat.js",
-      "default": "./dist/reexports/polkadot-sdk-compat.js"
     },
     "./pjs-signer": {
       "types": "./dist/reexports/pjs-signer.d.ts",
@@ -83,30 +71,6 @@
       "import": "./dist/esm/reexports/sm-provider.mjs",
       "require": "./dist/reexports/sm-provider.js",
       "default": "./dist/reexports/sm-provider.js"
-    },
-    "./ws-provider": {
-      "types": "./dist/reexports/ws-provider.d.ts",
-      "node": {
-        "import": "./dist/esm/reexports/ws-provider.mjs",
-        "require": "./dist/reexports/ws-provider.js",
-        "default": "./dist/reexports/ws-provider.js"
-      },
-      "module": "./dist/esm/reexports/ws-provider.mjs",
-      "import": "./dist/esm/reexports/ws-provider.mjs",
-      "require": "./dist/reexports/ws-provider.js",
-      "default": "./dist/reexports/ws-provider.js"
-    },
-    "./ws-provider/*": {
-      "types": "./dist/reexports/ws-provider_*.d.ts",
-      "node": {
-        "import": "./dist/esm/reexports/ws-provider_*.mjs",
-        "require": "./dist/reexports/ws-provider_*.js",
-        "default": "./dist/reexports/ws-provider_*.js"
-      },
-      "module": "./dist/esm/reexports/ws-provider_*.mjs",
-      "import": "./dist/esm/reexports/ws-provider_*.mjs",
-      "require": "./dist/reexports/ws-provider_*.js",
-      "default": "./dist/reexports/ws-provider_*.js"
     },
     "./chains": {
       "types": "./dist/reexports/chains.d.ts",
@@ -179,25 +143,36 @@
       "import": "./dist/esm/reexports/ink.mjs",
       "require": "./dist/reexports/ink.js",
       "default": "./dist/reexports/ink.js"
+    },
+    "./ws": {
+      "types": "./dist/reexports/ws.d.ts",
+      "node": {
+        "import": "./dist/esm/reexports/ws.mjs",
+        "require": "./dist/reexports/ws.js",
+        "default": "./dist/reexports/ws.js"
+      },
+      "module": "./dist/esm/reexports/ws.mjs",
+      "import": "./dist/esm/reexports/ws.mjs",
+      "require": "./dist/reexports/ws.js",
+      "default": "./dist/reexports/ws.js"
     }
   },
-  "main": "./dist/index.js",
-  "module": "./dist/esm/index.mjs",
-  "browser": "./dist/esm/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/src/index.js",
+  "module": "./dist/esm/src/index.mjs",
+  "browser": "./dist/esm/src/index.mjs",
+  "types": "./dist/src/index.d.ts",
   "files": [
     "dist",
     "bin",
     "logs-provider",
-    "polkadot-sdk-compat",
     "pjs-signer",
     "signer",
     "sm-provider",
-    "ws-provider",
     "chains",
     "smoldot",
     "utils",
-    "ink"
+    "ink",
+    "ws"
   ],
   "scripts": {
     "build-core": "tsc --noEmit && rollup -c",
@@ -220,7 +195,6 @@
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
     "@polkadot-api/pjs-signer": "workspace:*",
-    "@polkadot-api/polkadot-sdk-compat": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signer": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
@@ -228,6 +202,7 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
+    "@polkadot-api/ws-middleware": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
     "@rx-state/core": "^0.1.4"
   },

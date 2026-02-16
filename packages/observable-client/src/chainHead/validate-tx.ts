@@ -1,19 +1,20 @@
-import { Observable, map, withLatestFrom } from "rxjs"
-import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   _void,
   createDecoder,
   Decoder,
+  HexString,
   ResultPayload,
   u8,
   Variant,
 } from "@polkadot-api/substrate-bindings"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { map, Observable, withLatestFrom } from "rxjs"
 import { RuntimeContext } from "./streams"
 
 const external = new Uint8Array([2])
 
-const getValidateTxArgs = (tx: string, hash: string) =>
-  toHex(mergeUint8([external, fromHex(tx), fromHex(hash)]))
+const getValidateTxArgs = (tx: Uint8Array, hash: HexString) =>
+  toHex(mergeUint8([external, tx, fromHex(hash)]))
 
 const TaggedTransactionQueue = "TaggedTransactionQueue"
 const validateTransaction = "validate_transaction"
@@ -62,10 +63,13 @@ export const getValidateTx =
       hash: string | null,
       fnName: string,
       parameters: string,
-    ) => Observable<string>,
-    getRuntimeContext: (hash: string) => Observable<RuntimeContext>,
+    ) => Observable<Uint8Array>,
+    getRuntimeContext: (hash: HexString) => Observable<RuntimeContext>,
   ) =>
-  (blockHash: string, tx: string): Observable<ResultPayload<any, any>> => {
+  (
+    blockHash: HexString,
+    tx: Uint8Array,
+  ): Observable<ResultPayload<any, any>> => {
     const decoder$ = getRuntimeContext(blockHash).pipe(
       map((ctx) => {
         try {

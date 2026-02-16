@@ -2,6 +2,65 @@
 
 ## Unreleased
 
+## 2.0.0 - 2026-02-12
+
+### Added
+
+- Added `getStaticApis` which provides all sort of synchronous methods that are executed against the context of a particular runtime-code.
+- Add abort signal to block methods
+- `_subscribe` method to perform non JSON-RPC spec subscriptions.
+
+- **polkadot-api/ws**
+  - Exposes a new `createWsClient` function which is sugar for `createClient(getWsProvider(URI))`, while also exposing the `switch` and `getStatus` functions from the ws-provider into the client.
+  - Exposes a modern version of the `getWsProvider` function, which returns a `JsonRpcProvider` v1 interface. This Provider automatically detects which middlewares should be applied against any given endpoints. It also accepts a new `logger` callback.
+  - Exposes a new `getWsRawProvider` which is identicaly to the previous one, but without using any middlewares. This provider should only be used if you are confident that all the endpoints are 100% compliant with the new JSON-RPC spec.
+  - BREAKING: The `WsEvent` Enum exposed from the ws-provider is now a plain JS object for which its keys and its values are the same.
+
+- **polkadot-api/utils**:
+  - Add `jsonSerialize` and `jsonDeserialize` as JSON.stringify/parse replacement fns.
+
+### Changed
+
+- TypedApi: constants can now be queried with standard `PullOptions`.
+- BREAKING: `createClient` consumes the new `JsonRpcProvider` v1.
+- BREAKING: When creating transactions the optional `at` value only accepts specific block-hashes.
+- BREAKING: `getBody` and `getHeader` only accept block-hashes.
+- BREAKING: renamed `watchBlockBody` to `getBlockBody$`
+- BREAKING: `getBody` and `getBlockBody$` return `Uint8Array`s instead of `HexString`
+- BREAKING: `sign` and `getBareTx` return `Uint8Array`s instead of `HexString`
+- BREAKING: `watchValue` options are now consistent with `watchEntries` options, and also with the rest of query options.
+- BREAKING: `watchValue` emits an object that contains the value and the block the value was found in.
+- BREAKING: `watchValue` emits every time it queries the value. The value keeps the same reference if it didn't change.
+- BREAKING: rename chainspecs `ksmcc3` => `kusama`, `westend2` => `westend`
+- BREAKING: flattened Event interface in TypedAPI event `watch`.
+- BREAKING: `filter()` method in TypedAPI event entry returns an object `{ original: SystemEvent, payload: T }` instead of just the payload.
+- BREAKING: Codegen exposes and expects `Vec<u8>` as `Uint8Array` instead of `Binary`.
+- BREAKING: Remove `Binary` class. Replaced by a set of utilities to deal with `Uint8Array`s.
+
+- **WS-Provider:**
+  - BREAKING: This export has been moved in favor of `polkadot-api/ws`
+
+- **Smoldot Provider:**
+  - BREAKING: it exposes the new `JsonRpcProvider` v1.
+
+- **Logs Provider:**
+  - BREAKING: it exposes the new `JsonRpcProvider` v1.
+
+- **Utils:**
+  - BREAKING: `mergeUint8` remove deprecated overload.
+
+### Removed
+
+- BREAKING: Removed `RuntimeToken` and `CompatibilityToken`
+- BREAKING: polkadot-sdk-compat
+- BREAKING: Rococo chainspecs
+- BREAKING: Removed `.pull()` from event entries in TypedAPI.
+- BREAKING: Removed the filter parameter from `.watch()` method in TypedAPI event entries.
+- BREAKING: Remove support for `package.json`-based CLI config
+
+- **polkadot-api/utils**:
+  - `jsonPrint` export
+
 ## 1.23.3 - 2026-01-22
 
 ### Fixed

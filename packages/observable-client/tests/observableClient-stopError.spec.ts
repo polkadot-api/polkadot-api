@@ -1,4 +1,5 @@
 import { BlockNotPinnedError, getObservableClient } from "@/index"
+import { Binary } from "@polkadot-api/substrate-bindings"
 import {
   DisjointError,
   StopError,
@@ -61,8 +62,11 @@ describe("observableClient stopError recovery", () => {
 
     expect(mockClient.chainHead.mock.body).toHaveBeenCalledTimes(2)
 
-    const bodyResponse = ["foo"]
-    await mockClient.chainHead.mock.body.reply(requestedBodyHash, bodyResponse)
+    const bodyResponse = [Binary.fromText("foo")]
+    await mockClient.chainHead.mock.body.reply(
+      requestedBodyHash,
+      bodyResponse.map(Binary.toHex),
+    )
 
     expect(body.next).toHaveBeenCalledWith(bodyResponse)
 
@@ -153,8 +157,11 @@ describe("observableClient stopError recovery", () => {
       bestBlockHash: newBlocks.at(-1)!.blockHash,
     })
 
-    const bodyResponse = ["foo"]
-    await mockClient.chainHead.mock.body.reply(requestedBodyHash, bodyResponse)
+    const bodyResponse = [Binary.fromText("foo")]
+    await mockClient.chainHead.mock.body.reply(
+      requestedBodyHash,
+      bodyResponse.map(Binary.toHex),
+    )
 
     expect(body.next).toHaveBeenCalledWith(bodyResponse)
 
@@ -368,9 +375,12 @@ describe("observableClient stopError recovery", () => {
     expect(runtimeObs.error).not.toHaveBeenCalled()
     expect(runtimeObs.next).toHaveBeenCalledTimes(1)
 
-    await mockClient.chainHead.mock.body.reply(newBlock.blockHash, ["result"])
+    const result = Binary.fromText("result")
+    await mockClient.chainHead.mock.body.reply(newBlock.blockHash, [
+      Binary.toHex(result),
+    ])
     expect(body.error).not.toHaveBeenCalled()
-    expect(body.next).toHaveBeenCalledWith(["result"])
+    expect(body.next).toHaveBeenCalledWith([result])
 
     cleanup(chainHead.unfollow)
   })

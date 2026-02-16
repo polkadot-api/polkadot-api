@@ -11,7 +11,7 @@ export type {
 export {
   AccountId,
   Binary,
-  FixedSizeBinary,
+  type SizedHex,
   Enum,
   _Enum,
   getSs58AddressInfo,

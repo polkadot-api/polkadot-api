@@ -1,9 +1,14 @@
-import { JsonRpcConnection } from "@polkadot-api/json-rpc-provider"
-import { AsyncJsonRpcProvider } from "./public-types"
+import {
+  JsonRpcConnection,
+  JsonRpcMessage,
+} from "@polkadot-api/json-rpc-provider"
+import { InnerJsonRpcProvider } from "./public-types"
 
-export interface ConnectableJsonRpcConnection extends JsonRpcConnection {
-  connect: (cb: AsyncJsonRpcProvider) => void
+export interface ConnectableJsonRpcConnection<
+  T = any,
+> extends JsonRpcConnection {
+  connect: (cb: InnerJsonRpcProvider<T>) => void
 }
 export type ReconnectableJsonRpcConnection = (
-  toConsumer: (msg: string) => void,
+  toConsumer: (msg: JsonRpcMessage) => void,
 ) => ConnectableJsonRpcConnection

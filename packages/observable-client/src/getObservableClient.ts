@@ -14,7 +14,7 @@ export interface ObservableClient {
   archive: (
     getRuntime: (codeHash: string) => Observable<RuntimeContext | null>,
   ) => Archive$
-  broadcastTx$: (transaction: string) => Observable<never>
+  broadcastTx$: (transaction: Uint8Array) => Observable<never>
   destroy: UnsubscribeFn
 }
 

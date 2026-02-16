@@ -1,5 +1,6 @@
 {
   "name": "zombie-tests",
+  "private": true,
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
@@ -14,7 +15,6 @@
     "@noble/curves": "^2.0.1",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
-    "@polkadot-api/legacy-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/tx-utils": "workspace:*",

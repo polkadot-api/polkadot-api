@@ -1,14 +1,21 @@
-import type { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
+import { ValueCompat } from "@/compatibility"
+import { PlainDescriptor } from "@/descriptors"
+import { getCallData } from "@/utils/get-call-data"
+import type {
+  BlockInfo,
+  ChainHead$,
+  RuntimeContext,
+} from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { getPolkadotSigner } from "@polkadot-api/signer"
 import {
   _void,
   AccountId,
-  Binary,
   compact,
   compactBn,
   Decoder,
   Enum,
+  HexString,
   Struct,
   u128,
   u32,
@@ -16,40 +23,29 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
-  Observable,
   combineLatest,
   firstValueFrom,
   map,
   mergeMap,
+  Observable,
+  of,
   take,
   throwError,
 } from "rxjs"
-import { PlainDescriptor } from "@/descriptors"
-import {
-  CompatibilityHelper,
-  CompatibilityToken,
-  getCompatibilityApi,
-  RuntimeToken,
-} from "../compatibility"
 import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
 import {
   Extensions,
   PaymentInfo,
-  TxBare,
-  TxCall,
+  Transaction,
   TxEntry,
   TxObservable,
   TxOptions,
   TxPromise,
   TxSignFn,
 } from "./types"
-import {
-  isCompatible,
-  mapLookupToTypedef,
-} from "@polkadot-api/metadata-compatibility"
 
-export { submit, submit$, InvalidTxError }
+export { InvalidTxError, submit, submit$ }
 
 const accountIdEnc = AccountId().enc
 const fakeSignature = new Uint8Array(64)
@@ -71,113 +67,91 @@ const [, queryInfoDecFallback] = Struct({
 })
 
 export const createTxEntry = <
-  D,
   Arg extends {} | undefined,
   Pallet extends string,
   Name extends string,
   Asset extends PlainDescriptor<any>,
+  E,
 >(
   pallet: Pallet,
   name: Name,
   chainHead: ChainHead$,
-  broadcast: (tx: string) => Observable<never>,
-  {
-    isCompatible: isCompatibleHelper,
-    getCompatibilityLevel,
-    compatibleRuntime$,
-    argsAreCompatible,
-    getRuntimeTypedef,
-  }: CompatibilityHelper,
-  checkCompatibility: boolean,
-): TxEntry<D, Arg, Pallet, Name, Asset> => {
-  type Ext = Extensions<D>
+  broadcast: (tx: Uint8Array) => Observable<never>,
+  compatibility: ValueCompat,
+  getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
+): TxEntry<Arg, Pallet, Name, E, Asset> => {
+  type Ext = Extensions<E>
 
-  const fn = (arg?: Arg): any => {
-    const getCallDataWithContext = (
-      runtime: CompatibilityToken | RuntimeToken,
-      arg: any,
-      txOptions: Partial<{ asset: any }> = {},
-    ) => {
-      const ctx = getCompatibilityApi(runtime).runtime()
-      const { dynamicBuilder, assetId, lookup, extVersions } = ctx
-      let codecs
-      try {
-        codecs = dynamicBuilder.buildCall(pallet, name)
-      } catch {
-        throw new Error(`Runtime entry Tx(${pallet}.${name}) not found`)
-      }
-      if (checkCompatibility && !argsAreCompatible(runtime, ctx, arg))
-        throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
+  const getCompatCtx$ = (at: HexString | null) =>
+    combineLatest([chainHead.getRuntimeContext$(at), compatibility]).pipe(
+      map(([ctx, getCompat]) => ({
+        ctx,
+        isAssetCompat: getIsAssetCompat(ctx),
+        ...getCompat(ctx),
+      })),
+    )
 
-      let returnOptions = txOptions
-      if (txOptions.asset) {
-        if (
-          assetId == null ||
-          !isCompatible(
-            txOptions.asset,
-            mapLookupToTypedef(lookup(assetId)),
-            (id) => getRuntimeTypedef(ctx, id),
+  const getCallData$ = (arg: any, at: HexString | null) =>
+    getCompatCtx$(at).pipe(
+      map(
+        ({
+          ctx: { dynamicBuilder, extVersions },
+          isValueCompatible: isCompat,
+        }) => {
+          const callData = getCallData(
+            dynamicBuilder,
+            isCompat,
+            pallet,
+            name,
+            arg,
           )
-        )
-          throw new Error(`Incompatible runtime asset`)
-        returnOptions = {
-          ...txOptions,
-          asset: dynamicBuilder.buildDefinition(assetId).enc(txOptions.asset),
-        }
-      }
-
-      const { location, codec } = codecs
-      const callData = mergeUint8([new Uint8Array(location), codec.enc(arg)])
-      return {
-        callData: Binary.fromBytes(callData),
-        bare: toHex(
-          mergeUint8(
-            compact.enc(callData.length + 1),
-            new Uint8Array(extVersions.slice(-1)),
+          return {
             callData,
-          ),
-        ),
-        options: returnOptions,
-      }
-    }
+            bare: mergeUint8([
+              compact.enc(callData.length + 1),
+              new Uint8Array(extVersions.slice(-1)),
+              callData,
+            ]),
+          }
+        },
+      ),
+    )
 
-    const getCallData$ = (arg: any, options: Partial<{ asset: any }> = {}) =>
-      compatibleRuntime$(chainHead, null).pipe(
-        map(([runtime]) => getCallDataWithContext(runtime, arg, options)),
-      )
+  const getEncodedAsset$ = (
+    asset: any,
+    at: HexString | null,
+  ): Observable<Uint8Array | undefined> =>
+    asset === undefined
+      ? of(undefined)
+      : getCompatCtx$(at).pipe(
+          map(({ ctx, isAssetCompat }) => {
+            if (!isAssetCompat(asset))
+              throw new Error(`Incompatible runtime asset`)
 
-    const getEncodedData: TxCall = (
-      token?: CompatibilityToken | RuntimeToken,
-    ): any => {
-      if (!token)
-        return firstValueFrom(getCallData$(arg).pipe(map((x) => x.callData)))
+            const { dynamicBuilder, assetId } = ctx
+            if (!assetId) return undefined
+            return dynamicBuilder.buildDefinition(assetId).enc(asset)
+          }),
+        )
 
-      return getCallDataWithContext(token, arg).callData
-    }
-
-    const getBareTx: TxBare = (
-      token?: CompatibilityToken | RuntimeToken,
-    ): any => {
-      if (!token)
-        return firstValueFrom(getCallData$(arg).pipe(map((x) => x.bare)))
-
-      return getCallDataWithContext(token, arg).bare
-    }
-
+  return ((arg?: Arg): Transaction<Arg, Pallet, Name, Asset, Ext> => {
     const sign$ = (
       from: PolkadotSigner,
       { ..._options }: Omit<TxOptions<{}, Ext>, "at">,
       atBlock: BlockInfo,
     ) =>
-      getCallData$(arg, _options).pipe(
-        mergeMap(({ callData, options }) =>
+      combineLatest([
+        getCallData$(arg, atBlock.hash),
+        getEncodedAsset$(_options.asset, atBlock.hash),
+      ]).pipe(
+        mergeMap(([callData, asset]) =>
           createTx(
             chainHead,
             from,
-            callData.asBytes(),
+            callData.callData,
             atBlock,
-            _options.customSignedExtensions || {},
-            options,
+            (_options.customSignedExtensions as any) || {},
+            { ..._options, asset },
           ),
         ),
       )
@@ -186,25 +160,14 @@ export const createTxEntry = <
       from: PolkadotSigner,
       { at, ..._options }: TxOptions<{}, Ext> = {},
     ) => {
-      return (
-        !at || at === "finalized"
-          ? chainHead.finalized$
-          : at === "best"
-            ? chainHead.best$
-            : chainHead.bestBlocks$.pipe(
-                map((x) => x.find((b) => b.hash === at)),
-              )
-      ).pipe(
+      const atBlock = chainHead.pinnedBlocks$.state.blocks.get(at!)
+      if (at && !atBlock)
+        return throwError(() => new Error(`Uknown block ${at}`))
+
+      return (atBlock ? of(atBlock) : chainHead.finalized$).pipe(
         take(1),
-        mergeMap((atBlock) =>
-          atBlock
-            ? sign$(from, _options, atBlock).pipe(
-                map((signed) => ({
-                  tx: toHex(signed),
-                  block: atBlock,
-                })),
-              )
-            : throwError(() => new Error(`Uknown block ${at}`)),
+        mergeMap((block) =>
+          sign$(from, _options, block).pipe(map((tx) => ({ tx, block }))),
         ),
       )
     }
@@ -234,7 +197,7 @@ export const createTxEntry = <
         isEth ? "Ecdsa" : "Sr25519",
         getFakeSignature(isEth),
       )
-      const encoded = fromHex(await sign(fakeSigner, _options))
+      const encoded = await sign(fakeSigner, _options)
       const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
 
       const decoder$: Observable<Decoder<PaymentInfo>> = chainHead
@@ -265,6 +228,11 @@ export const createTxEntry = <
       )
     }
 
+    const getEncodedData = () =>
+      firstValueFrom(
+        getCallData$(arg, null).pipe(map(({ callData }) => callData)),
+      )
+
     const getEstimatedFees = async (
       from: Uint8Array | string,
       _options?: any,
@@ -278,15 +246,11 @@ export const createTxEntry = <
         value: Enum(name, arg as any),
       },
       getEncodedData,
-      getBareTx,
+      getBareTx: () =>
+        firstValueFrom(getCallData$(arg, null).pipe(map(({ bare }) => bare))),
       sign,
       signSubmitAndWatch,
       signAndSubmit,
     }
-  }
-
-  return Object.assign(fn, {
-    getCompatibilityLevel,
-    isCompatible: isCompatibleHelper,
-  })
+  }) as any
 }

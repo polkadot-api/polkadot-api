@@ -7,10 +7,6 @@ import {
   StorageResult,
 } from "@polkadot-api/substrate-client"
 import {
-  MonoTypeOperatorFunction,
-  Observable,
-  ReplaySubject,
-  Subject,
   concat,
   distinctUntilChanged,
   filter,
@@ -19,11 +15,15 @@ import {
   merge,
   mergeAll,
   mergeMap,
+  MonoTypeOperatorFunction,
   noop,
+  Observable,
   of,
+  ReplaySubject,
   scan,
   share,
   shareReplay,
+  Subject,
   switchMap,
   take,
   takeWhile,
@@ -57,6 +57,7 @@ import {
 } from "./streams"
 import { getTrackTx } from "./track-tx"
 import { getValidateTx } from "./validate-tx"
+import { fromHex } from "@polkadot-api/utils"
 
 export type {
   FollowEventWithRuntime,
@@ -168,7 +169,10 @@ export const getChainHead$ = (
   const _newBlocks$ = new Subject<BlockInfo | null>()
   const pinnedBlocks$ = getPinnedBlocks$(
     follow$,
-    withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call")))),
+    (...args) =>
+      withRefcount(withRecoveryFn(fromAbortControllerFn(lazyFollower("call"))))(
+        ...args,
+      ).pipe(map(fromHex)),
     getCachedMetadata,
     setCachedMetadata,
     blockUsage$,
@@ -309,7 +313,7 @@ export const getChainHead$ = (
   const body$ = (hash: string) =>
     withOperationInaccessibleRetry(
       upsertCachedStream(hash, "body", _body$(hash)),
-    )
+    ).pipe(map((v) => v.map(fromHex)))
 
   const _storage$ = commonEnhancer(lazyFollower("storage"), "storage")
 
@@ -326,23 +330,31 @@ export const getChainHead$ = (
         keyMapper: (ctx: RuntimeContext) => string,
         childTrie: string | null = null,
         mapper?: M,
-      ): Observable<
-        undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
-      > =>
-        pinnedBlocks$.state.runtimes[
-          pinnedBlocks$.state.blocks.get(hash)!.runtime
-        ].runtime.pipe(
+      ): Observable<{
+        block: BlockInfo
+        value: undefined extends M
+          ? StorageResult<Type>
+          : ReturnType<NonNullable<M>>
+      }> => {
+        const block = pinnedBlocks$.state.blocks.get(hash)!
+        return pinnedBlocks$.state.runtimes[block.runtime].runtime.pipe(
           mergeMap((ctx) => {
             const key = keyMapper(ctx)
             return upsertCachedStream(
               hash,
               `storage-${type}-${key}-${childTrie ?? ""}`,
               _storage$(hash, type, key, childTrie),
-            ).pipe(mapper ? map((raw) => mapper(raw, ctx)) : identity)
+            ).pipe(
+              mapper ? map((raw) => mapper(raw, ctx)) : identity,
+            ) as Observable<
+              undefined extends M
+                ? StorageResult<Type>
+                : ReturnType<NonNullable<M>>
+            >
           }),
-        ) as Observable<
-          undefined extends M ? StorageResult<Type> : ReturnType<NonNullable<M>>
-        >,
+          map((value) => ({ block: toBlockInfo(block), value })),
+        )
+      },
       "storage",
     ),
   )
@@ -360,11 +372,9 @@ export const getChainHead$ = (
     ),
   )
 
-  const header$ = withOptionalHash$(
-    withInMemory(
-      withStopRecovery(pinnedBlocks$, getHeader, "header"),
-      "header",
-    ),
+  const header$ = withInMemory(
+    withStopRecovery(pinnedBlocks$, getHeader, "header"),
+    "header",
   )
 
   const eventsAt$ = (hash: string | null) =>
@@ -374,11 +384,15 @@ export const getChainHead$ = (
       (ctx) => ctx.events.key,
       null,
       (x, ctx) => ctx.events.dec(x!),
-    )
+    ).pipe(map((v) => v.value))
 
   const __call$ = commonEnhancer(lazyFollower("call"), "call")
   const call$ = withOptionalHash$((hash: string, fn: string, args: string) =>
-    upsertCachedStream(hash, `call-${fn}-${args}`, __call$(hash, fn, args)),
+    upsertCachedStream(
+      hash,
+      `call-${fn}-${args}`,
+      __call$(hash, fn, args).pipe(map(fromHex)),
+    ),
   )
 
   const validateTx$ = getValidateTx(call$, getRuntimeContext$)
@@ -404,7 +418,9 @@ export const getChainHead$ = (
         key = enc(0n)
       }
 
-      return storage$(null, "value", () => key, null) as Observable<HexString>
+      return storage$(null, "value", () => key, null).pipe(
+        map((v) => v.value as HexString),
+      )
     }),
     shareReplay(1),
   )

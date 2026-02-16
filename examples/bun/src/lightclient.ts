@@ -1,33 +1,30 @@
-import { CompatibilityLevel, createClient } from "polkadot-api"
+import { createClient } from "polkadot-api"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
-import { chainSpec } from "polkadot-api/chains/westend2"
+import { chainSpec } from "polkadot-api/chains/westend"
 import { wnd } from "@polkadot-api/descriptors"
 
 const smoldot = start()
 
-const client = createClient(getSmProvider(smoldot.addChain({ chainSpec })))
+const client = createClient(
+  getSmProvider(() => smoldot.addChain({ chainSpec })),
+)
 const testApi = client.getTypedApi(wnd)
 
-const isCompatible = (level: CompatibilityLevel) =>
-  level >= CompatibilityLevel.BackwardsCompatible
-
 async function run() {
-  const nominationsQuotaIsCompatible = isCompatible(
-    await testApi.apis.StakingApi.nominations_quota.getCompatibilityLevel(),
-  )
+  const { compat, constants } = await testApi.getStaticApis()
+  const nominationsQuotaIsCompatible =
+    compat.apis.StakingApi.nominations_quota.isCompatible()
+
   console.log({ nominationsQuotaIsCompatible })
 
-  const token = await testApi.compatibilityToken
-
-  const auctionEndingIsCompatible = isCompatible(
-    testApi.constants.Auctions.EndingPeriod.getCompatibilityLevel(token),
-  )
+  const auctionEndingIsCompatible =
+    compat.constants.Auctions.EndingPeriod.isCompatible()
 
   console.log({ auctionEndingIsCompatible })
 
   if (auctionEndingIsCompatible) {
-    console.log(testApi.constants.Auctions.EndingPeriod(token))
+    console.log(constants.Auctions.EndingPeriod)
   }
 
   client.destroy()

@@ -1,20 +1,9 @@
-import { withLegacy } from "@polkadot-api/legacy-provider"
-import { getWsProvider } from "polkadot-api/ws-provider"
-import { withLogs } from "./with-logs"
-import { createClient } from "polkadot-api"
+import { createWsClient } from "polkadot-api/ws"
 import { distinctUntilChanged, map } from "rxjs"
 
 const ZOMBIENET_URI = "wss://sys.ibp.network/statemine"
 const timeStamp = Date.now()
-const client = createClient(
-  withLogs(
-    `outter_logs${timeStamp}.txt`,
-    getWsProvider(ZOMBIENET_URI, {
-      innerEnhancer: (x) =>
-        withLegacy()(withLogs(`inner_logs${timeStamp}.txt`, x)),
-    }),
-  ),
-)
+const client = createWsClient(ZOMBIENET_URI)
 
 console.log({ timeStamp })
 client.finalizedBlock$.subscribe(

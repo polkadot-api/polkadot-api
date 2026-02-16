@@ -1,50 +1,50 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <title>Play with PAPI</title>
-  </head>
 
-  <body>
-    <h1>Play with PAPI</h1>
-    <pre id="blockNumber">Loading page...</pre>
-    <pre id="freeBalance">Loading page...</pre>
-  </body>
+<head>
+  <title>Play with PAPI</title>
+</head>
 
-  <script src="//unpkg.com/polkadot-api/dist/umd/index.min.js"></script>
-  <script src="//unpkg.com/polkadot-api/dist/umd/ws-provider_web.min.js"></script>
-  <script src="//unpkg.com/polkadot-api/dist/umd/polkadot-sdk-compat.min.js"></script>
+<body>
+  <h1>Play with PAPI</h1>
+  <pre id="blockNumber">Loading page...</pre>
+  <pre id="freeBalance">Loading page...</pre>
+</body>
 
-  <script>
-    const { createClient } = papi
-    const { withPolkadotSdkCompat } = papiPolkadotSdkCompat
-    const { getWsProvider } = papiWsProviderWeb
+<script src="//unpkg.com/polkadot-api/dist/umd/index.min.js"></script>
+<script src="//unpkg.com/polkadot-api/dist/umd/ws.min.js"></script>
 
-    // Adjust which network you want to query. Using westend as example
-    const client = createClient(
-      withPolkadotSdkCompat(getWsProvider("wss://westend-rpc.polkadot.io")),
-    )
-    const api = client.getUnsafeApi() // we get the API
+<script>
+  const {createClient} = papi
+  const {getWsProvider} = papiWsProvider
+
+  // Adjust which network you want to query. Using westend as example
+  const client = createClient(
+    withPolkadotSdkCompat(getWsProvider("wss://westend-rpc.polkadot.io")),
+  )
+  const api = client.getUnsafeApi() // we get the API
+  document.getElementById("blockNumber").innerText =
+    "Connecting to RPC endpoint..."
+  document.getElementById("freeBalance").innerText =
+    "Connecting to RPC endpoint..."
+
+  const printError = (error) => {
+    document.getElementById("output").innerText = "Error. See console (F12)"
+    console.error("Error:", error)
+  }
+
+  // we subscribe to the finalized block and show the block number at every change
+  client.finalizedBlock$.subscribe((e) => {
     document.getElementById("blockNumber").innerText =
-      "Connecting to RPC endpoint..."
+      `Current finalized block: ${e.number}`
+  }, printError)
+
+  // and to a free balance of an account
+  const ACCOUNT = "5GzvA6VdjabsiKehmWGNkfhaZ6bhsqNSgrUTQS3G87zJi6m3"
+  api.query.System.Account.watchValue(ACCOUNT).subscribe((ev) => {
     document.getElementById("freeBalance").innerText =
-      "Connecting to RPC endpoint..."
+      `${ACCOUNT} free balance: ${ev.value.data.free}`
+  }, printError)
+</script>
 
-    const printError = (error) => {
-      document.getElementById("output").innerText = "Error. See console (F12)"
-      console.error("Error:", error)
-    }
-
-    // we subscribe to the finalized block and show the block number at every change
-    client.finalizedBlock$.subscribe((e) => {
-      document.getElementById("blockNumber").innerText =
-        `Current finalized block: ${e.number}`
-    }, printError)
-
-    // and to a free balance of an account
-    const ACCOUNT = "5GzvA6VdjabsiKehmWGNkfhaZ6bhsqNSgrUTQS3G87zJi6m3"
-    api.query.System.Account.watchValue(ACCOUNT).subscribe((ev) => {
-      document.getElementById("freeBalance").innerText =
-        `${ACCOUNT} free balance: ${ev.data.free}`
-    }, printError)
-  </script>
 </html>

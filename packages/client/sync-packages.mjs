@@ -5,13 +5,9 @@ import { join } from "node:path"
 const fromId = (id) => [id, `@polkadot-api/${id}`]
 export const reexports = [
   fromId("logs-provider"),
-  fromId("polkadot-sdk-compat"),
   fromId("pjs-signer"),
   fromId("signer"),
   fromId("sm-provider"),
-  fromId("ws-provider"),
-  fromId("ws-provider/node"),
-  fromId("ws-provider/web"),
   ["chains", "@polkadot-api/known-chains"],
   ...Object.keys(knownChains).map((chainName) => [
     `chains/${chainName}`,
@@ -28,6 +24,7 @@ export const reexports = [
     "@polkadot-api/ink-contracts",
     "{ getInkClient, type InkDescriptors }",
   ],
+  ["ws", "../src/subpath/ws"],
 ]
 
 const packageJsonContent = JSON.parse(await readFile("./package.json", "utf-8"))
@@ -40,13 +37,14 @@ await Promise.all(
     rm(path, { recursive: true }).catch(() => {}),
   ),
 )
-const reexportsDir = join("src", "reexports")
+const reexportsDir = join("reexports")
 await rm(reexportsDir, { recursive: true }).catch(() => {})
 await mkdir(reexportsDir, { recursive: true })
 
 const newExports = {
   ".": packageJsonContent.exports["."],
 }
+
 for (const [packageName, source, symbols = "*"] of reexports) {
   const components = packageName.split("/")
   const packageNameWithGlob =

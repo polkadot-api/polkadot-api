@@ -1,0 +1,9 @@
+{
+  "name": "polkadot-api_ws",
+  "types": "../dist/reexports/ws.d.ts",
+  "module": "../dist/esm/reexports/ws.mjs",
+  "import": "../dist/esm/reexports/ws.mjs",
+  "browser": "../dist/esm/reexports/ws.mjs",
+  "require": "../dist/reexports/ws.js",
+  "default": "../dist/reexports/ws.js"
+}

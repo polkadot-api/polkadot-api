@@ -1,0 +1,58 @@
+{
+  "name": "@polkadot-api/ws-middleware",
+  "version": "0.2.0",
+  "author": "Josep M Sobrepere (https://github.com/josepot)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polkadot-api/polkadot-api.git"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "node": {
+        "production": {
+          "import": "./dist/esm/index.mjs",
+          "require": "./dist/min/index.js",
+          "default": "./dist/index.js"
+        },
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
+  "browser": "./dist/esm/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build-core": "tsc --noEmit && rollup -c ../../../rollup.config.js",
+    "build": "pnpm build-core",
+    "test": "echo 'no tests'",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
+  },
+  "peerDependencies": {
+    "rxjs": ">=7.8.0"
+  },
+  "dependencies": {
+    "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/json-rpc-provider-proxy": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/raw-client": "workspace:*",
+    "@polkadot-api/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "rxjs": "^7.8.2"
+  }
+}

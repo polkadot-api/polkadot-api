@@ -1,9 +1,8 @@
 name: Publish
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -50,80 +49,27 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    strategy:
-      matrix:
-        node-version:
-          - "22"
-        value:
-          [
-            cli,
-            client,
-            codegen,
-            docgen,
-            ink-contracts,
-            json-rpc/json-rpc-provider,
-            json-rpc/json-rpc-provider-proxy,
-            json-rpc/legacy-provider,
-            json-rpc/logs-provider,
-            json-rpc/polkadot-sdk-compat,
-            json-rpc/sm-provider,
-            json-rpc/ws-provider,
-            known-chains,
-            merkleize-metadata,
-            metadata-builders,
-            metadata-compatibility,
-            compare-runtimes,
-            observable-client,
-            raw-client,
-            react-builder,
-            signers/signers-common,
-            signers/ledger-signer,
-            signers/pjs-signer,
-            signers/polkadot-signer,
-            signers/signer,
-            signers/meta-signers,
-            smoldot,
-            substrate-bindings,
-            substrate-client,
-            tx-utils,
-            utils,
-            view-builder,
-          ]
     steps:
       - uses: actions/checkout@v6
-      - name: Check if version has been updated
-        id: check
-        uses: EndBug/version-check@d17247dd94ca7b39d0b0691399be8d7c510622c9
-        with:
-          diff-search: true
-          file-name: ./packages/${{ matrix.value }}/package.json
       - uses: actions/cache@v5
-        if: steps.check.outputs.changed == 'true'
         with:
           path: .turbo
-          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-22-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
+            ${{ runner.os }}-22-turbo-
       - uses: pnpm/action-setup@v4
-        if: steps.check.outputs.changed == 'true'
-      - name: Setup Node.js ${{ matrix.node-version }}
-        if: steps.check.outputs.changed == 'true'
+      - name: Setup Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.x
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Install deps
-        if: steps.check.outputs.changed == 'true'
         run: pnpm install
       - name: Build
-        if: steps.check.outputs.changed == 'true'
         run: pnpm turbo build-core --cache-dir=.turbo
       - name: Publish
-        if: steps.check.outputs.changed == 'true'
-        working-directory: packages/${{ matrix.value }}
-        run: |
-          pnpm publish --no-git-checks --access=public --tag latest
+        run: pnpm -r publish --no-git-checks --access=public --tag rc
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"

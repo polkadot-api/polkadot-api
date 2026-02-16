@@ -1,4 +1,4 @@
-import { getObservableClient } from "@/index"
+import { BlockInfo, getObservableClient } from "@/index"
 import {
   OperationLimitError,
   StorageItemInput,
@@ -7,15 +7,16 @@ import { describe, expect, it } from "vitest"
 import { initialize, setReady, wait } from "./fixtures"
 import { createMockSubstrateClient } from "./mockSubstrateClient"
 import { observe } from "./observe"
+import { map } from "rxjs"
 
 describe("observableClient chainHead", () => {
   describe("storage$", () => {
-    it("receives the storage value", async () => {
+    it("receives the storage value and block", async () => {
       const mockClient = createMockSubstrateClient()
       const client = getObservableClient(mockClient)
       const chainHead = client.chainHead$()
 
-      const { initialHash } = await initialize(mockClient)
+      const { initialHash, header } = await initialize(mockClient)
       await setReady(mockClient, initialHash)
 
       const key = "foo"
@@ -30,8 +31,16 @@ describe("observableClient chainHead", () => {
         null,
         expect.objectContaining({}),
       )
-      const result = "value"
-      await mockClient.chainHead.mock.storage.reply(initialHash, result)
+      const result = {
+        value: "value",
+        block: {
+          hash: initialHash,
+          parent: header.parentHash,
+          number: header.number,
+          hasNewRuntime: false,
+        } satisfies BlockInfo,
+      }
+      await mockClient.chainHead.mock.storage.reply(initialHash, result.value)
 
       expect(observer.next).toHaveBeenCalledWith(result)
       expect(observer.error).not.toHaveBeenCalled()
@@ -51,7 +60,9 @@ describe("observableClient chainHead", () => {
 
       const key = "foo"
       const observer = observe(
-        chainHead.storage$(initialHash, "value", () => key),
+        chainHead
+          .storage$(initialHash, "value", () => key)
+          .pipe(map((v) => v.value)),
       )
 
       expect(mockClient.chainHead.mock.storage).toHaveBeenCalledOnce()
@@ -64,7 +75,9 @@ describe("observableClient chainHead", () => {
       )
 
       const observer2 = observe(
-        chainHead.storage$(initialHash, "value", () => key),
+        chainHead
+          .storage$(initialHash, "value", () => key)
+          .pipe(map((v) => v.value)),
       )
       expect(mockClient.chainHead.mock.storage).toHaveBeenCalledOnce()
 
@@ -94,7 +107,9 @@ describe("observableClient chainHead", () => {
 
       mockClient.chainHead.mock.storage.mockRestore()
       const observer = observe(
-        chainHead.storage$(initialHash, "value", () => key),
+        chainHead
+          .storage$(initialHash, "value", () => key)
+          .pipe(map((v) => v.value)),
       )
 
       expect(mockClient.chainHead.mock.storage).toHaveBeenCalledOnce()
@@ -107,7 +122,9 @@ describe("observableClient chainHead", () => {
       )
 
       const observer2 = observe(
-        chainHead.storage$(initialHash, "value", () => key),
+        chainHead
+          .storage$(initialHash, "value", () => key)
+          .pipe(map((v) => v.value)),
       )
 
       const result = "value"
@@ -136,19 +153,21 @@ describe("observableClient chainHead", () => {
 
       const key = "foo"
       const observer = observe(
-        chainHead.storage$(
-          initialHash,
-          "value",
-          (ctx) => {
-            expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
-            return key
-          },
-          null,
-          (data, ctx) => {
-            expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
-            return data?.length ?? 0
-          },
-        ),
+        chainHead
+          .storage$(
+            initialHash,
+            "value",
+            (ctx) => {
+              expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
+              return key
+            },
+            null,
+            (data, ctx) => {
+              expect(ctx.lookup.metadata.lookup).toEqual(metadata.lookup)
+              return data?.length ?? 0
+            },
+          )
+          .pipe(map((v) => v.value)),
       )
 
       const result = "value"

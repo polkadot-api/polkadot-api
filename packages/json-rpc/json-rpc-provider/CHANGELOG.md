@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-02-12
+
+### Changed
+
+- BREAKING: `JsonRpcProvider` interface uses fully typed and parsed messages, rather than using `string`s.
+
+### Added
+
+- New interfaces: `JsonRpcId`, `JsonRpcRequest`, `JsonRpcError`, `JsonRpcResponse` and `JsonRpcMessage`
+- New helper functions: `isRequest` and `isResponse`, useful for narrowing downn the types of a `JsonRpcMessage`.
+
 ## 0.0.4 - 2024-10-05
 
 ### Fixed

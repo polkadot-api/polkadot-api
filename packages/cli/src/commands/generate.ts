@@ -45,6 +45,12 @@ export async function generate(opts: GenerateOptions) {
   if (process.env.PAPI_SKIP_GENERATE) {
     return
   }
+  if (opts.whitelist) {
+    console.error(
+      "The --whitelist option has been removed. The whitelist should be placed at `.papi/whitelist.ts`",
+    )
+    process.exit(1)
+  }
 
   const config = await readPapiConfig(opts.config)
   if (!config) {
@@ -73,11 +79,7 @@ export async function generate(opts: GenerateOptions) {
           await Promise.all(
             Object.entries(config[kind] ?? {}).map(async ([key, v]) => [
               key,
-              toHex(
-                Blake2128(
-                  Binary.fromText(await fs.readFile(v, "utf-8")).asBytes(),
-                ),
-              ),
+              toHex(Blake2128(Binary.fromText(await fs.readFile(v, "utf-8")))),
             ]),
           ),
         ),
@@ -90,8 +92,7 @@ export async function generate(opts: GenerateOptions) {
     return
   }
 
-  const whitelistPath = opts.whitelist ?? config.options?.whitelist
-  const whitelist = whitelistPath ? await readWhitelist(whitelistPath) : null
+  const whitelist = await readWhitelist(".papi/whitelist.ts")
 
   const descriptorsDir = join(process.cwd(), config.descriptorPath)
   if (await alreadyGenerated(descriptorsDir, chains, contracts, whitelist)) {
@@ -302,9 +303,7 @@ async function outputCodegen(
   )
 
   const hash = h64(
-    Binary.fromText(
-      Array.from(metadataTypes.checksumToIdx.keys()).join(""),
-    ).asBytes(),
+    Binary.fromText(Array.from(metadataTypes.checksumToIdx.keys()).join("")),
   )
 
   const EntryPointsCodec = Vector(EntryPointCodec)
@@ -526,7 +525,7 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "peerDependencies": {
-    "polkadot-api": ">=1.21.0"
+    "polkadot-api": ">=2.0.0-rc.1"
   }
 }
 `,
@@ -535,7 +534,7 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
 
 async function readWhitelist(filename: string): Promise<string[] | null> {
   if (!(await fsExists(filename))) {
-    throw new Error("Whitelist file not found: " + filename)
+    return null
   }
 
   const tmpDir = await mkdtemp(join(tmpdir(), "papi-"))
