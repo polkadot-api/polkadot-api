@@ -48,7 +48,7 @@ jobs:
         run: NODE_VERSION=${{matrix.node-version}} pnpm test
       - name: Store logs
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: Logs
           path: integration-tests/chopsticks/LOGS_${{matrix.node-version}}*
