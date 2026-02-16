@@ -49,14 +49,14 @@
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/utils": "workspace:*",
     "@polkadot-api/wasm-executor": "^0.2.3",
-    "@polkadot-api/ws-provider": "workspace:*",
     "@polkadot-api/ws-middleware": "workspace:*",
-    "@types/node": "^25.0.10",
-    "commander": "^14.0.2",
+    "@polkadot-api/ws-provider": "workspace:*",
+    "@types/node": "^25.2.3",
+    "commander": "^14.0.3",
     "execa": "^9.6.1",
     "fs.promises.exists": "^1.1.4",
-    "ora": "^9.1.0",
-    "read-pkg": "^10.0.0",
+    "ora": "^9.3.0",
+    "read-pkg": "^10.1.0",
     "rxjs": "^7.8.2",
     "tsc-prog": "^2.3.0",
     "tsup": "8.5.0",
@@ -65,6 +65,6 @@
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@swc/core": "^1.15.10"
+    "@swc/core": "^1.15.11"
   }
 }
