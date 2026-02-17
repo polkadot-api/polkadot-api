@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-## 2.0.0 - 2026-02-12
+### Fixed
+
+- Fixed-size binaries incorrectly getting decoded to `Uint8Array` instead of `HexString`
+
+## 2.0.0-rc.1 - 2026-02-16
 
 ### Added
 
