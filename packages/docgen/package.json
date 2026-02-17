@@ -28,10 +28,10 @@
     "@commander-js/extra-typings": "^14.0.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/codegen": "workspace:*",
-    "@types/node": "^25.0.10",
-    "commander": "^14.0.2",
+    "@types/node": "^25.2.3",
+    "commander": "^14.0.3",
     "tsup": "^8.5.1",
-    "typedoc": "^0.28.16",
+    "typedoc": "^0.28.17",
     "typedoc-plugin-extras": "^4.0.1",
     "typescript": "^5.9.3"
   }

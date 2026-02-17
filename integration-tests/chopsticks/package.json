@@ -14,15 +14,15 @@
     "server": "chopsticks --endpoint=wss://rpc.ibp.network/paseo --port=8132"
   },
   "dependencies": {
-    "@acala-network/chopsticks": "^1.2.5",
+    "@acala-network/chopsticks": "^1.2.7",
     "@polkadot-api/cli": "workspace:*",
-    "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/json-rpc-provider": "workspace:*",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@types/node": "^25.0.10"
+    "@types/node": "^25.2.3"
   },
   "license": "MIT"
 }
