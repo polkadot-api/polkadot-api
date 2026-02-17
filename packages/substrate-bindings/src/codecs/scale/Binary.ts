@@ -1,5 +1,5 @@
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
-import { Bytes, Tuple, compact } from "scale-ts"
+import { Bytes, Tuple, compact, enhanceCodec } from "scale-ts"
 import type { HexString } from "./Hex"
 import { compactNumber } from "./compact"
 
@@ -26,3 +26,6 @@ export const Binary = {
     throw new Error("Invalid opaque bytes")
   },
 }
+
+export const SizedBytes = (size: number) =>
+  enhanceCodec(Bytes(size), fromHex, toHex)

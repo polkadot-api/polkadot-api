@@ -48,7 +48,7 @@ const _buildCodec = (
   if (input.type === "array") {
     // Bytes case
     if (input.value.type === "primitive" && input.value.value === "u8")
-      return scale.Bytes(input.len)
+      return scale.SizedBytes(input.len)
 
     return buildVector(input.value, input.len)
   }
