@@ -39,8 +39,7 @@
     "build": "pnpm build-core",
     "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "pnpm run build"
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
     "@noble/hashes": "^2.0.1",
