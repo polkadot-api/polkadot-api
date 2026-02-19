@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/substrate-bindings",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",

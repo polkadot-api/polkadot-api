@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.0 - 2026-02-19
+
 ### Added
 
 - `SizedBytes` codec for `Bytes` -> `HexString`

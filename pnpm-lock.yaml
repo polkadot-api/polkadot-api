@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@fast-check/vitest':
         specifier: ^0.2.4
-        version: 0.2.4(vitest@4.0.18(@types/node@25.2.3)(yaml@2.8.2))
+        version: 0.2.4(vitest@4.0.18(@types/node@25.3.0)(yaml@2.8.2))
       '@homer0/prettier-plugin-jsdoc':
         specifier: ^11.0.2
         version: 11.0.2(prettier@3.8.1)
@@ -25,7 +25,7 @@ importers:
         version: 16.0.3(rollup@4.57.1)
       '@vitest/coverage-v8':
         specifier: ^4.0.18
-        version: 4.0.18(vitest@4.0.18(@types/node@25.2.3)(yaml@2.8.2))
+        version: 4.0.18(vitest@4.0.18(@types/node@25.3.0)(yaml@2.8.2))
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -51,17 +51,17 @@ importers:
         specifier: ^8.5.1
         version: 8.5.1(@swc/core@1.15.11)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.2)
       turbo:
-        specifier: ^2.8.9
-        version: 2.8.9
+        specifier: ^2.8.10
+        version: 2.8.10
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(yaml@2.8.2))
+        version: 6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@25.3.0)(yaml@2.8.2))
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@types/node@25.2.3)(yaml@2.8.2)
+        version: 4.0.18(@types/node@25.3.0)(yaml@2.8.2)
 
   examples/bun:
     dependencies:
@@ -172,13 +172,13 @@ importers:
         version: 19.2.3(@types/react@19.2.14)
       '@vitejs/plugin-react':
         specifier: ^5.1.4
-        version: 5.1.4(vite@7.3.1(@types/node@25.2.3)(yaml@2.8.2))
+        version: 5.1.4(vite@7.3.1(@types/node@25.3.0)(yaml@2.8.2))
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
       vite:
         specifier: ^7.3.1
-        version: 7.3.1(@types/node@25.2.3)(yaml@2.8.2)
+        version: 7.3.1(@types/node@25.3.0)(yaml@2.8.2)
 
   examples/vite:
     dependencies:
@@ -193,23 +193,23 @@ importers:
         version: 7.8.2
     devDependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3)
+        version: 10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
       vite:
         specifier: ^7.3.1
-        version: 7.3.1(@types/node@25.2.3)(yaml@2.8.2)
+        version: 7.3.1(@types/node@25.3.0)(yaml@2.8.2)
 
   integration-tests/chopsticks:
     dependencies:
       '@acala-network/chopsticks':
         specifier: ^1.2.7
-        version: 1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3))
+        version: 1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3))
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../../packages/cli
@@ -227,8 +227,8 @@ importers:
         version: 7.8.2
     devDependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
 
   integration-tests/zombie-tests:
     dependencies:
@@ -264,8 +264,8 @@ importers:
         version: 7.8.2
     devDependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
 
   packages/cli:
     dependencies:
@@ -315,8 +315,8 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
       commander:
         specifier: ^14.0.3
         version: 14.0.3
@@ -438,8 +438,8 @@ importers:
         version: link:../utils
     devDependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
 
   packages/compare-runtimes:
     dependencies:
@@ -470,8 +470,8 @@ importers:
         specifier: workspace:*
         version: link:../codegen
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
       commander:
         specifier: ^14.0.3
         version: 14.0.3
@@ -580,8 +580,8 @@ importers:
         specifier: workspace:*
         version: link:../json-rpc/ws-provider
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
 
   packages/merkleize-metadata:
     dependencies:
@@ -596,8 +596,8 @@ importers:
         version: link:../utils
     devDependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
 
   packages/metadata-builders:
     dependencies:
@@ -628,8 +628,8 @@ importers:
         version: link:../substrate-bindings
     devDependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
 
   packages/migrate-known-types:
     dependencies:
@@ -662,8 +662,8 @@ importers:
         version: link:../utils
     devDependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
 
   packages/observable-client:
     dependencies:
@@ -822,8 +822,8 @@ importers:
   packages/smoldot:
     dependencies:
       '@types/node':
-        specifier: ^25.2.3
-        version: 25.2.3
+        specifier: ^25.3.0
+        version: 25.3.0
       smoldot:
         specifier: 2.0.40
         version: 2.0.40
@@ -2022,8 +2022,8 @@ packages:
   '@types/node@24.10.13':
     resolution: {integrity: sha512-oH72nZRfDv9lADUBSo104Aq7gPHpQZc4BTx38r9xf9pg5LfP6EzSyH2n7qFmmxRQXh7YlUXODcYsg6PuTDSxGg==}
 
-  '@types/node@25.2.3':
-    resolution: {integrity: sha512-m0jEgYlYz+mDJZ2+F4v8D1AyQb+QzsNqRuI7xg1VQX/KlKS0qT9r1Mo16yo5F/MtifXFgaofIFsdFMox2SxIbQ==}
+  '@types/node@25.3.0':
+    resolution: {integrity: sha512-4K3bqJpXpqfg2XKGK9bpDTc6xO/xoUP/RBWS7AtRMug6zZFaRekiLzjVtAoZMquxoAbzBvy5nxQ7veS5eYzf8A==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -3789,38 +3789,38 @@ packages:
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
 
-  turbo-darwin-64@2.8.9:
-    resolution: {integrity: sha512-KnCw1ZI9KTnEAhdI9avZrnZ/z4wsM++flMA1w8s8PKOqi5daGpFV36qoPafg4S8TmYMe52JPWEoFr0L+lQ5JIw==}
+  turbo-darwin-64@2.8.10:
+    resolution: {integrity: sha512-A03fXh+B7S8mL3PbdhTd+0UsaGrhfyPkODvzBDpKRY7bbeac4MDFpJ7I+Slf2oSkCEeSvHKR7Z4U71uKRUfX7g==}
     cpu: [x64]
     os: [darwin]
 
-  turbo-darwin-arm64@2.8.9:
-    resolution: {integrity: sha512-CbD5Y2NKJKBXTOZ7z7Cc7vGlFPZkYjApA7ri9lH4iFwKV1X7MoZswh9gyRLetXYWImVX1BqIvP8KftulJg/wIA==}
+  turbo-darwin-arm64@2.8.10:
+    resolution: {integrity: sha512-sidzowgWL3s5xCHLeqwC9M3s9M0i16W1nuQF3Mc7fPHpZ+YPohvcbVFBB2uoRRHYZg6yBnwD4gyUHKTeXfwtXA==}
     cpu: [arm64]
     os: [darwin]
 
-  turbo-linux-64@2.8.9:
-    resolution: {integrity: sha512-OXC9HdCtsHvyH+5KUoH8ds+p5WU13vdif0OPbsFzZca4cUXMwKA3HWwUuCgQetk0iAE4cscXpi/t8A263n3VTg==}
+  turbo-linux-64@2.8.10:
+    resolution: {integrity: sha512-YK9vcpL3TVtqonB021XwgaQhY9hJJbKKUhLv16osxV0HkcQASQWUqR56yMge7puh6nxU67rQlTq1b7ksR1T3KA==}
     cpu: [x64]
     os: [linux]
 
-  turbo-linux-arm64@2.8.9:
-    resolution: {integrity: sha512-yI5n8jNXiFA6+CxnXG0gO7h5ZF1+19K8uO3/kXPQmyl37AdiA7ehKJQOvf9OPAnmkGDHcF2HSCPltabERNRmug==}
+  turbo-linux-arm64@2.8.10:
+    resolution: {integrity: sha512-3+j2tL0sG95iBJTm+6J8/45JsETQABPqtFyYjVjBbi6eVGdtNTiBmHNKrbvXRlQ3ZbUG75bKLaSSDHSEEN+btQ==}
     cpu: [arm64]
     os: [linux]
 
-  turbo-windows-64@2.8.9:
-    resolution: {integrity: sha512-/OztzeGftJAg258M/9vK2ZCkUKUzqrWXJIikiD2pm8TlqHcIYUmepDbyZSDfOiUjMy6NzrLFahpNLnY7b5vNgg==}
+  turbo-windows-64@2.8.10:
+    resolution: {integrity: sha512-hdeF5qmVY/NFgiucf8FW0CWJWtyT2QPm5mIsX0W1DXAVzqKVXGq+Zf+dg4EUngAFKjDzoBeN6ec2Fhajwfztkw==}
     cpu: [x64]
     os: [win32]
 
-  turbo-windows-arm64@2.8.9:
-    resolution: {integrity: sha512-xZ2VTwVTjIqpFZKN4UBxDHCPM3oJ2J5cpRzCBSmRpJ/Pn33wpiYjs+9FB2E03svKaD04/lSSLlEUej0UYsugfg==}
+  turbo-windows-arm64@2.8.10:
+    resolution: {integrity: sha512-QGdr/Q8LWmj+ITMkSvfiz2glf0d7JG0oXVzGL3jxkGqiBI1zXFj20oqVY0qWi+112LO9SVrYdpHS0E/oGFrMbQ==}
     cpu: [arm64]
     os: [win32]
 
-  turbo@2.8.9:
-    resolution: {integrity: sha512-G+Mq8VVQAlpz/0HTsxiNNk/xywaHGl+dk1oiBREgOEVCCDjXInDlONWUn5srRnC9s5tdHTFD1bx1N19eR4hI+g==}
+  turbo@2.8.10:
+    resolution: {integrity: sha512-OxbzDES66+x7nnKGg2MwBA1ypVsZoDTLHpeaP4giyiHSixbsiTaMyeJqbEyvBdp5Cm28fc+8GG6RdQtic0ijwQ==}
     hasBin: true
 
   type-fest@0.13.1:
@@ -3919,6 +3919,9 @@ packages:
 
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
+  undici-types@7.18.2:
+    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
@@ -4176,14 +4179,14 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@acala-network/chopsticks-db@1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3))':
+  '@acala-network/chopsticks-db@1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3))':
     dependencies:
       '@acala-network/chopsticks-core': 1.2.7
       '@polkadot/util': 14.0.1
       idb: 8.0.3
       reflect-metadata: 0.2.2
       sqlite3: 5.1.7
-      typeorm: 0.3.28(sqlite3@5.1.7)(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3))
+      typeorm: 0.3.28(sqlite3@5.1.7)(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3))
     transitivePeerDependencies:
       - '@google-cloud/spanner'
       - '@sap/hana-client'
@@ -4211,10 +4214,10 @@ snapshots:
       '@polkadot/util': 14.0.1
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@14.0.1)
 
-  '@acala-network/chopsticks@1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3))':
+  '@acala-network/chopsticks@1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3))':
     dependencies:
       '@acala-network/chopsticks-core': 1.2.7
-      '@acala-network/chopsticks-db': 1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3))
+      '@acala-network/chopsticks-db': 1.2.7(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3))
       '@dmsnell/diff-match-patch': 1.1.0
       '@pnpm/npm-conf': 3.0.2
       '@polkadot/api': 16.5.4
@@ -4536,10 +4539,10 @@ snapshots:
   '@esbuild/win32-x64@0.27.3':
     optional: true
 
-  '@fast-check/vitest@0.2.4(vitest@4.0.18(@types/node@25.2.3)(yaml@2.8.2))':
+  '@fast-check/vitest@0.2.4(vitest@4.0.18(@types/node@25.3.0)(yaml@2.8.2))':
     dependencies:
       fast-check: 4.5.3
-      vitest: 4.0.18(@types/node@25.2.3)(yaml@2.8.2)
+      vitest: 4.0.18(@types/node@25.3.0)(yaml@2.8.2)
 
   '@gar/promisify@1.1.3':
     optional: true
@@ -5304,7 +5307,7 @@ snapshots:
 
   '@types/bn.js@5.2.0':
     dependencies:
-      '@types/node': 25.2.3
+      '@types/node': 25.3.0
 
   '@types/bun@1.3.9':
     dependencies:
@@ -5327,9 +5330,9 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
-  '@types/node@25.2.3':
+  '@types/node@25.3.0':
     dependencies:
-      undici-types: 7.16.0
+      undici-types: 7.18.2
 
   '@types/normalize-package-data@2.4.4': {}
 
@@ -5352,7 +5355,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       base-x: 4.0.1
 
-  '@vitejs/plugin-react@5.1.4(vite@7.3.1(@types/node@25.2.3)(yaml@2.8.2))':
+  '@vitejs/plugin-react@5.1.4(vite@7.3.1(@types/node@25.3.0)(yaml@2.8.2))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.29.0)
@@ -5360,11 +5363,11 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-rc.3
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 7.3.1(@types/node@25.2.3)(yaml@2.8.2)
+      vite: 7.3.1(@types/node@25.3.0)(yaml@2.8.2)
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@types/node@25.2.3)(yaml@2.8.2))':
+  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@types/node@25.3.0)(yaml@2.8.2))':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.18
@@ -5376,7 +5379,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@types/node@25.2.3)(yaml@2.8.2)
+      vitest: 4.0.18(@types/node@25.3.0)(yaml@2.8.2)
 
   '@vitest/expect@4.0.18':
     dependencies:
@@ -5387,13 +5390,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.2.3)(yaml@2.8.2))':
+  '@vitest/mocker@4.0.18(vite@7.3.1(@types/node@25.3.0)(yaml@2.8.2))':
     dependencies:
       '@vitest/spy': 4.0.18
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.1(@types/node@25.2.3)(yaml@2.8.2)
+      vite: 7.3.1(@types/node@25.3.0)(yaml@2.8.2)
 
   '@vitest/pretty-format@4.0.18':
     dependencies:
@@ -5561,7 +5564,7 @@ snapshots:
 
   bun-types@1.3.9:
     dependencies:
-      '@types/node': 25.2.3
+      '@types/node': 25.3.0
 
   bundle-require@5.1.0(esbuild@0.25.12):
     dependencies:
@@ -7132,14 +7135,14 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3):
+  ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.12
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 25.2.3
+      '@types/node': 25.3.0
       acorn: 8.15.0
       acorn-walk: 8.3.4
       arg: 4.1.3
@@ -7224,32 +7227,32 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  turbo-darwin-64@2.8.9:
+  turbo-darwin-64@2.8.10:
     optional: true
 
-  turbo-darwin-arm64@2.8.9:
+  turbo-darwin-arm64@2.8.10:
     optional: true
 
-  turbo-linux-64@2.8.9:
+  turbo-linux-64@2.8.10:
     optional: true
 
-  turbo-linux-arm64@2.8.9:
+  turbo-linux-arm64@2.8.10:
     optional: true
 
-  turbo-windows-64@2.8.9:
+  turbo-windows-64@2.8.10:
     optional: true
 
-  turbo-windows-arm64@2.8.9:
+  turbo-windows-arm64@2.8.10:
     optional: true
 
-  turbo@2.8.9:
+  turbo@2.8.10:
     optionalDependencies:
-      turbo-darwin-64: 2.8.9
-      turbo-darwin-arm64: 2.8.9
-      turbo-linux-64: 2.8.9
-      turbo-linux-arm64: 2.8.9
-      turbo-windows-64: 2.8.9
-      turbo-windows-arm64: 2.8.9
+      turbo-darwin-64: 2.8.10
+      turbo-darwin-arm64: 2.8.10
+      turbo-linux-64: 2.8.10
+      turbo-linux-arm64: 2.8.10
+      turbo-windows-64: 2.8.10
+      turbo-windows-arm64: 2.8.10
 
   type-fest@0.13.1: {}
 
@@ -7278,7 +7281,7 @@ snapshots:
       typescript: 5.9.3
       yaml: 2.8.2
 
-  typeorm@0.3.28(sqlite3@5.1.7)(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3)):
+  typeorm@0.3.28(sqlite3@5.1.7)(ts-node@10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3)):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 4.2.0
@@ -7297,7 +7300,7 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       sqlite3: 5.1.7
-      ts-node: 10.9.2(@swc/core@1.15.11)(@types/node@25.2.3)(typescript@5.9.3)
+      ts-node: 10.9.2(@swc/core@1.15.11)(@types/node@25.3.0)(typescript@5.9.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -7309,6 +7312,8 @@ snapshots:
   ufo@1.6.3: {}
 
   undici-types@7.16.0: {}
+
+  undici-types@7.18.2: {}
 
   unicorn-magic@0.1.0: {}
 
@@ -7354,17 +7359,17 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
-  vite-tsconfig-paths@6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(yaml@2.8.2)):
+  vite-tsconfig-paths@6.1.1(typescript@5.9.3)(vite@7.3.1(@types/node@25.3.0)(yaml@2.8.2)):
     dependencies:
       debug: 4.4.3
       globrex: 0.1.2
       tsconfck: 3.1.6(typescript@5.9.3)
-      vite: 7.3.1(@types/node@25.2.3)(yaml@2.8.2)
+      vite: 7.3.1(@types/node@25.3.0)(yaml@2.8.2)
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  vite@7.3.1(@types/node@25.2.3)(yaml@2.8.2):
+  vite@7.3.1(@types/node@25.3.0)(yaml@2.8.2):
     dependencies:
       esbuild: 0.27.3
       fdir: 6.5.0(picomatch@4.0.3)
@@ -7373,14 +7378,14 @@ snapshots:
       rollup: 4.57.1
       tinyglobby: 0.2.15
     optionalDependencies:
-      '@types/node': 25.2.3
+      '@types/node': 25.3.0
       fsevents: 2.3.3
       yaml: 2.8.2
 
-  vitest@4.0.18(@types/node@25.2.3)(yaml@2.8.2):
+  vitest@4.0.18(@types/node@25.3.0)(yaml@2.8.2):
     dependencies:
       '@vitest/expect': 4.0.18
-      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.2.3)(yaml@2.8.2))
+      '@vitest/mocker': 4.0.18(vite@7.3.1(@types/node@25.3.0)(yaml@2.8.2))
       '@vitest/pretty-format': 4.0.18
       '@vitest/runner': 4.0.18
       '@vitest/snapshot': 4.0.18
@@ -7397,10 +7402,10 @@ snapshots:
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.3.1(@types/node@25.2.3)(yaml@2.8.2)
+      vite: 7.3.1(@types/node@25.3.0)(yaml@2.8.2)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 25.2.3
+      '@types/node': 25.3.0
     transitivePeerDependencies:
       - jiti
       - less
