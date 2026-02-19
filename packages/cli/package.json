@@ -50,7 +50,7 @@
     "@polkadot-api/wasm-executor": "^0.2.3",
     "@polkadot-api/ws-middleware": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^25.2.3",
+    "@types/node": "^25.3.0",
     "commander": "^14.0.3",
     "execa": "^9.6.1",
     "fs.promises.exists": "^1.1.4",
@@ -58,7 +58,7 @@
     "read-pkg": "^10.1.0",
     "rxjs": "^7.8.2",
     "tsc-prog": "^2.3.0",
-    "tsup": "8.5.0",
+    "tsup": "8.5.1",
     "typescript": "^5.9.3",
     "write-package": "^7.2.0"
   },
