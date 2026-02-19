@@ -7,7 +7,7 @@ const root = (await $`git rev-parse --show-toplevel`.quiet().text()).trim()
 process.chdir(root)
 
 const updateRegex =
-  /^(?:(?<version_line>(?<version_start>[0-9\.]+)) - (?<date>[0-9\-]+))|(?:(?<version_line>(?<version_start>[0-9\.]+) to [0-9\.]+) - (?<date>[0-9\-]+))/
+  /^(?:(?<version_line>(?<version_start>[0-9\.]+(-[^ ]+)?)) - (?<date>[0-9\-]+))|(?:(?<version_line>(?<version_start>[0-9\.]+(-[^ ]+)?) to [0-9\.]+(-[^ ]+)?) - (?<date>[0-9\-]+))/
 
 for (const name in PACKAGES) {
   const path = PACKAGES[name]!

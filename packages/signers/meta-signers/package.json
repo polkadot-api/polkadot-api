@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/meta-signers",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
