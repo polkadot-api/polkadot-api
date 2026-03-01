@@ -12,7 +12,6 @@ import { getWsProvider } from "@polkadot-api/ws-provider"
 import { Worker } from "node:worker_threads"
 import { getObservableClient } from "@polkadot-api/observable-client"
 import {
-  catchError,
   combineLatest,
   filter,
   firstValueFrom,
@@ -20,8 +19,11 @@ import {
   map,
   Observable,
   of,
+  retry,
   switchMap,
   take,
+  throwError,
+  timer,
 } from "rxjs"
 import { EntryConfig } from "./papiConfig"
 import { dirname } from "path"
@@ -170,20 +172,20 @@ const getMetadataFromSmoldot = async (chain: string) => {
   }
 }
 
-const getMetadataCallWithError = (
-  ...input: Parameters<typeof getMetadataCall>
-) =>
-  getMetadataCall(...input).pipe(
-    map((value) => ({ success: true as const, value })),
-    catchError((error) => of({ success: false as const, error })),
-  )
-
 const getMetadataFromWsURL = (wsURL: string, at?: string) =>
   firstValueFrom(
-    getMetadataCallWithError(getWsProvider(wsURL, { middleware }), at).pipe(
-      map((x) => {
-        if (x.success) return x.value
-        throw x.error
+    getMetadataCall(getWsProvider(wsURL, { middleware }), at).pipe(
+      retry({
+        count: 5,
+        delay: (err) => {
+          if (
+            err instanceof Error &&
+            err.message.toLowerCase().includes("not connected")
+          ) {
+            return timer(1_000)
+          }
+          return throwError(() => err)
+        },
       }),
     ),
   )
