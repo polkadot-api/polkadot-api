@@ -43,10 +43,13 @@ export type ViewStr = FC<ViewStrInterface>
 export type ViewBitSeqInterface = ViewPrimitiveComponentProps<Array<0 | 1>>
 export type ViewBitSeq = FC<ViewBitSeqInterface>
 
-export type ViewBytesInterface = ViewPrimitiveComponentProps<Uint8Array> & {
-  len?: number
-}
+export type ViewBytesInterface = ViewPrimitiveComponentProps<Uint8Array>
 export type ViewBytes = FC<ViewBytesInterface>
+
+export type ViewFixedBytesInterface = ViewPrimitiveComponentProps<HexString> & {
+  len: number
+}
+export type ViewFixedBytes = FC<ViewFixedBytesInterface>
 
 export type ViewEthAccountInterface = ViewPrimitiveComponentProps<HexString>
 export type ViewEthAccount = FC<ViewEthAccountInterface>
@@ -114,6 +117,7 @@ export interface ViewComponents {
   CBool: ViewBool
   CStr: ViewStr
   CBytes: ViewBytes
+  CFixedBytes: ViewFixedBytes
   CEthAccount: ViewEthAccount
   CEnum: ViewEnum
   CSequence: ViewSequence

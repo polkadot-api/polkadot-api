@@ -57,10 +57,13 @@ export type EditStr = FC<EditStrInterface>
 export type EditBitSeqInterface = EditPrimitiveComponentProps<Array<0 | 1>>
 export type EditBitSeq = FC<EditBitSeqInterface>
 
-export type EditBytesInterface = EditPrimitiveComponentProps<Uint8Array> & {
-  len?: number
-}
+export type EditBytesInterface = EditPrimitiveComponentProps<Uint8Array>
 export type EditBytes = FC<EditBytesInterface>
+
+export type EditFixedBytesInterface = EditPrimitiveComponentProps<HexString> & {
+  len: number
+}
+export type EditFixedBytes = FC<EditFixedBytesInterface>
 
 export type EditEthAccountInterface = EditPrimitiveComponentProps<HexString>
 export type EditEthAccount = FC<EditEthAccountInterface>
@@ -132,6 +135,7 @@ export interface EditComponents {
   CBool: EditBool
   CStr: EditStr
   CBytes: EditBytes
+  CFixedBytes: EditFixedBytes
   CEthAccount: EditEthAccount
   CEnum: EditEnum
   CSequence: EditSequence
