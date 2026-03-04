@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.18.2 - 2026-03-04
+
+### Fixed
+
+- Fix event subscriptions on blocks with no events
+
 ## 0.18.1 - 2026-02-19
 
 ### Fixed

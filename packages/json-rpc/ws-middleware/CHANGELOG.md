@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.2 - 2026-03-04
+
 ### Fixed
 
 - Prevent non-archive RPCs to go through the legacy-middleware.
