@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **WS-Provider:**
+  - Prevent non-archive RPCs to go through the legacy-middleware.
+
 ## 2.0.0-rc.2 - 2026-02-19
 
 ### Fixed
