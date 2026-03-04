@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## 2.0.0-rc.3 - 2026-03-04
+
 ### Fixed
+
+- Fix event subscriptions on blocks with no events
 
 - **WS-Provider:**
   - Prevent non-archive RPCs to go through the legacy-middleware.
