@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Distinguish between `CBytes` and `CFixedBytes`
+
 ## 0.3.2 to 0.3.13 - 2026-02-19
 
 ### Fixed

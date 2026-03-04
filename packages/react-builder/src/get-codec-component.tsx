@@ -97,6 +97,7 @@ export function getViewCodecComponent(
     CBool,
     CStr,
     CBytes,
+    CFixedBytes,
     CEthAccount,
     CEnum,
     CSequence,
@@ -301,7 +302,9 @@ export function getViewCodecComponent(
 
     if (entry.type === "array") {
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
-        return <CBytes len={entry.len} path={path} {...(valueProps as any)} />
+        return (
+          <CFixedBytes len={entry.len} path={path} {...(valueProps as any)} />
+        )
       }
 
       const latestValue = value.empty
@@ -486,6 +489,7 @@ export function getCodecComponent(
     CBool,
     CStr,
     CBytes,
+    CFixedBytes,
     CEthAccount,
     CEnum,
     CSequence,
@@ -743,7 +747,7 @@ export function getCodecComponent(
       if (entry.value.type === "primitive" && entry.value.value === "u8") {
         const decoder = Bytes(entry.len)[1]
         return (
-          <CBytes
+          <CFixedBytes
             decode={scale.createDecoder(decoder)}
             onValueChanged={onChange}
             len={entry.len}
