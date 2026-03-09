@@ -16,7 +16,6 @@ export type {
   TxFinalizedPayload,
   TxPromise,
   TxObservable,
-  TxCall,
   TxSignFn,
   Transaction,
   TxEntry,

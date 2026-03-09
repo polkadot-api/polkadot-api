@@ -236,25 +236,6 @@ export type TxObservable<Asset, Ext> = (
   txOptions?: TxOptions<Asset, Ext>,
 ) => Observable<TxEvent>
 
-export interface TxCall {
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @returns Promise resolving in the encoded data.
-   */
-  (): Promise<Uint8Array>
-}
-
-export interface TxBare {
-  /**
-   * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
-   *
-   * @returns Promise resolving in a Bare transaction (it falls back to an
-   *          unsigned transaction if only v4 is available)
-   */
-  (): Promise<Uint8Array>
-}
-
 export type TxSignFn<Asset, Ext> = (
   from: PolkadotSigner,
   txOptions?: TxOptions<Asset, Ext>,
@@ -314,12 +295,17 @@ export type InnerTransaction<
   signAndSubmit: TxPromise<Asset, Ext>
   /**
    * SCALE-encoded callData of the transaction.
+   *
+   * @returns Promise resolving in the encoded data.
    */
-  getEncodedData: TxCall
+  getEncodedData(): Promise<Uint8Array>
   /**
    * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
+   *
+   * @returns Promise resolving in a Bare transaction (it falls back to an
+   *          unsigned transaction if only v4 is available)
    */
-  getBareTx: TxBare
+  getBareTx(): Promise<Uint8Array>
 
   /**
    * Estimate fees against the latest known `finalizedBlock`
