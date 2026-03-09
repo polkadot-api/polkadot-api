@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Replace replace `decodeCallData` for `txFromCallData` in staticApis.
+
 ## 2.0.0-rc.3 - 2026-03-04
 
 ### Fixed
