@@ -4,7 +4,7 @@
 
 ### Removed
 
-- exported `TxCall` interface, inlined directly as `(): Promise<Uint8Array>`
+- exported `TxCall`, `TxObservable`, `TxPromise` and `TxSign` interfaces, inlined directly into `Transaction`
 
 ## 2.0.0-rc.3 - 2026-03-04
 

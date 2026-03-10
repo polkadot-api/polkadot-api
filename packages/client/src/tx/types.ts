@@ -226,21 +226,6 @@ export type OfflineTxExtensions<Asset> = void extends Asset
       asset?: Asset
     }
 
-export type TxPromise<Asset, Ext> = (
-  from: PolkadotSigner,
-  txOptions?: TxOptions<Asset, Ext>,
-) => Promise<TxFinalizedPayload>
-
-export type TxObservable<Asset, Ext> = (
-  from: PolkadotSigner,
-  txOptions?: TxOptions<Asset, Ext>,
-) => Observable<TxEvent>
-
-export type TxSignFn<Asset, Ext> = (
-  from: PolkadotSigner,
-  txOptions?: TxOptions<Asset, Ext>,
-) => Promise<Uint8Array>
-
 export type PaymentInfo = {
   weight: {
     ref_time: bigint
@@ -254,12 +239,12 @@ export type PaymentInfo = {
   partial_fee: bigint
 }
 
-export type InnerTransaction<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-  Ext,
+export type Transaction<
+  Arg extends {} | undefined = any,
+  Pallet extends string = string,
+  Name extends string = string,
+  Asset = any,
+  Ext = Record<string, CustomSignedExtensionValues>,
 > = {
   /**
    * Pack the transaction, sends it to the signer, and return the signature
@@ -270,7 +255,11 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  sign: TxSignFn<Asset, Ext>
+  sign(
+    from: PolkadotSigner,
+    txOptions?: TxOptions<Asset, Ext>,
+  ): Promise<Uint8Array>
+
   /**
    * Observable-based all-in-one transaction submitting. It will sign,
    * broadcast, and track the transaction. The observable is singlecast, i.e.
@@ -281,7 +270,11 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Observable to the transaction.
    */
-  signSubmitAndWatch: TxObservable<Asset, Ext>
+  signSubmitAndWatch(
+    from: PolkadotSigner,
+    txOptions?: TxOptions<Asset, Ext>,
+  ): Observable<TxEvent>
+
   /**
    * Pack the transaction, sends it to the signer, broadcast, and track the
    * transaction. The promise will resolve as soon as the transaction in found
@@ -292,13 +285,18 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Finalized transaction information.
    */
-  signAndSubmit: TxPromise<Asset, Ext>
+  signAndSubmit(
+    from: PolkadotSigner,
+    txOptions?: TxOptions<Asset, Ext>,
+  ): Promise<TxFinalizedPayload>
+
   /**
    * SCALE-encoded callData of the transaction.
    *
    * @returns Promise resolving in the encoded data.
    */
   getEncodedData(): Promise<Uint8Array>
+
   /**
    * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
    *
@@ -318,6 +316,7 @@ export type InnerTransaction<
     from: Uint8Array | SS58String,
     txOptions?: TxOptions<Asset, Ext>,
   ) => Promise<bigint>
+
   /**
    * Payment info against the latest known `finalizedBlock`
    *
@@ -337,14 +336,6 @@ export type InnerTransaction<
    */
   decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
 }
-
-export type Transaction<
-  Arg extends {} | undefined = any,
-  Pallet extends string = string,
-  Name extends string = string,
-  Asset = any,
-  Ext = Record<string, CustomSignedExtensionValues>,
-> = InnerTransaction<Arg, Pallet, Name, Asset, Ext>
 
 export type Extensions<Ext> =
   Ext extends Record<string, any>

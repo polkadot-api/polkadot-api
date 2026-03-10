@@ -39,10 +39,7 @@ import {
   PaymentInfo,
   Transaction,
   TxEntry,
-  TxObservable,
   TxOptions,
-  TxPromise,
-  TxSignFn,
 } from "./types"
 
 export { InvalidTxError, submit, submit$ }
@@ -172,15 +169,29 @@ export const createTxEntry = <
       )
     }
 
-    const sign: TxSignFn<Asset, Ext> = (from, options) =>
-      firstValueFrom(_sign(from, options)).then((x) => x.tx)
+    const sign: Transaction<Arg, Pallet, Name, Asset, Ext>["sign"] = (
+      from,
+      options,
+    ) => firstValueFrom(_sign(from, options)).then((x) => x.tx)
 
-    const signAndSubmit: TxPromise<Asset, Ext> = (from, _options) =>
+    const signAndSubmit: Transaction<
+      Arg,
+      Pallet,
+      Name,
+      Asset,
+      Ext
+    >["signAndSubmit"] = (from, _options) =>
       firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
         submit(chainHead, broadcast, tx, block.hash),
       )
 
-    const signSubmitAndWatch: TxObservable<Asset, Ext> = (from, _options) =>
+    const signSubmitAndWatch: Transaction<
+      Arg,
+      Pallet,
+      Name,
+      Asset,
+      Ext
+    >["signSubmitAndWatch"] = (from, _options) =>
       _sign(from, _options).pipe(
         mergeMap(({ tx }) => submit$(chainHead, broadcast, tx, true)),
       )

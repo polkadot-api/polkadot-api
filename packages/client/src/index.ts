@@ -14,9 +14,6 @@ export type {
   TxFinalized,
   TxOptions,
   TxFinalizedPayload,
-  TxPromise,
-  TxObservable,
-  TxSignFn,
   Transaction,
   TxEntry,
 } from "./tx"
