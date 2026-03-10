@@ -4,7 +4,8 @@
 
 ### Changed
 
-- Replace replace `decodeCallData` for `txFromCallData` in staticApis.
+- Replace replace `decodeCallData` for `txFromCallData` in tx staticApis.
+- Rename `getCallData` for `getEncodedData` in tx staticApis.
 
 ## 2.0.0-rc.3 - 2026-03-04
 

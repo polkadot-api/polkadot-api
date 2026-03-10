@@ -57,7 +57,7 @@ export const createStaticApis = (
                 ),
               })),
               tx: createProxyPath((pallet, name) => ({
-                getCallData: (arg: any) =>
+                getEncodedData: (arg: any) =>
                   getCallData(
                     ctx.dynamicBuilder,
                     compat.tx[pallet][name].isValueCompatible,
