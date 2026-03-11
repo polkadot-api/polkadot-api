@@ -1,4 +1,4 @@
-import { PullOptions } from "@/types"
+import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
@@ -226,40 +226,6 @@ export type OfflineTxExtensions<Asset> = void extends Asset
       asset?: Asset
     }
 
-export type TxPromise<Asset, Ext> = (
-  from: PolkadotSigner,
-  txOptions?: TxOptions<Asset, Ext>,
-) => Promise<TxFinalizedPayload>
-
-export type TxObservable<Asset, Ext> = (
-  from: PolkadotSigner,
-  txOptions?: TxOptions<Asset, Ext>,
-) => Observable<TxEvent>
-
-export interface TxCall {
-  /**
-   * SCALE-encoded callData of the transaction.
-   *
-   * @returns Promise resolving in the encoded data.
-   */
-  (): Promise<Uint8Array>
-}
-
-export interface TxBare {
-  /**
-   * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
-   *
-   * @returns Promise resolving in a Bare transaction (it falls back to an
-   *          unsigned transaction if only v4 is available)
-   */
-  (): Promise<Uint8Array>
-}
-
-export type TxSignFn<Asset, Ext> = (
-  from: PolkadotSigner,
-  txOptions?: TxOptions<Asset, Ext>,
-) => Promise<Uint8Array>
-
 export type PaymentInfo = {
   weight: {
     ref_time: bigint
@@ -273,12 +239,9 @@ export type PaymentInfo = {
   partial_fee: bigint
 }
 
-export type InnerTransaction<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-  Ext,
+export type Transaction<
+  Asset = any,
+  Ext = Record<string, CustomSignedExtensionValues>,
 > = {
   /**
    * Pack the transaction, sends it to the signer, and return the signature
@@ -289,7 +252,11 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  sign: TxSignFn<Asset, Ext>
+  sign(
+    from: PolkadotSigner,
+    txOptions?: TxOptions<Asset, Ext>,
+  ): Promise<Uint8Array>
+
   /**
    * Observable-based all-in-one transaction submitting. It will sign,
    * broadcast, and track the transaction. The observable is singlecast, i.e.
@@ -300,7 +267,11 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Observable to the transaction.
    */
-  signSubmitAndWatch: TxObservable<Asset, Ext>
+  signSubmitAndWatch(
+    from: PolkadotSigner,
+    txOptions?: TxOptions<Asset, Ext>,
+  ): Observable<TxEvent>
+
   /**
    * Pack the transaction, sends it to the signer, broadcast, and track the
    * transaction. The promise will resolve as soon as the transaction in found
@@ -311,15 +282,25 @@ export type InnerTransaction<
    * @param txOptions  Optionally pass any number of txOptions.
    * @returns Finalized transaction information.
    */
-  signAndSubmit: TxPromise<Asset, Ext>
+  signAndSubmit(
+    from: PolkadotSigner,
+    txOptions?: TxOptions<Asset, Ext>,
+  ): Promise<TxFinalizedPayload>
+
   /**
    * SCALE-encoded callData of the transaction.
+   *
+   * @returns Promise resolving in the encoded data.
    */
-  getEncodedData: TxCall
+  getEncodedData(): Promise<Uint8Array>
+
   /**
    * SCALE-encoded Bare (aka Unsigned) transaction ready to be broadcasted.
+   *
+   * @returns Promise resolving in a Bare transaction (it falls back to an
+   *          unsigned transaction if only v4 is available)
    */
-  getBareTx: TxBare
+  getBareTx(): Promise<Uint8Array>
 
   /**
    * Estimate fees against the latest known `finalizedBlock`
@@ -332,6 +313,7 @@ export type InnerTransaction<
     from: Uint8Array | SS58String,
     txOptions?: TxOptions<Asset, Ext>,
   ) => Promise<bigint>
+
   /**
    * Payment info against the latest known `finalizedBlock`
    *
@@ -349,29 +331,15 @@ export type InnerTransaction<
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
    */
-  decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
+  decodedCall: TxCallData
 }
-
-export type Transaction<
-  Arg extends {} | undefined = any,
-  Pallet extends string = string,
-  Name extends string = string,
-  Asset = any,
-  Ext = Record<string, CustomSignedExtensionValues>,
-> = InnerTransaction<Arg, Pallet, Name, Asset, Ext>
 
 export type Extensions<Ext> =
   Ext extends Record<string, any>
     ? Partial<Ext>
     : Record<string, CustomSignedExtensionValues>
 
-export type TxEntry<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Ext,
-  Asset,
-> = {
+export type TxEntry<Arg extends {} | undefined, Ext, Asset> = {
   /**
    * Synchronously create the transaction object ready to sign, submit,
    * estimate fees, etc.
@@ -381,15 +349,12 @@ export type TxEntry<
    */
   (
     ...args: Arg extends undefined ? [] : [data: Arg]
-  ): Transaction<Arg, Pallet, Name, Asset, Extensions<Ext>>
+  ): Transaction<Asset, Extensions<Ext>>
 }
 
-export type OfflineTxEntry<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-> = (input: Arg) => {
+export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
+  input: Arg,
+) => {
   /**
    * Pack the transaction, sends it to the signer, and return the signature
    * asynchronously. If the signer fails (or the user cancels the signature)
@@ -413,7 +378,7 @@ export type OfflineTxEntry<
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
    */
-  decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
+  decodedCall: TxCallData
 }
 
 export type TxFromBinary<Asset> = {
@@ -424,8 +389,5 @@ export type TxFromBinary<Asset> = {
    * @param callData  SCALE-encoded call data.
    * @returns Transaction object.
    */
-  (
-    callData: Uint8Array,
-    options?: PullOptions,
-  ): Promise<Transaction<any, string, string, Asset>>
+  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<Asset>>
 }

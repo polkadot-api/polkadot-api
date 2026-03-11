@@ -6,6 +6,11 @@
 
 - Replace replace `decodeCallData` for `txFromCallData` in tx staticApis.
 - Rename `getCallData` for `getEncodedData` in tx staticApis.
+- Removed `Transaction<Pallet, Name, Args, Asset, Ext>` pallet name and args generics to `Transaction<Asset, Ext>`. `decodedCall` is now a loose type.
+
+### Removed
+
+- Exported `TxCall`, `TxObservable`, `TxPromise` and `TxSign` interfaces, inlined directly into `Transaction`
 
 ## 2.0.0-rc.3 - 2026-03-04
 

@@ -39,10 +39,7 @@ import {
   PaymentInfo,
   Transaction,
   TxEntry,
-  TxObservable,
   TxOptions,
-  TxPromise,
-  TxSignFn,
 } from "./types"
 
 export { InvalidTxError, submit, submit$ }
@@ -68,18 +65,16 @@ const [, queryInfoDecFallback] = Struct({
 
 export const createTxEntry = <
   Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
   Asset extends PlainDescriptor<any>,
   E,
 >(
-  pallet: Pallet,
-  name: Name,
+  pallet: string,
+  name: string,
   chainHead: ChainHead$,
   broadcast: (tx: Uint8Array) => Observable<never>,
   compatibility: ValueCompat,
   getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
-): TxEntry<Arg, Pallet, Name, E, Asset> => {
+): TxEntry<Arg, E, Asset> => {
   type Ext = Extensions<E>
 
   const getCompatCtx$ = (at: HexString | null) =>
@@ -134,7 +129,7 @@ export const createTxEntry = <
           }),
         )
 
-  return ((arg?: Arg): Transaction<Arg, Pallet, Name, Asset, Ext> => {
+  return (arg?: Arg): Transaction<Asset, Ext> => {
     const sign$ = (
       from: PolkadotSigner,
       { ..._options }: Omit<TxOptions<{}, Ext>, "at">,
@@ -172,15 +167,21 @@ export const createTxEntry = <
       )
     }
 
-    const sign: TxSignFn<Asset, Ext> = (from, options) =>
+    const sign: Transaction<Asset, Ext>["sign"] = (from, options) =>
       firstValueFrom(_sign(from, options)).then((x) => x.tx)
 
-    const signAndSubmit: TxPromise<Asset, Ext> = (from, _options) =>
+    const signAndSubmit: Transaction<Asset, Ext>["signAndSubmit"] = (
+      from,
+      _options,
+    ) =>
       firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
         submit(chainHead, broadcast, tx, block.hash),
       )
 
-    const signSubmitAndWatch: TxObservable<Asset, Ext> = (from, _options) =>
+    const signSubmitAndWatch: Transaction<Asset, Ext>["signSubmitAndWatch"] = (
+      from,
+      _options,
+    ) =>
       _sign(from, _options).pipe(
         mergeMap(({ tx }) => submit$(chainHead, broadcast, tx, true)),
       )
@@ -243,7 +244,7 @@ export const createTxEntry = <
       getEstimatedFees,
       decodedCall: {
         type: pallet,
-        value: Enum(name, arg as any),
+        value: Enum(name, arg),
       },
       getEncodedData,
       getBareTx: () =>
@@ -252,5 +253,5 @@ export const createTxEntry = <
       signSubmitAndWatch,
       signAndSubmit,
     }
-  }) as any
+  }
 }

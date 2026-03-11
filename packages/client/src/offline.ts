@@ -12,16 +12,14 @@ import { OfflineApi } from "./types"
 
 const createOfflineTxEntry = <
   Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
   Asset extends PlainDescriptor<any>,
 >(
-  pallet: Pallet,
-  name: Name,
+  pallet: string,
+  name: string,
   metadataRaw: Uint8Array,
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
   signExtensionCreator: ReturnType<typeof getSignExtensionsCreator>,
-): OfflineTxEntry<Arg, Pallet, Name, Asset> => {
+): OfflineTxEntry<Arg, Asset> => {
   let codecs
   try {
     codecs = dynamicBuilder.buildCall(pallet, name)
@@ -36,7 +34,7 @@ const createOfflineTxEntry = <
 
     return {
       encodedData,
-      decodedCall: Enum(pallet, Enum(name, arg as any) as any),
+      decodedCall: Enum(pallet, Enum(name, arg)),
       sign: async (from, extensions) =>
         await from.signTx(
           encodedData,
