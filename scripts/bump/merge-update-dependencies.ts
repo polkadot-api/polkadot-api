@@ -49,9 +49,6 @@ async function transformChangelog(dir: string) {
   )
 
   const transformed = [header, ...updatedTexts].join("\n## ")
-  if (file != transformed) {
-    console.log(dir)
-  }
   await Bun.file(`packages/${dir}/CHANGELOG.md`).write(transformed)
 }
 
