@@ -1,42 +1,50 @@
-import { CompatSyncHelpers } from "@/compatibility"
+import { CompatHelpers } from "@/compatibility"
 import { PullOptions } from "@/types"
 import { createProxyPath, firstValueFromWithSignal } from "@/utils"
 import { constFromCtx } from "@/utils/const-from-ctx"
 import { getCallData } from "@/utils/get-call-data"
 import { stgGetKey } from "@/utils/stg-get-key"
 import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
-import { mergeMap } from "rxjs"
+import { mergeMap, Observable } from "rxjs"
+import { createTxEntry, Transaction } from "./tx"
 import { withWeakCache } from "./utils/with-weak-cache"
 
-const decodeCallData =
-  ({ dynamicBuilder, lookup }: RuntimeContext) =>
-  (callData: Uint8Array): { pallet: string; name: string; input: any } => {
-    try {
-      const {
-        type: pallet,
-        value: { type: name, value: input },
-      } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData)
+export const createStaticApis = (
+  chainHead: ChainHead$,
+  broadcast$: (tx: Uint8Array) => Observable<never>,
+  { getClientCompat, getSyncHelpers, getIsAsssetCompat }: CompatHelpers,
+) => {
+  const txFromCallData =
+    ({ dynamicBuilder, lookup }: RuntimeContext) =>
+    (callData: Uint8Array): Transaction => {
+      try {
+        const {
+          type: pallet,
+          value: { type: name, value: args },
+        } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData)
 
-      return { pallet, name, input }
-    } catch {
-      throw new Error("Invalid call data")
+        return createTxEntry(
+          pallet,
+          name,
+          chainHead,
+          broadcast$,
+          getClientCompat("tx", pallet, name),
+          getIsAsssetCompat,
+        )(args)
+      } catch {
+        throw new Error("Invalid call data")
+      }
     }
-  }
 
-export const createStaticApis =
-  (
-    getRuntimeContext: ChainHead$["getRuntimeContext$"],
-    getCompat: CompatSyncHelpers,
-  ) =>
-  ({ at, signal }: PullOptions = {}) =>
+  return ({ at, signal }: PullOptions = {}) =>
     firstValueFromWithSignal(
-      getRuntimeContext(at ?? null).pipe(
+      chainHead.getRuntimeContext$(at ?? null).pipe(
         mergeMap(
           withWeakCache(async (ctx) => {
-            const compat = await getCompat(ctx)
+            const compat = await getSyncHelpers(ctx)
             return {
               id: ctx.codeHash,
-              decodeCallData: decodeCallData(ctx),
+              txFromCallData: txFromCallData(ctx),
               constants: createProxyPath((pallet, name) =>
                 constFromCtx(ctx, pallet, name),
               ),
@@ -49,7 +57,7 @@ export const createStaticApis =
                 ),
               })),
               tx: createProxyPath((pallet, name) => ({
-                getCallData: (arg: any) =>
+                getEncodedData: (arg: any) =>
                   getCallData(
                     ctx.dynamicBuilder,
                     compat.tx[pallet][name].isValueCompatible,
@@ -65,3 +73,4 @@ export const createStaticApis =
       ),
       signal,
     )
+}

@@ -147,7 +147,7 @@ export type QueryCompatHelperApi<
 export type SyncTxApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? { getCallData: (args: A[K][KK]) => Uint8Array }
+      ? { getEncodedData: (args: A[K][KK]) => Uint8Array }
       : unknown
   }
 }

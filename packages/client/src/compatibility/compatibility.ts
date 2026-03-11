@@ -199,6 +199,4 @@ export const createCompatHelpers = withWeakCache(
   },
 )
 
-export type CompatSyncHelpers = ReturnType<
-  typeof createCompatHelpers
->["getSyncHelpers"]
+export type CompatHelpers = ReturnType<typeof createCompatHelpers>
