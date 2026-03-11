@@ -1,4 +1,4 @@
-import { PullOptions } from "@/types"
+import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
@@ -331,7 +331,7 @@ export type Transaction<
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
    */
-  decodedCall: { type: string; value: { type: string; value: unknown } }
+  decodedCall: TxCallData
 }
 
 export type Extensions<Ext> =
@@ -378,7 +378,7 @@ export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
    */
-  decodedCall: { type: string; value: { type: string; value: unknown } }
+  decodedCall: TxCallData
 }
 
 export type TxFromBinary<Asset> = {
