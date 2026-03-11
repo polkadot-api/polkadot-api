@@ -69,7 +69,7 @@ jobs:
         working-directory: integration-tests/zombie-tests
       - name: Store logs
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: Logs
           path: integration-tests/zombie-tests/${{matrix.version}}*

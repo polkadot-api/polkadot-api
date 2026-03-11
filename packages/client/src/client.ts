@@ -42,13 +42,10 @@ const createApi = <D extends ChainDefinition>(
   broadcast$: (tx: Uint8Array) => Observable<never>,
   chainDefinition?: ChainDefinition,
 ): TypedApi<D> => {
-  const { getClientCompat, getIsAsssetCompat, getSyncHelpers } =
-    createCompatHelpers(chainDefinition)
+  const compatHelpers = createCompatHelpers(chainDefinition)
+  const { getClientCompat, getIsAsssetCompat } = compatHelpers
 
-  const getStaticApis = createStaticApis(
-    chainHead.getRuntimeContext$,
-    getSyncHelpers,
-  )
+  const getStaticApis = createStaticApis(chainHead, broadcast$, compatHelpers)
 
   const getWatchEntries = createWatchEntries(
     chainHead.pinnedBlocks$,
