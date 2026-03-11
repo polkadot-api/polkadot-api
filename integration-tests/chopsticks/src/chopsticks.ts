@@ -3,6 +3,7 @@ import { createWriteStream } from "fs"
 import { createClient, PolkadotClient } from "polkadot-api"
 import { getWsProvider } from "polkadot-api/ws"
 import { getInnerLogs } from "./inner-logs"
+import { wait } from "./utils"
 import { withLogs } from "./with-logs"
 
 const ENDPOINT = "wss://rpc.ibp.network/paseo"
@@ -43,13 +44,6 @@ export const startChopsticks = async () => {
 
   const client = createClient(getChopsticksProvider("main"))
 
-  console.log("Connecting to chopsticks… (takes ~3 seconds)")
-  await client.getUnsafeApi().getStaticApis()
-
-  // Create a new block to pre-initialize chopsticks and prevent tests from timing out.
-  console.log("Generating the first block… (takes ~8 seconds)")
-  await client._request("dev_newBlock", [])
-
   cleanup = () => {
     cleanup = () => {}
     client.destroy()
@@ -57,6 +51,24 @@ export const startChopsticks = async () => {
     logStream.close()
     logStreamErr.close()
   }
+
+  console.log("Connecting to chopsticks… (takes ~3 seconds)")
+  const timeout = 15000
+  const success = await Promise.race([
+    client
+      .getUnsafeApi()
+      .getStaticApis()
+      .then(() => true),
+    wait(timeout).then(() => false),
+  ])
+  if (!success) {
+    cleanup()
+    throw new Error(`Couldn't connect after ${timeout}ms`)
+  }
+
+  // Create a new block to pre-initialize chopsticks and prevent tests from timing out.
+  console.log("Generating the first block… (takes ~8 seconds)")
+  await client._request("dev_newBlock", [])
 }
 
 export const createBlock = (client: PolkadotClient) =>
