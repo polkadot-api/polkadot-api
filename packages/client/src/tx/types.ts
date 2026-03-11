@@ -240,9 +240,6 @@ export type PaymentInfo = {
 }
 
 export type Transaction<
-  Arg extends {} | undefined = any,
-  Pallet extends string = string,
-  Name extends string = string,
   Asset = any,
   Ext = Record<string, CustomSignedExtensionValues>,
 > = {
@@ -334,7 +331,7 @@ export type Transaction<
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
    */
-  decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
+  decodedCall: { type: string; value: { type: string; value: unknown } }
 }
 
 export type Extensions<Ext> =
@@ -342,13 +339,7 @@ export type Extensions<Ext> =
     ? Partial<Ext>
     : Record<string, CustomSignedExtensionValues>
 
-export type TxEntry<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Ext,
-  Asset,
-> = {
+export type TxEntry<Arg extends {} | undefined, Ext, Asset> = {
   /**
    * Synchronously create the transaction object ready to sign, submit,
    * estimate fees, etc.
@@ -358,15 +349,12 @@ export type TxEntry<
    */
   (
     ...args: Arg extends undefined ? [] : [data: Arg]
-  ): Transaction<Arg, Pallet, Name, Asset, Extensions<Ext>>
+  ): Transaction<Asset, Extensions<Ext>>
 }
 
-export type OfflineTxEntry<
-  Arg extends {} | undefined,
-  Pallet extends string,
-  Name extends string,
-  Asset,
-> = (input: Arg) => {
+export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
+  input: Arg,
+) => {
   /**
    * Pack the transaction, sends it to the signer, and return the signature
    * asynchronously. If the signer fails (or the user cancels the signature)
@@ -390,7 +378,7 @@ export type OfflineTxEntry<
    * PAPI way of expressing an extrinsic with arguments.
    * It's useful to pass as a parameter to extrinsics that accept calls.
    */
-  decodedCall: Enum<{ [P in Pallet]: Enum<{ [N in Name]: Arg }> }>
+  decodedCall: { type: string; value: { type: string; value: unknown } }
 }
 
 export type TxFromBinary<Asset> = {
@@ -401,8 +389,5 @@ export type TxFromBinary<Asset> = {
    * @param callData  SCALE-encoded call data.
    * @returns Transaction object.
    */
-  (
-    callData: Uint8Array,
-    options?: PullOptions,
-  ): Promise<Transaction<any, string, string, Asset>>
+  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<Asset>>
 }
