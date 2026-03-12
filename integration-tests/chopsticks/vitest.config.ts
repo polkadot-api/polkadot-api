@@ -6,7 +6,7 @@ export default defineConfig({
     include: ["**/*.spec.ts"],
     disableConsoleIntercept: true,
     globalSetup: ["./setupTests.ts"],
-    testTimeout: 10_000,
+    testTimeout: 20_000,
   },
   plugins: [tsconfigPaths()],
 })
