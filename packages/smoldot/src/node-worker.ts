@@ -1,5 +1,11 @@
 import { parentPort } from "node:worker_threads"
-import { AddChainOptions, Chain, Client, ClientOptions, start } from "smoldot"
+import {
+  AddChainOptions,
+  Chain,
+  Client,
+  ClientOptions,
+  start,
+} from "@polkadot-api/smoldot-patch"
 
 export type SmoldotOptions = Omit<ClientOptions, "portToWorker">
 export interface StartMsg {

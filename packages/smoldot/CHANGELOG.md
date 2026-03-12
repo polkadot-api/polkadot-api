@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix parachain sync
+
 ## 0.3.15 - 2025-12-08
 
 ### Fixed

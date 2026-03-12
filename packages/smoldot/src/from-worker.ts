@@ -1,9 +1,9 @@
-import type { Client } from "smoldot"
+import type { Client } from "@polkadot-api/smoldot-patch"
 import {
   type SmoldotBytecode,
   type ClientOptionsWithBytecode,
   startWithBytecode,
-} from "smoldot/no-auto-bytecode"
+} from "@polkadot-api/smoldot-patch/no-auto-bytecode"
 
 export type SmoldotOptions = Omit<
   ClientOptionsWithBytecode,

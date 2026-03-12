@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **smoldot:**
+  - Fix parachain sync
+
 ## 2.0.0-rc.4 - 2026-03-11
 
 ### Changed
