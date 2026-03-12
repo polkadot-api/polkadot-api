@@ -6,7 +6,7 @@ import { getInnerLogs } from "./inner-logs"
 import { wait } from "./utils"
 import { withLogs } from "./with-logs"
 
-const ENDPOINT = "wss://rpc.ibp.network/paseo"
+const ENDPOINT = "wss://paseo.rpc.amforc.com"
 const PORT = 8132
 let { NODE_VERSION } = process.env
 NODE_VERSION ||= "unknown"
