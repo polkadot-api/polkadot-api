@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Wrong type on `DecodedExtrinsic.call`
+
 ## 0.2.1 to 0.2.4 - 2026-02-19
 
 ### Fixed

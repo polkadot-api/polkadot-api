@@ -1,24 +1,24 @@
+import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import {
   Bytes,
   compactNumber,
   createDecoder,
   Decoder,
   enhanceDecoder,
-  Enum,
   extrinsicFormat,
   StringRecord,
   Struct,
   u8,
 } from "@polkadot-api/substrate-bindings"
 import { getMetadata } from "./get-metadata"
-import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
+import { TxCallData } from "./types"
 
 const allBytesDec = Bytes(Infinity).dec
 
 export type DecodedExtrinsic = {
   len: number
   callData: Uint8Array
-  call: Enum<Enum<any>>
+  call: TxCallData
 } & (
   | { version: 4 | 5; type: "bare" }
   | {
