@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/json-rpc-provider-proxy",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
