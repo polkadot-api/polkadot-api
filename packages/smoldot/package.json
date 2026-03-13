@@ -83,7 +83,7 @@
   },
   "dependencies": {
     "@polkadot-api/smoldot-patch": "102.0.0",
-    "@types/node": "^25.4.0",
+    "@types/node": "^25.5.0",
     "smoldot": "2.0.40"
   }
 }
