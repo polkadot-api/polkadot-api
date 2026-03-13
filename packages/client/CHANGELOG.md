@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Client stuck when reconnecting during a `transaction_v1_broadcast`.
+
 - **smoldot:**
   - Fix parachain sync
 

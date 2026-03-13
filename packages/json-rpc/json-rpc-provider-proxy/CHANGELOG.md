@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- sync-proxy: Infinite loop when reconnecting during a `transaction_v1_broadcast`.
+
 ## 0.3.0 - 2026-02-12
 
 ### Changed

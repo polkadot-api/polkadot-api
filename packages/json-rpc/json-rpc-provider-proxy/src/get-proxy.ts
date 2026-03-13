@@ -267,7 +267,7 @@ export const getProxy: ReconnectableJsonRpcConnection = (
         if (state.type === State.Connected) {
           const id = getInternalId()
           state.pendingBroadcasts.set(id, broadcast.synToken)
-          send(
+          state.connection.send(
             jsonRpcReq({
               id,
               method: "transaction_v1_broadcast",
