@@ -6,6 +6,9 @@
 
 - Client stuck when reconnecting during a `transaction_v1_broadcast`.
 
+- **smoldot:**
+  - Fix parachain sync
+
 ## 2.0.0-rc.4 - 2026-03-11
 
 ### Changed

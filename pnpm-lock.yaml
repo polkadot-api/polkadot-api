@@ -821,6 +821,9 @@ importers:
 
   packages/smoldot:
     dependencies:
+      '@polkadot-api/smoldot-patch':
+        specifier: 102.0.0
+        version: 102.0.0
       '@types/node':
         specifier: ^25.4.0
         version: 25.4.0
@@ -1485,6 +1488,9 @@ packages:
     peerDependencies:
       '@polkadot-api/substrate-client': 0.1.4
       rxjs: '>=7.8.0'
+
+  '@polkadot-api/smoldot-patch@102.0.0':
+    resolution: {integrity: sha512-qOI1B3gOdTNYPb3FNH6jxkVSOOyuFazwMtAZqyi8QZi0VcBnSmKIJ9uzgDRemhIMNHV4vou+zDq1dR4bxDIk0w==}
 
   '@polkadot-api/substrate-bindings@0.6.0':
     resolution: {integrity: sha512-lGuhE74NA1/PqdN7fKFdE5C1gNYX357j1tWzdlPXI0kQ7h3kN0zfxNOpPUN7dIrPcOFZ6C0tRRVrBylXkI6xPw==}
@@ -4714,6 +4720,13 @@ snapshots:
       '@polkadot-api/utils': 0.1.0
       rxjs: 7.8.2
     optional: true
+
+  '@polkadot-api/smoldot-patch@102.0.0':
+    dependencies:
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@polkadot-api/substrate-bindings@0.6.0':
     dependencies:

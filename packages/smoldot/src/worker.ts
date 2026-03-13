@@ -1,5 +1,5 @@
-import * as smoldot from "smoldot/worker"
-import { compileBytecode } from "smoldot/bytecode"
+import * as smoldot from "@polkadot-api/smoldot-patch/worker"
+import { compileBytecode } from "@polkadot-api/smoldot-patch/bytecode"
 
 compileBytecode().then((x) => {
   postMessage(x)
