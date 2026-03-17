@@ -83,6 +83,7 @@ export const generateMultipleDescriptors = (
   const declarations = defaultDeclarations()
   const chainFiles = chainData.map((chain) =>
     generateDescriptors(
+      chain.metadata,
       chain.lookup,
       types.checksumToIdx,
       getTypesBuilder(
