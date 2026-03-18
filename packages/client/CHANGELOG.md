@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **codegen**
+  - Use all metadata entries for whitelist type utilities
+
 ## 2.0.0-rc.5 - 2026-03-13
 
 ### Fixed

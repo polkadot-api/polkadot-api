@@ -5,6 +5,7 @@ import {
 import { filterObject, mapObject } from "@polkadot-api/utils"
 import { anonymizeImports, anonymizeType } from "./anonymize"
 import { getTypesBuilder } from "./types-builder"
+import { UnifiedMetadata } from "@polkadot-api/substrate-bindings"
 
 const isDocs = (x: any) => {
   if (typeof x !== "object") return false
@@ -46,6 +47,7 @@ export function capitalize(value: string) {
 }
 
 export const generateDescriptors = (
+  originalMetadata: UnifiedMetadata,
   lookupFn: MetadataLookup,
   checksumToIdx: Map<string, number>,
   typesBuilder: ReturnType<typeof getTypesBuilder>,
@@ -61,6 +63,46 @@ export const generateDescriptors = (
   genesis?: string,
 ) => {
   const prefix = capitalize(key)
+
+  const palletInteractions = (
+    mapFn: (
+      pallet: UnifiedMetadata["pallets"][number],
+    ) => Array<string> | undefined,
+  ) =>
+    Object.fromEntries(
+      originalMetadata.pallets
+        .map((pallet) => [pallet.name, mapFn(pallet) ?? []] as const)
+        .filter((v) => v[1].length),
+    )
+  const mapEnumInteractions = (typeId: number | undefined) => {
+    if (typeId == null) return []
+    const type = originalMetadata.lookup[typeId].def
+    if (type.tag !== "variant") throw null
+    return type.value.map((v) => `'${v.name}'`)
+  }
+  const allInteractions = {
+    storage: palletInteractions((pallet) =>
+      pallet.storage?.items.map((it) => `'${it.name}'`),
+    ),
+    tx: palletInteractions((pallet) => mapEnumInteractions(pallet.calls?.type)),
+    events: palletInteractions((pallet) =>
+      mapEnumInteractions(pallet.events?.type),
+    ),
+    errors: palletInteractions((pallet) =>
+      mapEnumInteractions(pallet.errors?.type),
+    ),
+    constants: palletInteractions((pallet) =>
+      pallet.constants.map((v) => `'${v.name}'`),
+    ),
+    viewFns: palletInteractions((pallet) => pallet.viewFns.map((v) => v.name)),
+    apis: Object.fromEntries(
+      originalMetadata.apis.map((api) => [
+        api.name,
+        api.methods.map((method) => `'${method.name}'`),
+      ]),
+    ),
+  }
+
   const { metadata } = lookupFn
   const buildEnumObj = <T>(
     val: number | undefined,
@@ -352,23 +394,6 @@ export const generateDescriptors = (
     dispatchErrorId == null
       ? "unknown"
       : typesBuilder.buildTypeDefinition(dispatchErrorId)
-
-  const mapInteractions = (
-    descriptor: Record<string, Record<string, unknown>>,
-  ) =>
-    filterObject(
-      mapObject(descriptor, (v) => Object.keys(v).map((v) => `'${v}'`)),
-      (v) => v.length > 0,
-    )
-  const allInteractions = {
-    storage: mapInteractions(storage),
-    tx: mapInteractions(calls),
-    events: mapInteractions(events),
-    errors: mapInteractions(errors),
-    constants: mapInteractions(constants),
-    viewFns: mapInteractions(viewFns),
-    apis: mapInteractions(mapObject(runtimeCalls, (v) => v.methods)),
-  }
 
   const commonTypeImports = typesBuilder.getTypeFileImports()
 
