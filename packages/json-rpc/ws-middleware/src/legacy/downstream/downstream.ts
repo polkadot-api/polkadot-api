@@ -1,13 +1,13 @@
-import { noop } from "@polkadot-api/utils"
-import { createUpstream } from "../upstream"
-import { createChainSpec } from "./chainspec"
-import { createChainHead } from "./chain-head"
-import { createTransactionFns } from "./transaction"
-import { createArchive } from "./archive"
-import { Middleware } from "../../types"
-import { createClient } from "@polkadot-api/raw-client"
 import { JsonRpcMessage } from "@polkadot-api/json-rpc-provider"
+import { createClient } from "@polkadot-api/raw-client"
+import { noop } from "@polkadot-api/utils"
 import { archive, chainHead, chainSpec, transaction } from "../../methods"
+import { Middleware } from "../../types"
+import { createUpstream } from "../upstream"
+import { createArchive } from "./archive"
+import { createChainSpec } from "./chainspec"
+import { createTransactionFns } from "./transaction"
+import { createChainHead } from "./chain-head"
 
 const supportedMethods = new Set(
   [chainHead, chainSpec, archive, transaction]
@@ -59,17 +59,22 @@ export const withLegacy: Middleware = (base) => (onMessage, onHalt) => {
     jsonRpc({ method, params: { subscription, result } })
   }
 
-  const groups = {
-    chainSpec: createChainSpec(upstream, reply, err),
-    chainHead: createChainHead(upstream, reply, err, notification),
-    archive: createArchive(upstream, reply, err, notification),
-    transaction: createTransactionFns(upstream, reply),
+  const groupsCtor: Record<string, () => any> = {
+    chainSpec: () => createChainSpec(upstream, reply, err),
+    chainHead: () => createChainHead(upstream, reply, err, notification),
+    archive: () => createArchive(upstream, reply, err, notification),
+    transaction: () => createTransactionFns(upstream, reply),
   }
-
+  const groups: Record<string, any> = {}
+  const getGroup = (name: string) => {
+    if (name in groups) return groups[name]
+    if (name in groupsCtor) return (groups[name] = groupsCtor[name]())
+    return null
+  }
   clean = () => {
-    groups.chainHead.stop()
-    groups.archive.stop()
-    groups.transaction.stop()
+    groups.chainHead?.stop()
+    groups.archive?.stop()
+    groups.transaction?.stop()
     upstream.clean()
   }
 
@@ -102,9 +107,10 @@ export const withLegacy: Middleware = (base) => (onMessage, onHalt) => {
       }
 
       const [groupName] = method.split("_")
-      if (groupName in groups) {
+      const group = getGroup(groupName)
+      if (group) {
         try {
-          return groups[groupName as keyof typeof groups](id, method, params)
+          return group(id, method, params)
         } catch (e) {
           if (e !== null) throw e
         }

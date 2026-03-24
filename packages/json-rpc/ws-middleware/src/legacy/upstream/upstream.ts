@@ -31,13 +31,15 @@ export const createUpstream = (request: ClientRequest<any, any>) => {
       ),
     )
 
-  const {
-    upstream: getBlocks,
-    finalized$,
-    getHeader$,
-    hasher$,
-    clean,
-  } = getBlocks$(request, obsRequest)
+  let blockSubscription: ReturnType<typeof getBlocks$> | null = null
+  const subscribeBlocks = () => {
+    blockSubscription ??= getBlocks$(request, obsRequest)
+    return {
+      ...blockSubscription,
+      getBlocks: blockSubscription.upstream,
+    }
+  }
+  const clean = () => blockSubscription?.clean()
 
   const runtimeCall = (atBlock: string, method: string, data: string) =>
     obsRequest<[string, string, string], string | null>("state_call", [
@@ -99,7 +101,7 @@ export const createUpstream = (request: ClientRequest<any, any>) => {
 
   const stgDescendantHashes = (at: string, rootKey: string) =>
     stgDescendantValues(at, rootKey).pipe(
-      withLatestFromBp(hasher$),
+      withLatestFromBp(subscribeBlocks().hasher$),
       map(([hasher, results]) =>
         results.map(
           ([key, value]) =>
@@ -132,10 +134,8 @@ export const createUpstream = (request: ClientRequest<any, any>) => {
   const genesisHash = getBlockHash$(0)
 
   return {
-    getBlocks,
-    finalized$,
+    subscribeBlocks,
     getBlockHash$,
-    getHeader$,
     stgValue,
     stgHash,
     stgDescendantValues,
@@ -146,9 +146,9 @@ export const createUpstream = (request: ClientRequest<any, any>) => {
     chainName,
     properties,
     genesisHash,
-    clean,
     methods,
     request: simpleRequest,
     obsRequest,
+    clean,
   }
 }

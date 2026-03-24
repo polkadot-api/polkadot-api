@@ -35,7 +35,7 @@ export const createTransactionFns = (
             // This logic ensures that the subscription dies if an
             // upstream error (like the client being destroyed) takes place
             takeUntil(
-              upstream.finalized$.pipe(
+              upstream.subscribeBlocks().finalized$.pipe(
                 ignoreElements(),
                 catchError(() => {
                   ongoing.delete(token)

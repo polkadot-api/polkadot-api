@@ -96,7 +96,7 @@ export const createArchive = (
         )
       case finalizedHeight:
         return obsReply(
-          upstream.finalized$.pipe(
+          upstream.subscribeBlocks().finalized$.pipe(
             map((x) => x.number),
             take(1),
           ),
@@ -107,7 +107,10 @@ export const createArchive = (
         return obsReply(upstream.getBlockHash$(firstArg).pipe(map((x) => [x])))
       case header:
         return obsReply(
-          upstream.getHeader$(firstArg).pipe(map((h) => h.header)),
+          upstream
+            .subscribeBlocks()
+            .getHeader$(firstArg)
+            .pipe(map((h) => h.header)),
         )
       case stopStorage: {
         const sub = stgSubscriptions.get(firstArg)
