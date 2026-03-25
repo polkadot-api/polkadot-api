@@ -94,7 +94,9 @@ export const generateDescriptors = (
     constants: palletInteractions((pallet) =>
       pallet.constants.map((v) => `'${v.name}'`),
     ),
-    viewFns: palletInteractions((pallet) => pallet.viewFns.map((v) => v.name)),
+    viewFns: palletInteractions((pallet) =>
+      pallet.viewFns.map((v) => `'${v.name}'`),
+    ),
     apis: Object.fromEntries(
       originalMetadata.apis.map((api) => [
         api.name,
