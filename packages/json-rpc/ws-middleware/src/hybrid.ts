@@ -1,4 +1,7 @@
-import { JsonRpcMessage } from "@polkadot-api/json-rpc-provider"
+import {
+  JsonRpcConnection,
+  JsonRpcMessage,
+} from "@polkadot-api/json-rpc-provider"
 import { filter, Subject, Subscription, take } from "rxjs"
 import { withLegacy } from "./legacy"
 import { modern } from "./modern"
@@ -58,12 +61,16 @@ const multiplex: Middleware = (base) => {
   const halt$ = new Subject<any>()
   const msg$ = new Subject<JsonRpcMessage>()
 
-  const baseConnection = base(
-    (msg) => msg$.next(msg),
-    (e) => halt$.next(e),
-  )
+  let refCount = 0
+  let baseConnection: JsonRpcConnection | null = null
 
   return (onMsg, onHalt) => {
+    refCount++
+    baseConnection ??= base(
+      (msg) => msg$.next(msg),
+      (e) => halt$.next(e),
+    )
+
     const notificationSub = msg$
       .pipe(filter((v) => v.id == null))
       .subscribe(onMsg)
@@ -73,7 +80,7 @@ const multiplex: Middleware = (base) => {
     return {
       send(message) {
         if (message.id == null) {
-          return baseConnection.send(message)
+          return baseConnection?.send(message)
         }
         const id = message.id
         const responseSub = msg$
@@ -87,12 +94,16 @@ const multiplex: Middleware = (base) => {
             responseSubs.delete(responseSub)
           })
         responseSubs.add(responseSub)
-        baseConnection.send(message)
+        baseConnection?.send(message)
       },
       disconnect() {
         notificationSub.unsubscribe()
         haltSub.unsubscribe()
         responseSubs.forEach((s) => s.unsubscribe())
+        refCount--
+        if (refCount === 0) {
+          baseConnection?.disconnect()
+        }
       },
     }
   }
