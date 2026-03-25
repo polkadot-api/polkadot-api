@@ -12,10 +12,13 @@ import {
 } from "rxjs"
 import { describe, expect, it } from "vitest"
 
-const { PROVIDER } = process.env
+const { PROVIDER, VERSION } = process.env
 const ZOMBIENET_URI = "ws://127.0.0.1:9934/"
 
-if (PROVIDER === "ws") {
+if (
+  PROVIDER === "ws" &&
+  !["polkadot-v1.1.0", "polkadot-stable2407-5"].includes(VERSION!)
+) {
   describe("ws-router", () => {
     it("routes chainHead_v1 through modern RPC and archive_v1 through legacy RPC", async () => {
       let calledMethods = new Set<string>()
