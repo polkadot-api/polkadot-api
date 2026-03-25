@@ -7,12 +7,8 @@ import { Middleware } from "./types"
 const modernGroups = ["chainHead", "transaction", "chainSpec", "archive"].map(
   (name) => `${name}_v1`,
 )
-const isModern = (methods: string[]): boolean =>
-  modernGroups.every((group) => methods.some((m) => m.startsWith(group)))
 
 export const hybridMiddleware = (methods: string[]): Middleware => {
-  if (isModern(methods)) return modern
-
   const individualChecks = Object.fromEntries(
     modernGroups.map((group) => [
       group,
