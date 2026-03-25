@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Client hangs the application when connected to faulty nodes.
+
 - **codegen**
   - Use all metadata entries for whitelist type utilities
 

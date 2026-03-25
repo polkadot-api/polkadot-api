@@ -92,7 +92,7 @@ const createGetRuntimeChanges = (
 const withEnhancedFollow = (
   getFollower: () => FollowResponse,
   getCodeHash: (block: string) => Observable<string>,
-  reset: () => void,
+  reset: (e: any) => void,
 ) => {
   const getRuntimeChanges = createGetRuntimeChanges(getCodeHash)
   const getRawHeader = (blockHash: HexString) =>
@@ -214,10 +214,14 @@ export const getFollow$ = (
   )
 
   let reset = noop
+  let token: any
   const { hasher$, enhancer, getHeader } = withEnhancedFollow(
     getFollower,
     getCodeHash,
-    () => reset(),
+    (e) => {
+      console.warn("ChainHead subfollow request failed, retrying…", e)
+      token = setTimeout(() => reset(), 250)
+    },
   )
 
   const follow$ = new Observable<
@@ -227,12 +231,21 @@ export const getFollow$ = (
       }
   >((observer) => {
     if (isDone) return observer.complete()
-    let token: any
 
     const setFollower = () => {
+      // If chainHead synchronously resolve (e.g. through a local json-rpc enhancer)
+      // `follower` will not have been set. So we buffer sync messages and notify them
+      // after `follower` is set.
+      let bufferMessages: Array<any> | null = []
       follower = chainHead(
         true,
-        (msg) => observer.next(msg),
+        (msg) => {
+          if (bufferMessages) {
+            bufferMessages.push(msg)
+          } else {
+            observer.next(msg)
+          }
+        },
         (e) => {
           follower = null
           if (isDone) return
@@ -246,6 +259,8 @@ export const getFollow$ = (
           }
         },
       )
+      bufferMessages.forEach((v) => observer.next(v))
+      bufferMessages = null
     }
 
     reset = () => {
