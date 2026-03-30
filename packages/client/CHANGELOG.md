@@ -5,6 +5,7 @@
 ### Fixed
 
 - Client hangs the application when connected to faulty nodes.
+- Transaction don't honor the provided nonce when it's 0
 
 - **codegen**
   - Use all metadata entries for whitelist type utilities

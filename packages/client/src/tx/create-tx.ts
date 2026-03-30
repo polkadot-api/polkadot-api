@@ -63,7 +63,7 @@ export const createTx: (
   hinted = {},
 ) =>
   combineLatest([
-    hinted.nonce
+    hinted.nonce != null
       ? of(hinted.nonce)
       : getNonce$(chainHead, toHex(signer.publicKey)),
     chainHead.getRuntimeContext$(atBlock.hash),
