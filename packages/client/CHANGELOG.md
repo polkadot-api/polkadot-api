@@ -5,10 +5,11 @@
 ### Fixed
 
 - Client hangs the application when connected to faulty nodes.
-- Transaction don't honor the provided nonce when it's 0
+- Transaction don't honor the provided nonce when it's 0.
+- Transactions should be created with the newest available runtime.
 
 - **codegen**
-  - Use all metadata entries for whitelist type utilities
+  - Use all metadata entries for whitelist type utilities.
 
 ## 2.0.0-rc.5 - 2026-03-13
 

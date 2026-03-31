@@ -1,4 +1,8 @@
-import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
+import {
+  BlockInfo,
+  ChainHead$,
+  PinnedBlock,
+} from "@polkadot-api/observable-client"
 import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import { HexString, u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
@@ -6,6 +10,7 @@ import {
   Observable,
   catchError,
   combineLatest,
+  debounceTime,
   distinctUntilChanged,
   map,
   mergeMap,
@@ -47,6 +52,29 @@ const getNonceAtBlock$ = (
     }),
   )
 
+export const getNewestRuntime$ = (chainHead: ChainHead$, atBlock: string) =>
+  chainHead.pinnedBlocks$.pipe(
+    // pinnedBlocks often emits a burst of updates, we can wait a bit until dust settles.
+    debounceTime(0),
+    map((pinnedBlocks) => {
+      // Assuming runtime upgrades happen very rarely and you never have two
+      // competing runtime upgrades, we can just perform a search
+      const findRuntimeUpgrade = (hash: string): PinnedBlock | null => {
+        const block = pinnedBlocks.blocks.get(hash)
+        if (!block) return null
+        if (block.hasNewRuntime) return block
+        for (const child of block.children) {
+          const childResult = findRuntimeUpgrade(child)
+          if (childResult) return childResult
+        }
+        return null
+      }
+
+      return findRuntimeUpgrade(atBlock)?.hash ?? atBlock
+    }),
+    distinctUntilChanged(),
+  )
+
 export const createTx: (
   chainHead: ChainHead$,
   signer: PolkadotSigner,
@@ -66,7 +94,9 @@ export const createTx: (
     hinted.nonce != null
       ? of(hinted.nonce)
       : getNonce$(chainHead, toHex(signer.publicKey)),
-    chainHead.getRuntimeContext$(atBlock.hash),
+    getNewestRuntime$(chainHead, atBlock.hash).pipe(
+      switchMap(chainHead.getRuntimeContext$),
+    ),
     chainHead.genesis$,
   ]).pipe(
     take(1),
