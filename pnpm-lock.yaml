@@ -253,6 +253,12 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@polkadot-api/ws-middleware':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/ws-middleware
+      '@polkadot-api/ws-provider':
+        specifier: workspace:*
+        version: link:../../packages/json-rpc/ws-provider
       '@unique-nft/sr25519':
         specifier: ^0.0.2
         version: 0.0.2

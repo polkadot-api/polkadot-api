@@ -1,4 +1,4 @@
-import { Observable } from "rxjs"
+import { Observable, Subscription } from "rxjs"
 
 export const withLatestFromBp =
   <T, S>(latest$: Observable<T>) =>
@@ -6,19 +6,24 @@ export const withLatestFromBp =
     new Observable<[T, S]>((observer) => {
       let latest: T
       let prev: S[] | null = []
+      let finished = false
 
-      const subscription = base$.subscribe({
-        next(v) {
-          if (prev) prev.push(v)
-          else observer.next([latest, v])
-        },
-        error(e) {
-          observer.error(e)
-        },
-        complete() {
-          observer.complete()
-        },
-      })
+      const subscription = new Subscription()
+      subscription.add(
+        base$.subscribe({
+          next(v) {
+            if (prev) prev.push(v)
+            else observer.next([latest, v])
+          },
+          error(e) {
+            observer.error(e)
+          },
+          complete() {
+            if (prev) finished = true
+            else observer.complete()
+          },
+        }),
+      )
 
       subscription.add(
         latest$.subscribe({
@@ -29,6 +34,7 @@ export const withLatestFromBp =
               prev = null
               copy.forEach((p) => observer.next([latest, p]))
             }
+            if (finished) observer.complete()
           },
           error(e) {
             observer.error(e)

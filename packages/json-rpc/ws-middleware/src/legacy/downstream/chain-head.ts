@@ -17,7 +17,9 @@ export const createChainHead = (
 ) => {
   type SubCtx = {
     id: string
-    up: ReturnType<typeof upstream.getBlocks>
+    up: ReturnType<
+      ReturnType<(typeof upstream)["subscribeBlocks"]>["getBlocks"]
+    >
     operations: Map<string, () => void>
     cleanUp: () => void
   }
@@ -30,7 +32,7 @@ export const createChainHead = (
     const token = createOpaqueToken()
     const fNotification = (result: any) =>
       notification("chainHead_v1_followEvent", token, result)
-    const up = upstream.getBlocks(token)
+    const up = upstream.subscribeBlocks().getBlocks(token)
     const operations = new Map<string, () => void>()
     subscriptions.set(token, {
       id: token,
