@@ -14,6 +14,10 @@
 - **WS-Provider:**
   - Use granular legacy/modern enhancers based on groups of functions
 
+### Changed
+
+- Drop support for CommonJS
+
 ## 2.0.0-rc.5 - 2026-03-13
 
 ### Fixed
