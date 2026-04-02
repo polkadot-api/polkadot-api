@@ -6,6 +6,10 @@
 
 - Drop support for CommonJS
 
+### Fixed
+
+- Update dependencies
+
 ## 0.19.1 to 0.19.4 - 2026-03-13
 
 ### Fixed

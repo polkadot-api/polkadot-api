@@ -29,8 +29,8 @@
     "@polkadot-api/codegen": "workspace:*",
     "@types/node": "^25.5.0",
     "commander": "^14.0.3",
-    "typedoc": "^0.28.17",
+    "typedoc": "^0.28.18",
     "typedoc-plugin-extras": "^4.0.1",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   }
 }

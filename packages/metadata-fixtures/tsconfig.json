@@ -2,10 +2,10 @@
   "extends": "../../tsconfig.base",
   "include": ["src"],
   "compilerOptions": {
-    "baseUrl": "src",
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["*"]
-    }
+      "@/*": ["./src/*"]
+    },
+    "types": ["node"]
   }
 }

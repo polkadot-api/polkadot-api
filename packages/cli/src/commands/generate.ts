@@ -436,7 +436,6 @@ async function compileCodegen(packageDir: string) {
       emitDeclarationOnly: true,
       target: "esnext",
       module: "esnext",
-      moduleResolution: "node",
       resolveJsonModule: true,
       allowSyntheticDefaultImports: true,
       outDir,
@@ -481,7 +480,9 @@ const generateIndex = async (
     `export {`,
     publicTypes.join(", "),
     `} from './common-types';`,
-    `const metadatas = {${Object.entries(metadatas)
+    `const metadatas: Record<string, { getMetadata: () => Promise<Uint8Array> }> = {${Object.entries(
+      metadatas,
+    )
       .map(([codeHash, key]) => `["${codeHash}"]: ${key}`)
       .join(",\n")}}`,
     cacheMetadataStr,
