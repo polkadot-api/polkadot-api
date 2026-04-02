@@ -55,15 +55,9 @@ for (const [packageName, source, symbols = "*"] of reexports) {
   const fileNameWithGlob = packageNameWithGlob.replaceAll("/", "_")
   newExports["./" + packageNameWithGlob] = {
     types: `./dist/reexports/${fileNameWithGlob}.d.ts`,
-    node: {
-      import: `./dist/esm/reexports/${fileNameWithGlob}.mjs`,
-      require: `./dist/reexports/${fileNameWithGlob}.js`,
-      default: `./dist/reexports/${fileNameWithGlob}.js`,
-    },
-    module: `./dist/esm/reexports/${fileNameWithGlob}.mjs`,
-    import: `./dist/esm/reexports/${fileNameWithGlob}.mjs`,
-    require: `./dist/reexports/${fileNameWithGlob}.js`,
-    default: `./dist/reexports/${fileNameWithGlob}.js`,
+    module: `./dist/reexports/${fileNameWithGlob}.mjs`,
+    import: `./dist/reexports/${fileNameWithGlob}.mjs`,
+    default: `./dist/reexports/${fileNameWithGlob}.mjs`,
   }
 
   const packageDir = join(...packageName.split("/"))
@@ -76,11 +70,10 @@ for (const [packageName, source, symbols = "*"] of reexports) {
       {
         name: `polkadot-api_${packageName.replaceAll("/", "_")}`,
         types: `${toRoot}/dist/reexports/${fileName}.d.ts`,
-        module: `${toRoot}/dist/esm/reexports/${fileName}.mjs`,
-        import: `${toRoot}/dist/esm/reexports/${fileName}.mjs`,
-        browser: `${toRoot}/dist/esm/reexports/${fileName}.mjs`,
-        require: `${toRoot}/dist/reexports/${fileName}.js`,
-        default: `${toRoot}/dist/reexports/${fileName}.js`,
+        module: `${toRoot}/dist/reexports/${fileName}.mjs`,
+        import: `${toRoot}/dist/reexports/${fileName}.mjs`,
+        browser: `${toRoot}/dist/reexports/${fileName}.mjs`,
+        default: `${toRoot}/dist/reexports/${fileName}.mjs`,
       },
       null,
       2,

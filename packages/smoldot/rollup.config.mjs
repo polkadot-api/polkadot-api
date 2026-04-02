@@ -11,11 +11,6 @@ const generateEntry = (entry) => {
       output: [
         {
           dir: outDir,
-          format: "cjs",
-          sourcemap: true,
-        },
-        {
-          dir: `${outDir}/esm`,
           format: "es",
           sourcemap: true,
           preserveModules: true,

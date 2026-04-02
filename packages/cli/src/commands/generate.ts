@@ -422,10 +422,10 @@ async function compileCodegen(packageDir: string) {
     await fs.rm(outDir, { recursive: true })
   }
 
-  // tsup only builds cjs+esm outputs, skipping all typechecks.
+  // tsup only builds esm outputs, skipping all typechecks.
   await tsup.build({
     target: "es2022",
-    format: ["cjs", "esm"],
+    format: ["esm"],
     entry: [path.join(srcDir, "index.ts").replaceAll(win32.sep, posix.sep)],
     loader: {
       ".scale": "binary",

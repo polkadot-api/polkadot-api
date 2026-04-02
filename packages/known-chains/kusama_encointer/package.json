@@ -1,9 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-kusama_encointer",
-  "types": "../dist/specs/kusama_encointer.d.ts",
+  "types": "../dist/specs/kusama_encointer.d.mts",
   "module": "../dist/specs/kusama_encointer.mjs",
   "import": "../dist/specs/kusama_encointer.mjs",
   "browser": "../dist/specs/kusama_encointer.mjs",
-  "require": "../dist/specs/kusama_encointer.js",
-  "default": "../dist/specs/kusama_encointer.js"
+  "default": "../dist/specs/kusama_encointer.mjs"
 }

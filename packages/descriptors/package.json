@@ -10,12 +10,11 @@
   "exports": {
     ".": {
       "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "browser": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -24,7 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "build-core": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2022 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2020 --format cjs --dts --minify --out-dir dist/min",
+    "build-core": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2022 --format esm --dts",
     "build": "pnpm build-core",
     "test": "echo 'no tests'",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
