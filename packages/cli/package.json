@@ -10,8 +10,8 @@
   "sideEffects": true,
   "type": "module",
   "bin": {
-    "papi": "./dist/main.js",
-    "polkadot-api": "./dist/main.js"
+    "papi": "./dist/main/src/main.mjs",
+    "polkadot-api": "./dist/main/src/main.mjs"
   },
   "files": [
     "/dist"
@@ -19,12 +19,12 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.js",
-      "import": "./dist/index.js"
+      "module": "./dist/src/index.mjs",
+      "import": "./dist/src/index.mjs"
     }
   },
   "scripts": {
-    "build-core": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "build-core": "tsc --noEmit && rollup -c",
     "build": "pnpm build-core",
     "start": "pnpm build && node --enable-source-maps dist/main.js",
     "test": "echo 'no tests'",
@@ -54,8 +54,9 @@
     "ora": "^9.3.0",
     "read-pkg": "^10.1.0",
     "rxjs": "^7.8.2",
+    "rollup": "^4.59.0",
+    "rollup-plugin-esbuild": "^6.2.1",
     "tsc-prog": "^2.3.0",
-    "tsup": "8.5.0",
     "typescript": "^5.9.3",
     "write-package": "^7.2.0"
   },

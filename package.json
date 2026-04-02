@@ -40,7 +40,6 @@
     "rollup-plugin-dts": "^6.4.0",
     "rollup-plugin-esbuild": "^6.2.1",
     "tslib": "^2.8.1",
-    "tsup": "^8.5.1",
     "turbo": "^2.8.16",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^6.1.1",

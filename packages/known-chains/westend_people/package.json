@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-westend_people",
-  "types": "../dist/specs/westend_people.d.mts",
-  "module": "../dist/specs/westend_people.mjs",
-  "import": "../dist/specs/westend_people.mjs",
-  "browser": "../dist/specs/westend_people.mjs",
-  "default": "../dist/specs/westend_people.mjs"
+  "types": "../dist/specs/westend_people/westend_people.d.ts",
+  "module": "../dist/specs/westend_people/westend_people.mjs",
+  "import": "../dist/specs/westend_people/westend_people.mjs",
+  "browser": "../dist/specs/westend_people/westend_people.mjs",
+  "default": "../dist/specs/westend_people/westend_people.mjs"
 }

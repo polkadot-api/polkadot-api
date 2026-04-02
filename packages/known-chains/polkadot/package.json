@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-polkadot",
-  "types": "../dist/specs/polkadot.d.mts",
-  "module": "../dist/specs/polkadot.mjs",
-  "import": "../dist/specs/polkadot.mjs",
-  "browser": "../dist/specs/polkadot.mjs",
-  "default": "../dist/specs/polkadot.mjs"
+  "types": "../dist/specs/polkadot/polkadot.d.ts",
+  "module": "../dist/specs/polkadot/polkadot.mjs",
+  "import": "../dist/specs/polkadot/polkadot.mjs",
+  "browser": "../dist/specs/polkadot/polkadot.mjs",
+  "default": "../dist/specs/polkadot/polkadot.mjs"
 }

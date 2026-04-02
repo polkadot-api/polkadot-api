@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-kusama_bridge_hub",
-  "types": "../dist/specs/kusama_bridge_hub.d.mts",
-  "module": "../dist/specs/kusama_bridge_hub.mjs",
-  "import": "../dist/specs/kusama_bridge_hub.mjs",
-  "browser": "../dist/specs/kusama_bridge_hub.mjs",
-  "default": "../dist/specs/kusama_bridge_hub.mjs"
+  "types": "../dist/specs/kusama_bridge_hub/kusama_bridge_hub.d.ts",
+  "module": "../dist/specs/kusama_bridge_hub/kusama_bridge_hub.mjs",
+  "import": "../dist/specs/kusama_bridge_hub/kusama_bridge_hub.mjs",
+  "browser": "../dist/specs/kusama_bridge_hub/kusama_bridge_hub.mjs",
+  "default": "../dist/specs/kusama_bridge_hub/kusama_bridge_hub.mjs"
 }

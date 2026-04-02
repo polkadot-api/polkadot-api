@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-westend",
-  "types": "../dist/specs/westend.d.mts",
-  "module": "../dist/specs/westend.mjs",
-  "import": "../dist/specs/westend.mjs",
-  "browser": "../dist/specs/westend.mjs",
-  "default": "../dist/specs/westend.mjs"
+  "types": "../dist/specs/westend/westend.d.ts",
+  "module": "../dist/specs/westend/westend.mjs",
+  "import": "../dist/specs/westend/westend.mjs",
+  "browser": "../dist/specs/westend/westend.mjs",
+  "default": "../dist/specs/westend/westend.mjs"
 }

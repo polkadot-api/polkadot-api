@@ -23,7 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "build-core": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2022 --format esm --dts",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm build-core",
     "test": "echo 'no tests'",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",

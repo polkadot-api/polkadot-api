@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-paseo_people",
-  "types": "../dist/specs/paseo_people.d.mts",
-  "module": "../dist/specs/paseo_people.mjs",
-  "import": "../dist/specs/paseo_people.mjs",
-  "browser": "../dist/specs/paseo_people.mjs",
-  "default": "../dist/specs/paseo_people.mjs"
+  "types": "../dist/specs/paseo_people/paseo_people.d.ts",
+  "module": "../dist/specs/paseo_people/paseo_people.mjs",
+  "import": "../dist/specs/paseo_people/paseo_people.mjs",
+  "browser": "../dist/specs/paseo_people/paseo_people.mjs",
+  "default": "../dist/specs/paseo_people/paseo_people.mjs"
 }

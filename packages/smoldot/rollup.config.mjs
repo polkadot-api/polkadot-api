@@ -1,34 +1,4 @@
-import dts from "rollup-plugin-dts"
-import esbuild from "rollup-plugin-esbuild"
-
-const generateEntry = (entry) => {
-  const outDir = entry === "index" ? "dist" : "dist/" + entry
-  return [
-    {
-      input: `src/${entry}.ts`,
-      external: (id) => !/^[./]/.test(id) && !/^@\//.test(id),
-      plugins: [esbuild()],
-      output: [
-        {
-          dir: outDir,
-          format: "es",
-          sourcemap: true,
-          preserveModules: true,
-          entryFileNames: "[name].mjs",
-        },
-      ],
-    },
-    {
-      input: `src/${entry}.ts`,
-      external: (id) => !/^[./]/.test(id) && !/^@\//.test(id),
-      plugins: [dts()],
-      output: {
-        dir: outDir,
-        format: "es",
-      },
-    },
-  ]
-}
+import { generateEntry } from "../../rollup_utils.js"
 
 export default [
   ...generateEntry("index"),

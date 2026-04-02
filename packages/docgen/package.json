@@ -10,13 +10,13 @@
   "sideEffects": true,
   "type": "module",
   "bin": {
-    "papi-generate-docs": "./dist/main.js"
+    "papi-generate-docs": "./dist/index.mjs"
   },
   "files": [
     "/dist"
   ],
   "scripts": {
-    "build-core": "tsc --noEmit && tsup-node src/main.ts src/index.ts src/metadataWorker.ts --clean --out-dir dist --dts --sourcemap --platform node --format esm",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm build-core",
     "start": "pnpm build && node --enable-source-maps dist/main.js",
     "test": "echo 'no tests'",
@@ -29,7 +29,6 @@
     "@polkadot-api/codegen": "workspace:*",
     "@types/node": "^25.5.0",
     "commander": "^14.0.3",
-    "tsup": "^8.5.1",
     "typedoc": "^0.28.17",
     "typedoc-plugin-extras": "^4.0.1",
     "typescript": "^5.9.3"

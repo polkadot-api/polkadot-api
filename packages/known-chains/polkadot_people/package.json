@@ -1,8 +1,8 @@
 {
   "name": "@polkadot-api/known-chains-polkadot_people",
-  "types": "../dist/specs/polkadot_people.d.mts",
-  "module": "../dist/specs/polkadot_people.mjs",
-  "import": "../dist/specs/polkadot_people.mjs",
-  "browser": "../dist/specs/polkadot_people.mjs",
-  "default": "../dist/specs/polkadot_people.mjs"
+  "types": "../dist/specs/polkadot_people/polkadot_people.d.ts",
+  "module": "../dist/specs/polkadot_people/polkadot_people.mjs",
+  "import": "../dist/specs/polkadot_people/polkadot_people.mjs",
+  "browser": "../dist/specs/polkadot_people/polkadot_people.mjs",
+  "default": "../dist/specs/polkadot_people/polkadot_people.mjs"
 }

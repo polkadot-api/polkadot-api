@@ -16,118 +16,119 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "module": "./dist/index.mjs",
       "import": "./dist/index.mjs"
     },
     "./polkadot_collectives": {
-      "types": "./dist/specs/polkadot_collectives.d.mts",
-      "module": "./dist/specs/polkadot_collectives.mjs",
-      "import": "./dist/specs/polkadot_collectives.mjs"
+      "types": "./dist/specs/polkadot_collectives/polkadot_collectives.d.ts",
+      "module": "./dist/specs/polkadot_collectives/polkadot_collectives.mjs",
+      "import": "./dist/specs/polkadot_collectives/polkadot_collectives.mjs"
     },
     "./polkadot_bridge_hub": {
-      "types": "./dist/specs/polkadot_bridge_hub.d.mts",
-      "module": "./dist/specs/polkadot_bridge_hub.mjs",
-      "import": "./dist/specs/polkadot_bridge_hub.mjs"
+      "types": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.d.ts",
+      "module": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.mjs",
+      "import": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.mjs"
     },
     "./westend_asset_hub": {
-      "types": "./dist/specs/westend_asset_hub.d.mts",
-      "module": "./dist/specs/westend_asset_hub.mjs",
-      "import": "./dist/specs/westend_asset_hub.mjs"
+      "types": "./dist/specs/westend_asset_hub/westend_asset_hub.d.ts",
+      "module": "./dist/specs/westend_asset_hub/westend_asset_hub.mjs",
+      "import": "./dist/specs/westend_asset_hub/westend_asset_hub.mjs"
     },
     "./kusama_asset_hub": {
-      "types": "./dist/specs/kusama_asset_hub.d.mts",
-      "module": "./dist/specs/kusama_asset_hub.mjs",
-      "import": "./dist/specs/kusama_asset_hub.mjs"
+      "types": "./dist/specs/kusama_asset_hub/kusama_asset_hub.d.ts",
+      "module": "./dist/specs/kusama_asset_hub/kusama_asset_hub.mjs",
+      "import": "./dist/specs/kusama_asset_hub/kusama_asset_hub.mjs"
     },
     "./westend_collectives": {
-      "types": "./dist/specs/westend_collectives.d.mts",
-      "module": "./dist/specs/westend_collectives.mjs",
-      "import": "./dist/specs/westend_collectives.mjs"
+      "types": "./dist/specs/westend_collectives/westend_collectives.d.ts",
+      "module": "./dist/specs/westend_collectives/westend_collectives.mjs",
+      "import": "./dist/specs/westend_collectives/westend_collectives.mjs"
     },
     "./westend": {
-      "types": "./dist/specs/westend.d.mts",
-      "module": "./dist/specs/westend.mjs",
-      "import": "./dist/specs/westend.mjs"
+      "types": "./dist/specs/westend/westend.d.ts",
+      "module": "./dist/specs/westend/westend.mjs",
+      "import": "./dist/specs/westend/westend.mjs"
     },
     "./kusama_people": {
-      "types": "./dist/specs/kusama_people.d.mts",
-      "module": "./dist/specs/kusama_people.mjs",
-      "import": "./dist/specs/kusama_people.mjs"
+      "types": "./dist/specs/kusama_people/kusama_people.d.ts",
+      "module": "./dist/specs/kusama_people/kusama_people.mjs",
+      "import": "./dist/specs/kusama_people/kusama_people.mjs"
     },
     "./paseo": {
-      "types": "./dist/specs/paseo.d.mts",
-      "module": "./dist/specs/paseo.mjs",
-      "import": "./dist/specs/paseo.mjs"
+      "types": "./dist/specs/paseo/paseo.d.ts",
+      "module": "./dist/specs/paseo/paseo.mjs",
+      "import": "./dist/specs/paseo/paseo.mjs"
     },
     "./kusama_encointer": {
-      "types": "./dist/specs/kusama_encointer.d.mts",
-      "module": "./dist/specs/kusama_encointer.mjs",
-      "import": "./dist/specs/kusama_encointer.mjs"
+      "types": "./dist/specs/kusama_encointer/kusama_encointer.d.ts",
+      "module": "./dist/specs/kusama_encointer/kusama_encointer.mjs",
+      "import": "./dist/specs/kusama_encointer/kusama_encointer.mjs"
     },
     "./westend_bridge_hub": {
-      "types": "./dist/specs/westend_bridge_hub.d.mts",
-      "module": "./dist/specs/westend_bridge_hub.mjs",
-      "import": "./dist/specs/westend_bridge_hub.mjs"
+      "types": "./dist/specs/westend_bridge_hub/westend_bridge_hub.d.ts",
+      "module": "./dist/specs/westend_bridge_hub/westend_bridge_hub.mjs",
+      "import": "./dist/specs/westend_bridge_hub/westend_bridge_hub.mjs"
     },
     "./paseo_asset_hub": {
-      "types": "./dist/specs/paseo_asset_hub.d.mts",
-      "module": "./dist/specs/paseo_asset_hub.mjs",
-      "import": "./dist/specs/paseo_asset_hub.mjs"
+      "types": "./dist/specs/paseo_asset_hub/paseo_asset_hub.d.ts",
+      "module": "./dist/specs/paseo_asset_hub/paseo_asset_hub.mjs",
+      "import": "./dist/specs/paseo_asset_hub/paseo_asset_hub.mjs"
     },
     "./polkadot_coretime": {
-      "types": "./dist/specs/polkadot_coretime.d.mts",
-      "module": "./dist/specs/polkadot_coretime.mjs",
-      "import": "./dist/specs/polkadot_coretime.mjs"
+      "types": "./dist/specs/polkadot_coretime/polkadot_coretime.d.ts",
+      "module": "./dist/specs/polkadot_coretime/polkadot_coretime.mjs",
+      "import": "./dist/specs/polkadot_coretime/polkadot_coretime.mjs"
     },
     "./polkadot_asset_hub": {
-      "types": "./dist/specs/polkadot_asset_hub.d.mts",
-      "module": "./dist/specs/polkadot_asset_hub.mjs",
-      "import": "./dist/specs/polkadot_asset_hub.mjs"
+      "types": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.d.ts",
+      "module": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.mjs",
+      "import": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.mjs"
     },
     "./westend_people": {
-      "types": "./dist/specs/westend_people.d.mts",
-      "module": "./dist/specs/westend_people.mjs",
-      "import": "./dist/specs/westend_people.mjs"
+      "types": "./dist/specs/westend_people/westend_people.d.ts",
+      "module": "./dist/specs/westend_people/westend_people.mjs",
+      "import": "./dist/specs/westend_people/westend_people.mjs"
     },
     "./kusama_bridge_hub": {
-      "types": "./dist/specs/kusama_bridge_hub.d.mts",
-      "module": "./dist/specs/kusama_bridge_hub.mjs",
-      "import": "./dist/specs/kusama_bridge_hub.mjs"
+      "types": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.d.ts",
+      "module": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.mjs",
+      "import": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.mjs"
     },
     "./kusama_coretime": {
-      "types": "./dist/specs/kusama_coretime.d.mts",
-      "module": "./dist/specs/kusama_coretime.mjs",
-      "import": "./dist/specs/kusama_coretime.mjs"
+      "types": "./dist/specs/kusama_coretime/kusama_coretime.d.ts",
+      "module": "./dist/specs/kusama_coretime/kusama_coretime.mjs",
+      "import": "./dist/specs/kusama_coretime/kusama_coretime.mjs"
     },
     "./paseo_coretime": {
-      "types": "./dist/specs/paseo_coretime.d.mts",
-      "module": "./dist/specs/paseo_coretime.mjs",
-      "import": "./dist/specs/paseo_coretime.mjs"
+      "types": "./dist/specs/paseo_coretime/paseo_coretime.d.ts",
+      "module": "./dist/specs/paseo_coretime/paseo_coretime.mjs",
+      "import": "./dist/specs/paseo_coretime/paseo_coretime.mjs"
     },
     "./paseo_people": {
-      "types": "./dist/specs/paseo_people.d.mts",
-      "module": "./dist/specs/paseo_people.mjs",
-      "import": "./dist/specs/paseo_people.mjs"
+      "types": "./dist/specs/paseo_people/paseo_people.d.ts",
+      "module": "./dist/specs/paseo_people/paseo_people.mjs",
+      "import": "./dist/specs/paseo_people/paseo_people.mjs"
     },
     "./polkadot": {
-      "types": "./dist/specs/polkadot.d.mts",
-      "module": "./dist/specs/polkadot.mjs",
-      "import": "./dist/specs/polkadot.mjs"
+      "types": "./dist/specs/polkadot/polkadot.d.ts",
+      "module": "./dist/specs/polkadot/polkadot.mjs",
+      "import": "./dist/specs/polkadot/polkadot.mjs"
     },
     "./polkadot_people": {
-      "types": "./dist/specs/polkadot_people.d.mts",
-      "module": "./dist/specs/polkadot_people.mjs",
-      "import": "./dist/specs/polkadot_people.mjs"
+      "types": "./dist/specs/polkadot_people/polkadot_people.d.ts",
+      "module": "./dist/specs/polkadot_people/polkadot_people.mjs",
+      "import": "./dist/specs/polkadot_people/polkadot_people.mjs"
     },
     "./kusama": {
-      "types": "./dist/specs/kusama.d.mts",
-      "module": "./dist/specs/kusama.mjs",
-      "import": "./dist/specs/kusama.mjs"
+      "types": "./dist/specs/kusama/kusama.d.ts",
+      "module": "./dist/specs/kusama/kusama.mjs",
+      "import": "./dist/specs/kusama/kusama.mjs"
     },
     "./westend_coretime": {
-      "types": "./dist/specs/westend_coretime.d.mts",
-      "module": "./dist/specs/westend_coretime.mjs",
-      "import": "./dist/specs/westend_coretime.mjs"
+      "types": "./dist/specs/westend_coretime/westend_coretime.d.ts",
+      "module": "./dist/specs/westend_coretime/westend_coretime.mjs",
+      "import": "./dist/specs/westend_coretime/westend_coretime.mjs"
     }
   },
   "main": "./dist/index.mjs",
@@ -161,7 +162,7 @@
     "westend_coretime"
   ],
   "scripts": {
-    "build-core": "node prepare-specs.mjs && bash build.sh",
+    "build-core": "node prepare-specs.mjs && tsc --noEmit && rollup -c",
     "build": "pnpm build-core",
     "test": "echo 'no tests'",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
