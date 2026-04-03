@@ -407,7 +407,7 @@ export const generateDescriptors = (
   // Going through base64 conversion instead of using binary loader because of esbuild issue
   // https://github.com/evanw/esbuild/issues/3894
   const imports = `import {${clientImports.join(", ")}} from "${paths.client}";
-  import {${commonTypeImports.join(", ")}} from "${paths.types}";
+  import type {${commonTypeImports.join(", ")}} from "${paths.types}";
   import { toBinary } from "${paths.common}"
 
   const descriptorValues = import("${paths.descriptorValues}").then(module => module["${prefix}"]);

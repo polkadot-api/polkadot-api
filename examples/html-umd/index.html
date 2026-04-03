@@ -11,16 +11,16 @@
   <pre id="freeBalance">Loading page...</pre>
 </body>
 
-<script src="//unpkg.com/polkadot-api/dist/umd/index.min.js"></script>
-<script src="//unpkg.com/polkadot-api/dist/umd/ws.min.js"></script>
+<script src="./umd/index.min.js"></script>
+<script src="./umd/ws.min.js"></script>
 
 <script>
   const {createClient} = papi
-  const {getWsProvider} = papiWsProvider
+  const {getWsProvider} = papiWs
 
   // Adjust which network you want to query. Using westend as example
   const client = createClient(
-    withPolkadotSdkCompat(getWsProvider("wss://westend-rpc.polkadot.io")),
+    getWsProvider("wss://westend-rpc.polkadot.io"),
   )
   const api = client.getUnsafeApi() // we get the API
   document.getElementById("blockNumber").innerText =

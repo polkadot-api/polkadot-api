@@ -9,31 +9,24 @@
   },
   "license": "MIT",
   "sideEffects": false,
+  "type": "module",
   "exports": {
     ".": {
-      "node": {
-        "production": {
-          "import": "./dist/index.mjs",
-          "require": "./dist/min/index.js"
-        },
-        "import": "./dist/index.mjs",
-        "require": "./dist/index.js"
-      },
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./package.json": "./package.json"
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "browser": "./dist/index.mjs",
+  "module": "./dist/index.js",
+  "browser": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build-core": "tsc --noEmit && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2022 --format esm,cjs --dts && tsup-node src/index.ts --clean --sourcemap --platform neutral --target=es2022 --format cjs --dts --minify --out-dir dist/min",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm build-core",
     "test": "echo 'no tests'",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",

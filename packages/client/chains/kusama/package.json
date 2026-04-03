@@ -1,9 +1,9 @@
 {
   "name": "polkadot-api_chains_kusama",
+  "type": "module",
   "types": "../../dist/reexports/chains_kusama.d.ts",
-  "module": "../../dist/esm/reexports/chains_kusama.mjs",
-  "import": "../../dist/esm/reexports/chains_kusama.mjs",
-  "browser": "../../dist/esm/reexports/chains_kusama.mjs",
-  "require": "../../dist/reexports/chains_kusama.js",
+  "module": "../../dist/reexports/chains_kusama.js",
+  "import": "../../dist/reexports/chains_kusama.js",
+  "browser": "../../dist/reexports/chains_kusama.js",
   "default": "../../dist/reexports/chains_kusama.js"
 }

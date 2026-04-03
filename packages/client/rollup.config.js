@@ -54,16 +54,10 @@ export default [
     output: [
       {
         dir: `dist`,
-        format: "cjs",
-        sourcemap: true,
-        preserveModules: true,
-      },
-      {
-        dir: `dist/esm`,
         format: "es",
         sourcemap: true,
         preserveModules: true,
-        entryFileNames: "[name].mjs",
+        entryFileNames: "[name].js",
       },
     ],
   },
@@ -114,7 +108,7 @@ export default [
       dir: `bin`,
       format: "es",
       sourcemap: true,
-      entryFileNames: "[name].mjs",
+      entryFileNames: "[name].js",
     },
   },
 ]

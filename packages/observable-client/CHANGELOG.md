@@ -7,6 +7,10 @@
 - Fix DisjointError on synchronous recovery.
 - Backoff retries on enhanced ChainHead follow.
 
+### Changed
+
+- Drop support for CommonJS
+
 ## 0.18.2 - 2026-03-04
 
 ### Fixed

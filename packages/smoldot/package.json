@@ -7,67 +7,42 @@
     "url": "git+https://github.com/polkadot-api/polkadot-api.git"
   },
   "license": "MIT",
+  "type": "module",
   "exports": {
     ".": {
-      "node": {
-        "import": "./dist/esm/index.mjs",
-        "require": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
-      "module": "./dist/esm/index.mjs",
-      "import": "./dist/esm/index.mjs",
-      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.js",
+      "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./from-node-worker": {
-      "node": {
-        "import": "./dist/from-node-worker/esm/from-node-worker.mjs",
-        "require": "./dist/from-node-worker/from-node-worker.js",
-        "default": "./dist/from-node-worker/from-node-worker.js"
-      },
-      "module": "./dist/from-node-worker/esm/from-node-worker.mjs",
-      "import": "./dist/from-node-worker/esm/from-node-worker.mjs",
-      "require": "./dist/from-node-worker/from-node-worker.js",
+      "types": "./dist/from-node-worker/from-node-worker.d.ts",
+      "module": "./dist/from-node-worker/from-node-worker.js",
+      "import": "./dist/from-node-worker/from-node-worker.js",
       "default": "./dist/from-node-worker/from-node-worker.js"
     },
     "./from-worker": {
-      "node": {
-        "import": "./dist/from-worker/esm/from-worker.mjs",
-        "require": "./dist/from-worker/from-worker.js",
-        "default": "./dist/from-worker/from-worker.js"
-      },
-      "module": "./dist/from-worker/esm/from-worker.mjs",
-      "import": "./dist/from-worker/esm/from-worker.mjs",
-      "require": "./dist/from-worker/from-worker.js",
+      "types": "./dist/from-worker/from-worker.d.ts",
+      "module": "./dist/from-worker/from-worker.js",
+      "import": "./dist/from-worker/from-worker.js",
       "default": "./dist/from-worker/from-worker.js"
     },
     "./node-worker": {
-      "node": {
-        "import": "./dist/node-worker/esm/node-worker.mjs",
-        "require": "./dist/node-worker/node-worker.js",
-        "default": "./dist/node-worker/node-worker.js"
-      },
-      "module": "./dist/node-worker/esm/node-worker.mjs",
-      "import": "./dist/node-worker/esm/node-worker.mjs",
-      "require": "./dist/node-worker/node-worker.js",
+      "types": "./dist/node-worker/node-worker.d.ts",
+      "module": "./dist/node-worker/node-worker.js",
+      "import": "./dist/node-worker/node-worker.js",
       "default": "./dist/node-worker/node-worker.js"
     },
     "./worker": {
-      "node": {
-        "import": "./dist/worker/esm/worker.mjs",
-        "require": "./dist/worker/worker.js",
-        "default": "./dist/worker/worker.js"
-      },
-      "module": "./dist/worker/esm/worker.mjs",
-      "import": "./dist/worker/esm/worker.mjs",
-      "require": "./dist/worker/worker.js",
+      "types": "./dist/worker/worker.d.ts",
+      "module": "./dist/worker/worker.js",
+      "import": "./dist/worker/worker.js",
       "default": "./dist/worker/worker.js"
-    },
-    "./package.json": "./package.json"
+    }
   },
   "main": "./dist/index.js",
-  "module": "./dist/esm/index.mjs",
-  "browser": "./dist/esm/index.mjs",
+  "module": "./dist/index.js",
+  "browser": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",

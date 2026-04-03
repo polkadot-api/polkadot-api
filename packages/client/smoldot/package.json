@@ -1,9 +1,9 @@
 {
   "name": "polkadot-api_smoldot",
+  "type": "module",
   "types": "../dist/reexports/smoldot.d.ts",
-  "module": "../dist/esm/reexports/smoldot.mjs",
-  "import": "../dist/esm/reexports/smoldot.mjs",
-  "browser": "../dist/esm/reexports/smoldot.mjs",
-  "require": "../dist/reexports/smoldot.js",
+  "module": "../dist/reexports/smoldot.js",
+  "import": "../dist/reexports/smoldot.js",
+  "browser": "../dist/reexports/smoldot.js",
   "default": "../dist/reexports/smoldot.js"
 }

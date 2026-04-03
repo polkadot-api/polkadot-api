@@ -1,9 +1,9 @@
 {
   "name": "polkadot-api_signer",
+  "type": "module",
   "types": "../dist/reexports/signer.d.ts",
-  "module": "../dist/esm/reexports/signer.mjs",
-  "import": "../dist/esm/reexports/signer.mjs",
-  "browser": "../dist/esm/reexports/signer.mjs",
-  "require": "../dist/reexports/signer.js",
+  "module": "../dist/reexports/signer.js",
+  "import": "../dist/reexports/signer.js",
+  "browser": "../dist/reexports/signer.js",
   "default": "../dist/reexports/signer.js"
 }

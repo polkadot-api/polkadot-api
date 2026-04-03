@@ -6,6 +6,10 @@
 
 - Use all metadata entries for whitelist type utilities
 
+### Changed
+
+- Drop support for CommonJS
+
 ## 0.22.1 - 2026-02-19
 
 ### Fixed

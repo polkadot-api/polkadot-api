@@ -28,11 +28,12 @@ import { existsSync } from "fs"
 import fsExists from "fs.promises.exists"
 import fs, { mkdtemp, rm } from "fs/promises"
 import { tmpdir } from "os"
-import path, { join, posix, win32 } from "path"
+import path, { join } from "path"
 import process from "process"
 import { readPackage } from "read-pkg"
+import { rollup, RollupBuild } from "rollup"
+import esbuild from "rollup-plugin-esbuild"
 import tsc from "tsc-prog"
-import tsup from "tsup"
 import { updatePackage } from "write-package"
 import { detectPackageManager } from "../packageManager"
 import { CommonOptions } from "./commonOptions"
@@ -124,8 +125,8 @@ export async function generate(opts: GenerateOptions) {
   const cleanCodegen = await compileCodegen(descriptorsDir)
   if (cleanCodegen) {
     await tagGenerated(descriptorsDir, chains, contracts, whitelist)
+    await fs.rm(descriptorSrcDir, { recursive: true })
   }
-  await fs.rm(descriptorSrcDir, { recursive: true })
   if (!config.options?.noDescriptorsPackage) {
     await runInstall()
     await flushBundlerCache()
@@ -422,19 +423,8 @@ async function compileCodegen(packageDir: string) {
     await fs.rm(outDir, { recursive: true })
   }
 
-  // tsup only builds cjs+esm outputs, skipping all typechecks.
-  await tsup.build({
-    target: "es2022",
-    format: ["cjs", "esm"],
-    entry: [path.join(srcDir, "index.ts").replaceAll(win32.sep, posix.sep)],
-    loader: {
-      ".scale": "binary",
-    },
-    platform: "neutral",
-    outDir,
-    outExtension: (ctx) => ({
-      js: ctx.format === "esm" ? ".mjs" : ".js",
-    }),
+  const bundleSuccess = await bundleEsm(path.join(srcDir, "index.ts"), {
+    dir: outDir,
   })
 
   // We need tsc to actually build the definitions file, and also perform the typecheck
@@ -463,7 +453,7 @@ async function compileCodegen(packageDir: string) {
     program.getConfigFileParsingDiagnostics(),
   ].flat()
 
-  return errors.length === 0
+  return bundleSuccess && errors.length === 0
 }
 
 const cacheMetadataStr = `
@@ -510,18 +500,19 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   "files": [
     "dist"
   ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "module": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "browser": "./dist/index.mjs",
+  "module": "./dist/index.js",
+  "browser": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "peerDependencies": {
@@ -539,18 +530,8 @@ async function readWhitelist(filename: string): Promise<string[] | null> {
 
   const tmpDir = await mkdtemp(join(tmpdir(), "papi-"))
   try {
-    await tsup.build({
-      format: "esm",
-      entry: {
-        index: filename,
-      },
-      outDir: tmpDir,
-      outExtension() {
-        return { js: ".mjs" }
-      },
-      silent: true,
-    })
-    const { whitelist } = await import(join(tmpDir, "index.mjs"))
+    await bundleEsm(filename, { file: join(tmpDir, "index.js") })
+    const { whitelist } = await import(join(tmpDir, "index.js"))
     return whitelist
   } finally {
     await rm(tmpDir, { recursive: true }).catch(console.error)
@@ -571,5 +552,42 @@ async function flushBundlerCache() {
     }
   } catch (ex) {
     console.error(ex)
+  }
+}
+
+const isExternal = (id: string) => !id.startsWith(".") && !path.isAbsolute(id)
+
+const scaleBinaryPlugin = () => ({
+  name: "scale-binary",
+  async load(id: string) {
+    if (!id.endsWith(".scale")) return null
+    const data = await fs.readFile(id)
+    const base64 = Buffer.from(data).toString("base64")
+    return `const base64 = "${base64}";\nexport default base64;`
+  },
+})
+
+async function bundleEsm(
+  entry: string,
+  output: { dir: string } | { file: string },
+) {
+  let bundle: RollupBuild | undefined
+  try {
+    bundle = await rollup({
+      input: entry,
+      external: isExternal,
+      plugins: [scaleBinaryPlugin(), esbuild({ target: "es2022" })],
+      logLevel: "silent",
+    })
+    await bundle.write({
+      ...output,
+      format: "es",
+    })
+    return true
+  } catch (ex) {
+    console.error(ex)
+    return false
+  } finally {
+    await bundle?.close()
   }
 }

@@ -5,6 +5,7 @@
 ### Changed
 
 - Use granular legacy/modern based on groups of functions
+- Drop support for CommonJS
 
 ## 0.2.3 - 2026-03-13
 
