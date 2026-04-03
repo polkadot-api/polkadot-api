@@ -10,8 +10,8 @@
   "sideEffects": true,
   "type": "module",
   "bin": {
-    "papi": "./dist/main/src/main.mjs",
-    "polkadot-api": "./dist/main/src/main.mjs"
+    "papi": "./dist/main/src/main.js",
+    "polkadot-api": "./dist/main/src/main.js"
   },
   "files": [
     "/dist"
@@ -19,10 +19,15 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/src/index.mjs",
-      "import": "./dist/src/index.mjs"
+      "module": "./dist/src/index.js",
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
     }
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "browser": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build-core": "tsc --noEmit && rollup -c",
     "build": "pnpm build-core",

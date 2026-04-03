@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-polkadot_coretime",
+  "type": "module",
   "types": "../dist/specs/polkadot_coretime/polkadot_coretime.d.ts",
-  "module": "../dist/specs/polkadot_coretime/polkadot_coretime.mjs",
-  "import": "../dist/specs/polkadot_coretime/polkadot_coretime.mjs",
-  "browser": "../dist/specs/polkadot_coretime/polkadot_coretime.mjs",
-  "default": "../dist/specs/polkadot_coretime/polkadot_coretime.mjs"
+  "module": "../dist/specs/polkadot_coretime/polkadot_coretime.js",
+  "import": "../dist/specs/polkadot_coretime/polkadot_coretime.js",
+  "browser": "../dist/specs/polkadot_coretime/polkadot_coretime.js",
+  "default": "../dist/specs/polkadot_coretime/polkadot_coretime.js"
 }

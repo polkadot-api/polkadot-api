@@ -22,8 +22,8 @@ for (const filename of specFiles) {
   const basePath = `./dist/specs`
   newExports["./" + packageName] = {
     types: `${basePath}/${packageName}/${packageName}.d.ts`,
-    module: `${basePath}/${packageName}/${packageName}.mjs`,
-    import: `${basePath}/${packageName}/${packageName}.mjs`,
+    module: `${basePath}/${packageName}/${packageName}.js`,
+    import: `${basePath}/${packageName}/${packageName}.js`,
   }
 
   await mkdir(join(".", packageName), { recursive: true })
@@ -32,11 +32,12 @@ for (const filename of specFiles) {
     JSON.stringify(
       {
         name: `@polkadot-api/known-chains-${packageName}`,
+        type: "module",
         types: `../dist/specs/${packageName}/${packageName}.d.ts`,
-        module: `../dist/specs/${packageName}/${packageName}.mjs`,
-        import: `../dist/specs/${packageName}/${packageName}.mjs`,
-        browser: `../dist/specs/${packageName}/${packageName}.mjs`,
-        default: `../dist/specs/${packageName}/${packageName}.mjs`,
+        module: `../dist/specs/${packageName}/${packageName}.js`,
+        import: `../dist/specs/${packageName}/${packageName}.js`,
+        browser: `../dist/specs/${packageName}/${packageName}.js`,
+        default: `../dist/specs/${packageName}/${packageName}.js`,
       },
       null,
       2,

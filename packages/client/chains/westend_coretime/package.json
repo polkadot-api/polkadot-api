@@ -1,8 +1,9 @@
 {
   "name": "polkadot-api_chains_westend_coretime",
+  "type": "module",
   "types": "../../dist/reexports/chains_westend_coretime.d.ts",
-  "module": "../../dist/reexports/chains_westend_coretime.mjs",
-  "import": "../../dist/reexports/chains_westend_coretime.mjs",
-  "browser": "../../dist/reexports/chains_westend_coretime.mjs",
-  "default": "../../dist/reexports/chains_westend_coretime.mjs"
+  "module": "../../dist/reexports/chains_westend_coretime.js",
+  "import": "../../dist/reexports/chains_westend_coretime.js",
+  "browser": "../../dist/reexports/chains_westend_coretime.js",
+  "default": "../../dist/reexports/chains_westend_coretime.js"
 }

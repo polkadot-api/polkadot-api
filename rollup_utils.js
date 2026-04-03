@@ -31,7 +31,7 @@ export const generateEntry = (entry) => {
           format: "es",
           sourcemap: true,
           preserveModules: true,
-          entryFileNames: "[name].mjs",
+          entryFileNames: "[name].js",
         },
       ],
     },

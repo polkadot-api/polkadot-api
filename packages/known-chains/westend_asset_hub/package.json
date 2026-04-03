@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-westend_asset_hub",
+  "type": "module",
   "types": "../dist/specs/westend_asset_hub/westend_asset_hub.d.ts",
-  "module": "../dist/specs/westend_asset_hub/westend_asset_hub.mjs",
-  "import": "../dist/specs/westend_asset_hub/westend_asset_hub.mjs",
-  "browser": "../dist/specs/westend_asset_hub/westend_asset_hub.mjs",
-  "default": "../dist/specs/westend_asset_hub/westend_asset_hub.mjs"
+  "module": "../dist/specs/westend_asset_hub/westend_asset_hub.js",
+  "import": "../dist/specs/westend_asset_hub/westend_asset_hub.js",
+  "browser": "../dist/specs/westend_asset_hub/westend_asset_hub.js",
+  "default": "../dist/specs/westend_asset_hub/westend_asset_hub.js"
 }

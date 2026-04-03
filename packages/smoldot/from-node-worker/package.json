@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/smoldot-from-node-worker",
+  "type": "module",
   "types": "../dist/from-node-worker/from-node-worker.d.ts",
-  "module": "../dist/from-node-worker/from-node-worker.mjs",
-  "import": "../dist/from-node-worker/from-node-worker.mjs",
-  "browser": "../dist/node-worker/node-worker.mjs",
-  "default": "../dist/from-node-worker/from-node-worker.mjs"
+  "module": "../dist/from-node-worker/from-node-worker.js",
+  "import": "../dist/from-node-worker/from-node-worker.js",
+  "browser": "../dist/node-worker/node-worker.js",
+  "default": "../dist/from-node-worker/from-node-worker.js"
 }

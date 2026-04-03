@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-kusama_asset_hub",
+  "type": "module",
   "types": "../dist/specs/kusama_asset_hub/kusama_asset_hub.d.ts",
-  "module": "../dist/specs/kusama_asset_hub/kusama_asset_hub.mjs",
-  "import": "../dist/specs/kusama_asset_hub/kusama_asset_hub.mjs",
-  "browser": "../dist/specs/kusama_asset_hub/kusama_asset_hub.mjs",
-  "default": "../dist/specs/kusama_asset_hub/kusama_asset_hub.mjs"
+  "module": "../dist/specs/kusama_asset_hub/kusama_asset_hub.js",
+  "import": "../dist/specs/kusama_asset_hub/kusama_asset_hub.js",
+  "browser": "../dist/specs/kusama_asset_hub/kusama_asset_hub.js",
+  "default": "../dist/specs/kusama_asset_hub/kusama_asset_hub.js"
 }

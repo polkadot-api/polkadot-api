@@ -1,8 +1,9 @@
 {
   "name": "polkadot-api_logs-provider",
+  "type": "module",
   "types": "../dist/reexports/logs-provider.d.ts",
-  "module": "../dist/reexports/logs-provider.mjs",
-  "import": "../dist/reexports/logs-provider.mjs",
-  "browser": "../dist/reexports/logs-provider.mjs",
-  "default": "../dist/reexports/logs-provider.mjs"
+  "module": "../dist/reexports/logs-provider.js",
+  "import": "../dist/reexports/logs-provider.js",
+  "browser": "../dist/reexports/logs-provider.js",
+  "default": "../dist/reexports/logs-provider.js"
 }

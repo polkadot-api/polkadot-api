@@ -57,7 +57,7 @@ export default [
         format: "es",
         sourcemap: true,
         preserveModules: true,
-        entryFileNames: "[name].mjs",
+        entryFileNames: "[name].js",
       },
     ],
   },
@@ -108,7 +108,7 @@ export default [
       dir: `bin`,
       format: "es",
       sourcemap: true,
-      entryFileNames: "[name].mjs",
+      entryFileNames: "[name].js",
     },
   },
 ]

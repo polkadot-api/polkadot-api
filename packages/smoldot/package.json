@@ -7,42 +7,42 @@
     "url": "git+https://github.com/polkadot-api/polkadot-api.git"
   },
   "license": "MIT",
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
+      "module": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./from-node-worker": {
       "types": "./dist/from-node-worker/from-node-worker.d.ts",
-      "module": "./dist/from-node-worker/from-node-worker.mjs",
-      "import": "./dist/from-node-worker/from-node-worker.mjs",
-      "default": "./dist/from-node-worker/from-node-worker.mjs"
+      "module": "./dist/from-node-worker/from-node-worker.js",
+      "import": "./dist/from-node-worker/from-node-worker.js",
+      "default": "./dist/from-node-worker/from-node-worker.js"
     },
     "./from-worker": {
       "types": "./dist/from-worker/from-worker.d.ts",
-      "module": "./dist/from-worker/from-worker.mjs",
-      "import": "./dist/from-worker/from-worker.mjs",
-      "default": "./dist/from-worker/from-worker.mjs"
+      "module": "./dist/from-worker/from-worker.js",
+      "import": "./dist/from-worker/from-worker.js",
+      "default": "./dist/from-worker/from-worker.js"
     },
     "./node-worker": {
       "types": "./dist/node-worker/node-worker.d.ts",
-      "module": "./dist/node-worker/node-worker.mjs",
-      "import": "./dist/node-worker/node-worker.mjs",
-      "default": "./dist/node-worker/node-worker.mjs"
+      "module": "./dist/node-worker/node-worker.js",
+      "import": "./dist/node-worker/node-worker.js",
+      "default": "./dist/node-worker/node-worker.js"
     },
     "./worker": {
       "types": "./dist/worker/worker.d.ts",
-      "module": "./dist/worker/worker.mjs",
-      "import": "./dist/worker/worker.mjs",
-      "default": "./dist/worker/worker.mjs"
-    },
-    "./package.json": "./package.json"
+      "module": "./dist/worker/worker.js",
+      "import": "./dist/worker/worker.js",
+      "default": "./dist/worker/worker.js"
+    }
   },
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
-  "browser": "./dist/index.mjs",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "browser": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",

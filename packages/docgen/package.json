@@ -10,7 +10,7 @@
   "sideEffects": true,
   "type": "module",
   "bin": {
-    "papi-generate-docs": "./dist/index.mjs"
+    "papi-generate-docs": "./dist/index.js"
   },
   "files": [
     "/dist"

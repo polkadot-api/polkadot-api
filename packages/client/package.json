@@ -9,90 +9,91 @@
   "license": "MIT",
   "sideEffects": false,
   "bin": {
-    "papi": "./bin/cli.mjs",
-    "polkadot-api": "./bin/cli.mjs"
+    "papi": "./bin/cli.js",
+    "polkadot-api": "./bin/cli.js"
   },
+  "type": "module",
   "exports": {
     ".": {
       "node": {
-        "import": "./dist/src/index.mjs",
-        "default": "./dist/src/index.mjs"
+        "import": "./dist/src/index.js",
+        "default": "./dist/src/index.js"
       },
       "types": "./dist/src/index.d.ts",
-      "module": "./dist/src/index.mjs",
-      "import": "./dist/src/index.mjs",
-      "default": "./dist/src/index.mjs"
+      "module": "./dist/src/index.js",
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
     },
     "./logs-provider": {
       "types": "./dist/reexports/logs-provider.d.ts",
-      "module": "./dist/reexports/logs-provider.mjs",
-      "import": "./dist/reexports/logs-provider.mjs",
-      "default": "./dist/reexports/logs-provider.mjs"
+      "module": "./dist/reexports/logs-provider.js",
+      "import": "./dist/reexports/logs-provider.js",
+      "default": "./dist/reexports/logs-provider.js"
     },
     "./pjs-signer": {
       "types": "./dist/reexports/pjs-signer.d.ts",
-      "module": "./dist/reexports/pjs-signer.mjs",
-      "import": "./dist/reexports/pjs-signer.mjs",
-      "default": "./dist/reexports/pjs-signer.mjs"
+      "module": "./dist/reexports/pjs-signer.js",
+      "import": "./dist/reexports/pjs-signer.js",
+      "default": "./dist/reexports/pjs-signer.js"
     },
     "./signer": {
       "types": "./dist/reexports/signer.d.ts",
-      "module": "./dist/reexports/signer.mjs",
-      "import": "./dist/reexports/signer.mjs",
-      "default": "./dist/reexports/signer.mjs"
+      "module": "./dist/reexports/signer.js",
+      "import": "./dist/reexports/signer.js",
+      "default": "./dist/reexports/signer.js"
     },
     "./sm-provider": {
       "types": "./dist/reexports/sm-provider.d.ts",
-      "module": "./dist/reexports/sm-provider.mjs",
-      "import": "./dist/reexports/sm-provider.mjs",
-      "default": "./dist/reexports/sm-provider.mjs"
+      "module": "./dist/reexports/sm-provider.js",
+      "import": "./dist/reexports/sm-provider.js",
+      "default": "./dist/reexports/sm-provider.js"
     },
     "./chains": {
       "types": "./dist/reexports/chains.d.ts",
-      "module": "./dist/reexports/chains.mjs",
-      "import": "./dist/reexports/chains.mjs",
-      "default": "./dist/reexports/chains.mjs"
+      "module": "./dist/reexports/chains.js",
+      "import": "./dist/reexports/chains.js",
+      "default": "./dist/reexports/chains.js"
     },
     "./chains/*": {
       "types": "./dist/reexports/chains_*.d.ts",
-      "module": "./dist/reexports/chains_*.mjs",
-      "import": "./dist/reexports/chains_*.mjs",
-      "default": "./dist/reexports/chains_*.mjs"
+      "module": "./dist/reexports/chains_*.js",
+      "import": "./dist/reexports/chains_*.js",
+      "default": "./dist/reexports/chains_*.js"
     },
     "./smoldot": {
       "types": "./dist/reexports/smoldot.d.ts",
-      "module": "./dist/reexports/smoldot.mjs",
-      "import": "./dist/reexports/smoldot.mjs",
-      "default": "./dist/reexports/smoldot.mjs"
+      "module": "./dist/reexports/smoldot.js",
+      "import": "./dist/reexports/smoldot.js",
+      "default": "./dist/reexports/smoldot.js"
     },
     "./smoldot/*": {
       "types": "./dist/reexports/smoldot_*.d.ts",
-      "module": "./dist/reexports/smoldot_*.mjs",
-      "import": "./dist/reexports/smoldot_*.mjs",
-      "default": "./dist/reexports/smoldot_*.mjs"
+      "module": "./dist/reexports/smoldot_*.js",
+      "import": "./dist/reexports/smoldot_*.js",
+      "default": "./dist/reexports/smoldot_*.js"
     },
     "./utils": {
       "types": "./dist/reexports/utils.d.ts",
-      "module": "./dist/reexports/utils.mjs",
-      "import": "./dist/reexports/utils.mjs",
-      "default": "./dist/reexports/utils.mjs"
+      "module": "./dist/reexports/utils.js",
+      "import": "./dist/reexports/utils.js",
+      "default": "./dist/reexports/utils.js"
     },
     "./ink": {
       "types": "./dist/reexports/ink.d.ts",
-      "module": "./dist/reexports/ink.mjs",
-      "import": "./dist/reexports/ink.mjs",
-      "default": "./dist/reexports/ink.mjs"
+      "module": "./dist/reexports/ink.js",
+      "import": "./dist/reexports/ink.js",
+      "default": "./dist/reexports/ink.js"
     },
     "./ws": {
       "types": "./dist/reexports/ws.d.ts",
-      "module": "./dist/reexports/ws.mjs",
-      "import": "./dist/reexports/ws.mjs",
-      "default": "./dist/reexports/ws.mjs"
+      "module": "./dist/reexports/ws.js",
+      "import": "./dist/reexports/ws.js",
+      "default": "./dist/reexports/ws.js"
     }
   },
-  "main": "./dist/src/index.mjs",
-  "module": "./dist/src/index.mjs",
-  "browser": "./dist/src/index.mjs",
+  "main": "./dist/src/index.js",
+  "module": "./dist/src/index.js",
+  "browser": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "files": [
     "dist",

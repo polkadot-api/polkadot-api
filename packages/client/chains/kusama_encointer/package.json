@@ -1,8 +1,9 @@
 {
   "name": "polkadot-api_chains_kusama_encointer",
+  "type": "module",
   "types": "../../dist/reexports/chains_kusama_encointer.d.ts",
-  "module": "../../dist/reexports/chains_kusama_encointer.mjs",
-  "import": "../../dist/reexports/chains_kusama_encointer.mjs",
-  "browser": "../../dist/reexports/chains_kusama_encointer.mjs",
-  "default": "../../dist/reexports/chains_kusama_encointer.mjs"
+  "module": "../../dist/reexports/chains_kusama_encointer.js",
+  "import": "../../dist/reexports/chains_kusama_encointer.js",
+  "browser": "../../dist/reexports/chains_kusama_encointer.js",
+  "default": "../../dist/reexports/chains_kusama_encointer.js"
 }

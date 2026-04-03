@@ -55,9 +55,9 @@ for (const [packageName, source, symbols = "*"] of reexports) {
   const fileNameWithGlob = packageNameWithGlob.replaceAll("/", "_")
   newExports["./" + packageNameWithGlob] = {
     types: `./dist/reexports/${fileNameWithGlob}.d.ts`,
-    module: `./dist/reexports/${fileNameWithGlob}.mjs`,
-    import: `./dist/reexports/${fileNameWithGlob}.mjs`,
-    default: `./dist/reexports/${fileNameWithGlob}.mjs`,
+    module: `./dist/reexports/${fileNameWithGlob}.js`,
+    import: `./dist/reexports/${fileNameWithGlob}.js`,
+    default: `./dist/reexports/${fileNameWithGlob}.js`,
   }
 
   const packageDir = join(...packageName.split("/"))
@@ -69,11 +69,12 @@ for (const [packageName, source, symbols = "*"] of reexports) {
     JSON.stringify(
       {
         name: `polkadot-api_${packageName.replaceAll("/", "_")}`,
+        type: "module",
         types: `${toRoot}/dist/reexports/${fileName}.d.ts`,
-        module: `${toRoot}/dist/reexports/${fileName}.mjs`,
-        import: `${toRoot}/dist/reexports/${fileName}.mjs`,
-        browser: `${toRoot}/dist/reexports/${fileName}.mjs`,
-        default: `${toRoot}/dist/reexports/${fileName}.mjs`,
+        module: `${toRoot}/dist/reexports/${fileName}.js`,
+        import: `${toRoot}/dist/reexports/${fileName}.js`,
+        browser: `${toRoot}/dist/reexports/${fileName}.js`,
+        default: `${toRoot}/dist/reexports/${fileName}.js`,
       },
       null,
       2,

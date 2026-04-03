@@ -530,8 +530,8 @@ async function readWhitelist(filename: string): Promise<string[] | null> {
 
   const tmpDir = await mkdtemp(join(tmpdir(), "papi-"))
   try {
-    await bundleEsm(filename, { file: join(tmpDir, "index.mjs") })
-    const { whitelist } = await import(join(tmpDir, "index.mjs"))
+    await bundleEsm(filename, { file: join(tmpDir, "index.js") })
+    const { whitelist } = await import(join(tmpDir, "index.js"))
     return whitelist
   } finally {
     await rm(tmpDir, { recursive: true }).catch(console.error)

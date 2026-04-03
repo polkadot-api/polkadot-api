@@ -1,8 +1,9 @@
 {
   "name": "polkadot-api_chains_polkadot",
+  "type": "module",
   "types": "../../dist/reexports/chains_polkadot.d.ts",
-  "module": "../../dist/reexports/chains_polkadot.mjs",
-  "import": "../../dist/reexports/chains_polkadot.mjs",
-  "browser": "../../dist/reexports/chains_polkadot.mjs",
-  "default": "../../dist/reexports/chains_polkadot.mjs"
+  "module": "../../dist/reexports/chains_polkadot.js",
+  "import": "../../dist/reexports/chains_polkadot.js",
+  "browser": "../../dist/reexports/chains_polkadot.js",
+  "default": "../../dist/reexports/chains_polkadot.js"
 }

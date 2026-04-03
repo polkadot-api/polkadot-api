@@ -1,8 +1,9 @@
 {
   "name": "polkadot-api_chains_westend_asset_hub",
+  "type": "module",
   "types": "../../dist/reexports/chains_westend_asset_hub.d.ts",
-  "module": "../../dist/reexports/chains_westend_asset_hub.mjs",
-  "import": "../../dist/reexports/chains_westend_asset_hub.mjs",
-  "browser": "../../dist/reexports/chains_westend_asset_hub.mjs",
-  "default": "../../dist/reexports/chains_westend_asset_hub.mjs"
+  "module": "../../dist/reexports/chains_westend_asset_hub.js",
+  "import": "../../dist/reexports/chains_westend_asset_hub.js",
+  "browser": "../../dist/reexports/chains_westend_asset_hub.js",
+  "default": "../../dist/reexports/chains_westend_asset_hub.js"
 }

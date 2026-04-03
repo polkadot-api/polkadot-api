@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-paseo_coretime",
+  "type": "module",
   "types": "../dist/specs/paseo_coretime/paseo_coretime.d.ts",
-  "module": "../dist/specs/paseo_coretime/paseo_coretime.mjs",
-  "import": "../dist/specs/paseo_coretime/paseo_coretime.mjs",
-  "browser": "../dist/specs/paseo_coretime/paseo_coretime.mjs",
-  "default": "../dist/specs/paseo_coretime/paseo_coretime.mjs"
+  "module": "../dist/specs/paseo_coretime/paseo_coretime.js",
+  "import": "../dist/specs/paseo_coretime/paseo_coretime.js",
+  "browser": "../dist/specs/paseo_coretime/paseo_coretime.js",
+  "default": "../dist/specs/paseo_coretime/paseo_coretime.js"
 }

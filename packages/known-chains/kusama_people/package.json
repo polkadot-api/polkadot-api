@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-kusama_people",
+  "type": "module",
   "types": "../dist/specs/kusama_people/kusama_people.d.ts",
-  "module": "../dist/specs/kusama_people/kusama_people.mjs",
-  "import": "../dist/specs/kusama_people/kusama_people.mjs",
-  "browser": "../dist/specs/kusama_people/kusama_people.mjs",
-  "default": "../dist/specs/kusama_people/kusama_people.mjs"
+  "module": "../dist/specs/kusama_people/kusama_people.js",
+  "import": "../dist/specs/kusama_people/kusama_people.js",
+  "browser": "../dist/specs/kusama_people/kusama_people.js",
+  "default": "../dist/specs/kusama_people/kusama_people.js"
 }

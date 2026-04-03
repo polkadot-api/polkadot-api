@@ -1,8 +1,9 @@
 {
   "name": "polkadot-api_chains_westend_people",
+  "type": "module",
   "types": "../../dist/reexports/chains_westend_people.d.ts",
-  "module": "../../dist/reexports/chains_westend_people.mjs",
-  "import": "../../dist/reexports/chains_westend_people.mjs",
-  "browser": "../../dist/reexports/chains_westend_people.mjs",
-  "default": "../../dist/reexports/chains_westend_people.mjs"
+  "module": "../../dist/reexports/chains_westend_people.js",
+  "import": "../../dist/reexports/chains_westend_people.js",
+  "browser": "../../dist/reexports/chains_westend_people.js",
+  "default": "../../dist/reexports/chains_westend_people.js"
 }

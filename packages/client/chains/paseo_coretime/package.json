@@ -1,8 +1,9 @@
 {
   "name": "polkadot-api_chains_paseo_coretime",
+  "type": "module",
   "types": "../../dist/reexports/chains_paseo_coretime.d.ts",
-  "module": "../../dist/reexports/chains_paseo_coretime.mjs",
-  "import": "../../dist/reexports/chains_paseo_coretime.mjs",
-  "browser": "../../dist/reexports/chains_paseo_coretime.mjs",
-  "default": "../../dist/reexports/chains_paseo_coretime.mjs"
+  "module": "../../dist/reexports/chains_paseo_coretime.js",
+  "import": "../../dist/reexports/chains_paseo_coretime.js",
+  "browser": "../../dist/reexports/chains_paseo_coretime.js",
+  "default": "../../dist/reexports/chains_paseo_coretime.js"
 }

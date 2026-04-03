@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-paseo",
+  "type": "module",
   "types": "../dist/specs/paseo/paseo.d.ts",
-  "module": "../dist/specs/paseo/paseo.mjs",
-  "import": "../dist/specs/paseo/paseo.mjs",
-  "browser": "../dist/specs/paseo/paseo.mjs",
-  "default": "../dist/specs/paseo/paseo.mjs"
+  "module": "../dist/specs/paseo/paseo.js",
+  "import": "../dist/specs/paseo/paseo.js",
+  "browser": "../dist/specs/paseo/paseo.js",
+  "default": "../dist/specs/paseo/paseo.js"
 }

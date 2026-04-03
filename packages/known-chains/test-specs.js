@@ -1,4 +1,4 @@
-import * as chains from "./dist/index.mjs"
+import * as chains from "./dist/index.js"
 import { start } from "@polkadot-api/smoldot"
 
 const RELAYS = ["polkadot", "kusama", "westend", "paseo"]

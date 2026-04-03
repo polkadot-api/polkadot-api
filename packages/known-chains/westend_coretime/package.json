@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-westend_coretime",
+  "type": "module",
   "types": "../dist/specs/westend_coretime/westend_coretime.d.ts",
-  "module": "../dist/specs/westend_coretime/westend_coretime.mjs",
-  "import": "../dist/specs/westend_coretime/westend_coretime.mjs",
-  "browser": "../dist/specs/westend_coretime/westend_coretime.mjs",
-  "default": "../dist/specs/westend_coretime/westend_coretime.mjs"
+  "module": "../dist/specs/westend_coretime/westend_coretime.js",
+  "import": "../dist/specs/westend_coretime/westend_coretime.js",
+  "browser": "../dist/specs/westend_coretime/westend_coretime.js",
+  "default": "../dist/specs/westend_coretime/westend_coretime.js"
 }

@@ -1,8 +1,9 @@
 {
   "name": "@polkadot-api/known-chains-kusama_coretime",
+  "type": "module",
   "types": "../dist/specs/kusama_coretime/kusama_coretime.d.ts",
-  "module": "../dist/specs/kusama_coretime/kusama_coretime.mjs",
-  "import": "../dist/specs/kusama_coretime/kusama_coretime.mjs",
-  "browser": "../dist/specs/kusama_coretime/kusama_coretime.mjs",
-  "default": "../dist/specs/kusama_coretime/kusama_coretime.mjs"
+  "module": "../dist/specs/kusama_coretime/kusama_coretime.js",
+  "import": "../dist/specs/kusama_coretime/kusama_coretime.js",
+  "browser": "../dist/specs/kusama_coretime/kusama_coretime.js",
+  "default": "../dist/specs/kusama_coretime/kusama_coretime.js"
 }
