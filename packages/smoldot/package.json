@@ -57,7 +57,7 @@
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
-    "@polkadot-api/smoldot-patch": "103.0.0",
+    "@polkadot-api/smoldot-patch": "102.0.0",
     "@types/node": "^25.5.0",
     "smoldot": "2.0.40"
   }
