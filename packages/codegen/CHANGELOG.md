@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.22.2 - 2026-04-03
+
 ### Fixed
 
 - Use all metadata entries for whitelist type utilities

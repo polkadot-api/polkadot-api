@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-04-03
+
 ### Changed
 
 - Drop support for CommonJS
