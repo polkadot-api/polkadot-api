@@ -44,9 +44,12 @@ export type EvClient<T> = {
 
   /**
    * Multicast and stateful Observable watching for new events (matching the
-   * event kind chosen) in the `finalized` blocks.
+   * event kind chosen) in the `finalized` blocks or `best` blocks.
+   *
+   * @param options  Optionally choose which block to watch events, `best`
+   *                 or `finalized` (default).
    */
-  watch: () => Observable<{
+  watch: (options?: { at: "best" | "finalized" }) => Observable<{
     block: BlockInfo
     events: PalletEvent<T>[]
   }>
@@ -88,19 +91,22 @@ export const createEventEntry = <T>(
       }),
     )
 
-  const finalized$ = combineLatest([chainHead.finalized$, compatibility]).pipe(
-    chainHead.withRuntime(([x]) => x.hash),
-    concatMapEager(([[block, getCompat], ctx]) => {
-      if (!ctx.mappedMeta.pallets[pallet]?.event.has(name))
-        throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
+  const createWatch$ = (isBest: boolean) =>
+    combineLatest([chainHead[isBest ? "best$" : "finalized$"], compatibility]).pipe(
+      chainHead.withRuntime(([x]) => x.hash),
+      concatMapEager(([[block, getCompat], ctx]) => {
+        if (!ctx.mappedMeta.pallets[pallet]?.event.has(name))
+          throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
 
-      const { isValueCompatible } = getCompat(ctx)
-      return getEventsAtBlock$(block.hash, isValueCompatible).pipe(
-        map((events) => ({ block, events })),
-      )
-    }),
-    shareLatest,
-  )
+        const { isValueCompatible } = getCompat(ctx)
+        return getEventsAtBlock$(block.hash, isValueCompatible).pipe(
+          map((events) => ({ block, events })),
+        )
+      }),
+      shareLatest,
+    )
+
+  const finalized$ = createWatch$(false)
 
   const filter: EvClient<T>["filter"] = (events) =>
     events
@@ -123,5 +129,8 @@ export const createEventEntry = <T>(
       ),
     )
 
-  return { watch: () => finalized$, get, filter }
+  const watch: EvClient<T>["watch"] = (options) =>
+    createWatch$(options?.at === "best")
+
+  return { watch, get, filter }
 }
