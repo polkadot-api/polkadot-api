@@ -28,4 +28,58 @@ describe("events", () => {
     subscription.unsubscribe()
     client.destroy()
   })
+
+  it(".watch({ at: 'best' }) reports events from best block", async () => {
+    const client = createClient(getChopsticksProvider("events"))
+    const api = client.getTypedApi(paseo)
+
+    await api.getStaticApis()
+
+    const testFn = vi.fn()
+    const completeFn = vi.fn()
+    const errorFn = vi.fn()
+    const subscription = api.event.System.ExtrinsicSuccess
+      .watch({ at: "best" })
+      .subscribe({
+        next: testFn,
+        error: errorFn,
+        complete: completeFn,
+      })
+
+    await createBlock(client)
+
+    expect(errorFn).not.toHaveBeenCalled()
+    expect(completeFn).not.toHaveBeenCalled()
+    expect(testFn).toHaveBeenCalled()
+
+    subscription.unsubscribe()
+    client.destroy()
+  })
+
+  it(".watch({ at: 'finalized' }) reports events from finalized block (default)", async () => {
+    const client = createClient(getChopsticksProvider("events"))
+    const api = client.getTypedApi(paseo)
+
+    await api.getStaticApis()
+
+    const testFn = vi.fn()
+    const completeFn = vi.fn()
+    const errorFn = vi.fn()
+    const subscription = api.event.System.ExtrinsicSuccess
+      .watch({ at: "finalized" })
+      .subscribe({
+        next: testFn,
+        error: errorFn,
+        complete: completeFn,
+      })
+
+    await createBlock(client)
+
+    expect(errorFn).not.toHaveBeenCalled()
+    expect(completeFn).not.toHaveBeenCalled()
+    expect(testFn).toHaveBeenCalled()
+
+    subscription.unsubscribe()
+    client.destroy()
+  })
 })
