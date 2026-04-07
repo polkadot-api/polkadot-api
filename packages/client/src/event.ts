@@ -44,10 +44,31 @@ export type EvClient<T> = {
 
   /**
    * Multicast and stateful Observable watching for new events (matching the
-   * event kind chosen) in the `finalized` blocks or `best` blocks.
+   * event kind chosen).
    *
-   * @param options  Optionally choose which block to watch events, `best`
-   *                 or `finalized` (default).
+   * @param options  Choose which block type to watch:
+   *   - `{ at: "finalized" }` (default): Events are guaranteed to be permanent.
+   *     Once emitted, an event cannot be reverted, replaced, or re-emitted with
+   *     different values. Safe for financial operations, ownership changes, etc.
+   *
+   *   - `{ at: "best" }`: Lower latency (~0.5-6s vs 12-18s) but events may
+   *     appear multiple times with different values if blockchain reorganizes.
+   *     The Observable will emit new values whenever the best block changes,
+   *     potentially with different events than previously emitted. Suitable for
+   *     non-critical UX updates (e.g., refreshing UI state, social features).
+   *     Consumers should be prepared to handle reorg-induced re-emissions.
+   *
+   * @example
+   * // Finalized mode (default) - safe for critical operations
+   * api.event.Balances.Transfer.watch().subscribe(({ block, events }) => {
+   *   // events are final and immutable
+   * })
+   *
+   * @example
+   * // Best-block mode - lower latency, may have reorgs
+   * api.event.System.ExtrinsicSuccess.watch({ at: "best" }).subscribe(({ block, events }) => {
+   *   // events may change if blockchain reorgs
+   * })
    */
   watch: (options?: { at: "best" | "finalized" }) => Observable<{
     block: BlockInfo
