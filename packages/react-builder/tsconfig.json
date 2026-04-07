@@ -3,10 +3,9 @@
   "include": ["src", "tests"],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "baseUrl": "src",
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["./src/*"]
     }
   }
 }

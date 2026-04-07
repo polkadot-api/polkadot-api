@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-04-07
+
 ### Changed
 
 - Use granular legacy/modern based on groups of functions

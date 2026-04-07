@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.0.0-rc.6 - 2026-04-07
+
 ### Fixed
 
 - Client hangs the application when connected to faulty nodes.

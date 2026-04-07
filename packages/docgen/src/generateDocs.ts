@@ -115,7 +115,6 @@ export async function generateDocs(opts: Options) {
 function getTsConfig(): string {
   return JSON.stringify({
     compilerOptions: {
-      baseUrl: ".",
       lib: ["es2021"],
       module: "commonjs",
       moduleResolution: "node",

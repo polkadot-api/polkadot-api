@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.3 - 2026-04-07
+
 ### Fixed
 
 - Fix DisjointError on synchronous recovery.
