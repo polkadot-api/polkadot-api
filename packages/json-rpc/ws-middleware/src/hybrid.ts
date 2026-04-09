@@ -1,11 +1,13 @@
 import {
   JsonRpcConnection,
   JsonRpcMessage,
+  JsonRpcRequest,
 } from "@polkadot-api/json-rpc-provider"
 import { filter, Subject, Subscription, take } from "rxjs"
 import { withLegacy } from "./legacy"
 import { modern } from "./modern"
 import { Middleware } from "./types"
+import { InnerJsonRpcProvider } from "@polkadot-api/json-rpc-provider-proxy"
 
 const modernGroups = ["chainHead", "transaction", "chainSpec", "archive"].map(
   (name) => `${name}_v1`,
@@ -21,8 +23,14 @@ export const hybridMiddleware = (methods: string[]): Middleware => {
 
   return (base) => {
     const multiplexed = multiplex(base)
-    const modernProvider = modern(multiplexed)
-    const legacyProvider = withLegacy(multiplexed)
+    const modernProvider = modern(multiplexed())
+    const legacyProvider = withLegacy(
+      multiplexed((req) =>
+        ["chainHead_v1", "archive_v1"].every(
+          (prefix) => !req.method.startsWith(prefix),
+        ),
+      ),
+    )
 
     return (onMsg, onHalt) => {
       const modernConnection = modernProvider((message) => {
@@ -57,54 +65,61 @@ export const hybridMiddleware = (methods: string[]): Middleware => {
   }
 }
 
-const multiplex: Middleware = (base) => {
+const multiplex: (
+  base: InnerJsonRpcProvider,
+) => (
+  notificationFilter?: (notification: JsonRpcRequest) => boolean,
+) => InnerJsonRpcProvider = (base) => {
   const halt$ = new Subject<any>()
   const msg$ = new Subject<JsonRpcMessage>()
 
   let refCount = 0
   let baseConnection: JsonRpcConnection | null = null
 
-  return (onMsg, onHalt) => {
-    refCount++
-    baseConnection ??= base(
-      (msg) => msg$.next(msg),
-      (e) => halt$.next(e),
-    )
+  return (notificationFilter = () => true) =>
+    (onMsg, onHalt) => {
+      refCount++
+      baseConnection ??= base(
+        (msg) => msg$.next(msg),
+        (e) => halt$.next(e),
+      )
 
-    const notificationSub = msg$
-      .pipe(filter((v) => v.id == null))
-      .subscribe(onMsg)
-    const haltSub = halt$.subscribe(onHalt)
-    const responseSubs = new Set<Subscription>()
+      const notificationSub = msg$
+        .pipe(
+          filter((v) => v.id == null && "method" in v && notificationFilter(v)),
+        )
+        .subscribe(onMsg)
+      const haltSub = halt$.subscribe(onHalt)
+      const responseSubs = new Set<Subscription>()
 
-    return {
-      send(message) {
-        if (message.id == null) {
-          return baseConnection?.send(message)
-        }
-        const id = message.id
-        const responseSub = msg$
-          .pipe(
-            filter((r) => r.id === id),
-            take(1),
-          )
-          .subscribe((msg) => {
-            onMsg(msg)
-            if (!responseSub) throw new Error("unreachable")
-            responseSubs.delete(responseSub)
-          })
-        responseSubs.add(responseSub)
-        baseConnection?.send(message)
-      },
-      disconnect() {
-        notificationSub.unsubscribe()
-        haltSub.unsubscribe()
-        responseSubs.forEach((s) => s.unsubscribe())
-        refCount--
-        if (refCount === 0) {
-          baseConnection?.disconnect()
-        }
-      },
+      return {
+        send(message) {
+          if (message.id == null) {
+            return baseConnection?.send(message)
+          }
+          const id = message.id
+          const responseSub = msg$
+            .pipe(
+              filter((r) => r.id === id),
+              take(1),
+            )
+            .subscribe((msg) => {
+              onMsg(msg)
+              if (!responseSub) throw new Error("unreachable")
+              responseSubs.delete(responseSub)
+            })
+          responseSubs.add(responseSub)
+          baseConnection?.send(message)
+        },
+        disconnect() {
+          notificationSub.unsubscribe()
+          haltSub.unsubscribe()
+          responseSubs.forEach((s) => s.unsubscribe())
+          refCount--
+          if (refCount === 0) {
+            baseConnection?.disconnect()
+          }
+        },
+      }
     }
-  }
 }
