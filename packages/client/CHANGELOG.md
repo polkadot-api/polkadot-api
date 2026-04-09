@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Receiving duplicate storage entries on getEntries
+
 ## 2.0.0-rc.6 - 2026-04-07
 
 ### Fixed

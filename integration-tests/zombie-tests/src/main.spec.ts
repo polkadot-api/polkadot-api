@@ -203,12 +203,19 @@ describe("E2E", async () => {
       await tx.sign(fakeSigner(accounts["alice"]["sr25519"].publicKey)),
     )
 
+    const finalized = await client.getFinalizedBlock()
+
     const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
       api.apis.TransactionPaymentApi.query_info(
         binaryExtrinsic,
         Binary.toOpaque(binaryExtrinsic).length,
+        {
+          at: finalized.hash,
+        },
       ),
-      tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey),
+      tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey, {
+        at: finalized.hash,
+      }),
     ])
 
     expect(manualFee).toEqual(estimatedFee)
