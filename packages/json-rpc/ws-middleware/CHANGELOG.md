@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix receiving duplicate notifications from upstream
+
 ## 0.3.0 - 2026-04-07
 
 ### Changed

@@ -4,7 +4,11 @@
 
 ## 2.0.0 - 2026-04-09
 
-This version is equivalent to 2.0.0-rc.6. The following is what changed between the last v1 version and 2.0.0
+### Fixed
+
+- Receiving duplicate storage entries on getEntries
+
+The following is what changed between the last v1 version and 2.0.0
 
 ### Added
 
