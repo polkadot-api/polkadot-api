@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/cli",
-  "version": "0.20.0",
+  "version": "0.20.1",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
@@ -52,7 +52,7 @@
     "@polkadot-api/wasm-executor": "^0.2.3",
     "@polkadot-api/ws-middleware": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "commander": "^14.0.3",
     "execa": "^9.6.1",
     "fs.promises.exists": "^1.1.4",
@@ -67,6 +67,6 @@
   },
   "devDependencies": {
     "@polkadot-api/json-rpc-provider": "workspace:*",
-    "@swc/core": "^1.15.21"
+    "@swc/core": "^1.15.24"
   }
 }
