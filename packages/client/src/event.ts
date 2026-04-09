@@ -3,10 +3,14 @@ import { HexString, SizedHex } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   combineLatest,
+  concat,
+  defer,
   firstValueFrom,
+  from,
   map,
   switchMap,
   take,
+  tap,
 } from "rxjs"
 import { ValueCompat } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
@@ -47,6 +51,12 @@ export type EvClient<T> = {
    * event kind chosen) in the `finalized` blocks.
    */
   watch: () => Observable<{
+    block: BlockInfo
+    events: PalletEvent<T>[]
+  }>
+
+  watchBest: () => Observable<{
+    type: "new" | "drop" | "finalized"
     block: BlockInfo
     events: PalletEvent<T>[]
   }>
@@ -102,6 +112,76 @@ export const createEventEntry = <T>(
     shareLatest,
   )
 
+  const best$ = defer(() => {
+    // In the order they were emitted
+    let blocksEmitted: Array<{
+      block: BlockInfo
+      events: PalletEvent<T>[]
+    }> = []
+
+    const getBlockEvents$ = (blockHash: HexString) =>
+      combineLatest([
+        compatibility,
+        chainHead.getRuntimeContext$(blockHash),
+      ]).pipe(
+        take(1),
+        switchMap(([getCompat, ctx]) => {
+          if (!ctx.mappedMeta.pallets[pallet]?.event.has(name))
+            throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
+          return getEventsAtBlock$(blockHash, getCompat(ctx).isValueCompatible)
+        }),
+      )
+
+    return chainHead.bestBlocks$.pipe(
+      switchMap((bestBlockChain) => {
+        const finalizedBlock = bestBlockChain.at(-1)!
+        const bestBlocks = bestBlockChain.slice(0, -1)
+        const bestBlockSet = new Set(bestBlocks.map((b) => b.hash))
+
+        // Only emit drop/finalized for blocks we actually delivered to the subscriber
+        const removed = blocksEmitted.filter(
+          ({ block }) => !bestBlockSet.has(block.hash),
+        )
+        // Blocks that disappeared due to being finalized.
+        // Assumption: `best` is always updated before `finalized`. Otherwise it
+        // could end up with missing blocks
+        const finalized = removed.filter(
+          ({ block }) => block.number <= finalizedBlock.number,
+        )
+        // Blocks that disappeared due to a reorg.
+        const drops = removed.filter(
+          ({ block }) => block.number > finalizedBlock.number,
+        )
+        const removed$ = from([
+          ...finalized.map((action) => ({
+            ...action,
+            type: "finalized" as const,
+          })),
+          ...drops
+            .reverse()
+            .map((action) => ({ ...action, type: "drop" as const })),
+        ])
+
+        blocksEmitted = blocksEmitted.filter(({ block }) =>
+          bestBlockSet.has(block.hash),
+        )
+        const emittedSet = new Set(blocksEmitted.map(({ block }) => block.hash))
+        const toLoad = bestBlocks.filter((b) => !emittedSet.has(b.hash))
+
+        const new$ = from(toLoad.reverse()).pipe(
+          concatMapEager((block) =>
+            getBlockEvents$(block.hash).pipe(
+              map((events) => ({ type: "new" as const, block, events })),
+            ),
+          ),
+          tap(({ block, events }) => blocksEmitted.push({ block, events })),
+        )
+
+        return concat(removed$, new$)
+      }),
+    )
+  }).pipe(shareLatest)
+
   const filter: EvClient<T>["filter"] = (events) =>
     events
       .filter(({ event }) => event.type === pallet && event.value.type === name)
@@ -123,5 +203,5 @@ export const createEventEntry = <T>(
       ),
     )
 
-  return { watch: () => finalized$, get, filter }
+  return { watch: () => finalized$, watchBest: () => best$, get, filter }
 }
