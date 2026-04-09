@@ -118,6 +118,7 @@ const multiplex: (
           refCount--
           if (refCount === 0) {
             baseConnection?.disconnect()
+            baseConnection = null
           }
         },
       }
