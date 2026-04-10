@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Bump descriptors package.json PAPI peer dependency.
+
 ## 0.20.1 - 2026-04-09
 
 ### Fixed
