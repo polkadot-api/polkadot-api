@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Contract descriptors are not exported.
 - Bump descriptors package.json PAPI peer dependency.
 
 ## 2.0.0 - 2026-04-09
