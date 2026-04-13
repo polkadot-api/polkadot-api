@@ -118,7 +118,7 @@ export async function generate(opts: GenerateOptions) {
   )
 
   if (config.ink || config.sol) {
-    outputContractCodegen(config, descriptorSrcDir)
+    await outputContractCodegen(config, descriptorSrcDir)
   }
 
   await replacePackageJson(descriptorsDir, hash)
