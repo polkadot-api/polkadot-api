@@ -28,7 +28,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
         with:
