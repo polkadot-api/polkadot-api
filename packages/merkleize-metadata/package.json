@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/merkleize-metadata",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Carlo Sala (https://github.com/carlosala)",
   "repository": {
     "type": "git",
@@ -37,6 +37,6 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2"
+    "@types/node": "^25.6.0"
   }
 }

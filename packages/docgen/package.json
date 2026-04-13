@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/docgen",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": "Yuri Volkov (https://github.com/mutantcornholio)",
   "repository": {
     "type": "git",
@@ -27,9 +27,9 @@
     "@commander-js/extra-typings": "^14.0.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/codegen": "workspace:*",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "commander": "^14.0.3",
-    "typedoc": "^0.28.18",
+    "typedoc": "^0.28.19",
     "typedoc-plugin-extras": "^4.0.1",
     "typescript": "^6.0.2"
   }

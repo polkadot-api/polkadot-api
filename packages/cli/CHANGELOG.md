@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.20.2 - 2026-04-13
+
 ### Fixed
 
 - Contract descriptors are not exported.

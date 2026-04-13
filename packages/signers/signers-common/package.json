@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/signers-common",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -38,6 +38,6 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^2.0.1"
+    "@noble/curves": "^2.2.0"
   }
 }
