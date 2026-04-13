@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+## 2.0.1 - 2026-04-13
+
 ### Fixed
 
+- Receiving duplicate storage entries on getEntries.
 - Contract descriptors are not exported.
 - Bump descriptors package.json PAPI peer dependency.
 
