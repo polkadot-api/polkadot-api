@@ -3,9 +3,9 @@ import { SocketEvents, SocketLoggerFn } from "polkadot-api/ws"
 
 let { PROVIDER, VERSION } = process.env
 let innerIdx = 0
-export const getInnerLogs: () => SocketLoggerFn = () => {
+export const getInnerLogs = (tag: string): SocketLoggerFn => {
   const id = innerIdx++
-  const actualFileName = `./${VERSION}_${PROVIDER}_MAIN_IN${id}_JSON_RPC`
+  const actualFileName = `./${VERSION}_${PROVIDER}_${tag}_IN${id}_JSON_RPC`
   try {
     unlinkSync(actualFileName)
   } catch {}

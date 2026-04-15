@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **polkadot-api/ws**
+  - Support legacy chains without state_getStorageHash
+
 ## 2.0.1 - 2026-04-13
 
 ### Fixed

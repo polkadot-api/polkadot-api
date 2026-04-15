@@ -1,8 +1,9 @@
 import { ClientRequest } from "@polkadot-api/raw-client"
+import { Binary } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { catchError, EMPTY, map, merge, mergeMap, Observable, of } from "rxjs"
-import { getBlocks$ } from "./blocks"
 import { withLatestFromBp } from "../utils/with-latest-from-bp"
+import { getBlocks$ } from "./blocks"
 import { createClosestDescendantMerkleValue } from "./proofs"
 
 export const createUpstream = (request: ClientRequest<any, any>) => {
@@ -112,13 +113,33 @@ export const createUpstream = (request: ClientRequest<any, any>) => {
 
   const stgClosestDescendant = createClosestDescendantMerkleValue(obsRequest)
 
-  const [stgValue, stgHash] = ["state_getStorage", "state_getStorageHash"].map(
+  const [stgValue, rawStgHash] = [
+    "state_getStorage",
+    "state_getStorageHash",
+  ].map(
     (method) => (atBlock: string, key: string) =>
       obsRequest<[string, string | undefined], string | null>(method, [
         key,
         atBlock,
       ]),
   )
+
+  const stgHash = (atBlock: string, key: string) =>
+    rawStgHash(atBlock, key).pipe(
+      catchError((ex) => {
+        if (ex instanceof Error && ex.message === "Method not found") {
+          return stgValue(atBlock, key).pipe(
+            withLatestFromBp(subscribeBlocks().hasher$),
+            map(([hasher, value]) =>
+              value == null
+                ? null
+                : Binary.toHex(hasher(Binary.fromHex(value))),
+            ),
+          )
+        }
+        throw ex
+      }),
+    )
 
   const methods = obsRequest<[], { methods: string[] }>("rpc_methods", [])
   const chainName = obsRequest<[], string>("system_name", [])

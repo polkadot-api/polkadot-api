@@ -234,7 +234,10 @@ export const createChainHead = (
     if (method === follow) return _follow(rId)
     const [followId, ...rest] = params as [string, ...any[]]
     const ctx = subscriptions.get(followId)
-    if (!ctx) return err(rId, -32602, "Ivalid followSubscription")
+    if (!ctx) {
+      console.log("Invalid followSubscription", rId, method, params)
+      return err(rId, -32602, "Ivalid followSubscription")
+    }
 
     const innerReply = (value: any) => {
       reply(rId, value)

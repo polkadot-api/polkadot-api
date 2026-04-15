@@ -102,7 +102,7 @@ describe("E2E", async () => {
     )
   } else {
     const wsProvider = getWsProvider("ws://127.0.0.1:9934", {
-      logger: getInnerLogs(),
+      logger: getInnerLogs("MAIN"),
     })
     client = createClient(outterLogs(wsProvider), { getMetadata })
     const { methods } = await client._request<{ methods: string[] }, []>(
@@ -635,7 +635,7 @@ describe("E2E", async () => {
           newClient = createClient(
             outterLogs(
               getWsProvider("ws://127.0.0.1:9934", {
-                logger: getInnerLogs(),
+                logger: getInnerLogs("MAIN"),
               }),
             ),
           )
