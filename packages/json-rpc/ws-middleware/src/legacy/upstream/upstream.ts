@@ -1,10 +1,10 @@
 import { ClientRequest } from "@polkadot-api/raw-client"
+import { Binary } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import { catchError, EMPTY, map, merge, mergeMap, Observable, of } from "rxjs"
-import { getBlocks$ } from "./blocks"
 import { withLatestFromBp } from "../utils/with-latest-from-bp"
+import { getBlocks$ } from "./blocks"
 import { createClosestDescendantMerkleValue } from "./proofs"
-import { Binary, Blake2256 } from "@polkadot-api/substrate-bindings"
 
 export const createUpstream = (request: ClientRequest<any, any>) => {
   const simpleRequest = <Args extends Array<any>, Payload>(
@@ -129,10 +129,11 @@ export const createUpstream = (request: ClientRequest<any, any>) => {
       catchError((ex) => {
         if (ex instanceof Error && ex.message === "Method not found") {
           return stgValue(atBlock, key).pipe(
-            map((value) =>
+            withLatestFromBp(subscribeBlocks().hasher$),
+            map(([hasher, value]) =>
               value == null
                 ? null
-                : Binary.toHex(Blake2256(Binary.fromHex(value))),
+                : Binary.toHex(hasher(Binary.fromHex(value))),
             ),
           )
         }
