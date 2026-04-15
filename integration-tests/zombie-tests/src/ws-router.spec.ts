@@ -1,6 +1,6 @@
 import { apply, middleware } from "@polkadot-api/ws-middleware"
 import { getWsProvider, Middleware } from "@polkadot-api/ws-provider"
-import { createClient } from "polkadot-api"
+import { createClient, JsonRpcProvider } from "polkadot-api"
 import { SocketEvents } from "polkadot-api/ws"
 import {
   bufferTime,
@@ -11,6 +11,8 @@ import {
   takeWhile,
 } from "rxjs"
 import { describe, expect, it } from "vitest"
+import { getInnerLogs } from "./inner-logs"
+import { withLogs } from "./with-logs"
 
 const { PROVIDER, VERSION } = process.env
 const ZOMBIENET_URI = "ws://127.0.0.1:9934/"
@@ -22,8 +24,10 @@ if (
   describe("ws-router", () => {
     it("routes chainHead_v1 through modern RPC and archive_v1 through legacy RPC", async () => {
       let calledMethods = new Set<string>()
+      const innerLogger = getInnerLogs("WS-ROUTER")
       const provider = getWsProvider(ZOMBIENET_URI, {
         logger: (evt) => {
+          innerLogger(evt)
           if (evt.type === SocketEvents.OUT) {
             const { method } = JSON.parse(evt.msg)
             calledMethods.add(method)
@@ -31,7 +35,7 @@ if (
         },
         middleware: apply(withDisabledArchive, middleware),
       })
-      const client = createClient(provider)
+      const client = createClient(outterLogs(provider))
 
       const initialBlock = await client.getFinalizedBlock()
 
@@ -75,9 +79,10 @@ if (
 
     it("routes chainHead_v1 to legacy RPC if it fails with too many follow subscriptions", async () => {
       let calledMethods = new Set<string>()
+      const innerLogger = getInnerLogs("WS-ROUTER")
       const provider = getWsProvider(ZOMBIENET_URI, {
         logger: (evt) => {
-          // console.log(evt)
+          innerLogger(evt)
           if (evt.type === SocketEvents.OUT) {
             const { method } = JSON.parse(evt.msg)
             calledMethods.add(method)
@@ -85,7 +90,7 @@ if (
         },
         middleware: apply(middleware, withSaturateFollow),
       })
-      const client = createClient(provider)
+      const client = createClient(outterLogs(provider))
 
       await client
         .getUnsafeApi()
@@ -155,3 +160,7 @@ const withSaturateFollow: Middleware = (provider) => (onMsg, onHalt) => {
 
   return baseConnection
 }
+
+let outterIdx = 0
+const outterLogs = (provider: JsonRpcProvider) =>
+  withLogs(`./${VERSION}_WS_ROUTER_OUT${outterIdx++}_JSON_RPC`, provider)
