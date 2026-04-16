@@ -1,4 +1,9 @@
 import { paseo } from "@polkadot-api/descriptors"
+import {
+  isRequest,
+  isResponse,
+  JsonRpcId,
+} from "@polkadot-api/json-rpc-provider"
 import { createClient } from "polkadot-api"
 import {
   combineLatest,
@@ -20,11 +25,6 @@ import {
   providerInterceptor,
 } from "./providerInterceptor"
 import { wait } from "./utils"
-import {
-  isRequest,
-  isResponse,
-  JsonRpcId,
-} from "@polkadot-api/json-rpc-provider"
 
 describe("Stop events", () => {
   it("reconnects after a stop event recovery fails", async () => {
@@ -124,7 +124,6 @@ describe("Stop events", () => {
     await firstValueFrom(obs$)
 
     const hash = await newBlock(2)
-    console.log(hash)
     await wait(300)
 
     getInterceptor().stop()
@@ -168,7 +167,6 @@ describe("Stop events", () => {
             ongoingOperations.has(msg.id)
           ) {
             if (msg.result.result !== "started") {
-              console.log(msg)
               throw new Error("Operation not started")
             }
             operationIdToOperation.set(msg.result.operationId, msg.id)

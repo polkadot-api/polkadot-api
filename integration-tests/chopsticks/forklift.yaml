@@ -1,0 +1,8 @@
+endpoint: wss://rpc.ibp.network/paseo
+block: "0x446a006b992b7a760f718f0f7040aa94a10f8c329b46af7315ea7947fac2691e"
+port: 8132
+
+options:
+  disableOnIdle: true # skip on_idle hooks (e.g. rebagging) during block production
+  finalizeMode:
+    timer: 0

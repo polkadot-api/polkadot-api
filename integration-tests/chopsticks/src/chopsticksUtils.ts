@@ -13,7 +13,11 @@ afterAll(() => {
 })
 
 export const newBlock = (count?: number): Promise<string> =>
-  client._request("dev_newBlock", [{ count }])
+  Promise.all(
+    new Array(count || 1)
+      .fill(0)
+      .map(() => client._request("dev_newBlock", [])),
+  ).then((r) => r.at(-1)!)
 
 export const jumpBlocks = async (height: number, count?: number) => {
   await client._request("dev_newBlock", [
