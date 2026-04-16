@@ -35,7 +35,7 @@
     "@vitest/coverage-v8": "^4.1.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "prettier": "^3.8.2",
+    "prettier": "^3.8.3",
     "rollup": "^4.60.1",
     "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-esbuild": "^6.2.1",
