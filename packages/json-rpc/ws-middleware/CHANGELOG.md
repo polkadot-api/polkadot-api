@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.2 - 2026-04-16
+
 ### Fixed
 
 - Support legacy chains without state_getStorageHash
