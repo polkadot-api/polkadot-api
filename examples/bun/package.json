@@ -20,7 +20,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@ledgerhq/hw-transport-node-hid": "^6.32.1",
+    "@ledgerhq/hw-transport-node-hid": "^6.33.0",
     "@noble/curves": "^2.2.0",
     "@noble/hashes": "^2.2.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
@@ -29,8 +29,8 @@
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/tx-utils": "workspace:*",
-    "@polkadot-labs/hdkd": "^0.0.27",
-    "@polkadot-labs/hdkd-helpers": "^0.0.28",
+    "@polkadot-labs/hdkd": "^0.0.28",
+    "@polkadot-labs/hdkd-helpers": "^0.0.29",
     "@scure/bip32": "^2.0.1",
     "@scure/bip39": "^2.0.1",
     "polkadot-api": "workspace:*",
