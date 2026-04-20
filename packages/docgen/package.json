@@ -31,6 +31,6 @@
     "commander": "^14.0.3",
     "typedoc": "^0.28.19",
     "typedoc-plugin-extras": "^4.0.1",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   }
 }

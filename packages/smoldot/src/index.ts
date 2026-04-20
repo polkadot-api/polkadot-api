@@ -1,1 +1,1 @@
-export * from "@polkadot-api/smoldot-patch"
+export * from "smoldot"
