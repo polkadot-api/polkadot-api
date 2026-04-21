@@ -1,12 +1,27 @@
-import { BlockInfo, ChainHead$ } from "@polkadot-api/observable-client"
+import {
+  BlockInfo,
+  ChainHead$,
+  isBestOrFinalizedBlock,
+} from "@polkadot-api/observable-client"
 import { HexString, SizedHex } from "@polkadot-api/substrate-bindings"
 import {
   Observable,
   combineLatest,
+  defer,
   firstValueFrom,
   map,
   switchMap,
   take,
+  filter as rFilter,
+  mergeMap,
+  EMPTY,
+  of,
+  takeUntil,
+  pairwise,
+  startWith,
+  Subject,
+  withLatestFrom,
+  merge,
 } from "rxjs"
 import { ValueCompat } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
@@ -47,6 +62,27 @@ export type EvClient<T> = {
    * event kind chosen) in the `finalized` blocks.
    */
   watch: () => Observable<{
+    block: BlockInfo
+    events: PalletEvent<T>[]
+  }>
+
+  /**
+   * Observable that watches the best-block chain and emits events that describe
+   * how the status changes.
+   *
+   * - It will emit `type: new` for new blocks in the best chain, with their
+   * events. The order is consistent in increasing block number.
+   * - It will emit `type: drop` for all the blocks, and their events, that
+   * dropped from best-block chain after a reorg. The order is consistent in
+   * reverse block number (emitting first the newer blocks to be removed)
+   * - It will emit `type: finalized` for all the blocks, and their events, that
+   * became finalized.
+   *
+   * It will first emit `new` events, then `drop` events, then `finalized`
+   * events.
+   */
+  watchBest: () => Observable<{
+    type: "new" | "drop" | "finalized"
     block: BlockInfo
     events: PalletEvent<T>[]
   }>
@@ -102,6 +138,134 @@ export const createEventEntry = <T>(
     shareLatest,
   )
 
+  const best$ = defer(() => {
+    const getBlockEvents$ = (blockHash: HexString) => {
+      const isIrrelevant$ = isBestOrFinalizedBlock(
+        chainHead.pinnedBlocks$,
+        blockHash,
+      ).pipe(
+        rFilter((x) => x === null),
+        take(1),
+      )
+      return combineLatest([
+        compatibility,
+        chainHead.getRuntimeContext$(blockHash),
+      ]).pipe(
+        take(1),
+        switchMap(([getCompat, ctx]) => {
+          if (!ctx.mappedMeta.pallets[pallet]?.event.has(name))
+            throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
+          return getEventsAtBlock$(blockHash, getCompat(ctx).isValueCompatible)
+        }),
+        takeUntil(isIrrelevant$),
+      )
+    }
+
+    // In the order they were emitted
+    let blocksEmitted: Array<{
+      block: BlockInfo
+      events: PalletEvent<T>[]
+    }> = []
+    const pending = new Set<HexString>()
+
+    const newOnes = new Subject<BlockInfo>()
+    const new$ = newOnes.pipe(
+      concatMapEager((block) =>
+        getBlockEvents$(block.hash).pipe(map((events) => ({ events, block }))),
+      ),
+      rFilter((x) => pending.has(x.block.hash)),
+      withLatestFrom(chainHead.finalized$),
+      mergeMap(([{ events, block }, finalized]) => {
+        pending.delete(block.hash)
+        if (finalized.number < block.number) {
+          blocksEmitted.push({ block, events })
+          return of({
+            type: "new" as "new",
+            block,
+            events,
+          })
+        }
+        return [
+          {
+            type: "new" as "new",
+            block,
+            events,
+          },
+          {
+            type: "finalized" as "finalized",
+            block,
+            events,
+          },
+        ]
+      }),
+    )
+
+    return merge(
+      new$,
+      chainHead.bestBlocks$.pipe(
+        map((x) => x.slice(0).reverse()),
+        startWith([] as BlockInfo[]),
+        pairwise(),
+        mergeMap(([prev, next]) => {
+          if (prev.length === 0)
+            return next.map((x) => ({ type: "new" as "new", block: x }))
+
+          if (prev[0].hash !== next[0].hash) {
+            const firstEmitted = blocksEmitted[0]
+            if (!firstEmitted) return []
+            const nFinalized = next[0]!.number - firstEmitted.block.number + 1
+            const events = blocksEmitted.slice(0, nFinalized)
+            blocksEmitted = blocksEmitted.slice(nFinalized)
+            return events.map((e) => ({
+              type: "finalized" as "finalized",
+              block: e.block,
+              events: e.events,
+            }))
+          }
+
+          let dropped: Array<{ block: BlockInfo; events: PalletEvent<any>[] }> =
+            []
+          for (let i = 0; i < blocksEmitted.length; i++) {
+            if (blocksEmitted[i].block.hash !== next[i + 1]?.hash) {
+              dropped = blocksEmitted.slice(i).reverse()
+              blocksEmitted = blocksEmitted.slice(0, i)
+              break
+            }
+          }
+
+          let diffIdx = prev.length
+          for (let i = 0; i < prev.length; i++) {
+            if (prev[i].hash !== next[i].hash) {
+              diffIdx = i
+              break
+            }
+          }
+          const newOnes = next.slice(diffIdx)
+
+          return [
+            ...dropped.map((e) => ({
+              type: "drop" as "drop",
+              block: e.block,
+              events: e.events,
+            })),
+            ...newOnes.map((x) => ({ type: "new" as "new", block: x })),
+          ]
+        }),
+        mergeMap((x) => {
+          if (x.type === "new") {
+            pending.add(x.block.hash)
+            newOnes.next(x.block)
+            return EMPTY
+          }
+          if (x.type === "drop") {
+            pending.delete(x.block.hash)
+          }
+          return of(x)
+        }),
+      ),
+    )
+  })
+
   const filter: EvClient<T>["filter"] = (events) =>
     events
       .filter(({ event }) => event.type === pallet && event.value.type === name)
@@ -123,5 +287,5 @@ export const createEventEntry = <T>(
       ),
     )
 
-  return { watch: () => finalized$, get, filter }
+  return { watch: () => finalized$, watchBest: () => best$, get, filter }
 }
