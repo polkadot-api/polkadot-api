@@ -74,12 +74,12 @@ export type EvClient<T> = {
    * events. The order is consistent in increasing block number.
    * - It will emit `type: drop` for all the blocks, and their events, that
    * dropped from best-block chain after a reorg. The order is consistent in
-   * increasing block number (emitting first the older blocks to be removed)
+   * reverse block number (emitting first the newer blocks to be removed)
    * - It will emit `type: finalized` for all the blocks, and their events, that
    * became finalized.
    *
-   * The block order is always consistent in increasing block number. And it
-   * will first emit `new` events, then `drop` events, then `finalized` events.
+   * It will first emit `new` events, then `drop` events, then `finalized`
+   * events.
    */
   watchBest: () => Observable<{
     type: "new" | "drop" | "finalized"
@@ -227,7 +227,7 @@ export const createEventEntry = <T>(
             []
           for (let i = 0; i < blocksEmitted.length; i++) {
             if (blocksEmitted[i].block.hash !== next[i + 1]?.hash) {
-              dropped = blocksEmitted.slice(i)
+              dropped = blocksEmitted.slice(i).reverse()
               blocksEmitted = blocksEmitted.slice(0, i)
               break
             }
