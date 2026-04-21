@@ -66,14 +66,26 @@ export type EvClient<T> = {
     events: PalletEvent<T>[]
   }>
 
+  /**
+   * Observable that watches the best-block chain and emits events that describe
+   * how the status changes.
+   *
+   * - It will emit `type: new` for new blocks in the best chain, with their
+   * events. The order is consistent in increasing block number.
+   * - It will emit `type: drop` for all the blocks, and their events, that
+   * dropped from best-block chain after a reorg. The order is consistent in
+   * increasing block number (emitting first the older blocks to be removed)
+   * - It will emit `type: finalized` for all the blocks, and their events, that
+   * became finalized.
+   *
+   * The block order is always consistent in increasing block number. And it
+   * will first emit `new` events, then `drop` events, then `finalized` events.
+   */
   watchBest: () => Observable<{
     type: "new" | "drop" | "finalized"
     block: BlockInfo
     events: PalletEvent<T>[]
   }>
-
-  // a -> (b -> c -> d -> e)
-  // a -> b -> c -> (d -> e)
 
   /**
    * Filter a bunch of `SystemEvent` and return the decoded `payload` of every

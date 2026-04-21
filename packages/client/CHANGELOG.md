@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- new `event.Pallet.name.watchBest` API
+
 ## 2.0.2 - 2026-04-16
 
 ### Fixed
