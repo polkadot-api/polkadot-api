@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+## 2.1.0 - 2026-04-21
+
 ### Added
 
 - new `event.Pallet.name.watchBest` API
+
+### Fixed
+
+- Update smoldot to `3.1.0`
 
 ## 2.0.2 - 2026-04-16
 
