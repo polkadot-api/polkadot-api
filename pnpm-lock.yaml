@@ -202,14 +202,14 @@ importers:
         specifier: ^8.0.9
         version: 8.0.9(@types/node@25.6.0)(esbuild@0.27.3)(yaml@2.8.3)
 
-  integration-tests/chopsticks:
+  integration-tests/forklift:
     dependencies:
       '@polkadot-api/cli':
         specifier: workspace:*
         version: link:../../packages/cli
       '@polkadot-api/descriptors':
         specifier: file:.papi/descriptors
-        version: file:integration-tests/chopsticks/.papi/descriptors(polkadot-api@packages+client)
+        version: file:integration-tests/forklift/.papi/descriptors(polkadot-api@packages+client)
       '@polkadot-api/forklift':
         specifier: 0.2.1
         version: 0.2.1(@react-rxjs/core@0.10.8(react@19.2.5)(rxjs@7.8.2))(esbuild@0.27.3)(react@19.2.5)(typescript@6.0.3)
@@ -1228,8 +1228,8 @@ packages:
     peerDependencies:
       polkadot-api: '>=2.0.0'
 
-  '@polkadot-api/descriptors@file:integration-tests/chopsticks/.papi/descriptors':
-    resolution: {directory: integration-tests/chopsticks/.papi/descriptors, type: directory}
+  '@polkadot-api/descriptors@file:integration-tests/forklift/.papi/descriptors':
+    resolution: {directory: integration-tests/forklift/.papi/descriptors, type: directory}
     peerDependencies:
       polkadot-api: '>=2.0.0'
 
@@ -3379,11 +3379,11 @@ snapshots:
     dependencies:
       polkadot-api: link:packages/client
 
-  '@polkadot-api/descriptors@file:integration-tests/chopsticks/.papi/descriptors(polkadot-api@2.0.2(esbuild@0.27.3)(rxjs@7.8.2))':
+  '@polkadot-api/descriptors@file:integration-tests/forklift/.papi/descriptors(polkadot-api@2.0.2(esbuild@0.27.3)(rxjs@7.8.2))':
     dependencies:
       polkadot-api: 2.0.2(esbuild@0.27.3)(rxjs@7.8.2)
 
-  '@polkadot-api/descriptors@file:integration-tests/chopsticks/.papi/descriptors(polkadot-api@packages+client)':
+  '@polkadot-api/descriptors@file:integration-tests/forklift/.papi/descriptors(polkadot-api@packages+client)':
     dependencies:
       polkadot-api: link:packages/client
 
@@ -3394,7 +3394,7 @@ snapshots:
   '@polkadot-api/forklift@0.2.1(@react-rxjs/core@0.10.8(react@19.2.5)(rxjs@7.8.2))(esbuild@0.27.3)(react@19.2.5)(typescript@6.0.3)':
     dependencies:
       '@acala-network/chopsticks-executor': 1.3.0
-      '@polkadot-api/descriptors': file:integration-tests/chopsticks/.papi/descriptors(polkadot-api@2.0.2(esbuild@0.27.3)(rxjs@7.8.2))
+      '@polkadot-api/descriptors': file:integration-tests/forklift/.papi/descriptors(polkadot-api@2.0.2(esbuild@0.27.3)(rxjs@7.8.2))
       '@polkadot-api/metadata-builders': 0.14.1
       '@polkadot-api/observable-client': 0.18.4(rxjs@7.8.2)
       '@polkadot-api/substrate-bindings': 0.20.1

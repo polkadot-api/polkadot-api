@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { ALICE, getForkliftProvider } from "./chopsticks"
+import { ALICE, getForkliftProvider } from "./lib/forklift"
 import { createClient } from "polkadot-api"
 import { paseo } from "@polkadot-api/descriptors"
 

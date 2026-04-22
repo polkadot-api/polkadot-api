@@ -14,16 +14,16 @@ import {
   skip,
 } from "rxjs"
 import { describe, expect, it, vitest } from "vitest"
-import { ALICE, BOB, createBlock, getForkliftProvider } from "./chopsticks"
-import { newBlock } from "./chopsticksUtils"
+import { ALICE, BOB, createBlock, getForkliftProvider } from "./lib/forklift"
+import { newBlock } from "./lib/forkliftUtils"
 import {
   combineInterceptors,
   createStopInterceptor,
   Interceptor,
   InterceptorContext,
   providerInterceptor,
-} from "./providerInterceptor"
-import { wait } from "./utils"
+} from "./lib/providerInterceptor"
+import { wait } from "./lib/utils"
 
 describe("Stop events", () => {
   it("reconnects after a stop event recovery fails", async () => {

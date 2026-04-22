@@ -1,6 +1,6 @@
 import { createClient, PolkadotClient } from "polkadot-api"
 import { afterAll, beforeAll } from "vitest"
-import { getForkliftProvider } from "./chopsticks"
+import { getForkliftProvider } from "./lib/forklift"
 
 let client: PolkadotClient = null as any
 beforeAll(async () => {
