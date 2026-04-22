@@ -1,6 +1,6 @@
-import { startChopsticks, stopChopsticks } from "./src/chopsticks"
+import { startForklift, stopForklift } from "./src/chopsticks"
 
 export default async function setupTests() {
-  await startChopsticks()
-  return () => stopChopsticks()
+  await startForklift()
+  return () => stopForklift()
 }

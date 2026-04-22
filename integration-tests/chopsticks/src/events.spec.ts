@@ -1,11 +1,11 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
 import { describe, expect, it, vi } from "vitest"
-import { createBlock, getChopsticksProvider } from "./chopsticks"
+import { createBlock, getForkliftProvider } from "./chopsticks"
 
 describe("events", () => {
   it(".watch() reports events after awaiting for the initial block", async () => {
-    const client = createClient(getChopsticksProvider("events"))
+    const client = createClient(getForkliftProvider("events"))
     const api = client.getTypedApi(paseo)
 
     await api.getStaticApis()

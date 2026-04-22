@@ -14,8 +14,7 @@ import {
   skip,
 } from "rxjs"
 import { describe, expect, it, vitest } from "vitest"
-import "./chopsticks"
-import { ALICE, BOB, createBlock, getChopsticksProvider } from "./chopsticks"
+import { ALICE, BOB, createBlock, getForkliftProvider } from "./chopsticks"
 import { newBlock } from "./chopsticksUtils"
 import {
   combineInterceptors,
@@ -29,7 +28,7 @@ import { wait } from "./utils"
 describe("Stop events", () => {
   it("reconnects after a stop event recovery fails", async () => {
     const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_recon"),
+      getForkliftProvider("stop_events_recon"),
       createFailedStopInterceptor,
     )
     const client = createClient(provider)
@@ -52,7 +51,7 @@ describe("Stop events", () => {
 
   it("waits for stop event to resolve before starting a new operation", async () => {
     const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_wait_stop"),
+      getForkliftProvider("stop_events_wait_stop"),
       createStopAndHODLInterceptor,
     )
     const client = createClient(provider)
@@ -102,7 +101,7 @@ describe("Stop events", () => {
     }
 
     const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_no_unpinned_report"),
+      getForkliftProvider("stop_events_no_unpinned_report"),
       createStopAndIgnoreFinalizedInterceptor,
     )
     const client = createClient(provider)
@@ -217,7 +216,7 @@ describe("Stop events", () => {
     }
 
     const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_recover"),
+      getForkliftProvider("stop_events_recover"),
       createStopAndThrottleInterceptor,
     )
     const client = createClient(provider)

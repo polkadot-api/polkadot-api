@@ -16,7 +16,7 @@ export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
 
 let id = 1
-export const getChopsticksProvider = (name: string) =>
+export const getForkliftProvider = (name: string) =>
   withLogs(
     `./LOGS_${NODE_VERSION}_${name}_${id++}_OUT_JSON_RPC`,
     getWsProvider(`ws://localhost:${PORT}`, {
@@ -27,26 +27,26 @@ export const getChopsticksProvider = (name: string) =>
     }),
   )
 
-export const startChopsticks = async () => {
-  const logStream = createWriteStream(`./LOGS_${NODE_VERSION}_chopsticks.log`)
+export const startForklift = async () => {
+  const logStream = createWriteStream(`./LOGS_${NODE_VERSION}_forklift.log`)
   const logStreamErr = createWriteStream(
-    `./LOGS_${NODE_VERSION}_chopsticks_err.log`,
+    `./LOGS_${NODE_VERSION}_forklift_err.log`,
   )
-  const chopsticksProcess = spawn("pnpm", ["forklift", `-c`, `./forklift.yaml`])
-  chopsticksProcess.stdout.pipe(logStream)
-  chopsticksProcess.stderr.pipe(logStreamErr)
+  const forkliftProcess = spawn("pnpm", ["forklift", `-c`, `./forklift.yaml`])
+  forkliftProcess.stdout.pipe(logStream)
+  forkliftProcess.stderr.pipe(logStreamErr)
 
-  const client = createClient(getChopsticksProvider("main"))
+  const client = createClient(getForkliftProvider("main"))
 
   cleanup = () => {
     cleanup = () => {}
     client.destroy()
-    chopsticksProcess.kill()
+    forkliftProcess.kill()
     logStream.close()
     logStreamErr.close()
   }
 
-  console.log("Connecting to chopsticks… (takes ~3 seconds)")
+  console.log("Connecting to forklift… (takes ~3 seconds)")
   const timeout = 15000
   const success = await Promise.race([
     client
@@ -60,7 +60,7 @@ export const startChopsticks = async () => {
     throw new Error(`Couldn't connect after ${timeout}ms`)
   }
 
-  // Create a new block to pre-initialize chopsticks and prevent tests from timing out.
+  // Create a new block to pre-initialize forklift and prevent tests from timing out.
   console.log("Generating the first block… (takes ~8 seconds)")
   await client._request("dev_newBlock", [])
 }
@@ -68,9 +68,9 @@ export const startChopsticks = async () => {
 export const createBlock = (client: PolkadotClient) =>
   client._request("dev_newBlock", [])
 
-export const stopChopsticks = () => cleanup()
+export const stopForklift = () => cleanup()
 
-export const restartChopsticks = async () => {
-  stopChopsticks()
-  await startChopsticks()
+export const restartForklift = async () => {
+  stopForklift()
+  await startForklift()
 }
