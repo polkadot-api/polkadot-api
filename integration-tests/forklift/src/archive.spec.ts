@@ -5,7 +5,7 @@ import { ALICE, getForkliftProvider } from "./lib/forklift"
 
 describe("archive", () => {
   it("loads information from past blocks", async () => {
-    const client = createClient(getForkliftProvider("archive"))
+    const client = createClient(getForkliftProvider("archive")[0])
     const api = client.getTypedApi(paseo)
 
     const finalized = await client.getFinalizedBlock()

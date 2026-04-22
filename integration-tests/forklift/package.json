@@ -16,7 +16,7 @@
   "dependencies": {
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
-    "@polkadot-api/forklift": "0.2.1",
+    "@polkadot-api/forklift": "0.2.2",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.2"
