@@ -1,22 +1,9 @@
-import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
-import {
-  DEV_PHRASE,
-  entropyToMiniSecret,
-  mnemonicToEntropy,
-} from "@polkadot-labs/hdkd-helpers"
-import { getPolkadotSigner } from "polkadot-api/signer"
-import { getOfflineApi } from "polkadot-api"
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
+import { getOfflineApi } from "polkadot-api"
+import { getDevSigner } from "./signer"
 
 // let's create Alice signer
-const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))
-const derive = sr25519CreateDerive(miniSecret)
-const aliceKeyPair = derive("//Alice")
-const alice = getPolkadotSigner(
-  aliceKeyPair.publicKey,
-  "Sr25519",
-  aliceKeyPair.sign,
-)
+const alice = getDevSigner()
 
 const api = await getOfflineApi(wnd)
 

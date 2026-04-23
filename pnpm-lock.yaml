@@ -211,11 +211,20 @@ importers:
         specifier: file:.papi/descriptors
         version: file:integration-tests/forklift/.papi/descriptors(polkadot-api@packages+client)
       '@polkadot-api/forklift':
-        specifier: 0.2.2
-        version: 0.2.2(@react-rxjs/core@0.10.8(react@19.2.5)(rxjs@7.8.2))(esbuild@0.27.3)(react@19.2.5)(typescript@6.0.3)
+        specifier: 0.2.3
+        version: 0.2.3(@react-rxjs/core@0.10.8(react@19.2.5)(rxjs@7.8.2))(esbuild@0.27.3)(react@19.2.5)(typescript@6.0.3)
       '@polkadot-api/json-rpc-provider':
         specifier: workspace:*
         version: link:../../packages/json-rpc/json-rpc-provider
+      '@polkadot-api/substrate-bindings':
+        specifier: workspace:*
+        version: link:../../packages/substrate-bindings
+      '@polkadot-labs/hdkd':
+        specifier: ^0.0.28
+        version: 0.0.28
+      '@polkadot-labs/hdkd-helpers':
+        specifier: ^0.0.29
+        version: 0.0.29
       polkadot-api:
         specifier: workspace:*
         version: link:../../packages/client
@@ -913,8 +922,8 @@ importers:
 
 packages:
 
-  '@acala-network/chopsticks-executor@1.3.0':
-    resolution: {integrity: sha512-Inq1K6ouYXzFHLLBCZh2fRcD1tvfY7ccUpQiH8ICuhE5UERl/Le5YHP3NDbVdi9y39Y0eTTRBSdW71TqnHigJg==}
+  '@acala-network/chopsticks-executor@1.3.1':
+    resolution: {integrity: sha512-zqt41Sp6va7Iv69X++oCPFFGoGPfpBsmfeHpi18E2UaRmZIui3FHsTTCG7EXhrj8krk/sutS+xnVMK8U8d7zjw==}
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -1238,8 +1247,8 @@ packages:
     peerDependencies:
       polkadot-api: '>=2.0.0'
 
-  '@polkadot-api/forklift@0.2.2':
-    resolution: {integrity: sha512-rAQY6YeqtQzMWm/wyyknweFLxPJTnUx/TZX03kfYImyB5/jNGDjRedtEty3BqdOZAQ7vAYqJPAqDR3mAnD2ouA==}
+  '@polkadot-api/forklift@0.2.3':
+    resolution: {integrity: sha512-uY7MZ1NJnKZADsctyDW15hXxoAFkDik8jUxxvKVtWPxnQcQ9N5mK25uJ0m+VWu7DoL9Acu1QrjAZoKyuTvy6mA==}
     hasBin: true
     peerDependencies:
       typescript: ^6.0.2
@@ -3086,7 +3095,7 @@ packages:
 
 snapshots:
 
-  '@acala-network/chopsticks-executor@1.3.0':
+  '@acala-network/chopsticks-executor@1.3.1':
     dependencies:
       '@polkadot/util': 14.0.3
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@14.0.3)
@@ -3392,9 +3401,9 @@ snapshots:
     dependencies:
       polkadot-api: link:packages/client
 
-  '@polkadot-api/forklift@0.2.2(@react-rxjs/core@0.10.8(react@19.2.5)(rxjs@7.8.2))(esbuild@0.27.3)(react@19.2.5)(typescript@6.0.3)':
+  '@polkadot-api/forklift@0.2.3(@react-rxjs/core@0.10.8(react@19.2.5)(rxjs@7.8.2))(esbuild@0.27.3)(react@19.2.5)(typescript@6.0.3)':
     dependencies:
-      '@acala-network/chopsticks-executor': 1.3.0
+      '@acala-network/chopsticks-executor': 1.3.1
       '@polkadot-api/descriptors': file:integration-tests/forklift/.papi/descriptors(polkadot-api@2.1.0(esbuild@0.27.3)(rxjs@7.8.2))
       '@polkadot-api/metadata-builders': 0.14.1
       '@polkadot-api/observable-client': 0.18.4(rxjs@7.8.2)

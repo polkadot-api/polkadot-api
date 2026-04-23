@@ -1,21 +1,8 @@
-import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
-import {
-  DEV_PHRASE,
-  entropyToMiniSecret,
-  mnemonicToEntropy,
-} from "@polkadot-labs/hdkd-helpers"
-import { getPolkadotSigner } from "polkadot-api/signer"
 import { MultiAddress, turing } from "@polkadot-api/descriptors"
 import { createWsClient } from "polkadot-api/ws"
+import { getDevSigner } from "./signer"
 
-const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))
-const derive = sr25519CreateDerive(miniSecret)
-const papiTest = derive("//Alice")
-const papiTestSigner = getPolkadotSigner(
-  papiTest.publicKey,
-  "Sr25519",
-  papiTest.sign,
-)
+const papiTestSigner = getDevSigner()
 
 const client = createWsClient("wss://turing-rpc.avail.so/ws")
 

@@ -1,7 +1,9 @@
-import { forklift, logger, wsSource } from "@polkadot-api/forklift"
+import { Forklift, forklift, logger, wsSource } from "@polkadot-api/forklift"
 import { spawn } from "child_process"
 import { createWriteStream } from "fs"
-import { createClient, Enum } from "polkadot-api"
+import { Binary, createClient, Enum, JsonRpcProvider } from "polkadot-api"
+import { mapObject } from "polkadot-api/utils"
+import { getWsProvider } from "polkadot-api/ws"
 import { wait } from "./utils"
 import { withLogs } from "./with-logs"
 
@@ -25,24 +27,58 @@ export const getForkliftProvider = (name: string) => {
   })
 
   return [
-    withLogs(`./LOGS_${NODE_VERSION}_${name}_${id++}_OUT_JSON_RPC`, (onMsg) => {
-      const connection = chain.serve(onMsg)
-      return {
-        ...connection,
-        disconnect: () => {
-          connection.disconnect()
-          chain.destroy()
-        },
-      }
-    }),
+    withLogs(
+      `./logs/LOGS_${NODE_VERSION}_${name}_${id++}_OUT_JSON_RPC`,
+      onDisconnect(chain.serve, chain.destroy),
+    ),
     chain,
   ] as const
 }
 
+// For using the external common process. Useful for debugging one specific test
+export const getExternalForkliftProvider = (name: string) => {
+  const client = createClient(getWsProvider(`ws://localhost:${PORT}`))
+  const forklift: Pick<Forklift, "newBlock"> = {
+    newBlock: (opts) =>
+      client._request("dev_newBlock", [
+        {
+          ...opts,
+          storage:
+            opts?.storage &&
+            mapObject(opts.storage, (v) => (v ? Binary.toHex(v) : null)),
+          transactions: opts?.transactions?.map(Binary.toHex),
+        },
+      ]),
+  }
+
+  return [
+    withLogs(
+      `./logs/LOGS_${NODE_VERSION}_${name}_${id++}_OUT_JSON_RPC`,
+      onDisconnect(getWsProvider(`ws://localhost:${PORT}`), client.destroy),
+    ),
+    forklift,
+  ] as const
+}
+
+const onDisconnect =
+  (provider: JsonRpcProvider, cb: () => void): JsonRpcProvider =>
+  (onMsg) => {
+    const connection = provider(onMsg)
+    return {
+      ...connection,
+      disconnect: () => {
+        connection.disconnect()
+        cb()
+      },
+    }
+  }
+
 export const startForklift = async () => {
-  const logStream = createWriteStream(`./LOGS_${NODE_VERSION}_forklift.log`)
+  const logStream = createWriteStream(
+    `./logs/LOGS_${NODE_VERSION}_forklift.log`,
+  )
   const logStreamErr = createWriteStream(
-    `./LOGS_${NODE_VERSION}_forklift_err.log`,
+    `./logs/LOGS_${NODE_VERSION}_forklift_err.log`,
   )
   const forkliftProcess = spawn("pnpm", ["forklift", `-c`, `./forklift.yaml`])
   forkliftProcess.stdout.pipe(logStream)
@@ -59,7 +95,7 @@ export const startForklift = async () => {
   }
 
   console.log("Connecting to forklift…")
-  const timeout = 5000
+  const timeout = 15000
   const success = await Promise.race([
     client
       .getUnsafeApi()
