@@ -4,29 +4,35 @@ import { describe, expect, it, vi } from "vitest"
 import { getForkliftProvider } from "./lib/forklift"
 
 describe("events", () => {
-  it(".watch() reports events after awaiting for the initial block", async () => {
-    const [provider, chain] = getForkliftProvider("events")
-    const client = createClient(provider)
-    const api = client.getTypedApi(paseo)
+  describe("watch()", () => {
+    it(".watch() reports events after awaiting for the initial block", async () => {
+      const [provider, chain] = getForkliftProvider("events")
+      const client = createClient(provider)
+      const api = client.getTypedApi(paseo)
 
-    await api.getStaticApis()
+      await api.getStaticApis()
 
-    const testFn = vi.fn()
-    const completeFn = vi.fn()
-    const errorFn = vi.fn()
-    const subscription = api.event.System.ExtrinsicSuccess.watch().subscribe({
-      next: testFn,
-      error: errorFn,
-      complete: completeFn,
+      const testFn = vi.fn()
+      const completeFn = vi.fn()
+      const errorFn = vi.fn()
+      const subscription = api.event.System.ExtrinsicSuccess.watch().subscribe({
+        next: testFn,
+        error: errorFn,
+        complete: completeFn,
+      })
+
+      await chain.newBlock()
+
+      expect(errorFn).not.toHaveBeenCalled()
+      expect(completeFn).not.toHaveBeenCalled()
+      expect(testFn).toHaveBeenCalled()
+
+      subscription.unsubscribe()
+      client.destroy()
     })
+  })
 
-    await chain.newBlock()
-
-    expect(errorFn).not.toHaveBeenCalled()
-    expect(completeFn).not.toHaveBeenCalled()
-    expect(testFn).toHaveBeenCalled()
-
-    subscription.unsubscribe()
-    client.destroy()
+  describe("watchBest()", () => {
+    it("notifies", () => {})
   })
 })
