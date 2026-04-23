@@ -86,7 +86,7 @@ describe("events", () => {
       expect(helloEvt.type).toEqual("new")
       expect(helloEvt.block.hash).toEqual(helloBlock)
       expect(helloEvt.events.length).toEqual(1)
-      expect(helloEvt.events[0].payload.hash === hello.hash)
+      expect(helloEvt.events[0].payload.hash).toEqual(hello.hash)
 
       expect(remarked.next).toHaveBeenCalledTimes(1)
       remarked.clearNext()
