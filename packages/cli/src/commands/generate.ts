@@ -131,6 +131,11 @@ export async function generate(opts: GenerateOptions) {
     await runInstall()
     await flushBundlerCache()
   }
+
+  if (!cleanCodegen) {
+    console.log("Codegen ended with an error, exiting with error")
+    process.exit(1)
+  }
 }
 
 async function tagGenerated(

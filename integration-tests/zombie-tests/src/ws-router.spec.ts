@@ -147,7 +147,10 @@ const withDisabledArchive: Middleware = (provider) => (onMsg, onHalt) => {
 }
 
 const withSaturateFollow: Middleware = (provider) => (onMsg, onHalt) => {
-  const baseConnection = provider(onMsg, onHalt)
+  const baseConnection = provider((msg) => {
+    if (msg.id && String(msg.id).startsWith("saturating-follow-")) return
+    onMsg(msg)
+  }, onHalt)
 
   for (let i = 0; i < 4; i++) {
     baseConnection.send({

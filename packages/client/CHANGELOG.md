@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **CLI**
+  - Exit with an error status if codegen fails
+
 ## 2.1.0 - 2026-04-21
 
 ### Added

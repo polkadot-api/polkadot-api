@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Exit with an error status if codegen fails
+
 ## 0.20.3 to 0.20.4 - 2026-04-21
 
 ### Fixed
