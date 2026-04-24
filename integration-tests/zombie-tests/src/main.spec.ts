@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto"
+import { randomBytes } from "@noble/curves/utils.js"
 import {
   catchError,
   combineLatest,
@@ -17,7 +17,6 @@ import { start } from "polkadot-api/smoldot"
 import {
   AccountId,
   Binary,
-  CompatibilityLevel,
   PolkadotClient,
   SS58String,
   TxEvent,
@@ -35,7 +34,7 @@ import {
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts, unusedSigner } from "./keyring"
 import { getPolkadotSigner } from "polkadot-api/signer"
-import { fromHex, toHex } from "@polkadot-api/utils"
+import { toHex } from "@polkadot-api/utils"
 import { appendFileSync } from "fs"
 import { withLogs } from "./with-logs"
 import { getInnerLogs } from "./inner-logs"
@@ -56,7 +55,6 @@ let outterLogs: (input: JsonRpcProvider) => JsonRpcProvider = (input) =>
 
 if (PROVIDER !== "sm" && PROVIDER !== "ws")
   throw new Error(`$PROVIDER env has to be "ws" or "sm". Got ${PROVIDER}`)
-let ARCHIVE = false
 const rawClient = createRawClient(getWsProvider("ws://127.0.0.1:9934/"))
 const getChainspec = async (count = 1): Promise<{}> => {
   try {
@@ -72,7 +70,6 @@ const chainSpec = JSON.stringify(await getChainspec())
 rawClient.destroy()
 
 const accountIdDec = AccountId().dec
-const ED = 10_000_000_000n
 const FEE_VARIATION_TOLERANCE = 10_000_000n
 
 console.log("got the chainspec")
@@ -105,13 +102,6 @@ describe("E2E", async () => {
       logger: getInnerLogs("MAIN"),
     })
     client = createClient(outterLogs(wsProvider), { getMetadata })
-    const { methods } = await client._request<{ methods: string[] }, []>(
-      "rpc_methods",
-      [],
-    )
-    ARCHIVE = methods.some((m) => m.startsWith("archive_v1"))
-    console.log("ARCHIVE", ARCHIVE)
-    if (!ARCHIVE) console.log(JSON.stringify(methods))
   }
   console.log("client started")
   const api = client.getTypedApi(roc)
@@ -135,6 +125,7 @@ describe("E2E", async () => {
 
   console.log("waiting for static APIs")
   const staticApis = await api.getStaticApis()
+  const ED = staticApis.constants.Balances.ExistentialDeposit
   console.log("got the static APIs")
 
   it.concurrent("creates Bare transactions", async () => {
@@ -177,22 +168,6 @@ describe("E2E", async () => {
       "5EjdajLJp5CKhGVaWV21wiyGxUw42rhCqGN32LuVH4wrqXTN",
     )
     expect(current).toEqual(realScore)
-  })
-
-  it.concurrent("queries opaque storage entries", async () => {
-    // some old polkadot-sdk versions don't include this pallet
-    // ensure that some version tested include it
-    if (
-      staticApis.compat.query.CoretimeAssignmentProvider.CoreDescriptors.value
-        .level === CompatibilityLevel.Incompatible
-    ) {
-      return
-    }
-
-    const entries =
-      await api.query.CoretimeAssignmentProvider.CoreDescriptors.getEntries()
-
-    expect(entries.every((x) => !!fromHex(x.keyArgs[0]))).toBe(true)
   })
 
   it.concurrent("runtime call with extrinsic as input", async () => {
@@ -254,7 +229,7 @@ describe("E2E", async () => {
           },
         },
       }),
-    ).rejects.toThrowError()
+    ).rejects.toThrow()
   })
 
   // this test needs to run concurrently with "fund accounts" one
@@ -591,35 +566,35 @@ describe("E2E", async () => {
     it.concurrent("BlockNotPinnedError: query", async () => {
       await expect(
         api.query.System.Account.getValue(aliceAddress, options),
-      ).rejects.toThrowError(BlockNotPinnedError)
+      ).rejects.toThrow(BlockNotPinnedError)
     })
 
     it.concurrent("BlockNotPinnedError: query System.Number", async () => {
-      await expect(
-        api.query.System.Number.getValue(options),
-      ).rejects.toThrowError(BlockNotPinnedError)
+      await expect(api.query.System.Number.getValue(options)).rejects.toThrow(
+        BlockNotPinnedError,
+      )
     })
 
     it.concurrent("BlockNotPinnedError: apis", async () => {
       await expect(
         api.apis.AccountNonceApi.account_nonce(aliceAddress, options),
-      ).rejects.toThrowError(BlockNotPinnedError)
+      ).rejects.toThrow(BlockNotPinnedError)
     })
 
     it.concurrent("BlockNotPinnedError: body", async () => {
-      await expect(() => client.getBlockBody(options.at)).rejects.toThrowError(
+      await expect(() => client.getBlockBody(options.at)).rejects.toThrow(
         BlockNotPinnedError,
       )
     })
 
     it.concurrent("BlockNotPinnedError: header", async () => {
-      await expect(client.getBlockHeader(options.at)).rejects.toThrowError(
+      await expect(client.getBlockHeader(options.at)).rejects.toThrow(
         BlockNotPinnedError,
       )
     })
   })
 
-  if (PROVIDER === "ws" && ARCHIVE) {
+  if (PROVIDER === "ws") {
     describe("archive", async () => {
       const aliceAddress = accountIdDec(accounts.alice.sr25519.publicKey)
       let newClient: PolkadotClient

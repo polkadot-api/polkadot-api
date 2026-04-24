@@ -1,7 +1,10 @@
+[settings]
+timeout = 1000
+
 [relaychain]
 default_command = "polkadot"
 default_args = ["-lparachain=debug", "--state-pruning=archive-canonical"]
-
+chain_spec_command = "polkadot build-spec --chain westend-local --disable-default-bootnode --raw"
 chain = "westend-local"
 
 [[relaychain.nodes]]
