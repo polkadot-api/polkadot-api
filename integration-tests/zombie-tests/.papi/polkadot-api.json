@@ -4,7 +4,7 @@
   "entries": {
     "roc": {
       "wsUrl": "ws://127.0.0.1:9934",
-      "metadata": "roc.scale",
+      "metadata": ".papi/metadata/roc.scale",
       "genesis": "0x4545454545454545454545454545454545454545454545454545454545454545",
       "codeHash": "0xd42884ec8332faba4d845199e5d09c79934be1b103f45e2c18b80e232046c6b0"
     }

@@ -18,9 +18,8 @@ jobs:
           - "24"
         version:
           - polkadot-v1.1.0
-          - polkadot-stable2407-5
           - polkadot-stable2506-4
-          - polkadot-stable2512-1
+          - polkadot-stable2603
         kind:
           - ws
           - sm
@@ -45,24 +44,26 @@ jobs:
         run: pnpm turbo build-core --cache-dir=.turbo
       - name: Install papi
         run: pnpm install
+      - uses: cargo-bins/cargo-binstall@v1.18.1
+      - name: Install zombienet
+        run: cargo binstall zombie-cli
       - name: Download Polkadot and parachain binaries
         run: |
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/${{ matrix.version }}/polkadot
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/${{ matrix.version }}/polkadot-parachain
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/${{ matrix.version }}/polkadot-prepare-worker
-          wget --no-verbose https://github.com/paritytech/polkadot-sdk/releases/download/${{ matrix.version }}/polkadot-execute-worker
-          chmod +x ./polkadot*
+          _files=(polkadot polkadot-execute-worker polkadot-prepare-worker)
+          for _file in "${_files[@]}"; do
+            wget --no-verbose "https://github.com/paritytech/polkadot-sdk/releases/download/${{ matrix.version }}/$_file" &
+            _pids+=($!)
+          done
+          for _pid in "${_pids[@]}"; do
+            wait "$_pid" || exit 1
+          done
+          chmod +x "${_files[@]}"
         working-directory: integration-tests/zombie-tests
       - name: Run a local relaychain using zombienet
         run: |
           export PATH=$(pwd):$PATH
-          npx --yes @zombienet/cli@1.3.138 \
-            --provider native \
-            --dir zombienet_logs \
-            spawn zombienet.native.toml \
-            > polkadot.txt 2>&1 &
-          source wait_until.sh 'curl -s "127.0.0.1:9933"'
-          source wait_until.sh 'curl -s "127.0.0.1:9934"'
+          zombie-cli spawn -p native zombienet.native.toml > zombie.txt 2>&1 &
+          source wait_until.sh 'grep -qF "network is up, in" zombie.txt'
         working-directory: integration-tests/zombie-tests
       - name: Run test
         run: PROVIDER=${{ matrix.kind }} VERSION=${{matrix.version}} pnpm e2e
