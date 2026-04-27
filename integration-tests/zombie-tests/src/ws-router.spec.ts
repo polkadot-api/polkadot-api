@@ -17,10 +17,7 @@ import { withLogs } from "./with-logs"
 const { PROVIDER, VERSION } = process.env
 const ZOMBIENET_URI = "ws://127.0.0.1:9934/"
 
-if (
-  PROVIDER === "ws" &&
-  !["polkadot-v1.1.0", "polkadot-stable2407-5"].includes(VERSION!)
-) {
+if (PROVIDER === "ws" && "polkadot-v1.1.0" !== VERSION) {
   describe("ws-router", () => {
     it("routes chainHead_v1 through modern RPC and archive_v1 through legacy RPC", async () => {
       let calledMethods = new Set<string>()
@@ -147,7 +144,10 @@ const withDisabledArchive: Middleware = (provider) => (onMsg, onHalt) => {
 }
 
 const withSaturateFollow: Middleware = (provider) => (onMsg, onHalt) => {
-  const baseConnection = provider(onMsg, onHalt)
+  const baseConnection = provider((msg) => {
+    if (msg.id && String(msg.id).startsWith("saturating-follow-")) return
+    onMsg(msg)
+  }, onHalt)
 
   for (let i = 0; i < 4; i++) {
     baseConnection.send({

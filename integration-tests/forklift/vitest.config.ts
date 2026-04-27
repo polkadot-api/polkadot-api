@@ -1,5 +1,4 @@
 import { defineConfig } from "vitest/config"
-import tsconfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig({
   test: {
@@ -8,5 +7,5 @@ export default defineConfig({
     globalSetup: ["./setupTests.ts"],
     testTimeout: 20_000,
   },
-  plugins: [tsconfigPaths()],
+  resolve: { tsconfigPaths: true },
 })
