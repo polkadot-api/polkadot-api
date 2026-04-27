@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.3.5 - 2026-04-27
+
+### Fixed
+
+- Ensure compilation with Typescript 6.0
+
 ## 0.3.1 to 0.3.4 - 2026-04-21
 
 ### Fixed
