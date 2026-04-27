@@ -115,12 +115,12 @@ export async function generateDocs(opts: Options) {
 function getTsConfig(): string {
   return JSON.stringify({
     compilerOptions: {
-      lib: ["es2021"],
-      module: "commonjs",
-      moduleResolution: "node",
+      lib: ["ES2023"],
+      module: "esnext",
+      moduleResolution: "bundler",
       strict: true,
       skipLibCheck: true,
-      target: "es2021",
+      target: "es2022",
     },
     include: ["./**/*.ts"],
   })
