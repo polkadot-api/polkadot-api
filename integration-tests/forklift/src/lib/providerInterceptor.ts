@@ -1,3 +1,4 @@
+import { Forklift } from "@polkadot-api/forklift"
 import {
   JsonRpcRequest,
   JsonRpcMessage,
@@ -16,9 +17,9 @@ export type InterceptorContext = {
 }
 
 export const providerInterceptor = <T>(
-  provider: JsonRpcProvider,
+  [provider, chain]: readonly [JsonRpcProvider, Forklift],
   createInterceptor: (ctx: InterceptorContext) => readonly [Interceptor, T],
-): [JsonRpcProvider, () => T] => {
+): [JsonRpcProvider, () => T, Forklift] => {
   let result: T = null as any
 
   const wrappedProvider: JsonRpcProvider = (onMsg) => {
@@ -42,7 +43,7 @@ export const providerInterceptor = <T>(
     }
   }
 
-  return [wrappedProvider, () => result]
+  return [wrappedProvider, () => result, chain]
 }
 
 export const createStopInterceptor = (ctx: InterceptorContext) => {

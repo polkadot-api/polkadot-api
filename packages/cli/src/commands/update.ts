@@ -59,7 +59,10 @@ export async function update(
     spinner.succeed(`${key} metadata updated`)
   }
 
-  const spinner = ora(`Updating`).start()
+  const spinner = ora({
+    text: `Updating`,
+    discardStdin: false,
+  }).start()
   await Promise.all(keys.map(updateByKey))
   await writePapiConfig(options.config, config)
 

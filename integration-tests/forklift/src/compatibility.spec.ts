@@ -1,11 +1,11 @@
 import { paseo } from "@polkadot-api/descriptors"
 import { CompatibilityLevel, createClient } from "polkadot-api"
 import { describe, expect, it } from "vitest"
-import { getChopsticksProvider } from "./chopsticks"
+import { getForkliftProvider } from "./lib/forklift"
 
 describe("compatibility API", () => {
   it("allows checking for non-existing entries", async () => {
-    const client = createClient(getChopsticksProvider("compatibility_api"))
+    const client = createClient(getForkliftProvider("compatibility_api")[0])
     const api = await client.getTypedApi(paseo).getStaticApis()
 
     // Use case is when you have a union of different `typedApi`, you might want to check which one is compatible with a specific case

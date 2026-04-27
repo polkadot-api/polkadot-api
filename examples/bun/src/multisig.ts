@@ -1,24 +1,13 @@
 import { wnd } from "@polkadot-api/descriptors"
 import { getMultisigSigner } from "@polkadot-api/meta-signers"
-import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
-import {
-  entropyToMiniSecret,
-  mnemonicToEntropy,
-} from "@polkadot-labs/hdkd-helpers"
 import { Binary, createClient } from "polkadot-api"
 import { chainSpec } from "polkadot-api/chains/westend"
-import { getPolkadotSigner } from "polkadot-api/signer"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 import { take } from "rxjs"
+import { getDevSigner } from "./signer"
 
-const alice_mnemonic =
-  "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
-const entropy = mnemonicToEntropy(alice_mnemonic)
-const miniSecret = entropyToMiniSecret(entropy)
-const derive = sr25519CreateDerive(miniSecret)
-const alice = derive("//Alice")
-const aliceSigner = getPolkadotSigner(alice.publicKey, "Sr25519", alice.sign)
+const aliceSigner = getDevSigner()
 
 const smoldot = start()
 const client = createClient(

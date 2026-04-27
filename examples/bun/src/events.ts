@@ -1,22 +1,13 @@
-import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
-import {
-  DEV_PHRASE,
-  entropyToMiniSecret,
-  mnemonicToEntropy,
-} from "@polkadot-labs/hdkd-helpers"
-import { getPolkadotSigner, withMetadataHash } from "polkadot-api/signer"
-import { createClient } from "polkadot-api"
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
+import { createClient } from "polkadot-api"
 import { chainSpec } from "polkadot-api/chains/westend"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 import { filter } from "rxjs"
+import { getDevSigner } from "./signer"
 
 // let's create Bob signer
-const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))
-const derive = sr25519CreateDerive(miniSecret)
-const bobKeyPair = derive("//Bob")
-const bob = getPolkadotSigner(bobKeyPair.publicKey, "Sr25519", bobKeyPair.sign)
+const bob = getDevSigner("//Bob")
 
 // create the client with smoldot
 const smoldot = start()

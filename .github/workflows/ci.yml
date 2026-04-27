@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Logs
-          path: integration-tests/chopsticks/LOGS_${{matrix.node-version}}*
+          path: integration-tests/forklift/logs/LOGS_${{matrix.node-version}}*
 
   # this allows our branch protection mechanism to work with matrix-based runs
   build-status:

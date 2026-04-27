@@ -1,5 +1,5 @@
 import { Observable } from "rxjs"
-import { vi, Mock as _ } from "vitest"
+import { vi } from "vitest"
 import { Procedure, withCallback } from "./spies"
 
 export function observe<T>(obs$: Observable<T>) {

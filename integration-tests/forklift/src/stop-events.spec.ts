@@ -1,5 +1,10 @@
 import { paseo } from "@polkadot-api/descriptors"
-import { createClient } from "polkadot-api"
+import {
+  isRequest,
+  isResponse,
+  JsonRpcId,
+} from "@polkadot-api/json-rpc-provider"
+import { createClient, PolkadotClient } from "polkadot-api"
 import {
   combineLatest,
   concatMap,
@@ -9,36 +14,28 @@ import {
   skip,
 } from "rxjs"
 import { describe, expect, it, vitest } from "vitest"
-import "./chopsticks"
-import { ALICE, BOB, createBlock, getChopsticksProvider } from "./chopsticks"
-import { newBlock } from "./chopsticksUtils"
+import { ALICE, BOB, getForkliftProvider } from "./lib/forklift"
 import {
   combineInterceptors,
   createStopInterceptor,
   Interceptor,
   InterceptorContext,
   providerInterceptor,
-} from "./providerInterceptor"
-import { wait } from "./utils"
-import {
-  isRequest,
-  isResponse,
-  JsonRpcId,
-} from "@polkadot-api/json-rpc-provider"
+} from "./lib/providerInterceptor"
+import { wait } from "./lib/utils"
 
 describe("Stop events", () => {
   it("reconnects after a stop event recovery fails", async () => {
-    const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_recon"),
+    const [provider, getInterceptor, chain] = providerInterceptor(
+      getForkliftProvider("stop_events_recon"),
       createFailedStopInterceptor,
     )
     const client = createClient(provider)
 
-    await firstValueFrom(client.bestBlocks$)
+    await waitLoaded(client)
+    await getInterceptor().stopAndFailOnce()
 
-    getInterceptor().stopAndFailOnce()
-
-    const blockHash = await newBlock()
+    const blockHash = await chain.newBlock()
 
     const [bestBlock] = await Promise.race([
       firstValueFrom(
@@ -51,14 +48,13 @@ describe("Stop events", () => {
   })
 
   it("waits for stop event to resolve before starting a new operation", async () => {
-    const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_wait_stop"),
+    const [provider, getInterceptor, chain] = providerInterceptor(
+      getForkliftProvider("stop_events_wait_stop"),
       createStopAndHODLInterceptor,
     )
     const client = createClient(provider)
 
-    await firstValueFrom(client.bestBlocks$)
-
+    await waitLoaded(client)
     getInterceptor().stopAndHODL()
 
     const accountPromise = client
@@ -70,7 +66,7 @@ describe("Stop events", () => {
     getInterceptor().resume()
 
     await wait(300)
-    await newBlock()
+    await chain.newBlock()
 
     const account = await accountPromise
     expect(account.nonce).toBeGreaterThan(1000)
@@ -101,8 +97,8 @@ describe("Stop events", () => {
       ] as const
     }
 
-    const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_no_unpinned_report"),
+    const [provider, getInterceptor, chain] = providerInterceptor(
+      getForkliftProvider("stop_events_no_unpinned_report"),
       createStopAndIgnoreFinalizedInterceptor,
     )
     const client = createClient(provider)
@@ -123,13 +119,13 @@ describe("Stop events", () => {
     })
     await firstValueFrom(obs$)
 
-    const hash = await newBlock(2)
-    console.log(hash)
+    await chain.newBlock()
+    const hash = await chain.newBlock()
     await wait(300)
 
     getInterceptor().stop()
 
-    await newBlock()
+    await chain.newBlock()
 
     await firstValueFrom(obs$.pipe(filter((r) => r.hash === hash)))
     expect(errorFn).not.toHaveBeenCalled()
@@ -168,7 +164,6 @@ describe("Stop events", () => {
             ongoingOperations.has(msg.id)
           ) {
             if (msg.result.result !== "started") {
-              console.log(msg)
               throw new Error("Operation not started")
             }
             operationIdToOperation.set(msg.result.operationId, msg.id)
@@ -218,8 +213,8 @@ describe("Stop events", () => {
       ] as const
     }
 
-    const [provider, getInterceptor] = providerInterceptor(
-      getChopsticksProvider("stop_events_recover"),
+    const [provider, getInterceptor, chain] = providerInterceptor(
+      getForkliftProvider("stop_events_recover"),
       createStopAndThrottleInterceptor,
     )
     const client = createClient(provider)
@@ -238,7 +233,7 @@ describe("Stop events", () => {
     getInterceptor().throttle()
 
     const nextFinalized = firstValueFrom(client.finalizedBlock$.pipe(skip(1)))
-    await createBlock(client)
+    await chain.newBlock()
     await nextFinalized
 
     // Wait for the operation setup: the first will start going through, the second will get reported as "operationLimit"
@@ -312,3 +307,6 @@ const createFailedStopInterceptor = (ctx: InterceptorContext) => {
 
   return [hodlInterceptor, controller] as const
 }
+
+const waitLoaded = (client: PolkadotClient) =>
+  client.getTypedApi(paseo).constants.Balances.ExistentialDeposit()

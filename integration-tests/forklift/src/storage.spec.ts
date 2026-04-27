@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { ALICE, getChopsticksProvider } from "./chopsticks"
+import { ALICE, getForkliftProvider } from "./lib/forklift"
 import { createClient } from "polkadot-api"
 import { paseo } from "@polkadot-api/descriptors"
 
 describe("storage", () => {
   it("subscribes and decodes storage values", async () => {
-    const client = createClient(getChopsticksProvider("storage_sub"))
+    const client = createClient(getForkliftProvider("storage_sub")[0])
     const api = client.getTypedApi(paseo)
 
     const result = await api.query.System.Account.getValue(ALICE)
@@ -15,7 +15,7 @@ describe("storage", () => {
   })
 
   it("entries decodes storage keys", async () => {
-    const client = createClient(getChopsticksProvider("storage_ent"))
+    const client = createClient(getForkliftProvider("storage_ent")[0])
     const api = client.getTypedApi(paseo)
 
     const entries = await api.query.Referenda.ReferendumInfoFor.getEntries()
@@ -26,7 +26,7 @@ describe("storage", () => {
   })
 
   it("returns the raw key if the hasher is opaque", async () => {
-    const client = createClient(getChopsticksProvider("storage_raw"))
+    const client = createClient(getForkliftProvider("storage_raw")[0])
     const api = client.getTypedApi(paseo)
 
     const entries =

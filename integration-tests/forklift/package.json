@@ -1,5 +1,5 @@
 {
-  "name": "chopsticks-tests",
+  "name": "forkflit-tests",
   "private": true,
   "version": "0.0.0",
   "description": "",
@@ -11,13 +11,16 @@
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "test": "vitest",
-    "server": "chopsticks --endpoint=wss://rpc.ibp.network/paseo --port=8132"
+    "server": "forklift -c ./forklift.yaml"
   },
   "dependencies": {
-    "@acala-network/chopsticks": "^1.3.0",
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/forklift": "0.2.3",
     "@polkadot-api/json-rpc-provider": "workspace:*",
+    "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-labs/hdkd": "^0.0.28",
+    "@polkadot-labs/hdkd-helpers": "^0.0.29",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.2"
   },

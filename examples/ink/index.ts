@@ -1,19 +1,12 @@
 import { contracts, MultiAddress, testAzero } from "@polkadot-api/descriptors"
 import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
-import {
-  entropyToMiniSecret,
-  mnemonicToEntropy,
-} from "@polkadot-labs/hdkd-helpers"
+import { DEV_MINI_SECRET } from "@polkadot-labs/hdkd-helpers"
 import { getInkClient } from "polkadot-api/ink"
 import { getPolkadotSigner } from "polkadot-api/signer"
 import { toHex } from "polkadot-api/utils"
 import { createWsClient } from "polkadot-api/ws"
 
-const alice_mnemonic =
-  "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
-const entropy = mnemonicToEntropy(alice_mnemonic)
-const miniSecret = entropyToMiniSecret(entropy)
-const derive = sr25519CreateDerive(miniSecret)
+const derive = sr25519CreateDerive(DEV_MINI_SECRET)
 const alice = derive("//Alice")
 const signer = getPolkadotSigner(alice.publicKey, "Sr25519", alice.sign)
 
