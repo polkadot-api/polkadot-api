@@ -52,8 +52,14 @@ export const getSmProvider = (
         const chain = getChain()
         if (chain instanceof Promise) {
           pending = chain.catch(() => {})
-          resolvedChain = await chain
-          pending = null
+          try {
+            resolvedChain = await chain
+          } catch (e) {
+            console.error(e)
+            throw e
+          } finally {
+            pending = null
+          }
         } else resolvedChain = chain
 
         if (chains.has(resolvedChain)) {
