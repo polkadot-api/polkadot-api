@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.21.0 - 2026-04-29
+
 ### Changed
 
 - `generate` warns if the config file hasn't been created yet instead of throwing an error.
