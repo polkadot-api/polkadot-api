@@ -55,7 +55,8 @@ export async function generate(opts: GenerateOptions) {
 
   const config = await readPapiConfig(opts.config)
   if (!config) {
-    throw new Error("Can't find the Polkadot-API configuration")
+    console.log("No chain has been added yet. See `papi add --help` to add one")
+    return
   }
   const sources = config.entries
 

@@ -6,6 +6,7 @@
 
 - **CLI**
   - Exit with an error status if codegen fails
+  - `generate` warns if the config file hasn't been created yet instead of throwing an error.
 
 ## 2.1.0 - 2026-04-21
 
