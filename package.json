@@ -27,7 +27,7 @@
     ]
   },
   "devDependencies": {
-    "@fast-check/vitest": "^0.4.0",
+    "@fast-check/vitest": "^0.4.1",
     "@homer0/prettier-plugin-jsdoc": "^11.1.0",
     "@rollup/plugin-alias": "^6.0.0",
     "@rollup/plugin-json": "^6.1.0",
