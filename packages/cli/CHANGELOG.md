@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+### Changed
+
+- `generate` warns if the config file hasn't been created yet instead of throwing an error.
+
 ### Fixed
 
-- Exit with an error status if codegen fails
+- Exit with an error status if codegen fails.
 
 ## 0.20.3 to 0.20.4 - 2026-04-21
 
