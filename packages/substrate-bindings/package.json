@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/substrate-bindings",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
   "dependencies": {
     "@noble/hashes": "^2.2.0",
     "@polkadot-api/utils": "workspace:*",
-    "@scure/base": "^2.0.0",
+    "@scure/base": "^2.2.0",
     "scale-ts": "^1.6.1"
   },
   "devDependencies": {

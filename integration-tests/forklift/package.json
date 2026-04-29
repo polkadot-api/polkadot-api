@@ -20,7 +20,7 @@
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-labs/hdkd": "^0.0.28",
-    "@polkadot-labs/hdkd-helpers": "^0.0.29",
+    "@polkadot-labs/hdkd-helpers": "^0.0.30",
     "polkadot-api": "workspace:*",
     "rxjs": "^7.8.2"
   },

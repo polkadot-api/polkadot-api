@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+## 2.1.1 - 2026-04-29
+
 ### Fixed
+
+- Update dependencies.
 
 - **CLI**
   - Exit with an error status if codegen fails
