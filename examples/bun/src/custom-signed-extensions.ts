@@ -2,7 +2,7 @@ import { MultiAddress, turing } from "@polkadot-api/descriptors"
 import { createWsClient } from "polkadot-api/ws"
 import { getDevSigner } from "./signer"
 
-const papiTestSigner = getDevSigner()
+const { signer } = getDevSigner()
 
 const client = createWsClient("wss://turing-rpc.avail.so/ws")
 
@@ -20,7 +20,7 @@ const estimatedFees = await transfer.getEstimatedFees(BOB, {
 console.log({ estimatedFees })
 
 transfer
-  .signSubmitAndWatch(papiTestSigner, {
+  .signSubmitAndWatch(signer, {
     customSignedExtensions: { CheckAppId: { value: 0 } },
   })
   .subscribe({

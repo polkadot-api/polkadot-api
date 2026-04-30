@@ -7,7 +7,7 @@ import { filter } from "rxjs"
 import { getDevSigner } from "./signer"
 
 // let's create Bob signer
-const bob = getDevSigner("//Bob")
+const { signer: bob } = getDevSigner("//Bob")
 
 // create the client with smoldot
 const smoldot = start()

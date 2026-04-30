@@ -7,7 +7,7 @@ import { start } from "polkadot-api/smoldot"
 import { take } from "rxjs"
 import { getDevSigner } from "./signer"
 
-const aliceSigner = getDevSigner()
+const { signer: alice } = getDevSigner()
 
 const smoldot = start()
 const client = createClient(
@@ -26,7 +26,7 @@ const multisigSigner = getMultisigSigner(
   },
   api.query.Multisig.Multisigs.getValue,
   api.apis.TransactionPaymentApi.query_info,
-  aliceSigner,
+  alice,
 )
 
 client.finalizedBlock$.pipe(take(1)).subscribe(() => console.log("connected"))

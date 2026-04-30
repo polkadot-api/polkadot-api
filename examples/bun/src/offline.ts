@@ -3,7 +3,7 @@ import { getOfflineApi } from "polkadot-api"
 import { getDevSigner } from "./signer"
 
 // let's create Alice signer
-const alice = getDevSigner()
+const { signer: alice } = getDevSigner()
 
 const api = await getOfflineApi(wnd)
 

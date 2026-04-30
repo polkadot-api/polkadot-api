@@ -9,7 +9,7 @@ import { getDevSigner } from "./signer"
 // let's create Alice signer
 const alice = withMetadataHash(
   { decimals: 12, tokenSymbol: "WND" },
-  getDevSigner(),
+  getDevSigner().signer,
 )
 
 // create the client with smoldot
