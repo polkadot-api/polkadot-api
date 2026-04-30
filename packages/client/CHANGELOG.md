@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- **sm-provider**
+  - Fix infinite loop when creating a chain ends with rejection.
+
 ## 2.1.1 - 2026-04-29
 
 ### Fixed
