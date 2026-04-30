@@ -6,12 +6,12 @@ import {
 import { mergeUint8 } from "@polkadot-api/utils"
 import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
 
-const enum SignerType {
+export const enum SignerType {
   Polkadot,
   Ethereum,
 }
 const unkownSignerType = () => new Error("Unkown signer")
-const getSignerType = (
+export const getSignerType = (
   metadata: UnifiedMetadata,
 ): [SignerType, [] | [number]] => {
   const { extrinsic } = metadata
@@ -55,7 +55,7 @@ const getSignerType = (
   throw unkownSignerType()
 }
 
-const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
+export const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
   Ed25519: 0,
   Sr25519: 1,
   Ecdsa: 2,

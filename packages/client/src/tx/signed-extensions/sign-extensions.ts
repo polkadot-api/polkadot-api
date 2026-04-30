@@ -125,6 +125,9 @@ export const getSignExtensionsCreator = (
               additionalEnc(systemVersion["transaction_version"]),
             )
 
+          case "VerifyMultiSignature":
+            return value(zero)
+
           default:
             return getFromCustomEntry(key)
         }
