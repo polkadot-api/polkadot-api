@@ -16,7 +16,7 @@
   "dependencies": {
     "@polkadot-api/cli": "workspace:*",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
-    "@polkadot-api/forklift": "0.2.3",
+    "@polkadot-api/forklift": "0.2.6",
     "@polkadot-api/json-rpc-provider": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-labs/hdkd": "^0.0.28",
