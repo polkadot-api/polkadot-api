@@ -95,7 +95,7 @@ export const startForklift = async () => {
   }
 
   console.log("Connecting to forklift…")
-  const timeout = 15000
+  const timeout = 30000
   const success = await Promise.race([
     client
       .getUnsafeApi()
