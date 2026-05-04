@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.3 - 2026-05-04
+
 ### Fixed
 
 - Fix infinite loop when creating a chain ends with rejection.
