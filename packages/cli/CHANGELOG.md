@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Pin `moduleResolution: bundler` when building descriptors.
+
 ## 0.21.0 - 2026-04-29
 
 ### Changed

@@ -444,6 +444,8 @@ async function compileCodegen(packageDir: string) {
       module: "esnext",
       resolveJsonModule: true,
       allowSyntheticDefaultImports: true,
+      // Typings only allow "node" | "classic", but "bundler" is also a valid option, and it's what we want here
+      moduleResolution: "bundler" as any,
       outDir,
     },
   })

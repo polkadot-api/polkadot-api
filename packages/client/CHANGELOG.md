@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- **CLI**
+  - Pin `moduleResolution: bundler` when building descriptors.
 - **sm-provider**
   - Fix infinite loop when creating a chain ends with rejection.
 
