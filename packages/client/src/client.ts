@@ -342,7 +342,7 @@ export function createClient(
 
     getTypedApi: <D extends ChainDefinition>(chainDefinition: D) => {
       if (typedApis.has(chainDefinition)) return typedApis.get(chainDefinition)!
-      const api = createApi<D>(chainHead, broadcastTx$)
+      const api = createApi<D>(chainHead, broadcastTx$, chainDefinition)
 
       typedApis.set(chainDefinition, api)
       return api

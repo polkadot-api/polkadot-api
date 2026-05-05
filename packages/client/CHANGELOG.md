@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Use generated descriptors to check chain compatibilities
+
 ## 2.1.2 - 2026-05-04
 
 ### Fixed
