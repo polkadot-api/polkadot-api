@@ -14,12 +14,15 @@ import {
 import { toHex } from "@polkadot-api/utils"
 import {
   Observable,
+  ObservedValueOf,
   catchError,
   combineLatest,
   defer,
+  distinctUntilChanged,
   firstValueFrom,
   from,
   map,
+  scan,
   shareReplay,
 } from "rxjs"
 import { createCompatHelpers } from "./compatibility"
@@ -34,6 +37,7 @@ import type { PolkadotClient, TypedApi } from "./types"
 import { createProxyPath, firstValueFromWithSignal } from "./utils"
 import { createViewFnEntry } from "./viewFns"
 import { createWatchEntries } from "./watch-entries"
+import { TxCreatorBindings } from "@polkadot-api/signers-common"
 
 const HEX_REGEX = /^(?:0x)?((?:[0-9a-fA-F][0-9a-fA-F])+)$/
 
@@ -42,6 +46,48 @@ const createApi = <D extends ChainDefinition>(
   broadcast$: (tx: Uint8Array) => Observable<never>,
   chainDefinition?: ChainDefinition,
 ): TypedApi<D> => {
+  const txCreatorBindings: TxCreatorBindings = {
+    blocks: chainHead.pinnedBlocks$.pipe(
+      scan(
+        (acc, next) => {
+          let finalized: (typeof acc)["finalized"]
+          if (acc.finalized.hash === next.finalized) finalized = acc.finalized
+          else {
+            const { hash, parent, number } = next.blocks.get(next.finalized)!
+            finalized = { hash, parent, number }
+          }
+          const newTips = Array.from(next.blocks.values())
+            .filter((b) => b.children.size === 0)
+            .map(({ hash }) => hash)
+          let tips: (typeof acc)["tips"]
+          if (
+            newTips.length === acc.tips.length &&
+            acc.tips.every(({ hash }) => newTips.includes(hash))
+          )
+            tips = acc.tips
+          else {
+            tips = []
+            newTips.forEach((tipHash) => {
+              const tip = acc.tips.find(({ hash }) => tipHash === hash)
+              if (tip) tips.push(tip)
+              const { hash, parent, number } = next.blocks.get(tipHash)!
+              tips.push({ hash, parent, number })
+            })
+          }
+          return finalized === acc.finalized && tips === acc.tips
+            ? acc
+            : { finalized, tips }
+        },
+        {
+          finalized: { hash: "", number: -1, parent: "" },
+          tips: [],
+        } as ObservedValueOf<TxCreatorBindings["blocks"]>,
+      ),
+      distinctUntilChanged(),
+    ),
+    call: (call, args, at) =>
+      firstValueFrom(chainHead.call$(at, call, toHex(args))),
+  }
   const compatHelpers = createCompatHelpers(chainDefinition)
   const { getClientCompat, getIsAsssetCompat } = compatHelpers
 
@@ -140,6 +186,7 @@ const createApi = <D extends ChainDefinition>(
     )
 
   return {
+    txCreatorBindings,
     tx,
     constants,
     apis,

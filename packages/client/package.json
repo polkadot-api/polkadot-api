@@ -130,6 +130,7 @@
     "@polkadot-api/pjs-signer": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signer": "workspace:*",
+    "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/smoldot": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",

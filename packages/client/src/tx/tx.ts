@@ -167,6 +167,36 @@ export const createTxEntry = <
       )
     }
 
+    const create: Transaction["create"] = (creator, opts) =>
+      firstValueFrom(
+        combineLatest([
+          chainHead.best$,
+          chainHead.getRuntimeContext$(null),
+          getCallData$(arg, null),
+        ]).pipe(
+          mergeMap(([best, ctx, { callData }]) =>
+            creator(
+              {
+                callData: toHex(callData),
+                context: {
+                  metadata: toHex(ctx.metadataRaw),
+                  bestBlockHash: best.hash,
+                  bestBlockHeight: best.number,
+                  tokenDecimals: null,
+                  tokenSymbol: null,
+                },
+                extensions: [],
+                signer: null,
+                txExtVersion: null,
+                version: 1,
+              },
+              opts,
+            ),
+          ),
+          map(fromHex),
+        ),
+      )
+
     const sign: Transaction<Asset, Ext>["sign"] = (from, options) =>
       firstValueFrom(_sign(from, options)).then((x) => x.tx)
 
@@ -249,6 +279,7 @@ export const createTxEntry = <
       getEncodedData,
       getBareTx: () =>
         firstValueFrom(getCallData$(arg, null).pipe(map(({ bare }) => bare))),
+      create,
       sign,
       signSubmitAndWatch,
       signAndSubmit,

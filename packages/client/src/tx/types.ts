@@ -1,6 +1,6 @@
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
-import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { PolkadotSigner, TxCreator } from "@polkadot-api/polkadot-signer"
 import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
@@ -256,6 +256,8 @@ export type Transaction<
     from: PolkadotSigner,
     txOptions?: TxOptions<Asset, Ext>,
   ): Promise<Uint8Array>
+
+  create<T>(creator: TxCreator<T>, txOptions: T): Promise<Uint8Array>
 
   /**
    * Observable-based all-in-one transaction submitting. It will sign,
