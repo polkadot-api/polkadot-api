@@ -4,12 +4,11 @@ import { chainSpec } from "polkadot-api/chains/westend"
 import { withMetadataHash } from "polkadot-api/signer"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
-import { getDevSigner } from "./signer"
+import { getDevTxCreator } from "./signer"
 
-// let's create Alice signer
-const alice = withMetadataHash(
-  { decimals: 12, tokenSymbol: "WND" },
-  getDevSigner(),
+// let's create Alice transaction creator
+const alice = withMetadataHash({ decimals: 12, tokenSymbol: "WND" })(
+  getDevTxCreator(),
 )
 
 // create the client with smoldot
@@ -30,7 +29,7 @@ const transfer = api.tx.Balances.transfer_allow_death({
 
 // sign and submit the transaction while looking at the
 // different events that will be emitted
-transfer.signSubmitAndWatch(alice).subscribe({
+transfer.createSubmitAndWatch(alice(api), {}).subscribe({
   next: (e) => {
     console.log(e.type)
     if (e.type === "txBestBlocksState") {

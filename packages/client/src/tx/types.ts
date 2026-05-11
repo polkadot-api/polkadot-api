@@ -1,6 +1,6 @@
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
-import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { TxCreator } from "@polkadot-api/polkadot-signer"
 import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
@@ -72,6 +72,8 @@ export type TxFinalized = {
   txHash: HexString
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
+type TxCreatorOptions<T extends TxCreator<any>> =
+  T extends TxCreator<infer A> ? A : never
 
 export type CustomSignedExtensionValues =
   | {
@@ -157,75 +159,6 @@ export type TxOptions<Asset, Ext> = Partial<
       }
 >
 
-export type OfflineTxExtensions<Asset> = void extends Asset
-  ? {
-      /**
-       * Nonce for the signer of the transaction.
-       */
-      nonce: number
-      /**
-       * Mortality of the transaction.
-       */
-      mortality:
-        | { mortal: false }
-        | {
-            mortal: true
-            period: number
-            startAtBlock: { height: number; hash: HexString }
-          }
-      /**
-       * Tip in fundamental units. Default: `0n`
-       */
-      tip?: bigint
-      /**
-       * Custom values for chains that have custom signed-extensions.
-       * The key of the Object should be the signed-extension name and the value
-       * is an Object that accepts 2 possible keys: one for `value`
-       * and the other one for `additionallySigned`. They both receive either
-       * the encoded value as a `Uint8Array` that should be used for the
-       * signed-extension, or the decoded value that PAPI will encode using its
-       * dynamic codecs. At least one of the 2 values must be included into the
-       * signed-extension Object.
-       */
-      customSignedExtensions?: Record<string, CustomSignedExtensionValues>
-    }
-  : {
-      /**
-       * Nonce for the signer of the transaction.
-       */
-      nonce: number
-      /**
-       * Mortality of the transaction.
-       */
-      mortality:
-        | { mortal: false }
-        | {
-            mortal: true
-            period: number
-            startAtBlock: { height: number; hash: HexString }
-          }
-      /**
-       * Tip in fundamental units. Default: `0n`
-       */
-      tip?: bigint
-      /**
-       * Custom values for chains that have custom signed-extensions.
-       * The key of the Object should be the signed-extension name and the value
-       * is an Object that accepts 2 possible keys: one for `value`
-       * and the other one for `additionallySigned`. They both receive either
-       * the encoded value as a `Uint8Array` that should be used for the
-       * signed-extension, or the decoded value that PAPI will encode using its
-       * dynamic codecs. At least one of the 2 values must be included into the
-       * signed-extension Object.
-       */
-      customSignedExtensions?: Record<string, CustomSignedExtensionValues>
-      /**
-       * Asset information to pay fees, tip, etc. By default it'll use the
-       * native token of the chain.
-       */
-      asset?: Asset
-    }
-
 export type PaymentInfo = {
   weight: {
     ref_time: bigint
@@ -244,47 +177,46 @@ export type Transaction<
   Ext = Record<string, CustomSignedExtensionValues>,
 > = {
   /**
-   * Pack the transaction, sends it to the signer, and return the signature
-   * asynchronously. If the signer fails (or the user cancels the signature)
-   * it'll throw an error.
+   * Creates a signed transaction asynchronously. If the creator fails (or the
+   * user cancels the signature) it'll throw an error.
    *
-   * @param from       `PolkadotSigner`-compliant signer.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  sign(
-    from: PolkadotSigner,
-    txOptions?: TxOptions<Asset, Ext>,
+  create<T extends TxCreator<any>>(
+    creator: T,
+    txOptions: TxCreatorOptions<T>,
   ): Promise<Uint8Array>
 
   /**
-   * Observable-based all-in-one transaction submitting. It will sign,
+   * Observable-based all-in-one transaction submitting. It will create,
    * broadcast, and track the transaction. The observable is singlecast, i.e.
-   * it will sign, broadcast, etc at every subscription. It will complete once
+   * it will create, broadcast, etc at every subscription. It will complete once
    * the transaction is found in a `finalizedBlock`.
    *
-   * @param from       `PolkadotSigner`-compliant signer.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Observable to the transaction.
    */
-  signSubmitAndWatch(
-    from: PolkadotSigner,
-    txOptions?: TxOptions<Asset, Ext>,
+  createSubmitAndWatch<T extends TxCreator<any>>(
+    creator: T,
+    txOptions: TxCreatorOptions<T>,
   ): Observable<TxEvent>
 
   /**
-   * Pack the transaction, sends it to the signer, broadcast, and track the
-   * transaction. The promise will resolve as soon as the transaction in found
-   * in a `finalizedBlock`. If the signer fails (or the user cancels the
-   * signature), or the transaction becomes invalid it'll throw an error.
+   * Creates the transaction, broadcasts it, and tracks the transaction. The
+   * promise will resolve as soon as the transaction in found in a
+   * `finalizedBlock`. If the creator fails (or the user cancels the signature),
+   * or the transaction becomes invalid it'll throw an error.
    *
-   * @param from       `PolkadotSigner`-compliant signer.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Finalized transaction information.
    */
-  signAndSubmit(
-    from: PolkadotSigner,
-    txOptions?: TxOptions<Asset, Ext>,
+  createAndSubmit<T extends TxCreator<any>>(
+    creator: T,
+    txOptions: TxCreatorOptions<T>,
   ): Promise<TxFinalizedPayload>
 
   /**
@@ -352,22 +284,18 @@ export type TxEntry<Arg extends {} | undefined, Ext, Asset> = {
   ): Transaction<Asset, Extensions<Ext>>
 }
 
-export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
-  input: Arg,
-) => {
+export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
   /**
-   * Pack the transaction, sends it to the signer, and return the signature
-   * asynchronously. If the signer fails (or the user cancels the signature)
-   * it'll throw an error.
+   * Creates a signed transaction asynchronously. If the creator fails (or the
+   * user cancels the signature) it'll throw an error.
    *
-   * @param from        `PolkadotSigner`-compliant signer.
-   * @param extensions  Information needed for the transaction extensions
-   *                    that will be signed.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  sign: (
-    from: PolkadotSigner,
-    extensions: OfflineTxExtensions<Asset>,
+  create: <T extends TxCreator<any>>(
+    creator: T,
+    txOptions: T extends TxCreator<infer A> ? A & { nonce: number } : never,
   ) => Promise<Uint8Array>
 
   /**

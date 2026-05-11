@@ -2,13 +2,13 @@ import { contracts, MultiAddress, testAzero } from "@polkadot-api/descriptors"
 import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
 import { DEV_MINI_SECRET } from "@polkadot-labs/hdkd-helpers"
 import { getInkClient } from "polkadot-api/ink"
-import { getPolkadotSigner } from "polkadot-api/signer"
+import { getTxCreator } from "polkadot-api/signer"
 import { toHex } from "polkadot-api/utils"
 import { createWsClient } from "polkadot-api/ws"
 
 const derive = sr25519CreateDerive(DEV_MINI_SECRET)
 const alice = derive("//Alice")
-const signer = getPolkadotSigner(alice.publicKey, "Sr25519", alice.sign)
+const signer = getTxCreator(alice.publicKey, "Sr25519", alice.sign)
 
 const ADDRESS = {
   alice: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
@@ -141,7 +141,7 @@ const psp22 = getInkClient(contracts.psp22)
       dest: MultiAddress.Id(ADDRESS.psp22),
       gas_limit: response.gas_required,
       storage_deposit_limit: undefined,
-    }).signAndSubmit(signer)
+    }).createAndSubmit(signer(typedApi), {})
 
     console.log("tx events", psp22.event.filter(ADDRESS.psp22, result.events))
   } else {

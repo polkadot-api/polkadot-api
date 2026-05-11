@@ -1,5 +1,4 @@
-import type { PolkadotSigner } from "polkadot-api"
-import { getPolkadotSigner } from "polkadot-api/signer"
+import { getTxCreator } from "polkadot-api/signer"
 import { fromHex } from "@polkadot-api/utils"
 import { Blake2256 } from "@polkadot-api/substrate-bindings"
 import Sr25519Account from "@unique-nft/sr25519"
@@ -8,13 +7,13 @@ import { secp256k1 } from "@noble/curves/secp256k1.js"
 
 const accounts: Record<
   "alice" | "bob",
-  Record<"sr25519" | "ecdsa" | "ed25519", PolkadotSigner>
+  Record<"sr25519" | "ecdsa" | "ed25519", ReturnType<typeof getTxCreator>>
 > = { alice: {}, bob: {} } as any
 
 ;[Sr25519Account.fromUri("//Alice"), Sr25519Account.fromUri("//Bob")].forEach(
   (account, idx) => {
     const name = idx === 0 ? "alice" : "bob"
-    accounts[name]["sr25519"] = getPolkadotSigner(
+    accounts[name]["sr25519"] = getTxCreator(
       account.publicKey,
       "Sr25519",
       async (input) => account.sign(input),
@@ -30,7 +29,7 @@ const bobEd25519PrivKey = fromHex(
 )
 ;[aliceEd25519PrivKey, bobEd25519PrivKey].forEach((privKey, idx) => {
   const name = idx === 0 ? "alice" : "bob"
-  accounts[name]["ed25519"] = getPolkadotSigner(
+  accounts[name]["ed25519"] = getTxCreator(
     ed25519.getPublicKey(privKey),
     "Ed25519",
     async (input) => ed25519.sign(input, privKey),
@@ -56,7 +55,7 @@ const bobSecp256PrivKey = fromHex(
 
 ;[aliceSecp256PrivKey, bobSecp256PrivKey].forEach((privKey, idx) => {
   const name = idx === 0 ? "alice" : "bob"
-  accounts[name]["ecdsa"] = getPolkadotSigner(
+  accounts[name]["ecdsa"] = getTxCreator(
     Blake2256(secp256k1.getPublicKey(privKey)),
     "Ecdsa",
     async (input) => signEcdsa(input, privKey),
@@ -67,7 +66,7 @@ const bobSecp256PrivKey = fromHex(
 const unusedSK = fromHex(
   "0xb6dc15f8b139996bbffcf6a53861ff44be8860d7144628d6651eeb3e7c3e2bac",
 )
-export const unusedSigner = getPolkadotSigner(
+export const unusedSigner = getTxCreator(
   ed25519.getPublicKey(unusedSK),
   "Ed25519",
   (i) => ed25519.sign(i, unusedSK),

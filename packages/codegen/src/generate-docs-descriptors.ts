@@ -597,7 +597,7 @@ ${
  *   dest: MultiAddress.Id(userAddress),
  *   value: 10n ** 10n, // 1 DOT
  * })
- * await tx.signAndSubmit(signer)
+ * await tx.createAndSubmit(txCreator, {})
  * \`\`\`
  * 
  * @see [PAPI docs](https://papi.how/typed/tx) on transactions for more

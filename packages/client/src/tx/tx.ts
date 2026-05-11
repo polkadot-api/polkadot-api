@@ -2,25 +2,11 @@ import { ValueCompat } from "@/compatibility"
 import { PlainDescriptor } from "@/descriptors"
 import { getCallData } from "@/utils/get-call-data"
 import type {
-  BlockInfo,
   ChainHead$,
   RuntimeContext,
 } from "@polkadot-api/observable-client"
-import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { getPolkadotSigner } from "@polkadot-api/signer"
-import {
-  _void,
-  AccountId,
-  compact,
-  compactBn,
-  Decoder,
-  Enum,
-  HexString,
-  Struct,
-  u128,
-  u32,
-  Variant,
-} from "@polkadot-api/substrate-bindings"
+import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { compact, Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   combineLatest,
@@ -28,40 +14,15 @@ import {
   map,
   mergeMap,
   Observable,
-  of,
   take,
-  throwError,
 } from "rxjs"
-import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
-import {
-  Extensions,
-  PaymentInfo,
-  Transaction,
-  TxEntry,
-  TxOptions,
-} from "./types"
+import { Extensions, Transaction, TxEntry } from "./types"
 
 export { InvalidTxError, submit, submit$ }
 
-const accountIdEnc = AccountId().enc
-const fakeSignature = new Uint8Array(64)
-const fakeSignatureEth = new Uint8Array(65)
-const getFakeSignature = (isEth: boolean) => () =>
-  isEth ? fakeSignatureEth : fakeSignature
-
-const [, queryInfoDecFallback] = Struct({
-  weight: Struct({
-    ref_time: compactBn,
-    proof_size: compactBn,
-  }),
-  class: Variant({
-    Normal: _void,
-    Operational: _void,
-    Mandatory: _void,
-  }),
-  partial_fee: u128,
-})
+type TxCreatorOptions<T extends TxCreator<any>> =
+  T extends TxCreator<infer A> ? A : never
 
 export const createTxEntry = <
   Arg extends {} | undefined,
@@ -73,17 +34,13 @@ export const createTxEntry = <
   chainHead: ChainHead$,
   broadcast: (tx: Uint8Array) => Observable<never>,
   compatibility: ValueCompat,
-  getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
+  _getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
 ): TxEntry<Arg, E, Asset> => {
   type Ext = Extensions<E>
 
   const getCompatCtx$ = (at: HexString | null) =>
     combineLatest([chainHead.getRuntimeContext$(at), compatibility]).pipe(
-      map(([ctx, getCompat]) => ({
-        ctx,
-        isAssetCompat: getIsAssetCompat(ctx),
-        ...getCompat(ctx),
-      })),
+      map(([ctx, getCompat]) => ({ ctx, ...getCompat(ctx) })),
     )
 
   const getCallData$ = (arg: any, at: HexString | null) =>
@@ -112,122 +69,69 @@ export const createTxEntry = <
       ),
     )
 
-  const getEncodedAsset$ = (
-    asset: any,
-    at: HexString | null,
-  ): Observable<Uint8Array | undefined> =>
-    asset === undefined
-      ? of(undefined)
-      : getCompatCtx$(at).pipe(
-          map(({ ctx, isAssetCompat }) => {
-            if (!isAssetCompat(asset))
-              throw new Error(`Incompatible runtime asset`)
-
-            const { dynamicBuilder, assetId } = ctx
-            if (!assetId) return undefined
-            return dynamicBuilder.buildDefinition(assetId).enc(asset)
-          }),
-        )
-
   return (arg?: Arg): Transaction<Asset, Ext> => {
-    const sign$ = (
-      from: PolkadotSigner,
-      { ..._options }: Omit<TxOptions<{}, Ext>, "at">,
-      atBlock: BlockInfo,
+    const create$ = <T extends TxCreator<any>>(
+      creator: T,
+      opts: TxCreatorOptions<T>,
     ) =>
       combineLatest([
-        getCallData$(arg, atBlock.hash),
-        getEncodedAsset$(_options.asset, atBlock.hash),
+        chainHead.genesis$,
+        chainHead.best$,
+        chainHead.getRuntimeContext$(null),
+        getCallData$(arg, null),
       ]).pipe(
-        mergeMap(([callData, asset]) =>
-          createTx(
-            chainHead,
-            from,
-            callData.callData,
-            atBlock,
-            (_options.customSignedExtensions as any) || {},
-            { ..._options, asset },
+        take(1),
+        mergeMap(([genesisHash, best, ctx, { callData }]) =>
+          creator(
+            {
+              callData: toHex(callData),
+              context: {
+                metadata: toHex(ctx.metadataRaw),
+                bestBlockHash: best.hash,
+                bestBlockHeight: best.number,
+                genesisHash,
+                token: null,
+              },
+              extensions: [],
+              signer: null,
+              txExtVersion: null,
+              version: 1,
+            },
+            opts,
           ),
         ),
+        map(fromHex),
       )
 
-    const _sign = (
-      from: PolkadotSigner,
-      { at, ..._options }: TxOptions<{}, Ext> = {},
-    ) => {
-      const atBlock = chainHead.pinnedBlocks$.state.blocks.get(at!)
-      if (at && !atBlock)
-        return throwError(() => new Error(`Uknown block ${at}`))
+    const create: Transaction<Asset, Ext>["create"] = (creator, options) =>
+      firstValueFrom(create$(creator, options))
 
-      return (atBlock ? of(atBlock) : chainHead.finalized$).pipe(
-        take(1),
-        mergeMap((block) =>
-          sign$(from, _options, block).pipe(map((tx) => ({ tx, block }))),
-        ),
+    const createAndSubmit: Transaction<Asset, Ext>["createAndSubmit"] = (
+      creator,
+      options,
+    ) =>
+      firstValueFrom(create$(creator, options)).then((tx) =>
+        submit(chainHead, broadcast, tx),
       )
-    }
 
-    const sign: Transaction<Asset, Ext>["sign"] = (from, options) =>
-      firstValueFrom(_sign(from, options)).then((x) => x.tx)
+    const createSubmitAndWatch: Transaction<
+      Asset,
+      Ext
+    >["createSubmitAndWatch"] = (creator, options) =>
+      create$(creator, options).pipe(
+        mergeMap((tx) => submit$(chainHead, broadcast, tx, true)),
+      )
 
-    const signAndSubmit: Transaction<Asset, Ext>["signAndSubmit"] = (
-      from,
+    const getPaymentInfo: Transaction<Asset, Ext>["getPaymentInfo"] = async (
+      _from,
       _options,
     ) =>
-      firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
-        submit(chainHead, broadcast, tx, block.hash),
-      )
-
-    const signSubmitAndWatch: Transaction<Asset, Ext>["signSubmitAndWatch"] = (
-      from,
-      _options,
-    ) =>
-      _sign(from, _options).pipe(
-        mergeMap(({ tx }) => submit$(chainHead, broadcast, tx, true)),
-      )
-
-    const getPaymentInfo = async (
-      from: Uint8Array | string,
-      _options?: any,
-    ) => {
-      if (typeof from === "string")
-        from = from.startsWith("0x") ? fromHex(from) : accountIdEnc(from)
-      const isEth = from.length === 20
-      const fakeSigner = getPolkadotSigner(
-        from,
-        isEth ? "Ecdsa" : "Sr25519",
-        getFakeSignature(isEth),
-      )
-      const encoded = await sign(fakeSigner, _options)
-      const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
-
-      const decoder$: Observable<Decoder<PaymentInfo>> = chainHead
-        .getRuntimeContext$(null)
-        .pipe(
-          map((ctx) => {
-            try {
-              return ctx.dynamicBuilder.buildRuntimeCall(
-                "TransactionPaymentApi",
-                "query_info",
-              ).value[1]
-            } catch {
-              return queryInfoDecFallback
-            }
-          }),
-        )
-
-      const call$ = chainHead.call$(
-        null,
-        "TransactionPaymentApi_query_info",
-        args,
-      )
-
-      return firstValueFrom(
-        combineLatest([call$, decoder$]).pipe(
-          map(([result, decoder]) => decoder(result)),
+      // TODO: migrate fee estimation to the TxCreator-based transaction flow.
+      Promise.reject(
+        new Error(
+          "Transaction fee estimation is not migrated to TxCreator yet",
         ),
       )
-    }
 
     const getEncodedData = () =>
       firstValueFrom(
@@ -235,9 +139,15 @@ export const createTxEntry = <
       )
 
     const getEstimatedFees = async (
-      from: Uint8Array | string,
+      _from: Uint8Array | string,
       _options?: any,
-    ) => (await getPaymentInfo(from, _options)).partial_fee
+    ) =>
+      // TODO: migrate fee estimation to the TxCreator-based transaction flow.
+      Promise.reject(
+        new Error(
+          "Transaction fee estimation is not migrated to TxCreator yet",
+        ),
+      )
 
     return {
       getPaymentInfo,
@@ -249,9 +159,9 @@ export const createTxEntry = <
       getEncodedData,
       getBareTx: () =>
         firstValueFrom(getCallData$(arg, null).pipe(map(({ bare }) => bare))),
-      sign,
-      signSubmitAndWatch,
-      signAndSubmit,
+      create,
+      createSubmitAndWatch,
+      createAndSubmit,
     }
   }
 }

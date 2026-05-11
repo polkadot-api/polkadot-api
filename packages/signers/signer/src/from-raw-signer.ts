@@ -1,6 +1,12 @@
-import { mergeUint8 } from "@polkadot-api/utils"
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import {
+  createV4Tx,
+  getSignBytes,
+  TxCreatorEnhancer,
+  TxCreatorFactory,
+  withCommonExtensions,
+  withNonce,
+} from "@polkadot-api/signers-common"
 import {
   Blake2256,
   decAnyMetadata,
@@ -8,73 +14,78 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
 
-export function getPolkadotSigner(
+export const getTxCreator = (
   publicKey: Uint8Array,
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
-): PolkadotSigner {
-  const signTx = async (
-    callData: Uint8Array,
-    signedExtensions: Record<
-      string,
-      {
-        identifier: string
-        value: Uint8Array
-        additionalSigned: Uint8Array
-      }
-    >,
-    metadata: Uint8Array,
-    _: number,
-    hasher = Blake2256,
-  ) => {
-    const decMeta = unifyMetadata(decAnyMetadata(metadata))
+  // TODO: HASHER HERE?
+  hasher: (input: Uint8Array) => Uint8Array = Blake2256,
+) => {
+  const creator: TxCreatorFactory<{}> = () => async (payload) => {
+    const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
-    decMeta.extrinsic.signedExtensions[0].map(({ identifier }) => {
-      const signedExtension = signedExtensions[identifier]
+
+    // we disregard txExtVersion from payload, we use `0`
+    // v4 extrinsics always use `0`
+    decMeta.extrinsic.signedExtensions[0].forEach(({ identifier }) => {
+      const signedExtension = payload.extensions.find(
+        ({ id }) => id === identifier,
+      )
       if (!signedExtension)
         throw new Error(`Missing ${identifier} signed extension`)
-      extra.push(signedExtension.value)
-      additionalSigned.push(signedExtension.additionalSigned)
+      extra.push(fromHex(signedExtension.extra))
+      additionalSigned.push(fromHex(signedExtension.additionalSigned))
     })
-
+    const callData = fromHex(payload.callData)
     const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
     const signed = await sign(toSign.length > 256 ? hasher(toSign) : toSign)
-    return createV4Tx(decMeta, publicKey, signed, extra, callData, signingType)
+    return toHex(
+      createV4Tx(decMeta, publicKey, signed, extra, callData, signingType),
+    )
   }
-
-  return {
+  return Object.assign(withCommonExtensions(withNonce(publicKey)(creator)), {
     publicKey,
-    signTx,
     signBytes: getSignBytes(sign),
-  }
+  })
 }
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
 const oneU8 = Uint8Array.from([1])
 
-export const withMetadataHash = (
+export const withMetadataHash: (
   networkInfo: Parameters<typeof merkleizeMetadata>[1],
-  base: PolkadotSigner,
-): PolkadotSigner => ({
-  ...base,
-  signTx: async (callData, signedExtensions, metadata, ...rest) =>
-    base.signTx(
-      callData,
-      signedExtensions[METADATA_IDENTIFIER]
-        ? {
-            ...signedExtensions,
-            [METADATA_IDENTIFIER]: {
-              identifier: METADATA_IDENTIFIER,
-              value: oneU8,
-              additionalSigned: mergeUint8([
-                oneU8,
-                merkleizeMetadata(metadata, networkInfo).digest(),
-              ]),
-            },
-          }
-        : signedExtensions,
-      metadata,
-      ...rest,
-    ),
-})
+) => TxCreatorEnhancer<{}> = (networkInfo) => (innerFactory) => (chain) => {
+  const inner = innerFactory(chain)
+
+  return async (payload, opts) => {
+    const metadata = unifyMetadata(decAnyMetadata(payload.context.metadata))
+    const txExtVersion = payload.txExtVersion ?? 0
+    if (
+      !metadata.extrinsic.signedExtensions[txExtVersion].find(
+        ({ identifier }) => identifier === METADATA_IDENTIFIER,
+      )
+    )
+      throw new Error(`${METADATA_IDENTIFIER} not found`)
+    const extra = toHex(oneU8)
+    const additionalSigned = toHex(
+      mergeUint8([
+        oneU8,
+        merkleizeMetadata(payload.context.metadata, networkInfo).digest(),
+      ]),
+    )
+    const presentExt = payload.extensions.find(
+      ({ id }) => id === METADATA_IDENTIFIER,
+    )
+    if (presentExt) {
+      presentExt.extra = extra
+      presentExt.additionalSigned = additionalSigned
+    } else
+      payload.extensions.push({
+        id: METADATA_IDENTIFIER,
+        extra,
+        additionalSigned,
+      })
+    return inner({ ...payload, txExtVersion }, opts)
+  }
+}

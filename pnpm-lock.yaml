@@ -399,6 +399,9 @@ importers:
       '@polkadot-api/signer':
         specifier: workspace:*
         version: link:../signers/signer
+      '@polkadot-api/signers-common':
+        specifier: workspace:*
+        version: link:../signers/signers-common
       '@polkadot-api/sm-provider':
         specifier: workspace:*
         version: link:../json-rpc/sm-provider
@@ -792,6 +795,9 @@ importers:
       '@polkadot-api/merkleize-metadata':
         specifier: workspace:*
         version: link:../../merkleize-metadata
+      '@polkadot-api/metadata-builders':
+        specifier: workspace:*
+        version: link:../../metadata-builders
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../polkadot-signer
@@ -827,6 +833,9 @@ importers:
       '@noble/curves':
         specifier: ^2.2.0
         version: 2.2.0
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/smoldot:
     dependencies:

@@ -1,6 +1,5 @@
 import type Transport from "@ledgerhq/hw-transport"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
   Binary,
   ethAccount,
@@ -8,10 +7,16 @@ import {
   u16,
   u32,
 } from "@polkadot-api/substrate-bindings"
-import { mergeUint8 } from "@polkadot-api/utils"
-import { getMetadata } from "./get-metadata"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { CLA, DEFAULT_SS58, INS, P1, P2, PUBKEY_LEN, SIGN_LEN } from "./consts"
-import { getSignBytes, createV4Tx } from "@polkadot-api/signers-common"
+import {
+  getSignBytes,
+  createV4Tx,
+  TxCreatorFactory,
+  withCommonExtensions,
+  withNonce,
+} from "@polkadot-api/signers-common"
+import { getMetadata } from "./get-metadata"
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
 
@@ -276,7 +281,7 @@ export class LedgerSigner {
   }
 
   /**
-   * Create PolkadotSigner object from a specific derivation path and for a
+   * Create TxCreatorFactory object from a specific derivation path and for a
    * specific network.
    *
    * This call prevents race conditions and waits until the device is free to
@@ -290,45 +295,46 @@ export class LedgerSigner {
    * @throws This could throw if the device is not connected, locked, in a
    *         different app than Polkadot, etc.
    */
-  async getPolkadotSigner(
+  async getTxCreator(
     networkInfo: { decimals: number; tokenSymbol: string },
     path1: number,
     path2: number = 0,
-  ): Promise<PolkadotSigner> {
-    // ed25519 has public key, ecdsa has addr (20 bytes)
-    const publicKey = await this.#getPublicKeyAndAddr(path1, path2).then((v) =>
-      this.#schema === "ed25519"
-        ? v.slice(0, PUBKEY_LEN[this.#schema])
-        : v.slice(PUBKEY_LEN[this.#schema]),
-    )
-    const signTx: PolkadotSigner["signTx"] = async (
-      callData,
-      signedExtensions,
-      metadata,
-    ) => {
-      const merkleizer = merkleizeMetadata(metadata, networkInfo)
-      const digest = merkleizer.digest()
-      const meta = getMetadata(metadata)
+  ) {
+    const creator: TxCreatorFactory<{}> = () => async (payload) => {
+      const decMeta = getMetadata(payload.context.metadata)
       if (
-        meta.extrinsic.signedExtensions[0].find(
+        !decMeta.extrinsic.signedExtensions[0].find(
           ({ identifier }) => identifier === METADATA_IDENTIFIER,
-        ) == null
+        )
       )
-        throw new Error("No `CheckMetadataHash` sigExt found")
+        throw new Error(`${METADATA_IDENTIFIER} not found`)
+
+      const merkleizer = merkleizeMetadata(
+        payload.context.metadata,
+        networkInfo,
+      )
       const extra: Array<Uint8Array> = []
       const additionalSigned: Array<Uint8Array> = []
-      meta.extrinsic.signedExtensions[0].map(({ identifier }) => {
-        if (identifier === METADATA_IDENTIFIER) {
-          extra.push(Uint8Array.from([1]))
-          additionalSigned.push(mergeUint8([Uint8Array.from([1]), digest]))
-          return
-        }
-        const signedExtension = signedExtensions[identifier]
+      // we disregard txExtVersion from payload, we use `0`
+      // v4 extrinsics always use `0`
+      decMeta.extrinsic.signedExtensions[0].forEach(({ identifier }) => {
+        const signedExtension = payload.extensions.find(
+          ({ id }) => id === identifier,
+        )
         if (!signedExtension)
           throw new Error(`Missing ${identifier} signed extension`)
-        extra.push(signedExtension.value)
-        additionalSigned.push(signedExtension.additionalSigned)
+        if (identifier === METADATA_IDENTIFIER) {
+          extra.push(Uint8Array.from([1]))
+          additionalSigned.push(
+            mergeUint8([Uint8Array.from([1]), merkleizer.digest()]),
+          )
+        } else {
+          extra.push(fromHex(signedExtension.extra))
+          additionalSigned.push(fromHex(signedExtension.additionalSigned))
+        }
       })
+
+      const callData = fromHex(payload.callData)
       const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
       const signature = await this.#sign(
         path1,
@@ -336,12 +342,17 @@ export class LedgerSigner {
         toSign,
         merkleizer.getProofForExtrinsicPayload(toSign),
       )
-      return createV4Tx(meta, publicKey, signature, extra, callData)
+      return toHex(createV4Tx(decMeta, publicKey, signature, extra, callData))
     }
+    // ed25519 has public key, ecdsa has addr (20 bytes)
+    const publicKey = await this.#getPublicKeyAndAddr(path1, path2).then((v) =>
+      this.#schema === "ed25519"
+        ? v.slice(0, PUBKEY_LEN[this.#schema])
+        : v.slice(PUBKEY_LEN[this.#schema]),
+    )
 
-    return {
+    return Object.assign(withCommonExtensions(withNonce(publicKey)(creator)), {
       publicKey,
-      signTx,
       signBytes: getSignBytes(async (x) =>
         // the signature includes a "0x00" at the beginning, indicating a ed25519 signature, ecdsa do not
         // this is not needed for non-extrinsic signatures
@@ -349,6 +360,6 @@ export class LedgerSigner {
           this.#schema === "ed25519" ? 1 : 0,
         ),
       ),
-    }
+    })
   }
 }

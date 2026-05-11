@@ -7,11 +7,11 @@ import {
   Option,
   compactBn,
 } from "@polkadot-api/substrate-bindings"
-import { toHex } from "@polkadot-api/utils"
+import { fromHex, toHex } from "@polkadot-api/utils"
 
 type SignedExtension = {
-  value: Uint8Array
-  additionalSigned: Uint8Array
+  extra: string
+  additionalSigned: string
 }
 
 const toPjsHex = (value: number | bigint, minByteLen?: number) => {
@@ -24,14 +24,14 @@ const toPjsHex = (value: number | bigint, minByteLen?: number) => {
 export const CheckGenesis = ({
   additionalSigned,
 }: SignedExtension): { genesisHash: string } => ({
-  genesisHash: toHex(additionalSigned),
+  genesisHash: additionalSigned,
 })
 
 export const CheckNonce = ({
-  value,
+  extra,
 }: SignedExtension): { nonce: HexString } => {
   // nonce is a u32 in pjs => 4 bytes
-  return { nonce: toPjsHex(compact.dec(value), 4) }
+  return { nonce: toPjsHex(compact.dec(extra), 4) }
 }
 
 export const CheckTxVersion = ({
@@ -46,9 +46,9 @@ const assetTxPaymentDec = Struct({
 }).dec
 
 export const ChargeAssetTxPayment = ({
-  value,
+  extra,
 }: SignedExtension): { aseetId?: string; tip?: string } => {
-  const { tip, asset } = assetTxPaymentDec(value)
+  const { tip, asset } = assetTxPaymentDec(extra)
 
   return {
     ...(asset ? { assetId: toHex(asset) } : {}),
@@ -57,17 +57,17 @@ export const ChargeAssetTxPayment = ({
 }
 
 export const ChargeTransactionPayment = ({
-  value,
+  extra,
 }: SignedExtension): { tip: HexString } => ({
-  tip: toPjsHex(compactBn.dec(value), 16), // u128 => 16 bytes
+  tip: toPjsHex(compactBn.dec(extra), 16), // u128 => 16 bytes
 })
 
 export const CheckMortality = (
-  { value, additionalSigned }: SignedExtension,
+  { extra, additionalSigned }: SignedExtension,
   blockNumber: number,
 ): { era: HexString; blockHash: HexString; blockNumber: HexString } => ({
-  era: toHex(value),
-  blockHash: toHex(additionalSigned),
+  era: extra,
+  blockHash: additionalSigned,
   blockNumber: toPjsHex(blockNumber, 4),
 })
 
@@ -78,16 +78,15 @@ export const CheckSpecVersion = ({
 })
 
 export const CheckMetadataHash = ({
-  value,
+  extra,
   additionalSigned,
-}: SignedExtension): { mode?: number; metadataHash?: HexString } =>
-  value.length && value[0]
+}: SignedExtension): { mode?: number; metadataHash?: HexString } => {
+  const extraU8 = fromHex(extra)
+  const additionalSignedU8 = fromHex(additionalSigned)
+  return extraU8[0]
     ? {
         mode: 1,
-        metadataHash: toHex(
-          additionalSigned.length
-            ? additionalSigned.slice(1)
-            : additionalSigned,
-        ),
+        metadataHash: toHex(additionalSignedU8.slice(1)),
       }
     : {}
+}

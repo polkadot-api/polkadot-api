@@ -24,6 +24,7 @@ import type {
   TxFromBinary,
 } from "./tx"
 import { ViewFn } from "./viewFns"
+import { TxCreatorBindings } from "@polkadot-api/signers-common"
 
 export type { ChainSpecData }
 
@@ -84,13 +85,10 @@ export type TxApi<A extends Record<string, Record<string, any>>, Ext, Asset> = {
   }
 }
 
-export type OfflineTxApi<
-  A extends Record<string, Record<string, any>>,
-  Asset,
-> = {
+export type OfflineTxApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? OfflineTxEntry<A[K][KK], Asset>
+      ? OfflineTxEntry<A[K][KK]>
       : unknown
   }
 }
@@ -190,6 +188,7 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
 }
 
 export type TypedApi<D extends ChainDefinition, Safe = true> = {
+  txCreatorBindings: TxCreatorBindings
   tx: TxApi<
     TxFromPalletsDef<D["descriptors"]["pallets"]>,
     D["extensions"],
@@ -205,11 +204,9 @@ export type TypedApi<D extends ChainDefinition, Safe = true> = {
 }
 
 export type OfflineApi<D extends ChainDefinition> = {
+  txCreatorBindings: TxCreatorBindings
   constants: OfflineConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
-  tx: OfflineTxApi<
-    TxFromPalletsDef<D["descriptors"]["pallets"]>,
-    D["asset"]["_type"]
-  >
+  tx: OfflineTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
 }
 
 export type TransactionValidityError<D extends ChainDefinition> =

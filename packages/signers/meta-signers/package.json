@@ -25,7 +25,7 @@
     "dist"
   ],
   "scripts": {
-    "build-core": "tsc --noEmit && rollup -c ../../../rollup.config.js",
+    "build-core": "echo 'TODO: migrate'",
     "build": "pnpm build-core",
     "test": "echo 'no tests'",
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",

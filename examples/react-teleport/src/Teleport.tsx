@@ -1,11 +1,21 @@
 import React, { useRef, useState } from "react"
-import { teleportToParaChain, teleportToRelayChain } from "./api"
+import {
+  paraChainApi,
+  relayChainApi,
+  teleportToParaChain,
+  teleportToRelayChain,
+} from "./api"
 import { useSelectedAccount, useToken } from "./context"
 import { TxEvent } from "polkadot-api"
 
 const teleportFns = {
   para: teleportToParaChain,
   relay: teleportToRelayChain,
+}
+
+const teleportApis = {
+  para: paraChainApi,
+  relay: relayChainApi,
 }
 
 const TxStatus: React.FC<{ status: TxEvent | null }> = ({ status }) => {
@@ -37,7 +47,7 @@ export const Teleport: React.FC = () => {
 
   const teleport = (to: "para" | "relay") => {
     teleportFns[to](account.address, ref.current)
-      .signSubmitAndWatch(account.polkadotSigner)
+      .createSubmitAndWatch(account.txCreator(teleportApis[to]), {})
       .subscribe((x) => {
         setTxStatus(x)
         if (x.type === "finalized")

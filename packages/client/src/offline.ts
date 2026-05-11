@@ -1,25 +1,57 @@
-import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import {
+  getDynamicBuilder,
+  getLookupFn,
+  MetadataLookup,
+} from "@polkadot-api/metadata-builders"
+import {
+  decAnyMetadata,
   Enum,
-  metadata as metadataCodec,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
-import { fromHex, mergeUint8 } from "@polkadot-api/utils"
-import { ChainDefinition, PlainDescriptor } from "./descriptors"
-import { OfflineTxEntry } from "./tx"
-import { getSignExtensionsCreator } from "./tx/signed-extensions"
-import { OfflineApi } from "./types"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import type { TxCreatorBindings } from "@polkadot-api/signers-common"
+import { concat, NEVER, of } from "rxjs"
+import type { ChainDefinition } from "./descriptors"
+import type { OfflineTxEntry } from "./tx"
+import type { OfflineApi } from "./types"
+import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 
-const createOfflineTxEntry = <
-  Arg extends {} | undefined,
-  Asset extends PlainDescriptor<any>,
->(
+const getOfflineExtensions = (
+  genesis: string,
+  lookupFn: MetadataLookup,
+  builder: ReturnType<typeof getDynamicBuilder>,
+  { nonce }: { nonce: number },
+): TxPayloadV1["extensions"] => {
+  const ext = lookupFn.metadata.extrinsic.signedExtensions[0]
+  const nonceType = ext.find(
+    ({ identifier }) => identifier === "CheckNonce",
+  )?.type
+  const nonceExt =
+    nonceType != null
+      ? [
+          {
+            id: "CheckNonce",
+            extra: toHex(builder.buildDefinition(nonceType).enc(nonce)),
+            additionalSigned: "0x",
+          },
+        ]
+      : []
+  const mortality = ext.find(
+    ({ identifier }) => identifier === "CheckMortality",
+  )
+    ? [{ id: "CheckMortality", extra: "0x00", additionalSigned: genesis }]
+    : []
+  return [...mortality, ...nonceExt]
+}
+
+const createOfflineTxEntry = <Arg extends {} | undefined>(
   pallet: string,
   name: string,
+  genesisHex: string,
   metadataRaw: Uint8Array,
+  lookupFn: MetadataLookup,
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
-  signExtensionCreator: ReturnType<typeof getSignExtensionsCreator>,
-): OfflineTxEntry<Arg, Asset> => {
+): OfflineTxEntry<Arg> => {
   let codecs
   try {
     codecs = dynamicBuilder.buildCall(pallet, name)
@@ -35,15 +67,32 @@ const createOfflineTxEntry = <
     return {
       encodedData,
       decodedCall: Enum(pallet, Enum(name, arg)),
-      sign: async (from, extensions) =>
-        await from.signTx(
-          encodedData,
-          signExtensionCreator(extensions),
-          metadataRaw,
-          extensions.mortality.mortal
-            ? extensions.mortality.startAtBlock.height
-            : 0,
-        ),
+      create: async (creator, txOptions) => {
+        return fromHex(
+          await creator(
+            {
+              callData: toHex(encodedData),
+              context: {
+                metadata: toHex(metadataRaw),
+                bestBlockHash: genesisHex,
+                bestBlockHeight: 0,
+                genesisHash: genesisHex,
+                token: null,
+              },
+              extensions: getOfflineExtensions(
+                genesisHex,
+                lookupFn,
+                dynamicBuilder,
+                txOptions,
+              ),
+              signer: null,
+              txExtVersion: 0,
+              version: 1,
+            },
+            txOptions,
+          ),
+        )
+      },
     }
   }
 }
@@ -59,16 +108,10 @@ export const getOfflineApi: <D extends ChainDefinition>(
   chainDefinition: D,
 ) => Promise<OfflineApi<D>> = async ({ genesis: genesisHex, getMetadata }) => {
   if (!genesisHex) throw new Error("Missing genesis hash")
-  const genesis = fromHex(genesisHex)
   const metadataRaw = await getMetadata()
-  const metadata = unifyMetadata(metadataCodec.dec(metadataRaw))
+  const metadata = unifyMetadata(decAnyMetadata(metadataRaw))
   const lookupFn = getLookupFn(metadata)
   const dynamicBuilder = getDynamicBuilder(lookupFn)
-  const signExtensionCreator = getSignExtensionsCreator(
-    genesis,
-    lookupFn,
-    dynamicBuilder,
-  )
 
   const getPallet = (name: string) =>
     metadata.pallets.find((p) => p.name === name)
@@ -103,11 +146,24 @@ export const getOfflineApi: <D extends ChainDefinition>(
     createOfflineTxEntry(
       pallet,
       name,
+      genesisHex,
       metadataRaw,
+      lookupFn,
       dynamicBuilder,
-      signExtensionCreator,
     ),
   )
 
-  return { constants, tx } as any
+  const finalized = {
+    hash: genesisHex,
+    parent: toHex(new Uint8Array(32).fill(0)),
+    number: 0,
+  }
+  const txCreatorBindings: TxCreatorBindings = {
+    blocks: concat(of({ finalized, tips: [finalized] }), NEVER),
+    call: async () => {
+      throw new Error("OfflineApi cannot perform runtime calls")
+    },
+  }
+
+  return { constants, tx, txCreatorBindings } as any
 }

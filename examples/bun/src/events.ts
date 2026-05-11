@@ -4,10 +4,10 @@ import { chainSpec } from "polkadot-api/chains/westend"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 import { filter } from "rxjs"
-import { getDevSigner } from "./signer"
+import { getDevTxCreator } from "./signer"
 
-// let's create Bob signer
-const bob = getDevSigner("//Bob")
+// let's create Bob transaction creator
+const bob = getDevTxCreator("//Bob")
 
 // create the client with smoldot
 const smoldot = start()
@@ -37,7 +37,7 @@ typedApi.tx.Balances.transfer_allow_death({
   dest: MultiAddress.Id(ALICE),
   value: 12345n,
 })
-  .signSubmitAndWatch(bob)
+  .createSubmitAndWatch(bob(typedApi), {})
   .subscribe(async (r) => {
     console.log({
       type: r.type,
