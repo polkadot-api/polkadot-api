@@ -5,6 +5,7 @@
 ### Fixed
 
 - Use generated descriptors to check chain compatibilities
+- Reject non-plain-object values (e.g. empty `Uint8Array`/`Buffer`) when detecting the optional `{ at, signal }` argument on runtime calls. Previously such values were misclassified as the options bag, binding `at` to a prototype-inherited method and raising a confusing `BlockNotPinnedError`.
 
 ## 2.1.2 - 2026-05-04
 
