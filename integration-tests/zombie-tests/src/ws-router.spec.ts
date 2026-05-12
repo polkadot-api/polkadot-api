@@ -13,6 +13,7 @@ import {
 import { describe, expect, it } from "vitest"
 import { getInnerLogs } from "./inner-logs"
 import { withLogs } from "./with-logs"
+import { JsonRpcRequest } from "@polkadot-api/substrate-client"
 
 const { PROVIDER, VERSION } = process.env
 const ZOMBIENET_URI = "ws://127.0.0.1:9934/"
@@ -144,12 +145,31 @@ const withDisabledArchive: Middleware = (provider) => (onMsg, onHalt) => {
 }
 
 const withSaturateFollow: Middleware = (provider) => (onMsg, onHalt) => {
+  const SATURATING_FOLLOWS = 4
+  const followIds = new Set<string>()
+  // Hold outward messages until the saturating follows have been sent
+  const outMsgBuffer = new Array<JsonRpcRequest>()
+
   const baseConnection = provider((msg) => {
-    if (msg.id && String(msg.id).startsWith("saturating-follow-")) return
+    if ("result" in msg && String(msg.id).startsWith("saturating-follow-")) {
+      followIds.add(msg.result)
+      if (followIds.size === SATURATING_FOLLOWS) {
+        outMsgBuffer.forEach(baseConnection.send)
+        outMsgBuffer.length = 0
+      }
+      return
+    }
+    if (
+      "method" in msg &&
+      msg.method === "chainHead_v1_followEvent" &&
+      followIds.has(msg.params.subscription)
+    ) {
+      return
+    }
     onMsg(msg)
   }, onHalt)
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < SATURATING_FOLLOWS; i++) {
     baseConnection.send({
       jsonrpc: "2.0",
       id: `saturating-follow-${i}`,
@@ -158,7 +178,18 @@ const withSaturateFollow: Middleware = (provider) => (onMsg, onHalt) => {
     })
   }
 
-  return baseConnection
+  return {
+    disconnect() {
+      baseConnection.disconnect()
+    },
+    send(message) {
+      if (followIds.size < SATURATING_FOLLOWS) {
+        outMsgBuffer.push(message)
+        return
+      }
+      baseConnection.send(message)
+    },
+  }
 }
 
 let outterIdx = 0
