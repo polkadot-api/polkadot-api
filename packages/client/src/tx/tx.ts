@@ -170,11 +170,12 @@ export const createTxEntry = <
     const create: Transaction["create"] = (creator, opts) =>
       firstValueFrom(
         combineLatest([
+          chainHead.genesis$,
           chainHead.best$,
           chainHead.getRuntimeContext$(null),
           getCallData$(arg, null),
         ]).pipe(
-          mergeMap(([best, ctx, { callData }]) =>
+          mergeMap(([genesisHash, best, ctx, { callData }]) =>
             creator(
               {
                 callData: toHex(callData),
@@ -182,6 +183,7 @@ export const createTxEntry = <
                   metadata: toHex(ctx.metadataRaw),
                   bestBlockHash: best.hash,
                   bestBlockHeight: best.number,
+                  genesisHash,
                   tokenDecimals: null,
                   tokenSymbol: null,
                 },

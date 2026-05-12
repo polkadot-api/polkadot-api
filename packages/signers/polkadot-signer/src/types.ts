@@ -93,6 +93,12 @@ export interface TxPayloadV1 {
      */
     // TODO: this is a change
     bestBlockHash: string
+
+    /**
+     * Genesis hash.
+     */
+    // TODO: this is a change
+    genesisHash: string
   }
 }
 
