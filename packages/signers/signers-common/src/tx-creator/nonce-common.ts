@@ -35,6 +35,7 @@ export const getNonce = async (
   bindings: TxCreatorBindings,
   context: TxPayloadV1["context"],
   pubkey: Uint8Array,
+  customNonce?: number,
 ): Promise<TxPayloadV1["extensions"][number]> => {
   const getNonceAtBlock = async (at: string) => {
     const bytes = await bindings.call(NONCE_RUNTIME_CALL, pubkey, at)
@@ -74,32 +75,34 @@ export const getNonce = async (
         ),
       ),
     ).pipe(take(1))
-  const res = await firstValueFrom(
-    bindings.blocks.pipe(
-      take(1),
-      map(({ tips }) => {
-        // Grab only the higher height
-        const height = Math.max(...tips.map(({ number }) => number))
-        return tips
-          .filter(({ number }) => number === height)
-          .map(({ hash }) => hash)
-      }),
-      switchMap(getHeadsNonce$),
-      map((result) => {
-        const winner = result.reduce(
-          (acc: bigint | number | null, v) =>
-            v.success ? (v.value >= (acc ?? 0) ? v.value : acc) : acc,
-          null,
-        )
+  const res =
+    customNonce ??
+    (await firstValueFrom(
+      bindings.blocks.pipe(
+        take(1),
+        map(({ tips }) => {
+          // Grab only the higher height
+          const height = Math.max(...tips.map(({ number }) => number))
+          return tips
+            .filter(({ number }) => number === height)
+            .map(({ hash }) => hash)
+        }),
+        switchMap(getHeadsNonce$),
+        map((result) => {
+          const winner = result.reduce(
+            (acc: bigint | number | null, v) =>
+              v.success ? (v.value >= (acc ?? 0) ? v.value : acc) : acc,
+            null,
+          )
 
-        if (winner == null) {
-          // We must have at least one error
-          throw result[0].value
-        }
-        return winner
-      }),
-    ),
-  )
+          if (winner == null) {
+            // We must have at least one error
+            throw result[0].value
+          }
+          return winner
+        }),
+      ),
+    ))
   const lookupFn = getLookupFn(unifyMetadata(decAnyMetadata(context.metadata)))
   const extraNonce = lookupFn.metadata.extrinsic.signedExtensions[0].find(
     ({ identifier }) => identifier === "CheckNonce",

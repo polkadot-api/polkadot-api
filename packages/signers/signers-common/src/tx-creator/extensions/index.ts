@@ -8,6 +8,8 @@ import { firstValueFrom } from "rxjs"
 import { mortal } from "./mortal-enc"
 import { toHex } from "@polkadot-api/utils"
 import { TxCreatorBindings } from "../types"
+import type { CommonOpts } from "../common"
+import { compact } from "@polkadot-api/substrate-bindings"
 
 const empty = "0x"
 const zero = "0x00"
@@ -26,46 +28,53 @@ const both = (extra: string, additionalSigned: string) => ({
 
 export const extensions: Record<
   string,
-  (
-    bindings: TxCreatorBindings,
-    context: TxPayloadV1["context"],
-    lookupFn: MetadataLookup,
-    dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
-  ) => Promise<{ extra: string; additionalSigned: string }>
+  (opts: {
+    bindings: TxCreatorBindings
+    context: TxPayloadV1["context"]
+    lookupFn: MetadataLookup
+    dynamicBuilder: ReturnType<typeof getDynamicBuilder>
+    opts: CommonOpts
+  }) => Promise<{ extra: string; additionalSigned: string }>
 > = {
-  CheckGenesis: async (_, { genesisHash }) => additionalSigned(genesisHash),
+  CheckGenesis: async ({ context: { genesisHash } }) =>
+    additionalSigned(genesisHash),
   CheckMetadataHash: async () => both(zero, zero),
-  CheckSpecVersion: async (_, __, lookupFn, dynamicBuilder) => {
-    const { enc } = dynamicBuilder.buildDefinition(
-      lookupFn.metadata.extrinsic.signedExtensions[0].find(
-        ({ identifier }) => identifier === "CheckSpecVersion",
-      )!.additionalSigned,
-    )
-    return additionalSigned(
-      getSystemVersionProp(lookupFn, dynamicBuilder, enc, "spec_version"),
-    )
-  },
-  CheckTxVersion: async (_, __, lookupFn, dynamicBuilder) => {
-    const { enc } = dynamicBuilder.buildDefinition(
-      lookupFn.metadata.extrinsic.signedExtensions[0].find(
-        ({ identifier }) => identifier === "CheckTxVersion",
-      )!.additionalSigned,
-    )
-    return additionalSigned(
+  CheckSpecVersion: async ({ lookupFn, dynamicBuilder }) =>
+    additionalSigned(
       getSystemVersionProp(
         lookupFn,
         dynamicBuilder,
-        enc,
+        "CheckSpecVersion",
+        "spec_version",
+      ),
+    ),
+
+  CheckTxVersion: async ({ lookupFn, dynamicBuilder }) =>
+    additionalSigned(
+      getSystemVersionProp(
+        lookupFn,
+        dynamicBuilder,
+        "CheckTxVersion",
         "transaction_version",
       ),
-    )
-  },
-  CheckMortality: async ({ blocks }) => {
-    const { finalized } = await firstValueFrom(blocks)
+    ),
+  CheckMortality: async ({
+    bindings: { blocks },
+    context: { genesisHash },
+    opts: { mortality },
+  }) => {
+    if (mortality?.mortal === false) return both(zero, genesisHash)
+    const period = mortality?.period ?? 20
+    const { finalized, tips } = await firstValueFrom(blocks)
+    const higherHeight = Math.max(...tips.map(({ number }) => number))
+    const heightDiff = higherHeight - finalized.number
     return both(
-      toHex(mortal({ period: 64, startAtBlock: finalized.number })),
+      toHex(
+        mortal({ period: heightDiff + period, startAtBlock: finalized.number }),
+      ),
       finalized.hash,
     )
   },
-  ChargeTransactionPayment: async () => value(zero),
+  ChargeTransactionPayment: async ({ opts: { tip } }) =>
+    value(toHex(compact.enc(tip ?? 0))),
 }

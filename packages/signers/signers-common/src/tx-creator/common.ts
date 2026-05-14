@@ -5,13 +5,27 @@ import { toHex } from "@polkadot-api/utils"
 import { extensions } from "./extensions"
 import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 
-export const commonTxCreatorFactory: (
-  inner: TxCreatorFactory,
-) => TxCreatorFactory =
+export type CommonOpts = Partial<{
+  /**
+   * Tip in fundamental units. Default: `0`
+   */
+  tip: bigint
+  /**
+   * Mortality of the transaction.
+   * Transaction will be alive for, at least, `period` number of blocks after
+   * the current best block height.
+   * Default: `{ mortal: true, period: 20 }`
+   */
+  mortality: { mortal: false } | { mortal: true; period: number }
+}>
+
+export const commonTxCreatorFactory: <T>(
+  inner: TxCreatorFactory<T>,
+) => TxCreatorFactory<T & CommonOpts> =
   (innerFactory) =>
   ({ txCreatorBindings }) => {
     const inner = innerFactory({ txCreatorBindings })
-    return async (payload, ext) => {
+    return async (payload, opts) => {
       const lookupFn = getLookupFn(
         unifyMetadata(decAnyMetadata(payload.context.metadata)),
       )
@@ -38,12 +52,13 @@ export const commonTxCreatorFactory: (
             if (mapper) {
               return {
                 id: identifier,
-                ...(await mapper(
-                  txCreatorBindings,
-                  payload.context,
+                ...(await mapper({
+                  bindings: txCreatorBindings,
+                  context: payload.context,
                   lookupFn,
-                  builder,
-                )),
+                  dynamicBuilder: builder,
+                  opts: opts ?? {},
+                })),
               }
             }
             // if there is no mapper, try if the extension is optional (or void)
@@ -63,6 +78,6 @@ export const commonTxCreatorFactory: (
           }),
         )
       ).filter((v) => v != null)
-      return inner({ ...payload, txExtVersion, extensions: encoded }, ext)
+      return inner({ ...payload, txExtVersion, extensions: encoded }, opts)
     }
   }

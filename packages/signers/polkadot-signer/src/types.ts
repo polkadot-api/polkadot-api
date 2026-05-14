@@ -105,7 +105,7 @@ export interface TxPayloadV1 {
 /**
  * Creates a SCALE-encoded extrinsic (ready to broadcast).
  */
-export type TxCreator<T> = (input: TxPayloadV1, ext: T) => Promise<string>
+export type TxCreator<T> = (input: TxPayloadV1, ext?: T) => Promise<string>
 
 export interface PolkadotSigner {
   publicKey: Uint8Array

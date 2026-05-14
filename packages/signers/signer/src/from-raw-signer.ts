@@ -60,10 +60,10 @@ export const getTxCreator = (
   publicKey: Uint8Array,
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
-): TxCreatorFactory & { publicKey: Uint8Array } => {
-  const creator: TxCreatorFactory =
+) => {
+  const creator: TxCreatorFactory<Partial<{ nonce: number }>> =
     ({ txCreatorBindings }) =>
-    async (payload) => {
+    async (payload, opts) => {
       const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
       const exts = await Promise.all(
         // we disregard txExtVersion from payload, we use `0`
@@ -74,6 +74,7 @@ export const getTxCreator = (
               txCreatorBindings,
               payload.context,
               publicKey,
+              opts?.nonce,
             )
             return {
               extra: fromHex(nonce.extra),

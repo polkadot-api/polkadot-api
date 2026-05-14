@@ -38,6 +38,6 @@ export type TxCreatorBindings = {
   call: RuntimeCall
 }
 
-export type TxCreatorFactory = <T>(chain: {
+export type TxCreatorFactory<T> = (chain: {
   txCreatorBindings: TxCreatorBindings
 }) => TxCreator<T>
