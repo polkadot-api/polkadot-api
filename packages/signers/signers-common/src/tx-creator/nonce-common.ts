@@ -3,10 +3,12 @@ import type { TxCreatorBindings } from "./types"
 import {
   catchError,
   combineLatest,
+  distinctUntilChanged,
   firstValueFrom,
-  from,
   map,
   of,
+  scan,
+  startWith,
   switchMap,
   take,
 } from "rxjs"
@@ -40,10 +42,25 @@ export const getNonce = async (
     if (!decoder) throw new Error(`${NONCE_RUNTIME_CALL} retrieved wrong data`)
     return decoder(bytes)
   }
+  const followHead$ = (head: string) =>
+    bindings.blocks.pipe(
+      scan(
+        (acc, { tips }) =>
+          tips.find(({ parent }) => parent === acc)?.hash ?? acc,
+        head,
+      ),
+      startWith(head),
+      distinctUntilChanged(),
+    )
+  const followNonce$ = (head: string) =>
+    followHead$(head).pipe(
+      take(2),
+      switchMap((hash) => getNonceAtBlock(hash)),
+    )
   const getHeadsNonce$ = (heads: string[]) =>
     combineLatest(
       heads.map((head) =>
-        from(getNonceAtBlock(head)).pipe(
+        followNonce$(head).pipe(
           map((value) => ({
             success: true as const,
             value,
