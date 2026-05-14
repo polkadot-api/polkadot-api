@@ -61,7 +61,7 @@ export const getTxCreator = (
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
 ) => {
-  const creator: TxCreatorFactory<Partial<{ nonce: number }>> =
+  const creator: TxCreatorFactory<{ nonce?: number }> =
     ({ txCreatorBindings }) =>
     async (payload, opts) => {
       const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))

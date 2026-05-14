@@ -257,7 +257,10 @@ export type Transaction<
     txOptions?: TxOptions<Asset, Ext>,
   ): Promise<Uint8Array>
 
-  create<T>(creator: TxCreator<T>, txOptions: T): Promise<Uint8Array>
+  create<T extends TxCreator<any>>(
+    creator: T,
+    txOptions: T extends TxCreator<infer A> ? A : never,
+  ): Promise<Uint8Array>
 
   /**
    * Observable-based all-in-one transaction submitting. It will sign,

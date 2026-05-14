@@ -5,19 +5,19 @@ import { toHex } from "@polkadot-api/utils"
 import { extensions } from "./extensions"
 import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 
-export type CommonOpts = Partial<{
+export type CommonOpts = {
   /**
    * Tip in fundamental units. Default: `0`
    */
-  tip: bigint
+  tip?: bigint
   /**
    * Mortality of the transaction.
    * Transaction will be alive for, at least, `period` number of blocks after
    * the current best block height.
    * Default: `{ mortal: true, period: 20 }`
    */
-  mortality: { mortal: false } | { mortal: true; period: number }
-}>
+  mortality?: { mortal: false } | { mortal: true; period: number }
+}
 
 export const commonTxCreatorFactory: <T>(
   inner: TxCreatorFactory<T>,
