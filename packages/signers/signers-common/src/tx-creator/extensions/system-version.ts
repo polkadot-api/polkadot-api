@@ -3,6 +3,7 @@ import {
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import { Encoder } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
 
 export const getSystemVersionProp = (
   lookupFn: MetadataLookup,
@@ -18,5 +19,5 @@ export const getSystemVersionProp = (
   const systemVersionDec = dynamicBuilder.buildDefinition(constant.type).dec
 
   if (systemVersion.type !== "struct") throw new Error("not a struct")
-  return enc(systemVersionDec(constant.value)[field])
+  return toHex(enc(systemVersionDec(constant.value)[field]))
 }

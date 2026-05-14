@@ -1,4 +1,3 @@
-import { TxCreatorBindings } from "@/tx-creator"
 import {
   getDynamicBuilder,
   MetadataLookup,
@@ -7,21 +6,21 @@ import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 import { getSystemVersionProp } from "./system-version"
 import { firstValueFrom } from "rxjs"
 import { mortal } from "./mortal-enc"
-import { fromHex } from "@polkadot-api/utils"
-import { compact } from "@polkadot-api/substrate-bindings"
+import { toHex } from "@polkadot-api/utils"
+import { TxCreatorBindings } from "../types"
 
-const empty = Uint8Array.from([])
-const zero = Uint8Array.from([0])
-const value = (value: Uint8Array) => ({
-  value,
+const empty = "0x"
+const zero = "0x00"
+const value = (extra: string) => ({
+  extra,
   additionalSigned: empty,
 })
-const additionalSigned = (additionalSigned: Uint8Array) => ({
-  value: empty,
+const additionalSigned = (additionalSigned: string) => ({
+  extra: empty,
   additionalSigned,
 })
-const both = (value: Uint8Array, additionalSigned: Uint8Array) => ({
-  value,
+const both = (extra: string, additionalSigned: string) => ({
+  extra,
   additionalSigned,
 })
 
@@ -32,10 +31,9 @@ export const extensions: Record<
     context: TxPayloadV1["context"],
     lookupFn: MetadataLookup,
     dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
-  ) => Promise<{ value: Uint8Array; additionalSigned: Uint8Array }>
+  ) => Promise<{ extra: string; additionalSigned: string }>
 > = {
-  CheckGenesis: async (_, { genesisHash }) =>
-    additionalSigned(fromHex(genesisHash)),
+  CheckGenesis: async (_, { genesisHash }) => additionalSigned(genesisHash),
   CheckMetadataHash: async () => both(zero, zero),
   CheckSpecVersion: async (_, __, lookupFn, dynamicBuilder) => {
     const { enc } = dynamicBuilder.buildDefinition(
@@ -65,9 +63,9 @@ export const extensions: Record<
   CheckMortality: async ({ blocks }) => {
     const { finalized } = await firstValueFrom(blocks)
     return both(
-      mortal({ period: 64, startAtBlock: finalized.number }),
-      fromHex(finalized.hash),
+      toHex(mortal({ period: 64, startAtBlock: finalized.number })),
+      finalized.hash,
     )
   },
-  ChargeTransactionPayment: async () => value(compact.enc(0)),
+  ChargeTransactionPayment: async () => value(zero),
 }

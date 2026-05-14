@@ -7,6 +7,20 @@ interface Block {
   parent: string
 }
 
+// @ts-ignore
+type Alternative =
+  | {
+      type: "finalized"
+      finalized: Block
+      tips: Array<Block>
+    }
+  | {
+      type: "newTip"
+      finalized: Block
+      tips: Array<Block>
+      newTip: Block
+    }
+
 type Blocks = Observable<{
   finalized: Block
   tips: Array<Block>
@@ -20,6 +34,7 @@ type RuntimeCall = (
 
 export type TxCreatorBindings = {
   blocks: Blocks
+  // getBlock: (hash: string) => Block // TODO: let's see if we want it
   call: RuntimeCall
 }
 
