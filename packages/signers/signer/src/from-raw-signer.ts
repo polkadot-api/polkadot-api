@@ -5,6 +5,7 @@ import {
   createV4Tx,
   TxCreatorFactory,
   commonTxCreatorFactory,
+  getNonce,
 } from "@polkadot-api/signers-common"
 import {
   Blake2256,
@@ -60,27 +61,50 @@ export const getTxCreator = (
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
 ): TxCreatorFactory & { publicKey: Uint8Array } => {
-  const creator: TxCreatorFactory = () => async (payload) => {
-    const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
-    const extra: Array<Uint8Array> = []
-    const additionalSigned: Array<Uint8Array> = []
-    decMeta.extrinsic.signedExtensions[0].map(({ identifier }) => {
-      const signedExtension = payload.extensions.find(
-        ({ id }) => id === identifier,
+  const creator: TxCreatorFactory =
+    ({ txCreatorBindings }) =>
+    async (payload) => {
+      const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
+      const exts = await Promise.all(
+        // we disregard txExtVersion from payload, we use `0`
+        // v4 extrinsics always use `0`
+        decMeta.extrinsic.signedExtensions[0].map(async ({ identifier }) => {
+          if (identifier === "CheckNonce") {
+            const nonce = await getNonce(
+              txCreatorBindings,
+              payload.context,
+              publicKey,
+            )
+            return {
+              extra: fromHex(nonce.extra),
+              additionalSigned: fromHex(nonce.additionalSigned),
+            }
+          }
+          const signedExtension = payload.extensions.find(
+            ({ id }) => id === identifier,
+          )
+          if (!signedExtension)
+            throw new Error(`Missing ${identifier} signed extension`)
+          return {
+            extra: fromHex(signedExtension.extra),
+            additionalSigned: fromHex(signedExtension.additionalSigned),
+          }
+        }),
       )
-      if (!signedExtension)
-        throw new Error(`Missing ${identifier} signed extension`)
-      extra.push(fromHex(signedExtension.extra))
-      additionalSigned.push(fromHex(signedExtension.additionalSigned))
-    })
-    const callData = fromHex(payload.callData)
-    const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
-    // TODO: HASHER? Blake2256 hardcoded is a bad idea
-    const signed = await sign(toSign.length > 256 ? Blake2256(toSign) : toSign)
-    return toHex(
-      createV4Tx(decMeta, publicKey, signed, extra, callData, signingType),
-    )
-  }
+      const extra = exts.map(({ extra }) => extra)
+      const additionalSigned = exts.map(
+        ({ additionalSigned }) => additionalSigned,
+      )
+      const callData = fromHex(payload.callData)
+      const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
+      // TODO: HASHER? Blake2256 hardcoded is a bad idea
+      const signed = await sign(
+        toSign.length > 256 ? Blake2256(toSign) : toSign,
+      )
+      return toHex(
+        createV4Tx(decMeta, publicKey, signed, extra, callData, signingType),
+      )
+    }
   return Object.assign(commonTxCreatorFactory(creator), { publicKey })
 }
 
