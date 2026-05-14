@@ -11,5 +11,8 @@ const derive = sr25519CreateDerive(miniSecret)
 
 export const getDevSigner = (path = "//Alice") => {
   const keyPair = derive(path)
-  return getPolkadotSigner(keyPair.publicKey, "Sr25519", keyPair.sign)
+  return Object.assign(
+    getPolkadotSigner(keyPair.publicKey, "Sr25519", keyPair.sign),
+    { rawSign: keyPair.sign },
+  )
 }
