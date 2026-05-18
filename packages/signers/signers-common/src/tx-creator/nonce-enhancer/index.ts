@@ -1,5 +1,11 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import { TxCreatorEnhancer } from "../types"
+import {
+  TxCreatorChain,
+  TxCreatorEnhancer,
+  TxCreatorFactory,
+  TxCreatorOptions,
+} from "../types"
+import type { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   decAnyMetadata,
   u16,
@@ -41,9 +47,10 @@ type Opts = {
 
 export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
   (pubkey) =>
-  (innerFactory) =>
-  ({ txCreatorBindings }) => {
-    const inner = innerFactory({ txCreatorBindings })
+  <A>(innerFactory: TxCreatorFactory<A>) =>
+  <Chain extends TxCreatorChain>(chain: Chain) => {
+    const { txCreatorBindings } = chain
+    const inner = innerFactory(chain)
     const getNonceAtBlock = async (at: string) => {
       const bytes = await txCreatorBindings.call(NONCE_RUNTIME_CALL, pubkey, at)
       const decoder = lenToDecoder[bytes.length as 2 | 4 | 8]
@@ -83,7 +90,7 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
           ),
         ),
       ).pipe(take(1))
-    return async (payload, opts) => {
+    return (async (payload, opts) => {
       const nonce =
         opts.nonce ??
         (await firstValueFrom(
@@ -129,6 +136,9 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
       else
         payload.extensions.push({ id: NONCE_ID, extra, additionalSigned: "0x" })
 
-      return inner({ ...payload, txExtVersion }, opts)
-    }
+      return inner(
+        { ...payload, txExtVersion },
+        opts as TxCreatorOptions<A, Chain>,
+      )
+    }) as TxCreator<Opts & TxCreatorOptions<A, Chain>>
   }

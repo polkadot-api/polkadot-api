@@ -192,6 +192,7 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
 
 export type TypedApi<D extends ChainDefinition, Safe = true> = {
   txCreatorBindings: TxCreatorBindings
+  __asset?: D["asset"]["_type"]
   tx: TxApi<
     TxFromPalletsDef<D["descriptors"]["pallets"]>,
     D["extensions"],

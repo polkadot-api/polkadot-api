@@ -38,10 +38,41 @@ export type TxCreatorBindings = {
   call: RuntimeCall
 }
 
-export type TxCreatorFactory<T> = (chain: {
+export type TxCreatorChain = {
   txCreatorBindings: TxCreatorBindings
-}) => TxCreator<T>
+  __asset?: unknown
+}
+
+export type AssetFromTxCreatorChain<Chain> = Chain extends {
+  __asset?: infer Asset
+}
+  ? Asset
+  : void
+
+export interface TxCreatorOptionsProvider {
+  readonly __txCreatorChain?: TxCreatorChain
+  readonly __txCreatorOptions?: unknown
+}
+
+export type TxCreatorOptions<
+  T,
+  Chain extends TxCreatorChain,
+> = T extends TxCreatorOptionsProvider
+  ? (T & { readonly __txCreatorChain: Chain })["__txCreatorOptions"]
+  : T
+
+export interface MergeTxCreatorOptions<A, B> extends TxCreatorOptionsProvider {
+  readonly __txCreatorOptions: TxCreatorOptions<
+    A,
+    NonNullable<this["__txCreatorChain"]>
+  > &
+    TxCreatorOptions<B, NonNullable<this["__txCreatorChain"]>>
+}
+
+export type TxCreatorFactory<T> = <Chain extends TxCreatorChain>(
+  chain: Chain,
+) => TxCreator<TxCreatorOptions<T, Chain>>
 
 export type TxCreatorEnhancer<T> = <A>(
   inner: TxCreatorFactory<A>,
-) => TxCreatorFactory<T & A>
+) => TxCreatorFactory<MergeTxCreatorOptions<T, A>>

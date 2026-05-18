@@ -1,11 +1,28 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import { TxCreatorEnhancer } from "../types"
+import {
+  AssetFromTxCreatorChain,
+  TxCreatorChain,
+  TxCreatorEnhancer,
+  TxCreatorOptionsProvider,
+  TxCreatorOptions,
+  TxCreatorFactory,
+} from "../types"
 import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { extensions } from "./extensions"
-import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
+import type { TxCreator, TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 
-export type CommonOpts = {
+type AssetOpts<Asset> = void extends Asset
+  ? {}
+  : {
+      /**
+       * Asset information to pay fees, tip, etc. By default it'll use the
+       * native token of the chain.
+       */
+      asset?: Asset
+    }
+
+export type CommonOpts<Asset = void> = {
   /**
    * Tip in fundamental units. Default: `0`
    */
@@ -17,13 +34,19 @@ export type CommonOpts = {
    * Default: `{ mortal: true, period: 20 }`
    */
   mortality?: { mortal: false } | { mortal: true; period: number }
+} & AssetOpts<Asset>
+
+export interface CommonOptsFromChain extends TxCreatorOptionsProvider {
+  readonly __txCreatorOptions: CommonOpts<
+    AssetFromTxCreatorChain<NonNullable<this["__txCreatorChain"]>>
+  >
 }
 
-export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
-  (innerFactory) =>
-  ({ txCreatorBindings }) => {
-    const inner = innerFactory({ txCreatorBindings })
-    return async (payload, opts) => {
+export const withCommonExtensions = (<A>(innerFactory: TxCreatorFactory<A>) =>
+  <Chain extends TxCreatorChain>(chain: Chain) => {
+    const { txCreatorBindings } = chain
+    const inner = innerFactory(chain)
+    return (async (payload, opts) => {
       const lookupFn = getLookupFn(
         unifyMetadata(decAnyMetadata(payload.context.metadata)),
       )
@@ -76,6 +99,11 @@ export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
           }),
         )
       ).filter((v) => v != null)
-      return inner({ ...payload, txExtVersion, extensions: encoded }, opts)
-    }
-  }
+      return inner(
+        { ...payload, txExtVersion, extensions: encoded },
+        opts as TxCreatorOptions<A, Chain>,
+      )
+    }) as TxCreator<
+      TxCreatorOptions<CommonOptsFromChain, Chain> & TxCreatorOptions<A, Chain>
+    >
+  }) as TxCreatorEnhancer<CommonOptsFromChain>
