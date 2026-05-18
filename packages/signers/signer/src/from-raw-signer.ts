@@ -69,7 +69,7 @@ export const getTxCreator = (
 
       // we disregard txExtVersion from payload, we use `0`
       // v4 extrinsics always use `0`
-      decMeta.extrinsic.signedExtensions[0].forEach(async ({ identifier }) => {
+      decMeta.extrinsic.signedExtensions[0].forEach(({ identifier }) => {
         const signedExtension = payload.extensions.find(
           ({ id }) => id === identifier,
         )

@@ -70,8 +70,10 @@ const createApi = <D extends ChainDefinition>(
             newTips.forEach((tipHash) => {
               const tip = acc.tips.find(({ hash }) => tipHash === hash)
               if (tip) tips.push(tip)
-              const { hash, parent, number } = next.blocks.get(tipHash)!
-              tips.push({ hash, parent, number })
+              else {
+                const { hash, parent, number } = next.blocks.get(tipHash)!
+                tips.push({ hash, parent, number })
+              }
             })
           }
           return finalized === acc.finalized && tips === acc.tips
