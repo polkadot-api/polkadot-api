@@ -41,3 +41,7 @@ export type TxCreatorBindings = {
 export type TxCreatorFactory<T> = (chain: {
   txCreatorBindings: TxCreatorBindings
 }) => TxCreator<T>
+
+export type TxCreatorEnhancer<T> = <A>(
+  inner: TxCreatorFactory<A>,
+) => TxCreatorFactory<T & A>

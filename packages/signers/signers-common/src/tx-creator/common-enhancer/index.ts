@@ -1,5 +1,5 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import { TxCreatorFactory } from "./types"
+import { TxCreatorEnhancer } from "../types"
 import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { extensions } from "./extensions"
@@ -19,9 +19,7 @@ export type CommonOpts = {
   mortality?: { mortal: false } | { mortal: true; period: number }
 }
 
-export const commonTxCreatorFactory: <T>(
-  inner: TxCreatorFactory<T>,
-) => TxCreatorFactory<T & CommonOpts> =
+export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
   (innerFactory) =>
   ({ txCreatorBindings }) => {
     const inner = innerFactory({ txCreatorBindings })
@@ -57,7 +55,7 @@ export const commonTxCreatorFactory: <T>(
                   context: payload.context,
                   lookupFn,
                   dynamicBuilder: builder,
-                  opts: opts ?? {},
+                  opts,
                 })),
               }
             }

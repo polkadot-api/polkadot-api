@@ -4,8 +4,8 @@ import {
   getSignBytes,
   createV4Tx,
   TxCreatorFactory,
-  commonTxCreatorFactory,
   getNonce,
+  withCommonExtensions,
 } from "@polkadot-api/signers-common"
 import {
   Blake2256,
@@ -106,7 +106,7 @@ export const getTxCreator = (
         createV4Tx(decMeta, publicKey, signed, extra, callData, signingType),
       )
     }
-  return Object.assign(commonTxCreatorFactory(creator), { publicKey })
+  return Object.assign(withCommonExtensions(creator), { publicKey })
 }
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
