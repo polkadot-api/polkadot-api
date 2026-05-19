@@ -50,14 +50,10 @@ const pkToBigint = (publicKey: Uint8Array) => {
   let result = 0n
   const dv = new DataView(publicKey.buffer)
   const big64s = Math.floor(publicKey.length / 8)
-  for (let i = 0; i < big64s; i++) {
-    result = result << 64n
-    result = result | dv.getBigUint64(i * 8)
-  }
-  for (let offset = big64s * 8; offset < publicKey.length; offset++) {
-    result = result << 8n
-    result = result | BigInt(dv.getUint8(offset))
-  }
+  for (let i = 0; i < big64s; i++)
+    result = (result << 64n) | dv.getBigUint64(i * 8)
+  for (let offset = big64s * 8; offset < publicKey.length; offset++)
+    result = (result << 8n) | BigInt(dv.getUint8(offset))
   return result
 }
 
