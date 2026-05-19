@@ -46,13 +46,24 @@ const prefixBytesToNumber = (bytes: Uint8Array) => {
   return dv.byteLength === 1 ? dv.getUint8(0) : dv.getUint16(0)
 }
 
+const pkToBigint = (publicKey: Uint8Array) => {
+  let result = 0n
+  const dv = new DataView(publicKey.buffer)
+  const big64s = Math.floor(publicKey.length / 8)
+  for (let i = 0; i < big64s; i++)
+    result = (result << 64n) | dv.getBigUint64(i * 8)
+  for (let offset = big64s * 8; offset < publicKey.length; offset++)
+    result = (result << 8n) | BigInt(dv.getUint8(offset))
+  return result
+}
+
 const withSs58Cache = (fn: (publicKey: Uint8Array) => SS58String) => {
-  let cache: Record<number, any> = {}
+  let cache = new Map<bigint, SS58String>()
   let activityCount = 0
   let latestCount = 0
   const checkActivity = () => {
     if (activityCount === latestCount) {
-      cache = {}
+      cache.clear()
       activityCount = latestCount = 0
     } else {
       latestCount = activityCount
@@ -63,10 +74,11 @@ const withSs58Cache = (fn: (publicKey: Uint8Array) => SS58String) => {
   return (publicKey: Uint8Array): SS58String => {
     if (++activityCount === 1) checkActivity()
 
-    let entry = cache
-    const lastIdx = publicKey.length - 1
-    for (let i = 0; i <= lastIdx; i++) entry = entry[publicKey[i]] ||= {}
-    return (entry[publicKey[lastIdx]] ||= fn(publicKey))
+    const bigKey = pkToBigint(publicKey)
+    if (!cache.has(bigKey)) {
+      cache.set(bigKey, fn(publicKey))
+    }
+    return cache.get(bigKey)!
   }
 }
 

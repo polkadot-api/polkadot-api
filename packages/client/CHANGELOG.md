@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Memory spike when decoding multiple SS58 addresses.
+
 ## 2.1.3 - 2026-05-11
 
 ### Fixed
