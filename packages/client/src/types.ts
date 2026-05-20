@@ -24,7 +24,7 @@ import type {
   TxFromBinary,
 } from "./tx"
 import { ViewFn } from "./viewFns"
-import { TxCreatorBindings } from "@polkadot-api/signers-common"
+import type { TxCreatorChain } from "@polkadot-api/signers-common"
 
 export type { ChainSpecData }
 
@@ -190,9 +190,9 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
     : unknown
 }
 
-export type TypedApi<D extends ChainDefinition, Safe = true> = {
-  txCreatorBindings: TxCreatorBindings
-  __asset?: D["asset"]["_type"]
+export type TypedApi<D extends ChainDefinition, Safe = true> = TxCreatorChain<
+  D["asset"]["_type"]
+> & {
   tx: TxApi<
     TxFromPalletsDef<D["descriptors"]["pallets"]>,
     D["extensions"],

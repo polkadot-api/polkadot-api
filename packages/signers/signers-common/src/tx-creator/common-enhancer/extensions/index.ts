@@ -78,25 +78,19 @@ export const extensions: Record<
   ChargeTransactionPayment: async ({ opts: { tip } }) =>
     value(toHex(compact.enc(tip ?? 0))),
   ChargeAssetTxPayment: async ({ lookupFn, dynamicBuilder, opts }) => {
-    const extension = lookupFn.metadata.extrinsic.signedExtensions[0].find(
-      ({ identifier }) => identifier === "ChargeAssetTxPayment",
+    const { enc } = dynamicBuilder.buildDefinition(
+      lookupFn.metadata.extrinsic.signedExtensions[0].find(
+        ({ identifier }) => identifier === "ChargeAssetTxPayment",
+      )!.type,
     )
-    if (!extension)
-      throw new Error("`ChargeAssetTxPayment` extension not found")
-
-    const extra = dynamicBuilder.buildDefinition(extension.type)
-    const additionalSigned = dynamicBuilder.buildDefinition(
-      extension.additionalSigned,
-    )
-
     return both(
       toHex(
-        extra.enc({
+        enc({
           tip: opts.tip ?? 0n,
           asset_id: opts.asset,
         }),
       ),
-      toHex(additionalSigned.enc(undefined)),
+      empty,
     )
   },
 }

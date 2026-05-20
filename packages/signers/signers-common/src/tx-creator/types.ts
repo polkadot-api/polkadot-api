@@ -38,41 +38,44 @@ export type TxCreatorBindings = {
   call: RuntimeCall
 }
 
-export type TxCreatorChain = {
+export type TxCreatorChain<Asset = unknown> = {
   txCreatorBindings: TxCreatorBindings
-  __asset?: unknown
+  __asset?: Asset
 }
 
-export type AssetFromTxCreatorChain<Chain> = Chain extends {
+export type TxCreatorChainAsset<Chain> = Chain extends {
   __asset?: infer Asset
 }
   ? Asset
   : void
 
-export interface TxCreatorOptionsProvider {
+export interface ChainAwareTxCreatorOptions {
   readonly __txCreatorChain?: TxCreatorChain
   readonly __txCreatorOptions?: unknown
 }
 
-export type TxCreatorOptions<
+export type ResolveTxCreatorOptions<
   T,
   Chain extends TxCreatorChain,
-> = T extends TxCreatorOptionsProvider
+> = T extends ChainAwareTxCreatorOptions
   ? (T & { readonly __txCreatorChain: Chain })["__txCreatorOptions"]
   : T
 
-export interface MergeTxCreatorOptions<A, B> extends TxCreatorOptionsProvider {
-  readonly __txCreatorOptions: TxCreatorOptions<
+export interface MergedTxCreatorOptions<
+  A,
+  B,
+> extends ChainAwareTxCreatorOptions {
+  readonly __txCreatorOptions: ResolveTxCreatorOptions<
     A,
     NonNullable<this["__txCreatorChain"]>
   > &
-    TxCreatorOptions<B, NonNullable<this["__txCreatorChain"]>>
+    ResolveTxCreatorOptions<B, NonNullable<this["__txCreatorChain"]>>
 }
 
 export type TxCreatorFactory<T> = <Chain extends TxCreatorChain>(
   chain: Chain,
-) => TxCreator<TxCreatorOptions<T, Chain>>
+) => TxCreator<ResolveTxCreatorOptions<T, Chain>>
 
 export type TxCreatorEnhancer<T> = <A>(
   inner: TxCreatorFactory<A>,
-) => TxCreatorFactory<MergeTxCreatorOptions<T, A>>
+) => TxCreatorFactory<MergedTxCreatorOptions<T, A>>

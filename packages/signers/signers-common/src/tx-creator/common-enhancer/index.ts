@@ -1,10 +1,10 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import {
-  AssetFromTxCreatorChain,
+  ChainAwareTxCreatorOptions,
+  ResolveTxCreatorOptions,
   TxCreatorChain,
+  TxCreatorChainAsset,
   TxCreatorEnhancer,
-  TxCreatorOptionsProvider,
-  TxCreatorOptions,
   TxCreatorFactory,
 } from "../types"
 import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
@@ -16,8 +16,8 @@ type AssetOpts<Asset> = void extends Asset
   ? {}
   : {
       /**
-       * Asset information to pay fees, tip, etc. By default it'll use the
-       * native token of the chain.
+       * Asset information to pay fees, tip, etc.
+       * Default: asset selection disabled.
        */
       asset?: Asset
     }
@@ -36,9 +36,9 @@ export type CommonOpts<Asset = void> = {
   mortality?: { mortal: false } | { mortal: true; period: number }
 } & AssetOpts<Asset>
 
-export interface CommonOptsFromChain extends TxCreatorOptionsProvider {
+export interface CommonTxCreatorOptions extends ChainAwareTxCreatorOptions {
   readonly __txCreatorOptions: CommonOpts<
-    AssetFromTxCreatorChain<NonNullable<this["__txCreatorChain"]>>
+    TxCreatorChainAsset<NonNullable<this["__txCreatorChain"]>>
   >
 }
 
@@ -101,9 +101,10 @@ export const withCommonExtensions = (<A>(innerFactory: TxCreatorFactory<A>) =>
       ).filter((v) => v != null)
       return inner(
         { ...payload, txExtVersion, extensions: encoded },
-        opts as TxCreatorOptions<A, Chain>,
+        opts as ResolveTxCreatorOptions<A, Chain>,
       )
     }) as TxCreator<
-      TxCreatorOptions<CommonOptsFromChain, Chain> & TxCreatorOptions<A, Chain>
+      ResolveTxCreatorOptions<CommonTxCreatorOptions, Chain> &
+        ResolveTxCreatorOptions<A, Chain>
     >
-  }) as TxCreatorEnhancer<CommonOptsFromChain>
+  }) as TxCreatorEnhancer<CommonTxCreatorOptions>
