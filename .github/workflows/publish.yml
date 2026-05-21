@@ -70,23 +70,17 @@ jobs:
           - "24"
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.node-version }}-turbo-
       - uses: pnpm/action-setup@v6
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: pnpm
           registry-url: https://registry.npmjs.org
+          package-manager-cache: true
       - name: Install deps
         run: pnpm install
       - name: Build
-        run: pnpm turbo build-core --cache-dir=.turbo
+        run: pnpm turbo build-core
       - uses: oven-sh/setup-bun@v2
         if: ${{ env.DIST_TAG == 'canary' }}
         with:
