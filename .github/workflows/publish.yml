@@ -63,7 +63,7 @@ jobs:
       contents: read
       id-token: write
     env:
-      DIST_TAG: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')) && 'canary' || 'latest' }}
+      DIST_TAG: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.channel == 'canary')) && 'canary' || 'latest' }}
     strategy:
       matrix:
         node-version:
