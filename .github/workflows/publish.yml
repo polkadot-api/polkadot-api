@@ -98,5 +98,4 @@ jobs:
       - name: Publish
         run: pnpm -r publish --no-git-checks --access=public --tag ${{ env.DIST_TAG }}
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
