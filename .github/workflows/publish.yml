@@ -1,10 +1,22 @@
 name: Publish
 
 on:
+  push:
+    branches:
+      - main
   release:
     types:
       - published
   workflow_dispatch:
+    inputs:
+      channel:
+        description: "Publish channel"
+        required: true
+        default: canary
+        type: choice
+        options:
+          - canary
+          - latest
 
 permissions:
   contents: read
@@ -73,8 +85,16 @@ jobs:
         run: pnpm install
       - name: Build
         run: pnpm turbo build-core --cache-dir=.turbo
+      - uses: oven-sh/setup-bun@v2
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')
+        with:
+          bun-version: latest
+      - name: Bump versions
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')
+        run: |
+          bun run scripts/bump/prerelease.ts
       - name: Publish
-        run: pnpm -r publish --no-git-checks --access=public
+        run: pnpm -r publish --no-git-checks --access=public --tag ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')) && 'canary' || 'latest' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
