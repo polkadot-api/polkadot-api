@@ -62,6 +62,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      DIST_TAG: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')) && 'canary' || 'latest' }}
     strategy:
       matrix:
         node-version:
@@ -86,15 +88,15 @@ jobs:
       - name: Build
         run: pnpm turbo build-core --cache-dir=.turbo
       - uses: oven-sh/setup-bun@v2
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')
+        if: env.DIST_TAG == 'canary'
         with:
           bun-version: latest
       - name: Bump versions
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')
+        if: env.DIST_TAG == 'canary'
         run: |
           bun run scripts/bump/prerelease.ts
       - name: Publish
-        run: pnpm -r publish --no-git-checks --access=public --tag ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.channel == 'canary')) && 'canary' || 'latest' }}
+        run: pnpm -r publish --no-git-checks --access=public --tag ${{ env.DIST_TAG }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
