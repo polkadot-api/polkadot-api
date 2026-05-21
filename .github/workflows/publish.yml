@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org
-          package-manager-cache: true
+          package-manager-cache: false
       - name: Install deps
         run: pnpm install
       - name: Build
