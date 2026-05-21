@@ -88,11 +88,11 @@ jobs:
       - name: Build
         run: pnpm turbo build-core --cache-dir=.turbo
       - uses: oven-sh/setup-bun@v2
-        if: env.DIST_TAG == 'canary'
+        if: ${{ env.DIST_TAG == 'canary' }}
         with:
           bun-version: latest
       - name: Bump versions
-        if: env.DIST_TAG == 'canary'
+        if: ${{ env.DIST_TAG == 'canary' }}
         run: |
           bun run scripts/bump/prerelease.ts
       - name: Publish
