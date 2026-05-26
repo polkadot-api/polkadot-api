@@ -303,7 +303,7 @@ export class LedgerSigner {
     const creator: TxCreatorFactory<{}> = () => async (payload) => {
       const decMeta = getMetadata(payload.context.metadata)
       if (
-        !decMeta.extrinsic.signedExtensions[0].find(
+        !decMeta.extrinsic.extensionsByVersion[0].find(
           ({ identifier }) => identifier === METADATA_IDENTIFIER,
         )
       )
@@ -313,11 +313,11 @@ export class LedgerSigner {
         payload.context.metadata,
         networkInfo,
       )
+      if (payload.txExtVersion != null && payload.txExtVersion !== 0)
+        throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
       const extra: Array<Uint8Array> = []
       const additionalSigned: Array<Uint8Array> = []
-      // we disregard txExtVersion from payload, we use `0`
-      // v4 extrinsics always use `0`
-      decMeta.extrinsic.signedExtensions[0].forEach(({ identifier }) => {
+      decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
         const signedExtension = payload.extensions.find(
           ({ id }) => id === identifier,
         )

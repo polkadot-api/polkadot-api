@@ -26,9 +26,9 @@ export const getTxCreator = (
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
 
-    // we disregard txExtVersion from payload, we use `0`
-    // v4 extrinsics always use `0`
-    decMeta.extrinsic.signedExtensions[0].forEach(({ identifier }) => {
+    if (payload.txExtVersion != null && payload.txExtVersion !== 0)
+      throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
+    decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
       const signedExtension = payload.extensions.find(
         ({ id }) => id === identifier,
       )
@@ -59,13 +59,10 @@ export const withMetadataHash: (
   const inner = innerFactory(chain)
 
   return async (payload, opts) => {
+    if (payload.extensions.find(({ id }) => id === METADATA_IDENTIFIER))
+      return inner(payload, opts)
     const metadata = unifyMetadata(decAnyMetadata(payload.context.metadata))
-    const txExtVersion = payload.txExtVersion ?? 0
-    if (
-      !metadata.extrinsic.signedExtensions[txExtVersion].find(
-        ({ identifier }) => identifier === METADATA_IDENTIFIER,
-      )
-    )
+    if (!metadata.extrinsic.extensions[METADATA_IDENTIFIER])
       throw new Error(`${METADATA_IDENTIFIER} not found`)
     const extra = toHex(oneU8)
     const additionalSigned = toHex(
@@ -74,18 +71,11 @@ export const withMetadataHash: (
         merkleizeMetadata(payload.context.metadata, networkInfo).digest(),
       ]),
     )
-    const presentExt = payload.extensions.find(
-      ({ id }) => id === METADATA_IDENTIFIER,
-    )
-    if (presentExt) {
-      presentExt.extra = extra
-      presentExt.additionalSigned = additionalSigned
-    } else
-      payload.extensions.push({
-        id: METADATA_IDENTIFIER,
-        extra,
-        additionalSigned,
-      })
-    return inner({ ...payload, txExtVersion }, opts)
+    payload.extensions.push({
+      id: METADATA_IDENTIFIER,
+      extra,
+      additionalSigned,
+    })
+    return inner({ ...payload }, opts)
   }
 }

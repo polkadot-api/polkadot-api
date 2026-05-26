@@ -11,9 +11,7 @@ export const getSystemVersionProp = (
   fieldName: string,
 ) => {
   const { enc } = dynamicBuilder.buildDefinition(
-    lookupFn.metadata.extrinsic.signedExtensions[0].find(
-      ({ identifier }) => identifier === extensionName,
-    )!.additionalSigned,
+    lookupFn.metadata.extrinsic.extensions[extensionName].additionalSigned,
   )
   const constant = lookupFn.metadata.pallets
     .find((x) => x.name === "System")!

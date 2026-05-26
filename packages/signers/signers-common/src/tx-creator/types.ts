@@ -7,6 +7,7 @@ interface Block {
   parent: string
 }
 
+// this will be `blocks` observable with sugar
 // @ts-ignore
 type Alternative =
   | {

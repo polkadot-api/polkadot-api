@@ -28,8 +28,7 @@ export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
         unifyMetadata(decAnyMetadata(payload.context.metadata)),
       )
       const builder = getDynamicBuilder(lookupFn)
-      const txExtVersion = payload.txExtVersion ?? 0
-      const exts = lookupFn.metadata.extrinsic.signedExtensions[txExtVersion]
+      const exts = Object.values(lookupFn.metadata.extrinsic.extensions)
       const encoded: TxPayloadV1["extensions"] = (
         await Promise.all(
           exts.map(async ({ identifier, type, additionalSigned }) => {
@@ -76,6 +75,6 @@ export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
           }),
         )
       ).filter((v) => v != null)
-      return inner({ ...payload, txExtVersion, extensions: encoded }, opts)
+      return inner({ ...payload, extensions: encoded }, opts)
     }
   }

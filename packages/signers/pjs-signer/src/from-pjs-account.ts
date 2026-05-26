@@ -37,9 +37,10 @@ export function getTxCreatorFromPjs(
     const { version } = decMeta.extrinsic
     const extra: Array<Uint8Array> = []
 
-    // we disregard txExtVersion from payload, we use `0`
-    // v4 extrinsics always use `0`
-    decMeta.extrinsic.signedExtensions[0].forEach(({ identifier }) => {
+    if (payload.txExtVersion != null && payload.txExtVersion !== 0)
+      throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
+
+    decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
       const signedExtension = payload.extensions.find(
         ({ id }) => id === identifier,
       )

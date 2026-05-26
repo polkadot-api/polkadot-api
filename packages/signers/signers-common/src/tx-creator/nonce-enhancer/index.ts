@@ -84,6 +84,8 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
         ),
       ).pipe(take(1))
     return async (payload, opts) => {
+      if (payload.extensions.find(({ id }) => id === NONCE_ID))
+        return inner(payload, opts)
       const nonce =
         opts.nonce ??
         (await firstValueFrom(
@@ -116,19 +118,17 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
         unifyMetadata(decAnyMetadata(payload.context.metadata)),
       )
       const builder = getDynamicBuilder(lookupFn)
-      const txExtVersion = payload.txExtVersion ?? 0
-      const exts = lookupFn.metadata.extrinsic.signedExtensions[txExtVersion]
-      const nonceLookupType = exts.find(
-        ({ identifier }) => identifier === NONCE_ID,
-      )?.type
-      if (nonceLookupType == null)
-        throw new Error("`CheckNonce` extension not found")
-      const extra = toHex(builder.buildDefinition(nonceLookupType).enc(nonce))
-      const presentExt = payload.extensions.find(({ id }) => id === NONCE_ID)
-      if (presentExt) presentExt.extra = extra
-      else
-        payload.extensions.push({ id: NONCE_ID, extra, additionalSigned: "0x" })
+      const nonceLookupType =
+        lookupFn.metadata.extrinsic.extensions[NONCE_ID]?.type
+      if (nonceLookupType != null) {
+        const extra = toHex(builder.buildDefinition(nonceLookupType).enc(nonce))
+        payload.extensions.push({
+          id: NONCE_ID,
+          extra,
+          additionalSigned: "0x",
+        })
+      }
 
-      return inner({ ...payload, txExtVersion }, opts)
+      return inner({ ...payload }, opts)
     }
   }
