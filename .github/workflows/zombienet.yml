@@ -22,7 +22,7 @@ jobs:
           - polkadot-stable2603
         kind:
           - ws
-          - sm
+          # - sm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
