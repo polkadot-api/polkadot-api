@@ -64,13 +64,26 @@ export const extensions: Record<
     opts: { mortality },
   }) => {
     if (mortality?.mortal === false) return both(zero, genesisHash)
-    const period = mortality?.period ?? 20
+    mortality ??= { period: 20, mortal: true }
+    if (mortality.at)
+      return both(
+        toHex(
+          mortal({
+            period: mortality.period,
+            startAtBlock: mortality.at.number,
+          }),
+        ),
+        mortality.at.hash,
+      )
     const { finalized, tips } = await firstValueFrom(blocks)
     const higherHeight = Math.max(...tips.map(({ number }) => number))
     const heightDiff = higherHeight - finalized.number
     return both(
       toHex(
-        mortal({ period: heightDiff + period, startAtBlock: finalized.number }),
+        mortal({
+          period: heightDiff + mortality.period,
+          startAtBlock: finalized.number,
+        }),
       ),
       finalized.hash,
     )

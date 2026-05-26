@@ -12,11 +12,16 @@ export type CommonOpts = {
   tip?: bigint
   /**
    * Mortality of the transaction.
-   * Transaction will be alive for, at least, `period` number of blocks after
-   * the current best block height.
+   * If no `at` is passed, transaction will be alive for, at least, `period`
+   * number of blocks after the current best block height.
+   * If `at` is passed, transaction will be alive for `period` number of blocks
+   * after `at`.
+   *
    * Default: `{ mortal: true, period: 20 }`
    */
-  mortality?: { mortal: false } | { mortal: true; period: number }
+  mortality?:
+    | { mortal: false }
+    | { mortal: true; period: number; at?: { hash: string; number: number } }
 }
 
 export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
