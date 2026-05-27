@@ -11,7 +11,6 @@ import {
   RuntimeContext,
 } from "@polkadot-api/observable-client"
 import { HexString } from "@polkadot-api/substrate-bindings"
-import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   Observable,
   catchError,
@@ -198,13 +197,6 @@ export type StorageEntry<
 > = Args extends []
   ? StorageEntryWithoutKeys<Payload>
   : StorageEntryWithKeys<Args, Payload, ArgsOut>
-
-export type Storage$ = <Type extends StorageItemInput["type"]>(
-  hash: string | null,
-  type: Type,
-  key: string,
-  childTrie: string | null,
-) => Observable<StorageResult<Type>>
 
 export const createStorageEntry = (
   pallet: string,

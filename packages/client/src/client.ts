@@ -91,7 +91,7 @@ const createApi = <D extends ChainDefinition>(
       firstValueFrom(chainHead.call$(at, call, toHex(args))),
   }
   const compatHelpers = createCompatHelpers(chainDefinition)
-  const { getClientCompat, getIsAsssetCompat } = compatHelpers
+  const { getClientCompat } = compatHelpers
 
   const getStaticApis = createStaticApis(chainHead, broadcast$, compatHelpers)
 
@@ -118,7 +118,6 @@ const createApi = <D extends ChainDefinition>(
       chainHead,
       broadcast$,
       getClientCompat("tx", pallet, name),
-      getIsAsssetCompat,
     ),
   )
 
@@ -177,7 +176,6 @@ const createApi = <D extends ChainDefinition>(
               chainHead,
               broadcast$,
               getClientCompat("tx", pallet, name),
-              getIsAsssetCompat,
             )(args)
           } catch {
             throw new Error("createTx: invalid call data")

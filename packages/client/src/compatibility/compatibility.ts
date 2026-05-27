@@ -31,7 +31,6 @@ export type ArgsValueCompatHelper<Args = any, Value = any> = {
 }
 export type ValueCompat = CompatApi<CompatHelper>
 export type InOutCompat = CompatApi<ArgsValueCompatHelper>
-export type ConstCompat = Promise<(dest: any) => boolean>
 
 const incompatible: CompatHelper = {
   level: CompatibilityLevel.Incompatible,
@@ -193,8 +192,6 @@ export const createCompatHelpers = withWeakCache(
         return getHelpers(ctx)
       },
       getClientCompat,
-      getIsAsssetCompat: (ctx: RuntimeContext) =>
-        getDestCompatCtx(ctx).isAssetCompat,
     }
   },
 )

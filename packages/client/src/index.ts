@@ -12,7 +12,6 @@ export type {
   TxInBestBlocksFound,
   TxEventsPayload,
   TxFinalized,
-  TxOptions,
   TxFinalizedPayload,
   Transaction,
   TxEntry,

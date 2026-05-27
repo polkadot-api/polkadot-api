@@ -1,10 +1,6 @@
 import { ValueCompat } from "@/compatibility"
-import { PlainDescriptor } from "@/descriptors"
 import { getCallData } from "@/utils/get-call-data"
-import type {
-  ChainHead$,
-  RuntimeContext,
-} from "@polkadot-api/observable-client"
+import type { ChainHead$ } from "@polkadot-api/observable-client"
 import { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   _void,
@@ -28,7 +24,7 @@ import {
   take,
 } from "rxjs"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
-import { Extensions, PaymentInfo, Transaction, TxEntry } from "./types"
+import { PaymentInfo, Transaction, TxEntry } from "./types"
 
 export { InvalidTxError, submit, submit$ }
 
@@ -48,20 +44,13 @@ const [, queryInfoDecFallback] = Struct({
   partial_fee: u128,
 })
 
-export const createTxEntry = <
-  Arg extends {} | undefined,
-  Asset extends PlainDescriptor<any>,
-  E,
->(
+export const createTxEntry = <Arg extends {} | undefined>(
   pallet: string,
   name: string,
   chainHead: ChainHead$,
   broadcast: (tx: Uint8Array) => Observable<never>,
   compatibility: ValueCompat,
-  _getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
-): TxEntry<Arg, E, Asset> => {
-  type Ext = Extensions<E>
-
+): TxEntry<Arg> => {
   const getCompatCtx$ = (at: HexString | null) =>
     combineLatest([chainHead.getRuntimeContext$(at), compatibility]).pipe(
       map(([ctx, getCompat]) => ({ ctx, ...getCompat(ctx) })),
@@ -93,7 +82,7 @@ export const createTxEntry = <
       ),
     )
 
-  return (arg?: Arg): Transaction<Asset, Ext> => {
+  return (arg?: Arg): Transaction => {
     const create$ = <T extends TxCreator<any>>(
       creator: T,
       opts: TxCreatorOptions<T>,
@@ -129,10 +118,10 @@ export const createTxEntry = <
         map(fromHex),
       )
 
-    const create: Transaction<Asset, Ext>["create"] = (creator, options) =>
+    const create: Transaction["create"] = (creator, options) =>
       firstValueFrom(create$(creator, options, false))
 
-    const createAndSubmit: Transaction<Asset, Ext>["createAndSubmit"] = (
+    const createAndSubmit: Transaction["createAndSubmit"] = (
       creator,
       options,
     ) =>
@@ -140,15 +129,15 @@ export const createTxEntry = <
         submit(chainHead, broadcast, tx),
       )
 
-    const createSubmitAndWatch: Transaction<
-      Asset,
-      Ext
-    >["createSubmitAndWatch"] = (creator, options) =>
+    const createSubmitAndWatch: Transaction["createSubmitAndWatch"] = (
+      creator,
+      options,
+    ) =>
       create$(creator, options, false).pipe(
         mergeMap((tx) => submit$(chainHead, broadcast, tx, true)),
       )
 
-    const getPaymentInfo: Transaction<Asset, Ext>["getPaymentInfo"] = async (
+    const getPaymentInfo: Transaction["getPaymentInfo"] = async (
       creator,
       options,
     ) => {
@@ -188,11 +177,10 @@ export const createTxEntry = <
         getCallData$(arg, null).pipe(map(({ callData }) => callData)),
       )
 
-    const getEstimatedFees: Transaction<
-      Asset,
-      Ext
-    >["getEstimatedFees"] = async (creator, options) =>
-      (await getPaymentInfo(creator, options)).partial_fee
+    const getEstimatedFees: Transaction["getEstimatedFees"] = async (
+      creator,
+      options,
+    ) => (await getPaymentInfo(creator, options)).partial_fee
 
     return {
       getPaymentInfo,

@@ -3,7 +3,6 @@ import {
   EntryPoint,
   EntryPointCodec,
   enumValueEntryPointNode,
-  isCompatible,
   mapLookupToTypedef,
   runtimeCallEntryPoint,
   singleValueEntryPoint,
@@ -64,13 +63,7 @@ const getEnumEntry = (entry: EnumEntry, side: "args" | "values") => {
 }
 
 export const getDestCompatCtx = withWeakCache(
-  ({
-    lookup,
-    assetId,
-    mappedMeta: { pallets, api },
-  }: RuntimeContext): CompatCtx & {
-    isAssetCompat: (asset: any) => boolean
-  } => {
+  ({ lookup, mappedMeta: { pallets, api } }: RuntimeContext): CompatCtx => {
     const typeNodesCache = new Map<number, TypedefNode>()
     const getTypeDefNode = (id: number) => {
       let result = typeNodesCache.get(id)
@@ -109,9 +102,6 @@ export const getDestCompatCtx = withWeakCache(
           }
         }
       },
-      isAssetCompat: (asset) =>
-        assetId == null ||
-        isCompatible(asset, getTypeDefNode(assetId), getTypeDefNode),
     }
   },
 )
