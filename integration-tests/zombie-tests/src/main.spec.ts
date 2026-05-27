@@ -172,31 +172,20 @@ describe("E2E", async () => {
     const tx = api.tx.System.remark({
       remark: Binary.fromText("hello world!"),
     })
-    const binaryExtrinsic = Binary.fromOpaque(
-      await tx.create(
-        fakeCreator(accounts["alice"]["sr25519"].publicKey)(api),
-        {},
-      ),
-    )
+    const creator = fakeCreator(accounts["alice"]["sr25519"].publicKey)(api)
+    const opts = {}
+    const binaryExtrinsic = Binary.fromOpaque(await tx.create(creator, opts))
 
-    const finalized = await client.getFinalizedBlock()
-
-    const [{ partial_fee: manualFee }] = await Promise.all([
+    const [{ partial_fee: manualFee }, estimatedFee] = await Promise.all([
       api.apis.TransactionPaymentApi.query_info(
         binaryExtrinsic,
         Binary.toOpaque(binaryExtrinsic).length,
-        {
-          at: finalized.hash,
-        },
       ),
+      tx.getEstimatedFees(creator, opts),
     ])
 
     expect(manualFee).toBeGreaterThan(0n)
-    await expect(
-      tx.getEstimatedFees(accounts["alice"]["sr25519"].publicKey, {
-        at: finalized.hash,
-      }),
-    ).rejects.toThrow("not migrated to TxCreator")
+    expect(estimatedFee).toBe(manualFee)
   })
 
   it.concurrent("evaluates constant values", () => {
@@ -300,11 +289,21 @@ describe("E2E", async () => {
 
     const aliceTransfer = api.tx.Utility.batch_all({ calls: calls.slice(0, 2) })
     const bobTransfer = api.tx.Utility.batch_all({ calls: calls.slice(2) })
+    const aliceCreator = alice(api)
+    const bobCreator = bob(api)
+
+    const [aliceEstimatedFee, bobEstimatedFee] = await Promise.all([
+      aliceTransfer.getEstimatedFees(aliceCreator, {}),
+      bobTransfer.getEstimatedFees(bobCreator, {}),
+    ])
+
+    expect(aliceEstimatedFee).toBeGreaterThan(0n)
+    expect(bobEstimatedFee).toBeGreaterThan(0n)
 
     const [aliceActualFee, bobActualFee] = await Promise.all(
       [aliceTransfer, bobTransfer].map(async (call, idx) => {
         const result = await call.createAndSubmit(
-          (idx === 0 ? alice : bob)(api),
+          idx === 0 ? aliceCreator : bobCreator,
           {},
         )
         const [

@@ -45,6 +45,9 @@ const encodePath = (path1: number, path2: number) => {
   ])
 }
 
+const ED_MOCK = new Uint8Array(64).fill(0)
+const ECDSA_MOCK = new Uint8Array(65).fill(0)
+
 /**
  * ATTENTION: This class requires `Buffer` to be available. This is an Ledger
  * requirement that we need to fulfill. If you are on a browser-based
@@ -272,11 +275,12 @@ export class LedgerSigner {
     }
     if (result == null) throw null
 
+    // ed25519 includes a `0x00` at the beginning
+    const schemaOffset = this.#schema === "ed25519" ? 1 : 0
     // remove return code
     return Uint8Array.from(result).slice(
-      0,
-      // ed25519 includes as well a `0x00` at the beginning
-      SIGN_LEN[this.#schema] + (this.#schema === "ed25519" ? 1 : 0),
+      schemaOffset,
+      SIGN_LEN[this.#schema] + schemaOffset,
     )
   }
 
@@ -300,7 +304,7 @@ export class LedgerSigner {
     path1: number,
     path2: number = 0,
   ) {
-    const creator: TxCreatorFactory<{}> = () => async (payload) => {
+    const creator: TxCreatorFactory<{}> = () => async (payload, _, mocked) => {
       const decMeta = getMetadata(payload.context.metadata)
       if (
         !decMeta.extrinsic.extensionsByVersion[0].find(
@@ -336,13 +340,26 @@ export class LedgerSigner {
 
       const callData = fromHex(payload.callData)
       const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
-      const signature = await this.#sign(
-        path1,
-        path2,
-        toSign,
-        merkleizer.getProofForExtrinsicPayload(toSign),
+      const signature = mocked
+        ? this.#schema === "ed25519"
+          ? ED_MOCK
+          : ECDSA_MOCK
+        : await this.#sign(
+            path1,
+            path2,
+            toSign,
+            merkleizer.getProofForExtrinsicPayload(toSign),
+          )
+      return toHex(
+        createV4Tx(
+          decMeta,
+          publicKey,
+          signature,
+          extra,
+          callData,
+          this.#schema === "ed25519" ? "Ed25519" : "Ecdsa",
+        ),
       )
-      return toHex(createV4Tx(decMeta, publicKey, signature, extra, callData))
     }
     // ed25519 has public key, ecdsa has addr (20 bytes)
     const publicKey = await this.#getPublicKeyAndAddr(path1, path2).then((v) =>
@@ -353,13 +370,7 @@ export class LedgerSigner {
 
     return Object.assign(withCommonExtensions(withNonce(publicKey)(creator)), {
       publicKey,
-      signBytes: getSignBytes(async (x) =>
-        // the signature includes a "0x00" at the beginning, indicating a ed25519 signature, ecdsa do not
-        // this is not needed for non-extrinsic signatures
-        (await this.#sign(path1, path2, x)).slice(
-          this.#schema === "ed25519" ? 1 : 0,
-        ),
-      ),
+      signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
     })
   }
 }

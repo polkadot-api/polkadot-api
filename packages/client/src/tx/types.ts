@@ -1,7 +1,7 @@
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { TxCreator } from "@polkadot-api/polkadot-signer"
-import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
+import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
 export type TxEvent = TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
@@ -173,8 +173,8 @@ export type PaymentInfo = {
 }
 
 export type Transaction<
-  Asset = any,
-  Ext = Record<string, CustomSignedExtensionValues>,
+  _Asset = any,
+  _Ext = Record<string, CustomSignedExtensionValues>,
 > = {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
@@ -237,27 +237,27 @@ export type Transaction<
   /**
    * Estimate fees against the latest known `finalizedBlock`
    *
-   * @param from       Public key or address from the potencial sender.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Fees in fundamental units.
    */
-  getEstimatedFees: (
-    from: Uint8Array | SS58String,
-    txOptions?: TxOptions<Asset, Ext>,
-  ) => Promise<bigint>
+  getEstimatedFees<T extends TxCreator<any>>(
+    creator: T,
+    txOptions: TxCreatorOptions<T>,
+  ): Promise<bigint>
 
   /**
    * Payment info against the latest known `finalizedBlock`
    *
-   * @param from       Public key or address from the potencial sender.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns PaymentInfo for the given transaction (weight, estimated fees
    *          and class).
    */
-  getPaymentInfo: (
-    from: Uint8Array | SS58String,
-    txOptions?: TxOptions<Asset, Ext>,
-  ) => Promise<PaymentInfo>
+  getPaymentInfo<T extends TxCreator<any>>(
+    creator: T,
+    txOptions: TxCreatorOptions<T>,
+  ): Promise<PaymentInfo>
 
   /**
    * PAPI way of expressing an extrinsic with arguments.

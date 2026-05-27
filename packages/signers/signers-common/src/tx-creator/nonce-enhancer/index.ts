@@ -83,9 +83,9 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
           ),
         ),
       ).pipe(take(1))
-    return async (payload, opts) => {
+    return async (payload, opts, mocked) => {
       if (payload.extensions.find(({ id }) => id === NONCE_ID))
-        return inner(payload, opts)
+        return inner(payload, opts, mocked)
       const nonce =
         opts.nonce ??
         (await firstValueFrom(
@@ -129,6 +129,6 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
         })
       }
 
-      return inner({ ...payload }, opts)
+      return inner({ ...payload }, opts, mocked)
     }
   }

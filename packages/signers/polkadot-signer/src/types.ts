@@ -107,4 +107,8 @@ export interface TxPayloadV1 {
 /**
  * Creates a SCALE-encoded extrinsic (ready to broadcast).
  */
-export type TxCreator<T> = (input: TxPayloadV1, opts: T) => Promise<string>
+export type TxCreator<T> = (
+  input: TxPayloadV1,
+  opts: T,
+  mockedSignature: boolean,
+) => Promise<string>

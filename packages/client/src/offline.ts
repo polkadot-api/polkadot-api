@@ -85,6 +85,7 @@ const createOfflineTxEntry = <Arg extends {} | undefined>(
               version: 1,
             },
             txOptions,
+            false,
           ),
         )
       },

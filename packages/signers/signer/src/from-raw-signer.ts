@@ -14,6 +14,9 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
 
+const SR_MOCK = new Uint8Array(64).fill(0)
+const ECDSA_MOCK = new Uint8Array(65).fill(0)
+
 export const getTxCreator = (
   publicKey: Uint8Array,
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
@@ -21,7 +24,7 @@ export const getTxCreator = (
   // TODO: HASHER HERE?
   hasher: (input: Uint8Array) => Uint8Array = Blake2256,
 ) => {
-  const creator: TxCreatorFactory<{}> = () => async (payload) => {
+  const creator: TxCreatorFactory<{}> = () => async (payload, _, mocked) => {
     const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
@@ -39,7 +42,11 @@ export const getTxCreator = (
     })
     const callData = fromHex(payload.callData)
     const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
-    const signed = await sign(toSign.length > 256 ? hasher(toSign) : toSign)
+    const signed = mocked
+      ? signingType === "Ecdsa"
+        ? ECDSA_MOCK
+        : SR_MOCK
+      : await sign(toSign.length > 256 ? hasher(toSign) : toSign)
     return toHex(
       createV4Tx(decMeta, publicKey, signed, extra, callData, signingType),
     )
@@ -58,9 +65,9 @@ export const withMetadataHash: (
 ) => TxCreatorEnhancer<{}> = (networkInfo) => (innerFactory) => (chain) => {
   const inner = innerFactory(chain)
 
-  return async (payload, opts) => {
+  return async (payload, opts, mocked) => {
     if (payload.extensions.find(({ id }) => id === METADATA_IDENTIFIER))
-      return inner(payload, opts)
+      return inner(payload, opts, mocked)
     const metadata = unifyMetadata(decAnyMetadata(payload.context.metadata))
     if (!metadata.extrinsic.extensions[METADATA_IDENTIFIER])
       throw new Error(`${METADATA_IDENTIFIER} not found`)
@@ -76,6 +83,6 @@ export const withMetadataHash: (
       extra,
       additionalSigned,
     })
-    return inner({ ...payload }, opts)
+    return inner({ ...payload }, opts, mocked)
   }
 }

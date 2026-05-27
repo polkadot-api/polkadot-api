@@ -14,11 +14,8 @@ const transfer = api.tx.Balances.transfer_allow_death({
   value: 12345n,
 })
 
-// TODO: migrate fee estimation to the TxCreator-based transaction flow.
 transfer
-  .getEstimatedFees(BOB, {
-    customSignedExtensions: { CheckAppId: { value: 0 } },
-  })
+  .getEstimatedFees(papiTestCreator(api), {})
   .then((estimatedFees) => console.log({ estimatedFees }), console.error)
 
 // TODO: add custom signed-extension support to TxCreator-based flows.

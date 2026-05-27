@@ -11,16 +11,26 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
-import { SignerPayloadJSON, SignPayload, SignRaw } from "./types"
+import { KeypairType, SignerPayloadJSON, SignPayload, SignRaw } from "./types"
 
 const accountIdEnc = AccountId().enc
 const getPublicKey = (address: string) =>
   address.startsWith("0x") ? fromHex(address) : accountIdEnc(address)
 
+const TYPE_MAP: Record<KeypairType, Parameters<typeof createV4Tx>[5]> = {
+  ed25519: "Ed25519",
+  ecdsa: "Ecdsa",
+  sr25519: "Sr25519",
+}
+
+const SR_MOCK = "0x" + "0".repeat(128)
+const ECDSA_MOCK = SR_MOCK + "00"
+
 export function getTxCreatorFromPjs(
   address: string,
   signPayload: SignPayload,
   signRaw: SignRaw,
+  type?: KeypairType,
 ) {
   const signBytes = (data: Uint8Array) =>
     signRaw({
@@ -29,7 +39,7 @@ export function getTxCreatorFromPjs(
       type: "bytes",
     }).then(({ signature }) => fromHex(signature))
   const publicKey = getPublicKey(address)
-  const creator: TxCreatorFactory<{}> = () => async (payload) => {
+  const creator: TxCreatorFactory<{}> = () => async (payload, _, mocked) => {
     const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
 
     const pjs: Partial<SignerPayloadJSON> = {}
@@ -78,7 +88,9 @@ export function getTxCreatorFromPjs(
     pjs.version = checkedVersion
     pjs.withSignedTransaction = true // we allow the wallet to change the payload
 
-    const result = await signPayload(pjs as SignerPayloadJSON)
+    const result = mocked
+      ? { signature: type === "ecdsa" ? ECDSA_MOCK : SR_MOCK }
+      : await signPayload(pjs as SignerPayloadJSON)
     const tx = result.signedTransaction
     if (tx) return typeof tx === "string" ? tx : toHex(tx)
 
@@ -89,6 +101,7 @@ export function getTxCreatorFromPjs(
         fromHex(result.signature),
         extra,
         fromHex(payload.callData),
+        mocked && type ? TYPE_MAP[type] : undefined,
       ),
     )
   }

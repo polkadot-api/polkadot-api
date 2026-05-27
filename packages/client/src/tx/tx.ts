@@ -6,7 +6,18 @@ import type {
   RuntimeContext,
 } from "@polkadot-api/observable-client"
 import { TxCreator } from "@polkadot-api/polkadot-signer"
-import { compact, Enum, HexString } from "@polkadot-api/substrate-bindings"
+import {
+  _void,
+  compact,
+  compactBn,
+  Decoder,
+  Enum,
+  HexString,
+  Struct,
+  u128,
+  u32,
+  Variant,
+} from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import {
   combineLatest,
@@ -17,12 +28,25 @@ import {
   take,
 } from "rxjs"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
-import { Extensions, Transaction, TxEntry } from "./types"
+import { Extensions, PaymentInfo, Transaction, TxEntry } from "./types"
 
 export { InvalidTxError, submit, submit$ }
 
 type TxCreatorOptions<T extends TxCreator<any>> =
   T extends TxCreator<infer A> ? A : never
+
+const [, queryInfoDecFallback] = Struct({
+  weight: Struct({
+    ref_time: compactBn,
+    proof_size: compactBn,
+  }),
+  class: Variant({
+    Normal: _void,
+    Operational: _void,
+    Mandatory: _void,
+  }),
+  partial_fee: u128,
+})
 
 export const createTxEntry = <
   Arg extends {} | undefined,
@@ -73,6 +97,7 @@ export const createTxEntry = <
     const create$ = <T extends TxCreator<any>>(
       creator: T,
       opts: TxCreatorOptions<T>,
+      mockedSignature: boolean,
     ) =>
       combineLatest([
         chainHead.genesis$,
@@ -98,19 +123,20 @@ export const createTxEntry = <
               version: 1,
             },
             opts,
+            mockedSignature,
           ),
         ),
         map(fromHex),
       )
 
     const create: Transaction<Asset, Ext>["create"] = (creator, options) =>
-      firstValueFrom(create$(creator, options))
+      firstValueFrom(create$(creator, options, false))
 
     const createAndSubmit: Transaction<Asset, Ext>["createAndSubmit"] = (
       creator,
       options,
     ) =>
-      firstValueFrom(create$(creator, options)).then((tx) =>
+      firstValueFrom(create$(creator, options, false)).then((tx) =>
         submit(chainHead, broadcast, tx),
       )
 
@@ -118,36 +144,55 @@ export const createTxEntry = <
       Asset,
       Ext
     >["createSubmitAndWatch"] = (creator, options) =>
-      create$(creator, options).pipe(
+      create$(creator, options, false).pipe(
         mergeMap((tx) => submit$(chainHead, broadcast, tx, true)),
       )
 
     const getPaymentInfo: Transaction<Asset, Ext>["getPaymentInfo"] = async (
-      _from,
-      _options,
-    ) =>
-      // TODO: migrate fee estimation to the TxCreator-based transaction flow.
-      Promise.reject(
-        new Error(
-          "Transaction fee estimation is not migrated to TxCreator yet",
+      creator,
+      options,
+    ) => {
+      const encoded = await firstValueFrom(create$(creator, options, true))
+      const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
+
+      const decoder$: Observable<Decoder<PaymentInfo>> = chainHead
+        .getRuntimeContext$(null)
+        .pipe(
+          map((ctx) => {
+            try {
+              return ctx.dynamicBuilder.buildRuntimeCall(
+                "TransactionPaymentApi",
+                "query_info",
+              ).value.dec
+            } catch {
+              return queryInfoDecFallback
+            }
+          }),
+        )
+
+      const call$ = chainHead.call$(
+        null,
+        "TransactionPaymentApi_query_info",
+        args,
+      )
+
+      return firstValueFrom(
+        combineLatest([call$, decoder$]).pipe(
+          map(([result, decoder]) => decoder(result)),
         ),
       )
+    }
 
     const getEncodedData = () =>
       firstValueFrom(
         getCallData$(arg, null).pipe(map(({ callData }) => callData)),
       )
 
-    const getEstimatedFees = async (
-      _from: Uint8Array | string,
-      _options?: any,
-    ) =>
-      // TODO: migrate fee estimation to the TxCreator-based transaction flow.
-      Promise.reject(
-        new Error(
-          "Transaction fee estimation is not migrated to TxCreator yet",
-        ),
-      )
+    const getEstimatedFees: Transaction<
+      Asset,
+      Ext
+    >["getEstimatedFees"] = async (creator, options) =>
+      (await getPaymentInfo(creator, options)).partial_fee
 
     return {
       getPaymentInfo,

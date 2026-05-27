@@ -40,7 +40,12 @@ export const connectInjectedExtension = async (
     accounts
       .filter(({ type }) => supportedAccountTypes.has(type!))
       .map((x) => {
-        const txCreator = getTxCreatorFromPjs(x.address, signPayload, signRaw)
+        const txCreator = getTxCreatorFromPjs(
+          x.address,
+          signPayload,
+          signRaw,
+          x.type,
+        )
         return {
           ...x,
           txCreator,

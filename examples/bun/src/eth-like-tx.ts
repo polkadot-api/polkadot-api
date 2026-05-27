@@ -37,6 +37,5 @@ const tx = api.tx.System.remark({
   ),
 })
 
-// TODO: migrate fee estimation to the TxCreator-based transaction flow.
-tx.getEstimatedFees(signer.publicKey).then(console.log, console.error)
+tx.getEstimatedFees(signer(api), {}).then(console.log, console.error)
 tx.createSubmitAndWatch(signer(api), {}).subscribe(console.log, console.error)

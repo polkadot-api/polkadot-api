@@ -28,7 +28,7 @@ export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
   (innerFactory) =>
   ({ txCreatorBindings }) => {
     const inner = innerFactory({ txCreatorBindings })
-    return async (payload, opts) => {
+    return async (payload, opts, mocked) => {
       const lookupFn = getLookupFn(
         unifyMetadata(decAnyMetadata(payload.context.metadata)),
       )
@@ -80,6 +80,6 @@ export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
           }),
         )
       ).filter((v) => v != null)
-      return inner({ ...payload, extensions: encoded }, opts)
+      return inner({ ...payload, extensions: encoded }, opts, mocked)
     }
   }
