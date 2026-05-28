@@ -25,7 +25,7 @@
     "dist"
   ],
   "scripts": {
-    "build-core": "echo 'TODO: migrate'",
+    "build-core": "tsc --noEmit && rollup -c ../../../rollup.config.js",
     "build": "pnpm build-core",
     "test": "echo 'no tests'",
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -34,8 +34,8 @@
   "dependencies": {
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/polkadot-signer": "workspace:*",
+    "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/utils": "workspace:*",
-    "@polkadot-api/signer": "workspace:*"
+    "@polkadot-api/utils": "workspace:*"
   }
 }

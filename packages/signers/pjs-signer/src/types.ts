@@ -109,7 +109,10 @@ export interface InjectedAccount {
 }
 
 export interface InjectedPolkadotAccount {
-  txCreator: TxCreatorFactory<Opts>
+  txCreator: TxCreatorFactory<Opts> & {
+    publicKey: Uint8Array
+    signBytes: (data: Uint8Array) => Promise<Uint8Array>
+  }
   address: string
   genesisHash?: string | null
   name?: string

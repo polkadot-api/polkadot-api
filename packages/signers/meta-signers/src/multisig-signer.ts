@@ -1,4 +1,4 @@
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import type { TxCreatorFactory } from "@polkadot-api/signers-common"
 import {
   AccountId,
   Blake2256,
@@ -11,20 +11,23 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { getCodecs } from "./get-codecs"
-import { WrappedSigner } from "./wrapped-signer"
+import { WrapTxCreatorFactory } from "./wrapped-tx-creator"
 
-export interface MultisigSignerOptions<Address> {
+export interface MultisigTxCreatorOptions<Address> {
   method: (
     approvals: Array<Address>,
     threshold: number,
   ) => "as_multi" | "approve_as_multi"
 }
-const defaultMultisigSignerOptions: MultisigSignerOptions<unknown> = {
+const defaultMultisigTxCreatorOptions: MultisigTxCreatorOptions<unknown> = {
   method: (approvals, threshold) =>
     approvals.length === threshold - 1 ? "as_multi" : "approve_as_multi",
 }
 
-export function getMultisigSigner<Address extends SS58String | HexString>(
+export function getMultisigTxCreator<
+  Address extends SS58String | HexString,
+  T extends TxCreatorFactory<any>,
+>(
   multisig: {
     threshold: number
     signatories: Address[]
@@ -51,11 +54,11 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
       proof_size: bigint
     }
   }>,
-  signer: PolkadotSigner | WrappedSigner,
-  options?: MultisigSignerOptions<Address>,
-): WrappedSigner {
-  options = {
-    ...defaultMultisigSignerOptions,
+  txCreator: T & { publicKey: Uint8Array; accountId?: Uint8Array },
+  options?: MultisigTxCreatorOptions<Address>,
+): WrapTxCreatorFactory<T> {
+  const resolvedOptions = {
+    ...defaultMultisigTxCreatorOptions,
     ...options,
   }
 
@@ -75,8 +78,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
     signatories: pubKeys,
   })
 
-  const signerAddress =
-    "accountId" in signer ? signer.accountId : signer.publicKey
+  const signerAddress = txCreator.accountId ?? txCreator.publicKey
   const otherSignatories = pubKeys.filter(
     (addr) => !u8ArrEq(addr, signerAddress),
   )
@@ -84,15 +86,14 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
     throw new Error("Signer is not one of the signatories of the multisig")
   }
 
-  return {
-    publicKey: signer.publicKey,
-    accountId: multisigId,
-    signBytes() {
-      throw new Error("Raw bytes can't be signed with a multisig")
-    },
-    async signTx(callData, signedExtensions, metadata, atBlockNumber, hasher) {
+  const factory: TxCreatorFactory<any> = (chain) => {
+    const inner = txCreator(chain)
+    return async (payload, opts, mockedSignature) => {
+      const callData = fromHex(payload.callData)
       const callHash = Blake2256(callData)
-      const { dynamicBuilder, callCodec } = getCodecs(metadata)
+      const { dynamicBuilder, callCodec } = getCodecs(
+        fromHex(payload.context.metadata),
+      )
 
       // Try as_multi_threshold_1
       if (multisig.threshold === 1) {
@@ -101,22 +102,20 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
             "Multisig",
             "as_multi_threshold_1",
           )
-          const payload = codec.enc({
+          const wrappedPayload = codec.enc({
             other_signatories: otherSignatories.map(toAddress),
             call: callCodec.dec(callData),
           })
           const wrappedCallData = mergeUint8([
             new Uint8Array(location),
-            payload,
+            wrappedPayload,
           ])
-          return signer.signTx(
-            wrappedCallData,
-            signedExtensions,
-            metadata,
-            atBlockNumber,
-            hasher,
+          return inner(
+            { ...payload, callData: toHex(wrappedCallData) },
+            opts,
+            mockedSignature,
           )
-        } catch (_) {}
+        } catch {}
       }
 
       const unsignedExtrinsic = mergeUint8([new Uint8Array([4]), callData])
@@ -127,13 +126,13 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
 
       if (
         multisigInfo?.approvals.some((approval) =>
-          u8ArrEq(getPublicKey(approval), signer.publicKey),
+          u8ArrEq(getPublicKey(approval), txCreator.publicKey),
         )
       ) {
         throw new Error("Multisig call already approved by signer")
       }
 
-      const method = options.method(
+      const method = resolvedOptions.method(
         multisigInfo?.approvals ?? [],
         multisig.threshold,
       )
@@ -141,7 +140,7 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
       let wrappedCallData
       try {
         const { location, codec } = dynamicBuilder.buildCall("Multisig", method)
-        const payload = codec.enc({
+        const wrappedPayload = codec.enc({
           threshold: multisig.threshold,
           other_signatories: otherSignatories.map(toAddress),
           max_weight: weightInfo.weight,
@@ -154,22 +153,25 @@ export function getMultisigSigner<Address extends SS58String | HexString>(
                 call_hash: toHex(callHash),
               }),
         })
-        wrappedCallData = mergeUint8([new Uint8Array(location), payload])
-      } catch (_) {
+        wrappedCallData = mergeUint8([new Uint8Array(location), wrappedPayload])
+      } catch {
         throw new Error(
           `Unsupported runtime version: Multisig.${method} not present or changed substantially`,
         )
       }
 
-      return signer.signTx(
-        wrappedCallData,
-        signedExtensions,
-        metadata,
-        atBlockNumber,
-        hasher,
+      return inner(
+        { ...payload, callData: toHex(wrappedCallData) },
+        opts,
+        mockedSignature,
       )
-    },
+    }
   }
+
+  return Object.assign(factory as T, {
+    publicKey: txCreator.publicKey,
+    accountId: multisigId,
+  })
 }
 
 const u8ArrEq = (a: Uint8Array, b: Uint8Array) => {

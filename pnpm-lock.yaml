@@ -757,9 +757,9 @@ importers:
       '@polkadot-api/polkadot-signer':
         specifier: workspace:*
         version: link:../polkadot-signer
-      '@polkadot-api/signer':
+      '@polkadot-api/signers-common':
         specifier: workspace:*
-        version: link:../signer
+        version: link:../signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
