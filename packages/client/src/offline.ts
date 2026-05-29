@@ -20,7 +20,7 @@ const getOfflineExtensions = (
   genesis: string,
   lookupFn: MetadataLookup,
   builder: ReturnType<typeof getDynamicBuilder>,
-  { nonce }: { nonce: number },
+  { nonce, mortality }: { nonce: number; mortality?: any },
 ): TxPayloadV1["extensions"] => {
   const nonceType = lookupFn.metadata.extrinsic.extensions["CheckNonce"]?.type
   const nonceExt =
@@ -33,10 +33,13 @@ const getOfflineExtensions = (
           },
         ]
       : []
-  const mortality = lookupFn.metadata.extrinsic.extensions["CheckMortality"]
-    ? [{ id: "CheckMortality", extra: "0x00", additionalSigned: genesis }]
-    : []
-  return [...mortality, ...nonceExt]
+  // only set mortality if not set by the user
+  const mortalityExt =
+    mortality == null &&
+    lookupFn.metadata.extrinsic.extensions["CheckMortality"]
+      ? [{ id: "CheckMortality", extra: "0x00", additionalSigned: genesis }]
+      : []
+  return [...mortalityExt, ...nonceExt]
 }
 
 const createOfflineTxEntry = <Arg extends {} | undefined>(

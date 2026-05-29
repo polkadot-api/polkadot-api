@@ -101,7 +101,7 @@ export function getTxCreatorFromPjs(
         fromHex(result.signature),
         extra,
         fromHex(payload.callData),
-        mocked && type ? TYPE_MAP[type] : undefined,
+        mocked ? TYPE_MAP[type ?? "sr25519"] : undefined,
       ),
     )
   }
