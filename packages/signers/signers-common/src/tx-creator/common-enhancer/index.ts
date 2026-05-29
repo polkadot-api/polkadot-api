@@ -11,6 +11,10 @@ export type CommonOpts = {
    */
   tip?: bigint
   /**
+   * Asset to pay fees with. Default: `None`
+   */
+  asset?: unknown
+  /**
    * Mortality of the transaction.
    * If no `at` is passed, transaction will be alive for, at least, `period`
    * number of blocks after the current best block height.

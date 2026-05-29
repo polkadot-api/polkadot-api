@@ -4,7 +4,7 @@ import {
 } from "@polkadot-api/metadata-builders"
 import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 import { compact } from "@polkadot-api/substrate-bindings"
-import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { toHex } from "@polkadot-api/utils"
 import { firstValueFrom, skipWhile } from "rxjs"
 import type { CommonOpts } from ".."
 import { TxCreatorBindings } from "../../types"
@@ -93,7 +93,14 @@ export const extensions: Record<
   },
   ChargeTransactionPayment: async ({ opts: { tip } }) =>
     value(toHex(compact.enc(tip ?? 0))),
-  // TODO: add asset support
-  ChargeAssetTxPayment: async ({ opts: { tip } }) =>
-    value(toHex(mergeUint8([compact.enc(tip ?? 0), fromHex(zero)]))),
+  ChargeAssetTxPayment: async ({
+    opts: { tip, asset },
+    lookupFn,
+    dynamicBuilder,
+  }) => {
+    const { enc } = dynamicBuilder.buildDefinition(
+      lookupFn.metadata.extrinsic.extensions["ChargeAssetTxPayment"].type,
+    )
+    return value(toHex(enc({ tip: tip ?? 0, asset_id: asset })))
+  },
 }
