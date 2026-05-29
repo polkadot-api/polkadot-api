@@ -17,6 +17,7 @@ import {
   map,
   of,
   scan,
+  skipWhile,
   startWith,
   switchMap,
   take,
@@ -90,6 +91,8 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
         opts.nonce ??
         (await firstValueFrom(
           txCreatorBindings.blocks.pipe(
+            // with first finalized we know the observable is settled
+            skipWhile(({ type }) => type !== "finalized"),
             take(1),
             map(({ tips }) => {
               // Grab only the higher height

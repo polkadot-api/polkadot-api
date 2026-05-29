@@ -154,11 +154,18 @@ export const getOfflineApi: <D extends ChainDefinition>(
 
   const finalized = {
     hash: genesisHex,
-    parent: toHex(new Uint8Array(32).fill(0)),
+    parent: "0x" + "0".repeat(64),
     number: 0,
   }
+  const tips = [finalized]
   const txCreatorBindings: TxCreatorBindings = {
-    blocks: concat(of({ finalized, tips: [finalized] }), NEVER),
+    blocks: concat(
+      of(
+        { type: "newTip" as const, finalized, tips, newTip: finalized },
+        { type: "finalized" as const, finalized, tips },
+      ),
+      NEVER,
+    ),
     call: async () => {
       throw new Error("OfflineApi cannot perform runtime calls")
     },

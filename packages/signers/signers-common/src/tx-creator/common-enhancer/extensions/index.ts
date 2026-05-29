@@ -5,7 +5,7 @@ import {
 import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 import { compact } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
-import { firstValueFrom } from "rxjs"
+import { firstValueFrom, skipWhile } from "rxjs"
 import type { CommonOpts } from ".."
 import { TxCreatorBindings } from "../../types"
 import { mortal } from "./mortal-enc"
@@ -75,7 +75,10 @@ export const extensions: Record<
         ),
         mortality.at.hash,
       )
-    const { finalized, tips } = await firstValueFrom(blocks)
+    const { finalized, tips } = await firstValueFrom(
+      // with first finalized we know the observable is settled
+      blocks.pipe(skipWhile(({ type }) => type !== "finalized")),
+    )
     const higherHeight = Math.max(...tips.map(({ number }) => number))
     const heightDiff = higherHeight - finalized.number
     return both(
