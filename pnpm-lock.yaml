@@ -814,6 +814,9 @@ importers:
       '@noble/curves':
         specifier: ^2.2.0
         version: 2.2.0
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/signers/signers-common:
     dependencies:

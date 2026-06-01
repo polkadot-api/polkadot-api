@@ -31,6 +31,9 @@
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
+  "peerDependencies": {
+    "rxjs": ">=7.8.0"
+  },
   "dependencies": {
     "@noble/hashes": "^2.2.0",
     "@polkadot-api/metadata-builders": "workspace:*",
@@ -41,6 +44,7 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^2.2.0"
+    "@noble/curves": "^2.2.0",
+    "rxjs": "^7.8.2"
   }
 }

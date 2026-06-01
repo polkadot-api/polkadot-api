@@ -85,6 +85,14 @@ export type TxCreatorBindings = {
    * @returns Observable emitting SCALE-encoded value.
    */
   call: RuntimeCall
+  /**
+   * Performs a hash with the blockchain's hasher. The Observable will emit once
+   * and complete on each subscription.
+   *
+   * @param payload  Payload to be hashed.
+   * @returns Observable emitting hashed value.
+   */
+  hasher: (payload: Uint8Array) => Observable<Uint8Array>
 }
 
 export type TxCreatorFactory<T> = (chain: {

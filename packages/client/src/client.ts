@@ -49,6 +49,7 @@ const createApi = <D extends ChainDefinition>(
   chainDefinition?: ChainDefinition,
 ): TypedApi<D> => {
   const txCreatorBindings: TxCreatorBindings = {
+    hasher: (payload) => chainHead.hasher$.pipe(map((h) => h(payload))),
     blocks: chainHead.pinnedBlocks$.pipe(
       scan((acc, { finalized, blocks }) => {
         let prev = acc.at(-1)!
