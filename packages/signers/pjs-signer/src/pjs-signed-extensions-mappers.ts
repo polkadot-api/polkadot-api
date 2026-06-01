@@ -47,7 +47,7 @@ const assetTxPaymentDec = Struct({
 
 export const ChargeAssetTxPayment = ({
   extra,
-}: SignedExtension): { aseetId?: string; tip?: string } => {
+}: SignedExtension): { assetId?: string; tip?: string } => {
   const { tip, asset } = assetTxPaymentDec(extra)
 
   return {
