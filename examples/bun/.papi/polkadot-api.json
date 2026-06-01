@@ -19,6 +19,12 @@
       "metadata": ".papi/metadata/myth.scale",
       "genesis": "0xf6ee56e9c5277df5b4ce6ae9983ee88f3cbed27d31beeb98f9f84f997a1ab0b9",
       "codeHash": "0x12e9027fabf41a70d97c1e4c243eaa4a6ed97e73acf36357ae69b5a858cd6854"
+    },
+    "pah": {
+      "wsUrl": "wss://sys.ibp.network/asset-hub-paseo",
+      "metadata": ".papi/metadata/pah.scale",
+      "genesis": "0xd6eec26135305a8ad257a20d003357284c8aa03d0bdb2b357ab0a22371e11ef2",
+      "codeHash": "0xfddf30fb88912790c5c7efd5918a9498821a80e22d5604ae115f4ed4b3580048"
     }
   }
 }

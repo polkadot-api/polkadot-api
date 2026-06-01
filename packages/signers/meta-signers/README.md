@@ -1,67 +1,79 @@
 # @polkadot-api/meta-signers
 
-## getMultisigSigner
+TxCreator helpers that wrap another TxCreator to submit calls through a meta
+account, such as a multisig or proxy account.
 
-Signer that wraps every transaction with a multisig call for the provided multisig.
+The returned TxCreator keeps the original signer's `publicKey` and adds an
+`accountId` with the account that will dispatch the wrapped call.
+
+## getMultisigTxCreator
+
+TxCreator that wraps every transaction with a multisig call for the provided
+multisig account.
 
 ### Usage
 
 ```ts
-function getMultisigSigner(
+function getMultisigTxCreator<
+  Address extends SS58String | HexString,
+  T extends TxCreatorFactory<any>,
+>(
   multisig: {
     threshold: number
-    signatories: SS58String[]
+    signatories: Address[]
   },
   getMultisigInfo: (
-    multisig: SS58String,
-    callHash: Uint8Array,
+    multisig: Address,
+    callHash: SizedHex<32>,
   ) => Promise<MultisigInfo | undefined>,
-  txPaymentInfo: (
-    uxt: Uint8Array,
-    len: number,
-  ) => Promise<PaymentInfo | undefined>,
-  signer: PolkadotSigner,
+  txPaymentInfo: (uxt: Uint8Array, len: number) => Promise<PaymentInfo>,
+  txCreator: T & { publicKey: Uint8Array; accountId?: Uint8Array },
   options?: {
     method: (
-      approvals: Array<SS58String>,
+      approvals: Array<Address>,
       threshold: number,
     ) => "as_multi" | "approve_as_multi"
   },
-): PolkadotSigner
+): T & { publicKey: Uint8Array; accountId: Uint8Array }
 ```
 
-Create a multisig signer by passing in:
+Create a multisig TxCreator by passing in:
 
-- The multisig information (threshold and list of signatories)
-- A call to query an existing multisig call (`typedApi.query.Multisig.Multisigs`)
-- A call to get the call payment info (`testApi.apis.TransactionPaymentApi.query_info`)
-- A signer of one the signatories.
+- The multisig information: threshold and signatories.
+- A query for existing multisig state, typically
+  `typedApi.query.Multisig.Multisigs.getValue`.
+- A payment-info query, typically
+  `typedApi.apis.TransactionPaymentApi.query_info`.
+- A TxCreator for one of the multisig signatories.
 
-By default, it has a couple of optimizations:
+By default:
 
-- If `multisig.threshold == 1`, then it will use `Multisig.as_multi_threshold_1`.
-- It will use `Multisig.approve_as_multi` for those calls that don't execute the call, and `Multisig.as_multi` for the last one (once the threshold would be reached). This can be customized using the option `method`.
+- If `multisig.threshold === 1`, it uses `Multisig.as_multi_threshold_1`.
+- It uses `Multisig.approve_as_multi` until the threshold is reached, then
+  `Multisig.as_multi`. Override this with `options.method`.
 
 ### Example
 
 ```ts
-import { getMultisigSigner } from "@polkadot-api/meta-signers"
+import { getMultisigTxCreator } from "@polkadot-api/meta-signers"
+import { Binary } from "polkadot-api"
 import {
   connectInjectedExtension,
   getInjectedExtensions,
 } from "polkadot-api/pjs-signer"
 
-// Grab a signer from a pjs extension
 while (!getInjectedExtensions()?.includes("polkadot-js"))
   await new Promise((res) => setTimeout(res, 50))
+
 const pjs = await connectInjectedExtension("polkadot-js")
 const accounts = pjs.getAccounts()
 const alice = accounts.find((account) => account.name === "Alice")
 
-// ... create a `typedApi` to the chain you want to connect to
+if (!alice) throw new Error("Alice account not found")
 
-// Create a multisig signer with alice
-const aliceMultisig = getMultisigSigner(
+// ... create a `typedApi` for the chain you want to connect to
+
+const aliceMultisig = getMultisigTxCreator(
   {
     threshold: 2,
     signatories: [
@@ -70,15 +82,59 @@ const aliceMultisig = getMultisigSigner(
       "14u9dEGTLgwwzQ6oMm6bN2mt7xxwEko8qciKw9jg3Uc4pYjA",
     ],
   },
-  typedApi.query.Multisig.Multisigs,
+  typedApi.query.Multisig.Multisigs.getValue,
   typedApi.apis.TransactionPaymentApi.query_info,
-  alice.signer,
+  alice.txCreator,
 )
 
-// Send the transaction as multisig
 await typedApi.tx.System.remark({
   remark: Binary.fromText("We are all very good friends"),
-}).signAndSubmit(aliceMultisig)
+}).createAndSubmit(aliceMultisig(typedApi), {})
+```
 
-// The transaction will be wraped with a multisig and signed as alice.
+## getProxyTxCreator
+
+TxCreator that wraps every transaction with `Proxy.proxy`, so the proxied
+account dispatches the wrapped call and the provided TxCreator signs as its
+delegate.
+
+### Usage
+
+```ts
+function getProxyTxCreator<T extends TxCreatorFactory<any>>(
+  proxyParams: {
+    real: SS58String | HexString
+    type?: { type: string; value?: unknown }
+  },
+  txCreator: T & { publicKey: Uint8Array },
+): T & { publicKey: Uint8Array; accountId: Uint8Array }
+```
+
+Create a proxy TxCreator by passing in:
+
+- The real proxied account as SS58 or hex.
+- An optional proxy type value for `force_proxy_type`.
+- The delegate TxCreator that signs the proxy transaction.
+
+### Example
+
+```ts
+import { getProxyTxCreator } from "@polkadot-api/meta-signers"
+import { Binary } from "polkadot-api"
+import { getDevTxCreator } from "./signer"
+
+// ... create a `typedApi` for the chain you want to connect to
+
+const delegate = getDevTxCreator("//Alice")
+const proxy = getProxyTxCreator(
+  {
+    real: "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
+    type: { type: "Any" },
+  },
+  delegate,
+)
+
+await typedApi.tx.System.remark({
+  remark: Binary.fromText("Sent through proxy"),
+}).createAndSubmit(proxy(typedApi), {})
 ```

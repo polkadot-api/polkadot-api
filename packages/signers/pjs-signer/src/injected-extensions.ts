@@ -1,4 +1,4 @@
-import { getPolkadotSignerFromPjs } from "./from-pjs-account"
+import { getTxCreatorFromPjs } from "./from-pjs-account"
 import type {
   InjectedAccount,
   InjectedExtension,
@@ -40,14 +40,15 @@ export const connectInjectedExtension = async (
     accounts
       .filter(({ type }) => supportedAccountTypes.has(type!))
       .map((x) => {
-        const polkadotSigner = getPolkadotSignerFromPjs(
+        const txCreator = getTxCreatorFromPjs(
           x.address,
           signPayload,
           signRaw,
+          x.type,
         )
         return {
           ...x,
-          polkadotSigner,
+          txCreator,
         }
       })
 

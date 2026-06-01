@@ -28,10 +28,7 @@ export const createRuntimeCtx = (
   const dynamicBuilder = getDynamicBuilder(lookup)
   const events = dynamicBuilder.buildStorage("System", "Events")
 
-  // TODO: we might want to check on other extension versions in the future
-  const assetPayment = metadata.extrinsic.signedExtensions[0].find(
-    (x) => x.identifier === "ChargeAssetTxPayment",
-  )
+  const assetPayment = metadata.extrinsic.extensions["ChargeAssetTxPayment"]
 
   let assetId: null | number = null
   if (assetPayment) {
@@ -113,7 +110,7 @@ const getExtrinsicDecoder = (
 ): Decoder<DecodedExtrinsic> => {
   const v0Extra = Struct.dec(
     Object.fromEntries(
-      metadata.extrinsic.signedExtensions[0].map(
+      metadata.extrinsic.extensionsByVersion[0].map(
         (x) =>
           [
             x.identifier,
@@ -162,7 +159,7 @@ const getExtrinsicDecoder = (
     let extraDec: Decoder<StringRecord<any>>
     if (metadata.version === 16) {
       const extensionsToApply =
-        metadata.extrinsic.signedExtensions[extensionVersion]
+        metadata.extrinsic.extensionsByVersion[extensionVersion]
 
       if (!extensionsToApply) throw new Error("Unexpected extension version")
       extraDec = Struct.dec(

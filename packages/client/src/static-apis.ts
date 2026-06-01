@@ -12,7 +12,7 @@ import { withWeakCache } from "./utils/with-weak-cache"
 export const createStaticApis = (
   chainHead: ChainHead$,
   broadcast$: (tx: Uint8Array) => Observable<never>,
-  { getClientCompat, getSyncHelpers, getIsAsssetCompat }: CompatHelpers,
+  { getClientCompat, getSyncHelpers }: CompatHelpers,
 ) => {
   const txFromCallData =
     ({ dynamicBuilder, lookup }: RuntimeContext) =>
@@ -29,7 +29,6 @@ export const createStaticApis = (
           chainHead,
           broadcast$,
           getClientCompat("tx", pallet, name),
-          getIsAsssetCompat,
         )(args)
       } catch {
         throw new Error("Invalid call data")

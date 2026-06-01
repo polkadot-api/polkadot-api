@@ -12,13 +12,11 @@ export type {
   TxInBestBlocksFound,
   TxEventsPayload,
   TxFinalized,
-  TxOptions,
   TxFinalizedPayload,
   Transaction,
   TxEntry,
 } from "./tx"
 export type { EventPhase } from "./event"
-export type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 export type {
   PolkadotClient,
   TransactionValidityError,

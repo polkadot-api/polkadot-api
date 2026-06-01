@@ -24,6 +24,7 @@ import type {
   TxFromBinary,
 } from "./tx"
 import { ViewFn } from "./viewFns"
+import { TxCreatorBindings } from "@polkadot-api/signers-common"
 
 export type { ChainSpecData }
 
@@ -76,21 +77,18 @@ export type ViewFnApi<A extends Record<string, Record<string, any>>> = {
   }
 }
 
-export type TxApi<A extends Record<string, Record<string, any>>, Ext, Asset> = {
+export type TxApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? TxEntry<A[K][KK], Ext, Asset>
-      : TxEntry<any, Ext, Asset>
+      ? TxEntry<A[K][KK]>
+      : TxEntry<any>
   }
 }
 
-export type OfflineTxApi<
-  A extends Record<string, Record<string, any>>,
-  Asset,
-> = {
+export type OfflineTxApi<A extends Record<string, Record<string, any>>> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? OfflineTxEntry<A[K][KK], Asset>
+      ? OfflineTxEntry<A[K][KK]>
       : unknown
   }
 }
@@ -112,8 +110,6 @@ export type OfflineConstApi<A extends Record<string, Record<string, any>>> = {
     [KK in keyof A[K]]: A[K][KK]
   }
 }
-
-export type UnsafeElement<E> = Record<string, Record<string, E>>
 
 export type { ArgsValueCompatHelper, CompatHelper }
 export type CompatHelperApi<A extends Record<string, Record<string, any>>> = {
@@ -152,14 +148,6 @@ export type SyncTxApi<A extends Record<string, Record<string, any>>> = {
   }
 }
 
-export type SyncQueryApi<A extends Record<string, Record<string, any>>> = {
-  [K in keyof A]: {
-    [KK in keyof A[K]]: A[K][KK] extends { KeyArgs: Array<any>; Value: any }
-      ? { getKey: (...args: A[K][KK]["Args"]) => HexString }
-      : unknown
-  }
-}
-
 export type StaticApis<D extends ChainDefinition, Safe> = {
   id: HexString
   decodeCallData: (callData: Uint8Array) => {
@@ -190,26 +178,21 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
 }
 
 export type TypedApi<D extends ChainDefinition, Safe = true> = {
-  tx: TxApi<
-    TxFromPalletsDef<D["descriptors"]["pallets"]>,
-    D["extensions"],
-    D["asset"]["_type"]
-  >
+  txCreatorBindings: TxCreatorBindings
+  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
   constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   apis: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
   view: ViewFnApi<ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>>
   query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
   event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
-  txFromCallData: TxFromBinary<D["asset"]["_type"]>
+  txFromCallData: TxFromBinary
   getStaticApis: (options?: PullOptions) => Promise<StaticApis<D, Safe>>
 }
 
 export type OfflineApi<D extends ChainDefinition> = {
+  txCreatorBindings: TxCreatorBindings
   constants: OfflineConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
-  tx: OfflineTxApi<
-    TxFromPalletsDef<D["descriptors"]["pallets"]>,
-    D["asset"]["_type"]
-  >
+  tx: OfflineTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
 }
 
 export type TransactionValidityError<D extends ChainDefinition> =

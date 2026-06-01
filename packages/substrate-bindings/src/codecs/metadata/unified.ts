@@ -66,7 +66,15 @@ export type UnifiedMetadata<T extends 14 | 15 | 16 = 14 | 15 | 16> = {
   >
   extrinsic: {
     version: number[]
-    signedExtensions: Record<
+    extensions: Record<
+      string,
+      {
+        identifier: string
+        type: number
+        additionalSigned: number
+      }
+    >
+    extensionsByVersion: Record<
       number,
       Array<{
         identifier: string
@@ -133,7 +141,10 @@ export const unifyMetadata = (
       version: 16,
       extrinsic: {
         ...restExtrinsic,
-        signedExtensions: Object.fromEntries(
+        extensions: Object.fromEntries(
+          signedExtensions.map((v) => [v.identifier, v]),
+        ),
+        extensionsByVersion: Object.fromEntries(
           signedExtensionsByVersion.map(([v, idxs]) => [
             v,
             idxs.map((extIdx) => signedExtensions[extIdx]),
@@ -145,8 +156,14 @@ export const unifyMetadata = (
   }
   // v15
   if ("custom" in metadata) {
-    const { lookup, extrinsic, custom, apis, pallets, outerEnums } =
-      metadata as V15
+    const {
+      lookup,
+      extrinsic: { signedExtensions, ...restExtrinsic },
+      custom,
+      apis,
+      pallets,
+      outerEnums,
+    } = metadata as V15
 
     return {
       version: 15,
@@ -160,9 +177,12 @@ export const unifyMetadata = (
         associatedTypes: [],
       })),
       extrinsic: {
-        ...extrinsic,
-        signedExtensions: { 0: extrinsic.signedExtensions },
-        version: [extrinsic.version],
+        ...restExtrinsic,
+        extensions: Object.fromEntries(
+          signedExtensions.map((v) => [v.identifier, v]),
+        ),
+        extensionsByVersion: { 0: signedExtensions },
+        version: [restExtrinsic.version],
       },
       apis,
       outerEnums,
@@ -170,7 +190,11 @@ export const unifyMetadata = (
     }
   }
   // fallback, v14
-  const { lookup, extrinsic, pallets } = metadata as V14
+  const {
+    lookup,
+    extrinsic: { signedExtensions, ...restExtrinsic },
+    pallets,
+  } = metadata as V14
   return {
     version: 14,
     lookup,
@@ -183,9 +207,12 @@ export const unifyMetadata = (
       associatedTypes: [],
     })),
     extrinsic: {
-      ...extrinsic,
-      signedExtensions: { 0: extrinsic.signedExtensions },
-      version: [extrinsic.version],
+      ...restExtrinsic,
+      extensions: Object.fromEntries(
+        signedExtensions.map((v) => [v.identifier, v]),
+      ),
+      extensionsByVersion: { 0: signedExtensions },
+      version: [restExtrinsic.version],
     },
     apis: [],
   }

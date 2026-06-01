@@ -1,16 +1,9 @@
 import { ValueCompat } from "@/compatibility"
-import { PlainDescriptor } from "@/descriptors"
 import { getCallData } from "@/utils/get-call-data"
-import type {
-  BlockInfo,
-  ChainHead$,
-  RuntimeContext,
-} from "@polkadot-api/observable-client"
-import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { getPolkadotSigner } from "@polkadot-api/signer"
+import type { ChainHead$ } from "@polkadot-api/observable-client"
+import { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   _void,
-  AccountId,
   compact,
   compactBn,
   Decoder,
@@ -28,27 +21,15 @@ import {
   map,
   mergeMap,
   Observable,
-  of,
   take,
-  throwError,
 } from "rxjs"
-import { createTx } from "./create-tx"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
-import {
-  Extensions,
-  PaymentInfo,
-  Transaction,
-  TxEntry,
-  TxOptions,
-} from "./types"
+import { PaymentInfo, Transaction, TxEntry } from "./types"
 
 export { InvalidTxError, submit, submit$ }
 
-const accountIdEnc = AccountId().enc
-const fakeSignature = new Uint8Array(64)
-const fakeSignatureEth = new Uint8Array(65)
-const getFakeSignature = (isEth: boolean) => () =>
-  isEth ? fakeSignatureEth : fakeSignature
+type TxCreatorOptions<T extends TxCreator<any>> =
+  T extends TxCreator<infer A> ? A : never
 
 const [, queryInfoDecFallback] = Struct({
   weight: Struct({
@@ -63,27 +44,16 @@ const [, queryInfoDecFallback] = Struct({
   partial_fee: u128,
 })
 
-export const createTxEntry = <
-  Arg extends {} | undefined,
-  Asset extends PlainDescriptor<any>,
-  E,
->(
+export const createTxEntry = <Arg extends {} | undefined>(
   pallet: string,
   name: string,
   chainHead: ChainHead$,
   broadcast: (tx: Uint8Array) => Observable<never>,
   compatibility: ValueCompat,
-  getIsAssetCompat: (ctx: RuntimeContext) => (asset: any) => Boolean,
-): TxEntry<Arg, E, Asset> => {
-  type Ext = Extensions<E>
-
+): TxEntry<Arg> => {
   const getCompatCtx$ = (at: HexString | null) =>
     combineLatest([chainHead.getRuntimeContext$(at), compatibility]).pipe(
-      map(([ctx, getCompat]) => ({
-        ctx,
-        isAssetCompat: getIsAssetCompat(ctx),
-        ...getCompat(ctx),
-      })),
+      map(([ctx, getCompat]) => ({ ctx, ...getCompat(ctx) })),
     )
 
   const getCallData$ = (arg: any, at: HexString | null) =>
@@ -112,93 +82,71 @@ export const createTxEntry = <
       ),
     )
 
-  const getEncodedAsset$ = (
-    asset: any,
-    at: HexString | null,
-  ): Observable<Uint8Array | undefined> =>
-    asset === undefined
-      ? of(undefined)
-      : getCompatCtx$(at).pipe(
-          map(({ ctx, isAssetCompat }) => {
-            if (!isAssetCompat(asset))
-              throw new Error(`Incompatible runtime asset`)
-
-            const { dynamicBuilder, assetId } = ctx
-            if (!assetId) return undefined
-            return dynamicBuilder.buildDefinition(assetId).enc(asset)
-          }),
-        )
-
-  return (arg?: Arg): Transaction<Asset, Ext> => {
-    const sign$ = (
-      from: PolkadotSigner,
-      { ..._options }: Omit<TxOptions<{}, Ext>, "at">,
-      atBlock: BlockInfo,
+  return (arg?: Arg): Transaction => {
+    const create$ = <T extends TxCreator<any>>(
+      creator: T,
+      opts: TxCreatorOptions<T>,
+      mockedSignature: boolean,
     ) =>
       combineLatest([
-        getCallData$(arg, atBlock.hash),
-        getEncodedAsset$(_options.asset, atBlock.hash),
-      ]).pipe(
-        mergeMap(([callData, asset]) =>
-          createTx(
-            chainHead,
-            from,
-            callData.callData,
-            atBlock,
-            (_options.customSignedExtensions as any) || {},
-            { ..._options, asset },
+        chainHead.genesis$,
+        chainHead.best$.pipe(
+          mergeMap((best) =>
+            chainHead
+              .getRuntimeContext$(best.hash)
+              .pipe(map((ctx) => ({ best, ctx }))),
           ),
         ),
-      )
-
-    const _sign = (
-      from: PolkadotSigner,
-      { at, ..._options }: TxOptions<{}, Ext> = {},
-    ) => {
-      const atBlock = chainHead.pinnedBlocks$.state.blocks.get(at!)
-      if (at && !atBlock)
-        return throwError(() => new Error(`Uknown block ${at}`))
-
-      return (atBlock ? of(atBlock) : chainHead.finalized$).pipe(
+        getCallData$(arg, null),
+      ]).pipe(
         take(1),
-        mergeMap((block) =>
-          sign$(from, _options, block).pipe(map((tx) => ({ tx, block }))),
+        mergeMap(([genesisHash, { best, ctx }, { callData }]) =>
+          creator(
+            {
+              callData: toHex(callData),
+              context: {
+                metadata: toHex(ctx.metadataRaw),
+                bestBlockHash: best.hash,
+                bestBlockHeight: best.number,
+                genesisHash,
+                token: null,
+              },
+              extensions: [],
+              signer: null,
+              txExtVersion: null,
+              version: 1,
+            },
+            opts,
+            mockedSignature,
+          ),
         ),
+        map(fromHex),
       )
-    }
 
-    const sign: Transaction<Asset, Ext>["sign"] = (from, options) =>
-      firstValueFrom(_sign(from, options)).then((x) => x.tx)
+    const create: Transaction["create"] = (creator, options) =>
+      firstValueFrom(create$(creator, options, false))
 
-    const signAndSubmit: Transaction<Asset, Ext>["signAndSubmit"] = (
-      from,
-      _options,
+    const createAndSubmit: Transaction["createAndSubmit"] = (
+      creator,
+      options,
     ) =>
-      firstValueFrom(_sign(from, _options)).then(({ tx, block }) =>
-        submit(chainHead, broadcast, tx, block.hash),
+      firstValueFrom(create$(creator, options, false)).then((tx) =>
+        submit(chainHead, broadcast, tx),
       )
 
-    const signSubmitAndWatch: Transaction<Asset, Ext>["signSubmitAndWatch"] = (
-      from,
-      _options,
+    const createSubmitAndWatch: Transaction["createSubmitAndWatch"] = (
+      creator,
+      options,
     ) =>
-      _sign(from, _options).pipe(
-        mergeMap(({ tx }) => submit$(chainHead, broadcast, tx, true)),
+      create$(creator, options, false).pipe(
+        mergeMap((tx) => submit$(chainHead, broadcast, tx, true)),
       )
 
-    const getPaymentInfo = async (
-      from: Uint8Array | string,
-      _options?: any,
+    const getPaymentInfo: Transaction["getPaymentInfo"] = async (
+      creator,
+      options,
     ) => {
-      if (typeof from === "string")
-        from = from.startsWith("0x") ? fromHex(from) : accountIdEnc(from)
-      const isEth = from.length === 20
-      const fakeSigner = getPolkadotSigner(
-        from,
-        isEth ? "Ecdsa" : "Sr25519",
-        getFakeSignature(isEth),
-      )
-      const encoded = await sign(fakeSigner, _options)
+      const encoded = await firstValueFrom(create$(creator, options, true))
       const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
 
       const decoder$: Observable<Decoder<PaymentInfo>> = chainHead
@@ -209,7 +157,7 @@ export const createTxEntry = <
               return ctx.dynamicBuilder.buildRuntimeCall(
                 "TransactionPaymentApi",
                 "query_info",
-              ).value[1]
+              ).value.dec
             } catch {
               return queryInfoDecFallback
             }
@@ -234,10 +182,10 @@ export const createTxEntry = <
         getCallData$(arg, null).pipe(map(({ callData }) => callData)),
       )
 
-    const getEstimatedFees = async (
-      from: Uint8Array | string,
-      _options?: any,
-    ) => (await getPaymentInfo(from, _options)).partial_fee
+    const getEstimatedFees: Transaction["getEstimatedFees"] = async (
+      creator,
+      options,
+    ) => (await getPaymentInfo(creator, options)).partial_fee
 
     return {
       getPaymentInfo,
@@ -249,9 +197,9 @@ export const createTxEntry = <
       getEncodedData,
       getBareTx: () =>
         firstValueFrom(getCallData$(arg, null).pipe(map(({ bare }) => bare))),
-      sign,
-      signSubmitAndWatch,
-      signAndSubmit,
+      create,
+      createSubmitAndWatch,
+      createAndSubmit,
     }
   }
 }

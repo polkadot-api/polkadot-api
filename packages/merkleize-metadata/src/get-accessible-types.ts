@@ -50,7 +50,7 @@ export const getAccessibleTypes = (
   collectTypesFromId(metadata.extrinsic.call)
   collectTypesFromId(metadata.extrinsic.address)
   collectTypesFromId(metadata.extrinsic.signature)
-  metadata.extrinsic.signedExtensions[0].forEach(
+  metadata.extrinsic.extensionsByVersion[0].forEach(
     ({ type, additionalSigned }) => {
       collectTypesFromId(type)
       collectTypesFromId(additionalSigned)
