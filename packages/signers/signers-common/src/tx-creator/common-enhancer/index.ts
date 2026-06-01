@@ -38,22 +38,18 @@ export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
       )
       const builder = getDynamicBuilder(lookupFn)
       const exts = Object.values(lookupFn.metadata.extrinsic.extensions)
+      const foundExts = payload.extensions.reduce(
+        (acc, val) => {
+          acc[val.id] = val
+          return acc
+        },
+        {} as Record<string, (typeof payload.extensions)[number]>,
+      )
       const encoded: TxPayloadV1["extensions"] = (
         await Promise.all(
           exts.map(async ({ identifier, type, additionalSigned }) => {
-            const ext = payload.extensions.find(({ id }) => id === identifier)
-            if (ext) {
-              // ensure it is decodable with metadata
-              try {
-                builder.buildDefinition(type).dec(ext.extra)
-                builder
-                  .buildDefinition(additionalSigned)
-                  .dec(ext.additionalSigned)
-              } catch {
-                throw new Error(`Cannot decode extension. Received ${ext}`)
-              }
-              return ext
-            }
+            const ext = foundExts[identifier]
+            if (ext) return ext
             const mapper = extensions[identifier]
             if (mapper) {
               return {
