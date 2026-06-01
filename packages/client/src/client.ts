@@ -126,8 +126,7 @@ const createApi = <D extends ChainDefinition>(
       mergeAll(),
       distinctUntilChanged(),
     ),
-    call: (call, args, at) =>
-      firstValueFrom(chainHead.call$(at, call, toHex(args))),
+    call: (call, args, at) => chainHead.call$(at, call, toHex(args)),
   }
   const compatHelpers = createCompatHelpers(chainDefinition)
   const { getClientCompat } = compatHelpers

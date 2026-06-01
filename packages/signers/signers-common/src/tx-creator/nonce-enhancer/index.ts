@@ -45,13 +45,16 @@ export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
   (innerFactory) =>
   ({ txCreatorBindings }) => {
     const inner = innerFactory({ txCreatorBindings })
-    const getNonceAtBlock = async (at: string) => {
-      const bytes = await txCreatorBindings.call(NONCE_RUNTIME_CALL, pubkey, at)
-      const decoder = lenToDecoder[bytes.length as 2 | 4 | 8]
-      if (!decoder)
-        throw new Error(`${NONCE_RUNTIME_CALL} retrieved wrong data`)
-      return decoder(bytes)
-    }
+    const getNonceAtBlock = (at: string) =>
+      txCreatorBindings.call(NONCE_RUNTIME_CALL, pubkey, at).pipe(
+        map((v) => {
+          const decoder = lenToDecoder[v.length as 2 | 4 | 8]
+          if (!decoder)
+            throw new Error(`${NONCE_RUNTIME_CALL} retrieved wrong data`)
+          return decoder(v)
+        }),
+      )
+
     const followHead$ = (head: string) =>
       txCreatorBindings.blocks.pipe(
         scan(

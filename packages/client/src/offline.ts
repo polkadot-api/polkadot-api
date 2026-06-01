@@ -166,7 +166,7 @@ export const getOfflineApi: <D extends ChainDefinition>(
       ),
       NEVER,
     ),
-    call: async () => {
+    call: () => {
       throw new Error("OfflineApi cannot perform runtime calls")
     },
   }

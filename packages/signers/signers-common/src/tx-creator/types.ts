@@ -55,7 +55,7 @@ type RuntimeCall = (
   call: string,
   args: Uint8Array,
   at: string,
-) => Promise<Uint8Array>
+) => Observable<Uint8Array>
 
 export type TxCreatorBindings = {
   /**
@@ -76,12 +76,13 @@ export type TxCreatorBindings = {
    */
   blocks: Blocks
   /**
-   * Performs a runtime API call at a specific block.
+   * Performs a runtime API call at a specific block. The Observable will emit
+   * once and complete on each subscription.
    *
    * @param call  Runtime API method name.
    * @param args  SCALE-encoded call arguments.
    * @param at    Block hash where the call should be executed.
-   * @returns SCALE-encoded return value.
+   * @returns Observable emitting SCALE-encoded value.
    */
   call: RuntimeCall
 }
