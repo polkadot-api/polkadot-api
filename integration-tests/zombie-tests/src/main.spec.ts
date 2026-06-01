@@ -209,8 +209,6 @@ describe("E2E", async () => {
     )
   })
 
-  it.todo("throws on invalid custom signed-extensions")
-
   // this test needs to run concurrently with "fund accounts" one
   it.concurrent("invalid tx on finalized, valid on best", async () => {
     const previousNonceProm = api.apis.AccountNonceApi.account_nonce(
