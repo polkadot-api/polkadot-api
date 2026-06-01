@@ -50,7 +50,7 @@ export const getTxCreator = (
         createV4Tx(decMeta, publicKey, signed, extra, callData, signingType),
       )
     }
-  return Object.assign(withCommonExtensions(withNonce(publicKey)(creator)), {
+  return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
     publicKey,
     signBytes: getSignBytes(sign),
   })

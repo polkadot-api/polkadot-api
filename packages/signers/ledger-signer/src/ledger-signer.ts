@@ -368,7 +368,7 @@ export class LedgerSigner {
         : v.slice(PUBKEY_LEN[this.#schema]),
     )
 
-    return Object.assign(withCommonExtensions(withNonce(publicKey)(creator)), {
+    return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
       publicKey,
       signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
     })

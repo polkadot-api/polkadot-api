@@ -106,7 +106,7 @@ export function getTxCreatorFromPjs(
     )
   }
 
-  return Object.assign(withCommonExtensions(withNonce(publicKey)(creator)), {
+  return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
     publicKey,
     signBytes,
   })
