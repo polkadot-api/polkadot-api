@@ -90,12 +90,17 @@ export const createTxEntry = <Arg extends {} | undefined>(
     ) =>
       combineLatest([
         chainHead.genesis$,
-        chainHead.best$,
-        chainHead.getRuntimeContext$(null),
+        chainHead.best$.pipe(
+          mergeMap((best) =>
+            chainHead
+              .getRuntimeContext$(best.hash)
+              .pipe(map((ctx) => ({ best, ctx }))),
+          ),
+        ),
         getCallData$(arg, null),
       ]).pipe(
         take(1),
-        mergeMap(([genesisHash, best, ctx, { callData }]) =>
+        mergeMap(([genesisHash, { best, ctx }, { callData }]) =>
           creator(
             {
               callData: toHex(callData),
