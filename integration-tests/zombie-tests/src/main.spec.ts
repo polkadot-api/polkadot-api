@@ -226,7 +226,7 @@ describe("E2E", async () => {
     )
     await api.tx.System.remark_with_event({
       remark: Binary.fromText("NEW ACCOUNT"),
-    }).createAndSubmit(unusedSigner(api), {})
+    }).createAndSubmit(unusedSigner(api))
 
     const [previousNonce, currentNonce] = await Promise.all([
       previousNonceProm,
@@ -242,7 +242,7 @@ describe("E2E", async () => {
     const fake = fakeCreator(accounts.alice.sr25519.publicKey)
     const err = await lastValueFrom(
       api.tx.System.remark({ remark: Binary.fromText("TEST") })
-        .createSubmitAndWatch(fake(api), {})
+        .createSubmitAndWatch(fake(api))
         .pipe(catchError((err) => of(err))),
     )
     expect(err).instanceOf(InvalidTxError)
@@ -291,8 +291,8 @@ describe("E2E", async () => {
     const bobCreator = bob(api)
 
     const [aliceEstimatedFee, bobEstimatedFee] = await Promise.all([
-      aliceTransfer.getEstimatedFees(aliceCreator, {}),
-      bobTransfer.getEstimatedFees(bobCreator, {}),
+      aliceTransfer.getEstimatedFees(aliceCreator),
+      bobTransfer.getEstimatedFees(bobCreator),
     ])
 
     expect(aliceEstimatedFee).toBeGreaterThan(0n)
@@ -410,9 +410,9 @@ describe("E2E", async () => {
     ).then((x) => x.data.free)
 
     await lastValueFrom(
-      transfer.createSubmitAndWatch(alice(api), {}).pipe(
+      transfer.createSubmitAndWatch(alice(api)).pipe(
         filter((e) => e.type === "txBestBlocksState" && e.found),
-        switchMap(() => transfer.createSubmitAndWatch(alice(api), {})),
+        switchMap(() => transfer.createSubmitAndWatch(alice(api))),
       ),
     )
 
@@ -497,7 +497,7 @@ describe("E2E", async () => {
         .fill(null)
         .map(() =>
           lastValueFrom(
-            transsferTx.createSubmitAndWatch(alice(api), {}).pipe(
+            transsferTx.createSubmitAndWatch(alice(api)).pipe(
               tap((x) => {
                 if (x.type === "broadcasted") nBroadcasted++
               }),

@@ -51,7 +51,7 @@ function transfer(
     dest: MultiAddress.Id(billy.address),
     value: amount,
   })
-    .create(alexa.txCreator(testApi), {})
+    .create(alexa.txCreator(testApi))
     .then((v) => {
       connection.submitAndWatch(v).subscribe({
         next: (event) => {

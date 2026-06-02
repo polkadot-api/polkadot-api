@@ -26,12 +26,9 @@ import {
   take,
 } from "rxjs"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
-import { PaymentInfo, Transaction, TxEntry } from "./types"
+import { PaymentInfo, Transaction, TxCreatorOptions, TxEntry } from "./types"
 
 export { InvalidTxError, submit, submit$ }
-
-type TxCreatorOptions<T extends TxCreator<any>> =
-  T extends TxCreator<infer A> ? A : never
 
 const [, queryInfoDecFallback] = Struct({
   weight: Struct({
@@ -87,7 +84,7 @@ export const createTxEntry = <Arg extends {} | undefined>(
   return (arg?: Arg): Transaction => {
     const create$ = <T extends TxCreator<any>>(
       creator: T,
-      opts: TxCreatorOptions<T>,
+      opts: TxCreatorOptions<T> | undefined,
       mockedSignature: boolean,
     ) =>
       combineLatest([
@@ -119,19 +116,19 @@ export const createTxEntry = <Arg extends {} | undefined>(
               txExtVersion: null,
               version: 1,
             },
-            opts,
+            opts ?? {},
             mockedSignature,
           ),
         ),
         map(fromHex),
       )
 
-    const create: Transaction["create"] = (creator, options) =>
+    const create: Transaction["create"] = (creator, ...[options]) =>
       firstValueFrom(create$(creator, options, false))
 
     const createAndSubmit: Transaction["createAndSubmit"] = (
       creator,
-      options,
+      ...[options]
     ) =>
       firstValueFrom(create$(creator, options, false)).then((tx) =>
         submit(chainHead, broadcast, tx),
@@ -139,15 +136,15 @@ export const createTxEntry = <Arg extends {} | undefined>(
 
     const createSubmitAndWatch: Transaction["createSubmitAndWatch"] = (
       creator,
-      options,
+      ...[options]
     ) =>
       create$(creator, options, false).pipe(
         mergeMap((tx) => submit$(chainHead, broadcast, tx, true)),
       )
 
-    const getPaymentInfo: Transaction["getPaymentInfo"] = async (
-      creator,
-      options,
+    const getPaymentInfoWithOptions = async <T extends TxCreator<any>>(
+      creator: T,
+      options: TxCreatorOptions<T> | undefined,
     ) => {
       const encoded = await firstValueFrom(create$(creator, options, true))
       const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
@@ -180,6 +177,11 @@ export const createTxEntry = <Arg extends {} | undefined>(
       )
     }
 
+    const getPaymentInfo: Transaction["getPaymentInfo"] = async (
+      creator,
+      ...[options]
+    ) => getPaymentInfoWithOptions(creator, options)
+
     const getEncodedData = () =>
       firstValueFrom(
         getCallData$(arg, null).pipe(map(({ callData }) => callData)),
@@ -187,8 +189,8 @@ export const createTxEntry = <Arg extends {} | undefined>(
 
     const getEstimatedFees: Transaction["getEstimatedFees"] = async (
       creator,
-      options,
-    ) => (await getPaymentInfo(creator, options)).partial_fee
+      ...[options]
+    ) => (await getPaymentInfoWithOptions(creator, options)).partial_fee
 
     return {
       getPaymentInfo,

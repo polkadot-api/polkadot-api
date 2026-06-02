@@ -9,6 +9,6 @@ const txCreator = getDevTxCreator()(api)
 
 const tx = await api.tx.System.remark_with_event({
   remark: Binary.fromText("FIRST TX WITH CREATOR"),
-}).create(txCreator, {})
+}).create(txCreator)
 
 client.submitAndWatch(tx).subscribe(console.log)

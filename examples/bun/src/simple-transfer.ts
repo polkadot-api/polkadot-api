@@ -29,7 +29,7 @@ const transfer = api.tx.Balances.transfer_allow_death({
 
 // sign and submit the transaction while looking at the
 // different events that will be emitted
-transfer.createSubmitAndWatch(alice(api), {}).subscribe({
+transfer.createSubmitAndWatch(alice(api)).subscribe({
   next: (e) => {
     console.log(e.type)
     if (e.type === "txBestBlocksState") {

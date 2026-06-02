@@ -33,7 +33,7 @@ const tx = api.tx.System.remark({
   remark: Binary.fromText("We are very good friends!"),
 })
 
-tx.createSubmitAndWatch(multisigCreators[0](api), {}).subscribe({
+tx.createSubmitAndWatch(multisigCreators[0](api)).subscribe({
   next(value) {
     console.log(value)
     if (value.type === "finalized") {
@@ -51,7 +51,7 @@ tx.createSubmitAndWatch(multisigCreators[0](api), {}).subscribe({
         approval,
         executed,
       })
-      tx.createSubmitAndWatch(multisigCreators[1](api), {}).subscribe((v) => {
+      tx.createSubmitAndWatch(multisigCreators[1](api)).subscribe((v) => {
         if (v.type === "finalized") {
           if (v.dispatchError) {
             console.log(

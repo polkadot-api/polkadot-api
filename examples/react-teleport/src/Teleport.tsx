@@ -47,7 +47,7 @@ export const Teleport: React.FC = () => {
 
   const teleport = (to: "para" | "relay") => {
     teleportFns[to](account.address, ref.current)
-      .createSubmitAndWatch(account.txCreator(teleportApis[to]), {})
+      .createSubmitAndWatch(account.txCreator(teleportApis[to]))
       .subscribe((x) => {
         setTxStatus(x)
         if (x.type === "finalized")

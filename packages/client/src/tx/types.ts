@@ -72,8 +72,16 @@ export type TxFinalized = {
   txHash: HexString
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
-type TxCreatorOptions<T extends TxCreator<any>> =
+export type TxCreatorOptions<T extends TxCreator<any>> =
   T extends TxCreator<infer A> ? A : never
+
+type IsAny<T> = 0 extends 1 & T ? true : false
+type TxCreatorOptionsArg<T extends TxCreator<any>> =
+  IsAny<TxCreatorOptions<T>> extends true
+    ? [txOptions?: TxCreatorOptions<T>]
+    : {} extends TxCreatorOptions<T>
+      ? [txOptions?: TxCreatorOptions<T>]
+      : [txOptions: TxCreatorOptions<T>]
 
 export type PaymentInfo = {
   weight: {
@@ -99,7 +107,7 @@ export type Transaction = {
    */
   create<T extends TxCreator<any>>(
     creator: T,
-    txOptions: TxCreatorOptions<T>,
+    ...txOptions: TxCreatorOptionsArg<T>
   ): Promise<Uint8Array>
 
   /**
@@ -114,7 +122,7 @@ export type Transaction = {
    */
   createSubmitAndWatch<T extends TxCreator<any>>(
     creator: T,
-    txOptions: TxCreatorOptions<T>,
+    ...txOptions: TxCreatorOptionsArg<T>
   ): Observable<TxEvent>
 
   /**
@@ -129,7 +137,7 @@ export type Transaction = {
    */
   createAndSubmit<T extends TxCreator<any>>(
     creator: T,
-    txOptions: TxCreatorOptions<T>,
+    ...txOptions: TxCreatorOptionsArg<T>
   ): Promise<TxFinalizedPayload>
 
   /**
@@ -156,7 +164,7 @@ export type Transaction = {
    */
   getEstimatedFees<T extends TxCreator<any>>(
     creator: T,
-    txOptions: TxCreatorOptions<T>,
+    ...txOptions: TxCreatorOptionsArg<T>
   ): Promise<bigint>
 
   /**
@@ -169,7 +177,7 @@ export type Transaction = {
    */
   getPaymentInfo<T extends TxCreator<any>>(
     creator: T,
-    txOptions: TxCreatorOptions<T>,
+    ...txOptions: TxCreatorOptionsArg<T>
   ): Promise<PaymentInfo>
 
   /**

@@ -141,7 +141,7 @@ const psp22 = getInkClient(contracts.psp22)
       dest: MultiAddress.Id(ADDRESS.psp22),
       gas_limit: response.gas_required,
       storage_deposit_limit: undefined,
-    }).createAndSubmit(signer(typedApi), {})
+    }).createAndSubmit(signer(typedApi))
 
     console.log("tx events", psp22.event.filter(ADDRESS.psp22, result.events))
   } else {

@@ -70,7 +70,7 @@ describe("events", () => {
       const transferTx = await typedApi.tx.Balances.transfer_keep_alive({
         dest: MultiAddress.Id(BOB),
         value: 100n,
-      }).create(bobSigner(typedApi), {})
+      }).create(bobSigner(typedApi))
 
       // Make sure no other emissions leaked in before clearing
       expect(remarked.next).toHaveBeenCalledTimes(2)
