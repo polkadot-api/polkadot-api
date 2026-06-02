@@ -69,7 +69,8 @@ export const extensions: Record<
       return both(
         toHex(
           mortal({
-            period: mortality.period,
+            // 4096 is the maximum value the codec can safely encode
+            period: Math.min(mortality.period, 4096),
             startAtBlock: mortality.at.number,
           }),
         ),
@@ -84,7 +85,8 @@ export const extensions: Record<
     return both(
       toHex(
         mortal({
-          period: heightDiff + mortality.period,
+          // 4096 is the maximum value the codec can safely encode
+          period: Math.min(heightDiff + mortality.period, 4096),
           startAtBlock: finalized.number,
         }),
       ),
