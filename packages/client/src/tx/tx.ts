@@ -21,6 +21,8 @@ import {
   map,
   mergeMap,
   Observable,
+  of,
+  switchMap,
   take,
 } from "rxjs"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
@@ -91,16 +93,17 @@ export const createTxEntry = <Arg extends {} | undefined>(
       combineLatest([
         chainHead.genesis$,
         chainHead.best$.pipe(
-          mergeMap((best) =>
-            chainHead
-              .getRuntimeContext$(best.hash)
-              .pipe(map((ctx) => ({ best, ctx }))),
+          switchMap((best) =>
+            combineLatest([
+              of(best),
+              chainHead.getRuntimeContext$(best.hash),
+              getCallData$(arg, best.hash),
+            ]),
           ),
         ),
-        getCallData$(arg, null),
       ]).pipe(
         take(1),
-        mergeMap(([genesisHash, { best, ctx }, { callData }]) =>
+        mergeMap(([genesisHash, [best, ctx, { callData }]]) =>
           creator(
             {
               callData: toHex(callData),
