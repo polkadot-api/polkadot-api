@@ -26,17 +26,20 @@ export const getTxCreator = (
       const extra: Array<Uint8Array> = []
       const additionalSigned: Array<Uint8Array> = []
 
-      if (payload.txExtVersion != null && payload.txExtVersion !== 0)
+      const txExtVersion = payload.txExtVersion ?? 0
+      if (txExtVersion !== 0)
         throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
-      decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
-        const signedExtension = payload.extensions.find(
-          ({ id }) => id === identifier,
-        )
-        if (!signedExtension)
-          throw new Error(`Missing ${identifier} signed extension`)
-        extra.push(fromHex(signedExtension.extra))
-        additionalSigned.push(fromHex(signedExtension.additionalSigned))
-      })
+      decMeta.extrinsic.extensionsByVersion[txExtVersion].forEach(
+        ({ identifier }) => {
+          const signedExtension = payload.extensions.find(
+            ({ id }) => id === identifier,
+          )
+          if (!signedExtension)
+            throw new Error(`Missing ${identifier} signed extension`)
+          extra.push(fromHex(signedExtension.extra))
+          additionalSigned.push(fromHex(signedExtension.additionalSigned))
+        },
+      )
       const callData = fromHex(payload.callData)
       const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
       const signing =

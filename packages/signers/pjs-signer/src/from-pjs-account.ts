@@ -47,38 +47,41 @@ export function getTxCreatorFromPjs(
     const { version } = decMeta.extrinsic
     const extra: Array<Uint8Array> = []
 
-    if (payload.txExtVersion != null && payload.txExtVersion !== 0)
+    const txExtVersion = payload.txExtVersion ?? 0
+    if (txExtVersion !== 0)
       throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
 
-    decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
-      const signedExtension = payload.extensions.find(
-        ({ id }) => id === identifier,
-      )
-      if (!signedExtension)
-        throw new Error(`Missing ${identifier} signed-extension`)
-      extra.push(fromHex(signedExtension.extra))
-
-      pjs.signedExtensions!.push(identifier)
-
-      if (!signedExtensionMappers[identifier as "CheckMortality"]) {
-        if (
-          fromHex(signedExtension.extra).length === 0 &&
-          fromHex(signedExtension.additionalSigned).length === 0
+    decMeta.extrinsic.extensionsByVersion[txExtVersion].forEach(
+      ({ identifier }) => {
+        const signedExtension = payload.extensions.find(
+          ({ id }) => id === identifier,
         )
-          return
-        throw new Error(
-          `PJS does not support this signed-extension: ${identifier}`,
-        )
-      }
+        if (!signedExtension)
+          throw new Error(`Missing ${identifier} signed-extension`)
+        extra.push(fromHex(signedExtension.extra))
 
-      Object.assign(
-        pjs,
-        signedExtensionMappers[identifier as "CheckMortality"](
-          signedExtension,
-          payload.context.bestBlockHeight,
-        ),
-      )
-    })
+        pjs.signedExtensions!.push(identifier)
+
+        if (!signedExtensionMappers[identifier as "CheckMortality"]) {
+          if (
+            fromHex(signedExtension.extra).length === 0 &&
+            fromHex(signedExtension.additionalSigned).length === 0
+          )
+            return
+          throw new Error(
+            `PJS does not support this signed-extension: ${identifier}`,
+          )
+        }
+
+        Object.assign(
+          pjs,
+          signedExtensionMappers[identifier as "CheckMortality"](
+            signedExtension,
+            payload.context.bestBlockHeight,
+          ),
+        )
+      },
+    )
 
     const checkedVersion = version.includes(4) ? 4 : null
     if (checkedVersion == null)

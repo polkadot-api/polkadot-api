@@ -305,9 +305,12 @@ export class LedgerSigner {
     path2: number = 0,
   ) {
     const creator: TxCreatorFactory<{}> = () => async (payload, _, mocked) => {
+      const txExtVersion = payload.txExtVersion ?? 0
+      if (txExtVersion !== 0)
+        throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
       const decMeta = getMetadata(payload.context.metadata)
       if (
-        !decMeta.extrinsic.extensionsByVersion[0].find(
+        !decMeta.extrinsic.extensionsByVersion[txExtVersion].find(
           ({ identifier }) => identifier === METADATA_IDENTIFIER,
         )
       )
@@ -317,26 +320,26 @@ export class LedgerSigner {
         payload.context.metadata,
         networkInfo,
       )
-      if (payload.txExtVersion != null && payload.txExtVersion !== 0)
-        throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
       const extra: Array<Uint8Array> = []
       const additionalSigned: Array<Uint8Array> = []
-      decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
-        const signedExtension = payload.extensions.find(
-          ({ id }) => id === identifier,
-        )
-        if (!signedExtension)
-          throw new Error(`Missing ${identifier} signed extension`)
-        if (identifier === METADATA_IDENTIFIER) {
-          extra.push(Uint8Array.from([1]))
-          additionalSigned.push(
-            mergeUint8([Uint8Array.from([1]), merkleizer.digest()]),
+      decMeta.extrinsic.extensionsByVersion[txExtVersion].forEach(
+        ({ identifier }) => {
+          const signedExtension = payload.extensions.find(
+            ({ id }) => id === identifier,
           )
-        } else {
-          extra.push(fromHex(signedExtension.extra))
-          additionalSigned.push(fromHex(signedExtension.additionalSigned))
-        }
-      })
+          if (!signedExtension)
+            throw new Error(`Missing ${identifier} signed extension`)
+          if (identifier === METADATA_IDENTIFIER) {
+            extra.push(Uint8Array.from([1]))
+            additionalSigned.push(
+              mergeUint8([Uint8Array.from([1]), merkleizer.digest()]),
+            )
+          } else {
+            extra.push(fromHex(signedExtension.extra))
+            additionalSigned.push(fromHex(signedExtension.additionalSigned))
+          }
+        },
+      )
 
       const callData = fromHex(payload.callData)
       const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
