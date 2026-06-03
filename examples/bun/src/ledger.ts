@@ -39,7 +39,7 @@ console.log({ totalBalance })
 
 // send a 1 WND from addr 0 to addr 1
 const dest = accId.dec(await ledgerSigner.getPubkey(1))
-const signer = await ledgerSigner.getPolkadotSigner(
+const txCreator = await ledgerSigner.getTxCreator(
   {
     // this info should be get off-chain, from the chainspec
     decimals: 12,
@@ -52,7 +52,7 @@ api.tx.Balances.transfer_keep_alive({
   // 1 WND -> 12 decimals
   value: 10n ** 12n,
 })
-  .signSubmitAndWatch(signer)
+  .createSubmitAndWatch(txCreator(api))
   .subscribe({
     next(value) {
       console.log(value)

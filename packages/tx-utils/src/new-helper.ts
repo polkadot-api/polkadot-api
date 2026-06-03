@@ -74,7 +74,7 @@ export const getTxHelper = (
   }
 
   const extensionsDec = Object.fromEntries(
-    metadata.extrinsic.signedExtensions[0].map(
+    metadata.extrinsic.extensionsByVersion[0].map(
       (x) =>
         [
           x.identifier,
@@ -96,42 +96,44 @@ export const getTxHelper = (
       pjsPayload,
     )
 
-    const signedExtensions = lookup.metadata.extrinsic.signedExtensions[0].map(
-      ({ identifier, type, additionalSigned }): SignedExtension => {
-        switch (identifier) {
-          case "CheckGenesis":
-            return CheckGenesis(genesisHash)
-          case "CheckMetadataHash":
-            return CheckMetadataHash(metadataHash)
-          case "CheckNonce":
-            return CheckNonce(nonce)
-          case "CheckSpecVersion":
-            return CheckSpecVersion(lookup)
-          case "ChargeAssetTxPayment":
-            return ChargeAssetTxPayment(tip, asset)
-          case "ChargeTransactionPayment":
-            return ChargeTransactionPayment(tip)
-          case "CheckMortality":
-            return CheckMortality(mortality)
-          case "CheckTxVersion":
-            return CheckTxVersion(lookup)
-        }
+    const signedExtensions =
+      lookup.metadata.extrinsic.extensionsByVersion[0].map(
+        ({ identifier, type, additionalSigned }): SignedExtension => {
+          switch (identifier) {
+            case "CheckGenesis":
+              return CheckGenesis(genesisHash)
+            case "CheckMetadataHash":
+              return CheckMetadataHash(metadataHash)
+            case "CheckNonce":
+              return CheckNonce(nonce)
+            case "CheckSpecVersion":
+              return CheckSpecVersion(lookup)
+            case "ChargeAssetTxPayment":
+              return ChargeAssetTxPayment(tip, asset)
+            case "ChargeTransactionPayment":
+              return ChargeTransactionPayment(tip)
+            case "CheckMortality":
+              return CheckMortality(mortality)
+            case "CheckTxVersion":
+              return CheckTxVersion(lookup)
+          }
 
-        if (
-          dynamicBuilder.buildDefinition(type) === _void &&
-          dynamicBuilder.buildDefinition(additionalSigned) === _void
-        )
-          return EMPTY_SIGNED_EXTENSION
-        throw new Error(`Unsupported signed-extension: ${identifier}`)
-      },
-    )
+          if (
+            dynamicBuilder.buildDefinition(type) === _void &&
+            dynamicBuilder.buildDefinition(additionalSigned) === _void
+          )
+            return EMPTY_SIGNED_EXTENSION
+          throw new Error(`Unsupported signed-extension: ${identifier}`)
+        },
+      )
 
     return {
       input: {
         callData: fromHex(pjsPayload.method),
         extensions: signedExtensions.map(
           ({ value: extra, additionalSigned }, idx) => ({
-            id: lookup.metadata.extrinsic.signedExtensions[0][idx].identifier,
+            id: lookup.metadata.extrinsic.extensionsByVersion[0][idx]
+              .identifier,
             extra,
             additionalSigned,
           }),

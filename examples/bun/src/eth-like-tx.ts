@@ -1,13 +1,13 @@
 import { mnemonicToSeedSync } from "@scure/bip39"
 import { HDKey } from "@scure/bip32"
-import { getPolkadotSigner, type PolkadotSigner } from "polkadot-api/signer"
+import { getTxCreator } from "polkadot-api/signer"
 import { Binary } from "polkadot-api"
 import { myth } from "@polkadot-api/descriptors"
 import { secp256k1 } from "@noble/curves/secp256k1.js"
 import { keccak_256 } from "@noble/hashes/sha3.js"
 import { createWsClient } from "polkadot-api/ws"
 
-function getEvmPolkadotSigner(mnemonic: string): PolkadotSigner {
+function getEvmTxCreator(mnemonic: string): ReturnType<typeof getTxCreator> {
   const seed = mnemonicToSeedSync(mnemonic, "")
   const keyPair = HDKey.fromMasterSeed(seed).derive("m/44'/60'/0'/0/0")
   const publicAddress = keccak_256(
@@ -22,11 +22,11 @@ function getEvmPolkadotSigner(mnemonic: string): PolkadotSigner {
     return Uint8Array.from([...signature.slice(1), signature[0]])
   }
 
-  return getPolkadotSigner(publicAddress, "Ecdsa", sign)
+  return getTxCreator(publicAddress, "Ecdsa", sign)
 }
 
 const yourSeedPhrase = ""
-const signer = getEvmPolkadotSigner(yourSeedPhrase)
+const signer = getEvmTxCreator(yourSeedPhrase)
 
 const client = createWsClient("wss://moonbase-rpc.dwellir.com")
 const api = client.getTypedApi(myth)
@@ -37,5 +37,5 @@ const tx = api.tx.System.remark({
   ),
 })
 
-console.log(await tx.getEstimatedFees(signer.publicKey))
-tx.signSubmitAndWatch(signer).subscribe(console.log, console.error)
+tx.getEstimatedFees(signer(api)).then(console.log, console.error)
+tx.createSubmitAndWatch(signer(api)).subscribe(console.log, console.error)

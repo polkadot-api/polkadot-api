@@ -14,12 +14,16 @@ import {
 import { toHex } from "@polkadot-api/utils"
 import {
   Observable,
+  ObservedValueOf,
   catchError,
   combineLatest,
   defer,
+  distinctUntilChanged,
   firstValueFrom,
   from,
   map,
+  mergeAll,
+  scan,
   shareReplay,
 } from "rxjs"
 import { createCompatHelpers } from "./compatibility"
@@ -34,16 +38,99 @@ import type { PolkadotClient, TypedApi } from "./types"
 import { createProxyPath, firstValueFromWithSignal } from "./utils"
 import { createViewFnEntry } from "./viewFns"
 import { createWatchEntries } from "./watch-entries"
+import { TxCreatorBindings } from "@polkadot-api/signers-common"
 
 const HEX_REGEX = /^(?:0x)?((?:[0-9a-fA-F][0-9a-fA-F])+)$/
 
+type Blocks = ObservedValueOf<TxCreatorBindings["blocks"]>
 const createApi = <D extends ChainDefinition>(
   chainHead: ChainHead$,
   broadcast$: (tx: Uint8Array) => Observable<never>,
   chainDefinition?: ChainDefinition,
 ): TypedApi<D> => {
+  const txCreatorBindings: TxCreatorBindings = {
+    hasher: (payload) => chainHead.hasher$.pipe(map((h) => h(payload))),
+    blocks: chainHead.pinnedBlocks$.pipe(
+      scan((acc, { finalized, blocks }) => {
+        let prev = acc.at(-1)!
+        // means it will be the first emission, we emit all tree as tips
+        if (!prev) {
+          const blockAndChildren = (hash: string): BlockInfo[] => {
+            const block = blocks.get(hash)
+            return block
+              ? [block, ...Array.from(block.children).flatMap(blockAndChildren)]
+              : []
+          }
+          const allBlocks = blockAndChildren(finalized)
+          const tipEmissions = allBlocks.reduce<Blocks[]>((emissions, next) => {
+            const emission = emissions.at(-1)
+            emissions.push({
+              type: "newTip",
+              finalized: emission?.finalized ?? next,
+              tips: [
+                ...(emission?.tips.filter(({ hash }) => hash !== next.parent) ??
+                  []),
+                next,
+              ],
+              newTip: next,
+            })
+            return emissions
+          }, [])
+          const last = tipEmissions.at(-1)! // at least one finalized block
+          return [
+            ...tipEmissions,
+            {
+              type: "finalized" as const,
+              finalized: last.finalized,
+              tips: last.tips,
+            },
+          ]
+        }
+        const emissions: Blocks[] = []
+        // clear change in finalized case
+        if (prev.finalized.hash !== finalized) {
+          const tipsWithoutPruned = prev.tips.filter(({ hash }) => {
+            const block = blocks.get(hash)
+            return block && !block.pruned
+          })
+          const next: Blocks = {
+            type: "finalized",
+            finalized: blocks.get(finalized)!,
+            tips:
+              tipsWithoutPruned.length === prev.tips.length
+                ? prev.tips
+                : tipsWithoutPruned,
+          }
+          emissions.push(next)
+          prev = next
+        }
+
+        Array.from(blocks.values())
+          .filter(
+            (b) =>
+              b.children.size === 0 &&
+              !b.pruned &&
+              prev.tips.every(({ hash }) => hash !== b.hash),
+          )
+          .forEach((b) => {
+            const next: Blocks = {
+              type: "newTip",
+              finalized: prev.finalized,
+              tips: [...prev.tips.filter(({ hash }) => hash !== b.parent), b],
+              newTip: b,
+            }
+            prev = next
+            emissions.push(next)
+          })
+        return emissions.length === 0 ? [prev] : emissions
+      }, [] as Blocks[]),
+      mergeAll(),
+      distinctUntilChanged(),
+    ),
+    call: (call, args, at) => chainHead.call$(at, call, toHex(args)),
+  }
   const compatHelpers = createCompatHelpers(chainDefinition)
-  const { getClientCompat, getIsAsssetCompat } = compatHelpers
+  const { getClientCompat } = compatHelpers
 
   const getStaticApis = createStaticApis(chainHead, broadcast$, compatHelpers)
 
@@ -70,7 +157,6 @@ const createApi = <D extends ChainDefinition>(
       chainHead,
       broadcast$,
       getClientCompat("tx", pallet, name),
-      getIsAsssetCompat,
     ),
   )
 
@@ -129,7 +215,6 @@ const createApi = <D extends ChainDefinition>(
               chainHead,
               broadcast$,
               getClientCompat("tx", pallet, name),
-              getIsAsssetCompat,
             )(args)
           } catch {
             throw new Error("createTx: invalid call data")
@@ -140,6 +225,7 @@ const createApi = <D extends ChainDefinition>(
     )
 
   return {
+    txCreatorBindings,
     tx,
     constants,
     apis,

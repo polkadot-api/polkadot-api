@@ -1,32 +1,30 @@
-import { wnd } from "@polkadot-api/descriptors"
-import { getMultisigSigner } from "@polkadot-api/meta-signers"
-import { Binary, createClient } from "polkadot-api"
-import { chainSpec } from "polkadot-api/chains/westend"
-import { getSmProvider } from "polkadot-api/sm-provider"
-import { start } from "polkadot-api/smoldot"
+import { getMultisigTxCreator } from "@polkadot-api/meta-signers"
+import { AccountId, Binary } from "polkadot-api"
 import { take } from "rxjs"
-import { getDevSigner } from "./signer"
+import { getDevTxCreator } from "./signer"
+import { createWsClient } from "polkadot-api/ws"
+import { pah } from "@polkadot-api/descriptors"
 
-const aliceSigner = getDevSigner()
-
-const smoldot = start()
-const client = createClient(
-  getSmProvider(() => smoldot.addChain({ chainSpec })),
+const creators = ["//Alice", "//Bob", "//Charlie"].map((v) =>
+  getDevTxCreator(v),
 )
-const api = client.getTypedApi(wnd)
+const accId = AccountId(0)
+const addrs = creators.map(({ publicKey }) => accId.dec(publicKey))
+console.log(addrs)
 
-const multisigSigner = getMultisigSigner(
-  {
-    threshold: 2,
-    signatories: [
-      "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
-      "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty",
-      "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y",
-    ],
-  },
-  api.query.Multisig.Multisigs.getValue,
-  api.apis.TransactionPaymentApi.query_info,
-  aliceSigner,
+const client = createWsClient("wss://sys.ibp.network/asset-hub-paseo")
+const api = client.getTypedApi(pah)
+
+const multisigCreators = creators.map((v) =>
+  getMultisigTxCreator(
+    {
+      threshold: 2,
+      signatories: addrs,
+    },
+    api.query.Multisig.Multisigs.getValue,
+    api.apis.TransactionPaymentApi.query_info,
+    v,
+  ),
 )
 
 client.finalizedBlock$.pipe(take(1)).subscribe(() => console.log("connected"))
@@ -35,7 +33,7 @@ const tx = api.tx.System.remark({
   remark: Binary.fromText("We are very good friends!"),
 })
 
-tx.signSubmitAndWatch(multisigSigner).subscribe({
+tx.createSubmitAndWatch(multisigCreators[0](api)).subscribe({
   next(value) {
     console.log(value)
     if (value.type === "finalized") {
@@ -53,7 +51,25 @@ tx.signSubmitAndWatch(multisigSigner).subscribe({
         approval,
         executed,
       })
-      process.exit(0)
+      tx.createSubmitAndWatch(multisigCreators[1](api)).subscribe((v) => {
+        if (v.type === "finalized") {
+          if (v.dispatchError) {
+            console.log(
+              (v.dispatchError.value as any)?.type,
+              (v.dispatchError.value as any)?.value,
+            )
+          }
+          const newMultisig = api.event.Multisig.NewMultisig.filter(v.events)
+          const approval = api.event.Multisig.MultisigApproval.filter(v.events)
+          const executed = api.event.Multisig.MultisigExecuted.filter(v.events)
+          console.log({
+            newMultisig,
+            approval,
+            executed,
+          })
+          process.exit(0)
+        }
+      })
     }
   },
   error(err) {

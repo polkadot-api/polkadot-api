@@ -118,10 +118,12 @@ export const getMappedMetadata = (
   return {
     pallets,
     api,
-    extensions: mapObject(metadata.extrinsic.signedExtensions, (extensions) =>
-      Object.fromEntries(
-        extensions.map(({ identifier, ...rest }) => [identifier, rest]),
-      ),
+    extensions: mapObject(
+      metadata.extrinsic.extensionsByVersion,
+      (extensions) =>
+        Object.fromEntries(
+          extensions.map(({ identifier, ...rest }) => [identifier, rest]),
+        ),
     ),
   }
 }

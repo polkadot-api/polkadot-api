@@ -1,23 +1,14 @@
 import "./style.css"
-import { MultiAddress, wnd } from "@polkadot-api/descriptors"
-import { createClient } from "polkadot-api"
+import { MultiAddress, pah } from "@polkadot-api/descriptors"
 import {
   getInjectedExtensions,
   connectInjectedExtension,
   InjectedPolkadotAccount,
 } from "polkadot-api/pjs-signer"
-import SmWorker from "polkadot-api/smoldot/worker?worker"
-import { getSmProvider } from "polkadot-api/sm-provider"
-import { startFromWorker } from "polkadot-api/smoldot/from-worker"
+import { createWsClient } from "polkadot-api/ws"
 
-const smoldot = startFromWorker(new SmWorker())
-const getWndChain = () =>
-  import("polkadot-api/chains/westend").then(({ chainSpec }) =>
-    smoldot.addChain({ chainSpec }),
-  )
-const jsonRpcProvider = getSmProvider(getWndChain)
-const connection = createClient(jsonRpcProvider)
-const testApi = connection.getTypedApi(wnd)
+const connection = createWsClient("wss://sys.ibp.network/asset-hub-paseo")
+const testApi = connection.getTypedApi(pah)
 
 while (!getInjectedExtensions()?.includes("polkadot-js"))
   await new Promise((res) => setTimeout(res, 50))
@@ -60,11 +51,13 @@ function transfer(
     dest: MultiAddress.Id(billy.address),
     value: amount,
   })
-    .signSubmitAndWatch(alexa.polkadotSigner)
-    .subscribe({
-      next: (event) => {
-        console.log(event)
-      },
-      error: console.error,
+    .create(alexa.txCreator(testApi))
+    .then((v) => {
+      connection.submitAndWatch(v).subscribe({
+        next: (event) => {
+          console.log(event)
+        },
+        error: console.error,
+      })
     })
 }
