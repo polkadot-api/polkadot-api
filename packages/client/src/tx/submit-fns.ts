@@ -44,15 +44,7 @@ const computeState = (
   >((observer) => {
     const analyzedBlocks = new Map<string, AnalyzedBlock>()
     let pinnedBlocks: PinnedBlocks
-    let latestState:
-      | {
-          found: true
-          hash: string
-          number: number
-          index: number
-          events: SystemEvent[]
-        }
-      | { found: false; validity: ResultPayload<any, any> | null }
+    let latestAnalyzed: AnalyzedBlock | undefined = undefined
 
     const computeNextState = () => {
       let current: string = pinnedBlocks.best
@@ -73,25 +65,23 @@ const computeState = (
         pinnedBlocks.blocks.get(pinnedBlocks.finalized)!.number
 
       const found = analyzed.found.type
-      if (found && latestState?.found && latestState.hash === analyzed.hash) {
-        if (isFinalized) observer.complete()
-        return
+      if (analyzed !== latestAnalyzed) {
+        if (found) {
+          observer.next({
+            found: true,
+            hash: analyzed.hash,
+            number: analyzedNumber,
+            index: analyzed.found.index,
+            events: analyzed.found.events,
+          })
+        } else if (latestAnalyzed?.found.type) {
+          observer.next({
+            found: false,
+            validity: analyzed.found.validity,
+          })
+        }
+        latestAnalyzed = analyzed
       }
-
-      observer.next(
-        (latestState = analyzed.found.type
-          ? {
-              found: found as true,
-              hash: analyzed.hash,
-              number: analyzedNumber,
-              index: analyzed.found.index,
-              events: analyzed.found.events,
-            }
-          : {
-              found: found as false,
-              validity: analyzed.found.validity,
-            }),
-      )
 
       if (isFinalized) {
         if (found) observer.complete()
@@ -109,7 +99,6 @@ const computeState = (
       .subscribe({
         next: (pinned: PinnedBlocks) => {
           pinnedBlocks = pinned
-          if (analyzedBlocks.size === 0) return
           computeNextState()
         },
         error(e) {

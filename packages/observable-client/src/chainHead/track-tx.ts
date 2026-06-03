@@ -9,6 +9,7 @@ import {
   merge,
   mergeMap,
   of,
+  startWith,
   take,
   takeUntil,
 } from "rxjs"
@@ -142,6 +143,7 @@ export const getTrackTx = (
               mergeMap((x) => x.blocks.get(hash)!.children),
               distinct(),
               mergeMap((hash) => findInBranch(hash, tx, alreadyPresent)),
+              startWith(analyzed),
             )
       }),
     )

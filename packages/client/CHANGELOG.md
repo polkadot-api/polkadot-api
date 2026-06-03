@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.1.5 - 2026-06-02
+
+### Fixed
+
+- Fix issue with reorgs dropping events [#1381](https://github.com/polkadot-api/polkadot-api/issues/1381)
+- Update dependencies
+
 ## 2.1.4 - 2026-05-19
 
 ### Fixed

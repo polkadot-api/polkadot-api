@@ -19,11 +19,12 @@ export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
 
 let id = 1
-export const getForkliftProvider = (name: string) => {
+export const getForkliftProvider = (name: string, autoBuildBlocks = true) => {
   // To help on test isolation, we will create one forklift instance per each provider.
   // Otherwise, test running in parallel could compete when testing reorgs against the same instance
   const chain = forklift(wsSource(`ws://localhost:${PORT}`), {
     finalizeMode: Enum("timer", 0),
+    buildBlockMode: autoBuildBlocks ? undefined : Enum("manual"),
   })
 
   return [
