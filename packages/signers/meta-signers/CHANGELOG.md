@@ -1,5 +1,15 @@
 # Changelog
 
+## V3
+
+### Changed
+
+- BREAKING: Replace multisig and proxy signer wrappers with TxCreator wrappers.
+
+### Removed
+
+- `PolkadotSigner` reexport
+
 ## Unreleased
 
 ## 0.2.1 to 0.2.3 - 2026-05-19

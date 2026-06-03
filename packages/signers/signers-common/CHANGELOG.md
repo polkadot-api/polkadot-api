@@ -1,5 +1,12 @@
 # Changelog
 
+## V3
+
+### Added
+
+- `TxCreator` helpers and types.
+- `withCommonExtensions` and `withNonce` TxCreator enhancers.
+
 ## Unreleased
 
 ## 0.2.1 to 0.2.3 - 2026-05-19

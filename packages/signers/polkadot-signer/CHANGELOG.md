@@ -1,5 +1,15 @@
 # Changelog
 
+## V3
+
+### Added
+
+- Interfaces `TxPayloadV1` and `TxCreator`.
+
+### Removed
+
+- `PolkadotSigner` interface
+
 ## Unreleased
 
 ## 0.1.6 - 2024-10-05

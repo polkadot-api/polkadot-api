@@ -1,5 +1,16 @@
 # Changelog
 
+## V3
+
+### Changed
+
+- BREAKING: Injected accounts expose `txCreator` instead of `polkadotSigner`.
+- BREAKING: Replace `getPolkadotSignerFromPjs` with `getTxCreatorFromPjs`.
+
+### Removed
+
+- `PolkadotSigner` reexport
+
 ## Unreleased
 
 ## 0.7.1 to 0.7.3 - 2026-05-19
