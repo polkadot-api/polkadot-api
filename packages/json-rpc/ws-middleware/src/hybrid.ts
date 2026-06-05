@@ -23,14 +23,15 @@ export const hybridMiddleware = (methods: string[]): Middleware => {
 
   return (base) => {
     const multiplexed = multiplex(base)
-    const modernProvider = modern(multiplexed())
-    const legacyProvider = withLegacy(
-      multiplexed((req) =>
-        ["chainHead_v1", "archive_v1"].every(
-          (prefix) => !req.method.startsWith(prefix),
-        ),
-      ),
-    )
+    // The modern and legacy filters must complement each other, otherwise a
+    // notification is delivered by both providers and the consumer sees it twice.
+    const isModernReq = (req: JsonRpcRequest) =>
+      ["chainHead_v1", "archive_v1"].some((prefix) =>
+        req.method.startsWith(prefix),
+      )
+
+    const modernProvider = modern(multiplexed(isModernReq))
+    const legacyProvider = withLegacy(multiplexed((req) => !isModernReq(req)))
 
     return (onMsg, onHalt) => {
       const modernConnection = modernProvider((message) => {
