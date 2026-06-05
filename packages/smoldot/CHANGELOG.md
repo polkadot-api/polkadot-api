@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.4.5 - 2026-06-05
+
+### Fixed
+
+- Update smoldot to `~3.2.0`
+
 ## 0.4.3 to 0.4.4 - 2026-06-02
 
 ### Fixed

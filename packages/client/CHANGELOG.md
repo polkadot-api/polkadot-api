@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.1.6 - 2026-06-05
+
 ### Fixed
 
 - Fix receiving duplicate legacy notifications on `._request` subscriptions.
