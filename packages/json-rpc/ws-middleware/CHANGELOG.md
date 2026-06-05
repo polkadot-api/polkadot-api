@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix receiving duplicate legacy notifications from upstream
+
 ## 0.3.3 to 0.3.4 - 2026-05-19
 
 ### Fixed
