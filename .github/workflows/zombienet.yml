@@ -44,7 +44,7 @@ jobs:
         run: pnpm turbo build-core --cache-dir=.turbo
       - name: Install papi
         run: pnpm install
-      - uses: cargo-bins/cargo-binstall@v1.19.1
+      - uses: cargo-bins/cargo-binstall@v1.20.0
       - name: Install zombienet
         run: cargo binstall --locked zombie-cli
       - name: Download Polkadot and parachain binaries
