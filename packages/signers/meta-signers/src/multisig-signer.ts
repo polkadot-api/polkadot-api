@@ -86,7 +86,12 @@ export function getMultisigTxCreator<
     throw new Error("Signer is not one of the signatories of the multisig")
   }
 
-  const factory: TxCreator<any> = async (payload, opts, mockedSignature) => {
+  const factory: TxCreator<any> = async (
+    payload,
+    opts,
+    bindings,
+    mockedSignature,
+  ) => {
     const callData = fromHex(payload.callData)
     const callHash = Blake2256(callData)
     const { dynamicBuilder, callCodec } = getCodecs(
@@ -111,6 +116,7 @@ export function getMultisigTxCreator<
         return txCreator(
           { ...payload, callData: toHex(wrappedCallData) },
           opts,
+          bindings,
           mockedSignature,
         )
       } catch {}
@@ -161,6 +167,7 @@ export function getMultisigTxCreator<
     return txCreator(
       { ...payload, callData: toHex(wrappedCallData) },
       opts,
+      bindings,
       mockedSignature,
     )
   }

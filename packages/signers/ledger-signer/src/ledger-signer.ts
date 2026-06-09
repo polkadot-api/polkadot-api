@@ -4,7 +4,6 @@ import { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   createV4Tx,
   getSignBytes,
-  TxCreatorChainApi,
   withCommonExtensions,
   withNonce,
 } from "@polkadot-api/signers-common"
@@ -57,7 +56,6 @@ const ECDSA_MOCK = new Uint8Array(65).fill(0)
 export class LedgerSigner {
   readonly #transport: Transport
   readonly #schema: "ed25519" | "ecdsa"
-  #api: TxCreatorChainApi
   #pubkeys: Map<string, Promise<Uint8Array>> // `${schema}:${path1}:${path2}, pubkey|addr`
   #deviceId: Promise<number> | null
   #appInfo: ReturnType<typeof this.appInfo> | null
@@ -67,15 +65,10 @@ export class LedgerSigner {
    * @param transport           Valid and opened transport.
    * @param [schema="ed25519"]  Signing schema to use. Default: `ed25519`.
    */
-  constructor(
-    api: TxCreatorChainApi,
-    transport: Transport,
-    schema: "ed25519" | "ecdsa" = "ed25519",
-  ) {
+  constructor(transport: Transport, schema: "ed25519" | "ecdsa" = "ed25519") {
     this.#deviceId = null
     this.#appInfo = null
     this.#verified = null
-    this.#api = api
     this.#transport = transport
     this.#schema = schema
     this.#pubkeys = new Map()
@@ -379,7 +372,7 @@ export class LedgerSigner {
     )
 
     return Object.assign(
-      withNonce(this.#api, publicKey)(withCommonExtensions(this.#api)(creator)),
+      withNonce(publicKey)(withCommonExtensions()(creator)),
       {
         publicKey,
         signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),

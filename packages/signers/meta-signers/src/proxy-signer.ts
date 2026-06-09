@@ -18,7 +18,12 @@ export function getProxyTxCreator<T extends TxCreator<any>>(
   },
   txCreator: T & { publicKey: Uint8Array },
 ): WrapTxCreator<T> {
-  const factory: TxCreator<any> = async (payload, opts, mockedSignature) => {
+  const factory: TxCreator<any> = async (
+    payload,
+    opts,
+    bindings,
+    mockedSignature,
+  ) => {
     const { lookup, dynamicBuilder, callCodec } = getCodecs(
       fromHex(payload.context.metadata),
     )
@@ -41,6 +46,7 @@ export function getProxyTxCreator<T extends TxCreator<any>>(
     return txCreator(
       { ...payload, callData: toHex(wrappedCallData) },
       opts,
+      bindings,
       mockedSignature,
     )
   }

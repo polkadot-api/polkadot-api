@@ -785,7 +785,11 @@ importers:
         specifier: workspace:*
         version: link:../../utils
 
-  packages/signers/polkadot-signer: {}
+  packages/signers/polkadot-signer:
+    devDependencies:
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/signers/signer:
     dependencies:

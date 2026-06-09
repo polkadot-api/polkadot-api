@@ -1,4 +1,5 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
+import { TxCreatorEnhancer } from "@polkadot-api/polkadot-signer"
 import {
   decAnyMetadata,
   u16,
@@ -21,7 +22,6 @@ import {
   switchMap,
   take,
 } from "rxjs"
-import { TxCreatorChainApi, TxCreatorEnhancer } from "../types"
 
 const NONCE_ID = "CheckNonce"
 const NONCE_RUNTIME_CALL = "AccountNonceApi_account_nonce"
@@ -41,56 +41,53 @@ type Opts = {
 }
 
 export const withNonce =
-  (
-    { txCreatorBindings }: TxCreatorChainApi,
-    pubkey: Uint8Array,
-  ): TxCreatorEnhancer<Opts> =>
+  (pubkey: Uint8Array): TxCreatorEnhancer<Opts> =>
   (inner) => {
-    const getNonceAtBlock = (at: string) =>
-      txCreatorBindings.call(NONCE_RUNTIME_CALL, pubkey, at).pipe(
-        map((v) => {
-          const decoder = lenToDecoder[v.length as 2 | 4 | 8]
-          if (!decoder)
-            throw new Error(`${NONCE_RUNTIME_CALL} retrieved wrong data`)
-          return decoder(v)
-        }),
-      )
+    return async (payload, opts, txCreatorBindings, mocked) => {
+      if (payload.extensions.find(({ id }) => id === NONCE_ID))
+        return inner(payload, opts, txCreatorBindings, mocked)
+      const getNonceAtBlock = (at: string) =>
+        txCreatorBindings.call(NONCE_RUNTIME_CALL, pubkey, at).pipe(
+          map((v) => {
+            const decoder = lenToDecoder[v.length as 2 | 4 | 8]
+            if (!decoder)
+              throw new Error(`${NONCE_RUNTIME_CALL} retrieved wrong data`)
+            return decoder(v)
+          }),
+        )
 
-    const followHead$ = (head: string) =>
-      txCreatorBindings.blocks.pipe(
-        scan(
-          (acc, { tips }) =>
-            tips.find(({ parent }) => parent === acc)?.hash ?? acc,
-          head,
-        ),
-        startWith(head),
-        distinctUntilChanged(),
-      )
-    const followNonce$ = (head: string) =>
-      followHead$(head).pipe(
-        take(2),
-        switchMap((hash) => getNonceAtBlock(hash)),
-      )
-    const getHeadsNonce$ = (heads: string[]) =>
-      combineLatest(
-        heads.map((head) =>
-          followNonce$(head).pipe(
-            map((value) => ({
-              success: true as const,
-              value,
-            })),
-            catchError((err) =>
-              of({
-                success: false as const,
-                value: err,
-              }),
+      const followHead$ = (head: string) =>
+        txCreatorBindings.blocks.pipe(
+          scan(
+            (acc, { tips }) =>
+              tips.find(({ parent }) => parent === acc)?.hash ?? acc,
+            head,
+          ),
+          startWith(head),
+          distinctUntilChanged(),
+        )
+      const followNonce$ = (head: string) =>
+        followHead$(head).pipe(
+          take(2),
+          switchMap((hash) => getNonceAtBlock(hash)),
+        )
+      const getHeadsNonce$ = (heads: string[]) =>
+        combineLatest(
+          heads.map((head) =>
+            followNonce$(head).pipe(
+              map((value) => ({
+                success: true as const,
+                value,
+              })),
+              catchError((err) =>
+                of({
+                  success: false as const,
+                  value: err,
+                }),
+              ),
             ),
           ),
-        ),
-      ).pipe(take(1))
-    return async (payload, opts, mocked) => {
-      if (payload.extensions.find(({ id }) => id === NONCE_ID))
-        return inner(payload, opts, mocked)
+        ).pipe(take(1))
       const nonce =
         opts.nonce ??
         (await firstValueFrom(
@@ -136,6 +133,6 @@ export const withNonce =
         })
       }
 
-      return inner({ ...payload }, opts, mocked)
+      return inner({ ...payload }, opts, txCreatorBindings, mocked)
     }
   }

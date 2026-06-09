@@ -1,7 +1,6 @@
 import { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   createV4Tx,
-  TxCreatorChainApi,
   withCommonExtensions,
   withNonce,
 } from "@polkadot-api/signers-common"
@@ -28,7 +27,6 @@ const SR_MOCK = "0x" + "0".repeat(128)
 const ECDSA_MOCK = SR_MOCK + "00"
 
 export function getTxCreatorFromPjs(
-  api: TxCreatorChainApi,
   address: string,
   signPayload: SignPayload,
   signRaw: SignRaw,
@@ -111,13 +109,10 @@ export function getTxCreatorFromPjs(
     )
   }
 
-  return Object.assign(
-    withNonce(api, publicKey)(withCommonExtensions(api)(creator)),
-    {
-      publicKey,
-      signBytes,
-    },
-  )
+  return Object.assign(withNonce(publicKey)(withCommonExtensions()(creator)), {
+    publicKey,
+    signBytes,
+  })
 }
 
 export type Opts =

@@ -1,10 +1,8 @@
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { TxCreator, TxCreatorEnhancer } from "@polkadot-api/polkadot-signer"
 import {
   createV4Tx,
   getSignBytes,
-  TxCreatorChainApi,
-  TxCreatorEnhancer,
   withCommonExtensions,
   withNonce,
 } from "@polkadot-api/signers-common"
@@ -16,12 +14,16 @@ const SR_MOCK = new Uint8Array(64).fill(0)
 const ECDSA_MOCK = new Uint8Array(65).fill(0)
 
 export const getTxCreator = (
-  api: TxCreatorChainApi,
   publicKey: Uint8Array,
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
 ) => {
-  const creator: TxCreator<{}> = async (payload, _, mocked) => {
+  const creator: TxCreator<{}> = async (
+    payload,
+    _,
+    txCreatorBindings,
+    mocked,
+  ) => {
     const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
     const extra: Array<Uint8Array> = []
     const additionalSigned: Array<Uint8Array> = []
@@ -44,7 +46,7 @@ export const getTxCreator = (
     const toSign = mergeUint8([callData, ...extra, ...additionalSigned])
     const signing =
       toSign.length > 256
-        ? await firstValueFrom(api.txCreatorBindings.hasher(toSign))
+        ? await firstValueFrom(txCreatorBindings.hasher(toSign))
         : toSign
     const signed = mocked
       ? signingType === "Ecdsa"
@@ -56,13 +58,10 @@ export const getTxCreator = (
     )
   }
 
-  return Object.assign(
-    withNonce(api, publicKey)(withCommonExtensions(api)(creator)),
-    {
-      publicKey,
-      signBytes: getSignBytes(sign),
-    },
-  )
+  return Object.assign(withNonce(publicKey)(withCommonExtensions()(creator)), {
+    publicKey,
+    signBytes: getSignBytes(sign),
+  })
 }
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
@@ -71,9 +70,9 @@ const oneU8 = Uint8Array.from([1])
 export const withMetadataHash: (
   networkInfo: Parameters<typeof merkleizeMetadata>[1],
 ) => TxCreatorEnhancer<{}> = (networkInfo) => (inner) => {
-  return async (payload, opts, mocked) => {
+  return async (payload, opts, bindings, mocked) => {
     if (payload.extensions.find(({ id }) => id === METADATA_IDENTIFIER))
-      return inner(payload, opts, mocked)
+      return inner(payload, opts, bindings, mocked)
     const metadata = unifyMetadata(decAnyMetadata(payload.context.metadata))
     if (!metadata.extrinsic.extensions[METADATA_IDENTIFIER])
       throw new Error(`${METADATA_IDENTIFIER} not found`)
@@ -89,6 +88,6 @@ export const withMetadataHash: (
       extra,
       additionalSigned,
     })
-    return inner({ ...payload }, opts, mocked)
+    return inner({ ...payload }, opts, bindings, mocked)
   }
 }

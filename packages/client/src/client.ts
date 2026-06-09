@@ -5,6 +5,7 @@ import {
   getObservableClient,
   withArchive,
 } from "@polkadot-api/observable-client"
+import { TxCreatorBindings } from "@polkadot-api/polkadot-signer"
 import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import {
   SubstrateClient,
@@ -38,7 +39,6 @@ import type { PolkadotClient, TypedApi } from "./types"
 import { createProxyPath, firstValueFromWithSignal } from "./utils"
 import { createViewFnEntry } from "./viewFns"
 import { createWatchEntries } from "./watch-entries"
-import { TxCreatorBindings } from "@polkadot-api/signers-common"
 
 const HEX_REGEX = /^(?:0x)?((?:[0-9a-fA-F][0-9a-fA-F])+)$/
 
@@ -132,7 +132,12 @@ const createApi = <D extends ChainDefinition>(
   const compatHelpers = createCompatHelpers(chainDefinition)
   const { getClientCompat } = compatHelpers
 
-  const getStaticApis = createStaticApis(chainHead, broadcast$, compatHelpers)
+  const getStaticApis = createStaticApis(
+    txCreatorBindings,
+    chainHead,
+    broadcast$,
+    compatHelpers,
+  )
 
   const getWatchEntries = createWatchEntries(
     chainHead.pinnedBlocks$,
@@ -152,6 +157,7 @@ const createApi = <D extends ChainDefinition>(
 
   const tx = createProxyPath((pallet, name) =>
     createTxEntry(
+      txCreatorBindings,
       pallet,
       name,
       chainHead,
@@ -210,6 +216,7 @@ const createApi = <D extends ChainDefinition>(
             } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData)
 
             return createTxEntry(
+              txCreatorBindings,
               pallet,
               name,
               chainHead,
@@ -225,7 +232,6 @@ const createApi = <D extends ChainDefinition>(
     )
 
   return {
-    txCreatorBindings,
     tx,
     constants,
     apis,
