@@ -37,5 +37,5 @@ const tx = api.tx.System.remark({
   ),
 })
 
-tx.getEstimatedFees(signer(api)).then(console.log, console.error)
-tx.createSubmitAndWatch(signer(api)).subscribe(console.log, console.error)
+tx.getEstimatedFees(signer).then(console.log, console.error)
+tx.createSubmitAndWatch(signer).subscribe(console.log, console.error)

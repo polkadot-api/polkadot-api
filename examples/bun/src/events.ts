@@ -37,7 +37,7 @@ typedApi.tx.Balances.transfer_allow_death({
   dest: MultiAddress.Id(ALICE),
   value: 12345n,
 })
-  .createSubmitAndWatch(bob(typedApi))
+  .createSubmitAndWatch(bob)
   .subscribe(async (r) => {
     console.log({
       type: r.type,

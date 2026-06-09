@@ -52,7 +52,7 @@ api.tx.Balances.transfer_keep_alive({
   // 1 WND -> 12 decimals
   value: 10n ** 12n,
 })
-  .createSubmitAndWatch(txCreator(api))
+  .createSubmitAndWatch(txCreator)
   .subscribe({
     next(value) {
       console.log(value)

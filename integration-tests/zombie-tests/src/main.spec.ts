@@ -172,7 +172,7 @@ describe("E2E", async () => {
     const tx = api.tx.System.remark({
       remark: Binary.fromText("hello world!"),
     })
-    const creator = fakeCreator(accounts["alice"]["sr25519"].publicKey)(api)
+    const creator = fakeCreator(accounts["alice"]["sr25519"].publicKey)
     const opts = {}
     const binaryExtrinsic = Binary.fromOpaque(await tx.create(creator, opts))
 
@@ -226,7 +226,7 @@ describe("E2E", async () => {
     )
     await api.tx.System.remark_with_event({
       remark: Binary.fromText("NEW ACCOUNT"),
-    }).createAndSubmit(unusedSigner(api))
+    }).createAndSubmit(unusedSigner)
 
     const [previousNonce, currentNonce] = await Promise.all([
       previousNonceProm,
@@ -242,7 +242,7 @@ describe("E2E", async () => {
     const fake = fakeCreator(accounts.alice.sr25519.publicKey)
     const err = await lastValueFrom(
       api.tx.System.remark({ remark: Binary.fromText("TEST") })
-        .createSubmitAndWatch(fake(api))
+        .createSubmitAndWatch(fake)
         .pipe(catchError((err) => of(err))),
     )
     expect(err).instanceOf(InvalidTxError)
@@ -287,8 +287,8 @@ describe("E2E", async () => {
 
     const aliceTransfer = api.tx.Utility.batch_all({ calls: calls.slice(0, 2) })
     const bobTransfer = api.tx.Utility.batch_all({ calls: calls.slice(2) })
-    const aliceCreator = alice(api)
-    const bobCreator = bob(api)
+    const aliceCreator = alice
+    const bobCreator = bob
 
     const [aliceEstimatedFee, bobEstimatedFee] = await Promise.all([
       aliceTransfer.getEstimatedFees(aliceCreator),
@@ -376,7 +376,7 @@ describe("E2E", async () => {
           api.tx.Balances.transfer_allow_death({
             dest: MultiAddress.Id(to[idx]),
             value: ED,
-          }).createAndSubmit(from(api), {
+          }).createAndSubmit(from, {
             mortality: { mortal: true, period: 64 },
             tip: 5n,
           }),
@@ -410,9 +410,9 @@ describe("E2E", async () => {
     ).then((x) => x.data.free)
 
     await lastValueFrom(
-      transfer.createSubmitAndWatch(alice(api)).pipe(
+      transfer.createSubmitAndWatch(alice).pipe(
         filter((e) => e.type === "txBestBlocksState" && e.found),
-        switchMap(() => transfer.createSubmitAndWatch(alice(api))),
+        switchMap(() => transfer.createSubmitAndWatch(alice)),
       ),
     )
 
@@ -454,7 +454,7 @@ describe("E2E", async () => {
       Array(N_PARALLEL_TRANSACTIONS)
         .fill(null)
         .map((_, diff) =>
-          transsferTx.createAndSubmit(alice(api), {
+          transsferTx.createAndSubmit(alice, {
             nonce: aliceInitialNonce + diff,
             mortality: mortalities[diff],
           }),
@@ -497,7 +497,7 @@ describe("E2E", async () => {
         .fill(null)
         .map(() =>
           lastValueFrom(
-            transsferTx.createSubmitAndWatch(alice(api)).pipe(
+            transsferTx.createSubmitAndWatch(alice).pipe(
               tap((x) => {
                 if (x.type === "broadcasted") nBroadcasted++
               }),

@@ -4,7 +4,7 @@ import { getDevTxCreator } from "./signer"
 
 const api = await getOfflineApi(wnd)
 // let's create Alice transaction creator
-const alice = getDevTxCreator()(api)
+const alice = getDevTxCreator()
 
 // create the transaction sending Bob some assets
 const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
