@@ -1,3 +1,4 @@
+import { TxCreatorChainApi } from "@polkadot-api/signers-common"
 import { getTxCreatorFromPjs } from "./from-pjs-account"
 import type {
   InjectedAccount,
@@ -7,10 +8,10 @@ import type {
 } from "./types"
 
 export type {
-  KeypairType,
-  InjectedExtension,
   InjectedAccount,
+  InjectedExtension,
   InjectedPolkadotAccount,
+  KeypairType,
 }
 
 const supportedAccountTypes = new Set<KeypairType | "ethereum">([
@@ -21,6 +22,7 @@ const supportedAccountTypes = new Set<KeypairType | "ethereum">([
 ])
 
 export const connectInjectedExtension = async (
+  api: TxCreatorChainApi,
   name: string,
   dappName?: string,
 ): Promise<InjectedExtension> => {
@@ -41,6 +43,7 @@ export const connectInjectedExtension = async (
       .filter(({ type }) => supportedAccountTypes.has(type!))
       .map((x) => {
         const txCreator = getTxCreatorFromPjs(
+          api,
           x.address,
           signPayload,
           signRaw,

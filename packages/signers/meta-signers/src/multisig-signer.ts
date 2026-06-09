@@ -1,4 +1,4 @@
-import type { TxCreatorFactory } from "@polkadot-api/signers-common"
+import { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   AccountId,
   Blake2256,
@@ -11,7 +11,7 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { getCodecs } from "./get-codecs"
-import { WrapTxCreatorFactory } from "./wrapped-tx-creator"
+import { WrapTxCreator } from "./wrapped-tx-creator"
 
 export interface MultisigTxCreatorOptions<Address> {
   method: (
@@ -26,7 +26,7 @@ const defaultMultisigTxCreatorOptions: MultisigTxCreatorOptions<unknown> = {
 
 export function getMultisigTxCreator<
   Address extends SS58String | HexString,
-  T extends TxCreatorFactory<any>,
+  T extends TxCreator<any>,
 >(
   multisig: {
     threshold: number
@@ -56,7 +56,7 @@ export function getMultisigTxCreator<
   }>,
   txCreator: T & { publicKey: Uint8Array; accountId?: Uint8Array },
   options?: MultisigTxCreatorOptions<Address>,
-): WrapTxCreatorFactory<T> {
+): WrapTxCreator<T> {
   const resolvedOptions = {
     ...defaultMultisigTxCreatorOptions,
     ...options,
@@ -86,86 +86,83 @@ export function getMultisigTxCreator<
     throw new Error("Signer is not one of the signatories of the multisig")
   }
 
-  const factory: TxCreatorFactory<any> = (chain) => {
-    const inner = txCreator(chain)
-    return async (payload, opts, mockedSignature) => {
-      const callData = fromHex(payload.callData)
-      const callHash = Blake2256(callData)
-      const { dynamicBuilder, callCodec } = getCodecs(
-        fromHex(payload.context.metadata),
-      )
+  const factory: TxCreator<any> = async (payload, opts, mockedSignature) => {
+    const callData = fromHex(payload.callData)
+    const callHash = Blake2256(callData)
+    const { dynamicBuilder, callCodec } = getCodecs(
+      fromHex(payload.context.metadata),
+    )
 
-      // Try as_multi_threshold_1
-      if (multisig.threshold === 1) {
-        try {
-          const { location, codec } = dynamicBuilder.buildCall(
-            "Multisig",
-            "as_multi_threshold_1",
-          )
-          const wrappedPayload = codec.enc({
-            other_signatories: otherSignatories.map(toAddress),
-            call: callCodec.dec(callData),
-          })
-          const wrappedCallData = mergeUint8([
-            new Uint8Array(location),
-            wrappedPayload,
-          ])
-          return inner(
-            { ...payload, callData: toHex(wrappedCallData) },
-            opts,
-            mockedSignature,
-          )
-        } catch {}
-      }
-
-      const unsignedExtrinsic = mergeUint8([new Uint8Array([4]), callData])
-      const [multisigInfo, weightInfo] = await Promise.all([
-        getMultisigInfo(toAddress(multisigId), toHex(callHash)),
-        txPaymentInfo(unsignedExtrinsic, unsignedExtrinsic.length),
-      ])
-
-      if (
-        multisigInfo?.approvals.some((approval) =>
-          u8ArrEq(getPublicKey(approval), txCreator.publicKey),
-        )
-      ) {
-        throw new Error("Multisig call already approved by signer")
-      }
-
-      const method = resolvedOptions.method(
-        multisigInfo?.approvals ?? [],
-        multisig.threshold,
-      )
-
-      let wrappedCallData
+    // Try as_multi_threshold_1
+    if (multisig.threshold === 1) {
       try {
-        const { location, codec } = dynamicBuilder.buildCall("Multisig", method)
-        const wrappedPayload = codec.enc({
-          threshold: multisig.threshold,
-          other_signatories: otherSignatories.map(toAddress),
-          max_weight: weightInfo.weight,
-          maybe_timepoint: multisigInfo?.when,
-          ...(method === "as_multi"
-            ? {
-                call: callCodec.dec(callData),
-              }
-            : {
-                call_hash: toHex(callHash),
-              }),
-        })
-        wrappedCallData = mergeUint8([new Uint8Array(location), wrappedPayload])
-      } catch {
-        throw new Error(
-          `Unsupported runtime version: Multisig.${method} not present or changed substantially`,
+        const { location, codec } = dynamicBuilder.buildCall(
+          "Multisig",
+          "as_multi_threshold_1",
         )
-      }
+        const wrappedPayload = codec.enc({
+          other_signatories: otherSignatories.map(toAddress),
+          call: callCodec.dec(callData),
+        })
+        const wrappedCallData = mergeUint8([
+          new Uint8Array(location),
+          wrappedPayload,
+        ])
+        return txCreator(
+          { ...payload, callData: toHex(wrappedCallData) },
+          opts,
+          mockedSignature,
+        )
+      } catch {}
+    }
 
-      return inner(
-        { ...payload, callData: toHex(wrappedCallData) },
-        opts,
-        mockedSignature,
+    const unsignedExtrinsic = mergeUint8([new Uint8Array([4]), callData])
+    const [multisigInfo, weightInfo] = await Promise.all([
+      getMultisigInfo(toAddress(multisigId), toHex(callHash)),
+      txPaymentInfo(unsignedExtrinsic, unsignedExtrinsic.length),
+    ])
+
+    if (
+      multisigInfo?.approvals.some((approval) =>
+        u8ArrEq(getPublicKey(approval), txCreator.publicKey),
+      )
+    ) {
+      throw new Error("Multisig call already approved by signer")
+    }
+
+    const method = resolvedOptions.method(
+      multisigInfo?.approvals ?? [],
+      multisig.threshold,
+    )
+
+    let wrappedCallData
+    try {
+      const { location, codec } = dynamicBuilder.buildCall("Multisig", method)
+      const wrappedPayload = codec.enc({
+        threshold: multisig.threshold,
+        other_signatories: otherSignatories.map(toAddress),
+        max_weight: weightInfo.weight,
+        maybe_timepoint: multisigInfo?.when,
+        ...(method === "as_multi"
+          ? {
+              call: callCodec.dec(callData),
+            }
+          : {
+              call_hash: toHex(callHash),
+            }),
+      })
+      wrappedCallData = mergeUint8([new Uint8Array(location), wrappedPayload])
+    } catch {
+      throw new Error(
+        `Unsupported runtime version: Multisig.${method} not present or changed substantially`,
       )
     }
+
+    return txCreator(
+      { ...payload, callData: toHex(wrappedCallData) },
+      opts,
+      mockedSignature,
+    )
   }
 
   return Object.assign(factory as T, {

@@ -95,10 +95,8 @@ export type TxCreatorBindings = {
   hasher: (payload: Uint8Array) => Observable<Uint8Array>
 }
 
-export type TxCreatorFactory<T> = (chain: {
+export interface TxCreatorChainApi {
   txCreatorBindings: TxCreatorBindings
-}) => TxCreator<T>
+}
 
-export type TxCreatorEnhancer<T> = <A>(
-  inner: TxCreatorFactory<A>,
-) => TxCreatorFactory<T & A>
+export type TxCreatorEnhancer<T> = <A>(inner: TxCreator<A>) => TxCreator<T & A>

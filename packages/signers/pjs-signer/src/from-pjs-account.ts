@@ -1,6 +1,7 @@
+import { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   createV4Tx,
-  TxCreatorFactory,
+  TxCreatorChainApi,
   withCommonExtensions,
   withNonce,
 } from "@polkadot-api/signers-common"
@@ -27,6 +28,7 @@ const SR_MOCK = "0x" + "0".repeat(128)
 const ECDSA_MOCK = SR_MOCK + "00"
 
 export function getTxCreatorFromPjs(
+  api: TxCreatorChainApi,
   address: string,
   signPayload: SignPayload,
   signRaw: SignRaw,
@@ -39,7 +41,7 @@ export function getTxCreatorFromPjs(
       type: "bytes",
     }).then(({ signature }) => fromHex(signature))
   const publicKey = getPublicKey(address)
-  const creator: TxCreatorFactory<{}> = () => async (payload, _, mocked) => {
+  const creator: TxCreator<{}> = async (payload, _, mocked) => {
     const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
 
     const pjs: Partial<SignerPayloadJSON> = {}
@@ -109,13 +111,14 @@ export function getTxCreatorFromPjs(
     )
   }
 
-  return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
-    publicKey,
-    signBytes,
-  })
+  return Object.assign(
+    withNonce(api, publicKey)(withCommonExtensions(api)(creator)),
+    {
+      publicKey,
+      signBytes,
+    },
+  )
 }
 
 export type Opts =
-  ReturnType<typeof getTxCreatorFromPjs> extends TxCreatorFactory<infer O>
-    ? O
-    : never
+  ReturnType<typeof getTxCreatorFromPjs> extends TxCreator<infer O> ? O : never

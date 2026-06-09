@@ -1,5 +1,4 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import { TxCreatorEnhancer } from "../types"
 import {
   decAnyMetadata,
   u16,
@@ -22,6 +21,7 @@ import {
   switchMap,
   take,
 } from "rxjs"
+import { TxCreatorChainApi, TxCreatorEnhancer } from "../types"
 
 const NONCE_ID = "CheckNonce"
 const NONCE_RUNTIME_CALL = "AccountNonceApi_account_nonce"
@@ -40,11 +40,12 @@ type Opts = {
   nonce?: number
 }
 
-export const withNonce: (pubkey: Uint8Array) => TxCreatorEnhancer<Opts> =
-  (pubkey) =>
-  (innerFactory) =>
-  ({ txCreatorBindings }) => {
-    const inner = innerFactory({ txCreatorBindings })
+export const withNonce =
+  (
+    { txCreatorBindings }: TxCreatorChainApi,
+    pubkey: Uint8Array,
+  ): TxCreatorEnhancer<Opts> =>
+  (inner) => {
     const getNonceAtBlock = (at: string) =>
       txCreatorBindings.call(NONCE_RUNTIME_CALL, pubkey, at).pipe(
         map((v) => {

@@ -1,9 +1,9 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import { TxCreatorEnhancer } from "../types"
+import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
+import { TxCreatorChainApi, TxCreatorEnhancer } from "../types"
 import { extensions } from "./extensions"
-import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 
 export type CommonOpts = {
   /**
@@ -28,10 +28,9 @@ export type CommonOpts = {
     | { mortal: true; period: number; at?: { hash: string; number: number } }
 }
 
-export const withCommonExtensions: TxCreatorEnhancer<CommonOpts> =
-  (innerFactory) =>
-  ({ txCreatorBindings }) => {
-    const inner = innerFactory({ txCreatorBindings })
+export const withCommonExtensions =
+  ({ txCreatorBindings }: TxCreatorChainApi): TxCreatorEnhancer<CommonOpts> =>
+  (inner) => {
     return async (payload, opts, mocked) => {
       const lookupFn = getLookupFn(
         unifyMetadata(decAnyMetadata(payload.context.metadata)),

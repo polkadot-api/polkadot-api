@@ -1,5 +1,13 @@
 import type Transport from "@ledgerhq/hw-transport"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
+import { TxCreator } from "@polkadot-api/polkadot-signer"
+import {
+  createV4Tx,
+  getSignBytes,
+  TxCreatorChainApi,
+  withCommonExtensions,
+  withNonce,
+} from "@polkadot-api/signers-common"
 import {
   Binary,
   ethAccount,
@@ -9,13 +17,6 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { CLA, DEFAULT_SS58, INS, P1, P2, PUBKEY_LEN, SIGN_LEN } from "./consts"
-import {
-  getSignBytes,
-  createV4Tx,
-  TxCreatorFactory,
-  withCommonExtensions,
-  withNonce,
-} from "@polkadot-api/signers-common"
 import { getMetadata } from "./get-metadata"
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
@@ -56,6 +57,7 @@ const ECDSA_MOCK = new Uint8Array(65).fill(0)
 export class LedgerSigner {
   readonly #transport: Transport
   readonly #schema: "ed25519" | "ecdsa"
+  #api: TxCreatorChainApi
   #pubkeys: Map<string, Promise<Uint8Array>> // `${schema}:${path1}:${path2}, pubkey|addr`
   #deviceId: Promise<number> | null
   #appInfo: ReturnType<typeof this.appInfo> | null
@@ -65,10 +67,15 @@ export class LedgerSigner {
    * @param transport           Valid and opened transport.
    * @param [schema="ed25519"]  Signing schema to use. Default: `ed25519`.
    */
-  constructor(transport: Transport, schema: "ed25519" | "ecdsa" = "ed25519") {
+  constructor(
+    api: TxCreatorChainApi,
+    transport: Transport,
+    schema: "ed25519" | "ecdsa" = "ed25519",
+  ) {
     this.#deviceId = null
     this.#appInfo = null
     this.#verified = null
+    this.#api = api
     this.#transport = transport
     this.#schema = schema
     this.#pubkeys = new Map()
@@ -304,7 +311,7 @@ export class LedgerSigner {
     path1: number,
     path2: number = 0,
   ) {
-    const creator: TxCreatorFactory<{}> = () => async (payload, _, mocked) => {
+    const creator: TxCreator<{}> = async (payload, _, mocked) => {
       const txExtVersion = payload.txExtVersion ?? 0
       if (txExtVersion !== 0)
         throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
@@ -371,9 +378,12 @@ export class LedgerSigner {
         : v.slice(PUBKEY_LEN[this.#schema]),
     )
 
-    return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
-      publicKey,
-      signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
-    })
+    return Object.assign(
+      withNonce(this.#api, publicKey)(withCommonExtensions(this.#api)(creator)),
+      {
+        publicKey,
+        signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
+      },
+    )
   }
 }
