@@ -84,6 +84,7 @@ const withEmptyExtensions: TxCreatorEnhancer<[]> =
   }
 
 export const withCommonExtensions = pipe(
+  withEmptyExtensions,
   withChargeAssetTxPayment,
   withChargeTransactionPayment,
   withCheckGenesis,
@@ -91,5 +92,4 @@ export const withCommonExtensions = pipe(
   withCheckMortality,
   withCheckSpecVersion,
   withCheckTxVersion,
-  withEmptyExtensions,
 )
