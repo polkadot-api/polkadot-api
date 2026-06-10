@@ -46,7 +46,9 @@ jobs:
         run: pnpm install
       - uses: cargo-bins/cargo-binstall@v1.20.0
       - name: Install zombienet
-        run: cargo binstall --locked zombie-cli
+        run: |
+          sudo apt-get update && sudo apt-get install -y protobuf-compiler
+          cargo binstall --locked -y zombie-cli
       - name: Download Polkadot and parachain binaries
         run: |
           _files=(polkadot polkadot-execute-worker polkadot-prepare-worker)
