@@ -10,12 +10,11 @@ import {
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
-import type { TxCreatorBindings } from "@polkadot-api/signers-common"
 import { concat, NEVER, of } from "rxjs"
 import type { ChainDefinition } from "./descriptors"
 import type { OfflineTxEntry } from "./tx"
 import type { OfflineApi } from "./types"
-import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
+import { TxCreatorBindings, TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 
 const getOfflineExtensions = (
   genesis: string,
@@ -44,6 +43,7 @@ const getOfflineExtensions = (
 }
 
 const createOfflineTxEntry = <Arg extends {} | undefined>(
+  bindings: TxCreatorBindings,
   pallet: string,
   name: string,
   genesisHex: string,
@@ -89,6 +89,7 @@ const createOfflineTxEntry = <Arg extends {} | undefined>(
               version: 1,
             },
             txOptions,
+            bindings,
             false,
           ),
         )
@@ -147,17 +148,6 @@ export const getOfflineApi: <D extends ChainDefinition>(
     return dynamicBuilder.buildConstant(pallet, name).dec(constant.value)
   })
 
-  const tx = createProxyPath((pallet, name) =>
-    createOfflineTxEntry(
-      pallet,
-      name,
-      genesisHex,
-      metadataRaw,
-      lookupFn,
-      dynamicBuilder,
-    ),
-  )
-
   const finalized = {
     hash: genesisHex,
     parent: "0x" + "0".repeat(64),
@@ -178,5 +168,17 @@ export const getOfflineApi: <D extends ChainDefinition>(
     },
   }
 
-  return { constants, tx, txCreatorBindings } as any
+  const tx = createProxyPath((pallet, name) =>
+    createOfflineTxEntry(
+      txCreatorBindings,
+      pallet,
+      name,
+      genesisHex,
+      metadataRaw,
+      lookupFn,
+      dynamicBuilder,
+    ),
+  )
+
+  return { constants, tx } as any
 }

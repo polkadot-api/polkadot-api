@@ -7,10 +7,10 @@ import type {
 } from "./types"
 
 export type {
-  KeypairType,
-  InjectedExtension,
   InjectedAccount,
+  InjectedExtension,
   InjectedPolkadotAccount,
+  KeypairType,
 }
 
 const supportedAccountTypes = new Set<KeypairType | "ethereum">([

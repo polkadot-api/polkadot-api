@@ -1,5 +1,12 @@
 import type Transport from "@ledgerhq/hw-transport"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
+import { TxCreator } from "@polkadot-api/polkadot-signer"
+import {
+  createV4Tx,
+  getSignBytes,
+  withCommonExtensions,
+  withNonce,
+} from "@polkadot-api/signers-common"
 import {
   Binary,
   ethAccount,
@@ -9,13 +16,6 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { CLA, DEFAULT_SS58, INS, P1, P2, PUBKEY_LEN, SIGN_LEN } from "./consts"
-import {
-  getSignBytes,
-  createV4Tx,
-  TxCreatorFactory,
-  withCommonExtensions,
-  withNonce,
-} from "@polkadot-api/signers-common"
 import { getMetadata } from "./get-metadata"
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
@@ -304,7 +304,7 @@ export class LedgerSigner {
     path1: number,
     path2: number = 0,
   ) {
-    const creator: TxCreatorFactory<{}> = () => async (payload, _, mocked) => {
+    const creator: TxCreator<{}> = async (payload, _, mocked) => {
       const txExtVersion = payload.txExtVersion ?? 0
       if (txExtVersion !== 0)
         throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
@@ -371,9 +371,12 @@ export class LedgerSigner {
         : v.slice(PUBKEY_LEN[this.#schema]),
     )
 
-    return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
-      publicKey,
-      signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
-    })
+    return Object.assign(
+      withNonce(publicKey)(withCommonExtensions()(creator)),
+      {
+        publicKey,
+        signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
+      },
+    )
   }
 }

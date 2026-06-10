@@ -5,7 +5,7 @@ import { Binary } from "polkadot-api"
 
 const client = createWsClient("ws://localhost:8131")
 const api = client.getTypedApi(wnd)
-const txCreator = getDevTxCreator()(api)
+const txCreator = getDevTxCreator()
 
 const tx = await api.tx.System.remark_with_event({
   remark: Binary.fromText("FIRST TX WITH CREATOR"),

@@ -1,7 +1,7 @@
 import { ValueCompat } from "@/compatibility"
 import { getCallData } from "@/utils/get-call-data"
 import type { ChainHead$ } from "@polkadot-api/observable-client"
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { TxCreator, TxCreatorBindings } from "@polkadot-api/polkadot-signer"
 import {
   _void,
   compact,
@@ -44,6 +44,7 @@ const [, queryInfoDecFallback] = Struct({
 })
 
 export const createTxEntry = <Arg extends {} | undefined>(
+  bindings: TxCreatorBindings,
   pallet: string,
   name: string,
   chainHead: ChainHead$,
@@ -117,6 +118,7 @@ export const createTxEntry = <Arg extends {} | undefined>(
               version: 1,
             },
             opts ?? {},
+            bindings,
             mockedSignature,
           ),
         ),

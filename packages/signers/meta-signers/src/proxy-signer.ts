@@ -1,5 +1,5 @@
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
-import type { TxCreatorFactory } from "@polkadot-api/signers-common"
+import { TxCreator } from "@polkadot-api/polkadot-signer"
 import {
   getSs58AddressInfo,
   HexString,
@@ -7,45 +7,48 @@ import {
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { getCodecs } from "./get-codecs"
-import { WrapTxCreatorFactory } from "./wrapped-tx-creator"
+import { WrapTxCreator } from "./wrapped-tx-creator"
 
 export type ProxyAddress = SS58String | HexString
 
-export function getProxyTxCreator<T extends TxCreatorFactory<any>>(
+export function getProxyTxCreator<T extends TxCreator<any>>(
   proxyParams: {
     real: ProxyAddress
     type?: { type: string; value?: unknown }
   },
   txCreator: T & { publicKey: Uint8Array },
-): WrapTxCreatorFactory<T> {
-  const factory: TxCreatorFactory<any> = (chain) => {
-    const inner = txCreator(chain)
-    return async (payload, opts, mockedSignature) => {
-      const { lookup, dynamicBuilder, callCodec } = getCodecs(
-        fromHex(payload.context.metadata),
-      )
+): WrapTxCreator<T> {
+  const factory: TxCreator<any> = async (
+    payload,
+    opts,
+    bindings,
+    mockedSignature,
+  ) => {
+    const { lookup, dynamicBuilder, callCodec } = getCodecs(
+      fromHex(payload.context.metadata),
+    )
 
-      let wrappedCallData
-      try {
-        const { location, codec } = dynamicBuilder.buildCall("Proxy", "proxy")
-        const wrappedPayload = codec.enc({
-          real: wrapAddress(lookup, proxyParams.real),
-          force_proxy_type: proxyParams.type,
-          call: callCodec.dec(fromHex(payload.callData)),
-        })
-        wrappedCallData = mergeUint8([new Uint8Array(location), wrappedPayload])
-      } catch {
-        throw new Error(
-          `Unsupported runtime version: Proxy.proxy not present or changed substantially`,
-        )
-      }
-
-      return inner(
-        { ...payload, callData: toHex(wrappedCallData) },
-        opts,
-        mockedSignature,
+    let wrappedCallData
+    try {
+      const { location, codec } = dynamicBuilder.buildCall("Proxy", "proxy")
+      const wrappedPayload = codec.enc({
+        real: wrapAddress(lookup, proxyParams.real),
+        force_proxy_type: proxyParams.type,
+        call: callCodec.dec(fromHex(payload.callData)),
+      })
+      wrappedCallData = mergeUint8([new Uint8Array(location), wrappedPayload])
+    } catch {
+      throw new Error(
+        `Unsupported runtime version: Proxy.proxy not present or changed substantially`,
       )
     }
+
+    return txCreator(
+      { ...payload, callData: toHex(wrappedCallData) },
+      opts,
+      bindings,
+      mockedSignature,
+    )
   }
 
   return Object.assign(factory as T, {

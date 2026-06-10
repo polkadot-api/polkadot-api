@@ -15,11 +15,11 @@ const transfer = api.tx.Balances.transfer_allow_death({
 })
 
 transfer
-  .getEstimatedFees(papiTestCreator(api))
+  .getEstimatedFees(papiTestCreator)
   .then((estimatedFees) => console.log({ estimatedFees }), console.error)
 
 // TODO: add custom signed-extension support to TxCreator-based flows.
-transfer.createSubmitAndWatch(papiTestCreator(api)).subscribe({
+transfer.createSubmitAndWatch(papiTestCreator).subscribe({
   next: (e) => {
     console.log(e.type)
     if (e.type === "finalized") {

@@ -18,7 +18,7 @@ describe("tx", () => {
     const [bestBlock] = await client.getBestBlocks()
     const tx = await api.tx.System.remark({
       remark: Binary.fromText("hi!"),
-    }).create(aliceSigner(api))
+    }).create(aliceSigner)
 
     const obs = client.submitAndWatch(tx).pipe(shareReplay(1))
     const sub = obs.subscribe()

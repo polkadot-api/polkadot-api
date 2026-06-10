@@ -5,11 +5,13 @@ import { constFromCtx } from "@/utils/const-from-ctx"
 import { getCallData } from "@/utils/get-call-data"
 import { stgGetKey } from "@/utils/stg-get-key"
 import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
+import { TxCreatorBindings } from "@polkadot-api/polkadot-signer"
 import { mergeMap, Observable } from "rxjs"
 import { createTxEntry, Transaction } from "./tx"
 import { withWeakCache } from "./utils/with-weak-cache"
 
 export const createStaticApis = (
+  bindings: TxCreatorBindings,
   chainHead: ChainHead$,
   broadcast$: (tx: Uint8Array) => Observable<never>,
   { getClientCompat, getSyncHelpers }: CompatHelpers,
@@ -24,6 +26,7 @@ export const createStaticApis = (
         } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData)
 
         return createTxEntry(
+          bindings,
           pallet,
           name,
           chainHead,

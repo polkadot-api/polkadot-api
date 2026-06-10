@@ -24,7 +24,6 @@ import type {
   TxFromBinary,
 } from "./tx"
 import { ViewFn } from "./viewFns"
-import { TxCreatorBindings } from "@polkadot-api/signers-common"
 
 export type { ChainSpecData }
 
@@ -178,7 +177,6 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
 }
 
 export type TypedApi<D extends ChainDefinition, Safe = true> = {
-  txCreatorBindings: TxCreatorBindings
   tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
   constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   apis: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
@@ -190,7 +188,6 @@ export type TypedApi<D extends ChainDefinition, Safe = true> = {
 }
 
 export type OfflineApi<D extends ChainDefinition> = {
-  txCreatorBindings: TxCreatorBindings
   constants: OfflineConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   tx: OfflineTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
 }

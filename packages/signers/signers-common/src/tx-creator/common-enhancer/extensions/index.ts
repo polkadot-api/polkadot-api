@@ -2,12 +2,11 @@ import {
   getDynamicBuilder,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import { TxPayloadV1 } from "@polkadot-api/polkadot-signer"
+import { TxCreatorBindings, TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 import { compact } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { firstValueFrom, skipWhile } from "rxjs"
 import type { CommonOpts } from ".."
-import { TxCreatorBindings } from "../../types"
 import { mortal } from "./mortal-enc"
 import { getSystemVersionProp } from "./system-version"
 
