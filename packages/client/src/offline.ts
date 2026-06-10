@@ -42,7 +42,7 @@ const getOfflineExtensions = (
   return [...mortalityExt, ...nonceExt]
 }
 
-const createOfflineTxEntry = <Arg extends {} | undefined>(
+const createOfflineTxEntry = <Arg extends {} | undefined, Asset>(
   bindings: TxCreatorBindings,
   pallet: string,
   name: string,
@@ -50,7 +50,7 @@ const createOfflineTxEntry = <Arg extends {} | undefined>(
   metadataRaw: Uint8Array,
   lookupFn: MetadataLookup,
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
-): OfflineTxEntry<Arg> => {
+): OfflineTxEntry<Arg, Asset> => {
   let codecs
   try {
     codecs = dynamicBuilder.buildCall(pallet, name)

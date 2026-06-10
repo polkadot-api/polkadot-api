@@ -84,10 +84,13 @@ export type TxApi<A extends Record<string, Record<string, any>>, Asset> = {
   }
 }
 
-export type OfflineTxApi<A extends Record<string, Record<string, any>>> = {
+export type OfflineTxApi<
+  A extends Record<string, Record<string, any>>,
+  Asset,
+> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? OfflineTxEntry<A[K][KK]>
+      ? OfflineTxEntry<A[K][KK], Asset>
       : unknown
   }
 }
@@ -189,7 +192,7 @@ export type TypedApi<D extends ChainDefinition, Safe = true> = {
 
 export type OfflineApi<D extends ChainDefinition> = {
   constants: OfflineConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
-  tx: OfflineTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
+  tx: OfflineTxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>, D["asset"]>
 }
 
 export type TransactionValidityError<D extends ChainDefinition> =

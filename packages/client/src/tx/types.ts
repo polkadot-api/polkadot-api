@@ -207,7 +207,9 @@ export type TxEntry<Arg extends {} | undefined, Asset> = {
   (...args: Arg extends undefined ? [] : [data: Arg]): Transaction<Asset>
 }
 
-export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
+export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
+  input: Arg,
+) => {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
    * user cancels the signature) it'll throw an error.
@@ -218,7 +220,7 @@ export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
    */
   create: <T extends TxCreator<any>>(
     creator: T,
-    txOptions: T extends TxCreator<infer A> ? A & { nonce: number } : never,
+    txOptions: TxCreatorOptions<T, Asset> & { nonce: number },
   ) => Promise<Uint8Array>
 
   /**
