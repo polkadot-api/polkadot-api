@@ -46,7 +46,6 @@ export type ChainDefinition = {
     pallets: PalletsTypedef<any, any, any, any, any, any>
     apis: ApisTypedef<any>
   }
-  asset: PlainDescriptor<any>
   extensions: Record<string, { value?: any; additionalSigned?: any }>
   requiredExtensions: PlainDescriptor<string>
   metadataTypes: Promise<Uint8Array>

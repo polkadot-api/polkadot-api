@@ -6,6 +6,7 @@
 
 - Extensions now include all extensions available in the chain.
 - Descriptors now include "non-default extensions"
+- Removed AssetId from codegen
 
 ## Unreleased
 

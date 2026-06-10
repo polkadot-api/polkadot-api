@@ -365,10 +365,6 @@ export const generateDescriptors = (
     mapObject(api.methods, (x) => x.typeRef),
   )
 
-  const assetId = getAssetId(lookupFn)
-  const assetType =
-    assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
-
   const extensionsType = getExtensionsType(lookupFn, typesBuilder)
   const requiredExtensionsType = getRequiredExtensionsType(lookupFn)
 
@@ -430,8 +426,6 @@ type IConstants = ${customStringifyObject(iConstants)};
 type IViewFns = ${customStringifyObject(iViewFns)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 export type ${prefix}DispatchError = ${dispatchErrorType}
-type IAsset = PlainDescriptor<${assetType}>
-const asset: IAsset = {} as IAsset
 export type ${prefix}Extensions = ${extensionsType}
 const extensions = {} as ${prefix}Extensions
 type IRequiredExtensions = PlainDescriptor<${requiredExtensionsType}>
@@ -456,13 +450,12 @@ export type ${prefix} = {
     apis: IRuntimeCalls
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
-  asset: IAsset
   extensions: ${prefix}Extensions
   requiredExtensions: IRequiredExtensions
   getMetadata: () => Promise<Uint8Array>
   genesis: string | undefined
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, extensions, requiredExtensions, getMetadata, genesis } as any as ${prefix};
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, extensions, requiredExtensions, getMetadata, genesis } as any as ${prefix};
 export default _allDescriptors;
 
 export type ${prefix}Apis = ApisFromDef<IRuntimeCalls>
@@ -499,20 +492,6 @@ type NestedKey<D extends Record<string, string[]>> =
 `
 
   return { descriptorTypes, descriptorValues, exports, commonTypeImports }
-}
-
-export function getAssetId(lookup: MetadataLookup) {
-  const assetPayment =
-    lookup.metadata.extrinsic.extensions["ChargeAssetTxPayment"]
-
-  if (assetPayment) {
-    const assetTxPayment = lookup(assetPayment.type)
-    if (assetTxPayment.type === "struct") {
-      const optionalAssetId = assetTxPayment.value.asset_id
-      if (optionalAssetId.type === "option") return optionalAssetId.value.id
-    }
-  }
-  return
 }
 
 function getExtensionsType(
