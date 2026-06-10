@@ -1,18 +1,11 @@
-import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
+import { getLookupFromRawMetadata } from "@/lookupFromMetadata"
 import {
   ArgsForArgSpecs,
   TxArgSpec,
   TxChainDefinition,
   TxCreatorEnhancer,
 } from "@polkadot-api/polkadot-signer"
-import {
-  decAnyMetadata,
-  u16,
-  u32,
-  u64,
-  u8,
-  unifyMetadata,
-} from "@polkadot-api/substrate-bindings"
+import { u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import {
   catchError,
@@ -130,10 +123,10 @@ export const withNonce =
             }),
           ),
         ))
-      const lookupFn = getLookupFn(
-        unifyMetadata(decAnyMetadata(payload.context.metadata)),
+      const { lookupFn, builder } = getLookupFromRawMetadata(
+        payload.context.metadata,
       )
-      const builder = getDynamicBuilder(lookupFn)
+
       const nonceLookupType =
         lookupFn.metadata.extrinsic.extensions[NONCE_ID]?.type
       if (nonceLookupType != null) {

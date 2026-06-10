@@ -1,6 +1,6 @@
+import { getLookupFromRawMetadata } from "@/lookupFromMetadata"
 import {
   getDynamicBuilder,
-  getLookupFn,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import {
@@ -11,11 +11,7 @@ import {
   TxCreatorEnhancer,
   TxPayloadV1,
 } from "@polkadot-api/polkadot-signer"
-import {
-  compact,
-  decAnyMetadata,
-  unifyMetadata,
-} from "@polkadot-api/substrate-bindings"
+import { compact } from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { firstValueFrom, skipWhile } from "rxjs"
 import { mortal } from "./mortal-enc"
@@ -52,13 +48,11 @@ const enhancerFromExtensionPayload =
     if (payload.extensions.some((ext) => ext.id === id))
       return inner(payload, opts, bindings, mocked)
 
-    const lookupFn = getLookupFn(
-      unifyMetadata(decAnyMetadata(payload.context.metadata)),
+    const { lookupFn, builder } = getLookupFromRawMetadata(
+      payload.context.metadata,
     )
     if (!(id in lookupFn.metadata.extrinsic.extensions))
       return inner(payload, opts, bindings, mocked)
-
-    const builder = getDynamicBuilder(lookupFn)
 
     const myOptions = opts as ArgsForArgSpecs<[T], TxChainDefinition>
     const extension = await mapFn({
