@@ -47,7 +47,8 @@ export type ChainDefinition = {
     apis: ApisTypedef<any>
   }
   asset: PlainDescriptor<any>
-  extensions?: Record<string, { value?: any; additionalSigned?: any }>
+  extensions: Record<string, { value?: any; additionalSigned?: any }>
+  requiredExtensions: PlainDescriptor<string>
   metadataTypes: Promise<Uint8Array>
   getMetadata: () => Promise<Uint8Array>
   genesis: HexString | undefined

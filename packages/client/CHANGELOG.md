@@ -11,6 +11,7 @@
 - BREAKING: Transactions now use `TxCreator`s. The `sign`, `signAndSubmit`, and `signSubmitAndWatch` methods have been replaced by `create`, `createAndSubmit`, and `createSubmitAndWatch`.
 - BREAKING: `getPaymentInfo` and `getEstimatedFees` now take a `TxCreator` instead of an account address or public key.
 - BREAKING: Offline transaction entries now use `create` instead of `sign`.
+- BREAKING: `ChainDefinition` now includes all extensions and descriptors include "non-default extensions"
 
 ## Unreleased
 
