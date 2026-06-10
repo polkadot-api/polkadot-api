@@ -1,6 +1,6 @@
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { ArgsForCreator, TxCreator } from "@polkadot-api/polkadot-signer"
 import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
@@ -72,16 +72,25 @@ export type TxFinalized = {
   txHash: HexString
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
-export type TxCreatorOptions<T extends TxCreator<any>> =
-  T extends TxCreator<infer A> ? A : never
+export type TxCreatorOptions<T extends TxCreator<any>, Asset> = ArgsForCreator<
+  T,
+  {
+    extensions: {
+      ChargeAssetTxPayment: {
+        additionalSigned: never
+        type: Asset
+      }
+    }
+  }
+>
 
 type IsAny<T> = 0 extends 1 & T ? true : false
-type TxCreatorOptionsArg<T extends TxCreator<any>> =
-  IsAny<TxCreatorOptions<T>> extends true
-    ? [txOptions?: TxCreatorOptions<T>]
-    : {} extends TxCreatorOptions<T>
-      ? [txOptions?: TxCreatorOptions<T>]
-      : [txOptions: TxCreatorOptions<T>]
+type TxCreatorOptionsArg<T extends TxCreator<any>, Asset> =
+  IsAny<TxCreatorOptions<T, Asset>> extends true
+    ? [txOptions?: TxCreatorOptions<T, Asset>]
+    : {} extends TxCreatorOptions<T, Asset>
+      ? [txOptions?: TxCreatorOptions<T, Asset>]
+      : [txOptions: TxCreatorOptions<T, Asset>]
 
 export type PaymentInfo = {
   weight: {
@@ -96,7 +105,7 @@ export type PaymentInfo = {
   partial_fee: bigint
 }
 
-export type Transaction = {
+export type Transaction<Asset> = {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
    * user cancels the signature) it'll throw an error.
@@ -107,7 +116,7 @@ export type Transaction = {
    */
   create<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, Asset>
   ): Promise<Uint8Array>
 
   /**
@@ -122,7 +131,7 @@ export type Transaction = {
    */
   createSubmitAndWatch<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, Asset>
   ): Observable<TxEvent>
 
   /**
@@ -137,7 +146,7 @@ export type Transaction = {
    */
   createAndSubmit<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, Asset>
   ): Promise<TxFinalizedPayload>
 
   /**
@@ -164,7 +173,7 @@ export type Transaction = {
    */
   getEstimatedFees<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, Asset>
   ): Promise<bigint>
 
   /**
@@ -177,7 +186,7 @@ export type Transaction = {
    */
   getPaymentInfo<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, Asset>
   ): Promise<PaymentInfo>
 
   /**
@@ -187,7 +196,7 @@ export type Transaction = {
   decodedCall: TxCallData
 }
 
-export type TxEntry<Arg extends {} | undefined> = {
+export type TxEntry<Arg extends {} | undefined, Asset> = {
   /**
    * Synchronously create the transaction object ready to sign, submit,
    * estimate fees, etc.
@@ -195,7 +204,7 @@ export type TxEntry<Arg extends {} | undefined> = {
    * @param args  All parameters required by the transaction.
    * @returns Transaction object.
    */
-  (...args: Arg extends undefined ? [] : [data: Arg]): Transaction
+  (...args: Arg extends undefined ? [] : [data: Arg]): Transaction<Asset>
 }
 
 export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
@@ -223,7 +232,7 @@ export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
   decodedCall: TxCallData
 }
 
-export type TxFromBinary = {
+export type TxFromBinary<Asset> = {
   /**
    * Asynchronously create the transaction object from a binary call data ready
    * to sign, submit, estimate fees, etc.
@@ -231,5 +240,5 @@ export type TxFromBinary = {
    * @param callData  SCALE-encoded call data.
    * @returns Transaction object.
    */
-  (callData: Uint8Array, options?: PullOptions): Promise<Transaction>
+  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<Asset>>
 }

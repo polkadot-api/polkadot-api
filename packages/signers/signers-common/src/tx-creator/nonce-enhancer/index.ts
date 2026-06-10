@@ -1,5 +1,10 @@
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
-import { TxCreatorEnhancer } from "@polkadot-api/polkadot-signer"
+import {
+  ArgsForArgSpecs,
+  TxArgSpec,
+  TxChainDefinition,
+  TxCreatorEnhancer,
+} from "@polkadot-api/polkadot-signer"
 import {
   decAnyMetadata,
   u16,
@@ -32,18 +37,25 @@ const lenToDecoder = {
   8: u64.dec,
 }
 
-type Opts = {
-  /**
-   * Nonce for the transaction.
-   * Default: higher nonce found in any tip of the chain.
-   */
-  nonce?: number
+export interface NonceArgSpec extends TxArgSpec {
+  id: "CheckNonce"
+  params: {
+    /**
+     * Nonce for the transaction.
+     * Default: higher nonce found in any tip of the chain.
+     */
+    nonce?: number
+  }
 }
 
 export const withNonce =
-  (pubkey: Uint8Array): TxCreatorEnhancer<Opts> =>
+  (pubkey: Uint8Array): TxCreatorEnhancer<[NonceArgSpec]> =>
   (inner) => {
     return async (payload, opts, txCreatorBindings, mocked) => {
+      const nonceOptions = opts as ArgsForArgSpecs<
+        [NonceArgSpec],
+        TxChainDefinition
+      >
       if (payload.extensions.find(({ id }) => id === NONCE_ID))
         return inner(payload, opts, txCreatorBindings, mocked)
       const getNonceAtBlock = (at: string) =>
@@ -89,7 +101,7 @@ export const withNonce =
           ),
         ).pipe(take(1))
       const nonce =
-        opts.nonce ??
+        nonceOptions.nonce ??
         (await firstValueFrom(
           txCreatorBindings.blocks.pipe(
             // with first finalized we know the observable is settled

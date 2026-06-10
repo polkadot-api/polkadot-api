@@ -1,12 +1,23 @@
 import {
   getDynamicBuilder,
+  getLookupFn,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import { TxCreatorBindings, TxPayloadV1 } from "@polkadot-api/polkadot-signer"
-import { compact } from "@polkadot-api/substrate-bindings"
+import {
+  ArgsForArgSpecs,
+  TxArgSpec,
+  TxChainDefinition,
+  TxCreatorBindings,
+  TxCreatorEnhancer,
+  TxPayloadV1,
+} from "@polkadot-api/polkadot-signer"
+import {
+  compact,
+  decAnyMetadata,
+  unifyMetadata,
+} from "@polkadot-api/substrate-bindings"
 import { toHex } from "@polkadot-api/utils"
 import { firstValueFrom, skipWhile } from "rxjs"
-import type { CommonOpts } from ".."
 import { mortal } from "./mortal-enc"
 import { getSystemVersionProp } from "./system-version"
 
@@ -25,39 +36,140 @@ const both = (extra: string, additionalSigned: string) => ({
   additionalSigned,
 })
 
-export const extensions: Record<
-  string,
-  (opts: {
-    bindings: TxCreatorBindings
-    context: TxPayloadV1["context"]
-    lookupFn: MetadataLookup
-    dynamicBuilder: ReturnType<typeof getDynamicBuilder>
-    opts: CommonOpts
-  }) => Promise<{ extra: string; additionalSigned: string }>
-> = {
-  CheckGenesis: async ({ context: { genesisHash } }) =>
-    additionalSigned(genesisHash),
-  CheckMetadataHash: async () => both(zero, zero),
-  CheckSpecVersion: async ({ lookupFn, dynamicBuilder }) =>
-    additionalSigned(
-      getSystemVersionProp(
-        lookupFn,
-        dynamicBuilder,
-        "CheckSpecVersion",
-        "spec_version",
-      ),
-    ),
+const enhancerFromExtensionPayload =
+  <T extends TxArgSpec>(
+    id: T["id"],
+    mapFn: (opts: {
+      bindings: TxCreatorBindings
+      context: TxPayloadV1["context"]
+      lookupFn: MetadataLookup
+      dynamicBuilder: ReturnType<typeof getDynamicBuilder>
+      opts: ArgsForArgSpecs<[T], TxChainDefinition>
+    }) => Promise<{ extra: string; additionalSigned: string }>,
+  ): TxCreatorEnhancer<[T]> =>
+  (inner) =>
+  async (payload, opts, bindings, mocked) => {
+    if (payload.extensions.some((ext) => ext.id === id))
+      return inner(payload, opts, bindings, mocked)
 
-  CheckTxVersion: async ({ lookupFn, dynamicBuilder }) =>
-    additionalSigned(
-      getSystemVersionProp(
-        lookupFn,
-        dynamicBuilder,
-        "CheckTxVersion",
-        "transaction_version",
-      ),
+    const lookupFn = getLookupFn(
+      unifyMetadata(decAnyMetadata(payload.context.metadata)),
+    )
+    if (!(id in lookupFn.metadata.extrinsic.extensions))
+      return inner(payload, opts, bindings, mocked)
+
+    const builder = getDynamicBuilder(lookupFn)
+
+    const myOptions = opts as ArgsForArgSpecs<[T], TxChainDefinition>
+    const extension = await mapFn({
+      bindings,
+      context: payload.context,
+      dynamicBuilder: builder,
+      lookupFn,
+      opts: myOptions,
+    })
+
+    return inner(
+      {
+        ...payload,
+        extensions: [
+          ...payload.extensions,
+          {
+            id,
+            ...extension,
+          },
+        ],
+      },
+      opts,
+      bindings,
+      mocked,
+    )
+  }
+
+export const withCheckGenesis = enhancerFromExtensionPayload<
+  TxArgSpec & {
+    id: "CheckGenesis"
+    params: {}
+  }
+>("CheckGenesis", async ({ context: { genesisHash } }) =>
+  additionalSigned(genesisHash),
+)
+
+export const withCheckMetadataHash = enhancerFromExtensionPayload<
+  TxArgSpec & {
+    id: "CheckMetadataHash"
+    params: {}
+  }
+>("CheckMetadataHash", async () => both(zero, zero))
+
+export const withCheckSpecVersion = enhancerFromExtensionPayload<
+  TxArgSpec & {
+    id: "CheckSpecVersion"
+    params: {}
+  }
+>("CheckSpecVersion", async ({ lookupFn, dynamicBuilder }) =>
+  additionalSigned(
+    getSystemVersionProp(
+      lookupFn,
+      dynamicBuilder,
+      "CheckSpecVersion",
+      "spec_version",
     ),
-  CheckMortality: async ({
+  ),
+)
+
+export const withCheckTxVersion = enhancerFromExtensionPayload<
+  TxArgSpec & {
+    id: "CheckTxVersion"
+    params: {}
+  }
+>("CheckTxVersion", async ({ lookupFn, dynamicBuilder }) =>
+  additionalSigned(
+    getSystemVersionProp(
+      lookupFn,
+      dynamicBuilder,
+      "CheckTxVersion",
+      "transaction_version",
+    ),
+  ),
+)
+
+export const withChargeTransactionPayment = enhancerFromExtensionPayload<
+  TxArgSpec & {
+    id: "ChargeTransactionPayment"
+    params: {
+      tip?: bigint
+    }
+  }
+>("ChargeTransactionPayment", async ({ opts: { tip } }) =>
+  value(toHex(compact.enc(tip ?? 0))),
+)
+
+export const withCheckMortality = enhancerFromExtensionPayload<
+  TxArgSpec & {
+    id: "CheckMortality"
+    params: {
+      /**
+       * Mortality of the transaction.
+       * If no `at` is passed, transaction will be alive for, at least, `period`
+       * number of blocks after the current best block height.
+       * If `at` is passed, transaction will be alive for `period` number of
+       * blocks after `at`.
+       *
+       * Default: `{ mortal: true, period: 20 }`
+       */
+      mortality?:
+        | { mortal: false }
+        | {
+            mortal: true
+            period: number
+            at?: { hash: string; number: number }
+          }
+    }
+  }
+>(
+  "CheckMortality",
+  async ({
     bindings: { blocks },
     context: { genesisHash },
     opts: { mortality },
@@ -92,16 +204,29 @@ export const extensions: Record<
       finalized.hash,
     )
   },
-  ChargeTransactionPayment: async ({ opts: { tip } }) =>
-    value(toHex(compact.enc(tip ?? 0))),
-  ChargeAssetTxPayment: async ({
-    opts: { tip, asset },
-    lookupFn,
-    dynamicBuilder,
-  }) => {
-    const { enc } = dynamicBuilder.buildDefinition(
-      lookupFn.metadata.extrinsic.extensions["ChargeAssetTxPayment"].type,
-    )
-    return value(toHex(enc({ tip: tip ?? 0, asset_id: asset })))
-  },
+)
+
+type ChargeAssetTransactionPaymentParams<Chain extends TxChainDefinition> = {
+  /**
+   * Tip in fundamental units. Default: `0`
+   */
+  tip?: bigint
+  /**
+   * Asset to pay fees with. Default: `None`
+   */
+  asset?: Chain["extensions"]["ChargeAssetTxPayment"]["type"]
 }
+export interface ChargeAssetTxPaymentSpec extends TxArgSpec {
+  id: "ChargeAssetTxPayment"
+  params: ChargeAssetTransactionPaymentParams<this["chain"]>
+}
+export const withChargeAssetTxPayment =
+  enhancerFromExtensionPayload<ChargeAssetTxPaymentSpec>(
+    "ChargeAssetTxPayment",
+    async ({ opts: { tip, asset }, lookupFn, dynamicBuilder }) => {
+      const { enc } = dynamicBuilder.buildDefinition(
+        lookupFn.metadata.extrinsic.extensions["ChargeAssetTxPayment"].type,
+      )
+      return value(toHex(enc({ tip: tip ?? 0, asset_id: asset })))
+    },
+  )

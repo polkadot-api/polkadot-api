@@ -1,4 +1,5 @@
 import { Observable } from "rxjs"
+import { ArgsForArgSpecs, TxArgSpec, TxChainDefinition } from "./txArgs"
 
 export interface TxPayloadV1 {
   /**
@@ -106,15 +107,21 @@ export interface TxPayloadV1 {
   }
 }
 
+declare const txCreatorArgSpecs: unique symbol
 /**
  * Creates a SCALE-encoded extrinsic (ready to broadcast).
  */
-export type TxCreator<T> = (
-  input: TxPayloadV1,
-  opts: T,
-  bindings: TxCreatorBindings,
-  mockedSignature: boolean,
-) => Promise<string>
+export interface TxCreator<Specs extends TxArgSpec[]> {
+  [txCreatorArgSpecs]?: Specs;
+  <Chain extends TxChainDefinition>(
+    input: TxPayloadV1,
+    opts: ArgsForArgSpecs<Specs, Chain>,
+    bindings: TxCreatorBindings,
+    mockedSignature: boolean,
+  ): Promise<string>
+}
+export type ArgsForCreator<Creator, Chain extends TxChainDefinition> =
+  Creator extends TxCreator<infer Specs> ? ArgsForArgSpecs<Specs, Chain> : never
 
 interface Block {
   /**
@@ -210,4 +217,6 @@ export type TxCreatorBindings = {
   hasher: (payload: Uint8Array) => Observable<Uint8Array>
 }
 
-export type TxCreatorEnhancer<T> = <A>(inner: TxCreator<A>) => TxCreator<T & A>
+export type TxCreatorEnhancer<T extends TxArgSpec[]> = <A extends TxArgSpec[]>(
+  inner: TxCreator<A>,
+) => TxCreator<[...T, ...A]>

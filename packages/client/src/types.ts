@@ -76,11 +76,11 @@ export type ViewFnApi<A extends Record<string, Record<string, any>>> = {
   }
 }
 
-export type TxApi<A extends Record<string, Record<string, any>>> = {
+export type TxApi<A extends Record<string, Record<string, any>>, Asset> = {
   [K in keyof A]: {
     [KK in keyof A[K]]: A[K][KK] extends {} | undefined
-      ? TxEntry<A[K][KK]>
-      : TxEntry<any>
+      ? TxEntry<A[K][KK], Asset>
+      : TxEntry<any, Asset>
   }
 }
 
@@ -177,13 +177,13 @@ export type StaticApis<D extends ChainDefinition, Safe> = {
 }
 
 export type TypedApi<D extends ChainDefinition, Safe = true> = {
-  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>>
+  tx: TxApi<TxFromPalletsDef<D["descriptors"]["pallets"]>, D["asset"]>
   constants: ConstApi<ConstFromPalletsDef<D["descriptors"]["pallets"]>>
   apis: RuntimeCallsApi<ApisFromDef<D["descriptors"]["apis"]>>
   view: ViewFnApi<ViewFnsFromPalletsDef<D["descriptors"]["pallets"]>>
   query: StorageApi<QueryFromPalletsDef<D["descriptors"]["pallets"]>>
   event: EvApi<EventsFromPalletsDef<D["descriptors"]["pallets"]>>
-  txFromCallData: TxFromBinary
+  txFromCallData: TxFromBinary<D["asset"]>
   getStaticApis: (options?: PullOptions) => Promise<StaticApis<D, Safe>>
 }
 

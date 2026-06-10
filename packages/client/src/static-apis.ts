@@ -10,7 +10,7 @@ import { mergeMap, Observable } from "rxjs"
 import { createTxEntry, Transaction } from "./tx"
 import { withWeakCache } from "./utils/with-weak-cache"
 
-export const createStaticApis = (
+export const createStaticApis = <Asset>(
   bindings: TxCreatorBindings,
   chainHead: ChainHead$,
   broadcast$: (tx: Uint8Array) => Observable<never>,
@@ -18,7 +18,7 @@ export const createStaticApis = (
 ) => {
   const txFromCallData =
     ({ dynamicBuilder, lookup }: RuntimeContext) =>
-    (callData: Uint8Array): Transaction => {
+    (callData: Uint8Array): Transaction<Asset> => {
       try {
         const {
           type: pallet,
