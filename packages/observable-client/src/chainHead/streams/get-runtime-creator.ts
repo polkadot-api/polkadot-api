@@ -61,7 +61,6 @@ export interface RuntimeContext {
     dec: Decoder<Array<SystemEvent>>
   }
   accountId: Codec<SS58String>
-  assetId: number | null
   getMortalityFromTx: Decoder<Mortality>
   extVersions: Array<number>
 }

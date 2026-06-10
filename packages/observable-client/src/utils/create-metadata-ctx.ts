@@ -28,17 +28,6 @@ export const createRuntimeCtx = (
   const dynamicBuilder = getDynamicBuilder(lookup)
   const events = dynamicBuilder.buildStorage("System", "Events")
 
-  const assetPayment = metadata.extrinsic.extensions["ChargeAssetTxPayment"]
-
-  let assetId: null | number = null
-  if (assetPayment) {
-    const assetTxPayment = lookup(assetPayment.type)
-    if (assetTxPayment.type === "struct") {
-      const optionalAssetId = assetTxPayment.value.asset_id
-      if (optionalAssetId.type === "option") assetId = optionalAssetId.value.id
-    }
-  }
-
   const extrinsicDecoder = getExtrinsicDecoder(lookup.metadata, dynamicBuilder)
   const getMortalityFromTx: typeof mortalityDecoder = (tx) => {
     const decodedExt = extrinsicDecoder(tx)
@@ -52,7 +41,6 @@ export const createRuntimeCtx = (
 
   return {
     mappedMeta: getMappedMetadata(metadata, lookup),
-    assetId,
     metadataRaw,
     codeHash,
     lookup,

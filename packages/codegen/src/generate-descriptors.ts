@@ -1,5 +1,6 @@
 import {
   getChecksumBuilder,
+  getDynamicBuilder,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
 import { filterObject, mapObject } from "@polkadot-api/utils"
@@ -364,6 +365,15 @@ export const generateDescriptors = (
     mapObject(api.methods, (x) => x.typeRef),
   )
 
+  const extensionsType = getExtensionsType(lookupFn, typesBuilder)
+  const requiredExtensionsType = getRequiredExtensionsType(lookupFn)
+
+  const dispatchErrorId = getDispatchErrorId(lookupFn)
+  const dispatchErrorType =
+    dispatchErrorId == null
+      ? "unknown"
+      : typesBuilder.buildTypeDefinition(dispatchErrorId)
+
   const clientImports = [
     ...new Set([
       "StorageDescriptor",
@@ -384,18 +394,6 @@ export const generateDescriptors = (
       ...anonymizeImports,
     ]),
   ]
-
-  const assetId = getAssetId(lookupFn)
-  const assetType =
-    assetId == null ? "void" : typesBuilder.buildTypeDefinition(assetId)
-
-  const extensionsType = getExtensionsType(lookupFn, typesBuilder)
-
-  const dispatchErrorId = getDispatchErrorId(lookupFn)
-  const dispatchErrorType =
-    dispatchErrorId == null
-      ? "unknown"
-      : typesBuilder.buildTypeDefinition(dispatchErrorId)
 
   const commonTypeImports = typesBuilder.getTypeFileImports()
 
@@ -428,10 +426,10 @@ type IConstants = ${customStringifyObject(iConstants)};
 type IViewFns = ${customStringifyObject(iViewFns)};
 type IRuntimeCalls = ${customStringifyObject(iRuntimeCalls)};
 export type ${prefix}DispatchError = ${dispatchErrorType}
-type IAsset = PlainDescriptor<${assetType}>
-const asset: IAsset = {} as IAsset
 export type ${prefix}Extensions = ${extensionsType}
 const extensions = {} as ${prefix}Extensions
+type IRequiredExtensions = PlainDescriptor<${requiredExtensionsType}>
+const requiredExtensions: IRequiredExtensions = {} as IRequiredExtensions
 const getMetadata: () => Promise<Uint8Array> = () => import("./${key}_metadata").then(
   module => toBinary('default' in module ? module.default : module)
 )
@@ -452,12 +450,12 @@ export type ${prefix} = {
     apis: IRuntimeCalls
   } & Promise<any>,
   metadataTypes: Promise<Uint8Array>
-  asset: IAsset
   extensions: ${prefix}Extensions
+  requiredExtensions: IRequiredExtensions
   getMetadata: () => Promise<Uint8Array>
   genesis: string | undefined
 };
-const _allDescriptors = { descriptors: descriptorValues, metadataTypes, asset, extensions, getMetadata, genesis } as any as ${prefix};
+const _allDescriptors = { descriptors: descriptorValues, metadataTypes, extensions, requiredExtensions, getMetadata, genesis } as any as ${prefix};
 export default _allDescriptors;
 
 export type ${prefix}Apis = ApisFromDef<IRuntimeCalls>
@@ -496,30 +494,6 @@ type NestedKey<D extends Record<string, string[]>> =
   return { descriptorTypes, descriptorValues, exports, commonTypeImports }
 }
 
-export function getAssetId(lookup: MetadataLookup) {
-  const assetPayment =
-    lookup.metadata.extrinsic.extensions["ChargeAssetTxPayment"]
-
-  if (assetPayment) {
-    const assetTxPayment = lookup(assetPayment.type)
-    if (assetTxPayment.type === "struct") {
-      const optionalAssetId = assetTxPayment.value.asset_id
-      if (optionalAssetId.type === "option") return optionalAssetId.value.id
-    }
-  }
-  return
-}
-
-const knownSignedExtensions = new Set<string>([
-  "CheckNonce",
-  "CheckMortality",
-  "ChargeTransactionPayment",
-  "ChargeAssetTxPayment",
-  "CheckGenesis",
-  "CheckMetadataHash",
-  "CheckSpecVersion",
-  "CheckTxVersion",
-])
 function getExtensionsType(
   lookup: MetadataLookup,
   typesBuilder: ReturnType<typeof getTypesBuilder>,
@@ -527,7 +501,6 @@ function getExtensionsType(
   const result: Record<string, string> = {}
 
   Object.values(lookup.metadata.extrinsic.extensions).forEach((ext) => {
-    if (knownSignedExtensions.has(ext.identifier)) return
     const hasValue = lookup(ext.type).type !== "void"
     const hasAdditional = lookup(ext.additionalSigned).type !== "void"
 
@@ -548,6 +521,39 @@ function getExtensionsType(
     .map(([id, type]) => `"${id}": ${type}`)
     .join(",\n")}
   }`
+}
+
+function getRequiredExtensionsType(lookup: MetadataLookup) {
+  const builder = getDynamicBuilder(lookup)
+  const extensionsByVersion = Object.values(
+    lookup.metadata.extrinsic.extensionsByVersion,
+  )
+
+  const canEncodeUndefined = (type: number) => {
+    try {
+      const codec = builder.buildDefinition(type)
+      // Primitive encoders may coerce undefined; only decoded undefined is omittable.
+      return codec.dec(codec.enc(undefined)) === undefined
+    } catch {
+      return false
+    }
+  }
+
+  const requiredExtensions = Object.values(
+    lookup.metadata.extrinsic.extensions,
+  ).flatMap((ext) =>
+    (canEncodeUndefined(ext.type) &&
+      canEncodeUndefined(ext.additionalSigned)) ||
+    !extensionsByVersion.every((exts) =>
+      exts.some((e) => e.identifier === ext.identifier),
+    )
+      ? []
+      : [ext.identifier],
+  )
+
+  return requiredExtensions.length
+    ? requiredExtensions.map((id) => `\n  | "${id}"`).join("")
+    : "never"
 }
 
 export function getDispatchErrorId(lookup: MetadataLookup) {
