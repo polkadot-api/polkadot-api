@@ -73,13 +73,38 @@ export type TxFinalized = {
   txHash: HexString
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
+
+type UncoveredRequiredExtensions<
+  TxC extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = Exclude<
+  EC["requiredExtensions"]["_type"],
+  (TxC extends TxCreator<infer Specs> ? Specs[number]["id"] : never) | undefined
+>
+type UncoveredRequiredExtensionArgs<
+  TxC extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = {
+  [K in UncoveredRequiredExtensions<TxC, EC>]: EC["extensions"][K]
+}
+
+type Optionalize<T> =
+  IsAny<T> extends true
+    ? { customSignedExtensions?: T }
+    : {} extends T
+      ? { customSignedExtensions?: T }
+      : { customSignedExtensions: T }
+
 export type TxCreatorOptions<
   T extends TxCreator<any>,
   EC extends ExtensionConstraints,
-> = ArgsForCreator<T, EC>
+> = Simplify<
+  ArgsForCreator<T, EC> &
+    Optionalize<Simplify<UncoveredRequiredExtensionArgs<T, EC>>>
+>
 
 type IsAny<T> = 0 extends 1 & T ? true : false
-type Optionalize<T> =
+type OptionalizeArgs<T> =
   IsAny<T> extends true
     ? [txOptions?: T]
     : {} extends T
@@ -88,7 +113,7 @@ type Optionalize<T> =
 type TxCreatorOptionsArg<
   T extends TxCreator<any>,
   EC extends ExtensionConstraints,
-> = Optionalize<TxCreatorOptions<T, EC>>
+> = OptionalizeArgs<TxCreatorOptions<T, EC>>
 
 export type PaymentInfo = {
   weight: {
@@ -251,3 +276,7 @@ export type TxFromBinary<EC extends ExtensionConstraints> = {
    */
   (callData: Uint8Array, options?: PullOptions): Promise<Transaction<EC>>
 }
+
+type Simplify<T> = {
+  [K in keyof T]: T[K]
+} & {}
