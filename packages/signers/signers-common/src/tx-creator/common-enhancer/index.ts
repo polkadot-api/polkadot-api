@@ -83,8 +83,56 @@ const withEmptyExtensions: TxCreatorEnhancer<[]> =
     )
   }
 
+const withCustomExtensions: TxCreatorEnhancer<[]> =
+  (inner) => async (payload, opts, bindings, mocked) => {
+    const customSignedExtensions = ((opts as any).customSignedExtensions ??
+      {}) as Record<
+      string,
+      {
+        value: unknown
+        additionalSigned: unknown
+      }
+    >
+    const { lookupFn, builder } = getLookupFromRawMetadata(
+      payload.context.metadata,
+    )
+
+    const extensions = [...payload.extensions]
+    Object.values(lookupFn.metadata.extrinsic.extensions).forEach(
+      ({ identifier, type, additionalSigned }) => {
+        const params = customSignedExtensions[identifier]
+        if (!params) return
+
+        try {
+          const exp = builder.buildDefinition(type).enc(params.value)
+          const imp = builder
+            .buildDefinition(additionalSigned)
+            .enc(params.additionalSigned)
+          extensions.push({
+            id: identifier,
+            extra: toHex(exp),
+            additionalSigned: toHex(imp),
+          })
+        } catch {
+          throw new Error(`Invalid extension ${identifier} parameter`)
+        }
+      },
+    )
+
+    return inner(
+      {
+        ...payload,
+        extensions,
+      },
+      opts,
+      bindings,
+      mocked,
+    )
+  }
+
 export const withCommonExtensions = pipe(
   withEmptyExtensions,
+  withCustomExtensions,
   withChargeAssetTxPayment,
   withChargeTransactionPayment,
   withCheckGenesis,
