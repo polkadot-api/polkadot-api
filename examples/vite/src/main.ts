@@ -7,7 +7,7 @@ import {
 } from "polkadot-api/pjs-signer"
 import { createWsClient } from "polkadot-api/ws"
 
-const connection = createWsClient("wss://sys.ibp.network/asset-hub-paseo")
+const connection = createWsClient("wss://asset-hub-paseo-rpc.n.dwellir.com")
 const testApi = connection.getTypedApi(pah)
 
 while (!getInjectedExtensions()?.includes("polkadot-js"))
