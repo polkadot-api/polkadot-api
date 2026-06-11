@@ -304,7 +304,7 @@ export class LedgerSigner {
     path1: number,
     path2: number = 0,
   ) {
-    const creator: TxCreator<{}> = async (payload, _, mocked) => {
+    const creator: TxCreator<[]> = async (payload, _, _bindings, mocked) => {
       const txExtVersion = payload.txExtVersion ?? 0
       if (txExtVersion !== 0)
         throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
@@ -371,12 +371,9 @@ export class LedgerSigner {
         : v.slice(PUBKEY_LEN[this.#schema]),
     )
 
-    return Object.assign(
-      withNonce(publicKey)(withCommonExtensions()(creator)),
-      {
-        publicKey,
-        signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
-      },
-    )
+    return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
+      publicKey,
+      signBytes: getSignBytes(async (x) => this.#sign(path1, path2, x)),
+    })
   }
 }

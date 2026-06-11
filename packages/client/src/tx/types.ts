@@ -1,6 +1,7 @@
+import { PlainDescriptor } from "@/descriptors"
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { ArgsForCreator, TxCreator } from "@polkadot-api/polkadot-signer"
 import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
@@ -72,16 +73,47 @@ export type TxFinalized = {
   txHash: HexString
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
-export type TxCreatorOptions<T extends TxCreator<any>> =
-  T extends TxCreator<infer A> ? A : never
+
+type UncoveredRequiredExtensions<
+  TxC extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = Exclude<
+  EC["requiredExtensions"]["_type"],
+  (TxC extends TxCreator<infer Specs> ? Specs[number]["id"] : never) | undefined
+>
+type UncoveredRequiredExtensionArgs<
+  TxC extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = {
+  [K in UncoveredRequiredExtensions<TxC, EC>]: EC["extensions"][K]
+}
+
+type Optionalize<T> =
+  IsAny<T> extends true
+    ? { customSignedExtensions?: T }
+    : {} extends T
+      ? { customSignedExtensions?: T }
+      : { customSignedExtensions: T }
+
+export type TxCreatorOptions<
+  T extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = Simplify<
+  ArgsForCreator<T, EC> &
+    Optionalize<Simplify<UncoveredRequiredExtensionArgs<T, EC>>>
+>
 
 type IsAny<T> = 0 extends 1 & T ? true : false
-type TxCreatorOptionsArg<T extends TxCreator<any>> =
-  IsAny<TxCreatorOptions<T>> extends true
-    ? [txOptions?: TxCreatorOptions<T>]
-    : {} extends TxCreatorOptions<T>
-      ? [txOptions?: TxCreatorOptions<T>]
-      : [txOptions: TxCreatorOptions<T>]
+type OptionalizeArgs<T> =
+  IsAny<T> extends true
+    ? [txOptions?: T]
+    : {} extends T
+      ? [txOptions?: T]
+      : [txOptions: T]
+type TxCreatorOptionsArg<
+  T extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = OptionalizeArgs<TxCreatorOptions<T, EC>>
 
 export type PaymentInfo = {
   weight: {
@@ -96,7 +128,12 @@ export type PaymentInfo = {
   partial_fee: bigint
 }
 
-export type Transaction = {
+export type ExtensionConstraints = {
+  extensions: Record<string, { value?: any; additionalSigned?: any }>
+  requiredExtensions: PlainDescriptor<string>
+}
+
+export type Transaction<EC extends ExtensionConstraints> = {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
    * user cancels the signature) it'll throw an error.
@@ -107,7 +144,7 @@ export type Transaction = {
    */
   create<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<Uint8Array>
 
   /**
@@ -122,7 +159,7 @@ export type Transaction = {
    */
   createSubmitAndWatch<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Observable<TxEvent>
 
   /**
@@ -137,7 +174,7 @@ export type Transaction = {
    */
   createAndSubmit<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<TxFinalizedPayload>
 
   /**
@@ -164,7 +201,7 @@ export type Transaction = {
    */
   getEstimatedFees<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<bigint>
 
   /**
@@ -177,7 +214,7 @@ export type Transaction = {
    */
   getPaymentInfo<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<PaymentInfo>
 
   /**
@@ -187,7 +224,10 @@ export type Transaction = {
   decodedCall: TxCallData
 }
 
-export type TxEntry<Arg extends {} | undefined> = {
+export type TxEntry<
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+> = {
   /**
    * Synchronously create the transaction object ready to sign, submit,
    * estimate fees, etc.
@@ -195,10 +235,13 @@ export type TxEntry<Arg extends {} | undefined> = {
    * @param args  All parameters required by the transaction.
    * @returns Transaction object.
    */
-  (...args: Arg extends undefined ? [] : [data: Arg]): Transaction
+  (...args: Arg extends undefined ? [] : [data: Arg]): Transaction<EC>
 }
 
-export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
+export type OfflineTxEntry<
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+> = (input: Arg) => {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
    * user cancels the signature) it'll throw an error.
@@ -209,7 +252,7 @@ export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
    */
   create: <T extends TxCreator<any>>(
     creator: T,
-    txOptions: T extends TxCreator<infer A> ? A & { nonce: number } : never,
+    txOptions: TxCreatorOptions<T, EC> & { nonce: number },
   ) => Promise<Uint8Array>
 
   /**
@@ -223,7 +266,7 @@ export type OfflineTxEntry<Arg extends {} | undefined> = (input: Arg) => {
   decodedCall: TxCallData
 }
 
-export type TxFromBinary = {
+export type TxFromBinary<EC extends ExtensionConstraints> = {
   /**
    * Asynchronously create the transaction object from a binary call data ready
    * to sign, submit, estimate fees, etc.
@@ -231,5 +274,9 @@ export type TxFromBinary = {
    * @param callData  SCALE-encoded call data.
    * @returns Transaction object.
    */
-  (callData: Uint8Array, options?: PullOptions): Promise<Transaction>
+  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<EC>>
 }
+
+type Simplify<T> = {
+  [K in keyof T]: T[K]
+} & {}

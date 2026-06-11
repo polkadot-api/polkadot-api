@@ -7,10 +7,10 @@ import { stgGetKey } from "@/utils/stg-get-key"
 import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
 import { TxCreatorBindings } from "@polkadot-api/polkadot-signer"
 import { mergeMap, Observable } from "rxjs"
-import { createTxEntry, Transaction } from "./tx"
+import { createTxEntry, ExtensionConstraints, Transaction } from "./tx"
 import { withWeakCache } from "./utils/with-weak-cache"
 
-export const createStaticApis = (
+export const createStaticApis = <EC extends ExtensionConstraints>(
   bindings: TxCreatorBindings,
   chainHead: ChainHead$,
   broadcast$: (tx: Uint8Array) => Observable<never>,
@@ -18,7 +18,7 @@ export const createStaticApis = (
 ) => {
   const txFromCallData =
     ({ dynamicBuilder, lookup }: RuntimeContext) =>
-    (callData: Uint8Array): Transaction => {
+    (callData: Uint8Array): Transaction<EC> => {
       try {
         const {
           type: pallet,

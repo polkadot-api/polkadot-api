@@ -1,5 +1,9 @@
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
-import { TxCreator, TxCreatorEnhancer } from "@polkadot-api/polkadot-signer"
+import {
+  TxArgSpec,
+  TxCreator,
+  TxCreatorEnhancer,
+} from "@polkadot-api/polkadot-signer"
 import {
   createV4Tx,
   getSignBytes,
@@ -18,7 +22,7 @@ export const getTxCreator = (
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
 ) => {
-  const creator: TxCreator<{}> = async (
+  const creator: TxCreator<[]> = async (
     payload,
     _,
     txCreatorBindings,
@@ -58,7 +62,7 @@ export const getTxCreator = (
     )
   }
 
-  return Object.assign(withNonce(publicKey)(withCommonExtensions()(creator)), {
+  return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
     publicKey,
     signBytes: getSignBytes(sign),
   })
@@ -69,7 +73,14 @@ const oneU8 = Uint8Array.from([1])
 
 export const withMetadataHash: (
   networkInfo: Parameters<typeof merkleizeMetadata>[1],
-) => TxCreatorEnhancer<{}> = (networkInfo) => (inner) => {
+) => TxCreatorEnhancer<
+  [
+    TxArgSpec & {
+      id: "CheckMetadataHash"
+      params: {}
+    },
+  ]
+> = (networkInfo) => (inner) => {
   return async (payload, opts, bindings, mocked) => {
     if (payload.extensions.find(({ id }) => id === METADATA_IDENTIFIER))
       return inner(payload, opts, bindings, mocked)

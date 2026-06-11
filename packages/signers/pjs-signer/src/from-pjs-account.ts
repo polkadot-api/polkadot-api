@@ -39,7 +39,7 @@ export function getTxCreatorFromPjs(
       type: "bytes",
     }).then(({ signature }) => fromHex(signature))
   const publicKey = getPublicKey(address)
-  const creator: TxCreator<{}> = async (payload, _, mocked) => {
+  const creator: TxCreator<[]> = async (payload, _, _bindings, mocked) => {
     const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
 
     const pjs: Partial<SignerPayloadJSON> = {}
@@ -109,7 +109,7 @@ export function getTxCreatorFromPjs(
     )
   }
 
-  return Object.assign(withNonce(publicKey)(withCommonExtensions()(creator)), {
+  return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
     publicKey,
     signBytes,
   })
