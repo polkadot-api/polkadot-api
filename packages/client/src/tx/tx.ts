@@ -26,7 +26,13 @@ import {
   take,
 } from "rxjs"
 import { InvalidTxError, submit, submit$ } from "./submit-fns"
-import { PaymentInfo, Transaction, TxCreatorOptions, TxEntry } from "./types"
+import {
+  ExtensionConstraints,
+  PaymentInfo,
+  Transaction,
+  TxCreatorOptions,
+  TxEntry,
+} from "./types"
 
 export { InvalidTxError, submit, submit$ }
 
@@ -43,14 +49,17 @@ const [, queryInfoDecFallback] = Struct({
   partial_fee: u128,
 })
 
-export const createTxEntry = <Arg extends {} | undefined, Asset>(
+export const createTxEntry = <
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+>(
   bindings: TxCreatorBindings,
   pallet: string,
   name: string,
   chainHead: ChainHead$,
   broadcast: (tx: Uint8Array) => Observable<never>,
   compatibility: ValueCompat,
-): TxEntry<Arg, Asset> => {
+): TxEntry<Arg, EC> => {
   const getCompatCtx$ = (at: HexString | null) =>
     combineLatest([chainHead.getRuntimeContext$(at), compatibility]).pipe(
       map(([ctx, getCompat]) => ({ ctx, ...getCompat(ctx) })),
@@ -82,10 +91,10 @@ export const createTxEntry = <Arg extends {} | undefined, Asset>(
       ),
     )
 
-  return (arg?: Arg): Transaction<Asset> => {
+  return (arg?: Arg): Transaction<EC> => {
     const create$ = <T extends TxCreator<any>>(
       creator: T,
-      opts: TxCreatorOptions<T, Asset> | undefined,
+      opts: TxCreatorOptions<T, EC> | undefined,
       mockedSignature: boolean,
     ) =>
       combineLatest([
@@ -125,10 +134,10 @@ export const createTxEntry = <Arg extends {} | undefined, Asset>(
         map(fromHex),
       )
 
-    const create: Transaction<Asset>["create"] = (creator, ...[options]) =>
+    const create: Transaction<EC>["create"] = (creator, ...[options]) =>
       firstValueFrom(create$(creator, options, false))
 
-    const createAndSubmit: Transaction<Asset>["createAndSubmit"] = (
+    const createAndSubmit: Transaction<EC>["createAndSubmit"] = (
       creator,
       ...[options]
     ) =>
@@ -136,7 +145,7 @@ export const createTxEntry = <Arg extends {} | undefined, Asset>(
         submit(chainHead, broadcast, tx),
       )
 
-    const createSubmitAndWatch: Transaction<Asset>["createSubmitAndWatch"] = (
+    const createSubmitAndWatch: Transaction<EC>["createSubmitAndWatch"] = (
       creator,
       ...[options]
     ) =>
@@ -146,7 +155,7 @@ export const createTxEntry = <Arg extends {} | undefined, Asset>(
 
     const getPaymentInfoWithOptions = async <T extends TxCreator<any>>(
       creator: T,
-      options: TxCreatorOptions<T, Asset> | undefined,
+      options: TxCreatorOptions<T, EC> | undefined,
     ) => {
       const encoded = await firstValueFrom(create$(creator, options, true))
       const args = toHex(mergeUint8([encoded, u32.enc(encoded.length)]))
@@ -179,7 +188,7 @@ export const createTxEntry = <Arg extends {} | undefined, Asset>(
       )
     }
 
-    const getPaymentInfo: Transaction<Asset>["getPaymentInfo"] = async (
+    const getPaymentInfo: Transaction<EC>["getPaymentInfo"] = async (
       creator,
       ...[options]
     ) => getPaymentInfoWithOptions(creator, options)
@@ -189,7 +198,7 @@ export const createTxEntry = <Arg extends {} | undefined, Asset>(
         getCallData$(arg, null).pipe(map(({ callData }) => callData)),
       )
 
-    const getEstimatedFees: Transaction<Asset>["getEstimatedFees"] = async (
+    const getEstimatedFees: Transaction<EC>["getEstimatedFees"] = async (
       creator,
       ...[options]
     ) => (await getPaymentInfoWithOptions(creator, options)).partial_fee

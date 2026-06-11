@@ -3,6 +3,7 @@ import {
   getLookupFn,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
+import { TxCreatorBindings, TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 import {
   Blake2256,
   decAnyMetadata,
@@ -12,9 +13,8 @@ import {
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { concat, NEVER, of } from "rxjs"
 import type { ChainDefinition } from "./descriptors"
-import type { OfflineTxEntry } from "./tx"
+import type { ExtensionConstraints, OfflineTxEntry } from "./tx"
 import type { OfflineApi } from "./types"
-import { TxCreatorBindings, TxPayloadV1 } from "@polkadot-api/polkadot-signer"
 
 const getOfflineExtensions = (
   genesis: string,
@@ -42,7 +42,10 @@ const getOfflineExtensions = (
   return [...mortalityExt, ...nonceExt]
 }
 
-const createOfflineTxEntry = <Arg extends {} | undefined, Asset>(
+const createOfflineTxEntry = <
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+>(
   bindings: TxCreatorBindings,
   pallet: string,
   name: string,
@@ -50,7 +53,7 @@ const createOfflineTxEntry = <Arg extends {} | undefined, Asset>(
   metadataRaw: Uint8Array,
   lookupFn: MetadataLookup,
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
-): OfflineTxEntry<Arg, Asset> => {
+): OfflineTxEntry<Arg, EC> => {
   let codecs
   try {
     codecs = dynamicBuilder.buildCall(pallet, name)

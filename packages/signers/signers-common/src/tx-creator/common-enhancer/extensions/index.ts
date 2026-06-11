@@ -208,7 +208,7 @@ type ChargeAssetTransactionPaymentParams<Chain extends TxChainDefinition> = {
   /**
    * Asset to pay fees with. Default: `None`
    */
-  asset?: Chain["extensions"]["ChargeAssetTxPayment"]["type"]
+  asset?: Chain["extensions"]["ChargeAssetTxPayment"]["value"]
 }
 export interface ChargeAssetTxPaymentSpec extends TxArgSpec {
   id: "ChargeAssetTxPayment"

@@ -2,8 +2,8 @@ export interface TxChainDefinition {
   extensions: Record<
     string,
     {
-      type: unknown
-      additionalSigned: unknown
+      value?: unknown
+      additionalSigned?: unknown
     }
   >
 }

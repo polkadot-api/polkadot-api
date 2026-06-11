@@ -1,3 +1,4 @@
+import { PlainDescriptor } from "@/descriptors"
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
 import { ArgsForCreator, TxCreator } from "@polkadot-api/polkadot-signer"
@@ -72,25 +73,22 @@ export type TxFinalized = {
   txHash: HexString
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
-export type TxCreatorOptions<T extends TxCreator<any>, Asset> = ArgsForCreator<
-  T,
-  {
-    extensions: {
-      ChargeAssetTxPayment: {
-        additionalSigned: never
-        type: Asset
-      }
-    }
-  }
->
+export type TxCreatorOptions<
+  T extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = ArgsForCreator<T, EC>
 
 type IsAny<T> = 0 extends 1 & T ? true : false
-type TxCreatorOptionsArg<T extends TxCreator<any>, Asset> =
-  IsAny<TxCreatorOptions<T, Asset>> extends true
-    ? [txOptions?: TxCreatorOptions<T, Asset>]
-    : {} extends TxCreatorOptions<T, Asset>
-      ? [txOptions?: TxCreatorOptions<T, Asset>]
-      : [txOptions: TxCreatorOptions<T, Asset>]
+type Optionalize<T> =
+  IsAny<T> extends true
+    ? [txOptions?: T]
+    : {} extends T
+      ? [txOptions?: T]
+      : [txOptions: T]
+type TxCreatorOptionsArg<
+  T extends TxCreator<any>,
+  EC extends ExtensionConstraints,
+> = Optionalize<TxCreatorOptions<T, EC>>
 
 export type PaymentInfo = {
   weight: {
@@ -105,7 +103,12 @@ export type PaymentInfo = {
   partial_fee: bigint
 }
 
-export type Transaction<Asset> = {
+export type ExtensionConstraints = {
+  extensions: Record<string, { value?: any; additionalSigned?: any }>
+  requiredExtensions: PlainDescriptor<string>
+}
+
+export type Transaction<EC extends ExtensionConstraints> = {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
    * user cancels the signature) it'll throw an error.
@@ -116,7 +119,7 @@ export type Transaction<Asset> = {
    */
   create<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T, Asset>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<Uint8Array>
 
   /**
@@ -131,7 +134,7 @@ export type Transaction<Asset> = {
    */
   createSubmitAndWatch<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T, Asset>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Observable<TxEvent>
 
   /**
@@ -146,7 +149,7 @@ export type Transaction<Asset> = {
    */
   createAndSubmit<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T, Asset>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<TxFinalizedPayload>
 
   /**
@@ -173,7 +176,7 @@ export type Transaction<Asset> = {
    */
   getEstimatedFees<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T, Asset>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<bigint>
 
   /**
@@ -186,7 +189,7 @@ export type Transaction<Asset> = {
    */
   getPaymentInfo<T extends TxCreator<any>>(
     creator: T,
-    ...txOptions: TxCreatorOptionsArg<T, Asset>
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<PaymentInfo>
 
   /**
@@ -196,7 +199,10 @@ export type Transaction<Asset> = {
   decodedCall: TxCallData
 }
 
-export type TxEntry<Arg extends {} | undefined, Asset> = {
+export type TxEntry<
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+> = {
   /**
    * Synchronously create the transaction object ready to sign, submit,
    * estimate fees, etc.
@@ -204,12 +210,13 @@ export type TxEntry<Arg extends {} | undefined, Asset> = {
    * @param args  All parameters required by the transaction.
    * @returns Transaction object.
    */
-  (...args: Arg extends undefined ? [] : [data: Arg]): Transaction<Asset>
+  (...args: Arg extends undefined ? [] : [data: Arg]): Transaction<EC>
 }
 
-export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
-  input: Arg,
-) => {
+export type OfflineTxEntry<
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+> = (input: Arg) => {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
    * user cancels the signature) it'll throw an error.
@@ -220,7 +227,7 @@ export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
    */
   create: <T extends TxCreator<any>>(
     creator: T,
-    txOptions: TxCreatorOptions<T, Asset> & { nonce: number },
+    txOptions: TxCreatorOptions<T, EC> & { nonce: number },
   ) => Promise<Uint8Array>
 
   /**
@@ -234,7 +241,7 @@ export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
   decodedCall: TxCallData
 }
 
-export type TxFromBinary<Asset> = {
+export type TxFromBinary<EC extends ExtensionConstraints> = {
   /**
    * Asynchronously create the transaction object from a binary call data ready
    * to sign, submit, estimate fees, etc.
@@ -242,5 +249,5 @@ export type TxFromBinary<Asset> = {
    * @param callData  SCALE-encoded call data.
    * @returns Transaction object.
    */
-  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<Asset>>
+  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<EC>>
 }
