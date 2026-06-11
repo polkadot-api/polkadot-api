@@ -304,7 +304,7 @@ export class LedgerSigner {
     path1: number,
     path2: number = 0,
   ) {
-    const creator: TxCreator<[]> = async (payload, _, mocked) => {
+    const creator: TxCreator<[]> = async (payload, _, _bindings, mocked) => {
       const txExtVersion = payload.txExtVersion ?? 0
       if (txExtVersion !== 0)
         throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
