@@ -44,7 +44,7 @@ jobs:
         run: pnpm turbo build-core --cache-dir=.turbo
       - name: Install papi
         run: pnpm install
-      - uses: cargo-bins/cargo-binstall@v1.20.0
+      - uses: cargo-bins/cargo-binstall@v1.20.1
       - name: Install zombienet
         run: |
           sudo apt-get update && sudo apt-get install -y protobuf-compiler
