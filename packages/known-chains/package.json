@@ -12,7 +12,7 @@
     "@polkadot-api/smoldot": "workspace:*",
     "@polkadot-api/substrate-client": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^25.9.1"
+    "@types/node": "^26.0.0"
   },
   "type": "module",
   "exports": {
