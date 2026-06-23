@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update `lightSyncState`
+
 ## 0.11.5 - 2026-06-02
 
 ### Fixed
