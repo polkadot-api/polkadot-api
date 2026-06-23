@@ -36,6 +36,6 @@
     "@polkadot-api/substrate-bindings": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^26.0.0"
+    "@types/node": "^25.9.4"
   }
 }

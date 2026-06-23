@@ -52,7 +52,7 @@
     "@polkadot-api/wasm-executor": "^0.2.3",
     "@polkadot-api/ws-middleware": "workspace:*",
     "@polkadot-api/ws-provider": "workspace:*",
-    "@types/node": "^26.0.0",
+    "@types/node": "^25.9.4",
     "commander": "^15.0.0",
     "execa": "^9.6.1",
     "fs.promises.exists": "^1.1.4",
