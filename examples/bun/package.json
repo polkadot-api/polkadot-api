@@ -20,7 +20,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@ledgerhq/hw-transport-node-hid": "^6.33.2",
+    "@ledgerhq/hw-transport-node-hid": "^6.33.4",
     "@noble/curves": "^2.2.0",
     "@noble/hashes": "^2.2.0",
     "@polkadot-api/descriptors": "file:.papi/descriptors",

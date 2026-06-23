@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 2.1.7 - 2026-06-23
+
+### Fixed
+
+- Update `lightSyncState` of chainspecs
+- Update dependencies
+
 ## 2.1.6 - 2026-06-05
 
 ### Fixed
