@@ -22,7 +22,7 @@ jobs:
           - "24"
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
