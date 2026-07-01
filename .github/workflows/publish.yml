@@ -30,8 +30,8 @@ jobs:
         node-version:
           - "24"
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/cache@v5
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
@@ -69,7 +69,7 @@ jobs:
         node-version:
           - "24"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
