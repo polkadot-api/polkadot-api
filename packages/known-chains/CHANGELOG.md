@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Update `paseo` relay chain spec to the substitute relay (relaunched from block 0, new genesis:
+  `Paseo`, protocol-id `pad`, ss58 `42`). More bootnodes will be added as they become available.
+
 ## 0.11.7 - 2026-07-07
 
 ### Fixed
