@@ -165,6 +165,10 @@ export const fromPjsToTxData = (
     mortality,
     tip: BigInt(fromPjsHexStringToNumber(input.tip)),
     nonce: fromPjsHexStringToNumber(input.nonce) as number,
+    specVersion: fromPjsHexStringToNumber(input.specVersion) as number,
+    transactionVersion: fromPjsHexStringToNumber(
+      input.transactionVersion,
+    ) as number,
     metadataHash:
       input.mode === 1 && input.metadataHash
         ? fromHex(input.metadataHash)

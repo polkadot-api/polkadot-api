@@ -91,10 +91,15 @@ export const getTxHelper = (
   const fromPjsToInputRaw = (
     pjsPayload: SignerPayloadJSON,
   ): { input: TxInputsRaw; blockNumber: number } => {
-    const { tip, mortality, genesisHash, nonce, asset } = fromPjsToTxData(
-      lookup.metadata,
-      pjsPayload,
-    )
+    const {
+      tip,
+      mortality,
+      genesisHash,
+      nonce,
+      asset,
+      specVersion,
+      transactionVersion,
+    } = fromPjsToTxData(lookup.metadata, pjsPayload)
 
     const signedExtensions = lookup.metadata.extrinsic.signedExtensions[0].map(
       ({ identifier, type, additionalSigned }): SignedExtension => {
@@ -106,7 +111,7 @@ export const getTxHelper = (
           case "CheckNonce":
             return CheckNonce(nonce)
           case "CheckSpecVersion":
-            return CheckSpecVersion(lookup)
+            return CheckSpecVersion(lookup, specVersion)
           case "ChargeAssetTxPayment":
             return ChargeAssetTxPayment(tip, asset)
           case "ChargeTransactionPayment":
@@ -114,7 +119,7 @@ export const getTxHelper = (
           case "CheckMortality":
             return CheckMortality(mortality)
           case "CheckTxVersion":
-            return CheckTxVersion(lookup)
+            return CheckTxVersion(lookup, transactionVersion)
         }
 
         if (

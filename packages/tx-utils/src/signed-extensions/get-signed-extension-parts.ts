@@ -25,7 +25,16 @@ export const getSignedExtensionParts = (
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
   data: TxData,
 ) => {
-  const { tip, mortality, genesisHash, nonce, asset, metadataHash } = data
+  const {
+    tip,
+    mortality,
+    genesisHash,
+    nonce,
+    asset,
+    metadataHash,
+    specVersion,
+    transactionVersion,
+  } = data
   const signedExtensions = lookup.metadata.extrinsic.signedExtensions[0].map(
     ({ identifier, type, additionalSigned }): SignedExtension => {
       switch (identifier) {
@@ -36,7 +45,7 @@ export const getSignedExtensionParts = (
         case "CheckNonce":
           return CheckNonce(nonce)
         case "CheckSpecVersion":
-          return CheckSpecVersion(lookup)
+          return CheckSpecVersion(lookup, specVersion)
         case "ChargeAssetTxPayment":
           return ChargeAssetTxPayment(tip, asset)
         case "ChargeTransactionPayment":
@@ -44,7 +53,7 @@ export const getSignedExtensionParts = (
         case "CheckMortality":
           return CheckMortality(mortality)
         case "CheckTxVersion":
-          return CheckTxVersion(lookup)
+          return CheckTxVersion(lookup, transactionVersion)
       }
 
       if (

@@ -82,6 +82,21 @@ describe("getPjsTxHelper", () => {
     )
   })
 
+  it("signs with the payload's specVersion/transactionVersion, not the metadata constants", () => {
+    const { additionalSigned } = getPjsTxHelper(metadataRaw)(
+      getPayload({
+        // diverge from the System.Version constants of the metadata blob,
+        // as happens whenever the cached metadata lags behind a runtime upgrade
+        specVersion: "0x000f4241",
+        transactionVersion: "0x00000019",
+      }),
+    )
+
+    expect(toHex(additionalSigned.slice(0, 8))).toBe(
+      toHex(mergeUint8([u32.enc(SPEC_VERSION + 1), u32.enc(TX_VERSION + 1)])),
+    )
+  })
+
   it("uses the block hash as mortality checkpoint for mortal payloads", () => {
     // period 64, phase 47
     const { extra, additionalSigned } = getPjsTxHelper(metadataRaw)(
@@ -119,6 +134,20 @@ describe("getTxHelper", () => {
     expect(decoded.genesisHash).toBe(GENESIS)
     expect(decoded.nonce).toBe(5)
     expect(decoded.tip).toBe(0n)
+  })
+
+  it("decodes the payload's specVersion/transactionVersion", () => {
+    const helper = getTxHelper(toHex(metadataRaw))
+    const { input, blockNumber } = helper.fromPjsToInputRaw(
+      getPayload({
+        specVersion: "0x000f4241",
+        transactionVersion: "0x00000019",
+      }),
+    )
+
+    const decoded = helper.getTxInputDecoded(input, blockNumber)
+    expect(decoded.specVersion).toBe(SPEC_VERSION + 1)
+    expect(decoded.txVersion).toBe(TX_VERSION + 1)
   })
 
   it("round-trips a mortal payload", () => {

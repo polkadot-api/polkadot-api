@@ -5,6 +5,7 @@
 ### Fixed
 
 - Immortal transactions were signed with the era bytes (`0x00`) as the `CheckMortality` checkpoint instead of the genesis hash, producing invalid signatures for every immortal pjs payload.
+- `CheckSpecVersion`/`CheckTxVersion` were signed with the `System.Version` constants of the metadata blob instead of the values carried by the pjs payload, producing invalid signatures whenever the metadata used for signing lags behind a runtime upgrade.
 
 ## 0.3.1 to 0.3.3 - 2026-05-19
 

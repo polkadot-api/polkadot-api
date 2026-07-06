@@ -84,6 +84,8 @@ export type TxData = {
   mortality: Mortality
   genesisHash: HexString
   nonce: number
+  specVersion: number
+  transactionVersion: number
 }
 
 export type TxInputsRaw = {

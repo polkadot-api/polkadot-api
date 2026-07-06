@@ -15,6 +15,7 @@ export const signedExtension = (
 export const systemVersionProp = (
   propName: string,
   lookupFn: MetadataLookup,
+  value?: number,
 ) => {
   const dynamicBuilder = getDynamicBuilder(lookupFn)
 
@@ -31,7 +32,7 @@ export const systemVersionProp = (
     systemVersion.value[propName].id,
   ).enc
 
-  return valueEnc(systemVersionDec(constant.value)[propName])
+  return valueEnc(value ?? systemVersionDec(constant.value)[propName])
 }
 
 export const EMPTY_SIGNED_EXTENSION = signedExtension(empty, empty)
