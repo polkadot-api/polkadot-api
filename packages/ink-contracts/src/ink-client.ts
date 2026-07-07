@@ -194,8 +194,7 @@ const getAttributes = (spec: ConstructorSpec | MessageSpec) => ({
 const buildCallable =
   <T extends InkCallableDescriptor>(
     builder:
-      | InkDynamicBuilder["buildConstructor"]
-      | InkDynamicBuilder["buildMessage"],
+      InkDynamicBuilder["buildConstructor"] | InkDynamicBuilder["buildMessage"],
   ) =>
   <L extends string & keyof T>(label: L) => {
     const codecs = builder(label)

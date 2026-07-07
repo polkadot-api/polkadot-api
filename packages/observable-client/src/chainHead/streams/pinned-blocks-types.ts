@@ -38,8 +38,5 @@ export type PinnedBlocks = {
   blocks: Map<string, PinnedBlock>
   finalizedRuntime: Runtime
   state:
-    | RecoveringInitState
-    | RecoveringFinState
-    | ReadyState
-    | InitializingState
+    RecoveringInitState | RecoveringFinState | ReadyState | InitializingState
 }

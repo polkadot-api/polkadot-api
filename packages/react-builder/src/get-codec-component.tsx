@@ -43,8 +43,7 @@ export type CodecComponentType =
   (typeof CodecComponentType)[keyof typeof CodecComponentType]
 
 export type CodecComponentUpdate =
-  | { empty: true }
-  | { empty: false; decoded: any; encoded?: Uint8Array }
+  { empty: true } | { empty: false; decoded: any; encoded?: Uint8Array }
 export type CodecComponentValue =
   | { type: typeof CodecComponentType.Initial; value?: Uint8Array | HexString }
   | { type: typeof CodecComponentType.Updated; value: CodecComponentUpdate }
@@ -901,8 +900,7 @@ export function getCodecComponent(
         codecType: number,
         value?: Uint8Array | HexString,
       ) =>
-        | { empty: true }
-        | { empty: false; decoded: any; encoded?: Uint8Array }
+        { empty: true } | { empty: false; decoded: any; encoded?: Uint8Array }
     }>({
       metadata: null as any,
       lookup: null as any,

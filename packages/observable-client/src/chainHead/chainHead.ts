@@ -322,8 +322,7 @@ export const getChainHead$ = (
       <
         Type extends StorageItemInput["type"],
         M extends
-          | undefined
-          | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
+          undefined | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
       >(
         hash: string,
         type: Type,

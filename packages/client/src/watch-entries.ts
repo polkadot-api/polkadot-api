@@ -163,19 +163,17 @@ export const createWatchEntries = (
                 ([entriesResult, runtimeCtx]) =>
                   [entriesResult.value, getPatcher(runtimeCtx)] as const,
               ),
-              map(
-                ([entries, patcher]): MemoryBlock => ({
-                  prev: prev && prev.block.hash,
-                  rootHash,
-                  block,
+              map(([entries, patcher]): MemoryBlock => ({
+                prev: prev && prev.block.hash,
+                rootHash,
+                block,
+                patcher,
+                ...getDiff(
+                  prev?.entries ?? [],
+                  entries as StorageEntry[],
                   patcher,
-                  ...getDiff(
-                    prev?.entries ?? [],
-                    entries as StorageEntry[],
-                    patcher,
-                  ),
-                }),
-              ),
+                ),
+              })),
             )
           }),
           takeUntil(isNotCanonical$),
@@ -191,12 +189,10 @@ export const createWatchEntries = (
           getNextMemoryBlock$(null, blocks.get(finalized)!),
         ),
         take(1),
-        map(
-          (x): MemoryBlocks => ({
-            blocks: { [x.block.hash]: x },
-            finalized: x.block.hash,
-          }),
-        ),
+        map((x): MemoryBlocks => ({
+          blocks: { [x.block.hash]: x },
+          finalized: x.block.hash,
+        })),
       )
 
       const [_memoryBlocks$, connectMemoryBlocks] =

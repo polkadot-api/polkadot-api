@@ -7,11 +7,7 @@ import type {
 export type SignedPrimitive = "i8" | "i16" | "i32" | "i64" | "i128" | "i256"
 export type UnsignedPrimitive = "u8" | "u16" | "u32" | "u64" | "u128" | "u256"
 export type MetadataPrimitives =
-  | "bool"
-  | "char"
-  | "str"
-  | SignedPrimitive
-  | UnsignedPrimitive
+  "bool" | "char" | "str" | SignedPrimitive | UnsignedPrimitive
 
 export type PrimitiveVar = {
   type: "primitive"

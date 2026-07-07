@@ -1,10 +1,7 @@
 import { ArrayVar, StructVar, TupleVar } from "@polkadot-api/metadata-builders"
 
 type PrimitiveNode =
-  | PrimitiveType
-  | ChainPrimitiveType
-  | FixedSizeBinary
-  | InlineType
+  PrimitiveType | ChainPrimitiveType | FixedSizeBinary | InlineType
 export type TypeNode =
   | PrimitiveNode
   | StructType
@@ -27,12 +24,7 @@ export const isPrimitive = (node: TypeNode): node is PrimitiveNode =>
   )
 
 export type NativeType =
-  | "boolean"
-  | "string"
-  | "number"
-  | "bigint"
-  | "undefined"
-  | "Uint8Array"
+  "boolean" | "string" | "number" | "bigint" | "undefined" | "Uint8Array"
 export type PrimitiveType = {
   type: "primitive"
   value: NativeType
