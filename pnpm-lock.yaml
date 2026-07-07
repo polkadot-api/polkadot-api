@@ -230,8 +230,8 @@ importers:
         version: 7.8.2
     devDependencies:
       '@types/node':
-        specifier: ^26.1.0
-        version: 26.1.0
+        specifier: ^25.9.4
+        version: 25.9.4
 
   integration-tests/zombie-tests:
     dependencies:

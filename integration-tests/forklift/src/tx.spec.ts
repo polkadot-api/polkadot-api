@@ -1,9 +1,9 @@
+import { paseo } from "@polkadot-api/descriptors"
+import { Binary, createClient, Enum } from "polkadot-api"
+import { firstValueFrom, shareReplay } from "rxjs"
 import { describe, expect, it } from "vitest"
 import { getForkliftProvider } from "./lib/forklift"
-import { Binary, createClient } from "polkadot-api"
-import { paseo } from "@polkadot-api/descriptors"
 import { getDevSigner } from "./lib/signer"
-import { firstValueFrom, shareReplay } from "rxjs"
 
 const aliceSigner = getDevSigner("//Alice")
 
@@ -11,7 +11,11 @@ const getMacroTask = () => new Promise((res) => setTimeout(res, 0))
 
 describe("tx", () => {
   it('notifies users about "stolen" transactions', async () => {
-    const [provider, forklift] = getForkliftProvider("tx_sub", false)
+    const [provider, forklift] = getForkliftProvider("tx_sub", {
+      finalizeMode: Enum("manual"),
+      buildBlockMode: Enum("manual"),
+    })
+
     const client = createClient(provider)
     const api = client.getTypedApi(paseo)
 
@@ -24,7 +28,6 @@ describe("tx", () => {
     const sub = obs.subscribe()
 
     await forklift.newBlock({
-      type: "best",
       parent: bestBlock.hash,
       transactions: [tx],
     })
@@ -36,14 +39,12 @@ describe("tx", () => {
     )
 
     const forkedBlock = await forklift.newBlock({
-      type: "fork",
       parent: bestBlock.hash,
       transactions: [],
     })
     await getMacroTask()
 
     await forklift.newBlock({
-      type: "best",
       parent: forkedBlock,
       transactions: [],
     })
