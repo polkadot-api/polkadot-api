@@ -151,7 +151,7 @@ export const fromPjsToTxData = (
   const eraDecoded = mortalityDec(input.era)
   const mortality: Mortality =
     eraDecoded.type === "inmortal"
-      ? { mortal: false, genesisHash: input.era }
+      ? { mortal: false, genesisHash }
       : {
           mortal: true,
           blockHash: input.blockHash,

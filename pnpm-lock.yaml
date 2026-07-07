@@ -888,6 +888,10 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
+    devDependencies:
+      '@polkadot-api/metadata-fixtures':
+        specifier: workspace:*
+        version: link:../metadata-fixtures
 
   packages/utils: {}
 

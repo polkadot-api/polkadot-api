@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Immortal transactions were signed with the era bytes (`0x00`) as the `CheckMortality` checkpoint instead of the genesis hash, producing invalid signatures for every immortal pjs payload.
+
 ## 0.3.1 to 0.3.3 - 2026-05-19
 
 ### Fixed
