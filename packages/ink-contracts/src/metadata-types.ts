@@ -119,12 +119,7 @@ export interface TypeSpec {
 }
 
 export type Layout =
-  | LeafLayout
-  | RootLayout
-  | HashLayout
-  | ArrayLayout
-  | StructLayout
-  | EnumLayout
+  LeafLayout | RootLayout | HashLayout | ArrayLayout | StructLayout | EnumLayout
 
 export interface LeafLayout {
   leaf: {

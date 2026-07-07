@@ -91,11 +91,9 @@ export const getPinnedBlocks$ = (
   const cleanup$ = new Subject<void>()
   const cleanupEvt$ = cleanup$.pipe(
     exhaustMap(() => timer(0)),
-    map(
-      (): CleanupEvent => ({
-        type: "cleanup" as const,
-      }),
-    ),
+    map((): CleanupEvent => ({
+      type: "cleanup" as const,
+    })),
   )
 
   const state: PinnedBlocks = getInitialPinnedBlocks()

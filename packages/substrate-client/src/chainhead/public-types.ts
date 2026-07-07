@@ -79,14 +79,10 @@ export interface Finalized {
 type CommonFollowEvents = BestBlockChanged | Finalized
 
 export type FollowEventWithRuntime =
-  | InitializedWithRuntime
-  | NewBlockWithRuntime
-  | CommonFollowEvents
+  InitializedWithRuntime | NewBlockWithRuntime | CommonFollowEvents
 
 export type FollowEventWithoutRuntime =
-  | Initialized
-  | NewBlock
-  | CommonFollowEvents
+  Initialized | NewBlock | CommonFollowEvents
 
 export type StorageResult<Input extends StorageItemInput["type"]> =
   Input extends "descendantsHashes"

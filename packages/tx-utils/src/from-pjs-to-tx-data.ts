@@ -122,13 +122,11 @@ const fromPjsAssetIdToSigExt = (
   if (key === "here") {
     encodedData.push(Uint8Array.from([0]))
     return mergeUint8(encodedData)
-  } else if (
-    !(
-      key.startsWith("x") &&
-      key.length === 2 &&
-      Number.isInteger(parseInt(key[1]))
-    )
-  )
+  } else if (!(
+    key.startsWith("x") &&
+    key.length === 2 &&
+    Number.isInteger(parseInt(key[1]))
+  ))
     throw "Not safe"
   const arrLen = parseInt(key[1])
   encodedData.push(Uint8Array.from([arrLen]))

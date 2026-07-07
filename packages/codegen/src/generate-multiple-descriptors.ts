@@ -253,9 +253,8 @@ function mergeTypes(
     mapReferences(typedef, (id) => loookupToTypedefIdx.get(checksums[id])!),
   )
   const updatedEntryPoints = entryPoints.map(([entryPoint, checksums]) =>
-    mapEntryPointReferences(
-      entryPoint,
-      (id) => loookupToTypedefIdx.get(checksums[id])!,
+    mapEntryPointReferences(entryPoint, (id) =>
+      loookupToTypedefIdx.get(checksums[id])!,
     ),
   )
 

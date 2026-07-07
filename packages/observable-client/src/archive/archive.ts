@@ -68,8 +68,7 @@ export const getArchive =
     const storage$ = <
       Type extends StorageItemInput["type"],
       M extends
-        | undefined
-        | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
+        undefined | ((data: StorageResult<Type>, ctx: RuntimeContext) => any),
     >(
       hash: string,
       type: Type,

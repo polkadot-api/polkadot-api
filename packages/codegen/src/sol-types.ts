@@ -15,10 +15,7 @@ type AbiPrimitive =
   | "string"
 
 type AbiType =
-  | AbiPrimitive
-  | `${AbiPrimitive}[${number}]`
-  | `${AbiPrimitive}[]`
-  | `tuple`
+  AbiPrimitive | `${AbiPrimitive}[${number}]` | `${AbiPrimitive}[]` | `tuple`
 
 type TypedVariable = {
   name: string
@@ -146,8 +143,7 @@ export function generateSolTypes(abi: Abi) {
   const messages = abi.filter((v) => v.type === "function") as FunctionAbi[]
 
   const receive = abi.find((v) => v.type === "receive") as
-    | FunctionAbi
-    | undefined
+    FunctionAbi | undefined
   if (receive) {
     messages.push({
       name: "receive",
@@ -157,8 +153,7 @@ export function generateSolTypes(abi: Abi) {
   }
 
   const fallback = abi.find((v) => v.type === "fallback") as
-    | FunctionAbi
-    | undefined
+    FunctionAbi | undefined
   if (fallback) {
     messages.push({
       name: "fallback",
@@ -170,8 +165,7 @@ export function generateSolTypes(abi: Abi) {
   const messagesDescriptor = `{ ${messages.map(generateFunctionType).join(",\n")} }`
 
   const constructor = (abi.find((v) => v.type === "constructor") as
-    | FunctionAbi
-    | undefined) ?? {
+    FunctionAbi | undefined) ?? {
     type: "constructor",
     stateMutability: "pure",
   }

@@ -29,11 +29,7 @@ export interface StopRpc {
 }
 
 type FollowEvent =
-  | InitializedRpc
-  | NewBlockRpc
-  | BestBlockChangedRpc
-  | FinalizedRpc
-  | StopRpc
+  InitializedRpc | NewBlockRpc | BestBlockChangedRpc | FinalizedRpc | StopRpc
 
 const cancelEvents = new Set(["newBlock", "bestBlockChanged", "stop"])
 
