@@ -1,4 +1,4 @@
-import { paseo } from "@polkadot-api/descriptors"
+import { dotAh } from "@polkadot-api/descriptors"
 import { Binary, createClient, Enum } from "polkadot-api"
 import { firstValueFrom, shareReplay } from "rxjs"
 import { describe, expect, it } from "vitest"
@@ -17,7 +17,7 @@ describe("tx", () => {
     })
 
     const client = createClient(provider)
-    const api = client.getTypedApi(paseo)
+    const api = client.getTypedApi(dotAh)
 
     const [bestBlock] = await client.getBestBlocks()
     const tx = await api.tx.System.remark({

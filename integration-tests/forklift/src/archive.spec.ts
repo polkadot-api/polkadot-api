@@ -1,4 +1,4 @@
-import { paseo } from "@polkadot-api/descriptors"
+import { dotAh } from "@polkadot-api/descriptors"
 import { createClient, HexString } from "polkadot-api"
 import { describe, expect, it } from "vitest"
 import { ALICE, getForkliftProvider } from "./lib/forklift"
@@ -6,7 +6,7 @@ import { ALICE, getForkliftProvider } from "./lib/forklift"
 describe("archive", () => {
   it("loads information from past blocks", async () => {
     const client = createClient(getForkliftProvider("archive")[0])
-    const api = client.getTypedApi(paseo)
+    const api = client.getTypedApi(dotAh)
 
     const finalized = await client.getFinalizedBlock()
 

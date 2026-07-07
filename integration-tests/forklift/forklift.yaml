@@ -1,12 +1,44 @@
 endpoint:
-  - wss://paseo-rpc.n.dwellir.com
-  - wss://rpc.ibp.network/paseo
-  - wss://paseo.dotters.network
-  - wss://pas-rpc.stakeworld.io
-block: "0x446a006b992b7a760f718f0f7040aa94a10f8c329b46af7315ea7947fac2691e"
+  - wss://asset-hub-polkadot-rpc.n.dwellir.com
+  - wss://asset-hub-polkadot.gatotech.network
+  - wss://rpc-asset-hub-polkadot.luckyfriday.io
+  - wss://polkadot-asset-hub-rpc.polkadot.io
+  - wss://dot-rpc.stakeworld.io/assethub
+block: "0xffa964da317716f7695da803f0025eaa0c5472f15818033a99643de14879f33a"
 port: 8132
 
 options:
   disableOnIdle: true # skip on_idle hooks (e.g. rebagging) during block production
   finalizeMode:
     timer: 0
+
+# Give poor Alice and poor Bob some funds
+storage:
+  - pallet: System
+    entry: Account
+    key:
+      - 15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5
+    value:
+      nonce: 120
+      providers: 1
+      consumers: 0
+      sufficients: 0
+      data:
+        free: 100_0_000_000_000n
+        reserved: 0n
+        frozen: 0n
+        flags: 170141183460469231731687303715884105728n
+  - pallet: System
+    entry: Account
+    key:
+      - 14E5nqKAp3oAJcmzgZhUD2RcptBeUBScxKHgJKU4HPNcKVf3
+    value:
+      nonce: 130
+      providers: 1
+      consumers: 0
+      sufficients: 0
+      data:
+        free: 100_0_000_000_000n
+        reserved: 0n
+        frozen: 0n
+        flags: 170141183460469231731687303715884105728n
