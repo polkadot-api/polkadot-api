@@ -8,81 +8,87 @@ export interface TxPayloadV1 {
   version: 1
 
   /**
-   * Signer selection hint. Allows the implementer to identify which private-key
-   * / scheme to use.
-   * - Use a wallet-defined handle (e.g., address/SS58, account-name, etc). This
-   * identifier was previously made available to the consumer.
-   * - Set `null` to let the implementer pick the signer (or if the signer is
-   * implied).
+   * Signer selection hint. Allows the implementer to identify which signer,
+   * account, key, scheme, or higher-level signing authority should be used.
+   *
+   * The value is an implementer-defined handle that was previously exposed to
+   * the caller, such as an address, account id, account name, or another stable
+   * identifier.
+   *
+   * Set to `null` when the signer is implied or when the implementer should let
+   * the user choose.
    */
   signer: string | null
 
   /**
-   * SCALE-encoded Call (module indicator + function indicator + params).
+   * SCALE-encoded call data: pallet index, call index, and call arguments.
    */
   callData: string
 
   /**
-   * Transaction extensions supplied by the caller (order irrelevant).
-   * The consumer SHOULD provide every extension that is relevant to them.
-   * The implementer MAY infer missing ones.
+   * Transaction extensions supplied by the caller.
+   *
+   * The array order is irrelevant. Extensions are matched by `id`, using the
+   * identifier declared in metadata.
+   *
+   * The caller SHOULD provide every extension it understands and cares about.
+   * Extensions omitted from this array are intentional holes that the
+   * implementer MAY fill when it knows how.
+   *
+   * Signer-owned extensions, including signature-carrying extensions, should
+   * generally be omitted instead of being supplied with placeholder values.
    */
   extensions: Array<{
     /**
-     * Identifier as defined in metadata (e.g., "CheckSpecVersion",
-     * "ChargeAssetTxPayment").
+     * Extension identifier as declared in metadata, for example "CheckGenesis",
+     * "CheckSpecVersion", or "ChargeAssetTxPayment".
      */
     id: string
 
     /**
-     * Explicit "extra" to sign (goes into the extrinsic body).
-     * SCALE-encoded per the extension's "extra" type as defined in the
-     * metadata.
+     * SCALE-encoded extension value that is included in the extrinsic body.
+     * This is encoded according to the extension's `extra` type in metadata.
      */
     extra: string
 
     /**
-     * "Implicit" data to sign (known by the chain, not included into the
-     * extrinsic body).
-     * SCALE-encoded per the extension's "additionalSigned" type as defined in
-     * the metadata.
+     * SCALE-encoded extension value that is signed but not included in the
+     * extrinsic body. This is encoded according to the extension's
+     * `additionalSigned` type in metadata.
      */
     additionalSigned: string
   }>
 
   /**
-   * Transaction Extension Version.
-   * - For Extrinsic V4 MUST be 0.
-   * - For Extrinsic V5, set to any version supported by the runtime.
-   * The implementer:
-   * - MUST use this field to determine the required extensions for creating the
-   * extrinsic.
-   * - MAY use this field to infer missing extensions that the implementer could
-   * know how to handle.
+   * Requested transaction-extension version.
+   *
+   * Set to a number to require that exact extension version. For V4-style
+   * transactions this is `0`.
+   *
+   * Set to `null` when the caller has no extension-version preference and the
+   * implementer may choose an appropriate version supported by the runtime.
    */
-  // TODO: this is a change
   txExtVersion: number | null
 
   /**
-   * Context needed for decoding, display, and (optionally) inferring certain
-   * extensions.
+   * Context needed to decode, display, validate, and complete the transaction.
    */
   context: {
     /**
-     * RuntimeMetadataPrefixed blob (SCALE), starting with ASCII "meta" magic
-     * (`0x6d657461`),
-     * then a metadata version (V14+). For V5+ versioned extensions, MUST
-     * provide V16+.
-     * It is the metadata at `bestBlockHash`.
+     * RuntimeMetadataPrefixed blob (SCALE), starting with the ASCII "meta"
+     * magic (`0x6d657461`), for the runtime at `bestBlockHash`.
+     *
+     * Metadata V14+ is allowed for V4-style transactions. Metadata V16+ is
+     * required when versioned transaction extensions are used.
      */
-    // TODO: this is a change
     metadata: string
 
     /**
-     * Native token display info (used by some implementers), also needed to
-     * compute the `CheckMetadataHash` value.
+     * Native token display information.
+     *
+     * Set to `null` when token display information is unavailable or not
+     * relevant to the caller.
      */
-    // TODO: this is a change, making it optional and together
     token: {
       symbol: string
       decimals: number
@@ -94,15 +100,13 @@ export interface TxPayloadV1 {
     bestBlockHeight: number
 
     /**
-     * Highest known block hash.
+     * Hash of the block whose runtime metadata is provided in `metadata`.
      */
-    // TODO: this is a change
     bestBlockHash: string
 
     /**
-     * Genesis hash.
+     * Genesis hash of the target chain.
      */
-    // TODO: this is a change
     genesisHash: string
   }
 }
