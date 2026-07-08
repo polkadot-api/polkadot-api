@@ -116,7 +116,7 @@ declare const txCreatorArgSpecs: unique symbol
  * Creates a SCALE-encoded extrinsic (ready to broadcast).
  */
 export interface TxCreator<Specs extends TxArgSpec[]> {
-  [txCreatorArgSpecs]?: Specs;
+  [txCreatorArgSpecs]?: Specs
   <Chain extends TxChainDefinition>(
     input: TxPayloadV1,
     opts: ArgsForArgSpecs<Specs, Chain>,
