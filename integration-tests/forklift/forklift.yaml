@@ -1,9 +1,9 @@
 endpoint:
-  - wss://asset-hub-polkadot-rpc.n.dwellir.com
-  - wss://asset-hub-polkadot.gatotech.network
-  - wss://rpc-asset-hub-polkadot.luckyfriday.io
-  - wss://polkadot-asset-hub-rpc.polkadot.io
-  - wss://dot-rpc.stakeworld.io/assethub
+  - wss://polkadot-asset-hub-rpc.polkadot.io # 10 19 23
+  - wss://asset-hub-polkadot-rpc.n.dwellir.com # 10 19 23
+  - wss://asset-hub-polkadot.gatotech.network # 14 22 26
+  - wss://rpc-asset-hub-polkadot.stakeworld.io # 15 23 26
+  - wss://rpc-asset-hub-polkadot.luckyfriday.io # 15 26 30
 block: "0xffa964da317716f7695da803f0025eaa0c5472f15818033a99643de14879f33a"
 port: 8132
 
