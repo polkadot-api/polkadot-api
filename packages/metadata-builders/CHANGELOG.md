@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.14.4-rc.1 - 2026-07-08
+
+### Fixed
+
+- Update dependencies
+
 ## 0.14.1 to 0.14.3 - 2026-05-19
 
 ### Fixed

@@ -1,6 +1,8 @@
 # Changelog
 
-## V3
+## Unreleased
+
+## 0.8.0-rc.1 - 2026-07-08
 
 ### Changed
 
@@ -10,8 +12,6 @@
 ### Removed
 
 - `PolkadotSigner` reexport
-
-## Unreleased
 
 ## 0.7.1 to 0.7.3 - 2026-05-19
 
