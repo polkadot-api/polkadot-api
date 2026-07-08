@@ -1,6 +1,8 @@
 # Changelog
 
-## V3
+## Unreleased
+
+## 0.2.0-rc.1 - 2026-07-08
 
 ### Added
 
@@ -9,8 +11,6 @@
 ### Removed
 
 - `PolkadotSigner` interface
-
-## Unreleased
 
 ## 0.1.6 - 2024-10-05
 

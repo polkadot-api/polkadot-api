@@ -1,6 +1,8 @@
 # Changelog
 
-## V3
+## Unreleased
+
+## 3.0.0-rc.1 - 2026-07-08
 
 ### Added
 
@@ -12,8 +14,6 @@
 - BREAKING: `getPaymentInfo` and `getEstimatedFees` now take a `TxCreator` instead of an account address or public key.
 - BREAKING: Offline transaction entries now use `create` instead of `sign`.
 - BREAKING: `ChainDefinition` now includes all extensions and descriptors include "non-default extensions"
-
-## Unreleased
 
 ## 2.1.8 - 2026-07-07
 

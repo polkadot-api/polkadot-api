@@ -1,12 +1,12 @@
 # Changelog
 
-## V3
+## Unreleased
+
+## 0.21.0-rc.1 - 2026-07-08
 
 ### Changed
 
 - Unified metadata now exposes extrinsic `extensions` and `extensionsByVersion` instead of `signedExtensions`.
-
-## Unreleased
 
 ## 0.20.3 - 2026-05-19
 

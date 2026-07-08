@@ -1,14 +1,14 @@
 # Changelog
 
-## V3
+## Unreleased
+
+## 0.23.0-rc.1 - 2026-07-08
 
 ### Changed
 
 - Extensions now include all extensions available in the chain.
 - Descriptors now include "non-default extensions"
 - Removed AssetId from codegen
-
-## Unreleased
 
 ## 0.22.3 to 0.22.5 - 2026-05-19
 
