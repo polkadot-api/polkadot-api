@@ -264,13 +264,11 @@ function getIsStaticCompatible(
         ...enumResults.changes,
         ...destNode.value
           .filter(([key]) => !enumOriginVariants.has(key))
-          .map(
-            ([key, value]): Change => ({
-              id: [null, typeof value === "number" ? value : null],
-              level: CompatibilityLevel.Incompatible,
-              path: key,
-            }),
-          ),
+          .map(([key, value]): Change => ({
+            id: [null, typeof value === "number" ? value : null],
+            level: CompatibilityLevel.Incompatible,
+            path: key,
+          })),
       ]
       return enumResults
     }

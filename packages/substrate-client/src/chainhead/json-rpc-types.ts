@@ -40,14 +40,10 @@ export interface FinalizedRpc {
 type CommonFollowEventsRpc = BestBlockChangedRpc | FinalizedRpc
 
 export type FollowEventWithRuntimeRpc =
-  | InitializedWithRuntime
-  | NewBlockWithRuntime
-  | CommonFollowEventsRpc
+  InitializedWithRuntime | NewBlockWithRuntime | CommonFollowEventsRpc
 
 export type FollowEventWithoutRuntimeRpc =
-  | InitializedRpc
-  | NewBlockRpc
-  | CommonFollowEventsRpc
+  InitializedRpc | NewBlockRpc | CommonFollowEventsRpc
 
 // Common
 export interface InaccessibleRpc {
@@ -90,8 +86,7 @@ export type OperationErrorRpc = OperationEventRpc & {
 }
 
 export type CommonOperationEventsRpc =
-  | OperationInaccessibleRpc
-  | OperationErrorRpc
+  OperationInaccessibleRpc | OperationErrorRpc
 
 export type OperationBodyDoneRpc = OperationEventRpc & {
   event: "operationBodyDone"

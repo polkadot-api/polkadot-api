@@ -1,4 +1,10 @@
-import { Forklift, forklift, logger, wsSource } from "@polkadot-api/forklift"
+import {
+  Forklift,
+  forklift,
+  logger,
+  wsSource,
+  ForkliftOptions,
+} from "@polkadot-api/forklift"
 import { spawn } from "child_process"
 import { createWriteStream } from "fs"
 import { Binary, createClient, Enum, JsonRpcProvider } from "polkadot-api"
@@ -19,12 +25,15 @@ export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
 
 let id = 1
-export const getForkliftProvider = (name: string, autoBuildBlocks = true) => {
+export const getForkliftProvider = (
+  name: string,
+  options: Partial<ForkliftOptions> = {},
+) => {
   // To help on test isolation, we will create one forklift instance per each provider.
   // Otherwise, test running in parallel could compete when testing reorgs against the same instance
   const chain = forklift(wsSource(`ws://localhost:${PORT}`), {
     finalizeMode: Enum("timer", 0),
-    buildBlockMode: autoBuildBlocks ? undefined : Enum("manual"),
+    ...options,
   })
 
   return [

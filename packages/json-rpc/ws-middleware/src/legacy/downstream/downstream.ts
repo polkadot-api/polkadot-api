@@ -36,8 +36,7 @@ export const withLegacy: Middleware = (base) => (onMessage, onHalt) => {
   const jsonRpc = (
     input:
       | ({ id: string } & (
-          | { result: any }
-          | { error: { code: number; message: string } }
+          { result: any } | { error: { code: number; message: string } }
         ))
       | {
           method: string

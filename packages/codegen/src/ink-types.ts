@@ -53,22 +53,18 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
 
   const event: TypeNode = {
     type: "enum",
-    value: lookup.metadata.spec.events.map(
-      (evt): EnumVariant => ({
-        label: evt.label,
-        value: {
-          type: "struct",
-          value: evt.args.map(
-            (arg): StructField => ({
-              label: arg.label,
-              value: internalBuilder(arg.type.type),
-              docs: arg.docs,
-            }),
-          ),
-        },
-        docs: evt.docs,
-      }),
-    ),
+    value: lookup.metadata.spec.events.map((evt): EnumVariant => ({
+      label: evt.label,
+      value: {
+        type: "struct",
+        value: evt.args.map((arg): StructField => ({
+          label: arg.label,
+          value: internalBuilder(arg.type.type),
+          docs: arg.docs,
+        })),
+      },
+      docs: evt.docs,
+    })),
   }
 
   const storageRoots = Object.entries(lookup.storage).map(([name, value]) => ({
@@ -203,30 +199,28 @@ export function generateInkTypes(lookup: InkMetadataLookup) {
   ) =>
     generateNodeType({
       type: "struct",
-      value: callables.map(
-        (callable): StructField => ({
-          label: callable.label,
-          value: {
-            type: "struct",
-            value: [
-              {
-                label: "message",
-                value: callable.types.call,
-                docs: [],
-              },
-              {
-                label: "response",
-                value: callable.types.value,
-                docs: [],
-              },
-              ...(callable.default ? [inlineField("default", "true")] : []),
-              ...(callable.payable ? [inlineField("payable", "true")] : []),
-              ...(callable.mutates ? [inlineField("mutates", "true")] : []),
-            ],
-          },
-          docs: callable.docs,
-        }),
-      ),
+      value: callables.map((callable): StructField => ({
+        label: callable.label,
+        value: {
+          type: "struct",
+          value: [
+            {
+              label: "message",
+              value: callable.types.call,
+              docs: [],
+            },
+            {
+              label: "response",
+              value: callable.types.value,
+              docs: [],
+            },
+            ...(callable.default ? [inlineField("default", "true")] : []),
+            ...(callable.payable ? [inlineField("payable", "true")] : []),
+            ...(callable.mutates ? [inlineField("mutates", "true")] : []),
+          ],
+        },
+        docs: callable.docs,
+      })),
     })
   const constructorsDescriptor = createCallableDescriptor(constructors)
   const messagesDescriptor = createCallableDescriptor(messages)

@@ -1,5 +1,5 @@
-import { MultiAddress, Paseo, paseo } from "@polkadot-api/descriptors"
-import { Blake2256 } from "@polkadot-api/substrate-bindings"
+import { DotAh, dotAh, MultiAddress } from "@polkadot-api/descriptors"
+import { Blake2256, Enum } from "@polkadot-api/substrate-bindings"
 import { Binary, createClient, TypedApi } from "polkadot-api"
 import { filter, firstValueFrom, lastValueFrom, takeWhile, toArray } from "rxjs"
 import { describe, expect, it, vi } from "vitest"
@@ -16,7 +16,7 @@ describe("events", () => {
     it(".watch() reports events after awaiting for the initial block", async () => {
       const [provider, chain] = getForkliftProvider("events_watch")
       const client = createClient(provider)
-      const api = client.getTypedApi(paseo)
+      const api = client.getTypedApi(dotAh)
 
       await api.getStaticApis()
 
@@ -47,7 +47,7 @@ describe("events", () => {
       )
       const client = createClient(provider)
       const finalized = await client.getFinalizedBlock()
-      const typedApi = client.getTypedApi(paseo)
+      const typedApi = client.getTypedApi(dotAh)
 
       const remarked = observe(typedApi.event.System.Remarked.watchBest())
 
@@ -78,7 +78,6 @@ describe("events", () => {
 
       const helloEvtPromise = firstValueFrom(remarked.next$)
       const helloBlock = await chain.newBlock({
-        type: "best",
         transactions: [transferTx, hello.tx],
       })
 
@@ -92,9 +91,8 @@ describe("events", () => {
       remarked.clearNext()
 
       // And then should notify when it finalizes
-      const lastFinalized = await chain.newBlock({
-        type: "finalized",
-      })
+      const lastFinalized = await chain.newBlock()
+      await chain.changeFinalized(lastFinalized)
       const afterFinalized = await firstValueFrom(
         remarked.replay$.pipe(
           takeWhile(
@@ -117,17 +115,19 @@ describe("events", () => {
     it("reverts old best blocks with 'drop' emissions", async () => {
       const [provider, chain] = getForkliftProvider(
         "events_watch-best_best-blocks",
+        {
+          finalizeMode: Enum("manual"),
+        },
       )
       const client = createClient(provider)
       const finalized = await client.getFinalizedBlock()
-      const typedApi = client.getTypedApi(paseo)
+      const typedApi = client.getTypedApi(dotAh)
       const initialNonce = (await typedApi.query.System.Account.getValue(ALICE))
         .nonce
 
       // It should notify of new events coming through, filtered by type.
       const helloBest = await getRemark(typedApi, "hello best")
       const firstBest = await chain.newBlock({
-        type: "best",
         transactions: [helloBest.tx],
       })
 
@@ -147,7 +147,6 @@ describe("events", () => {
       )
       const baseCompeting = await chain.newBlock({
         parent: finalized.hash,
-        type: "fork",
         transactions: [helloCompeting.tx],
       })
 
@@ -159,7 +158,6 @@ describe("events", () => {
 
       const tipCompeting = await chain.newBlock({
         parent: baseCompeting,
-        type: "best",
       })
       const emissions = await lastValueFrom(
         remarked.replay$.pipe(
@@ -183,7 +181,7 @@ describe("events", () => {
 })
 
 const getRemark = async (
-  typedApi: TypedApi<Paseo>,
+  typedApi: TypedApi<DotAh>,
   remark: string,
   nonce?: number,
 ) => {

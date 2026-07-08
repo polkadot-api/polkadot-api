@@ -7,10 +7,7 @@ import { Observable } from "rxjs"
 
 export type TxEvent = TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
 export type TxBroadcastEvent =
-  | TxSigned
-  | TxBroadcasted
-  | TxBestBlocksState
-  | TxFinalized
+  TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
 
 export type TxSigned = { type: "signed"; txHash: HexString }
 

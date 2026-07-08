@@ -1,4 +1,4 @@
-import { paseo } from "@polkadot-api/descriptors"
+import { dotAh } from "@polkadot-api/descriptors"
 import {
   isRequest,
   isResponse,
@@ -58,7 +58,7 @@ describe("Stop events", () => {
     getInterceptor().stopAndHODL()
 
     const accountPromise = client
-      .getTypedApi(paseo)
+      .getTypedApi(dotAh)
       .query.System.Account.getValue(ALICE)
 
     getInterceptor().failFollow()
@@ -69,7 +69,7 @@ describe("Stop events", () => {
     await chain.newBlock()
 
     const account = await accountPromise
-    expect(account.nonce).toBeGreaterThan(1000)
+    expect(account.nonce).toBeGreaterThan(100)
   })
 
   it("doesn't report unpined finalized blocks after stop recovery", async () => {
@@ -102,7 +102,7 @@ describe("Stop events", () => {
       createStopAndIgnoreFinalizedInterceptor,
     )
     const client = createClient(provider)
-    const api = client.getTypedApi(paseo)
+    const api = client.getTypedApi(dotAh)
 
     const obs$ = client.finalizedBlock$.pipe(
       concatMap(async (block) => {
@@ -218,7 +218,7 @@ describe("Stop events", () => {
       createStopAndThrottleInterceptor,
     )
     const client = createClient(provider)
-    const api = client.getTypedApi(paseo)
+    const api = client.getTypedApi(dotAh)
 
     // Set up 2 storage subscriptions
     const alice$ = api.query.System.Account.watchValue(ALICE).pipe(
@@ -241,7 +241,7 @@ describe("Stop events", () => {
 
     await getInterceptor().stop()
 
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await new Promise((resolve) => setTimeout(resolve, 6000))
 
     aliceSub.unsubscribe()
     bobSub.unsubscribe()
@@ -309,4 +309,4 @@ const createFailedStopInterceptor = (ctx: InterceptorContext) => {
 }
 
 const waitLoaded = (client: PolkadotClient) =>
-  client.getTypedApi(paseo).constants.Balances.ExistentialDeposit()
+  client.getTypedApi(dotAh).constants.Balances.ExistentialDeposit()

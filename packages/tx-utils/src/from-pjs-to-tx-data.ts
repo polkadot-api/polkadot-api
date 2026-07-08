@@ -122,13 +122,11 @@ const fromPjsAssetIdToSigExt = (
   if (key === "here") {
     encodedData.push(Uint8Array.from([0]))
     return mergeUint8(encodedData)
-  } else if (
-    !(
-      key.startsWith("x") &&
-      key.length === 2 &&
-      Number.isInteger(parseInt(key[1]))
-    )
-  )
+  } else if (!(
+    key.startsWith("x") &&
+    key.length === 2 &&
+    Number.isInteger(parseInt(key[1]))
+  ))
     throw "Not safe"
   const arrLen = parseInt(key[1])
   encodedData.push(Uint8Array.from([arrLen]))
@@ -151,7 +149,7 @@ export const fromPjsToTxData = (
   const eraDecoded = mortalityDec(input.era)
   const mortality: Mortality =
     eraDecoded.type === "inmortal"
-      ? { mortal: false, genesisHash: input.era }
+      ? { mortal: false, genesisHash }
       : {
           mortal: true,
           blockHash: input.blockHash,

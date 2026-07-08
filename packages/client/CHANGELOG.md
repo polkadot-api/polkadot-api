@@ -15,6 +15,12 @@
 
 ## Unreleased
 
+## 2.1.8 - 2026-07-07
+
+### Fixed
+
+- Update dependencies
+
 ## 2.1.7 - 2026-06-23
 
 ### Fixed

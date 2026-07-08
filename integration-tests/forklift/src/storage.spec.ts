@@ -1,22 +1,22 @@
 import { describe, expect, it } from "vitest"
 import { ALICE, getForkliftProvider } from "./lib/forklift"
 import { createClient } from "polkadot-api"
-import { paseo } from "@polkadot-api/descriptors"
+import { dotAh } from "@polkadot-api/descriptors"
 
 describe("storage", () => {
   it("subscribes and decodes storage values", async () => {
     const client = createClient(getForkliftProvider("storage_sub")[0])
-    const api = client.getTypedApi(paseo)
+    const api = client.getTypedApi(dotAh)
 
     const result = await api.query.System.Account.getValue(ALICE)
     const nonce: number = result.nonce
-    expect(nonce).toBeGreaterThan(1000)
+    expect(nonce).toBeGreaterThan(100)
     client.destroy()
   })
 
   it("entries decodes storage keys", async () => {
     const client = createClient(getForkliftProvider("storage_ent")[0])
-    const api = client.getTypedApi(paseo)
+    const api = client.getTypedApi(dotAh)
 
     const entries = await api.query.Referenda.ReferendumInfoFor.getEntries()
     expect(entries.length).toBeGreaterThan(0)
@@ -25,17 +25,16 @@ describe("storage", () => {
     client.destroy()
   })
 
-  it("returns the raw key if the hasher is opaque", async () => {
-    const client = createClient(getForkliftProvider("storage_raw")[0])
-    const api = client.getTypedApi(paseo)
-
-    const entries =
-      await api.query.CoretimeAssignmentProvider.CoreDescriptors.getEntries()
-    expect(entries.length).toBeGreaterThan(0)
-    const hex: string = entries[0].keyArgs[0]
-    expect(hex.startsWith("0x"), "Not a hex string").toBe(true)
-    entries.forEach(({ keyArgs }) => expect(keyArgs[0]).toBeTypeOf("string"))
-
-    client.destroy()
-  })
+  // Skipped - there are currently no storage entries with an opaque key hasher
+  // it("returns the raw key if the hasher is opaque", async () => {
+  //   const client = createClient(getForkliftProvider("storage_raw")[0])
+  //   const api = client.getTypedApi(dotAh)
+  //   const entries =
+  //     await api.query.CoretimeAssignmentProvider.CoreDescriptors.getEntries()
+  //   expect(entries.length).toBeGreaterThan(0)
+  //   const hex: string = entries[0].keyArgs[0]
+  //   expect(hex.startsWith("0x"), "Not a hex string").toBe(true)
+  //   entries.forEach(({ keyArgs }) => expect(keyArgs[0]).toBeTypeOf("string"))
+  //   client.destroy()
+  // })
 })

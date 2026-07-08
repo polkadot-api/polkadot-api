@@ -34,8 +34,9 @@ export const createRuntimeCtx = (
     return (
       ("extra" in decodedExt &&
         (decodedExt.extra[CHECK_MORTALITY] as
-          | DecoderType<typeof mortalityDecoder>
-          | undefined)) || { mortal: false }
+          DecoderType<typeof mortalityDecoder> | undefined)) || {
+        mortal: false,
+      }
     )
   }
 

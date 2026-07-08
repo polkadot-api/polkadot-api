@@ -43,8 +43,7 @@ export type TrieNode = { partialKey: string } & (
       | { type: TrieNodeHeaders["Branch"] }
       | {
           type:
-            | TrieNodeHeaders["BranchWithHash"]
-            | TrieNodeHeaders["BranchWithVal"]
+            TrieNodeHeaders["BranchWithHash"] | TrieNodeHeaders["BranchWithVal"]
           value: HexString
         }
     ))

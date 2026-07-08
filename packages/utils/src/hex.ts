@@ -5,7 +5,7 @@ export function toHex(bytes: Uint8Array): string {
 
   result[0] = "0x"
 
-  for (let i = 0; i < bytes.length; ) {
+  for (let i = 0; i < bytes.length;) {
     const b = bytes[i++]
     result[i] = HEX_STR[b >> 4] + HEX_STR[b & 15]
   }
@@ -46,7 +46,7 @@ export function fromHex(hexString: string): Uint8Array {
 
   if (isOdd) bytes[0] = 0 | HEX_MAP[hexString[2]]
 
-  for (let i = 0; i < nBytes; ) {
+  for (let i = 0; i < nBytes;) {
     const idx = base + i * 2
     const a = HEX_MAP[hexString[idx]]
     const b = HEX_MAP[hexString[idx + 1]]
