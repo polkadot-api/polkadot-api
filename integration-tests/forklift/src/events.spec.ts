@@ -1,4 +1,4 @@
-import { MultiAddress, Paseo, paseo } from "@polkadot-api/descriptors"
+import { DotAh, dotAh, MultiAddress } from "@polkadot-api/descriptors"
 import { Blake2256, Enum } from "@polkadot-api/substrate-bindings"
 import { Binary, createClient, TypedApi } from "polkadot-api"
 import { filter, firstValueFrom, lastValueFrom, takeWhile, toArray } from "rxjs"
@@ -16,7 +16,7 @@ describe("events", () => {
     it(".watch() reports events after awaiting for the initial block", async () => {
       const [provider, chain] = getForkliftProvider("events_watch")
       const client = createClient(provider)
-      const api = client.getTypedApi(paseo)
+      const api = client.getTypedApi(dotAh)
 
       await api.getStaticApis()
 
@@ -47,7 +47,7 @@ describe("events", () => {
       )
       const client = createClient(provider)
       const finalized = await client.getFinalizedBlock()
-      const typedApi = client.getTypedApi(paseo)
+      const typedApi = client.getTypedApi(dotAh)
 
       const remarked = observe(typedApi.event.System.Remarked.watchBest())
 
@@ -121,7 +121,7 @@ describe("events", () => {
       )
       const client = createClient(provider)
       const finalized = await client.getFinalizedBlock()
-      const typedApi = client.getTypedApi(paseo)
+      const typedApi = client.getTypedApi(dotAh)
       const initialNonce = (await typedApi.query.System.Account.getValue(ALICE))
         .nonce
 
@@ -181,7 +181,7 @@ describe("events", () => {
 })
 
 const getRemark = async (
-  typedApi: TypedApi<Paseo>,
+  typedApi: TypedApi<DotAh>,
   remark: string,
   nonce?: number,
 ) => {
