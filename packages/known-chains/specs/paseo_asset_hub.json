@@ -5,13 +5,12 @@
   "bootNodes": [
     "/dns/asset-hub-paseo-bootnode.turboflakes.io/tcp/30330/p2p/12D3KooWJzfVkdDnKfn2hQ1c3ysrbmReTjVKrEBHkdwgZThbB1BM",
     "/dns/asset-hub-paseo-bootnode.turboflakes.io/tcp/30430/wss/p2p/12D3KooWJzfVkdDnKfn2hQ1c3ysrbmReTjVKrEBHkdwgZThbB1BM",
-    "/dns/asset-hub-paseo.bootnode.amforc.com/tcp/29999/wss/p2p/12D3KooWLGk5uPRPnfVafLXSuMiFn1nPUbUqHFB9Ac5ps14g9Vpe",
-    "/dns/asset-hub-paseo.bootnode.amforc.com/tcp/30004/p2p/12D3KooWLGk5uPRPnfVafLXSuMiFn1nPUbUqHFB9Ac5ps14g9Vpe"
+    "/dns4/n8ahr1.bn.turboflakes.io/tcp/30443/wss/p2p/12D3KooWJzfVkdDnKfn2hQ1c3ysrbmReTjVKrEBHkdwgZThbB1BM"
   ],
   "telemetryEndpoints": null,
   "protocolId": null,
   "properties": {
-    "ss58Format": 0,
+    "ss58Format": 42,
     "tokenDecimals": 10,
     "tokenSymbol": "PAS"
   },

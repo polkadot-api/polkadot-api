@@ -2,12 +2,22 @@
 
 ## Unreleased
 
+### Added
+
+- `paseo_bulletin` chain spec (Bulletin Paseo, para `1010`).
+
+### Fixed
+
+- `ss58Format` in the `paseo_people` and `paseo_asset_hub` specs: `0` -> `42`, matching the relay.
+
 ### Changed
 
 - Update `paseo` relay chain spec to the substitute relay (relaunched from block 0, new genesis:
   `Paseo`, protocol-id `pad`, ss58 `42`). Add relay bootnodes as they become available.
 - Refresh `paseo_people` bootnodes to match the upstream spec: drop ten unreachable entries and
   add rotko, turboflakes and Interweb. Same chain (unchanged genesis), bootnodes only.
+- Refresh `paseo_asset_hub` bootnodes: drop the unreachable amforc entries, keep turboflakes.
+  Same chain (unchanged genesis), bootnodes only.
 
 ## 0.11.7 - 2026-07-07
 
