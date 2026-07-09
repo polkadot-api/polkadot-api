@@ -4,6 +4,7 @@ import {
   Blake2256,
   compact,
   extrinsicFormat,
+  UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mapObject, mergeUint8 } from "@polkadot-api/utils"
 import { SignerPayloadJSON } from "./types"
@@ -22,10 +23,14 @@ export const getPjsTxHelper = (
   metadata: Uint8Array | string,
   customExtensionMappers: Record<
     string,
-    (payload: SignerPayloadJSON) => SignedExtension
+    (ctx: {
+      pjsPayload: SignerPayloadJSON
+      unifiedMeta: UnifiedMetadata
+    }) => SignedExtension
   > = {},
 ) => {
-  const lookup = getLookupFn(getMetadata(metadata))
+  const unifiedMeta = getMetadata(metadata)
+  const lookup = getLookupFn(unifiedMeta)
   const dynamicBuilder = getDynamicBuilder(lookup)
 
   return (pjsPayload: SignerPayloadJSON) => {
@@ -33,7 +38,9 @@ export const getPjsTxHelper = (
       lookup,
       dynamicBuilder,
       fromPjsToTxData(lookup.metadata, pjsPayload),
-      mapObject(customExtensionMappers, (fn) => fn(pjsPayload)),
+      mapObject(customExtensionMappers, (fn) =>
+        fn({ pjsPayload, unifiedMeta }),
+      ),
     )
     const callData = fromHex(pjsPayload.method)
 
