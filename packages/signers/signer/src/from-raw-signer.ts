@@ -80,11 +80,11 @@ SIG.set([0xde, 0xad, 0xbe, 0xef])
 export const getFakeTxCreator = (
   address: SS58String | HexString | Uint8Array,
 ) => {
-  let pubkey
+  let pubkey: Uint8Array
   let type: "Ecdsa" | "Sr25519"
   if (address instanceof Uint8Array) {
     pubkey = address
-    type = address.length === 32 ? "Sr25519" : "Ecdsa"
+    type = pubkey.length === 32 ? "Sr25519" : "Ecdsa"
   } else {
     try {
       pubkey = accId(address)
@@ -92,7 +92,7 @@ export const getFakeTxCreator = (
     } catch {
       try {
         pubkey = fromHex(address)
-        type = "Ecdsa"
+        type = pubkey.length === 32 ? "Sr25519" : "Ecdsa"
       } catch {
         throw new Error("Unable to detect address")
       }
