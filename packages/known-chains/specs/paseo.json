@@ -3,7 +3,8 @@
   "id": "paseo",
   "chainType": "Live",
   "bootNodes": [
-    "/dns/n8r2.bn.turboflakes.io/tcp/30433/wss/p2p/12D3KooWC3noUwG6TJwh4AJMNxCMNvmSZeknsLtXudxrB7nPXbjG"
+    "/dns/n8r2.bn.turboflakes.io/tcp/30443/wss/p2p/12D3KooWC3noUwG6TJwh4AJMNxCMNvmSZeknsLtXudxrB7nPXbjG",
+    "/ip4/139.99.130.67/tcp/30333/p2p/12D3KooWCj2oX6oAV3NohsZbyPhNN3LAK9BcdBENTnbJWoFCX7jq"
   ],
   "telemetryEndpoints": null,
   "protocolId": "pad",
