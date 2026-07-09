@@ -5,11 +5,12 @@ import {
   compact,
   extrinsicFormat,
 } from "@polkadot-api/substrate-bindings"
-import { fromHex, mergeUint8 } from "@polkadot-api/utils"
+import { fromHex, mapObject, mergeUint8 } from "@polkadot-api/utils"
 import { SignerPayloadJSON } from "./types"
 import { fromPjsToTxData } from "./from-pjs-to-tx-data"
 import { getSignedExtensionParts } from "./signed-extensions"
 import { getMetadata } from "./get-metadata"
+import { SignedExtension } from "./signed-extensions/internal-types"
 
 const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
   Ed25519: 0,
@@ -17,7 +18,13 @@ const signingTypeId: Record<"Ecdsa" | "Ed25519" | "Sr25519", number> = {
   Ecdsa: 2,
 }
 
-export const getPjsTxHelper = (metadata: Uint8Array | string) => {
+export const getPjsTxHelper = (
+  metadata: Uint8Array | string,
+  customExtensionMappers: Record<
+    string,
+    (payload: SignerPayloadJSON) => SignedExtension
+  > = {},
+) => {
   const lookup = getLookupFn(getMetadata(metadata))
   const dynamicBuilder = getDynamicBuilder(lookup)
 
@@ -26,6 +33,7 @@ export const getPjsTxHelper = (metadata: Uint8Array | string) => {
       lookup,
       dynamicBuilder,
       fromPjsToTxData(lookup.metadata, pjsPayload),
+      mapObject(customExtensionMappers, (fn) => fn(pjsPayload)),
     )
     const callData = fromHex(pjsPayload.method)
 

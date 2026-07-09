@@ -24,6 +24,7 @@ export const getSignedExtensionParts = (
   lookup: MetadataLookup,
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
   data: TxData,
+  other: Record<string, SignedExtension> = {},
 ) => {
   const { tip, mortality, genesisHash, nonce, asset, metadataHash } = data
   const signedExtensions = lookup.metadata.extrinsic.signedExtensions[0].map(
@@ -46,6 +47,8 @@ export const getSignedExtensionParts = (
         case "CheckTxVersion":
           return CheckTxVersion(lookup)
       }
+
+      if (identifier in other) return other[identifier]
 
       if (
         dynamicBuilder.buildDefinition(type) === _void &&
