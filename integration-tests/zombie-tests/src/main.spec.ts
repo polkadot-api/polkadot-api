@@ -32,17 +32,12 @@ import {
 } from "@polkadot-api/substrate-client"
 import { getMetadata, MultiAddress, roc } from "@polkadot-api/descriptors"
 import { accounts, unusedSigner } from "./keyring"
-import { getTxCreator } from "polkadot-api/signer"
 import { toHex } from "@polkadot-api/utils"
 import { appendFileSync } from "fs"
 import { withLogs } from "./with-logs"
 import { getInnerLogs } from "./inner-logs"
 import { getExtrinsicDecoder } from "@polkadot-api/tx-utils"
-
-const fakeSignature = new Uint8Array(64)
-const getFakeSignature = () => fakeSignature
-const fakeCreator = (from: Uint8Array) =>
-  getTxCreator(from, "Sr25519", getFakeSignature)
+import { getFakeTxCreator } from "polkadot-api/signer"
 
 // The retrial system is needed because often the `sync_state_genSyncSpec`
 // request fails immediately after starting zombienet.
@@ -172,7 +167,7 @@ describe("E2E", async () => {
     const tx = api.tx.System.remark({
       remark: Binary.fromText("hello world!"),
     })
-    const creator = fakeCreator(accounts["alice"]["sr25519"].publicKey)
+    const creator = getFakeTxCreator(accounts["alice"]["sr25519"].publicKey)
     const opts = {}
     const binaryExtrinsic = Binary.fromOpaque(await tx.create(creator, opts))
 
@@ -239,7 +234,7 @@ describe("E2E", async () => {
   })
 
   it.concurrent("invalid transaction", async () => {
-    const fake = fakeCreator(accounts.alice.sr25519.publicKey)
+    const fake = getFakeTxCreator(accounts.alice.sr25519.publicKey)
     const err = await lastValueFrom(
       api.tx.System.remark({ remark: Binary.fromText("TEST") })
         .createSubmitAndWatch(fake)

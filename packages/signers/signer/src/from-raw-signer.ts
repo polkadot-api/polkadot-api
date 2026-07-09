@@ -10,7 +10,13 @@ import {
   withCommonExtensions,
   withNonce,
 } from "@polkadot-api/signers-common"
-import { decAnyMetadata, unifyMetadata } from "@polkadot-api/substrate-bindings"
+import {
+  AccountId,
+  decAnyMetadata,
+  HexString,
+  SS58String,
+  unifyMetadata,
+} from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { firstValueFrom } from "rxjs"
 
@@ -66,6 +72,35 @@ export const getTxCreator = (
     publicKey,
     signBytes: getSignBytes(sign),
   })
+}
+
+const accId = AccountId().enc
+const SIG = new Uint8Array(65).fill(0xcd)
+SIG.set([0xde, 0xad, 0xbe, 0xef])
+export const getFakeTxCreator = (
+  address: SS58String | HexString | Uint8Array,
+) => {
+  let pubkey: Uint8Array
+  let type: "Ecdsa" | "Sr25519"
+  if (address instanceof Uint8Array) {
+    pubkey = address
+    type = pubkey.length === 32 ? "Sr25519" : "Ecdsa"
+  } else {
+    try {
+      pubkey = accId(address)
+      type = "Sr25519"
+    } catch {
+      try {
+        pubkey = fromHex(address)
+        type = pubkey.length === 32 ? "Sr25519" : "Ecdsa"
+      } catch {
+        throw new Error("Unable to detect address")
+      }
+    }
+  }
+  return getTxCreator(pubkey, type, () =>
+    SIG.slice(0, type === "Sr25519" ? 64 : 65),
+  )
 }
 
 const METADATA_IDENTIFIER = "CheckMetadataHash"
