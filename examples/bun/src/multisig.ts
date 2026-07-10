@@ -22,7 +22,6 @@ const multisigCreators = creators.map((v) =>
       signatories: addrs,
     },
     api.query.Multisig.Multisigs.getValue,
-    api.apis.TransactionPaymentApi.query_info,
     v,
   ),
 )

@@ -42,8 +42,6 @@ Create a multisig TxCreator by passing in:
 - The multisig information: threshold and signatories.
 - A query for existing multisig state, typically
   `typedApi.query.Multisig.Multisigs.getValue`.
-- A payment-info query, typically
-  `typedApi.apis.TransactionPaymentApi.query_info`.
 - A TxCreator for one of the multisig signatories.
 
 By default:
@@ -83,7 +81,6 @@ const aliceMultisig = getMultisigTxCreator(
     ],
   },
   typedApi.query.Multisig.Multisigs.getValue,
-  typedApi.apis.TransactionPaymentApi.query_info,
   alice.txCreator,
 )
 

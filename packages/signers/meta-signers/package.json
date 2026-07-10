@@ -36,6 +36,7 @@
     "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
-    "@polkadot-api/utils": "workspace:*"
+    "@polkadot-api/utils": "workspace:*",
+    "rxjs": "^7.8.2"
   }
 }
