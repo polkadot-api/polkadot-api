@@ -766,6 +766,9 @@ importers:
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   packages/signers/pjs-signer:
     dependencies:

@@ -10,6 +10,7 @@ import {
   SS58String,
 } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { firstValueFrom, map } from "rxjs"
 import { getCodecs } from "./get-codecs"
 import { WrapTxCreator } from "./wrapped-tx-creator"
 
@@ -45,15 +46,6 @@ export function getMultisigTxCreator<
       }
     | undefined
   >,
-  txPaymentInfo: (
-    uxt: Uint8Array,
-    len: number,
-  ) => Promise<{
-    weight: {
-      ref_time: bigint
-      proof_size: bigint
-    }
-  }>,
   txCreator: T & { publicKey: Uint8Array; accountId?: Uint8Array },
   options?: MultisigTxCreatorOptions<Address>,
 ): WrapTxCreator<T> {
@@ -122,10 +114,26 @@ export function getMultisigTxCreator<
       } catch {}
     }
 
+    const txPaymentCodecs = dynamicBuilder.buildRuntimeCall(
+      "TransactionPaymentApi",
+      "query_info",
+    )
+
     const unsignedExtrinsic = mergeUint8([new Uint8Array([4]), callData])
     const [multisigInfo, weightInfo] = await Promise.all([
       getMultisigInfo(toAddress(multisigId), toHex(callHash)),
-      txPaymentInfo(unsignedExtrinsic, unsignedExtrinsic.length),
+      firstValueFrom(
+        bindings
+          .call(
+            "TransactionPaymentApi_query_info",
+            txPaymentCodecs.args.enc([
+              unsignedExtrinsic,
+              unsignedExtrinsic.length,
+            ]),
+            payload.context.bestBlockHash,
+          )
+          .pipe(map((res) => txPaymentCodecs.value.dec(res))),
+      ),
     ])
 
     if (

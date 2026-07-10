@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- BREAKING: Removed `txPaymentInfo` callback parameter from `getMultisigTxCreator`.
+
 ## 0.3.0-rc.1 - 2026-07-08
 
 ### Changed
