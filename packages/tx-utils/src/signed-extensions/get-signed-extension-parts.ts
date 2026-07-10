@@ -17,7 +17,7 @@ import {
 } from "./chain"
 import { TxData } from "@/types"
 import { SignedExtension } from "./internal-types"
-import { empty, signedExtension } from "./utils"
+import { signedExtension } from "./utils"
 import { mergeUint8 } from "@polkadot-api/utils"
 
 export const getSignedExtensionParts = (
@@ -50,25 +50,14 @@ export const getSignedExtensionParts = (
 
       if (identifier in other) return other[identifier]
 
-      const typeBin =
-        dynamicBuilder.buildDefinition(type) === _void
-          ? empty
-          : lookup(type).type === "option"
-            ? new Uint8Array([0])
-            : null
-      if (!typeBin)
+      try {
+        return signedExtension(
+          dynamicBuilder.buildDefinition(type).enc(undefined),
+          dynamicBuilder.buildDefinition(additionalSigned).enc(undefined),
+        )
+      } catch {
         throw new Error(`Unsupported signed-extension: ${identifier}`)
-
-      const additionalBin =
-        dynamicBuilder.buildDefinition(additionalSigned) === _void
-          ? empty
-          : lookup(additionalSigned).type === "option"
-            ? new Uint8Array([0])
-            : null
-      if (!additionalBin)
-        throw new Error(`Unsupported signed-extension: ${identifier}`)
-
-      return signedExtension(typeBin, additionalBin)
+      }
     },
   )
 
