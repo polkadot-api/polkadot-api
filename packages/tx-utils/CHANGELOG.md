@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Allow `getPjsTxHelper` to support custom extensions.
+
 ## 0.3.4 - 2026-07-07
 
 ### Fixed

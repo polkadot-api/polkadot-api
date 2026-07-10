@@ -17,13 +17,14 @@ import {
 } from "./chain"
 import { TxData } from "@/types"
 import { SignedExtension } from "./internal-types"
-import { EMPTY_SIGNED_EXTENSION } from "./utils"
+import { signedExtension } from "./utils"
 import { mergeUint8 } from "@polkadot-api/utils"
 
 export const getSignedExtensionParts = (
   lookup: MetadataLookup,
   dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
   data: TxData,
+  other: Record<string, SignedExtension> = {},
 ) => {
   const { tip, mortality, genesisHash, nonce, asset, metadataHash } = data
   const signedExtensions = lookup.metadata.extrinsic.signedExtensions[0].map(
@@ -47,13 +48,16 @@ export const getSignedExtensionParts = (
           return CheckTxVersion(lookup)
       }
 
-      if (
-        dynamicBuilder.buildDefinition(type) === _void &&
-        dynamicBuilder.buildDefinition(additionalSigned) === _void
-      )
-        return EMPTY_SIGNED_EXTENSION
+      if (identifier in other) return other[identifier]
 
-      throw new Error(`Unsupported signed-extension: ${identifier}`)
+      try {
+        return signedExtension(
+          dynamicBuilder.buildDefinition(type).enc(undefined),
+          dynamicBuilder.buildDefinition(additionalSigned).enc(undefined),
+        )
+      } catch {
+        throw new Error(`Unsupported signed-extension: ${identifier}`)
+      }
     },
   )
 
