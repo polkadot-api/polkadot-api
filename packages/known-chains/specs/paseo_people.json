@@ -5,7 +5,9 @@
   "bootNodes": [
     "/dns4/boot.people-paseo.rubynodes.io/tcp/32333/p2p/12D3KooW9sqprunebThWXxoo4ckBzqvak2NkbFoR7rJVAdxnBwtg",
     "/dns4/boot.people-paseo.rubynodes.io/tcp/443/wss/p2p/12D3KooW9sqprunebThWXxoo4ckBzqvak2NkbFoR7rJVAdxnBwtg",
+    "/dns/boot.interweb-it.com/tcp/51325/wss/p2p/12D3KooWNdjH7DcGa64Qx2SjiBrRA9bbSUvxe5j2xWZL9zU1zxUf",
     "/dns/boot.interweb-it.com/tcp/51323/p2p/12D3KooWNdjH7DcGa64Qx2SjiBrRA9bbSUvxe5j2xWZL9zU1zxUf",
+    "/ip4/195.144.22.130/tcp/51323/p2p/12D3KooWNdjH7DcGa64Qx2SjiBrRA9bbSUvxe5j2xWZL9zU1zxUf",
     "/dns/boot.interweb-it.com/tcp/51333/p2p/12D3KooWKN16TDadm6K8mAJKjCiEXzjURtD2M2hzxcHEe2MpNyzC",
     "/dns/people-paseo.boot.rotko.net/tcp/443/wss/p2p/12D3KooWGrnPyuaEHTrDmnLbXD33jA9aAzwjnPUcLaP3bG2VgmLm",
     "/ip4/160.22.181.188/tcp/30333/p2p/12D3KooWGrnPyuaEHTrDmnLbXD33jA9aAzwjnPUcLaP3bG2VgmLm",

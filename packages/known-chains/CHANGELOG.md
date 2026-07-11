@@ -15,7 +15,8 @@
 - Update `paseo` relay chain spec to the substitute relay (relaunched from block 0, new genesis:
   `Paseo`, protocol-id `pad`, ss58 `42`). Add relay bootnodes as they become available.
 - Refresh `paseo_people` bootnodes to match the upstream spec: drop ten unreachable entries and
-  add rotko, turboflakes and Interweb. Same chain (unchanged genesis), bootnodes only.
+  add rotko, turboflakes and Interweb, including Interweb's `wss` endpoint on `:51325`. Same chain
+  (unchanged genesis), bootnodes only.
 - Refresh `paseo_asset_hub` bootnodes: drop the unreachable amforc entries, keep turboflakes.
   Same chain (unchanged genesis), bootnodes only.
 
