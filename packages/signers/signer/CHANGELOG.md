@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0-rc.2 - 2026-07-13
+
 ### Added
 
 - `getFakeTxCreator` export
