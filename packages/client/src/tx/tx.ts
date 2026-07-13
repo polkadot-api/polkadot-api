@@ -92,7 +92,7 @@ export const createTxEntry = <
     )
 
   return (arg?: Arg): Transaction<EC> => {
-    const create$ = <T extends TxCreator<any>>(
+    const create$ = <T extends TxCreator>(
       creator: T,
       opts: TxCreatorOptions<T, EC> | undefined,
       mockedSignature: boolean,
@@ -153,7 +153,7 @@ export const createTxEntry = <
         mergeMap((tx) => submit$(chainHead, broadcast, tx, true)),
       )
 
-    const getPaymentInfoWithOptions = async <T extends TxCreator<any>>(
+    const getPaymentInfoWithOptions = async <T extends TxCreator>(
       creator: T,
       options: TxCreatorOptions<T, EC> | undefined,
     ) => {

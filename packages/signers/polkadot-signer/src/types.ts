@@ -115,7 +115,7 @@ declare const txCreatorArgSpecs: unique symbol
 /**
  * Creates a SCALE-encoded extrinsic (ready to broadcast).
  */
-export interface TxCreator<Specs extends TxArgSpec[]> {
+export interface TxCreator<Specs extends TxArgSpec[] = TxArgSpec[]> {
   [txCreatorArgSpecs]?: Specs
   <Chain extends TxChainDefinition>(
     input: TxPayloadV1,
@@ -124,8 +124,11 @@ export interface TxCreator<Specs extends TxArgSpec[]> {
     mockedSignature: boolean,
   ): Promise<string>
 }
-export type ArgsForCreator<Creator, Chain extends TxChainDefinition> =
-  Creator extends TxCreator<infer Specs> ? ArgsForArgSpecs<Specs, Chain> : never
+export type CreatorSpecs<T> = T extends TxCreator<infer S> ? S : never
+export type ArgsForCreator<
+  Creator,
+  Chain extends TxChainDefinition,
+> = ArgsForArgSpecs<CreatorSpecs<Creator>, Chain>
 
 interface Block {
   /**
@@ -224,3 +227,5 @@ export type TxCreatorBindings = {
 export type TxCreatorEnhancer<T extends TxArgSpec[]> = <A extends TxArgSpec[]>(
   inner: TxCreator<A>,
 ) => TxCreator<[...T, ...A]>
+
+export type EnhancerSpecs<E> = E extends TxCreatorEnhancer<infer T> ? T : never

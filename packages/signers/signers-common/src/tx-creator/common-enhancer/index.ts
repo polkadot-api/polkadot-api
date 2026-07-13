@@ -1,5 +1,6 @@
 import { getLookupFromRawMetadata } from "@/lookupFromMetadata"
 import {
+  EnhancerSpecs,
   TxArgSpec,
   TxCreator,
   TxCreatorEnhancer,
@@ -17,7 +18,6 @@ import {
 
 export type { ChargeAssetTxPaymentSpec } from "./extensions"
 
-type EnhancerSpecs<E> = E extends TxCreatorEnhancer<infer T> ? T : never
 type PipeEnhancerSpecs<
   Enhancers extends readonly TxCreatorEnhancer<TxArgSpec[]>[],
   Acc extends TxArgSpec[] = [],
@@ -31,7 +31,7 @@ type PipeEnhancerSpecs<
 function pipe<Enhancers extends readonly TxCreatorEnhancer<TxArgSpec[]>[]>(
   ...enhancers: Enhancers
 ): TxCreatorEnhancer<PipeEnhancerSpecs<Enhancers>> {
-  return ((inner: TxCreator<TxArgSpec[]>) =>
+  return ((inner: TxCreator) =>
     enhancers.reduce(
       (acc, enhancer) => enhancer(acc),
       inner,

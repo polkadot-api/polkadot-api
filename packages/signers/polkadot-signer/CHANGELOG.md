@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Default generic value for `TxCreator`
+- Utility type `CreatorSpecs<T>` to extract the generic from `TxCreator`
+- Utility type `EnhancerSpecs<T>` to extract the generic from `TxCreatorEnhancer`
+
 ## 0.2.0-rc.1 - 2026-07-08
 
 ### Added

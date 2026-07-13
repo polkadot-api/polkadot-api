@@ -1,5 +1,4 @@
-import { TxCreator } from "@polkadot-api/polkadot-signer"
-import type { Opts } from "./from-pjs-account"
+import type { PjsTxCreator } from "./from-pjs-account"
 
 declare global {
   interface Window {
@@ -109,10 +108,7 @@ export interface InjectedAccount {
 }
 
 export interface InjectedPolkadotAccount {
-  txCreator: TxCreator<Opts> & {
-    publicKey: Uint8Array
-    signBytes: (data: Uint8Array) => Promise<Uint8Array>
-  }
+  txCreator: PjsTxCreator
   address: string
   genesisHash?: string | null
   name?: string

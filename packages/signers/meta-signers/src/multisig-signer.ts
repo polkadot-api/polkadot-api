@@ -27,7 +27,7 @@ const defaultMultisigTxCreatorOptions: MultisigTxCreatorOptions<unknown> = {
 
 export function getMultisigTxCreator<
   Address extends SS58String | HexString,
-  T extends TxCreator<any>,
+  T extends TxCreator,
 >(
   multisig: {
     threshold: number
@@ -78,7 +78,7 @@ export function getMultisigTxCreator<
     throw new Error("Signer is not one of the signatories of the multisig")
   }
 
-  const factory: TxCreator<any> = async (
+  const factory: TxCreator = async (
     payload,
     opts,
     bindings,

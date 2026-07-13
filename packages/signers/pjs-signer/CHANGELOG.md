@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Export type `PjsTxCreator`
+
 ## 0.8.0-rc.1 - 2026-07-08
 
 ### Changed

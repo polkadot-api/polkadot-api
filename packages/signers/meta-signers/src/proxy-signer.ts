@@ -11,14 +11,14 @@ import { WrapTxCreator } from "./wrapped-tx-creator"
 
 export type ProxyAddress = SS58String | HexString
 
-export function getProxyTxCreator<T extends TxCreator<any>>(
+export function getProxyTxCreator<T extends TxCreator>(
   proxyParams: {
     real: ProxyAddress
     type?: { type: string; value?: unknown }
   },
   txCreator: T & { publicKey: Uint8Array },
 ): WrapTxCreator<T> {
-  const factory: TxCreator<any> = async (
+  const factory: TxCreator = async (
     payload,
     opts,
     bindings,

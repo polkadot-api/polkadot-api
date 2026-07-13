@@ -7,7 +7,7 @@ import { secp256k1 } from "@noble/curves/secp256k1.js"
 import { keccak_256 } from "@noble/hashes/sha3.js"
 import { createWsClient } from "polkadot-api/ws"
 
-function getEvmTxCreator(mnemonic: string): ReturnType<typeof getTxCreator> {
+function getEvmTxCreator(mnemonic: string) {
   const seed = mnemonicToSeedSync(mnemonic, "")
   const keyPair = HDKey.fromMasterSeed(seed).derive("m/44'/60'/0'/0/0")
   const publicAddress = keccak_256(

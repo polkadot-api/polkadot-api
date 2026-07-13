@@ -1,13 +1,13 @@
-import { getTxCreator } from "polkadot-api/signer"
-import { fromHex } from "@polkadot-api/utils"
-import { Blake2256 } from "@polkadot-api/substrate-bindings"
-import Sr25519Account from "@unique-nft/sr25519"
 import { ed25519 } from "@noble/curves/ed25519.js"
 import { secp256k1 } from "@noble/curves/secp256k1.js"
+import { Blake2256 } from "@polkadot-api/substrate-bindings"
+import { fromHex } from "@polkadot-api/utils"
+import Sr25519Account from "@unique-nft/sr25519"
+import { getTxCreator, RawSignerTxCreator } from "polkadot-api/signer"
 
 const accounts: Record<
   "alice" | "bob",
-  Record<"sr25519" | "ecdsa" | "ed25519", ReturnType<typeof getTxCreator>>
+  Record<"sr25519" | "ecdsa" | "ed25519", RawSignerTxCreator>
 > = { alice: {}, bob: {} } as any
 
 ;[Sr25519Account.fromUri("//Alice"), Sr25519Account.fromUri("//Bob")].forEach(
