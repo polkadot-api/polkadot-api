@@ -4,7 +4,7 @@ import {
   TxArgSpec,
   TxCreator,
   TxCreatorEnhancer,
-} from "@polkadot-api/polkadot-signer"
+} from "@polkadot-api/tx-creator"
 import { toHex } from "@polkadot-api/utils"
 import {
   withChargeAssetTxPayment,

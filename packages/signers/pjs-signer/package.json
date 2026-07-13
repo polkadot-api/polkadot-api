@@ -32,9 +32,9 @@
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
-    "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/tx-creator": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   }

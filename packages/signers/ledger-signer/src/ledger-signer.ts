@@ -1,6 +1,6 @@
 import type Transport from "@ledgerhq/hw-transport"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { TxCreator } from "@polkadot-api/tx-creator"
 import {
   CommonEnhancersSpecs,
   createV4Tx,

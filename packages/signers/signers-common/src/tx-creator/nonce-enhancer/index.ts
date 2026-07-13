@@ -1,11 +1,11 @@
 import { getLookupFromRawMetadata } from "@/lookupFromMetadata"
+import { u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
 import {
   ArgsForArgSpecs,
   TxArgSpec,
   TxChainDefinition,
   TxCreatorEnhancer,
-} from "@polkadot-api/polkadot-signer"
-import { u16, u32, u64, u8 } from "@polkadot-api/substrate-bindings"
+} from "@polkadot-api/tx-creator"
 import { toHex } from "@polkadot-api/utils"
 import {
   catchError,

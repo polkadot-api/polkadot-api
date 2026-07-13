@@ -1,7 +1,7 @@
 import { MultiAddress, wnd } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
 import { chainSpec } from "polkadot-api/chains/westend"
-import { withMetadataHash } from "polkadot-api/signer"
+import { withMetadataHash } from "polkadot-api/tx-creator"
 import { getSmProvider } from "polkadot-api/sm-provider"
 import { start } from "polkadot-api/smoldot"
 import { getDevTxCreator } from "./signer"

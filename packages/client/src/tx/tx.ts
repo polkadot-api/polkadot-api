@@ -1,7 +1,7 @@
 import { ValueCompat } from "@/compatibility"
 import { getCallData } from "@/utils/get-call-data"
 import type { ChainHead$ } from "@polkadot-api/observable-client"
-import { TxCreator, TxCreatorBindings } from "@polkadot-api/polkadot-signer"
+import { TxCreator, TxCreatorBindings } from "@polkadot-api/tx-creator"
 import {
   _void,
   compact,

@@ -3,7 +3,7 @@ import {
   getLookupFn,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
-import { TxCreatorBindings, TxPayloadV1 } from "@polkadot-api/polkadot-signer"
+import { TxCreatorBindings, TxPayloadV1 } from "@polkadot-api/tx-creator"
 import {
   Blake2256,
   decAnyMetadata,

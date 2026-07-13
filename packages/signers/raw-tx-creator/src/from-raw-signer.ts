@@ -3,7 +3,7 @@ import {
   TxArgSpec,
   TxCreator,
   TxCreatorEnhancer,
-} from "@polkadot-api/polkadot-signer"
+} from "@polkadot-api/tx-creator"
 import {
   CommonEnhancersSpecs,
   createV4Tx,
@@ -28,7 +28,7 @@ export const getTxCreator = (
   publicKey: Uint8Array,
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
-): RawSignerTxCreator => {
+): RawTxCreator => {
   const creator: TxCreator<[]> = async (
     payload,
     _,
@@ -74,7 +74,7 @@ export const getTxCreator = (
     signBytes: getSignBytes(sign),
   })
 }
-export type RawSignerTxCreator = {
+export type RawTxCreator = {
   publicKey: Uint8Array
   signBytes: (data: Uint8Array) => Promise<Uint8Array>
 } & TxCreator<CommonEnhancersSpecs>

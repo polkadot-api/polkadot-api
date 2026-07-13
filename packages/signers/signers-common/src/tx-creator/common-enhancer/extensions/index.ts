@@ -3,6 +3,7 @@ import {
   getDynamicBuilder,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
+import { compact } from "@polkadot-api/substrate-bindings"
 import {
   ArgsForArgSpecs,
   TxArgSpec,
@@ -10,8 +11,7 @@ import {
   TxCreatorBindings,
   TxCreatorEnhancer,
   TxPayloadV1,
-} from "@polkadot-api/polkadot-signer"
-import { compact } from "@polkadot-api/substrate-bindings"
+} from "@polkadot-api/tx-creator"
 import { toHex } from "@polkadot-api/utils"
 import { firstValueFrom, skipWhile } from "rxjs"
 import { mortal } from "./mortal-enc"

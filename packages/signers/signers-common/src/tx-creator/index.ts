@@ -1,4 +1,4 @@
-import { EnhancerSpecs } from "@polkadot-api/polkadot-signer"
+import { EnhancerSpecs } from "@polkadot-api/tx-creator"
 import {
   withCommonExtensions,
   type ChargeAssetTxPaymentSpec,

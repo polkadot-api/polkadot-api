@@ -3,11 +3,11 @@ import { secp256k1 } from "@noble/curves/secp256k1.js"
 import { Blake2256 } from "@polkadot-api/substrate-bindings"
 import { fromHex } from "@polkadot-api/utils"
 import Sr25519Account from "@unique-nft/sr25519"
-import { getTxCreator, RawSignerTxCreator } from "polkadot-api/signer"
+import { getTxCreator, RawTxCreator } from "polkadot-api/tx-creator"
 
 const accounts: Record<
   "alice" | "bob",
-  Record<"sr25519" | "ecdsa" | "ed25519", RawSignerTxCreator>
+  Record<"sr25519" | "ecdsa" | "ed25519", RawTxCreator>
 > = { alice: {}, bob: {} } as any
 
 ;[Sr25519Account.fromUri("//Alice"), Sr25519Account.fromUri("//Bob")].forEach(

@@ -17,7 +17,7 @@ export type {
   TxEntry,
 } from "./tx"
 export type { EventPhase } from "./event"
-export type { TxCreator } from "@polkadot-api/polkadot-signer"
+export type { TxCreator } from "@polkadot-api/tx-creator"
 export type {
   PolkadotClient,
   TransactionValidityError,

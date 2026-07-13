@@ -1,6 +1,6 @@
 import { mnemonicToSeedSync } from "@scure/bip39"
 import { HDKey } from "@scure/bip32"
-import { getTxCreator } from "polkadot-api/signer"
+import { getTxCreator } from "polkadot-api/tx-creator"
 import { Binary } from "polkadot-api"
 import { myth } from "@polkadot-api/descriptors"
 import { secp256k1 } from "@noble/curves/secp256k1.js"

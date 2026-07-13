@@ -5,7 +5,7 @@ import {
   ArgsForCreator,
   CreatorSpecs,
   TxCreator,
-} from "@polkadot-api/polkadot-signer"
+} from "@polkadot-api/tx-creator"
 import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 

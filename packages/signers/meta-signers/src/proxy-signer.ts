@@ -1,5 +1,5 @@
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { TxCreator } from "@polkadot-api/tx-creator"
 import {
   getSs58AddressInfo,
   HexString,

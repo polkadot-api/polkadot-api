@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Renamed package to `@polkadot-api/tx-creator`
+
 ### Added
 
 - Default generic value for `TxCreator`

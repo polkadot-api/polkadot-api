@@ -1,4 +1,4 @@
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { TxCreator } from "@polkadot-api/tx-creator"
 import {
   AccountId,
   Blake2256,
