@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0-rc.3 - 2026-07-14
+
 ### Changed
 
 - Renamed package to `@polkadot-api/raw-tx-creator`

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.0.0-rc.3 - 2026-07-14
+
 ### Changed
 
 - BREAKING: Renamed `polkadot-api/signer` to `polkadot-api/tx-creator`
