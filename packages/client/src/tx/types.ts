@@ -1,7 +1,11 @@
 import { PlainDescriptor } from "@/descriptors"
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
-import { ArgsForCreator, TxCreator } from "@polkadot-api/polkadot-signer"
+import {
+  ArgsForCreator,
+  CreatorSpecs,
+  TxCreator,
+} from "@polkadot-api/tx-creator"
 import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
@@ -72,14 +76,14 @@ export type TxFinalized = {
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
 
 type UncoveredRequiredExtensions<
-  TxC extends TxCreator<any>,
+  TxC extends TxCreator,
   EC extends ExtensionConstraints,
 > = Exclude<
   EC["requiredExtensions"]["_type"],
-  (TxC extends TxCreator<infer Specs> ? Specs[number]["id"] : never) | undefined
+  CreatorSpecs<TxC>[number]["id"] | undefined
 >
 type UncoveredRequiredExtensionArgs<
-  TxC extends TxCreator<any>,
+  TxC extends TxCreator,
   EC extends ExtensionConstraints,
 > = {
   [K in UncoveredRequiredExtensions<TxC, EC>]: EC["extensions"][K]
@@ -93,7 +97,7 @@ type Optionalize<T> =
       : { customSignedExtensions: T }
 
 export type TxCreatorOptions<
-  T extends TxCreator<any>,
+  T extends TxCreator,
   EC extends ExtensionConstraints,
 > = Simplify<
   ArgsForCreator<T, EC> &
@@ -108,7 +112,7 @@ type OptionalizeArgs<T> =
       ? [txOptions?: T]
       : [txOptions: T]
 type TxCreatorOptionsArg<
-  T extends TxCreator<any>,
+  T extends TxCreator,
   EC extends ExtensionConstraints,
 > = OptionalizeArgs<TxCreatorOptions<T, EC>>
 
@@ -139,7 +143,7 @@ export type Transaction<EC extends ExtensionConstraints> = {
    * @param txOptions  Transaction creator options.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  create<T extends TxCreator<any>>(
+  create<T extends TxCreator>(
     creator: T,
     ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<Uint8Array>
@@ -154,7 +158,7 @@ export type Transaction<EC extends ExtensionConstraints> = {
    * @param txOptions  Transaction creator options.
    * @returns Observable to the transaction.
    */
-  createSubmitAndWatch<T extends TxCreator<any>>(
+  createSubmitAndWatch<T extends TxCreator>(
     creator: T,
     ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Observable<TxEvent>
@@ -169,7 +173,7 @@ export type Transaction<EC extends ExtensionConstraints> = {
    * @param txOptions  Transaction creator options.
    * @returns Finalized transaction information.
    */
-  createAndSubmit<T extends TxCreator<any>>(
+  createAndSubmit<T extends TxCreator>(
     creator: T,
     ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<TxFinalizedPayload>
@@ -196,7 +200,7 @@ export type Transaction<EC extends ExtensionConstraints> = {
    * @param txOptions  Transaction creator options.
    * @returns Fees in fundamental units.
    */
-  getEstimatedFees<T extends TxCreator<any>>(
+  getEstimatedFees<T extends TxCreator>(
     creator: T,
     ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<bigint>
@@ -209,7 +213,7 @@ export type Transaction<EC extends ExtensionConstraints> = {
    * @returns PaymentInfo for the given transaction (weight, estimated fees
    *          and class).
    */
-  getPaymentInfo<T extends TxCreator<any>>(
+  getPaymentInfo<T extends TxCreator>(
     creator: T,
     ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<PaymentInfo>
@@ -247,7 +251,7 @@ export type OfflineTxEntry<
    * @param txOptions  Transaction creator options.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  create: <T extends TxCreator<any>>(
+  create: <T extends TxCreator>(
     creator: T,
     txOptions: TxCreatorOptions<T, EC> & { nonce: number },
   ) => Promise<Uint8Array>

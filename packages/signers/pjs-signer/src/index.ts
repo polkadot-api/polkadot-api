@@ -1,3 +1,3 @@
 export * from "./injected-extensions"
-export { getTxCreatorFromPjs } from "./from-pjs-account"
-export type { SignPayload, SignerPayloadJSON, SignRaw } from "./types"
+export { getTxCreatorFromPjs, type PjsTxCreator } from "./from-pjs-account"
+export type { SignerPayloadJSON, SignPayload, SignRaw } from "./types"

@@ -393,12 +393,9 @@ importers:
       '@polkadot-api/pjs-signer':
         specifier: workspace:*
         version: link:../signers/pjs-signer
-      '@polkadot-api/polkadot-signer':
+      '@polkadot-api/raw-tx-creator':
         specifier: workspace:*
-        version: link:../signers/polkadot-signer
-      '@polkadot-api/signer':
-        specifier: workspace:*
-        version: link:../signers/signer
+        version: link:../signers/raw-tx-creator
       '@polkadot-api/signers-common':
         specifier: workspace:*
         version: link:../signers/signers-common
@@ -414,6 +411,9 @@ importers:
       '@polkadot-api/substrate-client':
         specifier: workspace:*
         version: link:../substrate-client
+      '@polkadot-api/tx-creator':
+        specifier: workspace:*
+        version: link:../signers/tx-creator
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../utils
@@ -732,15 +732,15 @@ importers:
       '@polkadot-api/merkleize-metadata':
         specifier: workspace:*
         version: link:../../merkleize-metadata
-      '@polkadot-api/polkadot-signer':
-        specifier: workspace:*
-        version: link:../polkadot-signer
       '@polkadot-api/signers-common':
         specifier: workspace:*
         version: link:../signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
+      '@polkadot-api/tx-creator':
+        specifier: workspace:*
+        version: link:../tx-creator
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
@@ -754,15 +754,15 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../../metadata-builders
-      '@polkadot-api/polkadot-signer':
-        specifier: workspace:*
-        version: link:../polkadot-signer
       '@polkadot-api/signers-common':
         specifier: workspace:*
         version: link:../signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
+      '@polkadot-api/tx-creator':
+        specifier: workspace:*
+        version: link:../tx-creator
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
@@ -775,26 +775,20 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../../metadata-builders
-      '@polkadot-api/polkadot-signer':
-        specifier: workspace:*
-        version: link:../polkadot-signer
       '@polkadot-api/signers-common':
         specifier: workspace:*
         version: link:../signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
+      '@polkadot-api/tx-creator':
+        specifier: workspace:*
+        version: link:../tx-creator
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
 
-  packages/signers/polkadot-signer:
-    devDependencies:
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
-
-  packages/signers/signer:
+  packages/signers/raw-tx-creator:
     dependencies:
       '@noble/hashes':
         specifier: ^2.2.0
@@ -805,15 +799,15 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../../metadata-builders
-      '@polkadot-api/polkadot-signer':
-        specifier: workspace:*
-        version: link:../polkadot-signer
       '@polkadot-api/signers-common':
         specifier: workspace:*
         version: link:../signers-common
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
+      '@polkadot-api/tx-creator':
+        specifier: workspace:*
+        version: link:../tx-creator
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
@@ -830,12 +824,12 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../../metadata-builders
-      '@polkadot-api/polkadot-signer':
-        specifier: workspace:*
-        version: link:../polkadot-signer
       '@polkadot-api/substrate-bindings':
         specifier: workspace:*
         version: link:../../substrate-bindings
+      '@polkadot-api/tx-creator':
+        specifier: workspace:*
+        version: link:../tx-creator
       '@polkadot-api/utils':
         specifier: workspace:*
         version: link:../../utils
@@ -843,6 +837,12 @@ importers:
       '@noble/curves':
         specifier: ^2.2.0
         version: 2.2.0
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
+
+  packages/signers/tx-creator:
+    devDependencies:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2

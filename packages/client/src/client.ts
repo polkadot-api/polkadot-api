@@ -5,7 +5,7 @@ import {
   getObservableClient,
   withArchive,
 } from "@polkadot-api/observable-client"
-import { TxCreatorBindings } from "@polkadot-api/polkadot-signer"
+import { TxCreatorBindings } from "@polkadot-api/tx-creator"
 import { Binary, HexString } from "@polkadot-api/substrate-bindings"
 import {
   SubstrateClient,

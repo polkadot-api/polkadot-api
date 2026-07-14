@@ -1,6 +1,6 @@
 import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
 import { DEV_MINI_SECRET } from "@polkadot-labs/hdkd-helpers"
-import { getTxCreator } from "polkadot-api/signer"
+import { getTxCreator } from "polkadot-api/tx-creator"
 
 export const BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
 export const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"

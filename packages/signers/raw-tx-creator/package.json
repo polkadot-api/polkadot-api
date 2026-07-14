@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/signer",
+  "name": "@polkadot-api/raw-tx-creator",
   "version": "0.4.0-rc.2",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
@@ -38,9 +38,9 @@
     "@noble/hashes": "^2.2.0",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/merkleize-metadata": "workspace:*",
-    "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/tx-creator": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {

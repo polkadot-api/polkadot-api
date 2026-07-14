@@ -1,5 +1,6 @@
-import { TxCreator } from "@polkadot-api/polkadot-signer"
+import { TxCreator } from "@polkadot-api/tx-creator"
 import {
+  CommonEnhancersSpecs,
   createV4Tx,
   withCommonExtensions,
   withNonce,
@@ -26,12 +27,17 @@ const TYPE_MAP: Record<KeypairType, Parameters<typeof createV4Tx>[5]> = {
 const SR_MOCK = "0x" + "0".repeat(128)
 const ECDSA_MOCK = SR_MOCK + "00"
 
+export type PjsTxCreator = {
+  publicKey: Uint8Array
+  signBytes: (data: Uint8Array) => Promise<Uint8Array>
+} & TxCreator<CommonEnhancersSpecs>
+
 export function getTxCreatorFromPjs(
   address: string,
   signPayload: SignPayload,
   signRaw: SignRaw,
   type?: KeypairType,
-) {
+): PjsTxCreator {
   const signBytes = (data: Uint8Array) =>
     signRaw({
       address,
@@ -114,6 +120,3 @@ export function getTxCreatorFromPjs(
     signBytes,
   })
 }
-
-export type Opts =
-  ReturnType<typeof getTxCreatorFromPjs> extends TxCreator<infer O> ? O : never

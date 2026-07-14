@@ -4,7 +4,7 @@ import {
   entropyToMiniSecret,
   mnemonicToEntropy,
 } from "@polkadot-labs/hdkd-helpers"
-import { getTxCreator } from "polkadot-api/signer"
+import { getTxCreator } from "polkadot-api/tx-creator"
 
 const miniSecret = entropyToMiniSecret(mnemonicToEntropy(DEV_PHRASE))
 const derive = sr25519CreateDerive(miniSecret)

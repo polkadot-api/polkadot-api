@@ -37,7 +37,7 @@ import { appendFileSync } from "fs"
 import { withLogs } from "./with-logs"
 import { getInnerLogs } from "./inner-logs"
 import { getExtrinsicDecoder } from "@polkadot-api/tx-utils"
-import { getFakeTxCreator } from "polkadot-api/signer"
+import { getFakeTxCreator } from "polkadot-api/tx-creator"
 
 // The retrial system is needed because often the `sync_state_genSyncSpec`
 // request fails immediately after starting zombienet.

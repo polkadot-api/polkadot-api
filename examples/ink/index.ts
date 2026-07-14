@@ -2,7 +2,7 @@ import { contracts, MultiAddress, testAzero } from "@polkadot-api/descriptors"
 import { sr25519CreateDerive } from "@polkadot-labs/hdkd"
 import { DEV_MINI_SECRET } from "@polkadot-labs/hdkd-helpers"
 import { getInkClient } from "polkadot-api/ink"
-import { getTxCreator } from "polkadot-api/signer"
+import { getTxCreator } from "polkadot-api/tx-creator"
 import { toHex } from "polkadot-api/utils"
 import { createWsClient } from "polkadot-api/ws"
 

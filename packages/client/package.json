@@ -36,11 +36,11 @@
       "import": "./dist/reexports/pjs-signer.js",
       "default": "./dist/reexports/pjs-signer.js"
     },
-    "./signer": {
-      "types": "./dist/reexports/signer.d.ts",
-      "module": "./dist/reexports/signer.js",
-      "import": "./dist/reexports/signer.js",
-      "default": "./dist/reexports/signer.js"
+    "./tx-creator": {
+      "types": "./dist/reexports/tx-creator.d.ts",
+      "module": "./dist/reexports/tx-creator.js",
+      "import": "./dist/reexports/tx-creator.js",
+      "default": "./dist/reexports/tx-creator.js"
     },
     "./sm-provider": {
       "types": "./dist/reexports/sm-provider.d.ts",
@@ -100,7 +100,7 @@
     "bin",
     "logs-provider",
     "pjs-signer",
-    "signer",
+    "tx-creator",
     "sm-provider",
     "chains",
     "smoldot",
@@ -128,8 +128,8 @@
     "@polkadot-api/metadata-compatibility": "workspace:*",
     "@polkadot-api/observable-client": "workspace:*",
     "@polkadot-api/pjs-signer": "workspace:*",
-    "@polkadot-api/polkadot-signer": "workspace:*",
-    "@polkadot-api/signer": "workspace:*",
+    "@polkadot-api/raw-tx-creator": "workspace:*",
+    "@polkadot-api/tx-creator": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/sm-provider": "workspace:*",
     "@polkadot-api/smoldot": "workspace:*",

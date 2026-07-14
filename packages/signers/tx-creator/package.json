@@ -1,5 +1,5 @@
 {
-  "name": "@polkadot-api/polkadot-signer",
+  "name": "@polkadot-api/tx-creator",
   "version": "0.2.0-rc.1",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
