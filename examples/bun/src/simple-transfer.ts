@@ -32,7 +32,7 @@ const transfer = api.tx.Balances.transfer_allow_death({
 transfer.createSubmitAndWatch(alice).subscribe({
   next: (e) => {
     console.log(e.type)
-    if (e.type === "txBestBlocksState") {
+    if (e.type === "inBestBlock") {
       console.log("The tx is now in a best block, check it out:")
       console.log(`https://westend.subscan.io/extrinsic/${e.txHash}`)
     }
