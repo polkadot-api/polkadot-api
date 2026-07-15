@@ -76,6 +76,11 @@
       "module": "./dist/specs/paseo_asset_hub/paseo_asset_hub.js",
       "import": "./dist/specs/paseo_asset_hub/paseo_asset_hub.js"
     },
+    "./paseo_bulletin": {
+      "types": "./dist/specs/paseo_bulletin/paseo_bulletin.d.ts",
+      "module": "./dist/specs/paseo_bulletin/paseo_bulletin.js",
+      "import": "./dist/specs/paseo_bulletin/paseo_bulletin.js"
+    },
     "./polkadot_coretime": {
       "types": "./dist/specs/polkadot_coretime/polkadot_coretime.d.ts",
       "module": "./dist/specs/polkadot_coretime/polkadot_coretime.js",
@@ -150,6 +155,7 @@
     "kusama_encointer",
     "westend_bridge_hub",
     "paseo_asset_hub",
+    "paseo_bulletin",
     "polkadot_coretime",
     "polkadot_asset_hub",
     "westend_people",
