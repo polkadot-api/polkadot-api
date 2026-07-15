@@ -6,7 +6,9 @@
     "/dns/bulletin-paseo.faradaynodes.com/tcp/35503/p2p/12D3KooWRVrepgbKXa8qUq1NAR6ehqZr1tZZK8Y7NynaruNJy9gA",
     "/dns/bulletin-paseo.faradaynodes.com/tcp/35507/wss/p2p/12D3KooWRVrepgbKXa8qUq1NAR6ehqZr1tZZK8Y7NynaruNJy9gA",
     "/dns/paseo-bulletin-bootnode.bestvalidator.com/tcp/49043/p2p/12D3KooWGM3gLv9wwZicmEbh57jV1ZuCa23rYW3pXEp2B76UTZvk",
-    "/dns/paseo-bulletin-bootnode.bestvalidator.com/tcp/30345/wss/p2p/12D3KooWGM3gLv9wwZicmEbh57jV1ZuCa23rYW3pXEp2B76UTZvk"
+    "/dns/paseo-bulletin-bootnode.bestvalidator.com/tcp/30345/wss/p2p/12D3KooWGM3gLv9wwZicmEbh57jV1ZuCa23rYW3pXEp2B76UTZvk",
+    "/dns/bulletin-devnet.api.polkadotcommunity.foundation/tcp/30333/p2p/12D3KooWMot7yXhgPpprU4BG9abQN4P32zeaQLUtBYcj3aKa5FP1",
+    "/dns/bulletin-devnet.api.polkadotcommunity.foundation/tcp/443/wss/p2p/12D3KooWMot7yXhgPpprU4BG9abQN4P32zeaQLUtBYcj3aKa5FP1"
   ],
   "telemetryEndpoints": null,
   "protocolId": "bl-pas",
