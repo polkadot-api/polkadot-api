@@ -4,10 +4,15 @@
 
 ### Changed
 
-- Bring the Paseo specs in line with the relaunched testnet, mirroring the upstream
-  `paseo-network/paseo-chain-specs`: point `paseo` at the substitute relay (new genesis from
-  block 0 — `Paseo`, protocol-id `pad`, ss58 `42`), add `paseo_bulletin` (para `1010`), correct
-  `ss58Format` to `42` on `paseo_people` and `paseo_asset_hub`, and refresh their bootnodes.
+- Bring the Paseo specs in line with the relaunched testnet, mirroring the upstream `paseo-network/paseo-chain-specs`
+  - Point `paseo` at the substitute relay (new genesis from block 0 — `Paseo`, protocol-id `pad`, ss58 `42`)
+  - Add `paseo_bulletin` (para `1010`)
+  - Correct `ss58Format` to `42` on `paseo_people` and `paseo_asset_hub`
+  - Refresh their bootnodes.
+
+### Fixed
+
+- Removed unreachable bootnodes from kusama, polkadot and westend chains.
 
 ## 0.11.7 - 2026-07-07
 

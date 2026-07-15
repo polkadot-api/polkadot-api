@@ -66,6 +66,11 @@
       "module": "./dist/specs/kusama_encointer/kusama_encointer.js",
       "import": "./dist/specs/kusama_encointer/kusama_encointer.js"
     },
+    "./paseo_bulletin": {
+      "types": "./dist/specs/paseo_bulletin/paseo_bulletin.d.ts",
+      "module": "./dist/specs/paseo_bulletin/paseo_bulletin.js",
+      "import": "./dist/specs/paseo_bulletin/paseo_bulletin.js"
+    },
     "./westend_bridge_hub": {
       "types": "./dist/specs/westend_bridge_hub/westend_bridge_hub.d.ts",
       "module": "./dist/specs/westend_bridge_hub/westend_bridge_hub.js",
@@ -75,11 +80,6 @@
       "types": "./dist/specs/paseo_asset_hub/paseo_asset_hub.d.ts",
       "module": "./dist/specs/paseo_asset_hub/paseo_asset_hub.js",
       "import": "./dist/specs/paseo_asset_hub/paseo_asset_hub.js"
-    },
-    "./paseo_bulletin": {
-      "types": "./dist/specs/paseo_bulletin/paseo_bulletin.d.ts",
-      "module": "./dist/specs/paseo_bulletin/paseo_bulletin.js",
-      "import": "./dist/specs/paseo_bulletin/paseo_bulletin.js"
     },
     "./polkadot_coretime": {
       "types": "./dist/specs/polkadot_coretime/polkadot_coretime.d.ts",
@@ -153,9 +153,9 @@
     "kusama_people",
     "paseo",
     "kusama_encointer",
+    "paseo_bulletin",
     "westend_bridge_hub",
     "paseo_asset_hub",
-    "paseo_bulletin",
     "polkadot_coretime",
     "polkadot_asset_hub",
     "westend_people",
