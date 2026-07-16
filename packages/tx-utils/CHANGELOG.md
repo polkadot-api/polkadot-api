@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-07-16
+
+### Changed
+
+- Allow `getTxHelper` to support custom extensions.
+
 ## 0.4.0 - 2026-07-15
 
 ### Changed
