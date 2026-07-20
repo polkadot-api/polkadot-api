@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-07-20
+
+### Fixed
+
+- Exponential backoff not working if connection handshake fails after a delay.
+
 ## 0.4.0 - 2026-04-07
 
 ### Changed

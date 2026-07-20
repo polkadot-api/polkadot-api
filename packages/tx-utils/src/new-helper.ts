@@ -9,28 +9,17 @@ import {
   u16,
   u32,
   u8,
+  UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { getMetadata } from "./get-metadata"
 import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import { SignerPayloadJSON, TxInputDecoded, TxInputsRaw } from "./types"
 import { fromPjsToTxData } from "./from-pjs-to-tx-data"
 import { SignedExtension } from "./signed-extensions/internal-types"
-import {
-  CheckGenesis,
-  CheckMetadataHash,
-  CheckNonce,
-  CheckSpecVersion,
-  CheckTxVersion,
-} from "./signed-extensions/chain"
-import {
-  ChargeAssetTxPayment,
-  ChargeTransactionPayment,
-  CheckMortality,
-} from "./signed-extensions/user"
-import { EMPTY_SIGNED_EXTENSION } from "./signed-extensions/utils"
-import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
+import { fromHex, mapObject, mergeUint8, toHex } from "@polkadot-api/utils"
 import { createV4Tx } from "@polkadot-api/signers-common"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
+import { getSignedExtensionParts } from "./signed-extensions"
 
 const getHeightStart = (
   { period, phase }: { period: number; phase: number },
@@ -50,7 +39,19 @@ const mortalityDec = createDecoder((value) => {
 
 export const getTxHelper = (
   metadataRaw: HexString,
-  token?: { decimals: number; tokenSymbol: string },
+  {
+    token,
+    customExtensionMappers,
+  }: Partial<{
+    token: { decimals: number; tokenSymbol: string }
+    customExtensionMappers?: Record<
+      string,
+      (ctx: {
+        pjsPayload: SignerPayloadJSON
+        unifiedMeta: UnifiedMetadata
+      }) => SignedExtension
+    >
+  }> = {},
 ) => {
   const metadata = getMetadata(metadataRaw)
   const metadataHash = token
@@ -91,51 +92,26 @@ export const getTxHelper = (
   const fromPjsToInputRaw = (
     pjsPayload: SignerPayloadJSON,
   ): { input: TxInputsRaw; blockNumber: number } => {
-    const { tip, mortality, genesisHash, nonce, asset } = fromPjsToTxData(
-      lookup.metadata,
-      pjsPayload,
+    const data = fromPjsToTxData(lookup.metadata, pjsPayload)
+    if (metadataHash) data.metadataHash = metadataHash
+
+    const { extensions } = getSignedExtensionParts(
+      lookup,
+      dynamicBuilder,
+      data,
+      mapObject(customExtensionMappers || {}, (fn) =>
+        fn({ pjsPayload, unifiedMeta: lookup.metadata }),
+      ),
     )
-
-    const signedExtensions =
-      lookup.metadata.extrinsic.extensionsByVersion[0].map(
-        ({ identifier, type, additionalSigned }): SignedExtension => {
-          switch (identifier) {
-            case "CheckGenesis":
-              return CheckGenesis(genesisHash)
-            case "CheckMetadataHash":
-              return CheckMetadataHash(metadataHash)
-            case "CheckNonce":
-              return CheckNonce(nonce)
-            case "CheckSpecVersion":
-              return CheckSpecVersion(lookup)
-            case "ChargeAssetTxPayment":
-              return ChargeAssetTxPayment(tip, asset)
-            case "ChargeTransactionPayment":
-              return ChargeTransactionPayment(tip)
-            case "CheckMortality":
-              return CheckMortality(mortality)
-            case "CheckTxVersion":
-              return CheckTxVersion(lookup)
-          }
-
-          if (
-            dynamicBuilder.buildDefinition(type) === _void &&
-            dynamicBuilder.buildDefinition(additionalSigned) === _void
-          )
-            return EMPTY_SIGNED_EXTENSION
-          throw new Error(`Unsupported signed-extension: ${identifier}`)
-        },
-      )
 
     return {
       input: {
         callData: fromHex(pjsPayload.method),
-        extensions: signedExtensions.map(
-          ({ value: extra, additionalSigned }, idx) => ({
-            id: lookup.metadata.extrinsic.extensionsByVersion[0][idx]
-              .identifier,
-            extra,
-            additionalSigned,
+        extensions: lookup.metadata.extrinsic.extensionsByVersion[0].map(
+          (x, idx) => ({
+            id: x.identifier,
+            extra: extensions[idx].value,
+            additionalSigned: extensions[idx].additionalSigned,
           }),
         ),
       },

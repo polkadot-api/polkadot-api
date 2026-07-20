@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.0.0-rc.4 - 2026-07-20
+
 ### Changed
 
 - BREAKING: Split TxEvent `{ type: 'txBestBlocksState', found: boolean }` into `inBestBlock` and `notInBestBlock`
@@ -35,6 +37,20 @@
 - BREAKING: `getPaymentInfo` and `getEstimatedFees` now take a `TxCreator` instead of an account address or public key.
 - BREAKING: Offline transaction entries now use `create` instead of `sign`.
 - BREAKING: `ChainDefinition` now includes all extensions and descriptors include "non-default extensions"
+
+## 2.2.0 - 2026-07-20
+
+### Changed
+
+- **known-chains**
+  - Bring the Paseo specs in line with the relaunched testnet, mirroring the upstream `paseo-network/paseo-chain-specs`
+
+### Fixed
+
+- Exponential backoff not working if connection handshake fails after a delay.
+
+- **known-chains**
+  - Removed unreachable bootnodes from kusama, polkadot and westend chains.
 
 ## 2.1.8 - 2026-07-07
 
