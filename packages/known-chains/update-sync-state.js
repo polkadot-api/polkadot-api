@@ -6,7 +6,7 @@ const CHAINS = {
   polkadot: "wss://rpc.polkadot.io",
   kusama: "wss://kusama-rpc.polkadot.io",
   westend: "wss://westend-rpc.polkadot.io",
-  paseo: "wss://paseo-rpc.n.dwellir.com",
+  paseo: "wss://rpc-paseo.stakeworld.io",
 }
 
 const main = async () => {
