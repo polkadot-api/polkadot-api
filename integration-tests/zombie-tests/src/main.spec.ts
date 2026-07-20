@@ -406,7 +406,7 @@ describe("E2E", async () => {
 
     await lastValueFrom(
       transfer.createSubmitAndWatch(alice).pipe(
-        filter((e) => e.type === "txBestBlocksState" && e.found),
+        filter((e) => e.type === "inBestBlock"),
         switchMap(() => transfer.createSubmitAndWatch(alice)),
       ),
     )

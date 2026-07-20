@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+- BREAKING: Split TxEvent `{ type: 'txBestBlocksState', found: boolean }` into `inBestBlock` and `notInBestBlock`
+- BREAKING: Replace TxEvent `type: 'signed'` for `type: 'created'`
+
+### Fixed
+
+- Add default generic type to `Transaction`
+
 ## 3.0.0-rc.3 - 2026-07-14
 
 ### Changed

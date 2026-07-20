@@ -1,35 +1,30 @@
 import { PlainDescriptor } from "@/descriptors"
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
+import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import {
   ArgsForCreator,
   CreatorSpecs,
   TxCreator,
 } from "@polkadot-api/tx-creator"
-import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { Observable } from "rxjs"
 
-export type TxEvent = TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
-export type TxBroadcastEvent =
-  TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
+export type TxEvent =
+  TxCreated | TxBroadcasted | TxInBestBlock | TxNotInBestBlock | TxFinalized
 
-export type TxSigned = { type: "signed"; txHash: HexString }
+export type TxCreated = { type: "created"; txHash: HexString }
 
 export type TxBroadcasted = { type: "broadcasted"; txHash: HexString }
 
-export type TxBestBlocksState = {
-  type: "txBestBlocksState"
+export type TxInBestBlock = {
+  type: "inBestBlock"
   txHash: HexString
-} & (TxInBestBlocksNotFound | TxInBestBlocksFound)
-
-export type TxInBestBlocksNotFound = {
-  found: false
-  isValid: boolean
-}
-
-export type TxInBestBlocksFound = {
-  found: true
 } & TxEventsPayload
+
+export type TxNotInBestBlock = {
+  type: "notInBestBlock"
+  txHash: HexString
+}
 
 export type FlattenedEvent = SystemEvent & SystemEvent["event"]
 
@@ -134,7 +129,9 @@ export type ExtensionConstraints = {
   requiredExtensions: PlainDescriptor<string>
 }
 
-export type Transaction<EC extends ExtensionConstraints> = {
+export type Transaction<
+  EC extends ExtensionConstraints = ExtensionConstraints,
+> = {
   /**
    * Creates a signed transaction asynchronously. If the creator fails (or the
    * user cancels the signature) it'll throw an error.

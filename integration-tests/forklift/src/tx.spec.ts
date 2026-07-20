@@ -34,9 +34,7 @@ describe("tx", () => {
     await getMacroTask()
 
     let latestEvent = await firstValueFrom(obs)
-    expect(latestEvent.type === "txBestBlocksState" && latestEvent.found).toBe(
-      true,
-    )
+    expect(latestEvent.type === "inBestBlock").toBe(true)
 
     const forkedBlock = await forklift.newBlock({
       parent: bestBlock.hash,
@@ -51,9 +49,7 @@ describe("tx", () => {
     await getMacroTask()
 
     latestEvent = await firstValueFrom(obs)
-    expect(latestEvent.type === "txBestBlocksState" && !latestEvent.found).toBe(
-      true,
-    )
+    expect(latestEvent.type === "notInBestBlock").toBe(true)
 
     sub.unsubscribe()
   })

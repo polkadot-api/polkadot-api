@@ -19,7 +19,7 @@ import { StorageEntry } from "./storage"
 import type {
   ExtensionConstraints,
   OfflineTxEntry,
-  TxBroadcastEvent,
+  TxEvent,
   TxEntry,
   TxFinalizedPayload,
   TxFromBinary,
@@ -344,7 +344,7 @@ export interface PolkadotClient {
   submitAndWatch: (
     transaction: Uint8Array,
     at?: HexString,
-  ) => Observable<TxBroadcastEvent>
+  ) => Observable<TxEvent>
 
   /**
    * Returns an instance of a `TypedApi`.
