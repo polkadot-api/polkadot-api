@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Exponential backoff not working if connection handshake fails after a delay.
+
 ## 2.1.8 - 2026-07-07
 
 ### Fixed
