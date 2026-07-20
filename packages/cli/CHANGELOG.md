@@ -2,13 +2,17 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update dependencies
+
 ## 0.21.8-rc.1 - 2026-07-08
 
 ### Fixed
 
 - Update dependencies
 
-## 0.21.2 to 0.21.7 - 2026-07-07
+## 0.21.2 to 0.21.8 - 2026-07-20
 
 ### Fixed
 

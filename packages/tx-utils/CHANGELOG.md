@@ -2,13 +2,17 @@
 
 ## Unreleased
 
-## 0.4.0-rc.1 to 0.4.0-rc.2 - 2026-07-14
-
 ### Fixed
 
 - Update dependencies
 
-## 0.4.0 - 2026-XX-XX
+## 0.5.0 - 2026-07-16
+
+### Changed
+
+- Allow `getTxHelper` to support custom extensions.
+
+## 0.4.0 - 2026-07-15
 
 ### Changed
 

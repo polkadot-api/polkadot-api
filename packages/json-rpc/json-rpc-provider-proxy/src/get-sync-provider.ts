@@ -12,7 +12,6 @@ export const getSyncProvider =
   ): JsonRpcProvider =>
   (onMessage) => {
     let proxy: ConnectableJsonRpcConnection | null = getProxy(onMessage)
-    let lastHalt = Date.now()
     let consecutiveHalts = 0
     let token: any
     const getWaitTime = () =>
@@ -29,17 +28,20 @@ export const getSyncProvider =
           else if (proxy)
             proxy.connect((onMsg, onHalt) => {
               let isOn = true
-              return cb(onMsg, (e) => {
-                if (isOn) {
-                  isOn = false
-                  const diff = Date.now() - lastHalt
-                  consecutiveHalts +=
-                    diff > WAIT_BASE + getWaitTime() ? -consecutiveHalts : 1
-                  lastHalt += diff
-                  onHalt(e)
-                  start()
-                }
-              })
+              return cb(
+                (msg) => {
+                  consecutiveHalts = 0
+                  onMsg(msg)
+                },
+                (e) => {
+                  if (isOn) {
+                    isOn = false
+                    consecutiveHalts++
+                    onHalt(e)
+                    start()
+                  }
+                },
+              )
             })
         })
         if (isWaiting) stop = result

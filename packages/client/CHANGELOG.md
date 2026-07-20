@@ -36,6 +36,20 @@
 - BREAKING: Offline transaction entries now use `create` instead of `sign`.
 - BREAKING: `ChainDefinition` now includes all extensions and descriptors include "non-default extensions"
 
+## 2.2.0 - 2026-07-20
+
+### Changed
+
+- **known-chains**
+  - Bring the Paseo specs in line with the relaunched testnet, mirroring the upstream `paseo-network/paseo-chain-specs`
+
+### Fixed
+
+- Exponential backoff not working if connection handshake fails after a delay.
+
+- **known-chains**
+  - Removed unreachable bootnodes from kusama, polkadot and westend chains.
+
 ## 2.1.8 - 2026-07-07
 
 ### Fixed

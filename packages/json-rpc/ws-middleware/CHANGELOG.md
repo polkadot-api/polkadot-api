@@ -2,7 +2,17 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update dependencies
+
 ## 0.3.6-rc.1 - 2026-07-08
+
+### Fixed
+
+- Update dependencies
+
+## 0.3.6 - 2026-07-20
 
 ### Fixed
 
