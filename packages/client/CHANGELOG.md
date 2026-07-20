@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.0.0-rc.4 - 2026-07-20
+
 ### Changed
 
 - BREAKING: Split TxEvent `{ type: 'txBestBlocksState', found: boolean }` into `inBestBlock` and `notInBestBlock`
