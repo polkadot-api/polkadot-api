@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.12.0 - 2026-07-20
+
 ### Changed
 
 - Bring the Paseo specs in line with the relaunched testnet, mirroring the upstream `paseo-network/paseo-chain-specs`
