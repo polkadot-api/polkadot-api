@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/known-chains",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
@@ -21,35 +21,30 @@
       "module": "./dist/index.js",
       "import": "./dist/index.js"
     },
-    "./polkadot_collectives": {
-      "types": "./dist/specs/polkadot_collectives/polkadot_collectives.d.ts",
-      "module": "./dist/specs/polkadot_collectives/polkadot_collectives.js",
-      "import": "./dist/specs/polkadot_collectives/polkadot_collectives.js"
-    },
-    "./polkadot_bridge_hub": {
-      "types": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.d.ts",
-      "module": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.js",
-      "import": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.js"
-    },
-    "./westend_asset_hub": {
-      "types": "./dist/specs/westend_asset_hub/westend_asset_hub.d.ts",
-      "module": "./dist/specs/westend_asset_hub/westend_asset_hub.js",
-      "import": "./dist/specs/westend_asset_hub/westend_asset_hub.js"
+    "./kusama": {
+      "types": "./dist/specs/kusama/kusama.d.ts",
+      "module": "./dist/specs/kusama/kusama.js",
+      "import": "./dist/specs/kusama/kusama.js"
     },
     "./kusama_asset_hub": {
       "types": "./dist/specs/kusama_asset_hub/kusama_asset_hub.d.ts",
       "module": "./dist/specs/kusama_asset_hub/kusama_asset_hub.js",
       "import": "./dist/specs/kusama_asset_hub/kusama_asset_hub.js"
     },
-    "./westend_collectives": {
-      "types": "./dist/specs/westend_collectives/westend_collectives.d.ts",
-      "module": "./dist/specs/westend_collectives/westend_collectives.js",
-      "import": "./dist/specs/westend_collectives/westend_collectives.js"
+    "./kusama_bridge_hub": {
+      "types": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.d.ts",
+      "module": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.js",
+      "import": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.js"
     },
-    "./westend": {
-      "types": "./dist/specs/westend/westend.d.ts",
-      "module": "./dist/specs/westend/westend.js",
-      "import": "./dist/specs/westend/westend.js"
+    "./kusama_coretime": {
+      "types": "./dist/specs/kusama_coretime/kusama_coretime.d.ts",
+      "module": "./dist/specs/kusama_coretime/kusama_coretime.js",
+      "import": "./dist/specs/kusama_coretime/kusama_coretime.js"
+    },
+    "./kusama_encointer": {
+      "types": "./dist/specs/kusama_encointer/kusama_encointer.d.ts",
+      "module": "./dist/specs/kusama_encointer/kusama_encointer.js",
+      "import": "./dist/specs/kusama_encointer/kusama_encointer.js"
     },
     "./kusama_people": {
       "types": "./dist/specs/kusama_people/kusama_people.d.ts",
@@ -61,50 +56,15 @@
       "module": "./dist/specs/paseo/paseo.js",
       "import": "./dist/specs/paseo/paseo.js"
     },
-    "./kusama_encointer": {
-      "types": "./dist/specs/kusama_encointer/kusama_encointer.d.ts",
-      "module": "./dist/specs/kusama_encointer/kusama_encointer.js",
-      "import": "./dist/specs/kusama_encointer/kusama_encointer.js"
-    },
-    "./paseo_bulletin": {
-      "types": "./dist/specs/paseo_bulletin/paseo_bulletin.d.ts",
-      "module": "./dist/specs/paseo_bulletin/paseo_bulletin.js",
-      "import": "./dist/specs/paseo_bulletin/paseo_bulletin.js"
-    },
-    "./westend_bridge_hub": {
-      "types": "./dist/specs/westend_bridge_hub/westend_bridge_hub.d.ts",
-      "module": "./dist/specs/westend_bridge_hub/westend_bridge_hub.js",
-      "import": "./dist/specs/westend_bridge_hub/westend_bridge_hub.js"
-    },
     "./paseo_asset_hub": {
       "types": "./dist/specs/paseo_asset_hub/paseo_asset_hub.d.ts",
       "module": "./dist/specs/paseo_asset_hub/paseo_asset_hub.js",
       "import": "./dist/specs/paseo_asset_hub/paseo_asset_hub.js"
     },
-    "./polkadot_coretime": {
-      "types": "./dist/specs/polkadot_coretime/polkadot_coretime.d.ts",
-      "module": "./dist/specs/polkadot_coretime/polkadot_coretime.js",
-      "import": "./dist/specs/polkadot_coretime/polkadot_coretime.js"
-    },
-    "./polkadot_asset_hub": {
-      "types": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.d.ts",
-      "module": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.js",
-      "import": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.js"
-    },
-    "./westend_people": {
-      "types": "./dist/specs/westend_people/westend_people.d.ts",
-      "module": "./dist/specs/westend_people/westend_people.js",
-      "import": "./dist/specs/westend_people/westend_people.js"
-    },
-    "./kusama_bridge_hub": {
-      "types": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.d.ts",
-      "module": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.js",
-      "import": "./dist/specs/kusama_bridge_hub/kusama_bridge_hub.js"
-    },
-    "./kusama_coretime": {
-      "types": "./dist/specs/kusama_coretime/kusama_coretime.d.ts",
-      "module": "./dist/specs/kusama_coretime/kusama_coretime.js",
-      "import": "./dist/specs/kusama_coretime/kusama_coretime.js"
+    "./paseo_bulletin": {
+      "types": "./dist/specs/paseo_bulletin/paseo_bulletin.d.ts",
+      "module": "./dist/specs/paseo_bulletin/paseo_bulletin.js",
+      "import": "./dist/specs/paseo_bulletin/paseo_bulletin.js"
     },
     "./paseo_coretime": {
       "types": "./dist/specs/paseo_coretime/paseo_coretime.d.ts",
@@ -121,20 +81,60 @@
       "module": "./dist/specs/polkadot/polkadot.js",
       "import": "./dist/specs/polkadot/polkadot.js"
     },
+    "./polkadot_asset_hub": {
+      "types": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.d.ts",
+      "module": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.js",
+      "import": "./dist/specs/polkadot_asset_hub/polkadot_asset_hub.js"
+    },
+    "./polkadot_bridge_hub": {
+      "types": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.d.ts",
+      "module": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.js",
+      "import": "./dist/specs/polkadot_bridge_hub/polkadot_bridge_hub.js"
+    },
+    "./polkadot_collectives": {
+      "types": "./dist/specs/polkadot_collectives/polkadot_collectives.d.ts",
+      "module": "./dist/specs/polkadot_collectives/polkadot_collectives.js",
+      "import": "./dist/specs/polkadot_collectives/polkadot_collectives.js"
+    },
+    "./polkadot_coretime": {
+      "types": "./dist/specs/polkadot_coretime/polkadot_coretime.d.ts",
+      "module": "./dist/specs/polkadot_coretime/polkadot_coretime.js",
+      "import": "./dist/specs/polkadot_coretime/polkadot_coretime.js"
+    },
     "./polkadot_people": {
       "types": "./dist/specs/polkadot_people/polkadot_people.d.ts",
       "module": "./dist/specs/polkadot_people/polkadot_people.js",
       "import": "./dist/specs/polkadot_people/polkadot_people.js"
     },
-    "./kusama": {
-      "types": "./dist/specs/kusama/kusama.d.ts",
-      "module": "./dist/specs/kusama/kusama.js",
-      "import": "./dist/specs/kusama/kusama.js"
+    "./westend": {
+      "types": "./dist/specs/westend/westend.d.ts",
+      "module": "./dist/specs/westend/westend.js",
+      "import": "./dist/specs/westend/westend.js"
+    },
+    "./westend_asset_hub": {
+      "types": "./dist/specs/westend_asset_hub/westend_asset_hub.d.ts",
+      "module": "./dist/specs/westend_asset_hub/westend_asset_hub.js",
+      "import": "./dist/specs/westend_asset_hub/westend_asset_hub.js"
+    },
+    "./westend_bridge_hub": {
+      "types": "./dist/specs/westend_bridge_hub/westend_bridge_hub.d.ts",
+      "module": "./dist/specs/westend_bridge_hub/westend_bridge_hub.js",
+      "import": "./dist/specs/westend_bridge_hub/westend_bridge_hub.js"
+    },
+    "./westend_collectives": {
+      "types": "./dist/specs/westend_collectives/westend_collectives.d.ts",
+      "module": "./dist/specs/westend_collectives/westend_collectives.js",
+      "import": "./dist/specs/westend_collectives/westend_collectives.js"
     },
     "./westend_coretime": {
       "types": "./dist/specs/westend_coretime/westend_coretime.d.ts",
       "module": "./dist/specs/westend_coretime/westend_coretime.js",
       "import": "./dist/specs/westend_coretime/westend_coretime.js"
+    },
+    "./westend_people": {
+      "types": "./dist/specs/westend_people/westend_people.d.ts",
+      "module": "./dist/specs/westend_people/westend_people.js",
+      "import": "./dist/specs/westend_people/westend_people.js"
     }
   },
   "main": "./dist/index.js",
@@ -144,29 +144,29 @@
   "sideEffects": false,
   "files": [
     "dist",
-    "polkadot_collectives",
-    "polkadot_bridge_hub",
-    "westend_asset_hub",
+    "kusama",
     "kusama_asset_hub",
-    "westend_collectives",
-    "westend",
-    "kusama_people",
-    "paseo",
-    "kusama_encointer",
-    "paseo_bulletin",
-    "westend_bridge_hub",
-    "paseo_asset_hub",
-    "polkadot_coretime",
-    "polkadot_asset_hub",
-    "westend_people",
     "kusama_bridge_hub",
     "kusama_coretime",
+    "kusama_encointer",
+    "kusama_people",
+    "paseo",
+    "paseo_asset_hub",
+    "paseo_bulletin",
     "paseo_coretime",
     "paseo_people",
     "polkadot",
+    "polkadot_asset_hub",
+    "polkadot_bridge_hub",
+    "polkadot_collectives",
+    "polkadot_coretime",
     "polkadot_people",
-    "kusama",
-    "westend_coretime"
+    "westend",
+    "westend_asset_hub",
+    "westend_bridge_hub",
+    "westend_collectives",
+    "westend_coretime",
+    "westend_people"
   ],
   "scripts": {
     "build-core": "node prepare-specs.js && tsc --noEmit && rollup -c",

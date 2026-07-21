@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/cli",
-  "version": "0.21.8",
+  "version": "0.21.9",
   "author": "Victor Oliva (https://github.com/voliva)",
   "repository": {
     "type": "git",
