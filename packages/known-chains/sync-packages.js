@@ -12,7 +12,7 @@ await Promise.all(
   ),
 )
 
-const specFiles = await readdir("./specs")
+const specFiles = (await readdir("./specs")).sort()
 
 const newExports = {
   ".": packageJsonContent.exports["."],
