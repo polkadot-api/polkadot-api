@@ -478,19 +478,23 @@ export const createStorageEntry = (
               )
               .pipe(
                 tap((x) => {
-                  const mapped =
-                    x.value == null
-                      ? codecs.fallback
-                      : codecs.value.dec(x.value)
-
+                  const mapped = codecs.value.dec(x.value!)
                   if (!compat.value.isValueCompatible(mapped))
                     throw incompatibleError()
-
                   results[x.key] = mapped
                 }),
                 ignoreElements(),
               ),
-            defer(() => of(rawKeys.map((key) => results[key]!))),
+            defer(() =>
+              of(
+                rawKeys.map((key) => {
+                  if (key in results) return results[key]
+                  if (!compat.value.isValueCompatible(codecs.fallback))
+                    throw incompatibleError()
+                  return codecs.fallback
+                }),
+              ),
+            ),
           )
         }),
         chainHead.withHodl(at),
