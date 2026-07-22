@@ -17,16 +17,21 @@ import {
   catchError,
   combineLatest,
   combineLatestWith,
+  concat,
+  defer,
   distinctUntilChanged,
   filter,
   firstValueFrom,
   from,
   identity,
+  ignoreElements,
   map,
   mergeMap,
+  of,
   scan,
   shareReplay,
   take,
+  tap,
 } from "rxjs"
 import { InOutCompat } from "./compatibility"
 import { PullOptions } from "./types"
@@ -438,10 +443,61 @@ export const createStorageEntry = (
     return firstValueFromWithSignal(result$, signal)
   }
 
-  const getValues = (keyArgs: Array<Array<any>>, options?: PullOptions) =>
-    Promise.all(
-      keyArgs.map((args) => getValue(...(options ? [...args, options] : args))),
+  const getValues = (keyArgs: Array<Array<any>>, options?: PullOptions) => {
+    const at = options?.at ?? null
+
+    const compatibility$ = from(compatibility).pipe(
+      mergeMap((getCompatibility) =>
+        chainHead.getRuntimeContext$(at).pipe(
+          map((ctx) => ({
+            codecs: getCodec(ctx),
+            compat: getCompatibility(ctx),
+          })),
+        ),
+      ),
     )
+
+    return firstValueFromWithSignal(
+      compatibility$.pipe(
+        mergeMap(({ codecs, compat }) => {
+          if (
+            keyArgs.some(
+              (actualArgs) => !compat.args.isValueCompatible(actualArgs),
+            )
+          )
+            throw incompatibleError()
+
+          const rawKeys = keyArgs.map((args) => codecs.keys.enc(...args))
+
+          const results: Record<string, any> = {}
+          return concat(
+            chainHead
+              .storageQueries$(
+                at,
+                rawKeys.map((key) => ({ key, type: "value" })),
+              )
+              .pipe(
+                tap((x) => {
+                  const mapped =
+                    x.value == null
+                      ? codecs.fallback
+                      : codecs.value.dec(x.value)
+
+                  if (!compat.value.isValueCompatible(mapped))
+                    throw incompatibleError()
+
+                  results[x.key] = mapped
+                }),
+                ignoreElements(),
+              ),
+            defer(() => of(rawKeys.map((key) => results[key]!))),
+          )
+        }),
+        chainHead.withHodl(at),
+      ),
+      options?.signal,
+    )
+  }
 
   const watchEntries: any = (...args: Array<any>) => {
     const lastArg = args.at(-1)
