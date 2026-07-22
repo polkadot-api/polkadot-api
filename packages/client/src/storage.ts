@@ -32,6 +32,7 @@ import {
   shareReplay,
   take,
   tap,
+  throwError,
 } from "rxjs"
 import { InOutCompat } from "./compatibility"
 import { PullOptions } from "./types"
@@ -486,14 +487,14 @@ export const createStorageEntry = (
                 ignoreElements(),
               ),
             defer(() =>
-              of(
-                rawKeys.map((key) => {
-                  if (key in results) return results[key]
-                  if (!compat.value.isValueCompatible(codecs.fallback))
-                    throw incompatibleError()
-                  return codecs.fallback
-                }),
-              ),
+              Object.keys(results).length < rawKeys.length &&
+              !compat.value.isValueCompatible(codecs.fallback)
+                ? throwError(incompatibleError)
+                : of(
+                    rawKeys.map((key) =>
+                      key in results ? results[key] : codecs.fallback,
+                    ),
+                  ),
             ),
           )
         }),
