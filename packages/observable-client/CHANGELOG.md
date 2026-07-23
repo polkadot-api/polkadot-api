@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
 ## 0.18.7 - 2026-06-02
+
+- Fix `storageQueries$` not handling `nDiscarded` items correctly
 
 ### Fixed
 
