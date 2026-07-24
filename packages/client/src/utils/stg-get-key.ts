@@ -1,3 +1,4 @@
+import { IncompatibleRuntimeError, InvalidArgsError } from "@/compatibility"
 import { RuntimeContext } from "@polkadot-api/observable-client"
 
 export const stgGetKey = (
@@ -6,19 +7,16 @@ export const stgGetKey = (
   name: string,
   areAgsCompat: (args: Array<any>) => boolean,
 ) => {
-  const getIncompatErr = () =>
-    new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
-
   let codecs
   try {
     codecs = ctx.dynamicBuilder.buildStorage(pallet, name)
   } catch {
-    throw getIncompatErr()
+    throw new IncompatibleRuntimeError("Storage", `${pallet}.${name}`)
   }
 
   return (...args: any[]) => {
     if (args.length === codecs.len && !areAgsCompat(args))
-      throw getIncompatErr()
+      throw new InvalidArgsError("Storage", `${pallet}.${name}`, args)
     return codecs.keys.enc(...args)
   }
 }

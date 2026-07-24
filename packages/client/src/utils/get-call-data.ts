@@ -1,3 +1,4 @@
+import { InvalidArgsError } from "@/compatibility"
 import { RuntimeContext } from "@polkadot-api/observable-client"
 import { mergeUint8 } from "@polkadot-api/utils"
 
@@ -16,7 +17,7 @@ export const getCallData = (
   }
 
   if (!isCompat(arg))
-    throw new Error(`Incompatible runtime entry Tx(${pallet}.${name})`)
+    throw new InvalidArgsError("Transaction", `${pallet}.${name}`, [arg])
 
   const {
     location,

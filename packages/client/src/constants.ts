@@ -1,9 +1,9 @@
 import { type ChainHead$ } from "@polkadot-api/observable-client"
 import { combineLatest, map } from "rxjs"
+import { IncompatibleRuntimeError, ValueCompat } from "./compatibility"
 import { type PullOptions } from "./types"
 import { firstValueFromWithSignal } from "./utils"
 import { constFromCtx } from "./utils/const-from-ctx"
-import { ValueCompat } from "./compatibility"
 
 export type ConstantEntry<T> = {
   /**
@@ -27,7 +27,7 @@ export const createConstantEntry =
         map(([ctx, compat]) => {
           const value = constFromCtx(ctx, pallet, name)
           if (compat(ctx).isValueCompatible(value)) return value
-          throw new Error(`Incompatible entry Const(${pallet}.${name})`)
+          throw new IncompatibleRuntimeError("Constant", `${pallet}.${name})`)
         }),
       ),
       signal,

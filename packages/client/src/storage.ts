@@ -13,7 +13,6 @@ import {
 import { HexString } from "@polkadot-api/substrate-bindings"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
-  Observable,
   catchError,
   combineLatest,
   combineLatestWith,
@@ -27,6 +26,7 @@ import {
   ignoreElements,
   map,
   mergeMap,
+  Observable,
   of,
   scan,
   shareReplay,
@@ -34,7 +34,11 @@ import {
   tap,
   throwError,
 } from "rxjs"
-import { InOutCompat } from "./compatibility"
+import {
+  IncompatibleRuntimeError,
+  InOutCompat,
+  InvalidArgsError,
+} from "./compatibility"
 import { PullOptions } from "./types"
 import { stgGetKey } from "./utils/stg-get-key"
 import { createWatchEntries } from "./watch-entries"
@@ -235,9 +239,9 @@ export const createStorageEntry = (
   )
 
   const incompatibleError = () =>
-    new Error(`Incompatible runtime entry Storage(${pallet}.${name})`)
+    new IncompatibleRuntimeError("Storage", `${pallet}.${name}`)
   const invalidArgs = (args: Array<any>) =>
-    new Error(`Invalid Arguments calling ${pallet}.${name}(${args})`)
+    new InvalidArgsError("Storage", `${pallet}.${name}`, args)
 
   const getCodec = (ctx: RuntimeContext) => {
     try {
@@ -300,11 +304,11 @@ export const createStorageEntry = (
             const compat = getCompatibility(ctx)
             const actualArgs =
               args.length === codecs.len ? args : args.slice(0, -1)
-            if (args !== actualArgs && !isLastArgOptional)
+            if (
+              (args !== actualArgs && !isLastArgOptional) ||
+              !compat.args.isValueCompatible(actualArgs)
+            )
               throw invalidArgs(args)
-
-            if (!compat.args.isValueCompatible(actualArgs))
-              throw incompatibleError()
 
             return codecs.keys.enc(...actualArgs)
           },
@@ -461,12 +465,10 @@ export const createStorageEntry = (
     return firstValueFromWithSignal(
       compatibility$.pipe(
         mergeMap(({ codecs, compat }) => {
-          if (
-            keyArgs.some(
-              (actualArgs) => !compat.args.isValueCompatible(actualArgs),
-            )
+          const foundInvalidArgs = keyArgs.find(
+            (actualArgs) => !compat.args.isValueCompatible(actualArgs),
           )
-            throw incompatibleError()
+          if (foundInvalidArgs) throw invalidArgs(foundInvalidArgs)
 
           const rawKeys = keyArgs.map((args) => codecs.keys.enc(...args))
 

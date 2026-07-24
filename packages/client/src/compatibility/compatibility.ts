@@ -200,3 +200,28 @@ export const createCompatHelpers = withWeakCache(
 )
 
 export type CompatHelpers = ReturnType<typeof createCompatHelpers>
+
+export class InvalidArgsError extends Error {
+  constructor(
+    public callType: "Storage" | "RuntimeCall" | "Transaction" | "ViewFn",
+    public callEntry: string,
+    public callArgs: unknown[],
+  ) {
+    super(`Invalid arguments calling ${callType} ${callEntry}(${callArgs})`)
+  }
+}
+
+export class IncompatibleRuntimeError extends Error {
+  constructor(
+    public callType:
+      | "Storage"
+      | "RuntimeCall"
+      | "Transaction"
+      | "ViewFn"
+      | "Constant"
+      | "Event",
+    public callEntry: string,
+  ) {
+    super(`Incompatible runtime ${callType} entry ${callEntry}`)
+  }
+}

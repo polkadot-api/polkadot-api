@@ -5,25 +5,25 @@ import {
 } from "@polkadot-api/observable-client"
 import { HexString, SizedHex } from "@polkadot-api/substrate-bindings"
 import {
-  Observable,
   combineLatest,
   defer,
+  EMPTY,
   firstValueFrom,
   map,
-  switchMap,
-  take,
-  filter as rFilter,
+  merge,
   mergeMap,
-  EMPTY,
+  Observable,
   of,
-  takeUntil,
   pairwise,
+  filter as rFilter,
   startWith,
   Subject,
+  switchMap,
+  take,
+  takeUntil,
   withLatestFrom,
-  merge,
 } from "rxjs"
-import { ValueCompat } from "./compatibility"
+import { IncompatibleRuntimeError, ValueCompat } from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
 
 export type EventPhase =
@@ -103,7 +103,7 @@ export const createEventEntry = <T>(
   compatibility: ValueCompat,
 ): EvClient<T> => {
   const compatibilityError = () =>
-    new Error(`Incompatible runtime entry Event(${pallet}.${name})`)
+    new IncompatibleRuntimeError("Event", `${pallet}.${name})`)
 
   const getEventsAtBlock$ = (
     hash: HexString,

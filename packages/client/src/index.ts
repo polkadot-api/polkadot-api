@@ -1,4 +1,5 @@
 export * from "./client"
+export { InvalidArgsError, IncompatibleRuntimeError } from "./compatibility"
 export * from "./re-exports"
 export * from "./descriptors"
 export { InvalidTxError } from "./tx"

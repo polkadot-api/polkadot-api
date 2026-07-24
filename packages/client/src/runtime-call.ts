@@ -1,9 +1,13 @@
 import { firstValueFromWithSignal, isOptionalArg } from "@/utils"
 import { ChainHead$ } from "@polkadot-api/observable-client"
 import { toHex } from "@polkadot-api/utils"
-import { map, mergeMap, combineLatest } from "rxjs"
+import { combineLatest, map, mergeMap } from "rxjs"
+import {
+  IncompatibleRuntimeError,
+  InOutCompat,
+  InvalidArgsError,
+} from "./compatibility"
 import { PullOptions } from "./types"
-import { InOutCompat } from "./compatibility"
 
 type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   ? [options?: PullOptions]
@@ -28,7 +32,9 @@ export const createRuntimeCallEntry = (
 ): RuntimeCall<any, any> => {
   const callName = `${api}_${method}`
   const compatibilityError = () =>
-    new Error(`Incompatible runtime entry RuntimeCall(${callName})`)
+    new IncompatibleRuntimeError("Storage", callName)
+  const invalidArgs = (args: Array<any>) =>
+    new InvalidArgsError("RuntimeCall", callName, args)
 
   return (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
@@ -48,7 +54,7 @@ export const createRuntimeCallEntry = (
           throw new Error(`Runtime entry RuntimeCall(${callName}) not found`)
         }
         const compat = getCompat(ctx)
-        if (!compat.args.isValueCompatible(args)) throw compatibilityError()
+        if (!compat.args.isValueCompatible(args)) throw invalidArgs(args)
         return chainHead.call$(at, callName, toHex(codecs.args.enc(args))).pipe(
           map(codecs.value.dec),
           map((value) => {

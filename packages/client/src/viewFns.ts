@@ -1,10 +1,14 @@
 import { firstValueFromWithSignal, isOptionalArg } from "@/utils"
 import { ChainHead$ } from "@polkadot-api/observable-client"
+import { compactNumber, Enum } from "@polkadot-api/substrate-bindings"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { combineLatest, map, mergeMap } from "rxjs"
-import { compactNumber, _void, Enum } from "@polkadot-api/substrate-bindings"
+import {
+  IncompatibleRuntimeError,
+  InOutCompat,
+  InvalidArgsError,
+} from "./compatibility"
 import { PullOptions } from "./types"
-import { InOutCompat } from "./compatibility"
 
 type WithCallOptions<Args extends Array<any>> = Args["length"] extends 0
   ? [options?: PullOptions]
@@ -32,7 +36,9 @@ export const createViewFnEntry = (
   compatibility: InOutCompat,
 ): ViewFn<any, any> => {
   const compatibilityError = () =>
-    new Error(`Incompatible runtime entry ViewFn(${pallet}.${entry})`)
+    new IncompatibleRuntimeError("ViewFn", `${pallet}.${entry}`)
+  const invalidArgs = (args: any[]) =>
+    new InvalidArgsError("ViewFn", `${pallet}.${entry}`, args)
 
   return (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
@@ -63,7 +69,7 @@ export const createViewFnEntry = (
           throw new Error(`Runtime entry ViewFn(${pallet}.${entry}) not found`)
         }
         const compat = getCompat(ctx)
-        if (!compat.args.isValueCompatible(args)) throw compatibilityError()
+        if (!compat.args.isValueCompatible(args)) throw invalidArgs(args)
         const viewArgs = viewCodec.args.enc(args)
         const arg = mergeUint8([
           fromHex(ctx.mappedMeta.pallets[pallet].view.get(entry)!.id),
