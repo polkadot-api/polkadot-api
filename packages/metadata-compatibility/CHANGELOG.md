@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+
+- `isCompatible` and `valueIsCompatibleWithDest` now return a `IsCompatibleResult`, which contains the path and reason for the incompatibility.
+
+### Removed
+
+- `isStorageKeyCompatible`
+
 ## 0.6.1 to 0.6.3 - 2026-05-19
 
 ### Fixed

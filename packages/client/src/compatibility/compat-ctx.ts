@@ -111,7 +111,7 @@ export const getDestCompatCtx = withWeakCache(
       },
       isAssetCompat: (asset) =>
         assetId == null ||
-        isCompatible(asset, getTypeDefNode(assetId), getTypeDefNode),
+        isCompatible(asset, getTypeDefNode(assetId), getTypeDefNode).compatible,
     }
   },
 )

@@ -23,7 +23,11 @@ import {
   takeUntil,
   withLatestFrom,
 } from "rxjs"
-import { IncompatibleRuntimeError, ValueCompat } from "./compatibility"
+import {
+  IncompatibleRuntimeError,
+  ValueCompat,
+  ValueCompatibility,
+} from "./compatibility"
 import { concatMapEager, shareLatest } from "./utils"
 
 export type EventPhase =
@@ -107,7 +111,7 @@ export const createEventEntry = <T>(
 
   const getEventsAtBlock$ = (
     hash: HexString,
-    isCompatible: (dest: any) => boolean,
+    getCompatibility: (dest: any) => ValueCompatibility,
   ) =>
     chainHead.eventsAt$(hash).pipe(
       map((events) => {
@@ -115,7 +119,8 @@ export const createEventEntry = <T>(
           (e) => e.event.type === pallet && e.event.value.type === name,
         )
         return winners.map((x) => {
-          if (!isCompatible(x.event.value.value)) throw compatibilityError()
+          if (getCompatibility(x.event.value.value).type !== "compatible")
+            throw compatibilityError()
           return {
             original: x,
             payload: x.event.value.value,
@@ -130,8 +135,8 @@ export const createEventEntry = <T>(
       if (!ctx.mappedMeta.pallets[pallet]?.event.has(name))
         throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
 
-      const { isValueCompatible } = getCompat(ctx)
-      return getEventsAtBlock$(block.hash, isValueCompatible).pipe(
+      const { getValueCompatibility } = getCompat(ctx)
+      return getEventsAtBlock$(block.hash, getValueCompatibility).pipe(
         map((events) => ({ block, events })),
       )
     }),
@@ -155,7 +160,10 @@ export const createEventEntry = <T>(
         switchMap(([getCompat, ctx]) => {
           if (!ctx.mappedMeta.pallets[pallet]?.event.has(name))
             throw new Error(`Runtime entry Event(${pallet}.${name}) not found`)
-          return getEventsAtBlock$(blockHash, getCompat(ctx).isValueCompatible)
+          return getEventsAtBlock$(
+            blockHash,
+            getCompat(ctx).getValueCompatibility,
+          )
         }),
         takeUntil(isIrrelevant$),
       )
@@ -282,7 +290,7 @@ export const createEventEntry = <T>(
       ]).pipe(
         take(1),
         switchMap(([getCompat, ctx]) =>
-          getEventsAtBlock$(blockHash, getCompat(ctx).isValueCompatible),
+          getEventsAtBlock$(blockHash, getCompat(ctx).getValueCompatibility),
         ),
       ),
     )

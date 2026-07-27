@@ -33,8 +33,10 @@ export const createRuntimeCallEntry = (
   const callName = `${api}_${method}`
   const compatibilityError = () =>
     new IncompatibleRuntimeError("Storage", callName)
-  const invalidArgs = (args: Array<any>) =>
-    new InvalidArgsError("RuntimeCall", callName, args)
+  const invalidArgs = (
+    args: Array<any>,
+    result: ConstructorParameters<typeof InvalidArgsError>[3],
+  ) => new InvalidArgsError("RuntimeCall", callName, args, result)
 
   return (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
@@ -54,11 +56,15 @@ export const createRuntimeCallEntry = (
           throw new Error(`Runtime entry RuntimeCall(${callName}) not found`)
         }
         const compat = getCompat(ctx)
-        if (!compat.args.isValueCompatible(args)) throw invalidArgs(args)
+        const argsCompatibility = compat.args.getValueCompatibility(args)
+        if (argsCompatibility.type === "runtimeIncompatible")
+          throw compatibilityError()
+        if (argsCompatibility.type === "incompatible")
+          throw invalidArgs(args, argsCompatibility.value)
         return chainHead.call$(at, callName, toHex(codecs.args.enc(args))).pipe(
           map(codecs.value.dec),
           map((value) => {
-            if (!compat.value.isValueCompatible(value))
+            if (compat.value.getValueCompatibility(value).type !== "compatible")
               throw compatibilityError()
             return value
           }),

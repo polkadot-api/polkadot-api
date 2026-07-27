@@ -3,14 +3,17 @@ import {
   isOptionalArg,
   lossLessExhaustMap,
 } from "@/utils"
-import { CompatibilityLevel } from "@polkadot-api/metadata-compatibility"
+import {
+  CompatibilityLevel,
+  IsCompatibleResult,
+} from "@polkadot-api/metadata-compatibility"
 import {
   BlockInfo,
   BlockNotPinnedError,
   ChainHead$,
   RuntimeContext,
 } from "@polkadot-api/observable-client"
-import { HexString } from "@polkadot-api/substrate-bindings"
+import { Enum, HexString } from "@polkadot-api/substrate-bindings"
 import { StorageItemInput, StorageResult } from "@polkadot-api/substrate-client"
 import {
   catchError,
@@ -240,8 +243,17 @@ export const createStorageEntry = (
 
   const incompatibleError = () =>
     new IncompatibleRuntimeError("Storage", `${pallet}.${name}`)
-  const invalidArgs = (args: Array<any>) =>
-    new InvalidArgsError("Storage", `${pallet}.${name}`, args)
+  type IncompatibleResult = IsCompatibleResult & { compatible: false }
+  const invalidArgs = (args: Array<any>, result: IncompatibleResult) =>
+    new InvalidArgsError("Storage", `${pallet}.${name}`, args, result)
+  const lengthMismatch = (
+    expectedLength: number,
+    actualLength: number,
+  ): IncompatibleResult => ({
+    compatible: false,
+    path: "",
+    reason: Enum("LengthMismatch", { expectedLength, actualLength }),
+  })
 
   const getCodec = (ctx: RuntimeContext) => {
     try {
@@ -304,11 +316,15 @@ export const createStorageEntry = (
             const compat = getCompatibility(ctx)
             const actualArgs =
               args.length === codecs.len ? args : args.slice(0, -1)
-            if (
-              (args !== actualArgs && !isLastArgOptional) ||
-              !compat.args.isValueCompatible(actualArgs)
-            )
-              throw invalidArgs(args)
+            if (args !== actualArgs && !isLastArgOptional)
+              throw invalidArgs(args, lengthMismatch(codecs.len, args.length))
+
+            const compatibilityResult =
+              compat.args.getValueCompatibility(actualArgs)
+            if (compatibilityResult.type === "incompatible")
+              throw invalidArgs(args, compatibilityResult.value)
+            if (compatibilityResult.type === "runtimeIncompatible")
+              throw incompatibleError()
 
             return codecs.keys.enc(...actualArgs)
           },
@@ -316,11 +332,12 @@ export const createStorageEntry = (
           (data, ctx) => {
             const codecs = getCodec(ctx)
             const {
-              value: { isValueCompatible: isCompat },
+              value: { getValueCompatibility },
             } = getCompatibility(ctx)
             const mapped =
               data === null ? codecs.fallback : codecs.value.dec(data)
-            if (!isCompat(mapped)) throw incompatibleError()
+            if (getValueCompatibility(mapped).type !== "compatible")
+              throw incompatibleError()
             return { raw: data, mapped }
           },
         ),
@@ -411,11 +428,13 @@ export const createStorageEntry = (
             if (!compat.isCompatible(CompatibilityLevel.Partial))
               throw incompatibleError()
 
-            if (args.length > codecs.len) throw invalidArgs(args)
             const actualArgs =
               args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
-            if (args.length === codecs.len && actualArgs === args)
-              throw invalidArgs(args)
+            if (actualArgs.length >= codecs.len)
+              throw invalidArgs(
+                args,
+                lengthMismatch(Math.max(0, codecs.len - 1), actualArgs.length),
+              )
 
             // TODO: check for partial args
             // if (!compat.args.isValueCompatible(args)) throw incompatibleError
@@ -434,7 +453,9 @@ export const createStorageEntry = (
             if (
               compat.value.level === CompatibilityLevel.Partial &&
               decodedValues.some(
-                ({ value }) => !compat.value.isValueCompatible(value),
+                ({ value }) =>
+                  compat.value.getValueCompatibility(value).type !==
+                  "compatible",
               )
             )
               throw incompatibleError()
@@ -465,10 +486,18 @@ export const createStorageEntry = (
     return firstValueFromWithSignal(
       compatibility$.pipe(
         mergeMap(({ codecs, compat }) => {
-          const foundInvalidArgs = keyArgs.find(
-            (actualArgs) => !compat.args.isValueCompatible(actualArgs),
-          )
-          if (foundInvalidArgs) throw invalidArgs(foundInvalidArgs)
+          const foundInvalidArgs = keyArgs
+            .map(
+              (args) =>
+                [args, compat.args.getValueCompatibility(args)] as const,
+            )
+            .find(([, result]) => result.type !== "compatible")
+          if (foundInvalidArgs) {
+            const [args, result] = foundInvalidArgs
+            if (result.type === "runtimeIncompatible") throw incompatibleError()
+            if (result.type === "incompatible")
+              throw invalidArgs(args, result.value)
+          }
 
           const rawKeys = keyArgs.map((args) => codecs.keys.enc(...args))
 
@@ -482,7 +511,10 @@ export const createStorageEntry = (
               .pipe(
                 tap((x) => {
                   const mapped = codecs.value.dec(x.value!)
-                  if (!compat.value.isValueCompatible(mapped))
+                  if (
+                    compat.value.getValueCompatibility(mapped).type !==
+                    "compatible"
+                  )
                     throw incompatibleError()
                   results[x.key] = mapped
                 }),
@@ -490,7 +522,8 @@ export const createStorageEntry = (
               ),
             defer(() =>
               Object.keys(results).length < rawKeys.length &&
-              !compat.value.isValueCompatible(codecs.fallback)
+              compat.value.getValueCompatibility(codecs.fallback).type !==
+                "compatible"
                 ? throwError(incompatibleError)
                 : of(
                     rawKeys.map((key) =>
@@ -526,7 +559,7 @@ export const createStorageEntry = (
             ctx,
             pallet,
             name,
-            getCompat(ctx).args.isValueCompatible,
+            getCompat(ctx).args.getValueCompatibility,
           )(...args),
         ),
       ),

@@ -88,28 +88,23 @@ export const createTxEntry = <
 
   const getCallData$ = (arg: any, at: HexString | null) =>
     getCompatCtx$(at).pipe(
-      map(
-        ({
-          ctx: { dynamicBuilder, extVersions },
-          isValueCompatible: isCompat,
-        }) => {
-          const callData = getCallData(
-            dynamicBuilder,
-            isCompat,
-            pallet,
-            name,
-            arg,
-          )
-          return {
+      map(({ ctx: { dynamicBuilder, extVersions }, getValueCompatibility }) => {
+        const callData = getCallData(
+          dynamicBuilder,
+          getValueCompatibility,
+          pallet,
+          name,
+          arg,
+        )
+        return {
+          callData,
+          bare: mergeUint8([
+            compact.enc(callData.length + 1),
+            new Uint8Array(extVersions.slice(-1)),
             callData,
-            bare: mergeUint8([
-              compact.enc(callData.length + 1),
-              new Uint8Array(extVersions.slice(-1)),
-              callData,
-            ]),
-          }
-        },
-      ),
+          ]),
+        }
+      }),
     )
 
   const getEncodedAsset$ = (

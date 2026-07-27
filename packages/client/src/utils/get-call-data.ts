@@ -1,10 +1,14 @@
-import { InvalidArgsError } from "@/compatibility"
+import {
+  IncompatibleRuntimeError,
+  InvalidArgsError,
+  ValueCompatibility,
+} from "@/compatibility"
 import { RuntimeContext } from "@polkadot-api/observable-client"
 import { mergeUint8 } from "@polkadot-api/utils"
 
 export const getCallData = (
   dynamicBuilder: RuntimeContext["dynamicBuilder"],
-  isCompat: (value: any) => boolean,
+  isCompat: (value: any) => ValueCompatibility,
   pallet: string,
   name: string,
   arg: any,
@@ -16,8 +20,16 @@ export const getCallData = (
     throw new Error(`Runtime entry Tx(${pallet}.${name}) not found`)
   }
 
-  if (!isCompat(arg))
-    throw new InvalidArgsError("Transaction", `${pallet}.${name}`, [arg])
+  const compatibilityResult = isCompat(arg)
+  if (compatibilityResult.type === "incompatible")
+    throw new InvalidArgsError(
+      "Transaction",
+      `${pallet}.${name}`,
+      [arg],
+      compatibilityResult.value,
+    )
+  if (compatibilityResult.type === "runtimeIncompatible")
+    throw new IncompatibleRuntimeError("Transaction", `${pallet}.${name}`)
 
   const {
     location,

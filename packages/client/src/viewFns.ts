@@ -37,8 +37,10 @@ export const createViewFnEntry = (
 ): ViewFn<any, any> => {
   const compatibilityError = () =>
     new IncompatibleRuntimeError("ViewFn", `${pallet}.${entry}`)
-  const invalidArgs = (args: any[]) =>
-    new InvalidArgsError("ViewFn", `${pallet}.${entry}`, args)
+  const invalidArgs = (
+    args: any[],
+    result: ConstructorParameters<typeof InvalidArgsError>[3],
+  ) => new InvalidArgsError("ViewFn", `${pallet}.${entry}`, args, result)
 
   return (...args: Array<any>) => {
     const lastArg = args[args.length - 1]
@@ -69,7 +71,11 @@ export const createViewFnEntry = (
           throw new Error(`Runtime entry ViewFn(${pallet}.${entry}) not found`)
         }
         const compat = getCompat(ctx)
-        if (!compat.args.isValueCompatible(args)) throw invalidArgs(args)
+        const argsCompatibility = compat.args.getValueCompatibility(args)
+        if (argsCompatibility.type === "runtimeIncompatible")
+          throw compatibilityError()
+        if (argsCompatibility.type === "incompatible")
+          throw invalidArgs(args, argsCompatibility.value)
         const viewArgs = viewCodec.args.enc(args)
         const arg = mergeUint8([
           fromHex(ctx.mappedMeta.pallets[pallet].view.get(entry)!.id),
@@ -99,7 +105,9 @@ export const createViewFnEntry = (
           map(({ success, value }) => {
             if (!success) throw new Error(`ViewFn API Error: ${value.type}`)
             const decoded = viewCodec.value.dec(value)
-            if (!compat.value.isValueCompatible(decoded))
+            if (
+              compat.value.getValueCompatibility(decoded).type !== "compatible"
+            )
               throw compatibilityError()
             return decoded
           }),

@@ -1,13 +1,18 @@
-import { RuntimeContext } from "@polkadot-api/observable-client"
+import { ChainDefinition } from "@/descriptors"
+import { createProxyPath } from "@/utils"
+import { withWeakCache } from "@/utils/with-weak-cache"
 import {
   CompatibilityCache,
   CompatibilityLevel,
   EntryPoint,
   entryPointsAreCompatible,
+  IncompatibleResult,
+  IsCompatibleResult,
   TypedefNode,
   valueIsCompatibleWithDest,
 } from "@polkadot-api/metadata-compatibility"
-import { ChainDefinition } from "@/descriptors"
+import { RuntimeContext } from "@polkadot-api/observable-client"
+import { Enum } from "@polkadot-api/substrate-bindings"
 import {
   CompatCtx,
   getDestCompatCtx,
@@ -15,14 +20,19 @@ import {
   getUserCompatCtx,
   OpType,
 } from "./compat-ctx"
-import { createProxyPath } from "@/utils"
-import { withWeakCache } from "@/utils/with-weak-cache"
 
 export type CompatApi<T> = Promise<(ctx: RuntimeContext) => T>
+export type ValueCompatibility = Enum<{
+  compatible: undefined
+  runtimeIncompatible: undefined
+  incompatible: IncompatibleResult
+}>
+const mapCompatibleResult = (result: IsCompatibleResult): ValueCompatibility =>
+  result.compatible ? Enum("compatible") : Enum("incompatible", result)
 export type CompatHelper<T = any> = {
   level: CompatibilityLevel
   isCompatible: (from?: CompatibilityLevel) => boolean
-  isValueCompatible: (dest: T) => boolean
+  getValueCompatibility: (dest: T) => ValueCompatibility
 }
 export type ArgsValueCompatHelper<Args = any, Value = any> = {
   args: CompatHelper<Args>
@@ -36,7 +46,7 @@ export type ConstCompat = Promise<(dest: any) => boolean>
 const incompatible: CompatHelper = {
   level: CompatibilityLevel.Incompatible,
   isCompatible: () => false,
-  isValueCompatible: () => false,
+  getValueCompatibility: () => Enum("runtimeIncompatible"),
 }
 const inOutIncompat: ArgsValueCompatHelper = {
   args: incompatible,
@@ -47,7 +57,8 @@ const inOutIncompat: ArgsValueCompatHelper = {
 const identical: CompatHelper = {
   level: CompatibilityLevel.Identical,
   isCompatible: () => true,
-  isValueCompatible: () => true,
+  // This will only be used on values returned from the node, so we can assume it will be compatible without checks
+  getValueCompatibility: () => Enum("compatible"),
 }
 
 const getIsApiCompatible =
@@ -75,19 +86,19 @@ const getCompatibilityHelper = <K extends OpType>(
   else {
     const { args } = dest.entry
 
-    const _isCompat = (value: any) =>
-      valueIsCompatibleWithDest(args, dest.getter, value)
-    const isValueCompatible =
+    const _getCompat = (value: any) =>
+      mapCompatibleResult(valueIsCompatibleWithDest(args, dest.getter, value))
+    const getValueCompatibility =
       kind === OpType.Storage
-        ? (value: any[]) => _isCompat(value.length === 1 ? value[0] : value)
-        : _isCompat
+        ? (value: any[]) => _getCompat(value.length === 1 ? value[0] : value)
+        : _getCompat
 
     if (!user?.entry) {
       const level = CompatibilityLevel.Partial
       result = {
         args: {
           level,
-          isValueCompatible,
+          getValueCompatibility,
           isCompatible: getIsApiCompatible(level),
         },
         value: user ? incompatible : identical,
@@ -106,7 +117,7 @@ const getCompatibilityHelper = <K extends OpType>(
       result = {
         args: {
           level: args.level,
-          isValueCompatible,
+          getValueCompatibility,
           isCompatible: getIsApiCompatible(args.level),
         },
         value:
@@ -114,11 +125,17 @@ const getCompatibilityHelper = <K extends OpType>(
             ? incompatible
             : {
                 level: values.level,
-                isValueCompatible:
+                getValueCompatibility:
                   values.level > CompatibilityLevel.Partial
-                    ? () => true
+                    ? () => Enum("compatible")
                     : (val) =>
-                        valueIsCompatibleWithDest(userValues, user.getter, val),
+                        mapCompatibleResult(
+                          valueIsCompatibleWithDest(
+                            userValues,
+                            user.getter,
+                            val,
+                          ),
+                        ),
                 isCompatible: getIsApiCompatible(values.level),
               },
       }
@@ -206,6 +223,7 @@ export class InvalidArgsError extends Error {
     public callType: "Storage" | "RuntimeCall" | "Transaction" | "ViewFn",
     public callEntry: string,
     public callArgs: unknown[],
+    public incompatibleResult: Pick<IncompatibleResult, "path" | "reason">,
   ) {
     super(`Invalid arguments calling ${callType} ${callEntry}(${callArgs})`)
   }

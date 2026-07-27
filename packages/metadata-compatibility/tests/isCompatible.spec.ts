@@ -63,7 +63,7 @@ describe("isCompatible", () => {
       isCompatible(value, mapLookupToTypedef(changedEnum), (id) =>
         mapLookupToTypedef(lookup[id]),
       ),
-    ).toBe(true)
+    ).toEqual({ compatible: true })
   })
 
   it("marks an enum as incompatible if the value of the variant has changed", () => {
@@ -76,7 +76,10 @@ describe("isCompatible", () => {
       isCompatible(value, mapLookupToTypedef(changedEnum), (id) =>
         mapLookupToTypedef(lookup[id]),
       ),
-    ).toBe(false)
+    ).toMatchObject({
+      compatible: false,
+      path: "value",
+    })
   })
 
   it("marks an enum as incompatible if the variant was removed", () => {
@@ -89,7 +92,10 @@ describe("isCompatible", () => {
       isCompatible(value, mapLookupToTypedef(changedEnum), (id) =>
         mapLookupToTypedef(lookup[id]),
       ),
-    ).toBe(false)
+    ).toMatchObject({
+      compatible: false,
+      path: "",
+    })
   })
 
   it("marks a struct as compatible if an optional element was added", () => {
@@ -101,7 +107,7 @@ describe("isCompatible", () => {
       isCompatible(value, mapLookupToTypedef(unchangedValue), (id) =>
         mapLookupToTypedef(lookup[id]),
       ),
-    ).toBe(true)
+    ).toEqual({ compatible: true })
   })
 
   it("marks a struct as compatible if an element was removed", () => {
@@ -114,7 +120,7 @@ describe("isCompatible", () => {
       isCompatible(value, mapLookupToTypedef(unchangedValue), (id) =>
         mapLookupToTypedef(lookup[id]),
       ),
-    ).toBe(true)
+    ).toEqual({ compatible: true })
   })
 
   it("marks a struct as incompatible if a mandatory element was added", () => {
@@ -126,6 +132,9 @@ describe("isCompatible", () => {
       isCompatible(value, mapLookupToTypedef(unchangedValue), (id) =>
         mapLookupToTypedef(lookup[id]),
       ),
-    ).toBe(false)
+    ).toMatchObject({
+      compatible: false,
+      path: "foo",
+    })
   })
 })
