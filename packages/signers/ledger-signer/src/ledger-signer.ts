@@ -1,8 +1,7 @@
 import type Transport from "@ledgerhq/hw-transport"
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
-import { TxCreator } from "@polkadot-api/tx-creator"
 import {
-  CommonEnhancersSpecs,
+  CommonSignerTxCreator,
   createV4Tx,
   getSignBytes,
   withCommonExtensions,
@@ -15,6 +14,7 @@ import {
   u16,
   u32,
 } from "@polkadot-api/substrate-bindings"
+import { TxCreator } from "@polkadot-api/tx-creator"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { CLA, DEFAULT_SS58, INS, P1, P2, PUBKEY_LEN, SIGN_LEN } from "./consts"
 import { getMetadata } from "./get-metadata"
@@ -304,7 +304,7 @@ export class LedgerSigner {
     networkInfo: { decimals: number; tokenSymbol: string },
     path1: number,
     path2: number = 0,
-  ): Promise<LedgerTxCreator> {
+  ): Promise<CommonSignerTxCreator> {
     const creator: TxCreator<[]> = async (payload, _, _bindings, mocked) => {
       const txExtVersion = payload.txExtVersion ?? 0
       if (txExtVersion !== 0)
@@ -378,8 +378,3 @@ export class LedgerSigner {
     })
   }
 }
-
-export type LedgerTxCreator = {
-  publicKey: Uint8Array
-  signBytes: (data: Uint8Array) => Promise<Uint8Array>
-} & TxCreator<CommonEnhancersSpecs>

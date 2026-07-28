@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- `polkadot-api/tx-creator` exports types `TxCreator` and `SignerTxCreator`
+
+### Changed
+
+- BREAKING: Removed all individual `TxCreator`s (ledger, raw, pjs, etc.) for each of the signers and replaced them with `CommonSignerTxCreator`
+
 ## 3.0.0-rc.4 - 2026-07-20
 
 ### Changed

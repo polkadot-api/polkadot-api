@@ -130,6 +130,15 @@ export type ArgsForCreator<
   Chain extends TxChainDefinition,
 > = ArgsForArgSpecs<CreatorSpecs<Creator>, Chain>
 
+/**
+ * Not required for all TxCreators, but a convention for those that are signers
+ * is to expose the publicKey and a signing function.
+ */
+export type SignerTxCreator<Specs extends TxArgSpec[] = TxArgSpec[]> = {
+  publicKey: Uint8Array
+  signBytes: (data: Uint8Array) => Promise<Uint8Array>
+} & TxCreator<Specs>
+
 interface Block {
   /**
    * 0x-prefixed hash of the block.
