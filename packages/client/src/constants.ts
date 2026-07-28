@@ -26,8 +26,7 @@ export const createConstantEntry =
       combineLatest([chainHead.getRuntimeContext$(at || null), getCompat]).pipe(
         map(([ctx, compat]) => {
           const value = constFromCtx(ctx, pallet, name)
-          if (compat(ctx).getValueCompatibility(value).type === "compatible")
-            return value
+          if (compat(ctx).isValueCompatible(value)) return value
           throw new IncompatibleRuntimeError("Constant", `${pallet}.${name})`)
         }),
       ),

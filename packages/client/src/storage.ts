@@ -332,12 +332,11 @@ export const createStorageEntry = (
           (data, ctx) => {
             const codecs = getCodec(ctx)
             const {
-              value: { getValueCompatibility },
+              value: { isValueCompatible: isCompat },
             } = getCompatibility(ctx)
             const mapped =
               data === null ? codecs.fallback : codecs.value.dec(data)
-            if (getValueCompatibility(mapped).type !== "compatible")
-              throw incompatibleError()
+            if (!isCompat(mapped)) throw incompatibleError()
             return { raw: data, mapped }
           },
         ),
@@ -430,10 +429,11 @@ export const createStorageEntry = (
 
             const actualArgs =
               args.length > 0 && isLastArgOptional ? args.slice(0, -1) : args
-            if (actualArgs.length >= codecs.len)
+            if (args.length > codecs.len || actualArgs.length >= codecs.len)
               throw invalidArgs(
                 args,
-                lengthMismatch(Math.max(0, codecs.len - 1), actualArgs.length),
+                // This can actually be negative: someone trying to do a getEntries of a storage entry with no arguments
+                lengthMismatch(codecs.len - 1, actualArgs.length),
               )
 
             // TODO: check for partial args
@@ -453,9 +453,7 @@ export const createStorageEntry = (
             if (
               compat.value.level === CompatibilityLevel.Partial &&
               decodedValues.some(
-                ({ value }) =>
-                  compat.value.getValueCompatibility(value).type !==
-                  "compatible",
+                ({ value }) => !compat.value.isValueCompatible(value),
               )
             )
               throw incompatibleError()
@@ -511,10 +509,7 @@ export const createStorageEntry = (
               .pipe(
                 tap((x) => {
                   const mapped = codecs.value.dec(x.value!)
-                  if (
-                    compat.value.getValueCompatibility(mapped).type !==
-                    "compatible"
-                  )
+                  if (!compat.value.isValueCompatible(mapped))
                     throw incompatibleError()
                   results[x.key] = mapped
                 }),
@@ -522,8 +517,7 @@ export const createStorageEntry = (
               ),
             defer(() =>
               Object.keys(results).length < rawKeys.length &&
-              compat.value.getValueCompatibility(codecs.fallback).type !==
-                "compatible"
+              !compat.value.isValueCompatible(codecs.fallback)
                 ? throwError(incompatibleError)
                 : of(
                     rawKeys.map((key) =>

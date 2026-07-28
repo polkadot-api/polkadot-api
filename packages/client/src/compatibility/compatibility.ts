@@ -32,6 +32,7 @@ const mapCompatibleResult = (result: IsCompatibleResult): ValueCompatibility =>
 export type CompatHelper<T = any> = {
   level: CompatibilityLevel
   isCompatible: (from?: CompatibilityLevel) => boolean
+  isValueCompatible: (dest: T) => boolean
   getValueCompatibility: (dest: T) => ValueCompatibility
 }
 export type ArgsValueCompatHelper<Args = any, Value = any> = {
@@ -46,6 +47,7 @@ export type ConstCompat = Promise<(dest: any) => boolean>
 const incompatible: CompatHelper = {
   level: CompatibilityLevel.Incompatible,
   isCompatible: () => false,
+  isValueCompatible: () => false,
   getValueCompatibility: () => Enum("runtimeIncompatible"),
 }
 const inOutIncompat: ArgsValueCompatHelper = {
@@ -57,6 +59,7 @@ const inOutIncompat: ArgsValueCompatHelper = {
 const identical: CompatHelper = {
   level: CompatibilityLevel.Identical,
   isCompatible: () => true,
+  isValueCompatible: () => true,
   // This will only be used on values returned from the node, so we can assume it will be compatible without checks
   getValueCompatibility: () => Enum("compatible"),
 }
@@ -92,6 +95,8 @@ const getCompatibilityHelper = <K extends OpType>(
       kind === OpType.Storage
         ? (value: any[]) => _getCompat(value.length === 1 ? value[0] : value)
         : _getCompat
+    const isValueCompatible = (value: any) =>
+      getValueCompatibility(value).type === "compatible"
 
     if (!user?.entry) {
       const level = CompatibilityLevel.Partial
@@ -99,6 +104,7 @@ const getCompatibilityHelper = <K extends OpType>(
         args: {
           level,
           getValueCompatibility,
+          isValueCompatible,
           isCompatible: getIsApiCompatible(level),
         },
         value: user ? incompatible : identical,
@@ -114,10 +120,19 @@ const getCompatibilityHelper = <K extends OpType>(
         cache,
       )
 
+      const valueValueCompatibility =
+        values.level > CompatibilityLevel.Partial
+          ? () => Enum("compatible")
+          : (val: any) =>
+              mapCompatibleResult(
+                valueIsCompatibleWithDest(userValues, user.getter, val),
+              )
+
       result = {
         args: {
           level: args.level,
           getValueCompatibility,
+          isValueCompatible,
           isCompatible: getIsApiCompatible(args.level),
         },
         value:
@@ -125,17 +140,9 @@ const getCompatibilityHelper = <K extends OpType>(
             ? incompatible
             : {
                 level: values.level,
-                getValueCompatibility:
-                  values.level > CompatibilityLevel.Partial
-                    ? () => Enum("compatible")
-                    : (val) =>
-                        mapCompatibleResult(
-                          valueIsCompatibleWithDest(
-                            userValues,
-                            user.getter,
-                            val,
-                          ),
-                        ),
+                getValueCompatibility: valueValueCompatibility,
+                isValueCompatible: (val: any) =>
+                  valueValueCompatibility(val).type === "compatible",
                 isCompatible: getIsApiCompatible(values.level),
               },
       }

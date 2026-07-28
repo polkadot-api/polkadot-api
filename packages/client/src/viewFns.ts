@@ -105,9 +105,7 @@ export const createViewFnEntry = (
           map(({ success, value }) => {
             if (!success) throw new Error(`ViewFn API Error: ${value.type}`)
             const decoded = viewCodec.value.dec(value)
-            if (
-              compat.value.getValueCompatibility(decoded).type !== "compatible"
-            )
+            if (!compat.value.isValueCompatible(decoded))
               throw compatibilityError()
             return decoded
           }),

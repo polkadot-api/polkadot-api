@@ -64,7 +64,7 @@ export const createRuntimeCallEntry = (
         return chainHead.call$(at, callName, toHex(codecs.args.enc(args))).pipe(
           map(codecs.value.dec),
           map((value) => {
-            if (compat.value.getValueCompatibility(value).type !== "compatible")
+            if (!compat.value.isValueCompatible(value))
               throw compatibilityError()
             return value
           }),
