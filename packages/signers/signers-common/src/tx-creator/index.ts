@@ -1,4 +1,4 @@
-import { EnhancerSpecs } from "@polkadot-api/tx-creator"
+import { EnhancerSpecs, SignerTxCreator } from "@polkadot-api/tx-creator"
 import {
   withCommonExtensions,
   type ChargeAssetTxPaymentSpec,
@@ -9,6 +9,7 @@ export type CommonEnhancersSpecs = [
   ...EnhancerSpecs<ReturnType<typeof withNonce>>,
   ...EnhancerSpecs<typeof withCommonExtensions>,
 ]
+export type CommonSignerTxCreator = SignerTxCreator<CommonEnhancersSpecs>
 
 export {
   ChargeAssetTxPaymentSpec,

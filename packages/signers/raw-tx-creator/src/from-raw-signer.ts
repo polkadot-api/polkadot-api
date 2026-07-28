@@ -1,11 +1,6 @@
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata"
 import {
-  TxArgSpec,
-  TxCreator,
-  TxCreatorEnhancer,
-} from "@polkadot-api/tx-creator"
-import {
-  CommonEnhancersSpecs,
+  CommonSignerTxCreator,
   createV4Tx,
   getSignBytes,
   withCommonExtensions,
@@ -18,6 +13,11 @@ import {
   SS58String,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
+import {
+  TxArgSpec,
+  TxCreator,
+  TxCreatorEnhancer,
+} from "@polkadot-api/tx-creator"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { firstValueFrom } from "rxjs"
 
@@ -28,7 +28,7 @@ export const getTxCreator = (
   publicKey: Uint8Array,
   signingType: "Ecdsa" | "Ed25519" | "Sr25519",
   sign: (input: Uint8Array) => Promise<Uint8Array> | Uint8Array,
-): RawTxCreator => {
+): CommonSignerTxCreator => {
   const creator: TxCreator<[]> = async (
     payload,
     _,
@@ -74,10 +74,6 @@ export const getTxCreator = (
     signBytes: getSignBytes(sign),
   })
 }
-export type RawTxCreator = {
-  publicKey: Uint8Array
-  signBytes: (data: Uint8Array) => Promise<Uint8Array>
-} & TxCreator<CommonEnhancersSpecs>
 
 const accId = AccountId().enc
 const SIG = new Uint8Array(65).fill(0xcd)

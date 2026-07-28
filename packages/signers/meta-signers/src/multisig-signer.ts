@@ -1,4 +1,3 @@
-import { TxCreator } from "@polkadot-api/tx-creator"
 import {
   AccountId,
   Blake2256,
@@ -9,6 +8,7 @@ import {
   sortMultisigSignatories,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
+import { SignerTxCreator, TxCreator } from "@polkadot-api/tx-creator"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { firstValueFrom, map } from "rxjs"
 import { getCodecs } from "./get-codecs"
@@ -27,7 +27,7 @@ const defaultMultisigTxCreatorOptions: MultisigTxCreatorOptions<unknown> = {
 
 export function getMultisigTxCreator<
   Address extends SS58String | HexString,
-  T extends TxCreator,
+  T extends SignerTxCreator,
 >(
   multisig: {
     threshold: number
@@ -46,7 +46,7 @@ export function getMultisigTxCreator<
       }
     | undefined
   >,
-  txCreator: T & { publicKey: Uint8Array; accountId?: Uint8Array },
+  txCreator: T & { accountId?: Uint8Array },
   options?: MultisigTxCreatorOptions<Address>,
 ): WrapTxCreator<T> {
   const resolvedOptions = {

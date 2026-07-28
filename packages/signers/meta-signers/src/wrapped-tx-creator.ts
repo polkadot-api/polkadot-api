@@ -1,6 +1,5 @@
-import { TxCreator } from "@polkadot-api/tx-creator"
+import { SignerTxCreator } from "@polkadot-api/tx-creator"
 
-export type WrapTxCreator<T extends TxCreator> = {
-  publicKey: Uint8Array
+export type WrapTxCreator<T extends SignerTxCreator> = {
   accountId: Uint8Array
 } & T

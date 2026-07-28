@@ -1,22 +1,22 @@
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
-import { TxCreator } from "@polkadot-api/tx-creator"
 import {
   getSs58AddressInfo,
   HexString,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
+import { SignerTxCreator, TxCreator } from "@polkadot-api/tx-creator"
 import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { getCodecs } from "./get-codecs"
 import { WrapTxCreator } from "./wrapped-tx-creator"
 
 export type ProxyAddress = SS58String | HexString
 
-export function getProxyTxCreator<T extends TxCreator>(
+export function getProxyTxCreator<T extends SignerTxCreator>(
   proxyParams: {
     real: ProxyAddress
     type?: { type: string; value?: unknown }
   },
-  txCreator: T & { publicKey: Uint8Array },
+  txCreator: T,
 ): WrapTxCreator<T> {
   const factory: TxCreator = async (
     payload,

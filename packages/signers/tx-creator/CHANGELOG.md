@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Export type `SignerTxCreator` for signer TxCreators
+
 ## 0.2.0-rc.2 - 2026-07-14
 
 ### Changed

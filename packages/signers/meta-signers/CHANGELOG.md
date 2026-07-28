@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Use common `SignerTxCreator` type
+
 ## 0.3.0-rc.3 - 2026-07-14
 
 ### Fixed

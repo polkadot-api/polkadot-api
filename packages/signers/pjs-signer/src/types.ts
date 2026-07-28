@@ -1,4 +1,4 @@
-import type { PjsTxCreator } from "./from-pjs-account"
+import { CommonSignerTxCreator } from "@polkadot-api/signers-common"
 
 declare global {
   interface Window {
@@ -108,7 +108,7 @@ export interface InjectedAccount {
 }
 
 export interface InjectedPolkadotAccount {
-  txCreator: PjsTxCreator
+  txCreator: CommonSignerTxCreator
   address: string
   genesisHash?: string | null
   name?: string
