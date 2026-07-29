@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0-rc.4 - 2026-07-29
+
 ### Removed
 
 - Replaced `RawTxCreator` for `CommonSignerTxCreator`

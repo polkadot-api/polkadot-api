@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0-rc.3 - 2026-07-29
+
 ### Added
 
 - Export type `CommonSignerTxCreator` for signer TxCreators with the common enhancers
