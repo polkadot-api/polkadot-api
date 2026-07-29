@@ -63,6 +63,7 @@ jobs:
       contents: read
       id-token: write
     strategy:
+      fail-fast: false
       matrix:
         dist_tag:
           - "canary"
