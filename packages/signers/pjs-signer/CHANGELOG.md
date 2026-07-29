@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.0-rc.3 - 2026-07-29
+
 ### Removed
 
 - Replaced `PjsTxCreator` for `CommonSignerTxCreator`

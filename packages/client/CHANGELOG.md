@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.0.0-rc.5 - 2026-07-29
+
 ### Added
 
 - `polkadot-api/tx-creator` exports types `TxCreator` and `SignerTxCreator`
