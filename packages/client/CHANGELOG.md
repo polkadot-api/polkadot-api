@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 2.2.2 - 2026-07-31
+
 ### Fixed
 
 - Improve `getValues` performance.
