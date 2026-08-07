@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.12.1 - 2026-07-21
+
+### Fixed
+
+- Export properly `paseo_bulletin`
+
 ## 0.12.0 - 2026-07-20
 
 ### Changed

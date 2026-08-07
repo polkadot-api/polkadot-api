@@ -5,6 +5,11 @@ packages:
   - examples/*
   - integration-tests/*
   - scripts/bump
+allowBuilds:
+  '@swc/core': true
+  esbuild: true
+  node-hid: true
+  usb: true
 onlyBuiltDependencies:
   - '@swc/core'
   - esbuild

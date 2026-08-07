@@ -8,7 +8,13 @@
 
 - Update dependencies
 
+## 0.18.8 - 2026-07-31
+
+### Fixed
+
 ## 0.18.7 - 2026-06-02
+
+- Fix `storageQueries$` not handling `nDiscarded` items correctly
 
 ### Fixed
 

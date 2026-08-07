@@ -48,6 +48,18 @@
 - BREAKING: Offline transaction entries now use `create` instead of `sign`.
 - BREAKING: `ChainDefinition` now includes all extensions and descriptors include "non-default extensions"
 
+## 2.2.2 - 2026-07-31
+
+### Fixed
+
+- Improve `getValues` performance.
+
+## 2.2.1 - 2026-07-21
+
+### Fixed
+
+- Missing export for `paseo-bulletin`
+
 ## 2.2.0 - 2026-07-20
 
 ### Changed

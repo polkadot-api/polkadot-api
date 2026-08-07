@@ -1,0 +1,9 @@
+{
+  "name": "polkadot-api_chains_paseo_bulletin",
+  "type": "module",
+  "types": "../../dist/reexports/chains_paseo_bulletin.d.ts",
+  "module": "../../dist/reexports/chains_paseo_bulletin.js",
+  "import": "../../dist/reexports/chains_paseo_bulletin.js",
+  "browser": "../../dist/reexports/chains_paseo_bulletin.js",
+  "default": "../../dist/reexports/chains_paseo_bulletin.js"
+}
