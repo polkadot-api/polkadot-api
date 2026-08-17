@@ -35,16 +35,16 @@
     "rxjs": ">=7.8.0"
   },
   "dependencies": {
-    "@noble/hashes": "^2.2.0",
-    "@polkadot-api/metadata-builders": "workspace:*",
+    "@noble/hashes": "^2.3.0",
     "@polkadot-api/merkleize-metadata": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
     "@polkadot-api/tx-creator": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^2.2.0",
+    "@noble/curves": "^2.3.0",
     "rxjs": "^7.8.2"
   }
 }
