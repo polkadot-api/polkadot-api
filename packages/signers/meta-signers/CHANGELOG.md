@@ -2,28 +2,11 @@
 
 ## Unreleased
 
-## 0.3.0-rc.4 - 2026-07-29
-
-### Changed
-
-- Use common `SignerTxCreator` type
-
-## 0.3.0-rc.3 - 2026-07-14
-
-### Fixed
-
-- Update dependencies
-
-## 0.3.0-rc.2 - 2026-07-13
+## 0.3.0 - 2026-08-17
 
 ### Changed
 
 - BREAKING: Removed `txPaymentInfo` callback parameter from `getMultisigTxCreator`.
-
-## 0.3.0-rc.1 - 2026-07-08
-
-### Changed
-
 - BREAKING: Replace multisig and proxy signer wrappers with TxCreator wrappers.
 
 ### Removed

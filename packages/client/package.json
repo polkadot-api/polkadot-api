@@ -1,6 +1,6 @@
 {
   "name": "polkadot-api",
-  "version": "3.0.0-rc.5",
+  "version": "3.0.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",

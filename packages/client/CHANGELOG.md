@@ -2,44 +2,12 @@
 
 ## Unreleased
 
-## 3.0.0-rc.5 - 2026-07-29
-
-### Added
-
-- `polkadot-api/tx-creator` exports types `TxCreator` and `SignerTxCreator`
-
-### Changed
-
-- BREAKING: Removed all individual `TxCreator`s (ledger, raw, pjs, etc.) for each of the signers and replaced them with `CommonSignerTxCreator`
-
-## 3.0.0-rc.4 - 2026-07-20
-
-### Changed
-
-- BREAKING: Split TxEvent `{ type: 'txBestBlocksState', found: boolean }` into `inBestBlock` and `notInBestBlock`
-- BREAKING: Replace TxEvent `type: 'signed'` for `type: 'created'`
-
-### Fixed
-
-- Add default generic type to `Transaction`
-
-## 3.0.0-rc.3 - 2026-07-14
-
-### Changed
-
-- BREAKING: Renamed `polkadot-api/signer` to `polkadot-api/tx-creator`
-
-## 3.0.0-rc.2 - 2026-07-13
-
-### Added
-
-- `getFakeTxCreator` export
-
-## 3.0.0-rc.1 - 2026-07-08
+## 3.0.0 - 2026-08-17
 
 ### Added
 
 - Add `txCreatorBindings` to APIs.
+- `getFakeTxCreator` export
 
 ### Changed
 
@@ -47,6 +15,9 @@
 - BREAKING: `getPaymentInfo` and `getEstimatedFees` now take a `TxCreator` instead of an account address or public key.
 - BREAKING: Offline transaction entries now use `create` instead of `sign`.
 - BREAKING: `ChainDefinition` now includes all extensions and descriptors include "non-default extensions"
+- BREAKING: Renamed `polkadot-api/signer` to `polkadot-api/tx-creator`
+- BREAKING: Split TxEvent `{ type: 'txBestBlocksState', found: boolean }` into `inBestBlock` and `notInBestBlock`
+- BREAKING: Replace TxEvent `type: 'signed'` for `type: 'created'`
 
 ## 2.2.2 - 2026-07-31
 

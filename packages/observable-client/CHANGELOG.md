@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-## 0.18.8-rc.1 - 2026-07-08
+## 0.19.0 - 2026-08-17
 
 ### Fixed
 
-- Update dependencies
+- Update to PAPI v3
 
 ## 0.18.8 - 2026-07-31
 

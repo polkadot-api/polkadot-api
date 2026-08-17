@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-## 0.6.4-rc.1 - 2026-07-08
+## 0.7.0 - 2026-08-17
 
 ### Fixed
 
-- Update dependencies
+- Update to PAPI v3
 
 ## 0.6.1 to 0.6.3 - 2026-05-19
 

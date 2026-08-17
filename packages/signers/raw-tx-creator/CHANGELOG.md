@@ -2,33 +2,17 @@
 
 ## Unreleased
 
-## 0.4.0-rc.4 - 2026-07-29
-
-### Removed
-
-- Replaced `RawTxCreator` for `CommonSignerTxCreator`
-
-## 0.4.0-rc.3 - 2026-07-14
+## 0.4.0 - 2026-08-17
 
 ### Changed
 
 - Renamed package to `@polkadot-api/raw-tx-creator`
+- BREAKING: Replace `getPolkadotSigner` with `getTxCreator`.
 
 ### Added
 
-- Export type `RawTxCreator`
-
-## 0.4.0-rc.2 - 2026-07-13
-
-### Added
-
-- `getFakeTxCreator` export
-
-## 0.4.0-rc.1 - 2026-07-08
-
-### Changed
-
-- BREAKING: Replace `getPolkadotSigner` with `getTxCreator`.
+- Type `CommonSignerTxCreator`
+- `getFakeTxCreator`
 
 ### Removed
 

@@ -2,13 +2,7 @@
 
 ## Unreleased
 
-## 0.2.0-rc.3 - 2026-07-29
-
-### Added
-
-- Export type `SignerTxCreator` for signer TxCreators
-
-## 0.2.0-rc.2 - 2026-07-14
+## 0.2.0 - 2026-08-17
 
 ### Changed
 
@@ -19,12 +13,8 @@
 - Default generic value for `TxCreator`
 - Utility type `CreatorSpecs<T>` to extract the generic from `TxCreator`
 - Utility type `EnhancerSpecs<T>` to extract the generic from `TxCreatorEnhancer`
-
-## 0.2.0-rc.1 - 2026-07-08
-
-### Added
-
 - Interfaces `TxPayloadV1` and `TxCreator`.
+- Export type `SignerTxCreator` for signer TxCreators
 
 ### Removed
 
