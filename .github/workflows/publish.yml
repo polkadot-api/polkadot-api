@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches:
-      - v3
+      - main
   release:
     types:
       - published
@@ -62,12 +62,11 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      DIST_TAG: ${{ github.event_name == 'push' && 'canary' || (github.event_name == 'workflow_dispatch' && (inputs.channel || '') == 'canary' && 'canary') || 'latest' }}
     strategy:
       fail-fast: false
       matrix:
-        dist_tag:
-          - "canary"
-          - "rc"
         node-version:
           - "24"
     steps:
@@ -84,14 +83,14 @@ jobs:
       - name: Build
         run: pnpm turbo build-core
       - uses: oven-sh/setup-bun@v2
-        if: ${{ matrix.dist_tag == 'canary' }}
+        if: ${{ env.DIST_TAG == 'canary' }}
         with:
           bun-version: latest
       - name: Bump versions
-        if: ${{ matrix.dist_tag == 'canary' }}
+        if: ${{ env.DIST_TAG == 'canary' }}
         run: |
           bun run scripts/bump/prerelease.ts
       - name: Publish
-        run: pnpm -r publish --no-git-checks --access=public --tag ${{ matrix.dist_tag }}
+        run: pnpm -r publish --no-git-checks --access=public --tag ${{ env.DIST_TAG }}
         env:
           NPM_CONFIG_PROVENANCE: "true"
