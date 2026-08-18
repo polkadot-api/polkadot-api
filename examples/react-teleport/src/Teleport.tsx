@@ -1,5 +1,10 @@
 import React, { useRef, useState } from "react"
-import { teleportToParaChain, teleportToRelayChain } from "./api"
+import {
+  paraChainApi,
+  relayChainApi,
+  teleportToParaChain,
+  teleportToRelayChain,
+} from "./api"
 import { useSelectedAccount, useToken } from "./context"
 import { TxEvent } from "polkadot-api"
 
@@ -8,18 +13,21 @@ const teleportFns = {
   relay: teleportToRelayChain,
 }
 
+const teleportApis = {
+  para: paraChainApi,
+  relay: relayChainApi,
+}
+
 const TxStatus: React.FC<{ status: TxEvent | null }> = ({ status }) => {
   if (!status) return null
-  if (status.type === "signed") return <div>Tx Signed {status.txHash}</div>
-  if (status.type === "broadcasted")
+  if (status.type === "created") return <div>Tx Signed {status.txHash}</div>
+  if (status.type === "broadcasted" || status.type === "notInBestBlock")
     return <div>Tx Broadcasted {status.txHash}</div>
-  if (status.type === "txBestBlocksState")
-    return status.found ? (
+  if (status.type === "inBestBlock")
+    return (
       <div>
         Tx included in best block {status.block.hash}-{status.block.index}
       </div>
-    ) : (
-      <div>Tx Broadcasted {status.txHash}</div>
     )
 
   return (
@@ -37,7 +45,7 @@ export const Teleport: React.FC = () => {
 
   const teleport = (to: "para" | "relay") => {
     teleportFns[to](account.address, ref.current)
-      .signSubmitAndWatch(account.polkadotSigner)
+      .createSubmitAndWatch(account.txCreator)
       .subscribe((x) => {
         setTxStatus(x)
         if (x.type === "finalized")

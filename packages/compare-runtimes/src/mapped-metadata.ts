@@ -112,18 +112,9 @@ export const getMappedMetadata = (
     ]),
   )
 
-  const extensions = Object.values(metadata.extrinsic.signedExtensions).reduce<
-    Record<string, { type: number; additionalSigned: number }>
-  >((acc, exts) => {
-    exts.forEach(({ identifier, ...rest }) => {
-      acc[identifier] = rest
-    })
-    return acc
-  }, {})
-
   return {
     pallets,
     api,
-    extensions,
+    extensions: metadata.extrinsic.extensions,
   }
 }

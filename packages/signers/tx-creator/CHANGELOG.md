@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-08-18
+
+### Changed
+
+- Renamed package to `@polkadot-api/tx-creator`
+
+### Added
+
+- Default generic value for `TxCreator`
+- Utility type `CreatorSpecs<T>` to extract the generic from `TxCreator`
+- Utility type `EnhancerSpecs<T>` to extract the generic from `TxCreatorEnhancer`
+- Interfaces `TxPayloadV1` and `TxCreator`.
+- Export type `SignerTxCreator` for signer TxCreators
+
+### Removed
+
+- `PolkadotSigner` interface
+
 ## 0.1.6 - 2024-10-05
 
 ### Fixed

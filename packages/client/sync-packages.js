@@ -6,7 +6,7 @@ const fromId = (id) => [id, `@polkadot-api/${id}`]
 export const reexports = [
   fromId("logs-provider"),
   fromId("pjs-signer"),
-  fromId("signer"),
+  ["tx-creator", "@polkadot-api/raw-tx-creator"],
   fromId("sm-provider"),
   ["chains", "@polkadot-api/known-chains"],
   ...Object.keys(knownChains).map((chainName) => [

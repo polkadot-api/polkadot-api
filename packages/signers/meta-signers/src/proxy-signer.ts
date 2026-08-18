@@ -1,56 +1,60 @@
 import { MetadataLookup } from "@polkadot-api/metadata-builders"
-import type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
 import {
   getSs58AddressInfo,
   HexString,
   SS58String,
 } from "@polkadot-api/substrate-bindings"
-import { fromHex, mergeUint8 } from "@polkadot-api/utils"
+import { SignerTxCreator, TxCreator } from "@polkadot-api/tx-creator"
+import { fromHex, mergeUint8, toHex } from "@polkadot-api/utils"
 import { getCodecs } from "./get-codecs"
-import { WrappedSigner } from "./wrapped-signer"
+import { WrapTxCreator } from "./wrapped-tx-creator"
 
 export type ProxyAddress = SS58String | HexString
 
-export function getProxySigner(
+export function getProxyTxCreator<T extends SignerTxCreator>(
   proxyParams: {
     real: ProxyAddress
     type?: { type: string; value?: unknown }
   },
-  signer: PolkadotSigner,
-): WrappedSigner {
-  return {
-    publicKey: signer.publicKey,
-    accountId: proxyAddressToU8Arr(proxyParams.real),
-    signBytes() {
-      throw new Error("Raw bytes can't be signed with a proxy")
-    },
-    async signTx(callData, signedExtensions, metadata, atBlockNumber, hasher) {
-      const { lookup, dynamicBuilder, callCodec } = getCodecs(metadata)
+  txCreator: T,
+): WrapTxCreator<T> {
+  const factory: TxCreator = async (
+    payload,
+    opts,
+    bindings,
+    mockedSignature,
+  ) => {
+    const { lookup, dynamicBuilder, callCodec } = getCodecs(
+      fromHex(payload.context.metadata),
+    )
 
-      let wrappedCallData
-      try {
-        const { location, codec } = dynamicBuilder.buildCall("Proxy", "proxy")
-        const payload = codec.enc({
-          real: wrapAddress(lookup, proxyParams.real),
-          force_proxy_type: proxyParams.type,
-          call: callCodec.dec(callData),
-        })
-        wrappedCallData = mergeUint8([new Uint8Array(location), payload])
-      } catch (_) {
-        throw new Error(
-          `Unsupported runtime version: Proxy.proxy not present or changed substantially`,
-        )
-      }
-
-      return signer.signTx(
-        wrappedCallData,
-        signedExtensions,
-        metadata,
-        atBlockNumber,
-        hasher,
+    let wrappedCallData
+    try {
+      const { location, codec } = dynamicBuilder.buildCall("Proxy", "proxy")
+      const wrappedPayload = codec.enc({
+        real: wrapAddress(lookup, proxyParams.real),
+        force_proxy_type: proxyParams.type,
+        call: callCodec.dec(fromHex(payload.callData)),
+      })
+      wrappedCallData = mergeUint8([new Uint8Array(location), wrappedPayload])
+    } catch {
+      throw new Error(
+        `Unsupported runtime version: Proxy.proxy not present or changed substantially`,
       )
-    },
+    }
+
+    return txCreator(
+      { ...payload, callData: toHex(wrappedCallData) },
+      opts,
+      bindings,
+      mockedSignature,
+    )
   }
+
+  return Object.assign(factory as T, {
+    publicKey: txCreator.publicKey,
+    accountId: proxyAddressToU8Arr(proxyParams.real),
+  })
 }
 
 /**

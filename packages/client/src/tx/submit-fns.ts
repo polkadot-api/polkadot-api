@@ -188,7 +188,7 @@ export const submit$ = (
   chainHead: ChainHead$,
   broadcastTx$: (tx: Uint8Array) => Observable<never>,
   tx: Uint8Array,
-  emitSign = false,
+  emitCreated = false,
 ): Observable<TxEvent> =>
   chainHead.hasher$.pipe(
     mergeMap((hasher) => {
@@ -303,14 +303,9 @@ export const submit$ = (
         chainHead.pinnedBlocks$,
       ).pipe(
         map((x) => {
-          if (!x.found)
-            return getTxEvent("txBestBlocksState", {
-              found: false,
-              isValid: x.validity?.success !== false,
-            })
+          if (!x.found) return getTxEvent("notInBestBlock", {})
 
-          return getTxEvent("txBestBlocksState", {
-            found: true,
+          return getTxEvent("inBestBlock", {
             block: {
               index: x.index,
               number: x.number,
@@ -322,12 +317,14 @@ export const submit$ = (
       )
 
       return concat(
-        emitSign ? of(getTxEvent("signed", {})) : EMPTY,
+        emitCreated ? of(getTxEvent("created", {})) : EMPTY,
         validate$,
         of(getTxEvent("broadcasted", {})),
         bestBlockState$.pipe(
-          continueWith(({ found, type, ...rest }) =>
-            found ? of(getTxEvent("finalized", rest as any)) : EMPTY,
+          continueWith(({ type, ...rest }) =>
+            type === "inBestBlock"
+              ? of(getTxEvent("finalized", rest as any))
+              : EMPTY,
           ),
         ),
       )

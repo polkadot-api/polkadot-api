@@ -2,11 +2,11 @@
   "version": 0,
   "descriptorPath": ".papi/descriptors",
   "entries": {
-    "wnd": {
-      "chain": "westend",
-      "metadata": ".papi/metadata/wnd-metadata.scale",
-      "genesis": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
-      "codeHash": "0x8579da39311d91d4fd5586caee968fa2f2de07db6f715126cc438c79c2f18c3d"
+    "pah": {
+      "chain": "paseo_asset_hub",
+      "metadata": ".papi/metadata/pah.scale",
+      "genesis": "0xd6eec26135305a8ad257a20d003357284c8aa03d0bdb2b357ab0a22371e11ef2",
+      "codeHash": "0x9d992d08bc7b2117f7899cd3b003e0d2bce57d81d01aec0a1c6b6284483c3950"
     }
   }
 }

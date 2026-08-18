@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.19.0 - 2026-08-18
+
+### Fixed
+
+- Update to PAPI v3
+
 ## 0.18.8 - 2026-07-31
 
 ### Fixed

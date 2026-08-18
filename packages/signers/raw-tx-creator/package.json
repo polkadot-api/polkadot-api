@@ -1,6 +1,6 @@
 {
-  "name": "@polkadot-api/signer",
-  "version": "0.3.3",
+  "name": "@polkadot-api/raw-tx-creator",
+  "version": "0.4.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -31,15 +31,20 @@
     "lint": "tsc --noEmit && prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
+  "peerDependencies": {
+    "rxjs": ">=7.8.0"
+  },
   "dependencies": {
-    "@noble/hashes": "^2.2.0",
+    "@noble/hashes": "^2.3.0",
     "@polkadot-api/merkleize-metadata": "workspace:*",
-    "@polkadot-api/polkadot-signer": "workspace:*",
+    "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/tx-creator": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^2.2.0"
+    "@noble/curves": "^2.3.0",
+    "rxjs": "^7.8.2"
   }
 }

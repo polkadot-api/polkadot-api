@@ -1,0 +1,9 @@
+{
+  "name": "polkadot-api_tx-creator",
+  "type": "module",
+  "types": "../dist/reexports/tx-creator.d.ts",
+  "module": "../dist/reexports/tx-creator.js",
+  "import": "../dist/reexports/tx-creator.js",
+  "browser": "../dist/reexports/tx-creator.js",
+  "default": "../dist/reexports/tx-creator.js"
+}

@@ -5,18 +5,20 @@ import { constFromCtx } from "@/utils/const-from-ctx"
 import { getCallData } from "@/utils/get-call-data"
 import { stgGetKey } from "@/utils/stg-get-key"
 import { ChainHead$, RuntimeContext } from "@polkadot-api/observable-client"
+import { TxCreatorBindings } from "@polkadot-api/tx-creator"
 import { mergeMap, Observable } from "rxjs"
-import { createTxEntry, Transaction } from "./tx"
+import { createTxEntry, ExtensionConstraints, Transaction } from "./tx"
 import { withWeakCache } from "./utils/with-weak-cache"
 
-export const createStaticApis = (
+export const createStaticApis = <EC extends ExtensionConstraints>(
+  bindings: TxCreatorBindings,
   chainHead: ChainHead$,
   broadcast$: (tx: Uint8Array) => Observable<never>,
-  { getClientCompat, getSyncHelpers, getIsAsssetCompat }: CompatHelpers,
+  { getClientCompat, getSyncHelpers }: CompatHelpers,
 ) => {
   const txFromCallData =
     ({ dynamicBuilder, lookup }: RuntimeContext) =>
-    (callData: Uint8Array): Transaction => {
+    (callData: Uint8Array): Transaction<EC> => {
       try {
         const {
           type: pallet,
@@ -24,12 +26,12 @@ export const createStaticApis = (
         } = dynamicBuilder.buildDefinition(lookup.call!).dec(callData)
 
         return createTxEntry(
+          bindings,
           pallet,
           name,
           chainHead,
           broadcast$,
           getClientCompat("tx", pallet, name),
-          getIsAsssetCompat,
         )(args)
       } catch {
         throw new Error("Invalid call data")

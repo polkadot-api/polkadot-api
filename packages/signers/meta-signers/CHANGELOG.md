@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-08-18
+
+### Changed
+
+- BREAKING: Removed `txPaymentInfo` callback parameter from `getMultisigTxCreator`.
+- BREAKING: Replace multisig and proxy signer wrappers with TxCreator wrappers.
+
+### Removed
+
+- `PolkadotSigner` reexport
+
 ## 0.2.1 to 0.2.3 - 2026-05-19
 
 ### Fixed

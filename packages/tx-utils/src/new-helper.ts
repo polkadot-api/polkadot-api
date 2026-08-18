@@ -75,7 +75,7 @@ export const getTxHelper = (
   }
 
   const extensionsDec = Object.fromEntries(
-    metadata.extrinsic.signedExtensions[0].map(
+    metadata.extrinsic.extensionsByVersion[0].map(
       (x) =>
         [
           x.identifier,
@@ -107,7 +107,7 @@ export const getTxHelper = (
     return {
       input: {
         callData: fromHex(pjsPayload.method),
-        extensions: lookup.metadata.extrinsic.signedExtensions[0].map(
+        extensions: lookup.metadata.extrinsic.extensionsByVersion[0].map(
           (x, idx) => ({
             id: x.identifier,
             extra: extensions[idx].value,

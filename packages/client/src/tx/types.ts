@@ -1,30 +1,30 @@
+import { PlainDescriptor } from "@/descriptors"
 import { PullOptions, TxCallData } from "@/types"
 import { SystemEvent } from "@polkadot-api/observable-client"
-import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
-import { Enum, HexString, SS58String } from "@polkadot-api/substrate-bindings"
+import { Enum, HexString } from "@polkadot-api/substrate-bindings"
+import {
+  ArgsForCreator,
+  CreatorSpecs,
+  TxCreator,
+} from "@polkadot-api/tx-creator"
 import { Observable } from "rxjs"
 
-export type TxEvent = TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
-export type TxBroadcastEvent =
-  TxSigned | TxBroadcasted | TxBestBlocksState | TxFinalized
+export type TxEvent =
+  TxCreated | TxBroadcasted | TxInBestBlock | TxNotInBestBlock | TxFinalized
 
-export type TxSigned = { type: "signed"; txHash: HexString }
+export type TxCreated = { type: "created"; txHash: HexString }
 
 export type TxBroadcasted = { type: "broadcasted"; txHash: HexString }
 
-export type TxBestBlocksState = {
-  type: "txBestBlocksState"
+export type TxInBestBlock = {
+  type: "inBestBlock"
   txHash: HexString
-} & (TxInBestBlocksNotFound | TxInBestBlocksFound)
-
-export type TxInBestBlocksNotFound = {
-  found: false
-  isValid: boolean
-}
-
-export type TxInBestBlocksFound = {
-  found: true
 } & TxEventsPayload
+
+export type TxNotInBestBlock = {
+  type: "notInBestBlock"
+  txHash: HexString
+}
 
 export type FlattenedEvent = SystemEvent & SystemEvent["event"]
 
@@ -70,158 +70,46 @@ export type TxFinalized = {
 } & TxEventsPayload
 export type TxFinalizedPayload = { txHash: HexString } & TxEventsPayload
 
-export type CustomSignedExtensionValues =
-  | {
-      value: any
-      additionalSigned: any
-    }
-  | {
-      value: any
-    }
-  | {
-      additionalSigned: any
-    }
+type UncoveredRequiredExtensions<
+  TxC extends TxCreator,
+  EC extends ExtensionConstraints,
+> = Exclude<
+  EC["requiredExtensions"]["_type"],
+  CreatorSpecs<TxC>[number]["id"] | undefined
+>
+type UncoveredRequiredExtensionArgs<
+  TxC extends TxCreator,
+  EC extends ExtensionConstraints,
+> = {
+  [K in UncoveredRequiredExtensions<TxC, EC>]: EC["extensions"][K]
+}
 
-//  = CustomSignedExtensionValues
-export type TxOptions<Asset, Ext> = Partial<
-  void extends Asset
-    ? {
-        /**
-         * Block to target the transaction against. Defaults to the currently
-         * finalized block.
-         */
-        at: HexString
-        /**
-         * Tip in fundamental units. Default: `0`
-         */
-        tip: bigint
-        /**
-         * Mortality of the transaction. Default: `{ mortal: true, period: 64 }`
-         */
-        mortality: { mortal: false } | { mortal: true; period: number }
-        /**
-         * Custom nonce for the transaction. Default: retrieve from latest known
-         * finalized block.
-         */
-        nonce: number
-        /**
-         * Custom values for chains that have custom signed-extensions.
-         * The key of the Object should be the signed-extension name and the
-         * value is an Object that accepts 2 possible keys: one for `value`
-         * and the other one for `additionallySigned`. They both receive either
-         * the encoded value as a `Uint8Array` that should be used for the
-         * signed-extension, or the decoded value that PAPI will encode using
-         * its dynamic codecs. At least one of the 2 values must be included
-         * into the signed-extension Object.
-         */
-        customSignedExtensions: Ext
-      }
-    : {
-        /**
-         * Block to target the transaction against. Defaults to the currently
-         * finalized block.
-         */
-        at: HexString
-        /**
-         * Tip in fundamental units. Default: `0n`
-         */
-        tip: bigint
-        /**
-         * Mortality of the transaction. Default: `{ mortal: true, period: 64 }`
-         */
-        mortality: { mortal: false } | { mortal: true; period: number }
-        /**
-         * Custom nonce for the transaction. Default: retrieve from latest known
-         * finalized block.
-         */
-        nonce: number
-        /**
-         * Custom values for chains that have custom signed-extensions.
-         * The key of the Object should be the signed-extension name and the
-         * value is an Object that accepts 2 possible keys: one for `value`
-         * and the other one for `additionallySigned`. They both receive either
-         * the encoded value as a `Uint8Array` that should be used for the
-         * signed-extension, or the decoded value that PAPI will encode using
-         * its dynamic codecs. At least one of the 2 values must be included
-         * into the signed-extension Object.
-         */
-        customSignedExtensions: Ext
-        /**
-         * Asset information to pay fees, tip, etc. By default it'll use the
-         * native token of the chain.
-         */
-        asset?: Asset
-      }
+type Optionalize<T> =
+  IsAny<T> extends true
+    ? { customSignedExtensions?: T }
+    : {} extends T
+      ? { customSignedExtensions?: T }
+      : { customSignedExtensions: T }
+
+export type TxCreatorOptions<
+  T extends TxCreator,
+  EC extends ExtensionConstraints,
+> = Simplify<
+  ArgsForCreator<T, EC> &
+    Optionalize<Simplify<UncoveredRequiredExtensionArgs<T, EC>>>
 >
 
-export type OfflineTxExtensions<Asset> = void extends Asset
-  ? {
-      /**
-       * Nonce for the signer of the transaction.
-       */
-      nonce: number
-      /**
-       * Mortality of the transaction.
-       */
-      mortality:
-        | { mortal: false }
-        | {
-            mortal: true
-            period: number
-            startAtBlock: { height: number; hash: HexString }
-          }
-      /**
-       * Tip in fundamental units. Default: `0n`
-       */
-      tip?: bigint
-      /**
-       * Custom values for chains that have custom signed-extensions.
-       * The key of the Object should be the signed-extension name and the value
-       * is an Object that accepts 2 possible keys: one for `value`
-       * and the other one for `additionallySigned`. They both receive either
-       * the encoded value as a `Uint8Array` that should be used for the
-       * signed-extension, or the decoded value that PAPI will encode using its
-       * dynamic codecs. At least one of the 2 values must be included into the
-       * signed-extension Object.
-       */
-      customSignedExtensions?: Record<string, CustomSignedExtensionValues>
-    }
-  : {
-      /**
-       * Nonce for the signer of the transaction.
-       */
-      nonce: number
-      /**
-       * Mortality of the transaction.
-       */
-      mortality:
-        | { mortal: false }
-        | {
-            mortal: true
-            period: number
-            startAtBlock: { height: number; hash: HexString }
-          }
-      /**
-       * Tip in fundamental units. Default: `0n`
-       */
-      tip?: bigint
-      /**
-       * Custom values for chains that have custom signed-extensions.
-       * The key of the Object should be the signed-extension name and the value
-       * is an Object that accepts 2 possible keys: one for `value`
-       * and the other one for `additionallySigned`. They both receive either
-       * the encoded value as a `Uint8Array` that should be used for the
-       * signed-extension, or the decoded value that PAPI will encode using its
-       * dynamic codecs. At least one of the 2 values must be included into the
-       * signed-extension Object.
-       */
-      customSignedExtensions?: Record<string, CustomSignedExtensionValues>
-      /**
-       * Asset information to pay fees, tip, etc. By default it'll use the
-       * native token of the chain.
-       */
-      asset?: Asset
-    }
+type IsAny<T> = 0 extends 1 & T ? true : false
+type OptionalizeArgs<T> =
+  IsAny<T> extends true
+    ? [txOptions?: T]
+    : {} extends T
+      ? [txOptions?: T]
+      : [txOptions: T]
+type TxCreatorOptionsArg<
+  T extends TxCreator,
+  EC extends ExtensionConstraints,
+> = OptionalizeArgs<TxCreatorOptions<T, EC>>
 
 export type PaymentInfo = {
   weight: {
@@ -236,52 +124,55 @@ export type PaymentInfo = {
   partial_fee: bigint
 }
 
+export type ExtensionConstraints = {
+  extensions: Record<string, { value?: any; additionalSigned?: any }>
+  requiredExtensions: PlainDescriptor<string>
+}
+
 export type Transaction<
-  Asset = any,
-  Ext = Record<string, CustomSignedExtensionValues>,
+  EC extends ExtensionConstraints = ExtensionConstraints,
 > = {
   /**
-   * Pack the transaction, sends it to the signer, and return the signature
-   * asynchronously. If the signer fails (or the user cancels the signature)
-   * it'll throw an error.
+   * Creates a signed transaction asynchronously. If the creator fails (or the
+   * user cancels the signature) it'll throw an error.
    *
-   * @param from       `PolkadotSigner`-compliant signer.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  sign(
-    from: PolkadotSigner,
-    txOptions?: TxOptions<Asset, Ext>,
+  create<T extends TxCreator>(
+    creator: T,
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<Uint8Array>
 
   /**
-   * Observable-based all-in-one transaction submitting. It will sign,
+   * Observable-based all-in-one transaction submitting. It will create,
    * broadcast, and track the transaction. The observable is singlecast, i.e.
-   * it will sign, broadcast, etc at every subscription. It will complete once
+   * it will create, broadcast, etc at every subscription. It will complete once
    * the transaction is found in a `finalizedBlock`.
    *
-   * @param from       `PolkadotSigner`-compliant signer.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Observable to the transaction.
    */
-  signSubmitAndWatch(
-    from: PolkadotSigner,
-    txOptions?: TxOptions<Asset, Ext>,
+  createSubmitAndWatch<T extends TxCreator>(
+    creator: T,
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Observable<TxEvent>
 
   /**
-   * Pack the transaction, sends it to the signer, broadcast, and track the
-   * transaction. The promise will resolve as soon as the transaction in found
-   * in a `finalizedBlock`. If the signer fails (or the user cancels the
-   * signature), or the transaction becomes invalid it'll throw an error.
+   * Creates the transaction, broadcasts it, and tracks the transaction. The
+   * promise will resolve as soon as the transaction in found in a
+   * `finalizedBlock`. If the creator fails (or the user cancels the signature),
+   * or the transaction becomes invalid it'll throw an error.
    *
-   * @param from       `PolkadotSigner`-compliant signer.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Finalized transaction information.
    */
-  signAndSubmit(
-    from: PolkadotSigner,
-    txOptions?: TxOptions<Asset, Ext>,
+  createAndSubmit<T extends TxCreator>(
+    creator: T,
+    ...txOptions: TxCreatorOptionsArg<T, EC>
   ): Promise<TxFinalizedPayload>
 
   /**
@@ -302,27 +193,27 @@ export type Transaction<
   /**
    * Estimate fees against the latest known `finalizedBlock`
    *
-   * @param from       Public key or address from the potencial sender.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Fees in fundamental units.
    */
-  getEstimatedFees: (
-    from: Uint8Array | SS58String,
-    txOptions?: TxOptions<Asset, Ext>,
-  ) => Promise<bigint>
+  getEstimatedFees<T extends TxCreator>(
+    creator: T,
+    ...txOptions: TxCreatorOptionsArg<T, EC>
+  ): Promise<bigint>
 
   /**
    * Payment info against the latest known `finalizedBlock`
    *
-   * @param from       Public key or address from the potencial sender.
-   * @param txOptions  Optionally pass any number of txOptions.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns PaymentInfo for the given transaction (weight, estimated fees
    *          and class).
    */
-  getPaymentInfo: (
-    from: Uint8Array | SS58String,
-    txOptions?: TxOptions<Asset, Ext>,
-  ) => Promise<PaymentInfo>
+  getPaymentInfo<T extends TxCreator>(
+    creator: T,
+    ...txOptions: TxCreatorOptionsArg<T, EC>
+  ): Promise<PaymentInfo>
 
   /**
    * PAPI way of expressing an extrinsic with arguments.
@@ -331,12 +222,10 @@ export type Transaction<
   decodedCall: TxCallData
 }
 
-export type Extensions<Ext> =
-  Ext extends Record<string, any>
-    ? Partial<Ext>
-    : Record<string, CustomSignedExtensionValues>
-
-export type TxEntry<Arg extends {} | undefined, Ext, Asset> = {
+export type TxEntry<
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+> = {
   /**
    * Synchronously create the transaction object ready to sign, submit,
    * estimate fees, etc.
@@ -344,27 +233,24 @@ export type TxEntry<Arg extends {} | undefined, Ext, Asset> = {
    * @param args  All parameters required by the transaction.
    * @returns Transaction object.
    */
-  (
-    ...args: Arg extends undefined ? [] : [data: Arg]
-  ): Transaction<Asset, Extensions<Ext>>
+  (...args: Arg extends undefined ? [] : [data: Arg]): Transaction<EC>
 }
 
-export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
-  input: Arg,
-) => {
+export type OfflineTxEntry<
+  Arg extends {} | undefined,
+  EC extends ExtensionConstraints,
+> = (input: Arg) => {
   /**
-   * Pack the transaction, sends it to the signer, and return the signature
-   * asynchronously. If the signer fails (or the user cancels the signature)
-   * it'll throw an error.
+   * Creates a signed transaction asynchronously. If the creator fails (or the
+   * user cancels the signature) it'll throw an error.
    *
-   * @param from        `PolkadotSigner`-compliant signer.
-   * @param extensions  Information needed for the transaction extensions
-   *                    that will be signed.
+   * @param creator    Transaction creator.
+   * @param txOptions  Transaction creator options.
    * @returns Encoded `SignedExtrinsic` ready for broadcasting.
    */
-  sign: (
-    from: PolkadotSigner,
-    extensions: OfflineTxExtensions<Asset>,
+  create: <T extends TxCreator>(
+    creator: T,
+    txOptions: TxCreatorOptions<T, EC> & { nonce: number },
   ) => Promise<Uint8Array>
 
   /**
@@ -378,7 +264,7 @@ export type OfflineTxEntry<Arg extends {} | undefined, Asset> = (
   decodedCall: TxCallData
 }
 
-export type TxFromBinary<Asset> = {
+export type TxFromBinary<EC extends ExtensionConstraints> = {
   /**
    * Asynchronously create the transaction object from a binary call data ready
    * to sign, submit, estimate fees, etc.
@@ -386,5 +272,9 @@ export type TxFromBinary<Asset> = {
    * @param callData  SCALE-encoded call data.
    * @returns Transaction object.
    */
-  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<Asset>>
+  (callData: Uint8Array, options?: PullOptions): Promise<Transaction<EC>>
 }
+
+type Simplify<T> = {
+  [K in keyof T]: T[K]
+} & {}

@@ -1,8 +1,8 @@
 import { MultiAddress, turing } from "@polkadot-api/descriptors"
 import { createWsClient } from "polkadot-api/ws"
-import { getDevSigner } from "./signer"
+import { getDevTxCreator } from "./signer"
 
-const papiTestSigner = getDevSigner()
+const papiTestCreator = getDevTxCreator()
 
 const client = createWsClient("wss://turing-rpc.avail.so/ws")
 
@@ -14,13 +14,15 @@ const transfer = api.tx.Balances.transfer_allow_death({
   value: 12345n,
 })
 
-const estimatedFees = await transfer.getEstimatedFees(BOB, {
-  customSignedExtensions: { CheckAppId: { value: 0 } },
-})
-console.log({ estimatedFees })
-
 transfer
-  .signSubmitAndWatch(papiTestSigner, {
+  .getEstimatedFees(papiTestCreator, {
+    customSignedExtensions: { CheckAppId: { value: 0 } },
+  })
+  .then((estimatedFees) => console.log({ estimatedFees }), console.error)
+
+// TODO: add custom signed-extension support to TxCreator-based flows.
+transfer
+  .createSubmitAndWatch(papiTestCreator, {
     customSignedExtensions: { CheckAppId: { value: 0 } },
   })
   .subscribe({

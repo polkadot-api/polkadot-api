@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-08-18
+
+### Added
+
+- `TxCreator` helpers and types.
+- `withCommonExtensions` and `withNonce` TxCreator enhancers.
+- Type `CommonSignerTxCreator` for signer TxCreators with the common enhancers.
+
 ## 0.2.1 to 0.2.3 - 2026-05-19
 
 ### Fixed

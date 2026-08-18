@@ -16,6 +16,7 @@ import { getLookupFn } from "@polkadot-api/metadata-builders"
 import { knownTypes } from "@/known-types"
 import { getChecksumBuilder } from "@polkadot-api/metadata-builders"
 import { getDispatchErrorId } from "@/generate-descriptors"
+import { generateMultipleDescriptors } from "@/generate-multiple-descriptors"
 
 let lookup: MetadataLookup
 let checksumBuilder: ReturnType<typeof getChecksumBuilder>
@@ -171,6 +172,88 @@ describe("types-builder", () => {
       expect(typesBuilder.getClientFileImports()).toMatchSnapshot()
     })
   })
+})
+
+describe("generateDescriptors", () => {
+  const generateKusamaDescriptorContent = (
+    metadata = lookup.metadata,
+  ): string => {
+    const [kusamaDescriptors] = generateMultipleDescriptors(
+      [
+        {
+          key: "kusama",
+          metadata,
+          knownTypes,
+        },
+      ],
+      {
+        client: "@polkadot-api/descriptors/client",
+        metadataTypes: "./metadata-types",
+        types: "./types",
+        descriptorValues: "./descriptor-values",
+        common: "./common",
+      },
+    ).descriptorTypesFiles
+
+    return kusamaDescriptors.content
+  }
+  const getRequiredExtensionsDefinition = (content: string) => {
+    const match = content.match(
+      /type IRequiredExtensions = PlainDescriptor<([\s\S]*?)>\nconst requiredExtensions/,
+    )
+
+    if (!match) throw new Error("IRequiredExtensions definition not found")
+    return match[1]
+  }
+
+  it("adds required extensions to Kusama chain definition", () => {
+    const content = generateKusamaDescriptorContent()
+    const requiredExtensions = getRequiredExtensionsDefinition(content)
+
+    expect(content).toContain("type IRequiredExtensions = PlainDescriptor<")
+    expect(content).toContain(
+      "const requiredExtensions: IRequiredExtensions = {} as IRequiredExtensions",
+    )
+    expect(content).toContain("requiredExtensions: IRequiredExtensions")
+    expect(content).not.toContain("export type KusamaRequiredSignedExtensions")
+    expect(content).not.toContain("const requiredExtensions = [")
+
+    for (const extension of [
+      "CheckSpecVersion",
+      "CheckTxVersion",
+      "CheckGenesis",
+      "CheckMortality",
+      "CheckNonce",
+      "ChargeTransactionPayment",
+      "CheckMetadataHash",
+    ]) {
+      expect(requiredExtensions).toContain(`"${extension}"`)
+    }
+
+    for (const extension of ["CheckNonZeroSender", "CheckWeight"]) {
+      expect(requiredExtensions).not.toContain(`"${extension}"`)
+    }
+  }, 10_000)
+
+  it("excludes required extensions missing from any tx extension version", () => {
+    const [baseExtensions] = Object.values(
+      lookup.metadata.extrinsic.extensionsByVersion,
+    )
+    const content = generateKusamaDescriptorContent({
+      ...lookup.metadata,
+      extrinsic: {
+        ...lookup.metadata.extrinsic,
+        extensionsByVersion: {
+          ...lookup.metadata.extrinsic.extensionsByVersion,
+          1: baseExtensions.filter((ext) => ext.identifier !== "CheckNonce"),
+        },
+      },
+    })
+    const requiredExtensions = getRequiredExtensionsDefinition(content)
+
+    expect(requiredExtensions).toContain(`"CheckSpecVersion"`)
+    expect(requiredExtensions).not.toContain(`"CheckNonce"`)
+  }, 10_000)
 })
 
 describe("docs-types-builder", () => {

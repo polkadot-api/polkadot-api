@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 3.0.0 - 2026-08-18
+
+### Added
+
+- Add `txCreatorBindings` to APIs.
+- `getFakeTxCreator` export
+
+### Changed
+
+- BREAKING: Transactions now use `TxCreator`s. The `sign`, `signAndSubmit`, and `signSubmitAndWatch` methods have been replaced by `create`, `createAndSubmit`, and `createSubmitAndWatch`.
+- BREAKING: `getPaymentInfo` and `getEstimatedFees` now take a `TxCreator` instead of an account address or public key.
+- BREAKING: Offline transaction entries now use `create` instead of `sign`.
+- BREAKING: `ChainDefinition` now includes all extensions and descriptors include "non-default extensions"
+- BREAKING: Renamed `polkadot-api/signer` to `polkadot-api/tx-creator`
+- BREAKING: Split TxEvent `{ type: 'txBestBlocksState', found: boolean }` into `inBestBlock` and `notInBestBlock`
+- BREAKING: Replace TxEvent `type: 'signed'` for `type: 'created'`
+
 ## 2.2.2 - 2026-07-31
 
 ### Fixed

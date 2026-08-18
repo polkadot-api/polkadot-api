@@ -2,12 +2,17 @@ import {
   getDynamicBuilder,
   MetadataLookup,
 } from "@polkadot-api/metadata-builders"
+import { toHex } from "@polkadot-api/utils"
 
-type DynamicBuilder = ReturnType<typeof getDynamicBuilder>
-export const getSystemVersionStruct = (
+export const getSystemVersionProp = (
   lookupFn: MetadataLookup,
-  dynamicBuilder: DynamicBuilder,
-): Record<string, any> => {
+  dynamicBuilder: ReturnType<typeof getDynamicBuilder>,
+  extensionName: string,
+  fieldName: string,
+) => {
+  const { enc } = dynamicBuilder.buildDefinition(
+    lookupFn.metadata.extrinsic.extensions[extensionName].additionalSigned,
+  )
   const constant = lookupFn.metadata.pallets
     .find((x) => x.name === "System")!
     .constants!.find((s) => s.name === "Version")!
@@ -16,5 +21,5 @@ export const getSystemVersionStruct = (
   const systemVersionDec = dynamicBuilder.buildDefinition(constant.type).dec
 
   if (systemVersion.type !== "struct") throw new Error("not a struct")
-  return systemVersionDec(constant.value)
+  return toHex(enc(systemVersionDec(constant.value)[fieldName]))
 }

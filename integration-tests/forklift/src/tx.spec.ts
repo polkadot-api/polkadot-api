@@ -22,7 +22,7 @@ describe("tx", () => {
     const [bestBlock] = await client.getBestBlocks()
     const tx = await api.tx.System.remark({
       remark: Binary.fromText("hi!"),
-    }).sign(aliceSigner)
+    }).create(aliceSigner)
 
     const obs = client.submitAndWatch(tx).pipe(shareReplay(1))
     const sub = obs.subscribe()
@@ -34,9 +34,7 @@ describe("tx", () => {
     await getMacroTask()
 
     let latestEvent = await firstValueFrom(obs)
-    expect(latestEvent.type === "txBestBlocksState" && latestEvent.found).toBe(
-      true,
-    )
+    expect(latestEvent.type === "inBestBlock").toBe(true)
 
     const forkedBlock = await forklift.newBlock({
       parent: bestBlock.hash,
@@ -51,9 +49,7 @@ describe("tx", () => {
     await getMacroTask()
 
     latestEvent = await firstValueFrom(obs)
-    expect(latestEvent.type === "txBestBlocksState" && !latestEvent.found).toBe(
-      true,
-    )
+    expect(latestEvent.type === "notInBestBlock").toBe(true)
 
     sub.unsubscribe()
   })

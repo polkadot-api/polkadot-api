@@ -1,4 +1,4 @@
-import { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+import { CommonSignerTxCreator } from "@polkadot-api/signers-common"
 
 declare global {
   interface Window {
@@ -108,7 +108,7 @@ export interface InjectedAccount {
 }
 
 export interface InjectedPolkadotAccount {
-  polkadotSigner: PolkadotSigner
+  txCreator: CommonSignerTxCreator
   address: string
   genesisHash?: string | null
   name?: string

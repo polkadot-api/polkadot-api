@@ -1,6 +1,6 @@
 {
-  "name": "@polkadot-api/polkadot-signer",
-  "version": "0.1.6",
+  "name": "@polkadot-api/tx-creator",
+  "version": "0.2.0",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -30,5 +30,11 @@
     }
   },
   "module": "./dist/index.js",
-  "browser": "./dist/index.js"
+  "browser": "./dist/index.js",
+  "peerDependencies": {
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "rxjs": "^7.8.2"
+  }
 }

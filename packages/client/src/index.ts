@@ -3,22 +3,19 @@ export * from "./re-exports"
 export * from "./descriptors"
 export { InvalidTxError } from "./tx"
 export type {
-  TxEvent,
-  TxBroadcastEvent,
-  TxSigned,
+  Transaction,
   TxBroadcasted,
-  TxBestBlocksState,
-  TxInBestBlocksNotFound,
-  TxInBestBlocksFound,
+  TxCreated,
+  TxEntry,
+  TxEvent,
   TxEventsPayload,
   TxFinalized,
-  TxOptions,
   TxFinalizedPayload,
-  Transaction,
-  TxEntry,
+  TxInBestBlock,
+  TxNotInBestBlock,
 } from "./tx"
 export type { EventPhase } from "./event"
-export type { PolkadotSigner } from "@polkadot-api/polkadot-signer"
+export type { TxCreator } from "@polkadot-api/tx-creator"
 export type {
   PolkadotClient,
   TransactionValidityError,

@@ -70,7 +70,7 @@ describe("events", () => {
       const transferTx = await typedApi.tx.Balances.transfer_keep_alive({
         dest: MultiAddress.Id(BOB),
         value: 100n,
-      }).sign(bobSigner)
+      }).create(bobSigner)
 
       // Make sure no other emissions leaked in before clearing
       expect(remarked.next).toHaveBeenCalledTimes(2)
@@ -188,8 +188,6 @@ const getRemark = async (
   const data = Binary.fromText(remark)
   const tx = await typedApi.tx.System.remark_with_event({
     remark: data,
-  }).sign(aliceSigner, {
-    nonce,
-  })
+  }).create(aliceSigner, { nonce })
   return { tx, hash: Binary.toHex(Blake2256(data)) }
 }

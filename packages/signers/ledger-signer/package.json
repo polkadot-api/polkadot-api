@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/ledger-signer",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "author": "Carlo Sala (https://github.com/carlosala)",
   "repository": {
     "type": "git",
@@ -33,15 +33,15 @@
   },
   "dependencies": {
     "@polkadot-api/merkleize-metadata": "workspace:*",
-    "@polkadot-api/polkadot-signer": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
     "@polkadot-api/substrate-bindings": "workspace:*",
+    "@polkadot-api/tx-creator": "workspace:*",
     "@polkadot-api/utils": "workspace:*"
   },
   "peerDependencies": {
     "@ledgerhq/hw-transport": "6"
   },
   "devDependencies": {
-    "@types/node": "^24.13.2"
+    "@types/node": "^24.13.3"
   }
 }
