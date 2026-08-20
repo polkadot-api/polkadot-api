@@ -20,6 +20,7 @@ export type {
   PolkadotClient,
   TransactionValidityError,
   TypedApi,
+  OfflineApi,
   FixedSizeArray,
   TxCallData,
 } from "./types"
