@@ -6,6 +6,11 @@
 
 - Add missing `OfflineApi` export
 
+### Fixed
+
+- **CLI:**
+  - Add support for per-chain whitelist in compilation cache
+
 ## 3.0.0 - 2026-08-18
 
 ### Added

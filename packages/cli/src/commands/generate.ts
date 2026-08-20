@@ -42,6 +42,8 @@ export interface GenerateOptions extends CommonOptions {
   clientLibrary?: string
 }
 
+type Whitelist = string[] | Record<string, string[]> | null
+
 export async function generate(opts: GenerateOptions) {
   if (process.env.PAPI_SKIP_GENERATE) {
     return
@@ -146,7 +148,7 @@ async function tagGenerated(
     metadataRaw: Uint8Array
   }[],
   contracts: Record<"ink" | "sol", Record<string, HexString>>,
-  whitelist: string[] | null,
+  whitelist: Whitelist,
 ) {
   const filePath = join(descriptorsDir, "generated.json")
 
@@ -172,7 +174,7 @@ async function alreadyGenerated(
     metadataRaw: Uint8Array
   }[],
   contracts: Record<"ink" | "sol", Record<string, HexString>>,
-  whitelist: string[] | null,
+  whitelist: Whitelist,
 ) {
   const generatedJsôn = join(descriptorsDir, "generated.json")
   if (!existsSync(generatedJsôn)) return false
@@ -184,8 +186,8 @@ async function alreadyGenerated(
       }),
     )
     if (
-      (generated.whitelist ?? ["*"]).join(",") !=
-        (whitelist ?? ["*"]).join(",") ||
+      JSON.stringify(generated.whitelist ?? ["*"]) !==
+        JSON.stringify(whitelist ?? ["*"]) ||
       generated.cliVersion !== cliVersion
     )
       return false
@@ -532,7 +534,7 @@ async function replacePackageJson(descriptorsDir: string, version: bigint) {
   )
 }
 
-async function readWhitelist(filename: string): Promise<string[] | null> {
+async function readWhitelist(filename: string): Promise<Whitelist> {
   if (!(await fsExists(filename))) {
     return null
   }

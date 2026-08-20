@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Add support for per-chain whitelist in compilation cache
+
 ## 0.22.0 - 2026-08-18
 
 - Update to PAPI v3
