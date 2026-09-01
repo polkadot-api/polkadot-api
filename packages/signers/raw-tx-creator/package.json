@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/raw-tx-creator",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
     "rxjs": ">=7.8.0"
   },
   "dependencies": {
-    "@noble/hashes": "^2.3.0",
+    "@noble/hashes": "^2.4.0",
     "@polkadot-api/merkleize-metadata": "workspace:*",
     "@polkadot-api/metadata-builders": "workspace:*",
     "@polkadot-api/signers-common": "workspace:*",
@@ -44,7 +44,7 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^2.3.0",
+    "@noble/curves": "^2.4.0",
     "rxjs": "^7.8.2"
   }
 }

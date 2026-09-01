@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.1.0 - 2026-09-01
+
 ### Added
 
 - Add missing `OfflineApi` export
