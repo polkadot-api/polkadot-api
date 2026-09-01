@@ -38,7 +38,7 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@noble/curves": "^2.3.0",
+    "@noble/curves": "^2.4.0",
     "rxjs": "^7.8.2"
   },
   "peerDependencies": {

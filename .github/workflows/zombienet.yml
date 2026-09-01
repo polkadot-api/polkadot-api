@@ -32,7 +32,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.node-version }}-turbo-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.node-version }}-turbo-
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v6.0.9
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v7
         with:
@@ -44,7 +44,7 @@ jobs:
         run: pnpm turbo build-core --cache-dir=.turbo
       - name: Install papi
         run: pnpm install
-      - uses: cargo-bins/cargo-binstall@v1.21.1
+      - uses: cargo-bins/cargo-binstall@v1.22.0
       - name: Install zombienet
         run: |
           sudo apt-get update && sudo apt-get install -y protobuf-compiler
