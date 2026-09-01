@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.22.1 - 2026-09-01
+
 ### Fixed
 
 - Add support for per-chain whitelist in compilation cache
