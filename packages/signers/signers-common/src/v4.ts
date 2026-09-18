@@ -1,10 +1,10 @@
+import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
 import {
   compact,
   extrinsicFormat,
   UnifiedMetadata,
 } from "@polkadot-api/substrate-bindings"
 import { mergeUint8 } from "@polkadot-api/utils"
-import { getLookupFn, LookupEntry } from "@polkadot-api/metadata-builders"
 
 const enum SignerType {
   Polkadot,
