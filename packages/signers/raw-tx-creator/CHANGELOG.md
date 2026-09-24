@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `signatureExtensionTxCreator` and `getVerifyMultiSignatureTxCreator` to sign V5 VerifySignature transactions.
+
 ## 0.4.1 - 2026-09-01
 
 ### Fixed
