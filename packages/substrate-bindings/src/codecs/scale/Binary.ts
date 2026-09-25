@@ -28,4 +28,12 @@ export const Binary = {
 }
 
 export const SizedBytes = (size: number) =>
-  enhanceCodec(Bytes(size), fromHex, toHex)
+  enhanceCodec(
+    Bytes(size),
+    (val: string | Uint8Array) => {
+      if (typeof val !== "string")
+        throw new Error(`SizedBytes expects HexString, ${typeof val} given`)
+      return fromHex(val)
+    },
+    toHex,
+  )
