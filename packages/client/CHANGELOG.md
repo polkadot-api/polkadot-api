@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- **polkadot-api/tx-creator**
+  - `signatureExtensionTxCreator` and `getVerifyMultiSignatureTxCreator` to sign V5 VerifySignature transactions.
+
 ## 3.1.0 - 2026-09-01
 
 ### Added
