@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Throw an error when an incorrect type is passed to `SizedBytes`
+
 ## 0.21.1 - 2026-09-01
 
 ### Fixed
