@@ -57,7 +57,7 @@
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
   "dependencies": {
-    "@types/node": "^26.4.0",
-    "smoldot": "~3.4.1"
+    "@types/node": "^26.6.3",
+    "smoldot": "~3.6.0"
   }
 }
