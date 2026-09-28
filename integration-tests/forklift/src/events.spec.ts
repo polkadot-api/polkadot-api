@@ -79,6 +79,7 @@ describe("events", () => {
       const helloEvtPromise = firstValueFrom(remarked.next$)
       const helloBlock = await chain.newBlock({
         transactions: [transferTx, hello.tx],
+        finalize: false,
       })
 
       const helloEvt = await helloEvtPromise
@@ -89,6 +90,8 @@ describe("events", () => {
 
       expect(remarked.next).toHaveBeenCalledTimes(1)
       remarked.clearNext()
+
+      await chain.changeFinalized(helloBlock)
 
       // And then should notify when it finalizes
       const lastFinalized = await chain.newBlock()
