@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.2.0 - 2026-09-28
+
 ### Added
 
 - **polkadot-api/tx-creator**

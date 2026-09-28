@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/codegen",
-  "version": "0.23.1",
+  "version": "0.23.2",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
   "scripts": {
     "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm build-core",
-    "test": "vitest",
+    "test": "vitest --config ../../vitest.config.ts",
     "lint": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },
@@ -39,6 +39,6 @@
     "@polkadot-api/utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^26.4.0"
+    "@types/node": "^26.6.3"
   }
 }

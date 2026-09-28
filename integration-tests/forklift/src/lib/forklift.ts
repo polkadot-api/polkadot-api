@@ -1,9 +1,8 @@
 import {
   Forklift,
   forklift,
-  logger,
-  wsSource,
   ForkliftOptions,
+  wsSource,
 } from "@polkadot-api/forklift"
 import { spawn } from "child_process"
 import { createWriteStream } from "fs"
@@ -12,8 +11,6 @@ import { mapObject } from "polkadot-api/utils"
 import { getWsProvider } from "polkadot-api/ws"
 import { wait } from "./utils"
 import { withLogs } from "./with-logs"
-
-logger.level = "silent"
 
 const PORT = 8132
 let { NODE_VERSION } = process.env
@@ -33,6 +30,7 @@ export const getForkliftProvider = (
   // Otherwise, test running in parallel could compete when testing reorgs against the same instance
   const chain = forklift(wsSource(`ws://localhost:${PORT}`), {
     finalizeMode: Enum("timer", 0),
+    logger: null,
     ...options,
   })
 

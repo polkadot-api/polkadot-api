@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/substrate-bindings",
-  "version": "0.21.1",
+  "version": "0.21.2",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
   "scripts": {
     "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm build-core",
-    "test": "vitest",
+    "test": "vitest --config ../../vitest.config.ts",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\""
   },

@@ -1,6 +1,6 @@
 {
   "name": "@polkadot-api/react-builder",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "author": "Josep M Sobrepere (https://github.com/josepot)",
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
     "react": ">=18"
   },
   "devDependencies": {
-    "@types/react": "^19.2.18",
-    "react": "^19.2.8"
+    "@types/react": "^19.3.0",
+    "react": "^19.3.0"
   }
 }
