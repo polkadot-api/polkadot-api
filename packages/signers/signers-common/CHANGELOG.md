@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- `createV5Tx` helper to create v5 extrinsics.
+
 ## 0.3.1 - 2026-09-01
 
 ### Fixed

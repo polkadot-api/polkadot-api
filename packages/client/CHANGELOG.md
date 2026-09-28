@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- **polkadot-api/tx-creator**
+  - `signatureExtensionTxCreator` and `getVerifyMultiSignatureTxCreator` to sign V5 VerifySignature transactions.
+
 ### Fixed
 
 - Throw an error when an incorrect type is passed to `FixedSizeBinary`
