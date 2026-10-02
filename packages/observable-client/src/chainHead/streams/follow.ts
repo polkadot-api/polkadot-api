@@ -46,7 +46,7 @@ const createGetRuntimeChanges = (
   ): Observable<Array<[string, string]>> => {
     const firstBlock = blocks[firstId.idx]
     const lastBlock = blocks[lastId.idx]
-    if (blocks.length === 2)
+    if (lastId.idx - firstId.idx === 1)
       return of([
         [firstBlock, firstId.id],
         [lastBlock, lastId.id],
@@ -57,7 +57,12 @@ const createGetRuntimeChanges = (
       mergeMap((id) => {
         const middle = { id, idx: middleIdx }
         if (middle.id === firstId.id)
-          return getRuntimeChanges(blocks, middle, lastId)
+          return getRuntimeChanges(blocks, middle, lastId).pipe(
+            map(([_SKIP, ...right]): Array<[string, string]> => [
+              [firstBlock, firstId.id],
+              ...right,
+            ]),
+          )
 
         return middle.id === lastId.id
           ? getRuntimeChanges(blocks, firstId, middle)
@@ -219,6 +224,7 @@ export const getFollow$ = (
     getFollower,
     getCodeHash,
     (e) => {
+      if (isDone) return
       console.warn("ChainHead subfollow request failed, retrying…", e)
       token = setTimeout(() => reset(), 250)
     },
@@ -264,6 +270,7 @@ export const getFollow$ = (
     }
 
     reset = () => {
+      if (isDone) return
       // This causes all the ongoing operations to unsubscribe
       // so that they won't error when we trigger `unfollow`
       observer.next({ type: "stop-error" } as any)
