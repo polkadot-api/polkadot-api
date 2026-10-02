@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.2.1 - 2026-10-02
+
 ### Fixed
 
 - Client hangs or runs out of memory when it connects shortly after a runtime upgrade.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.3 - 2026-10-02
+
 ### Fixed
 
 - Fix endless `:code` lookups when the finalized blocks of the `initialized` event contain a runtime upgrade.
