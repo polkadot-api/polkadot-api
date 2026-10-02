@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Client hangs or runs out of memory when it connects shortly after a runtime upgrade.
+- `Not connected` error thrown from a timer after `destroy`.
+
 ## 3.2.0 - 2026-09-28
 
 ### Added

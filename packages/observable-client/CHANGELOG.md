@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix endless `:code` lookups when the finalized blocks of the `initialized` event contain a runtime upgrade.
+- Keep the runtime of the first finalized block when the finalized blocks of the `initialized` event contain a runtime upgrade.
+- Don't retry nor follow again after `unfollow`.
+
 ## 0.19.1 to 0.19.2 - 2026-09-28
 
 ### Fixed
