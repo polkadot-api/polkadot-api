@@ -14,7 +14,7 @@
     "compile:ledger": "bun build ./src/ledger.ts --compile --outfile ./dist/ledger"
   },
   "devDependencies": {
-    "@types/bun": "^1.4.2"
+    "@types/bun": "^1.4.3"
   },
   "peerDependencies": {
     "typescript": "^5"

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Update dependencies
+
 ## 0.22.2 to 0.22.3 - 2026-10-02
 
 ### Fixed
