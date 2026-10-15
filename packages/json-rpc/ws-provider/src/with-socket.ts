@@ -25,6 +25,13 @@ export const withSocket = (
     const [socket, onConnected] = getWebsocket()
     logger?.({ type: SocketEvents.CONNECTING, url: socket.url })
 
+    const closeSocket = () => {
+      try {
+        socket.addEventListener("error", noop, { once: true })
+        socket.close()
+      } catch {}
+    }
+
     let suicide: (e?: any) => void = () => {
       suicide = noop
       cleanup()
@@ -45,6 +52,7 @@ export const withSocket = (
           type: WsEvent.ERROR,
           event: { type: "timeout" },
         })
+        closeSocket()
       }, time)
     }
     const stopTimeout = () => {
@@ -75,10 +83,7 @@ export const withSocket = (
     const disconnect = () => {
       logType(SocketEvents.DISCONNECT)
       cleanup()
-      try {
-        socket.addEventListener("error", noop, { once: true })
-        socket.close()
-      } catch {}
+      closeSocket()
     }
 
     const onOpen = () => {
