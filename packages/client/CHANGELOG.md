@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.2.2 - 2026-10-15
+
 ### Fixed
 
 - WS provider leaves a socket open on every connection or heartbeat timeout.
