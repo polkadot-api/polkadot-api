@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.2 - 2026-10-15
+
 ### Fixed
 
 - Close the socket when the connection or heartbeat timeout fires, instead of leaving it open.
