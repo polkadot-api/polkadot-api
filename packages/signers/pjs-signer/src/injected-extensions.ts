@@ -1,4 +1,4 @@
-import { getTxCreatorFromPjs } from "./from-pjs-account"
+import { getAccountTxCreator, getTxCreatorFromPjs } from "./from-pjs-account"
 import type {
   InjectedAccount,
   InjectedExtension,
@@ -32,6 +32,9 @@ export const connectInjectedExtension = async (
   const signPayload = enabledExtension.signer.signPayload.bind(
     enabledExtension.signer,
   )
+  const createTransaction = enabledExtension.signer.createTransaction?.bind(
+    enabledExtension.signer,
+  )
   const signRaw = enabledExtension.signer.signRaw.bind(enabledExtension.signer)
 
   const toPolkadotInjected = (
@@ -40,6 +43,18 @@ export const connectInjectedExtension = async (
     accounts
       .filter(({ type }) => supportedAccountTypes.has(type!))
       .map((x) => {
+        if (createTransaction) {
+          return {
+            ...x,
+            txCreator: getAccountTxCreator(
+              x.address,
+              createTransaction,
+              signRaw,
+              x.type,
+            ),
+          }
+        }
+
         const txCreator = getTxCreatorFromPjs(
           x.address,
           signPayload,

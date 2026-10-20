@@ -1,4 +1,5 @@
 import { CommonSignerTxCreator } from "@polkadot-api/signers-common"
+import { TxPayloadV1 } from "@polkadot-api/tx-creator"
 
 declare global {
   interface Window {
@@ -129,6 +130,7 @@ export interface PjsInjectedExtension {
   signer: {
     signPayload: SignPayload
     signRaw: SignRaw
+    createTransaction?: (payload: TxPayloadV1) => Promise<string>
   }
   accounts: {
     get: () => Promise<InjectedAccount[]>

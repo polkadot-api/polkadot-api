@@ -9,7 +9,7 @@ import {
   decAnyMetadata,
   unifyMetadata,
 } from "@polkadot-api/substrate-bindings"
-import { TxCreator } from "@polkadot-api/tx-creator"
+import { TxCreator, TxPayloadV1 } from "@polkadot-api/tx-creator"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
 import { KeypairType, SignerPayloadJSON, SignPayload, SignRaw } from "./types"
@@ -108,6 +108,34 @@ export function getTxCreatorFromPjs(
         mocked ? TYPE_MAP[type ?? "sr25519"] : undefined,
       ),
     )
+  }
+
+  return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
+    publicKey,
+    signBytes,
+  })
+}
+
+export function getAccountTxCreator(
+  address: string,
+  txCreator: (payload: TxPayloadV1) => Promise<string>,
+  signRaw: SignRaw,
+  type?: KeypairType,
+): CommonSignerTxCreator {
+  const signBytes = (data: Uint8Array) =>
+    signRaw({
+      address,
+      data: toHex(data),
+      type: "bytes",
+    }).then(({ signature }) => fromHex(signature))
+  const publicKey = getPublicKey(address)
+  const creator: TxCreator<[]> = async (payload, _, _bindings, mocked) => {
+    if (mocked) return type === "ecdsa" ? ECDSA_MOCK : SR_MOCK
+
+    return txCreator({
+      ...payload,
+      signer: address,
+    })
   }
 
   return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
