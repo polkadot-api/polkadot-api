@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- PJS signer rejects unknown transaction extensions holding their zero value (e.g. `AsScarcity` on Paseo Asset Hub).
+
 ## 3.2.2 - 2026-10-15
 
 ### Fixed

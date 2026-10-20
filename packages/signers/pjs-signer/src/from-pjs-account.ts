@@ -4,6 +4,7 @@ import {
   withCommonExtensions,
   withNonce,
 } from "@polkadot-api/signers-common"
+import { getDynamicBuilder, getLookupFn } from "@polkadot-api/metadata-builders"
 import {
   AccountId,
   decAnyMetadata,
@@ -42,6 +43,16 @@ export function getTxCreatorFromPjs(
   const publicKey = getPublicKey(address)
   const creator: TxCreator<[]> = async (payload, _, _bindings, mocked) => {
     const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
+    const dynamicBuilder = getDynamicBuilder(getLookupFn(decMeta))
+    const isZeroValue = (typeId: number, value: string) => {
+      try {
+        return (
+          toHex(dynamicBuilder.buildDefinition(typeId).enc(undefined)) === value
+        )
+      } catch {
+        return false
+      }
+    }
 
     const pjs: Partial<SignerPayloadJSON> = {}
     pjs.signedExtensions = []
@@ -53,7 +64,7 @@ export function getTxCreatorFromPjs(
       throw new Error("Only txExtVersion 0 is allowed for extrinsic v4")
 
     decMeta.extrinsic.extensionsByVersion[txExtVersion].forEach(
-      ({ identifier }) => {
+      ({ identifier, type, additionalSigned }) => {
         const signedExtension = payload.extensions.find(
           ({ id }) => id === identifier,
         )
@@ -65,8 +76,8 @@ export function getTxCreatorFromPjs(
 
         if (!signedExtensionMappers[identifier as "CheckMortality"]) {
           if (
-            fromHex(signedExtension.extra).length === 0 &&
-            fromHex(signedExtension.additionalSigned).length === 0
+            isZeroValue(type, signedExtension.extra) &&
+            isZeroValue(additionalSigned, signedExtension.additionalSigned)
           )
             return
           throw new Error(

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Accept unknown transaction extensions whose `extra` and `additionalSigned` hold their type's zero value, such as `None` or `false`.
+
 ## 0.8.1 to 0.8.2 - 2026-09-28
 
 ### Fixed
