@@ -775,6 +775,9 @@ importers:
       '@polkadot-api/metadata-builders':
         specifier: workspace:*
         version: link:../../metadata-builders
+      '@polkadot-api/raw-tx-creator':
+        specifier: workspace:*
+        version: link:../raw-tx-creator
       '@polkadot-api/signers-common':
         specifier: workspace:*
         version: link:../signers-common
