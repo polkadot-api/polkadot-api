@@ -178,25 +178,11 @@ const createMockedExtrinsic = async (
   const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
   const signature = fromHex(type === "ecdsa" ? ECDSA_MOCK : SR_MOCK)
 
-  const txExtVersion = payload.txExtVersion ?? 0
-  const extra: Array<Uint8Array> = []
-  decMeta.extrinsic.extensionsByVersion[txExtVersion].forEach(
-    ({ identifier }) => {
-      const signedExtension = payload.extensions.find(
-        ({ id }) => id === identifier,
-      )
-      if (!signedExtension)
-        throw new Error(`Missing ${identifier} signed-extension`)
-      extra.push(fromHex(signedExtension.extra))
-    },
-  )
-
   const supportsV5Signature =
     decMeta.extrinsic.version.includes(5) &&
-    decMeta.extrinsic.extensionsByVersion[txExtVersion].some(
+    decMeta.extrinsic.extensionsByVersion[payload.txExtVersion ?? 0].some(
       (ext) => ext.identifier === "VerifyMultiSignature",
     )
-
   if (supportsV5Signature) {
     const mockedCreator = signatureExtensionTxCreator(
       "VerifyMultiSignature",
@@ -211,6 +197,16 @@ const createMockedExtrinsic = async (
 
     return mockedCreator(payload, {}, bindings, true)
   }
+
+  const extra: Array<Uint8Array> = []
+  decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
+    const signedExtension = payload.extensions.find(
+      ({ id }) => id === identifier,
+    )
+    if (!signedExtension)
+      throw new Error(`Missing ${identifier} signed-extension`)
+    extra.push(fromHex(signedExtension.extra))
+  })
 
   return toHex(
     createV4Tx(
