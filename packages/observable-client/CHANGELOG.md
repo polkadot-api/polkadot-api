@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Don't immediately unpin finalized blocks after a transaction was tracked.
+
 ## 0.19.3 - 2026-10-02
 
 ### Fixed
