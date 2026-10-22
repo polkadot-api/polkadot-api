@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 3.3.0 - 2026-10-22
+
 ### Added
 
 - **polakdot-api/pjs-signer**

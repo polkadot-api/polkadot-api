@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.9.0 - 2026-10-22
+
 ### Added
 
 - Use `createTransaction` when the extension exposes that method instead of `signPayload`.
