@@ -451,13 +451,16 @@ export const getChainHead$ = (
     })
 
     let tearDown = () => {
-      blockUsage$.next({
-        type: "blockUsage",
-        value: {
-          type: "release",
-          hash,
-        },
-      })
+      // Releasing holds immediately can cause synchronous re-entry issues on some events (e.g. a finalized event that jumps over multiple blocks)
+      setTimeout(() => {
+        blockUsage$.next({
+          type: "blockUsage",
+          value: {
+            type: "release",
+            hash,
+          },
+        })
+      }, 0)
       tearDown = noop
     }
     return () => {
