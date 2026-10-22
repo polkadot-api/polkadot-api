@@ -1,15 +1,28 @@
+import { signatureExtensionTxCreator } from "@polkadot-api/raw-tx-creator"
 import {
+  CommonEnhancersSpecs,
   CommonSignerTxCreator,
   createV4Tx,
   withCommonExtensions,
   withNonce,
 } from "@polkadot-api/signers-common"
 import {
+  _void,
   AccountId,
+  Bytes,
   decAnyMetadata,
+  Enum,
+  Struct,
   unifyMetadata,
+  Variant,
 } from "@polkadot-api/substrate-bindings"
-import { TxCreator } from "@polkadot-api/tx-creator"
+import {
+  SignerTxCreator,
+  TxArgSpec,
+  TxCreator,
+  TxCreatorBindings,
+  TxPayloadV1,
+} from "@polkadot-api/tx-creator"
 import { fromHex, toHex } from "@polkadot-api/utils"
 import * as signedExtensionMappers from "./pjs-signed-extensions-mappers"
 import { KeypairType, SignerPayloadJSON, SignPayload, SignRaw } from "./types"
@@ -26,6 +39,16 @@ const TYPE_MAP: Record<KeypairType, Parameters<typeof createV4Tx>[5]> = {
 
 const SR_MOCK = "0x" + "0".repeat(128)
 const ECDSA_MOCK = SR_MOCK + "00"
+
+type VerifyMultisignatureSpec = TxArgSpec & {
+  id: "VerifyMultiSignature"
+  params: {
+    extensionVersion?: number
+  }
+}
+export type V5SignerTxCreator = SignerTxCreator<
+  [...CommonEnhancersSpecs, VerifyMultisignatureSpec]
+>
 
 export function getTxCreatorFromPjs(
   address: string,
@@ -114,4 +137,106 @@ export function getTxCreatorFromPjs(
     publicKey,
     signBytes,
   })
+}
+
+export function getAccountTxCreator(
+  address: string,
+  txCreator: (payload: TxPayloadV1) => Promise<string>,
+  signRaw: SignRaw,
+  type?: KeypairType,
+): V5SignerTxCreator {
+  const signBytes = (data: Uint8Array) =>
+    signRaw({
+      address,
+      data: toHex(data),
+      type: "bytes",
+    }).then(({ signature }) => fromHex(signature))
+  const publicKey = getPublicKey(address)
+  const creator: TxCreator<[VerifyMultisignatureSpec]> = async (
+    payload,
+    opts,
+    bindings,
+    mocked,
+  ) => {
+    const mappedPayload = {
+      ...payload,
+      txExtVersion: opts.extensionVersion ?? payload.txExtVersion,
+      signer: address,
+    }
+
+    if (mocked) {
+      return createMockedExtrinsic(mappedPayload, bindings, type)
+    }
+
+    return txCreator(mappedPayload)
+  }
+
+  return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
+    publicKey,
+    signBytes,
+  })
+}
+
+const MultiSignature = Variant({
+  Disabled: _void,
+  Signed: Struct({
+    signature: Variant({
+      Ed25519: Bytes(64),
+      Sr25519: Bytes(64),
+      Ecdsa: Bytes(65),
+      Eth: Bytes(65),
+    }),
+    account: Bytes(Number.POSITIVE_INFINITY),
+  }),
+})
+
+const createMockedExtrinsic = async (
+  payload: TxPayloadV1 & { signer: string },
+  bindings: TxCreatorBindings,
+  type?: KeypairType,
+) => {
+  const publicKey = getPublicKey(payload.signer)
+  const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
+  const signature = fromHex(type === "ecdsa" ? ECDSA_MOCK : SR_MOCK)
+
+  const supportsV5Signature =
+    decMeta.extrinsic.version.includes(5) &&
+    decMeta.extrinsic.extensionsByVersion[payload.txExtVersion ?? 0].some(
+      (ext) => ext.identifier === "VerifyMultiSignature",
+    )
+  if (supportsV5Signature) {
+    const mockedCreator = signatureExtensionTxCreator(
+      "VerifyMultiSignature",
+      () =>
+        MultiSignature.enc(
+          Enum("Signed", {
+            signature: Enum(TYPE_MAP[type ?? "sr25519"]!, signature),
+            account: publicKey,
+          }),
+        ),
+    )
+
+    return mockedCreator(payload, {}, bindings, true)
+  }
+
+  const extra: Array<Uint8Array> = []
+  decMeta.extrinsic.extensionsByVersion[0].forEach(({ identifier }) => {
+    const signedExtension = payload.extensions.find(
+      ({ id }) => id === identifier,
+    )
+    if (!signedExtension)
+      throw new Error(`Missing ${identifier} signed-extension`)
+    extra.push(fromHex(signedExtension.extra))
+  })
+
+  return toHex(
+    createV4Tx(
+      decMeta,
+      publicKey,
+      signature,
+      extra,
+      fromHex(payload.callData),
+      TYPE_MAP[type ?? "sr25519"],
+    ),
+  )
 }

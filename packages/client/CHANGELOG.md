@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+- **polakdot-api/pjs-signer**
+  - Use `createTransaction` when the extension exposes that method instead of `signPayload`.
+
 ### Fixed
 
 - Don't immediately unpin finalized blocks after a transaction was tracked.
