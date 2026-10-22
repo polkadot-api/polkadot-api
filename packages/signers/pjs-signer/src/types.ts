@@ -1,5 +1,6 @@
 import { CommonSignerTxCreator } from "@polkadot-api/signers-common"
 import { TxPayloadV1 } from "@polkadot-api/tx-creator"
+import { V5SignerTxCreator } from "./from-pjs-account"
 
 declare global {
   interface Window {
@@ -109,7 +110,7 @@ export interface InjectedAccount {
 }
 
 export interface InjectedPolkadotAccount {
-  txCreator: CommonSignerTxCreator
+  txCreator: CommonSignerTxCreator | V5SignerTxCreator
   address: string
   genesisHash?: string | null
   name?: string

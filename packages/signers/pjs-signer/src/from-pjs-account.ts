@@ -1,5 +1,6 @@
 import { signatureExtensionTxCreator } from "@polkadot-api/raw-tx-creator"
 import {
+  CommonEnhancersSpecs,
   CommonSignerTxCreator,
   createV4Tx,
   withCommonExtensions,
@@ -16,6 +17,8 @@ import {
   Variant,
 } from "@polkadot-api/substrate-bindings"
 import {
+  SignerTxCreator,
+  TxArgSpec,
   TxCreator,
   TxCreatorBindings,
   TxPayloadV1,
@@ -36,6 +39,16 @@ const TYPE_MAP: Record<KeypairType, Parameters<typeof createV4Tx>[5]> = {
 
 const SR_MOCK = "0x" + "0".repeat(128)
 const ECDSA_MOCK = SR_MOCK + "00"
+
+type VerifyMultisignatureSpec = TxArgSpec & {
+  id: "VerifyMultiSignature"
+  params: {
+    extensionVersion?: number
+  }
+}
+export type V5SignerTxCreator = SignerTxCreator<
+  [...CommonEnhancersSpecs, VerifyMultisignatureSpec]
+>
 
 export function getTxCreatorFromPjs(
   address: string,
@@ -131,7 +144,7 @@ export function getAccountTxCreator(
   txCreator: (payload: TxPayloadV1) => Promise<string>,
   signRaw: SignRaw,
   type?: KeypairType,
-): CommonSignerTxCreator {
+): V5SignerTxCreator {
   const signBytes = (data: Uint8Array) =>
     signRaw({
       address,
@@ -139,15 +152,23 @@ export function getAccountTxCreator(
       type: "bytes",
     }).then(({ signature }) => fromHex(signature))
   const publicKey = getPublicKey(address)
-  const creator: TxCreator<[]> = async (payload, _, bindings, mocked) => {
-    if (mocked) {
-      return createMockedExtrinsic(publicKey, payload, bindings, type)
+  const creator: TxCreator<[VerifyMultisignatureSpec]> = async (
+    payload,
+    opts,
+    bindings,
+    mocked,
+  ) => {
+    const mappedPayload = {
+      ...payload,
+      txExtVersion: opts.extensionVersion ?? payload.txExtVersion,
+      signer: address,
     }
 
-    return txCreator({
-      ...payload,
-      signer: address,
-    })
+    if (mocked) {
+      return createMockedExtrinsic(mappedPayload, bindings, type)
+    }
+
+    return txCreator(mappedPayload)
   }
 
   return Object.assign(withNonce(publicKey)(withCommonExtensions(creator)), {
@@ -170,11 +191,11 @@ const MultiSignature = Variant({
 })
 
 const createMockedExtrinsic = async (
-  publicKey: Uint8Array,
-  payload: TxPayloadV1,
+  payload: TxPayloadV1 & { signer: string },
   bindings: TxCreatorBindings,
   type?: KeypairType,
 ) => {
+  const publicKey = getPublicKey(payload.signer)
   const decMeta = unifyMetadata(decAnyMetadata(payload.context.metadata))
   const signature = fromHex(type === "ecdsa" ? ECDSA_MOCK : SR_MOCK)
 
