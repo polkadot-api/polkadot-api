@@ -12,6 +12,7 @@ import {
   startWith,
   take,
   takeUntil,
+  takeWhile,
 } from "rxjs"
 import { BlockInfo } from "./chainHead"
 import { PinnedBlocks, SystemEvent } from "./streams"
@@ -26,7 +27,9 @@ export type AnalyzedBlock = {
       }
     | {
         type: false
-        validity: ResultPayload<any, any> | null // null means that the block was already present when the tx was broadcasted
+        // null means that it's unknown: either the block was already present
+        // when the tx was broadcasted, or it's still being analyzed.
+        validity: ResultPayload<any, any> | null
       }
 }
 
@@ -126,25 +129,94 @@ export const getTrackTx = (
     release(hash)
   }
 
+  /**
+   * Whether the transaction might still make it through a branch other than the
+   * one of `hash`: there's a block that's neither finalized nor pruned,
+   * outside of the lineage of `hash`, where the transaction was either found,
+   * valid, or not known to be invalid (blocks that were already present when we
+   * started tracking).
+   */
+  const hasAlternativeBranch = (
+    hash: HexString,
+    results: Map<HexString, AnalyzedBlock>,
+  ): boolean => {
+    const { blocks, finalized } = blocks$.state
+    const finalizedNumber = blocks.get(finalized)?.number ?? Infinity
+
+    const lineage = new Set<HexString>()
+    let ancestor = blocks.get(hash)
+    while (ancestor && ancestor.number > finalizedNumber) {
+      lineage.add(ancestor.hash)
+      ancestor = blocks.get(ancestor.parent)
+    }
+    const addDescendants = (parent: HexString) =>
+      blocks.get(parent)?.children.forEach((child) => {
+        lineage.add(child)
+        addDescendants(child)
+      })
+    addDescendants(hash)
+
+    for (const block of blocks.values()) {
+      if (
+        block.pruned ||
+        block.number <= finalizedNumber ||
+        lineage.has(block.hash)
+      )
+        continue
+      const found = results.get(block.hash)?.found
+      if (found && (found.type || found.validity?.success !== false))
+        return true
+    }
+    return false
+  }
+
   const findInBranch = (
     hash: HexString,
     tx: Uint8Array,
     alreadyPresent: Set<HexString>,
+    results: Map<HexString, AnalyzedBlock>,
   ): Observable<AnalyzedBlock> =>
     analyzeBlock(hash, tx, alreadyPresent.has(hash)).pipe(
       mergeMap((analyzed) => {
+        results.set(hash, analyzed)
         const { found } = analyzed
-        const isSettled = found.type || found.validity?.success === false
-        if (isSettled) releaseDescendants(hash)
-        return isSettled
-          ? of(analyzed)
-          : blocks$.pipe(
-              whileBlockActive(hash),
-              mergeMap((x) => x.blocks.get(hash)!.children),
-              distinct(),
-              mergeMap((hash) => findInBranch(hash, tx, alreadyPresent)),
-              startWith(analyzed),
-            )
+        const isInvalid = !found.type && found.validity?.success === false
+
+        // A transaction that's invalid in a block can become valid in one of
+        // its descendants (e.g. a later block funds the account that pays the
+        // fees). That will only happen if it's valid in some other branch, as
+        // otherwise it gets dropped from the transaction pools. So we keep
+        // looking in this branch only while there's a competing branch that
+        // keeps the transaction alive.
+        const isSettled =
+          found.type || (isInvalid && !hasAlternativeBranch(hash, results))
+        if (isSettled) {
+          releaseDescendants(hash)
+          return of(analyzed)
+        }
+
+        return blocks$.pipe(
+          whileBlockActive(hash),
+          isInvalid
+            ? takeWhile(() => hasAlternativeBranch(hash, results))
+            : (x) => x,
+          mergeMap((x) => x.blocks.get(hash)!.children),
+          distinct(),
+          mergeMap((child) => {
+            const child$ = findInBranch(child, tx, alreadyPresent, results)
+            // Flag the child as being analyzed, so that the verdict of its
+            // invalid parent is not taken as the one of this branch meanwhile.
+            return isInvalid
+              ? child$.pipe(
+                  startWith<AnalyzedBlock>({
+                    hash: child,
+                    found: { type: false, validity: null },
+                  }),
+                )
+              : child$
+          }),
+          startWith(analyzed),
+        )
       }),
     )
 
@@ -154,7 +226,7 @@ export const getTrackTx = (
       blocks$.pipe(
         take(1),
         mergeMap((x) =>
-          findInBranch(x.finalized, tx, new Set(x.blocks.keys())),
+          findInBranch(x.finalized, tx, new Set(x.blocks.keys()), new Map()),
         ),
       ),
     )
