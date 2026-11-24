@@ -115,10 +115,12 @@ describe("tx", () => {
       })
 
       // Block 3 goes on top of block 1, and takes its transactions from the
-      // pool: `remarkTx` becomes valid on this branch too.
+      // pool of block 1: it has the funding transaction, but not `remarkTx`,
+      // which is still invalid against block 1.
       const block3 = await chain.newBlock({ parent: block1 })
       const block3Body = hex(await client.getBlockBody(block3))
       expect(block3Body).toContain(Binary.toHex(fundingTx))
+      expect(block3Body).not.toContain(Binary.toHex(remarkTx))
 
       // Finalizing block 1, where `remarkTx` is invalid, must not fail the
       // submission: the transaction is valid on its descendants.
@@ -129,7 +131,13 @@ describe("tx", () => {
       await getMacroTask()
       expect(tracked.error).not.toHaveBeenCalled()
 
-      await chain.changeFinalized(block3)
+      // `remarkTx` is valid against block 3, so the pool includes it in block 4.
+      const block4 = await chain.newBlock({ parent: block3 })
+      expect(hex(await client.getBlockBody(block4))).toContain(
+        Binary.toHex(remarkTx),
+      )
+
+      await chain.changeFinalized(block4)
 
       const fundingResult = await firstValueFrom(
         funding.replay$.pipe(filter((evt) => evt.type === "finalized")),
@@ -137,13 +145,10 @@ describe("tx", () => {
       expect(fundingResult.block.hash).toBe(block3)
       expect(fundingResult.ok).toBe(true)
 
-      // If forklift's pool didn't include `remarkTx` in block 3, this won't
-      // complete.
-      expect(block3Body).toContain(Binary.toHex(remarkTx))
       const result = await firstValueFrom(
         tracked.replay$.pipe(filter((evt) => evt.type === "finalized")),
       )
-      expect(result.block.hash).toBe(block3)
+      expect(result.block.hash).toBe(block4)
       expect(result.ok).toBe(true)
       expect(tracked.error).not.toHaveBeenCalled()
     } finally {
